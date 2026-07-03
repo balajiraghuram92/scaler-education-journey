@@ -9,6 +9,7 @@ services:
       - "5000:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=StudyTracker;User Id=sa;Password=YourStrongPassw0rd;TrustServerCertificate=True
     depends_on:
       - sqlserver

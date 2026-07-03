@@ -43,58 +43,115 @@ app.UseCors("AllowVite");
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
-    db.Database.Migrate(); // Ensures the database is created and migrated
 
-    if (!db.Verticals.Any())
+    bool needsRecreate = false;
+    try
     {
-        // Seed Lab Projects
+        needsRecreate = !db.Tasks.Any(t => t.Module != "");
+    }
+    catch
+    {
+        needsRecreate = true;
+    }
+
+    if (needsRecreate)
+    {
+        db.Database.EnsureDeleted();
+        db.Database.EnsureCreated();
+    }
+    else
+    {
+        db.Database.EnsureCreated();
+    }
+
+    // Seed Lab Projects
+    if (!db.Verticals.Any(v => v.Name == "Lab Projects"))
+    {
         var labs = new StudyVertical { Name = "Lab Projects", Description = "Rebuild, Break, Narrate" };
-        labs.Tasks.Add(new StudyTask { Title = "Rebuild Lab A — WMS Defect Detection", IsCompleted = false });
-        labs.Tasks.Add(new StudyTask { Title = "Rebuild Lab B — Unity Localization Platform", IsCompleted = false });
+        labs.Tasks.Add(new StudyTask { Title = "Rebuild Lab A — WMS Defect Detection", IsCompleted = false, Module = "Lab Projects" });
+        labs.Tasks.Add(new StudyTask { Title = "Rebuild Lab B — Unity Localization Platform", IsCompleted = false, Module = "Lab Projects" });
+        db.Verticals.Add(labs);
+    }
 
-        // Seed Azure Certifications
+    // Seed Azure Certifications
+    if (!db.Verticals.Any(v => v.Name == "Azure Certifications"))
+    {
         var azure = new StudyVertical { Name = "Azure Certifications", Description = "Cloud Architecture and AI" };
-        azure.Tasks.Add(new StudyTask { Title = "AI-103 (Apps & Agents) Study & Lab Prep", IsCompleted = false });
-        azure.Tasks.Add(new StudyTask { Title = "AI-200 (Cloud Developer) Practice Exams", IsCompleted = false });
+        azure.Tasks.Add(new StudyTask { Title = "AI-103 (Apps & Agents) Study & Lab Prep", IsCompleted = false, Module = "Azure Certifications" });
+        azure.Tasks.Add(new StudyTask { Title = "AI-200 (Cloud Developer) Practice Exams", IsCompleted = false, Module = "Azure Certifications" });
+        db.Verticals.Add(azure);
+    }
 
-        // Seed FDE Self-Study from markdown file
+    // Seed FDE Self-Study from markdown file
+    if (!db.Verticals.Any(v => v.Name == "FDE Self-Study"))
+    {
         var fde = new StudyVertical { Name = "FDE Self-Study", Description = "Agentic AI Track" };
-        var fdeTasks = ParseFdeTasks("../info/04-fde-curriculum-tracker.md");
+        var fdeTasks = ParseFdeTasks();
         foreach (var task in fdeTasks)
         {
             fde.Tasks.Add(task);
         }
-
-        db.Verticals.AddRange(labs, azure, fde);
-        db.SaveChanges();
+        db.Verticals.Add(fde);
     }
+
+    db.SaveChanges();
 }
 
 // Markdown parser for FDE curriculum tasks
-List<StudyTask> ParseFdeTasks(string markdownPath)
+List<StudyTask> ParseFdeTasks()
 {
     var tasks = new List<StudyTask>();
-    var fullPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, markdownPath));
-    
-    if (File.Exists(fullPath))
+    var dir = AppContext.BaseDirectory;
+    string fullPath = "";
+    while (!string.IsNullOrEmpty(dir))
     {
-        var lines = File.ReadAllLines(fullPath);
-        var taskPattern = new Regex(@"^- \[ \] (.+)$");
-        
-        foreach (var line in lines)
+        var tempPath = Path.Combine(dir, "info", "04-fde-curriculum-tracker.md");
+        if (File.Exists(tempPath))
         {
-            var match = taskPattern.Match(line.Trim());
-            if (match.Success)
+            fullPath = tempPath;
+            break;
+        }
+        var parent = Directory.GetParent(dir);
+        dir = parent?.FullName;
+    }
+
+    if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath))
+    {
+        return tasks;
+    }
+
+    var lines = File.ReadAllLines(fullPath);
+    var headerPattern = new Regex(@"^##\s+(.+)$");
+    var taskPattern = new Regex(@"^- \[([ xX])\]\s+(.+)$");
+
+    string currentModule = "General";
+
+    foreach (var line in lines)
+    {
+        var trimmed = line.Trim();
+        var headerMatch = headerPattern.Match(trimmed);
+        if (headerMatch.Success)
+        {
+            currentModule = headerMatch.Groups[1].Value.Trim();
+            continue;
+        }
+
+        var taskMatch = taskPattern.Match(trimmed);
+        if (taskMatch.Success)
+        {
+            var statusChar = taskMatch.Groups[1].Value;
+            var isCompleted = statusChar.ToLower() == "x";
+            var title = taskMatch.Groups[2].Value.Trim();
+
+            tasks.Add(new StudyTask
             {
-                tasks.Add(new StudyTask 
-                { 
-                    Title = match.Groups[1].Value.Trim(),
-                    IsCompleted = false 
-                });
-            }
+                Title = title,
+                IsCompleted = isCompleted,
+                Module = currentModule
+            });
         }
     }
-    
+
     return tasks;
 }
 
