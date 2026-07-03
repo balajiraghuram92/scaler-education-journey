@@ -10,7 +10,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=StudyTracker;User Id=sa;Password=YourStrongPassw0rd;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=StudyTracker;User Id=sa;Password=Scaler@Course2026;TrustServerCertificate=True
     depends_on:
       - sqlserver
 
@@ -27,7 +27,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrongPassw0rd
+      - SA_PASSWORD=Scaler@Course2026
       - MSSQL_PID=Developer
     ports:
       - "1433:1433"
