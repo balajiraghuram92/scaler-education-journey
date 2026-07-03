@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "mUl6XALdLkLltqojqHzLSjesvbugL2IzIDwMuLXv5u0=",
+  "Source": "StudyTracker.Api",
+  "BasePath": "_content/StudyTracker.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

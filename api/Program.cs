@@ -1,0 +1,123 @@
+using Microsoft.EntityFrameworkCore;
+using StudyTracker.Api.Data;
+using StudyTracker.Api.Models;
+using System.Text.RegularExpressions;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddDbContext<StudyTrackerContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+        ?? "Data Source=studytracker.db";
+    options.UseSqlServer(connectionString);
+});
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVite", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+// Apply CORS
+app.UseCors("AllowVite");
+
+// Apply migrations and seed data
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
+    db.Database.Migrate(); // Ensures the database is created and migrated
+
+    if (!db.Verticals.Any())
+    {
+        // Seed Lab Projects
+        var labs = new StudyVertical { Name = "Lab Projects", Description = "Rebuild, Break, Narrate" };
+        labs.Tasks.Add(new StudyTask { Title = "Rebuild Lab A — WMS Defect Detection", IsCompleted = false });
+        labs.Tasks.Add(new StudyTask { Title = "Rebuild Lab B — Unity Localization Platform", IsCompleted = false });
+
+        // Seed Azure Certifications
+        var azure = new StudyVertical { Name = "Azure Certifications", Description = "Cloud Architecture and AI" };
+        azure.Tasks.Add(new StudyTask { Title = "AI-103 (Apps & Agents) Study & Lab Prep", IsCompleted = false });
+        azure.Tasks.Add(new StudyTask { Title = "AI-200 (Cloud Developer) Practice Exams", IsCompleted = false });
+
+        // Seed FDE Self-Study from markdown file
+        var fde = new StudyVertical { Name = "FDE Self-Study", Description = "Agentic AI Track" };
+        var fdeTasks = ParseFdeTasks("../info/04-fde-curriculum-tracker.md");
+        foreach (var task in fdeTasks)
+        {
+            fde.Tasks.Add(task);
+        }
+
+        db.Verticals.AddRange(labs, azure, fde);
+        db.SaveChanges();
+    }
+}
+
+// Markdown parser for FDE curriculum tasks
+List<StudyTask> ParseFdeTasks(string markdownPath)
+{
+    var tasks = new List<StudyTask>();
+    var fullPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, markdownPath));
+    
+    if (File.Exists(fullPath))
+    {
+        var lines = File.ReadAllLines(fullPath);
+        var taskPattern = new Regex(@"^- \[ \] (.+)$");
+        
+        foreach (var line in lines)
+        {
+            var match = taskPattern.Match(line.Trim());
+            if (match.Success)
+            {
+                tasks.Add(new StudyTask 
+                { 
+                    Title = match.Groups[1].Value.Trim(),
+                    IsCompleted = false 
+                });
+            }
+        }
+    }
+    
+    return tasks;
+}
+
+app.MapGet("/", () => "StudyTracker API is running. Use /swagger for API docs.");
+
+// API Endpoints
+app.MapGet("/api/verticals", async (StudyTrackerContext db) =>
+    await db.Verticals.Include(v => v.Tasks).ToListAsync())
+    .WithName("GetVerticals");
+
+app.MapPut("/api/tasks/{id}/toggle", async (int id, StudyTrackerContext db) =>
+{
+    var task = await db.Tasks.FindAsync(id);
+    if (task == null)
+    {
+        return Results.NotFound();
+    }
+    
+    task.IsCompleted = !task.IsCompleted;
+    await db.SaveChangesAsync();
+    
+    return Results.Ok(task);
+})
+.WithName("ToggleTask");
+
+app.Run();
