@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace StudyTracker.Api.Models;
 
 public class StudyTask
@@ -8,5 +10,6 @@ public class StudyTask
     public bool IsCompleted { get; set; }
     public string Module { get; set; } = string.Empty;
 
+    [JsonIgnore]
     public StudyVertical? Vertical { get; set; }
 }
