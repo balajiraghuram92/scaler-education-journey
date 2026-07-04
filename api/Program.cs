@@ -44,23 +44,11 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
 
-    bool needsRecreate = false;
-    try
-    {
-        needsRecreate = !db.Tasks.Any(t => t.Module != "");
-    }
-    catch
-    {
-        needsRecreate = true;
-    }
-
+    bool needsRecreate = true; // FORCE RECREATE to ensure clean state
+    
     if (needsRecreate)
     {
         db.Database.EnsureDeleted();
-        db.Database.EnsureCreated();
-    }
-    else
-    {
         db.Database.EnsureCreated();
     }
 
@@ -156,6 +144,19 @@ List<StudyTask> ParseFdeTasks()
 }
 
 app.MapGet("/", () => "StudyTracker API is running. Use /swagger for API docs.");
+
+app.MapGet("/api/debug-fde", () => {
+    var dir = AppContext.BaseDirectory;
+    var paths = new List<string>();
+    while (!string.IsNullOrEmpty(dir))
+    {
+        var tempPath = Path.Combine(dir, "info", "04-fde-curriculum-tracker.md");
+        paths.Add($"Checking: {tempPath} - Exists: {File.Exists(tempPath)}");
+        var parent = Directory.GetParent(dir);
+        dir = parent?.FullName;
+    }
+    return paths;
+});
 
 // API Endpoints
 app.MapGet("/api/verticals", async (StudyTrackerContext db) =>
