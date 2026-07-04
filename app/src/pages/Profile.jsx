@@ -1,6 +1,29 @@
-import { User, GitBranch, Award, Terminal, Cpu, ShieldCheck, Zap, Cloud, CheckCircle2, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, GitBranch, Award, Terminal, Cpu, ShieldCheck, Zap, Cloud, CheckCircle2, Sparkles, UploadCloud } from 'lucide-react';
+import MarkdownIngestModal from '../components/MarkdownIngestModal';
 
 export default function Profile() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [verticals, setVerticals] = useState([]);
+
+  const fetchVerticals = () => {
+    fetch('/api/verticals')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) setVerticals(data);
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchVerticals();
+  }, []);
+
+  const handleIngestSuccess = () => {
+    fetchVerticals();
+    window.dispatchEvent(new CustomEvent('verticalsUpdated'));
+  };
+
   const highlightSkills = [
     {
       icon: Cpu,
@@ -116,6 +139,16 @@ export default function Profile() {
             View GitHub
           </a>
 
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setIsModalOpen(true)}
+            style={{ display: 'inline-flex' }}
+          >
+            <UploadCloud size={18} />
+            Ingest Curriculum (.md)
+          </button>
+
           <a
             href="#azure-certifications"
             className="btn btn-primary"
@@ -126,6 +159,15 @@ export default function Profile() {
           </a>
         </div>
       </div>
+
+      {/* Markdown Ingest Modal */}
+      <MarkdownIngestModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleIngestSuccess}
+        verticals={verticals}
+      />
+
 
       {/* Azure Certifications Section */}
       <section id="azure-certifications" className="mt-xl">

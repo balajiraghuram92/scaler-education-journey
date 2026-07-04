@@ -23,6 +23,8 @@
 ## Phase 4: UI Polish & Dynamic Ingestion (Completed)
 - [x] **Sub-task 4.1**: Create Markdown parser to ingest all tasks from `04-fde-curriculum-tracker.md`
 - [x] **Sub-task 4.2**: Implement progress bars and glassmorphic polish on the Vertical Detail view
+- [x] **Sub-task 4.3**: Dynamic Web UI Markdown Ingestion (`POST /api/verticals/ingest` & `MarkdownIngestModal.jsx`)
+- [x] **Sub-task 4.4**: Interactive SPA Dashboard (`Home.jsx`) with Multi-Vertical Aggregated Analytics Banner
 
 ## Phase 5: Dockerization & Azure Deployment
 - [x] **Sub-task 5.1**: Containerize Frontend and Backend (Write `Dockerfile`s & `docker-compose.yml`)
