@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
@@ -25,6 +25,10 @@ function App() {
           }
         />
         <Route
+          path="/certifications"
+          element={<Navigate to="/profile" replace />}
+        />
+        <Route
           path="/vertical/:id"
           element={
             <Layout>
@@ -38,3 +42,4 @@ function App() {
 }
 
 export default App;
+

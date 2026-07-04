@@ -1,5 +1,4 @@
-import { User, GitBranch, Award, Terminal, Cpu, ShieldCheck, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { User, GitBranch, Award, Terminal, Cpu, ShieldCheck, Zap, Cloud, CheckCircle2, Sparkles } from 'lucide-react';
 
 export default function Profile() {
   const highlightSkills = [
@@ -22,6 +21,35 @@ export default function Profile() {
       icon: ShieldCheck,
       title: 'Production Guardrails',
       description: 'Human-in-the-loop validation, strict output constraints, and reliable AI system integration.'
+    }
+  ];
+
+  const azureCertifications = [
+    {
+      code: 'AI-103',
+      title: 'Azure AI Apps and Agents Developer',
+      status: 'Target Timeline: 2026',
+      badge: 'Agentic AI & OpenAI',
+      icon: Sparkles,
+      description: 'Specialized credentials for architecting generative AI solutions, autonomous agent orchestration, custom tooling integration, and RAG systems on Microsoft Azure.',
+      highlights: [
+        'Azure OpenAI Service & Model Routing',
+        'Semantic Kernel & AI Agent Workflows',
+        'Vector Search & Knowledge Indexing'
+      ]
+    },
+    {
+      code: 'AI-200',
+      title: 'Azure AI Cloud Developer',
+      status: 'Target Timeline: 2026',
+      badge: 'Cloud Architecture',
+      icon: Cloud,
+      description: 'Enterprise credentials focusing on end-to-end cloud-native AI engineering, scalable microservice integration, automated CI/CD pipelines, and secure data processing.',
+      highlights: [
+        'Azure App Service & Container Apps',
+        'Enterprise Security & Guardrails',
+        'Scalable API & Microservices'
+      ]
     }
   ];
 
@@ -88,16 +116,115 @@ export default function Profile() {
             View GitHub
           </a>
 
-          <Link
-            to="/certifications"
+          <a
+            href="#azure-certifications"
             className="btn btn-primary"
             style={{ display: 'inline-flex' }}
           >
             <Award size={18} />
-            View Certifications
-          </Link>
+            Azure Certifications
+          </a>
         </div>
       </div>
+
+      {/* Azure Certifications Section */}
+      <section id="azure-certifications" className="mt-xl">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-lg)' }}>
+          <Award size={28} style={{ color: 'var(--accent-cyan)' }} />
+          <h2 className="gradient-text" style={{ fontSize: '1.75rem', margin: 0 }}>
+            Azure Certifications & Cloud Credentials
+          </h2>
+        </div>
+        <div className="grid grid-2">
+          {azureCertifications.map((cert, index) => {
+            const CertIcon = cert.icon;
+            return (
+              <div
+                key={index}
+                className="glass-panel"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--space-md)',
+                  position: 'relative',
+                  borderLeft: '4px solid var(--accent-cyan)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+                    <div
+                      style={{
+                        padding: 'var(--space-xs) var(--space-sm)',
+                        borderRadius: 'var(--radius-sm)',
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        border: '1px solid var(--border-accent)',
+                        color: 'var(--accent-cyan)',
+                        fontWeight: '700',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      {cert.code}
+                    </div>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{cert.badge}</span>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      padding: '0.2rem 0.6rem',
+                      borderRadius: 'var(--radius-full)',
+                      background: 'rgba(123, 47, 247, 0.15)',
+                      border: '1px solid rgba(123, 47, 247, 0.4)',
+                      color: 'var(--accent-purple)',
+                      fontWeight: '600',
+                    }}
+                  >
+                    {cert.status}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-accent)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <CertIcon size={24} style={{ color: 'var(--accent-cyan)' }} />
+                  </div>
+                  <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', margin: 0, lineHeight: 1.3 }}>
+                    {cert.title}
+                  </h3>
+                </div>
+
+                <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.6', flex: 1 }}>
+                  {cert.description}
+                </p>
+
+                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-sm)', marginTop: 'auto' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 'var(--space-xs)', fontWeight: '600' }}>
+                    KEY COMPETENCIES
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {cert.highlights.map((item, idx) => (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        <CheckCircle2 size={14} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Technical Highlights Section */}
       <section className="mt-xl">
@@ -147,3 +274,4 @@ export default function Profile() {
     </div>
   );
 }
+
