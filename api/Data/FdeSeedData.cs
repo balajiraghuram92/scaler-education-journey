@@ -1,7 +1,7 @@
 using StudyTracker.Api.Models;
 using System.Collections.Generic;
 
-namespace StudyTracker.Api.Data;
+namespace StudyTracker.Api.Data
 {
     public static class FdeSeedData
     {
