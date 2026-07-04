@@ -44,13 +44,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
 
-    bool needsRecreate = true; // FORCE RECREATE to ensure clean state
-    
-    if (needsRecreate)
-    {
-        db.Database.EnsureDeleted();
-        db.Database.EnsureCreated();
-    }
+    db.Database.EnsureCreated();
 
     // Seed Lab Projects
     if (!db.Verticals.Any(v => v.Name == "Lab Projects"))
@@ -70,16 +64,21 @@ using (var scope = app.Services.CreateScope())
         db.Verticals.Add(azure);
     }
 
-    // Seed FDE Self-Study from static data
-    if (!db.Verticals.Any(v => v.Name == "FDE Self-Study"))
+    // Seed or Update FDE Self-Study
+    var fde = db.Verticals.Include(v => v.Tasks).FirstOrDefault(v => v.Name == "FDE Self-Study");
+    if (fde == null)
     {
-        var fde = new StudyVertical { Name = "FDE Self-Study", Description = "Agentic AI Track" };
+        fde = new StudyVertical { Name = "FDE Self-Study", Description = "Agentic AI Track" };
+        db.Verticals.Add(fde);
+    }
+
+    if (fde.Tasks.Count == 0)
+    {
         var fdeTasks = FdeSeedData.GetTasks();
         foreach (var task in fdeTasks)
         {
             fde.Tasks.Add(task);
         }
-        db.Verticals.Add(fde);
     }
 
     db.SaveChanges();
