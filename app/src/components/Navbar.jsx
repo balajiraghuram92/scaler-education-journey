@@ -17,8 +17,8 @@ export default function Navbar() {
         flexWrap: 'wrap',
         gap: 'var(--space-md)',
       }}>
-        {/* Brand */}
-        <Link to="/" style={{
+        {/* Brand Link to Profile */}
+        <Link to="/profile" style={{
           display: 'flex',
           alignItems: 'center',
           gap: 'var(--space-sm)',
@@ -37,6 +37,7 @@ export default function Navbar() {
           flexWrap: 'wrap',
         }}>
           <Link to="/" className="nav-link">Home</Link>
+          <Link to="/profile" className="nav-link">Profile</Link>
           <Link to="/projects" className="nav-link">Projects</Link>
           <Link to="/certifications" className="nav-link">Certifications</Link>
           <Link to="/fde-study" className="nav-link">FDE Study</Link>

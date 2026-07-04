@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { User, GitBranch, Award } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import VerticalCard from '../components/VerticalCard';
+import { Compass } from 'lucide-react';
 
 export default function Home() {
   const [verticals, setVerticals] = useState([]);
@@ -29,81 +28,45 @@ export default function Home() {
 
   return (
     <div className="mt-md">
-      {/* Hero Container */}
-      <div className="glass-panel" style={{
-        padding: 'var(--space-3xl)',
-        textAlign: 'center',
-        maxWidth: '900px',
-        margin: '0 auto',
-      }}>
-        {/* Avatar Placeholder */}
-        <div className="glow-effect" style={{
-          width: '140px',
-          height: '140px',
-          borderRadius: '50%',
-          margin: '0 auto var(--space-xl)',
+      {/* Compact Dashboard Header */}
+      <div
+        className="glass-panel mb-xl"
+        style={{
+          padding: 'var(--space-xl)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--bg-tertiary)',
-          border: '2px solid var(--accent-cyan)',
-        }}>
-          <User size={56} style={{ color: 'var(--accent-cyan)' }} />
-        </div>
-
-        {/* Name */}
-        <h1 className="gradient-text" style={{ marginBottom: 'var(--space-sm)' }}>
-          Raghuram Balaji
-        </h1>
-
-        {/* Subtitle */}
-        <h3 className="mb-md" style={{ color: 'var(--accent-cyan)' }}>
-          AI Architect Candidate
-        </h3>
-
-        {/* Professional Summary */}
-        <p style={{
-          fontSize: '1.1rem',
-          lineHeight: '1.8',
-          color: 'var(--text-secondary)',
-          maxWidth: '750px',
-          margin: '0 auto var(--space-xl)',
-        }}>
-          I've spent seven years doing root-cause analysis on the runtime under Unity—the operational excellence half of this role is my day job. In 2018 I built ML-based automation before it was fashionable: a video pipeline feeding a CNN for defect detection inside a supply-chain automation platform. This year I rebuilt my two most relevant systems with the 2026 AI layer—structured LLM ticket triage with guardrails, an eval pipeline, human-in-the-loop review, and hybrid local/cloud model routing.
-        </p>
-
-        {/* Action Buttons */}
-        <div style={{
-          display: 'flex',
           gap: 'var(--space-lg)',
-          justifyContent: 'center',
-          flexWrap: 'wrap',
-        }}>
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-secondary"
-            style={{ display: 'inline-flex' }}
-          >
-            <GitBranch size={18} />
-            View GitHub
-          </a>
-
-          <Link
-            to="/certifications"
-            className="btn btn-primary"
-            style={{ display: 'inline-flex' }}
-          >
-            <Award size={18} />
-            View Certifications
-          </Link>
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0, 240, 255, 0.05))',
+        }}
+      >
+        <div
+          style={{
+            padding: 'var(--space-md)',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--bg-tertiary)',
+            border: '1px solid var(--accent-cyan)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Compass size={32} style={{ color: 'var(--accent-cyan)' }} />
+        </div>
+        <div>
+          <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: 'var(--space-xs)' }}>
+            Study Tracker Dashboard
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', margin: 0 }}>
+            Track progress across Hands-on Labs, Azure Certifications, and FDE Agentic AI Curriculum
+          </p>
         </div>
       </div>
 
-      {/* Study Verticals Grid */}
-      <section className="mt-xl">
-        <h2 className="mb-lg">Study Verticals</h2>
+      {/* Study Verticals Primary Grid */}
+      <section>
+        <h2 className="mb-lg" style={{ fontSize: '1.5rem' }}>
+          Study Verticals
+        </h2>
         {loading ? (
           <p className="text-secondary">Loading verticals...</p>
         ) : (
