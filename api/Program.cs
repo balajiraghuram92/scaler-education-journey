@@ -70,11 +70,11 @@ using (var scope = app.Services.CreateScope())
         db.Verticals.Add(azure);
     }
 
-    // Seed FDE Self-Study from markdown file
+    // Seed FDE Self-Study from static data
     if (!db.Verticals.Any(v => v.Name == "FDE Self-Study"))
     {
         var fde = new StudyVertical { Name = "FDE Self-Study", Description = "Agentic AI Track" };
-        var fdeTasks = ParseFdeTasks();
+        var fdeTasks = FdeSeedData.GetTasks();
         foreach (var task in fdeTasks)
         {
             fde.Tasks.Add(task);
@@ -85,78 +85,7 @@ using (var scope = app.Services.CreateScope())
     db.SaveChanges();
 }
 
-// Markdown parser for FDE curriculum tasks
-List<StudyTask> ParseFdeTasks()
-{
-    var tasks = new List<StudyTask>();
-    var dir = AppContext.BaseDirectory;
-    string fullPath = "";
-    while (!string.IsNullOrEmpty(dir))
-    {
-        var tempPath = Path.Combine(dir, "info", "04-fde-curriculum-tracker.md");
-        if (File.Exists(tempPath))
-        {
-            fullPath = tempPath;
-            break;
-        }
-        var parent = Directory.GetParent(dir);
-        dir = parent?.FullName;
-    }
-
-    if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath))
-    {
-        return tasks;
-    }
-
-    var lines = File.ReadAllLines(fullPath);
-    var headerPattern = new Regex(@"^##\s+(.+)$");
-    var taskPattern = new Regex(@"^- \[([ xX])\]\s+(.+)$");
-
-    string currentModule = "General";
-
-    foreach (var line in lines)
-    {
-        var trimmed = line.Trim();
-        var headerMatch = headerPattern.Match(trimmed);
-        if (headerMatch.Success)
-        {
-            currentModule = headerMatch.Groups[1].Value.Trim();
-            continue;
-        }
-
-        var taskMatch = taskPattern.Match(trimmed);
-        if (taskMatch.Success)
-        {
-            var statusChar = taskMatch.Groups[1].Value;
-            var isCompleted = statusChar.ToLower() == "x";
-            var title = taskMatch.Groups[2].Value.Trim();
-
-            tasks.Add(new StudyTask
-            {
-                Title = title,
-                IsCompleted = isCompleted,
-                Module = currentModule
-            });
-        }
-    }
-
-    return tasks;
-}
-
 app.MapGet("/", () => "StudyTracker API is running. Use /swagger for API docs.");
-
-app.MapGet("/api/debug-fde", () => {
-    var dir = AppContext.BaseDirectory;
-    var paths = new List<string>();
-    while (!string.IsNullOrEmpty(dir))
-    {
-        var tempPath = Path.Combine(dir, "info", "04-fde-curriculum-tracker.md");
-        paths.Add($"Checking: {tempPath} - Exists: {File.Exists(tempPath)}");
-        var parent = Directory.GetParent(dir);
-        dir = parent?.FullName;
-    }
-    return paths;
-});
 
 // API Endpoints
 app.MapGet("/api/verticals", async (StudyTrackerContext db) =>
