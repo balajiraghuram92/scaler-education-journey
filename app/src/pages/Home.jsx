@@ -1,12 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import VerticalCard from '../components/VerticalCard';
-import MarkdownIngestModal from '../components/MarkdownIngestModal';
 import { Compass, Layers, CheckCircle2, Clock, UploadCloud, TrendingUp, Sparkles, RefreshCw } from 'lucide-react';
 
 export default function Home() {
   const [verticals, setVerticals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchVerticals = useCallback(() => {
     setLoading(true);
@@ -92,20 +90,10 @@ export default function Home() {
                 Interactive SPA Dashboard
               </h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', margin: 0 }}>
-                Multi-vertical study metrics & dynamic curriculum ingestion platform
+                Multi-vertical study metrics & dynamic task tracking
               </p>
             </div>
           </div>
-
-          <button
-            type="button"
-            className="btn btn-primary glow-effect"
-            onClick={() => setIsModalOpen(true)}
-            style={{ display: 'inline-flex', gap: 'var(--space-xs)' }}
-          >
-            <UploadCloud size={20} />
-            <span>Ingest Markdown Curriculum</span>
-          </button>
         </div>
 
         {/* Analytics Multi-Metric Display */}
@@ -329,16 +317,9 @@ export default function Home() {
           <div className="glass-panel text-center" style={{ padding: 'var(--space-3xl)' }}>
             <Sparkles size={40} style={{ color: 'var(--accent-cyan)', marginBottom: 'var(--space-md)' }} />
             <h3>No Verticals Found</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)' }}>
-              Get started by ingesting a Markdown curriculum or creating a vertical!
+            <p style={{ color: 'var(--text-secondary)' }}>
+              Get started by adding a vertical from the Lessons dropdown!
             </p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="btn btn-primary"
-            >
-              <UploadCloud size={18} />
-              Ingest First Curriculum
-            </button>
           </div>
         ) : (
           <div className="grid grid-3">
@@ -355,14 +336,6 @@ export default function Home() {
           </div>
         )}
       </section>
-
-      {/* Markdown Ingest Modal */}
-      <MarkdownIngestModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchVerticals}
-        verticals={verticals}
-      />
     </div>
   );
 }

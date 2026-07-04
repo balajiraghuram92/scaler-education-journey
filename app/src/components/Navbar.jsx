@@ -202,20 +202,33 @@ export default function Navbar() {
                       <div className="dropdown-item-desc">Agentic AI Curriculum Track</div>
                     </div>
                   </Link>
+                  <button
+                    type="button"
+                    className="nav-dropdown-item"
+                    onClick={() => {
+                      setOpenDropdown(null);
+                      setIsModalOpen(true);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      width: '100%',
+                      textAlign: 'left',
+                      fontFamily: 'inherit',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div className="dropdown-item-icon">
+                      <UploadCloud size={18} />
+                    </div>
+                    <div>
+                      <div className="dropdown-item-title">Add Vertical</div>
+                      <div className="dropdown-item-desc">Import from Markdown</div>
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
-
-            {/* Ingest Markdown Action Button */}
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setIsModalOpen(true)}
-              style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-            >
-              <UploadCloud size={16} />
-              <span>Ingest .md</span>
-            </button>
           </div>
         </div>
       </nav>

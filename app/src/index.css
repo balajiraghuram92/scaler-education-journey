@@ -837,9 +837,15 @@ a:hover {
   transform: rotate(180deg);
 }
 
+.nav-dropdown-wrapper {
+  position: relative;
+  padding-bottom: 16px;
+  margin-bottom: -16px;
+}
+
 .nav-dropdown-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: 100%;
   left: 0;
   min-width: 240px;
   background: rgba(18, 18, 26, 0.95);
@@ -852,6 +858,8 @@ a:hover {
   z-index: 1050;
   animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+
 
 @keyframes dropdownFadeIn {
   from {
