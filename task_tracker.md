@@ -28,5 +28,5 @@
 
 ## Phase 5: Dockerization & Azure Deployment
 - [x] **Sub-task 5.1**: Containerize Frontend and Backend (Write `Dockerfile`s & `docker-compose.yml`)
-- [ ] **Sub-task 5.2**: Azure Frontend: Deploy React App to **Azure Static Web Apps**
-- [ ] **Sub-task 5.3**: Azure Backend: Deploy ASP.NET Core API to **Azure App Service** (Free Tier)
+- [x] **Sub-task 5.2**: Azure Frontend: Deploy React App to **Azure Static Web Apps**
+- [x] **Sub-task 5.3**: Azure Backend: Deploy ASP.NET Core API to **Azure App Service** (Free Tier)
