@@ -32,6 +32,6 @@
 - [x] **Sub-task 5.3**: Azure Backend: Deploy ASP.NET Core API to **Azure App Service** (Free Tier)
 
 ## Phase 6: Serverless Architecture (Azure Container Apps)
-- [ ] **Sub-task 6.1**: Create an Azure Container Registry (ACR) to host the backend Docker Image.
-- [ ] **Sub-task 6.2**: Update GitHub Actions to build and push the Docker container to ACR.
-- [ ] **Sub-task 6.3**: Deploy the backend to Azure Container Apps (Serverless, $0/month) and configure environment variables.
+- [x] **Sub-task 6.1**: Update GitHub Actions to build and push the Docker container to **GitHub Container Registry (GHCR)** (Free).
+- [ ] **Sub-task 6.2**: Deploy the backend to Azure Container Apps (Serverless, $0/month).
+- [ ] **Sub-task 6.3**: Configure Azure Container App environment variables for passwordless SQL connection.
