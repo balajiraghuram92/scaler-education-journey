@@ -13,7 +13,7 @@ export default function Navbar() {
   const navRef = useRef(null);
 
   const fetchVerticals = useCallback(() => {
-    fetch('/api/verticals')
+    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) {

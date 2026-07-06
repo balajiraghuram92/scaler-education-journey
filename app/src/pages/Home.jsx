@@ -8,7 +8,7 @@ export default function Home() {
 
   const fetchVerticals = useCallback(() => {
     setLoading(true);
-    fetch('/api/verticals')
+    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {

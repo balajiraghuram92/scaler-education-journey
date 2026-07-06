@@ -5,7 +5,7 @@ export default function Profile() {
   const [verticals, setVerticals] = useState([]);
 
   const fetchVerticals = () => {
-    fetch('/api/verticals')
+    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) setVerticals(data);

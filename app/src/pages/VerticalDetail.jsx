@@ -9,7 +9,7 @@ export default function VerticalDetail() {
   const [activeModule, setActiveModule] = useState(null);
 
   useEffect(() => {
-    fetch('/api/verticals')
+    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`)
       .then(res => res.json())
       .then(data => {
         const found = data.find(v => v.id === parseInt(id));
@@ -30,7 +30,7 @@ export default function VerticalDetail() {
 
   const toggleTask = async (taskId) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/toggle`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/tasks/${taskId}/toggle`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
       });
