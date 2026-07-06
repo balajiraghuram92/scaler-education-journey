@@ -30,3 +30,8 @@
 - [x] **Sub-task 5.1**: Containerize Frontend and Backend (Write `Dockerfile`s & `docker-compose.yml`)
 - [x] **Sub-task 5.2**: Azure Frontend: Deploy React App to **Azure Static Web Apps**
 - [x] **Sub-task 5.3**: Azure Backend: Deploy ASP.NET Core API to **Azure App Service** (Free Tier)
+
+## Phase 6: Serverless Architecture (Azure Container Apps)
+- [ ] **Sub-task 6.1**: Create an Azure Container Registry (ACR) to host the backend Docker Image.
+- [ ] **Sub-task 6.2**: Update GitHub Actions to build and push the Docker container to ACR.
+- [ ] **Sub-task 6.3**: Deploy the backend to Azure Container Apps (Serverless, $0/month) and configure environment variables.
