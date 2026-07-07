@@ -123,7 +123,7 @@ export default function VerticalDetail() {
                   <span className="text-muted" style={{ fontSize: '0.85rem' }}>Completed classes</span>
                 </div>
                 <div className="glass-panel" style={{ padding: 'var(--space-sm) var(--space-md)', flex: 1, textAlign: 'center' }}>
-                  <h3 style={{ color: 'var(--accent-emerald)' }}>{totalTasks - completedTasks}</h3>
+                  <h3 style={{ color: 'var(--accent-teal)' }}>{totalTasks - completedTasks}</h3>
                   <span className="text-muted" style={{ fontSize: '0.85rem' }}>Pending classes</span>
                 </div>
               </div>
@@ -134,8 +134,8 @@ export default function VerticalDetail() {
                 <svg className="circular-progress-svg" viewBox="0 0 100 100">
                   <defs>
                     <linearGradient id="cyan-purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="var(--accent-cyan)" />
-                      <stop offset="100%" stopColor="var(--accent-purple)" />
+                      <stop offset="0%" stopColor="var(--accent-navy)" />
+                      <stop offset="100%" stopColor="var(--accent-teal)" />
                     </linearGradient>
                   </defs>
                   <circle className="circular-progress-bg" cx="50" cy="50" r="42" />
@@ -158,7 +158,7 @@ export default function VerticalDetail() {
           {/* Modules Grid */}
           <div>
             <h2 className="mb-md" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-              <LayoutGrid size={22} style={{ color: 'var(--accent-cyan)' }} /> Specializations
+              <LayoutGrid size={22} style={{ color: 'var(--accent-navy)' }} /> Specializations
             </h2>
             <div className="modules-grid">
               {modules.map((mod, i) => (
@@ -177,10 +177,10 @@ export default function VerticalDetail() {
                     </span>
                     <div className="module-card__mini-ring">
                       <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-                        <circle fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3" cx="18" cy="18" r="14" />
+                        <circle fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="3" cx="18" cy="18" r="14" />
                         <circle
                           fill="none"
-                          stroke={mod.progress === 100 ? 'var(--accent-emerald)' : 'var(--accent-cyan)'}
+                          stroke={mod.progress === 100 ? 'var(--accent-teal)' : 'var(--accent-navy)'}
                           strokeWidth="3"
                           strokeLinecap="round"
                           cx="18"
@@ -225,7 +225,7 @@ export default function VerticalDetail() {
                     onClick={() => toggleTask(task.id)}
                   >
                     <div className="drawer-task-row__checkbox">
-                      {task.isCompleted && <CheckCircle2 size={16} style={{ color: '#0a0a0f' }} />}
+                      {task.isCompleted && <CheckCircle2 size={16} style={{ color: '#ffffff' }} />}
                     </div>
                     <span className="drawer-task-row__title">{task.title}</span>
                     <ChevronRight size={18} className="opacity-50" />

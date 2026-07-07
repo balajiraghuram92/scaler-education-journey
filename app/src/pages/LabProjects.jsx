@@ -22,13 +22,13 @@ export default function LabProjects() {
 
         <div className="projects-grid">
           {/* Project 1 Card */}
-          <div className="project-card cyan">
+          <div className="project-card teal">
             <div className="card-bg-icon">
               <Briefcase size={160} />
             </div>
             
             <div className="card-header">
-              <div className="icon-wrapper cyan">
+              <div className="icon-wrapper teal">
                 <Server size={28} />
               </div>
               <h3 className="card-title">Cloud SaaS Localization</h3>

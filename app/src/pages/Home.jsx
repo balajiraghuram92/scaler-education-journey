@@ -67,13 +67,13 @@ export default function Home() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div className="neon-icon-box">
-              <Compass size={32} style={{ color: '#00f2fe' }} />
+              <Compass size={32} style={{ color: '#0369a1' }} />
             </div>
             <div>
               <h1 className="ai-gradient-text" style={{ fontSize: '2.2rem', margin: 0 }}>
                 Interactive AI Dashboard
               </h1>
-              <p style={{ color: '#94a3b8', fontSize: '1.05rem', margin: '0.25rem 0 0' }}>
+              <p style={{ color: '#64748b', fontSize: '1.05rem', margin: '0.25rem 0 0' }}>
                 Multi-vertical study metrics & dynamic task tracking
               </p>
             </div>
@@ -87,7 +87,7 @@ export default function Home() {
           <div className="ai-stat-card">
             <div style={{ position: 'relative', width: '90px', height: '90px', flexShrink: 0 }}>
               <svg width="90" height="90" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="50" cy="50" r={radius} fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="8" />
+                <circle cx="50" cy="50" r={radius} fill="none" stroke="rgba(0, 0, 0, 0.05)" strokeWidth="8" />
                 <circle
                   cx="50" cy="50" r={radius} fill="none"
                   stroke="url(#dashboard-cyan-gradient)"
@@ -96,17 +96,17 @@ export default function Home() {
                 />
                 <defs>
                   <linearGradient id="dashboard-cyan-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00f2fe" />
-                    <stop offset="100%" stopColor="#4facfe" />
+                    <stop offset="0%" stopColor="#0369a1" />
+                    <stop offset="100%" stopColor="#0d9488" />
                   </linearGradient>
                 </defs>
               </svg>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 800, fontSize: '1.2rem', color: '#fff' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 800, fontSize: '1.2rem', color: '#0f172a' }}>
                 {overallProgress}%
               </div>
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#00f2fe', fontWeight: 700, textTransform: 'uppercase' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#0369a1', fontWeight: 700, textTransform: 'uppercase' }}>
                 <TrendingUp size={14} />
                 <span>Overall Mastery</span>
               </div>
@@ -118,7 +118,7 @@ export default function Home() {
           {/* Stat Counter 1: Active Verticals */}
           <div className="ai-stat-card">
             <div className="neon-icon-box">
-              <Layers size={28} style={{ color: '#00f2fe' }} />
+              <Layers size={28} style={{ color: '#0369a1' }} />
             </div>
             <div>
               <div className="ai-stat-value">{totalVerticals}</div>
@@ -129,7 +129,7 @@ export default function Home() {
           {/* Stat Counter 2: Completed Lessons */}
           <div className="ai-stat-card">
             <div className="neon-icon-box emerald">
-              <CheckCircle2 size={28} style={{ color: '#10b981' }} />
+              <CheckCircle2 size={28} style={{ color: '#059669' }} />
             </div>
             <div>
               <div className="ai-stat-value">{totalCompleted}</div>
@@ -140,7 +140,7 @@ export default function Home() {
           {/* Stat Counter 3: Pending Tasks */}
           <div className="ai-stat-card">
             <div className="neon-icon-box purple">
-              <Clock size={28} style={{ color: '#a855f7' }} />
+              <Clock size={28} style={{ color: '#4338ca' }} />
             </div>
             <div>
               <div className="ai-stat-value">{pendingTasks}</div>
@@ -157,7 +157,7 @@ export default function Home() {
             <h2 className="ai-gradient-text" style={{ fontSize: '1.8rem', margin: 0 }}>
               Study Verticals
             </h2>
-            <p style={{ color: '#94a3b8', fontSize: '1rem', margin: '0.25rem 0 0' }}>
+            <p style={{ color: '#64748b', fontSize: '1rem', margin: '0.25rem 0 0' }}>
               Curated architectural tracks & hands-on engineering lab modules
             </p>
           </div>
@@ -168,15 +168,15 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
-            <RefreshCw size={40} className="ai-spin" style={{ margin: '0 auto', color: '#00f2fe', marginBottom: '1rem' }} />
+          <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+            <RefreshCw size={40} className="ai-spin" style={{ margin: '0 auto', color: '#0369a1', marginBottom: '1rem' }} />
             <p>Syncing neural pathways...</p>
           </div>
         ) : verticals.length === 0 ? (
           <div className="ai-glass-panel" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-            <Sparkles size={48} style={{ color: '#00f2fe', margin: '0 auto 1.5rem' }} />
-            <h3 style={{ fontSize: '1.5rem', color: '#fff', marginBottom: '0.5rem' }}>No Data Feeds Found</h3>
-            <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
+            <Sparkles size={48} style={{ color: '#0369a1', margin: '0 auto 1.5rem' }} />
+            <h3 style={{ fontSize: '1.5rem', color: '#0f172a', marginBottom: '0.5rem' }}>No Data Feeds Found</h3>
+            <p style={{ color: '#64748b', fontSize: '1.1rem' }}>
               Initialize by adding a vertical from the command center dropdown.
             </p>
           </div>

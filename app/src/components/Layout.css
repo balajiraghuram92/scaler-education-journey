@@ -2,15 +2,15 @@
   min-height: 100vh;
   position: relative;
   overflow: hidden;
-  background-color: #030712; /* Deep dark background */
-  color: #f3f4f6;
+  background-color: #f8f9fa; /* Deep dark background */
+  color: #1e293b;
 }
 
 .ai-bg-orb {
   position: absolute;
   border-radius: 50%;
   filter: blur(100px);
-  opacity: 0.4;
+  opacity: 0.6;
   z-index: 0;
   animation: orb-float 20s infinite ease-in-out;
   pointer-events: none;
@@ -21,7 +21,7 @@
   height: 40vw;
   max-width: 500px;
   max-height: 500px;
-  background: radial-gradient(circle, #06b6d4, #0891b2, transparent);
+  background: radial-gradient(circle, #bae6fd, #e0f2fe, transparent);
   top: -10%;
   left: -10%;
   animation-delay: 0s;
@@ -32,7 +32,7 @@
   height: 50vw;
   max-width: 600px;
   max-height: 600px;
-  background: radial-gradient(circle, #8b5cf6, #7c3aed, transparent);
+  background: radial-gradient(circle, #fde68a, #fef3c7, transparent);
   bottom: -20%;
   right: -10%;
   animation-delay: -5s;
@@ -43,7 +43,7 @@
   height: 30vw;
   max-width: 400px;
   max-height: 400px;
-  background: radial-gradient(circle, #10b981, #059669, transparent);
+  background: radial-gradient(circle, #a7f3d0, #d1fae5, transparent);
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
