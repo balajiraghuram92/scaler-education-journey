@@ -1,18 +1,19 @@
 import Navbar from './Navbar';
+import './Layout.css';
 
 export default function Layout({ children }) {
   return (
-    <div style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+    <div className="layout-container">
       {/* Ambient Background Orbs */}
-      <div className="bg-orb bg-orb--cyan" />
-      <div className="bg-orb bg-orb--purple" />
-      <div className="bg-orb bg-orb--emerald" />
+      <div className="ai-bg-orb ai-bg-orb--cyan" />
+      <div className="ai-bg-orb ai-bg-orb--purple" />
+      <div className="ai-bg-orb ai-bg-orb--emerald" />
 
       {/* Navbar */}
       <Navbar />
 
       {/* Main Content */}
-      <main className="container mt-xl" style={{ position: 'relative', zIndex: 1 }}>
+      <main className="container mt-xl layout-main-content" style={{ position: 'relative', zIndex: 1 }}>
         {children}
       </main>
     </div>

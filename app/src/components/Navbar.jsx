@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Hexagon, FolderGit2, BookOpen, ChevronDown, Server, BrainCircuit, Home as HomeIcon, UploadCloud } from 'lucide-react';
 import MarkdownIngestModal from './MarkdownIngestModal';
+import './Navbar.css';
 
 export default function Navbar() {
   const [verticals, setVerticals] = useState([]);
@@ -75,160 +76,105 @@ export default function Navbar() {
 
   return (
     <>
-      <nav
-        ref={navRef}
-        className="glass-panel"
-        style={{
-          position: 'sticky',
-          top: '1rem',
-          margin: '0 auto var(--space-lg)',
-          maxWidth: '1200px',
-          zIndex: 1000,
-          overflow: 'visible',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 'var(--space-md)',
-          }}
-        >
-          {/* Top Left Brand Link to Profile */}
-          <Link
-            to="/profile"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-sm)',
-              textDecoration: 'none',
-            }}
-          >
-            <Hexagon size={28} style={{ color: 'var(--accent-cyan)' }} />
-            <span className="gradient-text" style={{ fontSize: '1.25rem' }}>
-              Raghuram Balaji
-            </span>
+      <nav ref={navRef} className="ai-navbar">
+        <Link to="/profile" className="ai-nav-brand">
+          <Hexagon size={28} className="brand-icon" />
+          <span className="ai-nav-brand-text">Raghuram Balaji</span>
+        </Link>
+
+        <div className="ai-nav-links">
+          {/* Home */}
+          <Link to="/" className={`ai-nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+            <HomeIcon size={16} />
+            <span>Home</span>
           </Link>
 
-          {/* Navigation Links */}
+          {/* Projects Dropdown */}
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-md)',
-            }}
+            className="ai-nav-dropdown-wrapper"
+            onMouseEnter={() => handleMouseEnter('projects')}
+            onMouseLeave={handleMouseLeave}
           >
-            {/* Home */}
-            <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
-              <HomeIcon size={16} />
-              <span>Home</span>
-            </Link>
-
-            {/* Projects Dropdown */}
-            <div
-              className="nav-dropdown-wrapper"
-              onMouseEnter={() => handleMouseEnter('projects')}
-              onMouseLeave={handleMouseLeave}
-              style={{ position: 'relative' }}
+            <button
+              type="button"
+              onClick={() => toggleDropdown('projects')}
+              className={`ai-nav-link ${openDropdown === 'projects' || location.pathname === '/lab-projects' ? 'active' : ''}`}
+              aria-expanded={openDropdown === 'projects'}
             >
-              <button
-                type="button"
-                onClick={() => toggleDropdown('projects')}
-                className={`nav-dropdown-btn ${openDropdown === 'projects' || location.pathname.startsWith('/vertical/1') ? 'active' : ''}`}
-                aria-expanded={openDropdown === 'projects'}
-              >
-                <FolderGit2 size={16} />
-                <span>Projects</span>
-                <ChevronDown
-                  size={14}
-                  className={`dropdown-chevron ${openDropdown === 'projects' ? 'open' : ''}`}
-                />
-              </button>
+              <FolderGit2 size={16} />
+              <span>Projects</span>
+              <ChevronDown size={14} className={`ai-dropdown-chevron ${openDropdown === 'projects' ? 'open' : ''}`} />
+            </button>
 
-              {openDropdown === 'projects' && (
-                <div className="nav-dropdown-menu">
-                  <Link
-                    to={`/vertical/${labId}`}
-                    className="nav-dropdown-item"
-                    onClick={() => setOpenDropdown(null)}
-                  >
-                    <div className="dropdown-item-icon">
-                      <Server size={18} />
-                    </div>
-                    <div>
-                      <div className="dropdown-item-title">Lab Projects</div>
-                      <div className="dropdown-item-desc">Rebuild, Break, Narrate</div>
-                    </div>
-                  </Link>
-                </div>
-              )}
-            </div>
+            {openDropdown === 'projects' && (
+              <div className="ai-nav-dropdown-menu">
+                <Link
+                  to="/lab-projects"
+                  className="ai-dropdown-item"
+                  onClick={() => setOpenDropdown(null)}
+                >
+                  <div className="ai-dropdown-item-icon">
+                    <Server size={18} />
+                  </div>
+                  <div>
+                    <div className="ai-dropdown-item-title">Lab Projects</div>
+                    <div className="ai-dropdown-item-desc">Rebuild, Break, Narrate</div>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
 
-            {/* Lessons Dropdown */}
-            <div
-              className="nav-dropdown-wrapper"
-              onMouseEnter={() => handleMouseEnter('lessons')}
-              onMouseLeave={handleMouseLeave}
-              style={{ position: 'relative' }}
+          {/* Lessons Dropdown */}
+          <div
+            className="ai-nav-dropdown-wrapper"
+            onMouseEnter={() => handleMouseEnter('lessons')}
+            onMouseLeave={handleMouseLeave}
+          >
+            <button
+              type="button"
+              onClick={() => toggleDropdown('lessons')}
+              className={`ai-nav-link ${openDropdown === 'lessons' || location.pathname.startsWith(`/vertical/${fdeId}`) ? 'active' : ''}`}
+              aria-expanded={openDropdown === 'lessons'}
             >
-              <button
-                type="button"
-                onClick={() => toggleDropdown('lessons')}
-                className={`nav-dropdown-btn ${openDropdown === 'lessons' || location.pathname.startsWith('/vertical/3') ? 'active' : ''}`}
-                aria-expanded={openDropdown === 'lessons'}
-              >
-                <BookOpen size={16} />
-                <span>Lessons</span>
-                <ChevronDown
-                  size={14}
-                  className={`dropdown-chevron ${openDropdown === 'lessons' ? 'open' : ''}`}
-                />
-              </button>
+              <BookOpen size={16} />
+              <span>Lessons</span>
+              <ChevronDown size={14} className={`ai-dropdown-chevron ${openDropdown === 'lessons' ? 'open' : ''}`} />
+            </button>
 
-              {openDropdown === 'lessons' && (
-                <div className="nav-dropdown-menu">
-                  <Link
-                    to={`/vertical/${fdeId}`}
-                    className="nav-dropdown-item"
-                    onClick={() => setOpenDropdown(null)}
-                  >
-                    <div className="dropdown-item-icon">
-                      <BrainCircuit size={18} />
-                    </div>
-                    <div>
-                      <div className="dropdown-item-title">FDE Self-Study</div>
-                      <div className="dropdown-item-desc">Agentic AI Curriculum Track</div>
-                    </div>
-                  </Link>
-                  <button
-                    type="button"
-                    className="nav-dropdown-item"
-                    onClick={() => {
-                      setOpenDropdown(null);
-                      setIsModalOpen(true);
-                    }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      width: '100%',
-                      textAlign: 'left',
-                      fontFamily: 'inherit',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <div className="dropdown-item-icon">
-                      <UploadCloud size={18} />
-                    </div>
-                    <div>
-                      <div className="dropdown-item-title">Add Vertical</div>
-                      <div className="dropdown-item-desc">Import from Markdown</div>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
+            {openDropdown === 'lessons' && (
+              <div className="ai-nav-dropdown-menu">
+                <Link
+                  to={`/vertical/${fdeId}`}
+                  className="ai-dropdown-item"
+                  onClick={() => setOpenDropdown(null)}
+                >
+                  <div className="ai-dropdown-item-icon">
+                    <BrainCircuit size={18} />
+                  </div>
+                  <div>
+                    <div className="ai-dropdown-item-title">FDE Self-Study</div>
+                    <div className="ai-dropdown-item-desc">Agentic AI Curriculum Track</div>
+                  </div>
+                </Link>
+                <button
+                  type="button"
+                  className="ai-dropdown-item"
+                  onClick={() => {
+                    setOpenDropdown(null);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <div className="ai-dropdown-item-icon">
+                    <UploadCloud size={18} />
+                  </div>
+                  <div>
+                    <div className="ai-dropdown-item-title">Add Vertical</div>
+                    <div className="ai-dropdown-item-desc">Import from Markdown</div>
+                  </div>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -243,5 +189,3 @@ export default function Navbar() {
     </>
   );
 }
-
-

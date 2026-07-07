@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { BookOpen, Award, CheckCircle2, ChevronRight, LayoutGrid } from 'lucide-react';
+import './VerticalDetail.css';
 
 export default function VerticalDetail() {
   const { id } = useParams();
@@ -15,8 +16,9 @@ export default function VerticalDetail() {
         const found = data.find(v => v.id === parseInt(id));
         setVertical(found);
 
-        // Default active module to first module for FDE track
-        if (found && found.name === "FDE Self-Study" && found.tasks.length > 0) {
+        // Default active module to first module for modular tracks
+        const isModular = found && (found.layoutMode === "Modular" || (found.tasks && found.tasks.some(t => t.module && t.module !== "General" && t.module !== "Flat")));
+        if (found && isModular && found.tasks.length > 0) {
           const firstMod = found.tasks[0].module || "Prerequisite: Agentic AI Core";
           setActiveModule(firstMod);
         }
@@ -57,8 +59,8 @@ export default function VerticalDetail() {
   const completedTasks = vertical.tasks.filter(t => t.isCompleted).length;
   const overallProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-  // Custom logic for FDE Track Dashboard
-  if (vertical.name === "FDE Self-Study") {
+  const isModular = vertical.layoutMode === "Modular" || (vertical.tasks && vertical.tasks.some(t => t.module && t.module !== "General" && t.module !== "Flat"));
+  if (isModular) {
     // Group tasks by module
     const modulesMap = {};
     vertical.tasks.forEach(task => {
