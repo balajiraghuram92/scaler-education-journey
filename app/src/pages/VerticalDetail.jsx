@@ -15,8 +15,8 @@ export default function VerticalDetail() {
         const found = data.find(v => v.id === parseInt(id));
         setVertical(found);
 
-        // Default active module to first module for FDE track
-        if (found && (found.name === "FDE Self-Study" || found.name === "FDE Curriculum") && found.tasks.length > 0) {
+        // Default active module to first module for modular tracks
+        if (found && found.layoutMode === "Modular" && found.tasks.length > 0) {
           const firstMod = found.tasks[0].module || "Prerequisite: Agentic AI Core";
           setActiveModule(firstMod);
         }
@@ -57,8 +57,8 @@ export default function VerticalDetail() {
   const completedTasks = vertical.tasks.filter(t => t.isCompleted).length;
   const overallProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-  // Custom logic for FDE Track Dashboard
-  if (vertical.name === "FDE Self-Study" || vertical.name === "FDE Curriculum") {
+  // Dynamic layout selection based on backend model
+  if (vertical.layoutMode === "Modular") {
     // Group tasks by module
     const modulesMap = {};
     vertical.tasks.forEach(task => {
