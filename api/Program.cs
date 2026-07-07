@@ -53,11 +53,11 @@ if (args.Contains("--seed"))
     return; // Exit script after seeding
 }
 
-// Apply schema migrations (usual way) on startup
+// Apply schema creation on startup (since Migrations folder is not committed)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
-    db.Database.Migrate();
+    db.Database.EnsureCreated();
 }
 
 app.MapGet("/", () => "StudyTracker API is running. Use /swagger for API docs.");
