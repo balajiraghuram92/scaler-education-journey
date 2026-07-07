@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { BookOpen, Award, CheckCircle2, ChevronRight, LayoutGrid } from 'lucide-react';
+import './VerticalDetail.css';
 
 export default function VerticalDetail() {
   const { id } = useParams();
