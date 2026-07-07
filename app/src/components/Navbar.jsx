@@ -136,7 +136,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => toggleDropdown('projects')}
-                className={`nav-dropdown-btn ${openDropdown === 'projects' || location.pathname.startsWith('/vertical/1') ? 'active' : ''}`}
+                className={`nav-dropdown-btn ${openDropdown === 'projects' || location.pathname === '/lab-projects' ? 'active' : ''}`}
                 aria-expanded={openDropdown === 'projects'}
               >
                 <FolderGit2 size={16} />
@@ -150,7 +150,7 @@ export default function Navbar() {
               {openDropdown === 'projects' && (
                 <div className="nav-dropdown-menu">
                   <Link
-                    to={`/vertical/${labId}`}
+                    to="/lab-projects"
                     className="nav-dropdown-item"
                     onClick={() => setOpenDropdown(null)}
                   >

@@ -16,7 +16,8 @@ export default function VerticalDetail() {
         setVertical(found);
 
         // Default active module to first module for modular tracks
-        if (found && found.layoutMode === "Modular" && found.tasks.length > 0) {
+        const isModular = found && (found.layoutMode === "Modular" || (found.tasks && found.tasks.some(t => t.module && t.module !== "General" && t.module !== "Flat")));
+        if (found && isModular && found.tasks.length > 0) {
           const firstMod = found.tasks[0].module || "Prerequisite: Agentic AI Core";
           setActiveModule(firstMod);
         }
@@ -57,8 +58,8 @@ export default function VerticalDetail() {
   const completedTasks = vertical.tasks.filter(t => t.isCompleted).length;
   const overallProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-  // Dynamic layout selection based on backend model
-  if (vertical.layoutMode === "Modular") {
+  const isModular = vertical.layoutMode === "Modular" || (vertical.tasks && vertical.tasks.some(t => t.module && t.module !== "General" && t.module !== "Flat"));
+  if (isModular) {
     // Group tasks by module
     const modulesMap = {};
     vertical.tasks.forEach(task => {

@@ -12,5 +12,9 @@ public class StudyVertical
     public ICollection<StudyTask> Tasks { get; set; } = new List<StudyTask>();
 
     [NotMapped]
-    public string LayoutMode => Tasks != null && Tasks.Any(t => !string.IsNullOrEmpty(t.Module) && t.Module != "General") ? "Modular" : "Flat";
+    public string LayoutMode
+    {
+        get => Tasks != null && Tasks.Any(t => !string.IsNullOrEmpty(t.Module) && t.Module != "General") ? "Modular" : "Flat";
+        set { }
+    }
 }
