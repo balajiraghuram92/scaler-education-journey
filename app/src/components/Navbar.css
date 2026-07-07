@@ -101,6 +101,16 @@
   transform-origin: top;
 }
 
+/* Invisible bridge to prevent hover loss between button and menu */
+.ai-nav-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -1.5rem;
+  left: 0;
+  width: 100%;
+  height: 1.5rem;
+}
+
 @keyframes slide-up {
   from {
     opacity: 0;
