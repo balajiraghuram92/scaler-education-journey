@@ -52,6 +52,33 @@ if (app.Environment.IsDevelopment())
 // Apply CORS
 app.UseCors("AllowVite");
 
+// Apply API Key security
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/swagger") || context.Request.Method == "OPTIONS")
+    {
+        await next(context);
+        return;
+    }
+
+    var expectedApiKey = builder.Configuration["api_key"];
+    if (string.IsNullOrWhiteSpace(expectedApiKey))
+    {
+        // If no API key is configured in Azure, allow the request to prevent lock-out during testing
+        await next(context);
+        return;
+    }
+
+    if (!context.Request.Headers.TryGetValue("x-api-key", out var extractedApiKey) || extractedApiKey != expectedApiKey)
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync("Unauthorized: Invalid or missing API Key.");
+        return;
+    }
+
+    await next(context);
+});
+
 // Check if running as a separate script to populate data
 if (args.Contains("--seed"))
 {

@@ -122,7 +122,10 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
     try {
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals/ingest`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_API_KEY || ''
+        },
         body: JSON.stringify(payload)
       });
 

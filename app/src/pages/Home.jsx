@@ -10,7 +10,11 @@ export default function Home() {
 
   const fetchVerticals = useCallback(() => {
     setLoading(true);
-    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`)
+    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`, {
+      headers: {
+        'x-api-key': import.meta.env.VITE_API_KEY || ''
+      }
+    })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
