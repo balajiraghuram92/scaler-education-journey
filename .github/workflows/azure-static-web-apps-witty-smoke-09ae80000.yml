@@ -34,7 +34,7 @@ jobs:
           ###### End of Repository/Build Configurations ######
         env:
           VITE_API_BASE_URL: https://test-dotnetcore-backend.victoriouswater-ad59b90a.centralindia.azurecontainerapps.io
-
+          VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
