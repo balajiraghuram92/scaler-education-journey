@@ -33,5 +33,12 @@
 
 ## Phase 6: Serverless Architecture (Azure Container Apps)
 - [x] **Sub-task 6.1**: Update GitHub Actions to build and push the Docker container to **GitHub Container Registry (GHCR)** (Free).
-- [ ] **Sub-task 6.2**: Deploy the backend to Azure Container Apps (Serverless, $0/month).
-- [ ] **Sub-task 6.3**: Configure Azure Container App environment variables for passwordless SQL connection.
+- [x] **Sub-task 6.2**: Deploy the backend to Azure Container Apps (Serverless, $0/month).
+- [x] **Sub-task 6.3**: Configure Azure Container App environment variables for passwordless SQL connection.
+
+## Phase 7: UI/UX Redesign & Dynamic Implementations
+- [ ] **Sub-task 7.1**: Implement the Predictive Study Analytics Hub and Cross-Competence Spider Dashboard (as seen in Concept 3b Focus).
+- [ ] **Sub-task 7.2**: Implement the Markdown Ingestion Portal with hierarchical tree visualization and drag-and-drop support (Concept 3b Refined Model).
+- [ ] **Sub-task 7.3**: Implement the FDE & Agentic AI Track Specialization Views with progress dials, maturity matrix, and detailed lesson lists.
+- [ ] **Sub-task 7.4**: Implement the Data-Driven Lab Projects page showcasing architectural maturity, tech stack breadth, and individual project cards with mini-charts.
+- [ ] **Sub-task 7.5**: Integrate dynamic charts (e.g., using Recharts or Chart.js) and ensure responsive, premium glassmorphic styling across all new views.

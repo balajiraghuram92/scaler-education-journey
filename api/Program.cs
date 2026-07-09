@@ -26,7 +26,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVite", policy =>
     {
-        policy.AllowAnyOrigin()
+        var frontendUrl = builder.Configuration["frontend_url"];
+        var allowedOrigins = new List<string> { "http://localhost:5173" };
+        
+        if (!string.IsNullOrWhiteSpace(frontendUrl))
+        {
+            allowedOrigins.Add(frontendUrl.TrimEnd('/'));
+        }
+        
+        policy.WithOrigins(allowedOrigins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod();
     });

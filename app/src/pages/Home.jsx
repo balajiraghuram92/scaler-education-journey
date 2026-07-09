@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { PieChart, Pie, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import VerticalCard from '../components/VerticalCard';
-import { Compass, Layers, CheckCircle2, Clock, UploadCloud, TrendingUp, Sparkles, RefreshCw } from 'lucide-react';
+import { RefreshCw, Sparkles, Target, Zap } from 'lucide-react';
 import './Home.css';
 
 export default function Home() {
@@ -27,7 +28,6 @@ export default function Home() {
     fetchVerticals();
   }, [fetchVerticals]);
 
-  // Listen for global verticals update event
   useEffect(() => {
     const handleUpdate = () => {
       fetchVerticals();
@@ -44,157 +44,158 @@ export default function Home() {
     return 'grid-3x3';
   };
 
-  // Aggregated Analytics
-  const totalVerticals = verticals.length;
   const totalTasks = verticals.reduce((sum, v) => sum + (v.tasks?.length || 0), 0);
   const totalCompleted = verticals.reduce((sum, v) => sum + (v.tasks?.filter(t => t.isCompleted).length || 0), 0);
-  const pendingTasks = totalTasks - totalCompleted;
   const overallProgress = totalTasks > 0 ? Math.round((totalCompleted / totalTasks) * 100) : 0;
 
-  // Circular ring calculations
-  const radius = 40;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (overallProgress / 100) * circumference;
+  const radarData = [
+    { subject: 'Agent Interaction', A: 90, fullMark: 100 },
+    { subject: 'Prompt Engineering', A: 85, fullMark: 100 },
+    { subject: 'RAG Systems', A: 60, fullMark: 100 },
+    { subject: 'API Integration', A: 70, fullMark: 100 },
+    { subject: 'Model Tuning', A: 80, fullMark: 100 },
+    { subject: 'Infrastructure', A: 65, fullMark: 100 },
+  ];
+
+  const pieData = [
+    { name: 'Completed', value: overallProgress },
+    { name: 'Remaining', value: 100 - overallProgress },
+  ];
+  
+  const PIE_COLORS = ['#38bdf8', '#1e293b']; 
 
   return (
-    <div className="home-container">
-      <div className="ai-ambient-light light-cyan"></div>
-      <div className="ai-ambient-light light-purple"></div>
+    <div className="home-dashboard-dark">
+      <div className="glow-orb orb-1"></div>
+      <div className="glow-orb orb-2"></div>
+      <div className="glow-orb orb-3"></div>
 
-      {/* Glassmorphic Analytics Banner */}
-      <section className="ai-glass-panel">
-        {/* Header Title Row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div className="neon-icon-box">
-              <Compass size={32} style={{ color: '#0369a1' }} />
-            </div>
-            <div>
-              <h1 className="ai-gradient-text" style={{ fontSize: '2.2rem', margin: 0 }}>
-                Interactive AI Dashboard
-              </h1>
-              <p style={{ color: '#64748b', fontSize: '1.05rem', margin: '0.25rem 0 0' }}>
-                Multi-vertical study metrics & dynamic task tracking
-              </p>
+      <div className="dashboard-grid">
+        {/* Predictive Study Analytics Hub */}
+        <section className="dashboard-glass-panel hub-panel predictive-hub">
+          <h2 className="panel-title">
+            <Target className="title-icon" size={24} />
+            Predictive Study Analytics Hub
+          </h2>
+          <div className="chart-container-pie">
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={85}
+                  outerRadius={110}
+                  startAngle={90}
+                  endAngle={-270}
+                  dataKey="value"
+                  stroke="none"
+                  cornerRadius={10}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="pie-center-text">
+              <span className="pie-percentage">{overallProgress}%</span>
+              <span className="pie-label">Mastery Achieved</span>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Analytics Multi-Metric Display */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-          
-          {/* Circular Progress Banner Card */}
-          <div className="ai-stat-card">
-            <div style={{ position: 'relative', width: '90px', height: '90px', flexShrink: 0 }}>
-              <svg width="90" height="90" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="50" cy="50" r={radius} fill="none" stroke="rgba(0, 0, 0, 0.05)" strokeWidth="8" />
-                <circle
-                  cx="50" cy="50" r={radius} fill="none"
-                  stroke="url(#dashboard-cyan-gradient)"
-                  strokeWidth="8" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.6s ease-out' }}
+        {/* Cross-Competence Spider Dashboard */}
+        <section className="dashboard-glass-panel hub-panel spider-hub">
+          <h2 className="panel-title">
+            <Zap className="title-icon" size={24} />
+            Cross-Competence Spider Dashboard
+          </h2>
+          <div className="chart-container-radar">
+            <ResponsiveContainer width="100%" height={280}>
+              <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
+                <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#cbd5e1', fontSize: 13 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                <Radar
+                  name="Competence"
+                  dataKey="A"
+                  stroke="#38bdf8"
+                  strokeWidth={2}
+                  fill="#0ea5e9"
+                  fillOpacity={0.4}
                 />
-                <defs>
-                  <linearGradient id="dashboard-cyan-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#0369a1" />
-                    <stop offset="100%" stopColor="#0d9488" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 800, fontSize: '1.2rem', color: '#0f172a' }}>
-                {overallProgress}%
-              </div>
-            </div>
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#e2e8f0' }} 
+                  itemStyle={{ color: '#38bdf8' }} 
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        {/* Study Verticals */}
+        <section className="dashboard-glass-panel hub-panel verticals-hub">
+          <div className="panel-header">
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#0369a1', fontWeight: 700, textTransform: 'uppercase' }}>
-                <TrendingUp size={14} />
-                <span>Overall Mastery</span>
-              </div>
-              <div className="ai-stat-value">{totalCompleted} / {totalTasks}</div>
-              <div className="ai-stat-label">Completed Curriculum Tasks</div>
+              <h2 className="panel-title">
+                <Sparkles className="title-icon" size={24} />
+                Study Verticals
+              </h2>
             </div>
+            <button onClick={fetchVerticals} className="neon-refresh-btn">
+              <RefreshCw size={16} className={loading ? 'spin' : ''} />
+              <span>Refresh Tracks</span>
+            </button>
           </div>
 
-          {/* Stat Counter 1: Active Verticals */}
-          <div className="ai-stat-card">
-            <div className="neon-icon-box">
-              <Layers size={28} style={{ color: '#0369a1' }} />
+          {loading ? (
+             <div className="loading-state">
+                <RefreshCw size={40} className="spin icon-glow" style={{ margin: '0 auto 1.5rem' }} />
+                <p>Syncing neural pathways...</p>
+             </div>
+          ) : verticals.length === 0 ? (
+            <div className="empty-state">
+              <Sparkles size={48} className="icon-glow" style={{ margin: '0 auto 1.5rem' }} />
+              <h3>No Data Feeds Found</h3>
+              <p>Initialize by adding a vertical from the command center.</p>
             </div>
-            <div>
-              <div className="ai-stat-value">{totalVerticals}</div>
-              <div className="ai-stat-label">Active Study Tracks</div>
+          ) : (
+            <div className="verticals-grid">
+              {verticals.map(vertical => (
+                <div key={vertical.id} className="vertical-card-wrapper">
+                  <VerticalCard
+                    title={vertical.name}
+                    icon={getIconByVertical(vertical.name)}
+                    description={vertical.description}
+                    linkTo={`/vertical/${vertical.id}`}
+                    tasks={vertical.tasks || []}
+                  />
+                </div>
+              ))}
             </div>
-          </div>
+          )}
+        </section>
 
-          {/* Stat Counter 2: Completed Lessons */}
-          <div className="ai-stat-card">
-            <div className="neon-icon-box emerald">
-              <CheckCircle2 size={28} style={{ color: '#059669' }} />
-            </div>
-            <div>
-              <div className="ai-stat-value">{totalCompleted}</div>
-              <div className="ai-stat-label">Completed Lessons</div>
-            </div>
-          </div>
+        {/* AI Insights */}
+        <section className="dashboard-glass-panel hub-panel insights-hub">
+           <h2 className="panel-title">
+             <Sparkles className="title-icon" size={24} />
+             AI Insights
+           </h2>
+           <div className="insights-content">
+             <div className="insight-card">
+               <h4>Focus Needed</h4>
+               <p>Your design competence is high; prioritize Agent Integration for path balance.</p>
+             </div>
+             <div className="insight-card">
+               <h4>Consistency Forecast</h4>
+               <p>Excellent. At current pace, FDE Architect path is projected for completion in 45 days.</p>
+             </div>
+           </div>
+        </section>
 
-          {/* Stat Counter 3: Pending Tasks */}
-          <div className="ai-stat-card">
-            <div className="neon-icon-box purple">
-              <Clock size={28} style={{ color: '#4338ca' }} />
-            </div>
-            <div>
-              <div className="ai-stat-value">{pendingTasks}</div>
-              <div className="ai-stat-label">Pending Tasks</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Study Verticals Primary Grid */}
-      <section style={{ marginTop: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h2 className="ai-gradient-text" style={{ fontSize: '1.8rem', margin: 0 }}>
-              Study Verticals
-            </h2>
-            <p style={{ color: '#64748b', fontSize: '1rem', margin: '0.25rem 0 0' }}>
-              Curated architectural tracks & hands-on engineering lab modules
-            </p>
-          </div>
-          <button onClick={fetchVerticals} className="ai-neon-btn">
-            <RefreshCw size={16} className={loading ? 'ai-spin' : ''} />
-            <span>Refresh Tracks</span>
-          </button>
-        </div>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-            <RefreshCw size={40} className="ai-spin" style={{ margin: '0 auto', color: '#0369a1', marginBottom: '1rem' }} />
-            <p>Syncing neural pathways...</p>
-          </div>
-        ) : verticals.length === 0 ? (
-          <div className="ai-glass-panel" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-            <Sparkles size={48} style={{ color: '#0369a1', margin: '0 auto 1.5rem' }} />
-            <h3 style={{ fontSize: '1.5rem', color: '#0f172a', marginBottom: '0.5rem' }}>No Data Feeds Found</h3>
-            <p style={{ color: '#64748b', fontSize: '1.1rem' }}>
-              Initialize by adding a vertical from the command center dropdown.
-            </p>
-          </div>
-        ) : (
-          <div className="ai-grid">
-            {verticals.map(vertical => (
-              <VerticalCard
-                key={vertical.id}
-                title={vertical.name}
-                icon={getIconByVertical(vertical.name)}
-                description={vertical.description}
-                linkTo={`/vertical/${vertical.id}`}
-                tasks={vertical.tasks || []}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      </div>
     </div>
   );
 }
