@@ -4,7 +4,7 @@ import './MarkdownIngestModal.css';
 
 export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, verticals = [] }) {
   const [markdownContent, setMarkdownContent] = useState('');
-  const [targetMode, setTargetMode] = useState('existing'); // 'existing' | 'new'
+  const [targetMode, setTargetMode] = useState('existing');
   const [selectedVerticalId, setSelectedVerticalId] = useState('');
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -18,7 +18,6 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
     }
   }, [verticals, selectedVerticalId]);
 
-  // Client-side parser for live preview
   const parsedPreview = useMemo(() => {
     if (!markdownContent.trim()) return { modules: [], totalTasks: 0, totalCompleted: 0 };
 
@@ -153,7 +152,6 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
       }}
     >
       <div className="ingest-modal-panel">
-        {/* Header */}
         <div className="ingest-modal-header">
           <div className="ingest-header-left">
             <div className="ingest-header-icon">
@@ -171,8 +169,8 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
 
         {errorMsg && (
           <div style={{
-            padding: '1rem', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', fontSize: '0.95rem',
+            padding: '1rem', borderRadius: '12px', background: '#fee2e2',
+            border: '1px solid #fecaca', color: '#ef4444', fontSize: '0.95rem',
             display: 'flex', alignItems: 'center', gap: '0.75rem'
           }}>
             <AlertCircle size={20} />
@@ -181,7 +179,6 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Target Database Section */}
           <div className="ingest-section">
             <h3 className="ingest-section-title">Target Database Section</h3>
             <div className="ingest-radio-group">
@@ -242,7 +239,6 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
             )}
           </div>
 
-          {/* Dual Input Area */}
           <div className="ingest-dual-input">
             <div
               className={`ingest-dropzone ${dragActive ? 'active' : ''}`}
@@ -274,7 +270,6 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
             />
           </div>
 
-          {/* Live Parser Stats */}
           <div className="ingest-stats-section">
             <div className="ingest-stats-header">
               <div className="ingest-stats-title-wrap">
@@ -290,7 +285,7 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
               <div className="ingest-tree">
                 <div className="ingest-tree-item root">
                   <div className="ingest-tree-item-content">
-                    <Folder size={18} color="#94a3b8" />
+                    <Folder size={18} color="#64748b" />
                     <span>{targetMode === 'existing' ? selectedVerticalName : (newName || 'New Curriculum')}</span>
                   </div>
                   <div className="ingest-tree-depth">skill depth<br/><strong>98%</strong></div>
@@ -300,7 +295,7 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
                   <div key={i}>
                     <div className="ingest-tree-item ingest-tree-module">
                       <div className="ingest-tree-item-content">
-                        <CheckCircle2 size={16} color="#38bdf8" />
+                        <CheckCircle2 size={16} color="#3b82f6" />
                         <span>{mod.name}</span>
                       </div>
                       <div className="ingest-tree-depth">skill depth<br/><strong>95%</strong></div>
@@ -309,11 +304,11 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
                       <div key={j} className="ingest-tree-item ingest-tree-task">
                         <div className="ingest-tree-item-content">
                           {task.isCompleted ? (
-                            <XCircle size={14} color="#64748b" />
+                            <XCircle size={14} color="#94a3b8" />
                           ) : (
-                            <Circle size={14} color="#94a3b8" />
+                            <Circle size={14} color="#64748b" />
                           )}
-                          <span style={{ color: task.isCompleted ? '#94a3b8' : '#cbd5e1' }}>
+                          <span style={{ color: task.isCompleted ? '#94a3b8' : '#1e293b' }}>
                             {task.name} {task.isCompleted ? '(X)' : '(0)'}
                           </span>
                         </div>
@@ -348,7 +343,6 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
             </div>
           </div>
 
-          {/* Actions */}
           <div className="ingest-actions">
             <button type="button" className="ingest-btn ingest-btn-cancel" onClick={onClose} disabled={isSubmitting}>
               Cancel

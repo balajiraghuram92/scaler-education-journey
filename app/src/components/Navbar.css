@@ -4,13 +4,11 @@
   margin: 0 auto 2rem;
   max-width: 1200px;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 9999px;
   padding: 0.75rem 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -18,8 +16,7 @@
 }
 
 .ai-navbar:hover {
-  border-color: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .ai-nav-brand {
@@ -70,14 +67,12 @@
 
 .ai-nav-link:hover {
   color: #1e293b;
-  background: rgba(0, 0, 0, 0.05);
+  background: #f1f5f9;
 }
 
 .ai-nav-link.active {
   color: #1e293b;
-  background: rgba(0, 0, 0, 0.05);
-  box-shadow: none;
-  text-shadow: none;
+  background: #e2e8f0;
   font-weight: 600;
 }
 
@@ -90,10 +85,8 @@
   top: calc(100% + 1rem);
   right: 0;
   min-width: 240px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 0.5rem;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
@@ -101,7 +94,6 @@
   transform-origin: top;
 }
 
-/* Invisible bridge to prevent hover loss between button and menu */
 .ai-nav-dropdown-menu::before {
   content: '';
   position: absolute;
@@ -139,12 +131,12 @@
 }
 
 .ai-dropdown-item:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: #f8fafc;
 }
 
 .ai-dropdown-item-icon {
   color: #1e293b;
-  background: rgba(0, 0, 0, 0.05);
+  background: #f1f5f9;
   padding: 0.5rem;
   border-radius: 8px;
   display: flex;
@@ -153,8 +145,7 @@
 }
 
 .ai-dropdown-item:hover .ai-dropdown-item-icon {
-  background: rgba(0, 0, 0, 0.08);
-  box-shadow: none;
+  background: #e2e8f0;
 }
 
 .ai-dropdown-item-title {
@@ -193,7 +184,7 @@
     position: static;
     box-shadow: none;
     border: none;
-    background: rgba(0, 0, 0, 0.03);
+    background: #f8fafc;
     margin-top: 0.5rem;
   }
 }

@@ -4,11 +4,6 @@ import './Layout.css';
 export default function Layout({ children }) {
   return (
     <div className="layout-container">
-      {/* Ambient Background Orbs */}
-      <div className="ai-bg-orb ai-bg-orb--cyan" />
-      <div className="ai-bg-orb ai-bg-orb--purple" />
-      <div className="ai-bg-orb ai-bg-orb--emerald" />
-
       {/* Navbar */}
       <Navbar />
 

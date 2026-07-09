@@ -17,7 +17,6 @@ export default function VerticalDetail() {
         const found = data.find(v => v.id === parseInt(id));
         setVertical(found);
 
-        // Default active module to first module for modular tracks
         const isModular = found && (found.layoutMode === "Modular" || (found.tasks && found.tasks.some(t => t.module && t.module !== "General" && t.module !== "Flat")));
         if (found && isModular && found.tasks.length > 0) {
           const firstMod = found.tasks[0].module || "Prerequisite: Agentic AI Core";
@@ -63,7 +62,6 @@ export default function VerticalDetail() {
   const isModular = vertical.layoutMode === "Modular" || (vertical.tasks && vertical.tasks.some(t => t.module && t.module !== "General" && t.module !== "Flat"));
   
   if (isModular) {
-    // Group tasks by module
     const modulesMap = {};
     vertical.tasks.forEach(task => {
       const mod = task.module || 'Prerequisite: Agentic AI Core';
@@ -75,22 +73,13 @@ export default function VerticalDetail() {
 
     const getModuleBadgeAndTitle = (moduleName) => {
       if (moduleName.startsWith('Prerequisite:')) {
-        return {
-          badge: 'Prerequisite',
-          title: moduleName.replace('Prerequisite:', '').trim()
-        };
+        return { badge: 'Prerequisite', title: moduleName.replace('Prerequisite:', '').trim() };
       }
       const match = moduleName.match(/^(\d+)\.\s*(.+)$/);
       if (match) {
-        return {
-          badge: `Module ${match[1]}`,
-          title: match[2].trim()
-        };
+        return { badge: `Module ${match[1]}`, title: match[2].trim() };
       }
-      return {
-        badge: 'Special',
-        title: moduleName
-      };
+      return { badge: 'Special', title: moduleName };
     };
 
     const modules = Object.keys(modulesMap).map((name, idx) => {
@@ -100,7 +89,6 @@ export default function VerticalDetail() {
       const progress = total > 0 ? (completed / total) * 100 : 0;
       const { badge, title } = getModuleBadgeAndTitle(name);
       
-      // Generate some deterministic mock trend data for the area chart
       const trendData = Array.from({ length: 8 }, (_, i) => ({
         name: i,
         uv: 20 + Math.abs(Math.sin((idx + 1) * i)) * 60 + (progress * 0.2)
@@ -111,10 +99,9 @@ export default function VerticalDetail() {
 
     const activeModObj = modules.find(m => m.fullName === activeModule);
 
-    // Prepare radar data based on modules
     const radarData = modules.slice(0, 6).map(mod => ({
-      subject: mod.title.split(' ')[0], // Take first word for radar chart axis
-      A: Math.max(mod.progress, 15), // Ensure at least some visibility
+      subject: mod.title.split(' ')[0],
+      A: Math.max(mod.progress, 15),
       fullMark: 100
     }));
 
@@ -126,19 +113,16 @@ export default function VerticalDetail() {
           </Link>
 
           <div className="fde-dashboard">
-            {/* Header */}
             <div className="hero-section text-center mb-xl">
-              <span className="hero-badge glow-effect">🚀 IN DEVELOPMENT</span>
-              <h1 className="hero-title gradient-text mt-sm">Lab Projects</h1>
-              <p className="hero-subtitle text-secondary mt-sm">
-                Crafting next-generation applications. A showcase of architectural excellence using <strong style={{color: '#fff'}}>React Frontend</strong> and <strong style={{color: '#fff'}}>.NET Backend</strong>.
+              <span className="hero-badge">🚀 IN DEVELOPMENT</span>
+              <h1 className="hero-title mt-sm">Lab Projects</h1>
+              <p className="hero-subtitle mt-sm">
+                Crafting next-generation applications. A showcase of architectural excellence using <strong style={{color: '#1e293b'}}>React Frontend</strong> and <strong style={{color: '#1e293b'}}>.NET Backend</strong>.
               </p>
             </div>
 
-            {/* Top Dashboard Row */}
             <div className="dashboard-top-row">
-              {/* Overall Maturity Dials */}
-              <div className="glass-panel maturity-panel">
+              <div className="light-panel maturity-panel">
                 <h3 className="panel-title mb-lg">Core Architectural Maturity</h3>
                 
                 <div className="dials-container">
@@ -179,28 +163,26 @@ export default function VerticalDetail() {
                         {Math.round(overallProgress)}%
                       </div>
                     </div>
-                    <span className="dial-label">Projected Next Milestone: <br/><strong style={{color:'#fff'}}>12 Days</strong></span>
+                    <span className="dial-label">Projected Next Milestone: <br/><strong>12 Days</strong></span>
                   </div>
                 </div>
               </div>
 
-              {/* FDE Track Competence Balance (Radar Chart) */}
-              <div className="glass-panel radar-panel">
+              <div className="light-panel radar-panel">
                 <h3 className="panel-title mb-md">Codebase Pattern Maturity & Architecture</h3>
                 <div className="radar-container">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                      <PolarGrid stroke="rgba(255,255,255,0.15)" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }} />
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11 }} />
                       <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                      <Radar name="Competence" dataKey="A" stroke="var(--accent-cyan)" fill="var(--accent-cyan)" fillOpacity={0.3} />
+                      <Radar name="Competence" dataKey="A" stroke="var(--accent-primary)" fill="var(--accent-primary)" fillOpacity={0.2} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
 
-            {/* Modules Grid */}
             <div className="specializations-section mt-xl">
               <h2 className="section-title mb-lg d-flex align-items-center">
                 <LayoutGrid size={24} className="mr-sm text-accent" /> Specializations
@@ -209,7 +191,7 @@ export default function VerticalDetail() {
                 {modules.map((mod, i) => (
                   <div
                     key={i}
-                    className={`glass-panel spec-card ${activeModule === mod.fullName ? 'spec-card--active' : ''}`}
+                    className={`light-panel spec-card ${activeModule === mod.fullName ? 'spec-card--active' : ''}`}
                     onClick={() => setActiveModule(mod.fullName)}
                   >
                     <div className="spec-card-content">
@@ -223,11 +205,11 @@ export default function VerticalDetail() {
                           <AreaChart data={mod.trendData}>
                             <defs>
                               <linearGradient id={`colorUv${i}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={activeModule === mod.fullName ? "var(--accent-purple)" : "var(--accent-cyan)"} stopOpacity={0.6}/>
-                                <stop offset="95%" stopColor={activeModule === mod.fullName ? "var(--accent-purple)" : "var(--accent-cyan)"} stopOpacity={0}/>
+                                <stop offset="5%" stopColor={activeModule === mod.fullName ? "var(--accent-secondary)" : "var(--accent-primary)"} stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor={activeModule === mod.fullName ? "var(--accent-secondary)" : "var(--accent-primary)"} stopOpacity={0}/>
                               </linearGradient>
                             </defs>
-                            <Area type="monotone" dataKey="uv" stroke={activeModule === mod.fullName ? "var(--accent-purple)" : "var(--accent-cyan)"} fillOpacity={1} fill={`url(#colorUv${i})`} />
+                            <Area type="monotone" dataKey="uv" stroke={activeModule === mod.fullName ? "var(--accent-secondary)" : "var(--accent-primary)"} fillOpacity={1} fill={`url(#colorUv${i})`} />
                           </AreaChart>
                         </ResponsiveContainer>
                       </div>
@@ -243,12 +225,11 @@ export default function VerticalDetail() {
               </div>
             </div>
 
-            {/* Detailed Module View */}
             {activeModObj && (
-              <div className="glass-panel module-drawer mt-lg">
+              <div className="light-panel module-drawer mt-lg">
                 <div className="module-drawer__header">
                   <div>
-                    <span className="spec-badge glow-effect">{activeModObj.badge}</span>
+                    <span className="spec-badge">{activeModObj.badge}</span>
                     <h3 className="module-drawer__title mt-sm">{activeModObj.title}</h3>
                   </div>
                   <div className="module-drawer__stats text-right">
@@ -274,7 +255,6 @@ export default function VerticalDetail() {
                       
                       <div className="drawer-task-row__content">
                         <span className="drawer-task-row__title">{task.title}</span>
-                        {/* Skill Depth progress bar */}
                         <div className="skill-depth-container mt-xs">
                           <span className="skill-depth-label">Skill Depth</span>
                           <div className="skill-depth-track">
@@ -295,11 +275,10 @@ export default function VerticalDetail() {
     );
   }
 
-  // Fallback UI for other verticals
   return (
-    <div className="container mt-md">
-      <div className="glass-panel vertical-detail__header text-center">
-        <h1 className="gradient-text mb-md vertical-detail__title">
+    <div className="container mt-md vertical-detail-wrapper">
+      <div className="light-panel vertical-detail__header text-center">
+        <h1 className="mb-md vertical-detail__title">
           {vertical.name}
         </h1>
         <p className="text-secondary vertical-detail__description">
@@ -315,7 +294,7 @@ export default function VerticalDetail() {
             </div>
             <div className="vertical-detail__master-progress-track">
               <div
-                className="vertical-detail__master-progress-fill"
+                className="vertical-detail__master-progress-fill skill-depth-fill"
                 style={{ width: `${overallProgress}%` }}
               />
             </div>
@@ -337,7 +316,7 @@ export default function VerticalDetail() {
             vertical.tasks.map(task => (
               <div
                 key={task.id}
-                className={`glass-panel drawer-task-row ${task.isCompleted ? 'drawer-task-row--completed' : ''}`}
+                className={`light-panel drawer-task-row ${task.isCompleted ? 'drawer-task-row--completed' : ''}`}
                 onClick={() => toggleTask(task.id)}
                 style={{ padding: '1.2rem' }}
               >

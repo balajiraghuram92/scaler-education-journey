@@ -1,21 +1,24 @@
-/* Premium Dark Mode Glassmorphic Styles for VerticalDetail */
+/* Light Mode Styles for VerticalDetail */
 
 .vertical-detail-wrapper {
-  --accent-cyan: #00f0ff;
-  --accent-purple: #7b2ff7;
-  --accent-emerald: #00ff9d;
-  --panel-bg: rgba(20, 20, 30, 0.45);
-  --panel-border: rgba(255, 255, 255, 0.08);
-  --text-main: #ffffff;
-  --text-muted: #8b8b9e;
+  --accent-primary: #3b82f6; /* Blue */
+  --accent-secondary: #8b5cf6; /* Purple */
+  --accent-success: #10b981; /* Emerald */
+  --panel-bg: #ffffff;
+  --panel-border: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --bg-main: #f8fafc;
   
   min-height: calc(100vh - 60px);
   color: var(--text-main);
+  background-color: var(--bg-main);
   animation: fadeIn 0.6s ease-out;
+  padding-bottom: 3rem;
 }
 
 /* Typography & Utilities */
-.text-accent { color: var(--accent-cyan); }
+.text-accent { color: var(--accent-primary); }
 .text-secondary { color: var(--text-muted); }
 .text-lg { font-size: 1.5rem; }
 .text-sm { font-size: 0.8rem; }
@@ -30,19 +33,21 @@
 .mr-sm { margin-right: 0.5rem; }
 .ml-sm { margin-left: 0.5rem; }
 .mt-xs { margin-top: 0.25rem; }
+.text-center { text-align: center; }
 
 /* Hero Section */
 .hero-section {
   position: relative;
   z-index: 10;
+  padding: 2rem 0;
 }
 .hero-badge {
   display: inline-block;
   padding: 0.35rem 1rem;
   border-radius: 20px;
-  background: rgba(0, 240, 255, 0.1);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  color: var(--accent-cyan);
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: var(--accent-primary);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 1px;
@@ -50,12 +55,15 @@
 .hero-title {
   font-size: clamp(2.5rem, 5vw, 4rem);
   letter-spacing: -1px;
+  color: var(--text-main);
+  margin-top: 1rem;
 }
 .hero-subtitle {
   font-size: 1.1rem;
   max-width: 700px;
-  margin: 0 auto;
+  margin: 1rem auto 0;
   line-height: 1.6;
+  color: var(--text-muted);
 }
 
 /* Dashboard Layout */
@@ -71,6 +79,15 @@
   }
 }
 
+/* Panels */
+.light-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
 /* Dials Panel */
 .maturity-panel {
   display: flex;
@@ -82,6 +99,7 @@
   font-weight: 600;
   border-bottom: 1px solid var(--panel-border);
   padding-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
 .dials-container {
@@ -106,6 +124,9 @@
   max-width: 120px;
   line-height: 1.4;
 }
+.dial-label strong {
+  color: var(--text-main);
+}
 
 .circular-progress-wrapper {
   position: relative;
@@ -123,26 +144,24 @@
   width: 100%;
   height: 100%;
   transform: rotate(-90deg);
-  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.2));
 }
 
 .circular-progress-bg {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.05);
+  stroke: #f1f5f9;
   stroke-width: 6;
 }
 
 .circular-progress-bar {
   fill: none;
-  stroke: var(--accent-cyan);
+  stroke: var(--accent-primary);
   stroke-width: 6;
   stroke-linecap: round;
   transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .circular-progress-bar.bar-purple {
-  stroke: var(--accent-purple);
-  filter: drop-shadow(0 0 8px rgba(123, 47, 247, 0.3));
+  stroke: var(--accent-secondary);
 }
 
 .circular-progress-text {
@@ -152,8 +171,7 @@
   transform: translate(-50%, -50%);
   font-size: 2rem;
   font-weight: 800;
-  color: #fff;
-  text-shadow: 0 0 10px rgba(255,255,255,0.2);
+  color: var(--text-main);
 }
 .dial-small .circular-progress-text {
   font-size: 1.5rem;
@@ -172,6 +190,15 @@
 }
 
 /* Specializations Grid */
+.specializations-section {
+  margin-top: 2rem;
+}
+.section-title {
+  font-size: 1.5rem;
+  color: var(--text-main);
+  margin-bottom: 1.5rem;
+}
+
 .specializations-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -185,6 +212,7 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .spec-card::before {
@@ -196,25 +224,25 @@
 }
 
 .spec-card:hover {
-  transform: translateY(-5px);
-  border-color: rgba(0, 240, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .spec-card--active {
-  border-color: rgba(123, 47, 247, 0.4);
-  background: rgba(123, 47, 247, 0.05);
-  box-shadow: 0 0 30px rgba(123, 47, 247, 0.1);
+  border-color: #c4b5fd;
+  background: #faf5ff;
+  box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.1);
 }
 .spec-card--active::before {
-  background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
+  background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
 }
 
 .spec-badge {
   display: inline-block;
   padding: 0.2rem 0.8rem;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   color: var(--text-muted);
   font-size: 0.7rem;
   font-weight: 600;
@@ -222,9 +250,9 @@
   margin-bottom: 1rem;
 }
 .spec-card--active .spec-badge {
-  background: rgba(123, 47, 247, 0.15);
-  border-color: rgba(123, 47, 247, 0.3);
-  color: #fff;
+  background: #ede9fe;
+  border-color: #ddd6fe;
+  color: var(--accent-secondary);
 }
 
 .spec-title {
@@ -245,9 +273,6 @@
   margin-top: 2rem;
   padding: 2rem;
   border-radius: 20px;
-  background: rgba(10, 10, 15, 0.6);
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -267,6 +292,7 @@
 .module-drawer__title {
   font-size: 1.5rem;
   font-weight: 700;
+  color: var(--text-main);
 }
 
 /* Tasks inside Drawer */
@@ -274,13 +300,14 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 .drawer-task-row {
   display: flex;
   align-items: center;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: #f8fafc;
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   cursor: pointer;
@@ -288,21 +315,21 @@
 }
 
 .drawer-task-row:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(0, 240, 255, 0.3);
+  background: #f1f5f9;
+  border-color: #cbd5e1;
   transform: translateX(4px);
 }
 
 .drawer-task-row--completed {
-  background: rgba(0, 255, 157, 0.03);
-  border-color: rgba(0, 255, 157, 0.15);
+  background: #f0fdf4;
+  border-color: #bbf7d0;
 }
 
 .drawer-task-row__checkbox {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid var(--text-muted);
+  border: 2px solid #cbd5e1;
   margin-right: 1.25rem;
   display: flex;
   align-items: center;
@@ -312,9 +339,8 @@
 }
 
 .drawer-task-row--completed .drawer-task-row__checkbox {
-  border-color: var(--accent-emerald);
-  background: rgba(0, 255, 157, 0.1);
-  box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
+  border-color: var(--accent-success);
+  background: #dcfce7;
 }
 
 .drawer-task-row__content {
@@ -352,22 +378,20 @@
 
 .skill-depth-track {
   flex: 1;
-  height: 4px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 2px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
   overflow: hidden;
   max-width: 200px;
 }
 
 .skill-depth-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
-  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+  border-radius: 3px;
   transition: width 0.5s ease-out;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
 }
 
 .drawer-task-row--completed .skill-depth-fill {
-  background: var(--accent-emerald);
-  box-shadow: 0 0 10px rgba(0, 255, 157, 0.4);
+  background: var(--accent-success);
 }

@@ -62,17 +62,13 @@ export default function Home() {
     { name: 'Remaining', value: 100 - overallProgress },
   ];
   
-  const PIE_COLORS = ['#38bdf8', '#1e293b']; 
+  const PIE_COLORS = ['#2563eb', '#e2e8f0']; 
 
   return (
-    <div className="home-dashboard-dark">
-      <div className="glow-orb orb-1"></div>
-      <div className="glow-orb orb-2"></div>
-      <div className="glow-orb orb-3"></div>
-
+    <div className="home-dashboard-light">
       <div className="dashboard-grid">
         {/* Predictive Study Analytics Hub */}
-        <section className="dashboard-glass-panel hub-panel predictive-hub">
+        <section className="dashboard-solid-panel hub-panel predictive-hub">
           <h2 className="panel-title">
             <Target className="title-icon" size={24} />
             Predictive Study Analytics Hub
@@ -106,7 +102,7 @@ export default function Home() {
         </section>
 
         {/* Cross-Competence Spider Dashboard */}
-        <section className="dashboard-glass-panel hub-panel spider-hub">
+        <section className="dashboard-solid-panel hub-panel spider-hub">
           <h2 className="panel-title">
             <Zap className="title-icon" size={24} />
             Cross-Competence Spider Dashboard
@@ -114,20 +110,20 @@ export default function Home() {
           <div className="chart-container-radar">
             <ResponsiveContainer width="100%" height={280}>
               <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#cbd5e1', fontSize: 13 }} />
+                <PolarGrid stroke="#e2e8f0" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 13 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar
                   name="Competence"
                   dataKey="A"
-                  stroke="#38bdf8"
+                  stroke="#2563eb"
                   strokeWidth={2}
-                  fill="#0ea5e9"
+                  fill="#3b82f6"
                   fillOpacity={0.4}
                 />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#e2e8f0' }} 
-                  itemStyle={{ color: '#38bdf8' }} 
+                  contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#1e293b' }} 
+                  itemStyle={{ color: '#2563eb' }} 
                 />
               </RadarChart>
             </ResponsiveContainer>
@@ -135,7 +131,7 @@ export default function Home() {
         </section>
 
         {/* Study Verticals */}
-        <section className="dashboard-glass-panel hub-panel verticals-hub">
+        <section className="dashboard-solid-panel hub-panel verticals-hub">
           <div className="panel-header">
             <div>
               <h2 className="panel-title">
@@ -143,7 +139,7 @@ export default function Home() {
                 Study Verticals
               </h2>
             </div>
-            <button onClick={fetchVerticals} className="neon-refresh-btn">
+            <button onClick={fetchVerticals} className="solid-refresh-btn">
               <RefreshCw size={16} className={loading ? 'spin' : ''} />
               <span>Refresh Tracks</span>
             </button>
@@ -151,12 +147,12 @@ export default function Home() {
 
           {loading ? (
              <div className="loading-state">
-                <RefreshCw size={40} className="spin icon-glow" style={{ margin: '0 auto 1.5rem' }} />
+                <RefreshCw size={40} className="spin icon-solid" style={{ margin: '0 auto 1.5rem' }} />
                 <p>Syncing neural pathways...</p>
              </div>
           ) : verticals.length === 0 ? (
             <div className="empty-state">
-              <Sparkles size={48} className="icon-glow" style={{ margin: '0 auto 1.5rem' }} />
+              <Sparkles size={48} className="icon-solid" style={{ margin: '0 auto 1.5rem' }} />
               <h3>No Data Feeds Found</h3>
               <p>Initialize by adding a vertical from the command center.</p>
             </div>
@@ -178,7 +174,7 @@ export default function Home() {
         </section>
 
         {/* AI Insights */}
-        <section className="dashboard-glass-panel hub-panel insights-hub">
+        <section className="dashboard-solid-panel hub-panel insights-hub">
            <h2 className="panel-title">
              <Sparkles className="title-icon" size={24} />
              AI Insights
