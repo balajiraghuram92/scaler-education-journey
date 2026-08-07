@@ -36,9 +36,20 @@
 - [x] **Sub-task 6.2**: Deploy the backend to Azure Container Apps (Serverless, $0/month).
 - [x] **Sub-task 6.3**: Configure Azure Container App environment variables for passwordless SQL connection.
 
-## Phase 7: UI/UX Redesign & Dynamic Implementations
-- [ ] **Sub-task 7.1**: Implement the Predictive Study Analytics Hub and Cross-Competence Spider Dashboard (as seen in Concept 3b Focus).
-- [ ] **Sub-task 7.2**: Implement the Markdown Ingestion Portal with hierarchical tree visualization and drag-and-drop support (Concept 3b Refined Model).
-- [ ] **Sub-task 7.3**: Implement the FDE & Agentic AI Track Specialization Views with progress dials, maturity matrix, and detailed lesson lists.
-- [ ] **Sub-task 7.4**: Implement the Data-Driven Lab Projects page showcasing architectural maturity, tech stack breadth, and individual project cards with mini-charts.
-- [ ] **Sub-task 7.5**: Integrate dynamic charts (e.g., using Recharts or Chart.js) and ensure responsive, premium glassmorphic styling across all new views.
+## Phase 7: UI/UX Redesign & Dynamic Implementations (Completed)
+- [x] **Sub-task 7.1**: Implement the Predictive Study Analytics Hub and Cross-Competence Spider Dashboard (as seen in Concept 3b Focus).
+- [x] **Sub-task 7.2**: Implement the Markdown Ingestion Portal with hierarchical tree visualization and drag-and-drop support (Concept 3b Refined Model).
+- [x] **Sub-task 7.3**: Implement the FDE & Agentic AI Track Specialization Views with progress dials, maturity matrix, and detailed lesson lists.
+- [x] **Sub-task 7.4**: Implement the Data-Driven Lab Projects page showcasing architectural maturity, tech stack breadth, and individual project cards with mini-charts.
+- [x] **Sub-task 7.5**: Integrate dynamic charts (e.g., using Recharts or Chart.js) and ensure responsive, premium glassmorphic styling across all new views.
+
+## Phase 8: Migration to Java (Spring Boot 3) & AWS Cloud Infrastructure
+- [ ] **Sub-task 8.1**: Project Scaffolding & Maven/Gradle Setup (Java 21 + Spring Boot 3 in `api-java`)
+- [ ] **Sub-task 8.2**: JPA Entity Data Models & Repository Layer (`StudyVertical`, `StudyTask`, Spring Data JPA)
+- [ ] **Sub-task 8.3**: DTOs, Service Layer & Database Seeding Logic (Ingesting markdown data in Java)
+- [ ] **Sub-task 8.4**: REST Controller & API Key Security Middleware (`/api/verticals`, `/api/tasks`, `/api/verticals/ingest`)
+- [ ] **Sub-task 8.5**: Dynamic Markdown Parser in Java for Curriculum Ingestion
+- [ ] **Sub-task 8.6**: Java API Dockerization & Local Integration Testing
+- [ ] **Sub-task 8.7**: AWS Infrastructure Setup (AWS ECR, AWS App Runner / ECS Fargate, AWS S3 / CloudFront)
+- [ ] **Sub-task 8.8**: GitHub Actions CI/CD Pipeline for AWS Deployment
+
