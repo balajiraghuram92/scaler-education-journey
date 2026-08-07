@@ -1,0 +1,1925 @@
+here are my details
+
+PROFESSIONAL PROFILE
+
+Name: Raghuram Balaji
+
+Designation: Senior Engineer
+
+Emp Id: 132838
+
+Email: raghuram.balaji@coforge.com
+
+Mobile: +91 7989614165
+
+Experience: 11+ years
+
+Location: Hyderabad, India
+
+PROFESSIONAL SUMMARY
+
+Systems and platform engineer with 11+ years across native C/C++ engine internals, Java/Spring backend services, and cross-platform debugging - currently embedded with Unity Technologies engineering teams on runtime and compiler-toolchain stability. Deep expertise in root-causing the hardest class of defects: memory leaks, GC/runtime anomalies (Mono/IL2CPP), GPU/rendering-pipeline issues, OS- and driver-specific regressions across Windows, Linux, Android, and WebGL targets. Strong Java backend engineering: Java 8, Spring Boot/MVC REST services, WebSocket/STOMP real-time workflows, PostgreSQL/SQL Server/Redis, deployed on self-managed Linux and cloud (OVHcloud, AWS, Azure). Proven record of regression-safe fixes and architectural backports across LTS releases of a large production codebase under strict backward-compatibility requirements. Methodologies / Tools: Agile (Scrum), Jira, Yamato (internal CI), Git, Mercurial (hg), Perforce, Unity VCS (Plastic SCM), Visual Studio, VS Code. Domain exposure spanning developer tools / real-time 3D (enterprise customers from automotive to gaming and kiosk systems), aerospace & heavy-vehicle manufacturing, media/music streaming, and Intel OEM consumer hardware.
+
+TECHNICAL SUMMARY
+
+Technologies/Frameworks/Systems:
+
+C, C++ (11/14), Mono runtime internals, IL2CPP, Emscripten/WebAssembly, OpenGL/GPU pipelines, Win32 API, DLL/ABI design
+
+Backend: Java 8, Spring Boot, Spring MVC, REST, WebSocket/STOMP (SockJS), HLS (.m3u8), HTTP Range Requests
+
+Web/Client: C#, React (Vite), JSON, WebRTC
+
+Testing: NUnit (C#), UnitTest++ (C++), CI/CD & PR review workflows
+
+Domain/Industries: Developer Tools / Real-Time 3D (automotive, gaming, kiosk verticals), Aerospace & Heavy-Vehicle Manufacturing, Media & Music Streaming, Consumer Hardware (Intel OEM)
+
+Build Tools: Yamato (internal CI), CI/CD pipelines with automated test gates, Tomcat/Apache hosting, shell-scripted deployment
+
+Databases: PostgreSQL, SQL Server, Redis
+
+Version Control: Git, Mercurial (hg), Perforce, Unity VCS (Plastic SCM)
+
+Loggers: Native crash-dump & trace analysis, engine/editor logs, Yamato/internal CI logs
+
+IDE: Visual Studio, VS Code
+
+Operating Systems: Windows, Linux (RHEL-compatible); Android & WebGL as debug targets
+
+Software Methodologies: Agile (Scrum), Jira
+
+PROFESSIONAL EXPERIENCE
+
+1. Senior Engineer — Runtime Systems
+
+Company: Coforge
+
+Client: Unity Technologies (Unity3D UK / ISS)
+
+Duration: 05/2025 to Present
+
+Team Size: 15
+
+Technologies: C/C++, Mono runtime internals, IL2CPP compiler, GC/memory-leak analysis, native profiling, crash-dump & trace analysis
+
+Project Overview: Deep-level stability engineering on the Mono scripting runtime and its tightly coupled IL2CPP compiler pipeline — diagnosing the hardest class of defects (memory leaks, GC anomalies, platform-dependent failures) at the native runtime level of a large-scale production engine.
+
+Roles & Responsibilities:
+
+Root-cause memory leaks and runtime defects in the Mono scripting runtime, tightly coupled to the IL2CPP compiler pipeline — native C++ debugging of allocation paths, GC behavior, and generated-code interactions across platforms.
+
+Diagnose platform-dependent failures (e.g., driver-specific defects where behavior diverged on one platform while identical code ran clean on others) via native traces, crash dumps, and source-level debugging.
+
+2. Senior Consultant — Core Engine & Platform Systems
+
+Company: Coforge (formerly Rythmos India Pvt. Ltd.)
+
+Client: Unity Technologies (Unity3D UK / ISS)
+
+Duration: 07/2023 to 04/2025
+
+Team Size: 15
+
+Technologies: C++, C#/Mono, WebGL (IL2CPP/Emscripten/WebAssembly), OpenGL/GPU pipelines, Perforce, Unity VCS (Java-backed services), NUnit, UnitTest++, CI/CD
+
+Project Overview: Core C++ engine/platform engineering across the editor (C#/Mono), the WebGL (IL2CPP/Emscripten) runtime, low-level graphics, and version-control integrations — with LTS backports and automated test coverage.
+
+Roles & Responsibilities:
+
+Diagnosed and patched GPU dependencies, rendering-pipeline issues, and WebGL/OpenGL compilation defects; resolved OS-specific regressions where shared C# behavior diverged across Windows, Linux, and Android due to OS/hardware differences.
+
+Owned ~1 year of Unity Version Control (UVCs)/Perforce plugin engineering deep in the engine's C++ source, integrated with UVCs's Java-backed services — e.g., preventing fetched/synced .asset files from wrongly entering the pending changelist and losing their read-only flag during re-serialization.
+
+Root-caused WebGL Video Player defects (irregular playback speed, VideoPlayer.Play() frame delay) across the C#/Mono editor layer, server-side m3u8 streaming, and the IL2CPP > Emscripten > WebAssembly buffer/caching path — a module underpinning CDN-backed video delivery and ad-serving.
+
+Executed architectural backports across LTS releases under strict backward compatibility; authored automated tests (NUnit/C#, UnitTest++/C++) integrated into CI/CD and PR review workflows.
+
+3. Senior Consultant — Java Backend & Native Data Layer
+
+Company: Coforge (formerly Rythmos India Pvt. Ltd.)
+
+Client: Unity Technologies
+
+Duration: 12/2021 to 06/2023
+
+Team Size: 15
+
+Technologies: Java 8, Spring Boot, REST, WebSocket/STOMP (SockJS), React (Vite), C++ serialization layer, JSON, Linux (OVHcloud dedicated servers), AWS
+
+Project Overview: Localization platform connecting a distributed translation web application to editor tooling — Java backend rebuild plus native C++ serialization-layer integration, in collaboration with a remote backend team in Japan.
+
+Roles & Responsibilities:
+
+Rebuild the legacy localization backend on Java 8/Spring Boot REST services (React front end retained), consumed by both the distributed translation platform and editor tooling; platform ran on OVHcloud dedicated Linux servers (EU data residency), with migration to AWS underway during the engagement.
+
+Extended the translation web app (React + Vite SPA) with an event-driven submit > review > approve workflow — live updates pushed over WebSocket/STOMP (SockJS) simultaneously to the web UI and editor-side tooling without page refresh; approved changes synced back as structured JSON keyed by project/scene/asset/UI element.
+
+Implemented the client-side integration at the native C++ serialization layer — modifying how localized variables/state were serialized and transferred so changes propagated automatically into the editor's data-bound UI, with no per-window UI code required.
+
+4. Associate Consultant — Enterprise Support / Platform Stability
+
+Company: Rythmos India Pvt. Ltd. (now Coforge)
+
+Client: Unity Technologies (Unity3D SE Team)
+
+Duration: 07/2019 to 12/2021
+
+Team Size: 15
+
+Technologies: C++, C#, native debugging, crash/trace analysis, LTS backports
+
+Project Overview: Engineering-level support for a large-scale production engine serving enterprise customers across automotive, gaming/slot-machine, and kiosk (airport/hospitality) verticals — defect reproduction, root-cause analysis, and LTS backporting.
+
+Roles & Responsibilities:
+
+Reproduced and root-caused enterprise customer defects in the engine via minimal repro projects, logs, crash dumps, and source-level native debugging; delivered fixes across the C#/C++ codebase.
+
+Ported platform-side C++ bug fixes and backports to LTS releases, partnering with enterprise clients to reduce escalations.
+
+5. Technical Lead — Simulation / Java Backend Lead
+
+Company: iCube Systems / iCube Logics (I) Pvt. Ltd.
+
+Client: Confidential (Aerospace & Heavy-Vehicle Manufacturer — NDA)
+
+Duration: 06/2017 to 05/2019
+
+Team Size: 5
+
+Technologies: Java 8, Spring MVC, REST, SQL Server (JDBC), Tomcat/Apache, RHEL-compatible Linux, Spring WebSocket/STOMP (SockJS), WebRTC, CNN-based vision pipeline, Azure, FTP/file-drop ingestion, legacy Windows interop (Win32/MFC, COM/DCOM, VB6, WCF/IIS)
+
+Project Overview: Java 8/Spring MVC integration layer on Linux enabling warehouse-automation modules to consume the enterprise SQL Server datastore shared across multiple verticals — while preserving untouched compatibility with design/engineering teams on Windows-based Siemens/CAD toolchains.
+
+Roles & Responsibilities:
+
+Architectured a centralized REST API layer around legacy Windows systems (Win32/MFC, COM/DCOM, VB6 clients, WCF/IIS services, registry- and path-bound workflows), giving new modules one clean integration point without disturbing cross-vertical schemas, reports, or ODBC/OLE DB consumers.
+
+Built Spring MVC services powering warehouse operations — part-dependency algorithms and REST APIs letting factory robots query QR-coded bins, calculate assembly capacity, and auto-trigger restocking; bridged robotic retrieval with the Java/Spring WMS, cutting supply-chain restocking delays by 85%.
+
+Built an in-panel support system with real-time chat (Spring WebSocket/STOMP over SockJS) escalating to WebRTC peer-to-peer video calls for machine-breakdown support — STOMP topics brokered the WebRTC signaling (SDP/ICE exchange); kept in-house vs. third-party tools for data sensitivity.
+
+Engineered a live video-frame pipeline feeding a CNN (semantic segmentation) for on-the-fly defect detection — built the streaming infrastructure ahead of the model so detection could be enabled via feature flag once trained.
+
+Hosted services on Tomcat/Apache with FTP/file-drop pipelines for machine-input ingestion, inspection imagery, and simulation/automation data exchange.
+
+6. Junior Engineer (Java Backend)
+
+Company: Vroovy Tech (Hungama Gameshastra Pvt. Ltd.)
+
+Client: Hungama Digital Media
+
+Duration: 11/2015 to 06/2017
+
+Team Size: 15
+
+Technologies: Java, Spring, Linux, PostgreSQL, Redis, HLS (.m3u8), HTTP Range Requests, shell-scripted deployment
+
+Project Overview: Java/Linux middleware service between client applications and Hungama media servers — centralizing playlist logic, music-metadata lookup, and HLS audio delivery in a thin-client architecture so business rules lived server-side instead of being hardcoded in apps.
+
+Roles & Responsibilities:
+
+Built Spring-based backend services handling server-driven UX flows, state machines, and playlist/business rules; PostgreSQL as the system of record for music catalog metadata, media references, and playlist configuration, with Redis fronting low-latency transient state (sessions, playback flow, hot lookup data).
+
+Engineered HLS pipeline logic in Java — fetching and parsing .m3u8 manifests, resolving audio segments, and applying server-side randomization/selection rules — then streaming selected chunks via HTTP Range Requests (partial content) directly from Hungama media servers, eliminating full-file downloads.
+
+Owned Linux deployment workflow: JVM runtime tuning via environment properties, shell-scripted rollout, and service configuration across environments.
+
+7. C++ Platform Integration Developer
+
+Company: virtualinfocom
+
+Client: Intel (sponsored project)
+
+Duration: 06/2014 to 05/2015
+
+Team Size: 4
+
+Technologies: C, C++11, Win32 API, DLL/ABI design, extern "C" exports, callback/event-driven architecture, multithreading, P/Invoke interop, Visual Studio 2012, Windows 8/8.1
+
+Project Overview: Intel-sponsored SDK exposing 2-in-1 convertible hardware state (posture, touch readiness, keyboard availability) to application developers — enabling custom touch-mode UX and suppressing default OS behaviors (e.g., auto on-screen keyboard) without exposing Intel's proprietary driver APIs.
+
+Roles & Responsibilities:
+
+Core developer in a 4-member team; owned the native layer — a C/C++ SDK wrapping Intel's proprietary hardware DLLs behind a stable, versioned C ABI (extern "C" exports, fixed calling conventions, opaque handles to hide internal types).
+
+Implemented a device-state manager normalizing raw hardware signals into posture-transition events (laptop/tablet/tent/presentation) — dispatched via registered callbacks and polling APIs with thread-safe state access and debounced transitions — plus an input-context routing layer enabling applications to programmatically switch input handling (touch vs. keyboard/mouse) per hardware mode.
+
+Hardened managed-to-native interop (P/Invoke callback marshaling, DLL load/unload lifetime, stability under rapid mode transitions); shipped reference adapters and integration docs, validated on Intel Ultrabook-class convertible hardware.
+
+CERTIFICATIONS
+
+Microsoft Applied Skills: Enhance agents with autonomous capabilities (2026) - Verify credential (Microsoft Learn)
+
+EDUCATIONAL QUALIFICATIONS
+
+Bachelor's in Electronics - Aurora College, 2013
+
+PERSONAL DETAILS
+
+Date of Birth: 15 Nov 1992
+
+Gender: Male
+
+Marital Status: Married
+
+Languages Known: English, Telugu, Hindi
+
+could you please go through my resume, and wait before you come to conclution. i need to provide some input before you make a decision or your think what is truth or thing here
+
+ok now let me explain the whole thing from start, FYI first  i am from india,
+
+I have graduated from Aurora college with Bsc which is Bachelors of sciences in electronic which is a 3 years degree.
+
+The reason i am stressing on this is in india for typical deep core profiles most of the HR looks for btech or mtech or MS or atleast an MCA(this was before now even this is not well rewarded).
+
+So except the top companies known as MAANG or whatever , most of the other service based on mid scale product companies try to be a bit crancky on that thing. 
+
+first listen to everything, you can get a clear idea on why or what i am trying to portray here
+
+
+We need to parse the user's request carefully. The user provided a detailed professional profile/resume, then asked me to wait before concluding, saying they need to provide some input before I make a decision or think what is truth. They then started explaining: they graduated with a BSc in Electronics (3-year degree) and stressed that in India, many HR for deep core profiles look for BTech/MTech/MS/MCA, and except top companies, service-based or mid-scale product companies can be cranky about that. They say "first listen to everything, you can get a clear idea on why or what i am trying to portray here."
+
+So the user hasn't explicitly asked a question yet. They've just given context. I need to wait for them to finish, but they said "first listen to everything, you can get a clear idea on why or what i am trying to portray here." They might be about to ask something like: "Based on my resume and this education background, what are my chances? Do I need to hide something? How should I position my degree? Am I overqualified?" Or they might be venting about how they feel their BSc degree is undervalued despite their experience, and they want me to understand that before they ask a question. Since they said "could you please go through my resume, and wait before you come to conclution. i need to provide some input before you make a decision or your think what is truth or thing here" and then started explaining, I should respond with an acknowledgment that I've read the resume and understood their explanation, and invite them to continue with what they want to ask or discuss. I should not jump to conclusions, but reflect back what I've understood so far, showing I'm listening. I'll craft a response that summarizes: I've reviewed the resume, I've noted the 11+ years of strong experience, the BSc Electronics degree, and the challenge in the Indian job market where some HR might gatekeep based on degree type. I'll then ask them to continue with their specific question or the point they want to make. This shows I'm waiting. The tone should be supportive and open.
+
+I’ve read through your resume carefully, and I’ve taken in what you just shared about your educational background and the reality of how that’s often perceived in the Indian job market for deep‑core profiles.
+
+To summarise what I’m holding in mind right now:
+
+You have a BSc in Electronics (3‑year degree) from Aurora College.
+
+In India, many HR screens for core engineering roles are biased toward B.Tech / M.Tech / MS / MCA, and aside from the top-tier product companies, a lot of service‑based and mid‑scale product firms can be rigid or “cranky” about that.
+
+Despite that, you’ve built an 11+ year career doing genuinely deep systems and platform engineering — native C/C++ runtime internals, Java/Spring backends, graphics pipelines, compiler toolchain stability — embedded directly with Unity Technologies teams.
+
+That résumé shows you’ve been trusted with the hardest class of bugs, architectural backports, LTS releases, and cross‑platform work across Windows, Linux, Android, WebGL.
+
+I’m not forming any conclusion yet. I’m just listening, and I’m clear that the degree-versus-experience tension is the central thing you’re setting up.
+
+Please go ahead — I’m ready to hear whatever else you need to explain, whether it’s about how you’ve navigated this, what you’re trying to portray, or what specific question or dilemma you want me to help with.
+
+so since now have the degree thing, sorted, after i finished it i went for a 1 year course in PG Diploma in Game Development in ICAT Chennai where i learnt unity.
+
+
+After that ii started working you already know the timelines, but the work i did is not what it looks like in the resume, you will understnad it once i provide more in detail info.
+
+So i joined company named Virtualinfocom and i worked on a car racing game for this i used Unity example project and slightly tweaked the code and added some assets here and there and made it as a game. 
+
+so since it was a very small company of 4 memebers including CEO and artist and 3d animator it did not matter the code quality or how it is done, just the output mattered most.
+
+So i used stackoverflow unity forms and youtube tutorials and blaintly copied from it.
+
+i was somewhat average at unity but grasping power was good, so i pick up thinks faster.
+
+so my programming skills were not that good.
+
+next i jumped to a hyderabad company names Vrovvy tech which was a hungame company for games, here i slowly learned c# basics to mid, got familiar with UI basicaly the Ui toolkit kind of unity provided in unity 4.6. i worked on UI systems but again it was basic level not so advanced or ground breaking, reason i am beeing honest is currently i am a 11+ exp dev so providing accurate info matter more for me to decide and prepare how to proceed further.
+
+so next i was part of a cricket game known as Dhoni for which again i was part of implementing UI in the game.
+
+later i left gaming industry totaly and joined Icube logics, frankly here my profiles and skillset was improved by due to the company beeing very small liternally 2 memebers caused my skill update or upslinng useless. 
+
+so here too i worked on optimizing the there VR/AR projects, they were working for ST kinetics which was a manufacture company in singapore. as well as SDD for india military.
+
+in there my work mostly was same old integrating XR/AR sdk adding 3d objects and using OpenVR scripts to make things work, so not much ground breaking.
+
+all the things you saw in the resume i gave were not false, those projects were indeed done but i was not the main person or the one did it, so moving on
+
+then i moved to rythmos which was bought by coforge last year on march, here i imporved by c# and c++ but not in project levvel or experience level just basic to mid level which is what a gradte tranine is expected off in US/EU but here in india getting to that levvel itself is considered very dificult.
+
+So moving on in rythmos mostly my work was backports in simple terms it was git ocmmands, build unity editor very basic build comannds very if the issue is fixed or not and then later push the PR.
+
+this is what i was doing till now. the profile may have changed like localization, Bugfixing , graphics, or perforce all are true but i did not implement anything i just increased the backporitng scope like performaing analysys , bisection some problem solving skills and get the issue and its fix.
+
+so no 10+ yrs level c++ or c# or java no master or expert in any level.
+
+so now since the introduction of AI from 2022 it helped me speed up and pick complex systems beccause i am good at problem solving or analisys and it was good at getting info on grpahic systems or platforms so combined i porvided good deep investigation reports which unity dev used to fix the issues. 
+
+so all is well, until now, reason we lost the contract from unity around july due to some diagreements between Unity and new management Coforge on billing or price. so currently on unofficial bench kind, expected to be moved 2nd week or end of auguest and as per terms with coforge 2 months bench and 1 month notice.
+
+ok first go this detail will provide more info, once i say i have provide all info and ask you some inputs on so and so then go ahead and analays and provide your inputs,
+
+but not now , for now just read the info i have provided
+
+We need to parse the user's latest message. They gave a huge backstory, clarifying that their resume, while not false, heavily embellishes their actual level of contribution and skill depth. They admitted they mostly did basic tasks, backporting (git commands, building, checking fixes, pushing PRs), with some problem-solving and analysis aided by AI, but not deep implementation. Their actual coding skills in C++, C#, Java are "basic to mid level" at best, not expert. They are currently on unofficial bench at Coforge after Unity contract loss, with 2 months bench + 1 month notice period. They want me to just read this info, not yet analyze or give input. They will provide more detail later, then ask for my inputs.
+
+I should acknowledge that I've read and understood their self-assessment, without drawing conclusions or giving advice yet. Reassure them I'm listening and waiting for their further input. I'll restate what I've gathered so they know I got it. Keep it supportive and non-judgmental.
+
+Understood. I’ve read everything you’ve laid out, and I’m not forming any conclusions or suggestions yet. I’m just holding the full picture you’ve painted — both the resume on paper and the honest, unvarnished reality behind it.
+
+To confirm what I’ve captured so far:
+
+Your degree is a 3‑year BSc in Electronics, which you know is often filtered out for deep‑core roles in India outside the top tier.
+
+After that, a PG Diploma in Game Development where you first touched Unity.
+
+Your early work was basic — tweaking example projects, copying from tutorials, building UI with Unity 4.6, not deep engineering.
+
+At iCube, although the resume projects existed, your own hands‑on contribution was again integration‑level (XR/AR SDKs, OpenVR scripts), not core development.
+
+At Rythmos/Coforge (the Unity engagement), your real day‑to‑day was primarily backporting — git operations, building the editor, verifying fixes, pushing PRs — not original implementation. You expanded into analysis, bisection, and problem‑solving, and later used AI tools to help you investigate complex systems, producing reports that helped Unity devs fix issues.
+
+Your self‑assessed skill level in C++, C#, Java is basic to mid — not what an 11‑year veteran “should” have, and not matching the depth implied by a résumé that talks about runtime internals, compiler toolchains, and architectural backports as if you authored them.
+
+You’re now on unofficial bench after the Unity contract ended, with a likely move in August and a total of about 3 months before you’d need to have something else.
+
+I’m clear that the thread connecting all this is that you’re good at problem analysis, fast learning, and using AI‑augmented investigation, but your foundational coding depth hasn’t been built through real, prolonged, ownership‑level implementation.
+
+I’m listening. Take your time — whenever you’re ready to share the rest, or the specific question you want me to help with, I’m here. No judgment, no premature advice.
+
+so now since you already know my backend i mean degree, gaming fiasco and backporting thing in rythmos based on input from my seniors i stated my MS from Scalar academy an intitite , searh online. last year
+
+it was based on DSA, SQl, Java backend and so on. it was near to 11 months program i started around septemeber, i completed DSA , SQL which was near to 8 months and i was part of java/python batch, i shifted to python batching thinking it was easier and wasted two months not that it was difficult but it did not feel related to my c++ or c# and i saw Scalar was mostly like 90% referals or jobs were on Java so i requested and somehow got approval back to Java LLD batch but only condition was to start from where i left sql that means Java LLD 1 module i need to retake, anyhow i did not do that so i accepted, but mean time you know AI models were becoming smarter Agentic AI was the new norm and suddenly scaler had to rewamp the course and restart the Java LLD 1 from start for people who did not yet compelte it which was me so i was back to square one so i started to be part of Java LLD 1 again from June 19th 2026. so i compelted module 1 of it and now part of module 2
+
+so to show more info i will be sharing info on my scaler acamey curiculam and then MS in computer science specization Java backend with ML as elective with Data engeneering .
+
+go through the info, also do not provide you inputs yet go through the provide data 
+
+also go through the website and see if you scrape the data from it and understand what is the course i am learning from scaler 
+https://www.scaler.com/neovarsity/v2/
+also this https://www.scaler.com/academy/
+
+the detailed info on both the course
+
+SCALER ACADEMY - DETAILED CURRICULUM 2026
+CURRICULUM OUTLINE
+THE BLUEPRINT TO SUCCESS
+
+Our expert-led curriculum will prepare you for the toughest challenges that you may face in your journey to becoming a skilled programmer.
+
+COURSE OUTLINE FOR BEGINNERS
+Segment	Module Type	Module Name	Duration (months)
+Programming Fundamentals	Core	Programming Fundamentals - Thinking with AI: Logics, Loops & Control Flow	1
+Programming Fundamentals	Core	Programming Fundamentals - Code Smarter with AI: Functions & Arrays	1
+Programming Fundamentals	Core	Intermediate DSA: AI Assisted Problem Solving	1
+Agentic AI	Core	AI & Agents: From Talking to AI to Building One	1
+Advanced DSA	Core	Advanced DSA: Foundations: Core Techniques & Optimization	1
+Advanced DSA	Core	Advanced DSA: Linear & Non-Linear Structures	1
+Advanced DSA	Core	Advanced DSA: Backtracking & Advanced Trees	1
+Advanced DSA	Core	Advanced DSA: DP, Heaps & Graphs — Crack It with AI Edge	1
+Databases & SQL	Core	Databases & SQL	1
+Backend	Specialisation	Foundations of Object-Oriented Design & Scalable Systems	1
+Backend	Specialisation	Design Principles & Patterns for Extensible Systems	1
+Backend	Specialisation	Applied Design & Machine Coding	1
+Backend	Specialisation	AI-First Backend Capstone Project Primer	1
+Backend	Specialisation	AI-First Backend Capstone Project Advance	1.5
+Backend	Elective	Build a Production-Ready AI-Enabled System	1
+Fullstack	Specialisation	Web Platform Foundations & UI Systems	0.5
+Fullstack	Specialisation	JavaScript Runtime Systems, Browser APIs & Product Engineering Labs	1.5
+Fullstack	Specialisation	React and Frontend Product Architecture Fundamentals	1
+Fullstack	Specialisation	Backend Product Systems, APIs and Production Engineering	1
+Fullstack	Elective	Backend Product Systems - Deep Dive	0.5
+Fullstack	Elective	Foundations of AI-Assisted Full-Stack Development	0.5
+Fullstack	Elective	JavaScript Object System & Engineering Patterns	0.5
+Fullstack	Elective	React and Frontend Product Architecture Fundamentals Deep Dive	1
+FDE	Specialisation	Foundations of the Forward Deployed Engineer Role & Production Python	7.5
+FDE	Specialisation	Backend Systems, Observability & Advanced Data Engineering	-
+FDE	Specialisation	AI-First Frontends with TypeScript & React	-
+FDE	Specialisation	Cloud, DevOps & Kubernetes for Production Delivery	-
+FDE	Specialisation	LLM Engineering & Customer Consulting (RAG, Prompting & Guardrails)	-
+FDE	Specialisation	Agentic Systems & Enterprise Integrations (Agents, MCP & HITL)	-
+FDE	Specialisation	Secure, Multi-Tenant Application Delivery & Incident Response	-
+FDE	Specialisation	FDE Capstone: End-to-End Customer Engagement (Discovery to Demo Day)	-
+FDE	Elective	Containerization and Orchestration	1.5
+FDE	Elective	AWS: multi-region cloud deep dive	1.5
+FDE	Elective	Storage, Networking & Reliability for FDEs	1
+System Design	Elective	Distributed System Design & AI-integrated Architectures	1.5
+Interview Preparation	Elective	Mastering LastMile - Interview Simulation	1.5 weeks
+Data Engineering	Elective	Data Engineering	2
+Advanced DSA	Elective	DSA Edge: Advanced Patterns & Interview Techniques	1
+Advanced DSA	Elective	Product Management for Engineers	1
+Advanced DSA	Elective	Gen AI for Software Engineers	1.5
+Notes:
+
+This module is customised at learner level i.e. a learner can opt for this module at any point during the course post the completion of Data Structures & Algorithms module, once they have demonstrated their command on the concepts of Data Structures & Algorithms module.
+
+** Only 1 Specialisation is allowed per learner. Recorded lectures for the other can be availed via Student Dashboard. At Least 1 Specialisation is mandatory for successful completion of the course.
+
+*** A learner can do as many electives as they want, but only after completion of Core Curriculum.
+
+COURSE OUTLINE FOR INTERMEDIATE
+Segment	Module Type	Module Name	Duration (months)
+Programming Fundamentals	Core	Intermediate DSA: AI Assisted Problem Solving	1
+Agentic AI	Core	AI & Agents: From Talking to AI to Building One	1
+Advanced DSA	Core	Advanced DSA: Foundations: Core Techniques & Optimization	1
+Advanced DSA	Core	Advanced DSA: Linear & Non-Linear Structures	1
+Advanced DSA	Core	Advanced DSA: Backtracking & Advanced Trees	1
+Advanced DSA	Core	Advanced DSA: DP, Heaps & Graphs — Crack It with AI Edge	1
+Databases & SQL	Core	Databases & SQL	1
+Backend	Specialisation	Foundations of Object-Oriented Design & Scalable Systems	1
+Backend	Specialisation	Design Principles & Patterns for Extensible Systems	1
+Backend	Specialisation	Applied Design & Machine Coding	1
+Backend	Specialisation	AI-First Backend Capstone Project Primer	1
+Backend	Specialisation	AI-First Backend Capstone Project Advance	1.5
+Backend	Elective	Build a Production-Ready AI-Enabled System	1
+Fullstack	Specialisation	Web Platform Foundations & UI Systems	0.5
+Fullstack	Specialisation	JavaScript Runtime Systems, Browser APIs	1.5
+Fullstack	Specialisation	React and Frontend Product Architecture Fundamentals	1
+Fullstack	Specialisation	Backend Product Systems, APIs and Production Engineering	1
+Fullstack	Specialisation	Backend Product Systems - Deep Dive	0.5
+Fullstack	Elective	Foundations of AI-Assisted Full-Stack Development	0.5
+Fullstack	Elective	Frontend Systems & Machine Coding Mastery	0.5
+Fullstack	Elective	React and Frontend Product Architecture Fundamentals Deep Dive	1
+FDE	Specialisation	Foundations of the Forward Deployed Engineer Role & Production Python	7.5
+FDE	Specialisation	Backend Systems, Observability & Advanced Data Engineering	-
+FDE	Specialisation	AI-First Frontends with TypeScript & React	-
+FDE	Specialisation	Cloud, DevOps & Kubernetes for Production Delivery	-
+FDE	Specialisation	LLM Engineering & Customer Consulting (RAG, Prompting & Guardrails)	-
+FDE	Specialisation	Agentic Systems & Enterprise Integrations (Agents, MCP & HITL)	-
+FDE	Specialisation	Secure, Multi-Tenant Application Delivery & Incident Response	-
+FDE	Specialisation	FDE Capstone: End-to-End Customer Engagement (Discovery to Demo Day)	-
+FDE	Elective	Containerization and Orchestration	1.5
+FDE	Elective	AWS: multi-region cloud deep dive	1.5
+FDE	Elective	Storage, Networking & Reliability for FDEs	1
+System Design	Elective	Distributed System Design & AI-Integrated Architectures	1.5
+Interview Preparation	Elective	Mastering LastMile - Interview Simulation	1.5 weeks
+Data Engineering	Elective	Data Engineering	2
+Advanced DSA	Elective	DSA Edge: Advanced Patterns & Interview Techniques	1
+Advanced DSA	Elective	Product Management for Engineers	1
+Advanced DSA	Elective	Gen AI for Software Engineers	1.5
+Notes:
+
+This module is customised at learner level i.e. a learner can opt for this module at any point during the course post the completion of Data Structures & Algorithms module, once they have demonstrated their command on the concepts of Data Structures & Algorithms module.
+
+** Only 1 Specialisation is allowed per learner. Recorded lectures for the other can be availed via Student Dashboard. At Least 1 Specialisation is mandatory for successful completion of the course.
+
+*** A learner can do as many electives as they want, but only after completion of Core Curriculum.
+
+COURSE OUTLINE FOR ADVANCED
+Segment	Module Type	Module Name	Duration (months)
+Agentic AI	Core	AI & Agents: From Talking to AI to Building One	1
+Advanced DSA	Core	Advanced DSA: Foundations: Core Techniques & Optimization	1
+Advanced DSA	Core	Advanced DSA: Linear & Non-Linear Structures	1
+Advanced DSA	Core	Advanced DSA: Backtracking & Advanced Trees	1
+Advanced DSA	Core	Advanced DSA: DP, Heaps & Graphs — Crack It with AI Edge	1
+Databases & SQL	Core	Databases & SQL	1
+Backend	Specialisation	Foundations of Object-Oriented Design & Scalable Systems	1
+Backend	Specialisation	Design Principles & Patterns for Extensible Systems	1
+Backend	Specialisation	Applied Design & Machine Coding	1
+Backend	Specialisation	AI-First Backend Capstone Project Primer	1
+Backend	Specialisation	AI-First Backend Capstone Project Advance	1.5
+Backend	Elective	Build a Production-Ready AI-Enabled System	1
+Fullstack	Specialisation	Web Platform Foundations & UI Systems	0.5
+Fullstack	Specialisation	JavaScript Runtime Systems, Browser APIs	1.5
+Fullstack	Specialisation	React and Frontend Product Architecture Fundamentals	1
+Fullstack	Specialisation	Backend Product Systems, APIs and Production Engineering	1
+Fullstack	Specialisation	Backend Product Systems - Deep Dive	0.5
+Fullstack	Elective	Foundations of AI-Assisted Full-Stack Development	0.5
+Fullstack	Elective	Frontend Systems & Machine Coding Mastery	0.5
+Fullstack	Elective	React and Frontend Product Architecture Fundamentals Deep Dive	1
+FDE	Specialisation	Foundations of the Forward Deployed Engineer Role & Production Python	7.5
+FDE	Specialisation	Backend Systems, Observability & Advanced Data Engineering	-
+FDE	Specialisation	AI-First Frontends with TypeScript & React	-
+FDE	Specialisation	Cloud, DevOps & Kubernetes for Production Delivery	-
+FDE	Specialisation	LLM Engineering & Customer Consulting (RAG, Prompting & Guardrails)	-
+FDE	Specialisation	Agentic Systems & Enterprise Integrations (Agents, MCP & HITL)	-
+FDE	Specialisation	Secure, Multi-Tenant Application Delivery & Incident Response	-
+FDE	Specialisation	FDE Capstone: End-to-End Customer Engagement (Discovery to Demo Day)	-
+FDE	Elective	Containerization and Orchestration	1.5
+FDE	Elective	AWS: multi-region cloud deep dive	1.5
+FDE	Elective	Storage, Networking & Reliability for FDEs	1
+System Design	Core	Distributed System Design & AI-Integrated Architectures	1.5
+Interview Preparation	Elective	Mastering LastMile - Interview Simulation	1.5 weeks
+Data Engineering	Elective	Data Engineering	2
+Advanced DSA	Elective	DSA Edge: Advanced Patterns & Interview Techniques	1
+Advanced DSA	Elective	Product Management for Engineers	1
+Advanced DSA	Elective	Gen AI for Software Engineers	1.5
+Notes:
+
+This module is customised at learner level i.e. a learner can opt for this module at any point during the course post the completion of Data Structures & Algorithms module, once they have demonstrated their command on the concepts of Data Structures & Algorithms module.
+
+** Only 1 Specialisation is allowed per learner. Recorded lectures for the other can be availed via Student Dashboard. At Least 1 Specialisation is mandatory for successful completion of the course.
+
+*** A learner can do as many electives as they want, but only after completion of Core Curriculum.
+
+CURRICULUM DEEP DIVE
+CURRICULUM DEEP DIVE FOR BEGINNERS
+PROGRAMMING FUNDAMENTALS
+Programming Fundamentals - Thinking with AI: Logics, Loops & Control Flow
+
+Programming Foundations & AI Awareness
+
+Operators & Expression Evaluation using AI
+
+Data Types 1
+
+Data Types 2 + Reading Inputs
+
+Operators
+
+If-Else & AI Edge Case Thinking
+
+Lab Session on If-Else
+
+Loops & Iteration Analysis by AI
+
+Lab Session on Loops
+
+More problems on Loops & Patterns
+
+Lab Session on Patterns
+
+Dual Camera Proctoring
+
+Data Types, If-Else & Loops & Contest discussion
+
+Programming Fundamentals - Code Smarter with AI: Functions & Arrays
+
+Functions & Modularity: Designing Code with AI
+
+Lab Session on Functions
+
+Introduction to Strings
+
+1D Array
+
+Lab Session on 1D Array - 1
+
+Lab Session on 1D Array - 2
+
+2D Array - 1
+
+Lab Session on 2D Arrays - 1
+
+Lab Session on 2D Arrays - 2
+
+Strings in Memory: Visualizing with AI
+
+Maths Basics & Calculate Iterations
+
+Revision: Language
+
+Break
+
+Contest 2: Functions & Arrays
+
+Intermediate DSA: AI Assisted Problem Solving
+
+Time Complexity
+
+Introduction to Arrays & Basics of AI
+
+Lab Session on TC, SC, Output & Debugging
+
+Arrays: Prefix Sum & Carry Forward with AI-Assisted Problem Solving
+
+Lab Session on Prefix Sum & Carry Forward
+
+Arrays: Arrays techniques & smart prompting
+
+Lab Session on Memory Management & Sorting Basics
+
+Bit Manipulations Basics
+
+Lab Session on 2D Matrices
+
+Strings & Immutability visualisations through AI
+
+Lab on Matrix & Strings using AI
+
+Contest
+
+AGENTIC AI
+AI & Agents: From Talking to AI to Building One
+
+GenAI World & LLM Landscape
+
+Prompt Engineering Basics
+
+Advanced Prompting & AI Safety Basics
+
+LLM Built-in Power Tools
+
+RAG
+
+n8n Automation Workflow
+
+What Is an AI Agent?
+
+Building Agents with n8n
+
+OpenClaw: Personal 24/7 AI Agent
+
+Multi-Agent Systems
+
+Debugging AI
+
+ADVANCED DSA
+Advanced DSA: Foundations: Core Techniques & Optimization
+
+Time Complexity
+
+Arrays Techniques
+
+Arrays 1: One Dimensional
+
+Arrays 2: Two Dimensional
+
+Lab Session on Arrays
+
+Bit Manipulation
+
+Lab Session on Bit Manipulation
+
+Recursion
+
+Lab Session on Recursion
+
+Maths: Modular Arithmetic & GCD
+
+Hashing
+
+Lab Session on Hashing
+
+Sorting 1: Count Sort & Merge Sort
+
+Sorting 2: Quick Sort & Comparator Problems
+
+Sample Contest: Dual Camera Proctoring
+
+Contest 1: Arrays, Bit Manipulation, Recursion, Math, Hashing & Sorting
+
+Advanced DSA: Linear & Non-Linear Structures
+
+Searching 1: Binary Search on Array
+
+Searching 2: Binary Search on Answer
+
+Lab Session on Searching
+
+Classes, Objects & Linked List Introduction
+
+Linked List: Basic Problems
+
+Stacks
+
+Lab Session on Stacks
+
+Queues: Implementation & Problems
+
+Trees 1: Structure & Traversal
+
+Trees 2: BST
+
+Lab Session on Binary Trees
+
+Revision of DSA 1 & 2
+
+Break
+
+Contest 2: Searching, Linked List, Stacks, Queues & Trees
+
+Advanced DSA: Backtracking & Advanced Trees
+
+Maths: Combinatorics Basics & Prime Numbers
+
+Lab Session on Prime Numbers & 2 Pointers
+
+Lab Session on Maths & 2 Pointers
+
+Backtracking
+
+Lab Session on Backtracking
+
+Linked List: Sorting and Problems
+
+Linked List: Doubly Linked List & Detecting Loop
+
+Trees 4: Morris Inorder Traversal + LCA
+
+Lab Session on Binary Trees 2
+
+Hashing 3: Internal Implementation & Problems
+
+Contest 3: Math, Two Pointers, Backtracking, Linked List & Trees
+
+Advanced DSA: DP, Heaps & Graphs — Crack It with AI Edge
+
+Heaps: Introduction
+
+Heap Sort & Greedy
+
+Lab Session on Heaps & Greedy
+
+Lab Session on Interview Problems 1
+
+DP 1: One Dimensional
+
+DP 2: Two Dimensional
+
+DP 3: Knapsack
+
+Lab Session on Applications of Knapsack
+
+Graphs 1: Introduction, DFS & Cycle Detection
+
+Graphs 2: BFS & MST
+
+Graphs 3: Dijkstra Algo & Topological Sort
+
+Lab Session on Interview Problems 2
+
+Revision of DSA 3 & 4
+
+Contest 4: Heaps, Greedy, DP & Graphs
+
+Mandatory Skill Evaluation Test: DSA Skill Evaluation Test Discussion + How to ace DSA Interview
+
+DSA: Real World Project 1 (Social Network Analyzer)
+
+DSA: Real world Project 2 (Invoice Merger)
+
+DATABASES & SQL
+Databases & SQL
+
+Introduction to DBMS & Keys
+
+CRUD Operations - 1
+
+CRUD Operations - 2
+
+Joins
+
+Aggregate Queries
+
+Joins and Aggregate Queries Working Session
+
+Subqueries & Views
+
+Indexing
+
+Transactions
+
+Window Functions
+
+Schema Design - 1
+
+Schema Design - 2
+
+Databases & SQL Contest: SQL and Schema Design
+
+BACKEND
+Foundations of Object-Oriented Design & Scalable Systems
+
+Intro to LLD for Scalable & AI-Ready Systems
+
+OOP-1: Intro to OOP Lab
+
+OOP-2: Access Modifiers and Constructors
+
+OOP-3: Inheritance and Polymorphism
+
+OOP-4: Interfaces, Abstract Classes
+
+Concurrency-1: Introduction to Processes and Threads
+
+Concurrency-2: Executors and Callables
+
+Concurrency-3: Introduction to Synchronization
+
+Concurrency-4: Synchronization with Semaphores
+
+Java Advanced Concepts - 1 [Generics]
+
+Java Advanced Concepts - 2 [Generics & Collections Lab]
+
+Java Advanced Concepts - 3 [Streams and Lambdas]
+
+Java Advanced Concepts - 4 [Exception Handling and Miscellaneous Topics]
+
+Contest - 1: Java, OOP, and Concurrency
+
+Design Principles & Patterns for Extensible Systems
+
+SOLID Principles for Extensible Systems with AI integrations
+
+Design Patterns: Introduction and Singleton
+
+Design Patterns: Builder
+
+Design Patterns: Prototype and Registry
+
+Design Patterns: Leveraging Factory Pattern for Service Abstraction (APIs & AI Services)
+
+Design Patterns: Adapter and Facade
+
+Design Patterns: Decorator and Flyweight
+
+Design Patterns: Behavioural Design Patterns
+
+UML Diagrams
+
+Contest - 2: Design Principles & Design Patterns
+
+Applied Design & Machine Coding
+
+How to Approach Design Problems
+
+Design TicTacToe
+
+Code TicTacToe 1
+
+Code TicTacToe 2
+
+Design Parking Lot
+
+Code Parking Lot 1
+
+Design BookMyShow
+
+Code BookMyShow 1
+
+Code BookMyShow 2
+
+Code BookMyShow 3
+
+Design Splitwise
+
+Code Splitwise 1
+
+Code Splitwise 2
+
+Machine Coding
+
+AI-First Backend Capstone Project Primer
+
+Intro to Backend Systems & AI-Augmented Development
+
+Version Control and Git
+
+Learning Git Commands & AI Dev Tools
+
+Intro to Spring Framework and Building APIs
+
+MVC, Requests in Spring and Starting First Microservice (with AI Service Integration)
+
+Calling 3rd Party APIs & LLM/AI Services
+
+Intro to Spring Data JPA
+
+JPA Queries and Repositories
+
+Unit Testing and Good Practices (including AI-assisted testing)
+
+Authentication vs Authorization, OAuth2, JWT
+
+Implementing UserAuthService
+
+Deploying Backend & AI-Enabled Applications to AWS
+
+AI-First Backend Capstone Project Advance
+
+RestTemplate, Resilience & Handling Failures in AI/API Systems
+
+UUIDs and Representing Inheritance
+
+Mocking and Writing Unit Tests (including AI services)
+
+Advanced Testing Strategies for Backend Systems
+
+JWT Generation and Validation
+
+Authentication - Implementing OAuth 2
+
+EBS, RDS
+
+VPC, Security Groups, Route 53
+
+Implementing Search: Paging, Sorting & Intro to Semantic Search
+
+Creating Payment Microservice
+
+Implementing Stripe PG and Reconciliation
+
+Optimizing APIs using Redis and Kafka for Async & AI Workloads
+
+Spring Cloud for Distributed Microservices & AI Services
+
+Spring Cloud: API Gateway, Load Balancing, Logging & Monitoring
+
+Docker for Backend & AI Service Deployment
+
+Elective: Build a Production-Ready AI-Enabled System
+
+Module Introduction - Intro to LLMs for Backend Engineers & Prompt Engineering for Backend APIs
+
+Building BookMyShow Chat Agent - 1
+
+Building BookMyShow Chat Agent - 2
+
+Building BookMyShow Chat Agent - 3
+
+Building Splitwise AI Receipt Processor - 1
+
+Building Splitwise AI Receipt Processor - 2
+
+Building Splitwise AI Receipt Processor - 3
+
+Backend Capstone Project: Contest
+
+FULLSTACK
+Web Platform Foundations & UI Systems
+
+How the Web Works: Browsers, HTML, Developer Tools, and AI Inspection
+
+Semantic HTML, Forms, and Structured User Input
+
+CSS Foundations: Cascade, Selectors, Box Model, and Units
+
+Layout Systems I: Display, Positioning, and Flexbox
+
+Layout Systems II: Responsive Design, Media Queries, and Grid
+
+CSS Variables, Transitions, and Visual Polish
+
+UI Debugging: Specificity, Inheritance, Stacking, DevTools, and AI Review
+
+From Design to Code: AI-Assisted UI Build, Review, and Refinement
+
+HTML & CSS Certification Contest
+
+JavaScript Runtime Systems, Browser APIs & Product Engineering Labs
+
+JavaScript Foundations: Values, Types, Variables, Control Flow, and Basic Programming
+
+Execution Model: Scope, Hoisting, and How JavaScript Runs
+
+Closures, Lexical Scope, and Persistent State
+
+Runtime Reasoning Lab: Predicting Output, Tracing Execution, and Debugging
+
+Functional JavaScript: Functions, Callbacks, and Higher Order Thinking
+
+The Browser as a Runtime: DOM Structure and Browser APIs
+
+Event Systems: User Interaction, Handlers, and UI Behavior
+
+Product Lab I: Realtime Weather App, JSON, APIs, Async Flow, and Rendering
+
+Product Lab II: Kanban Board, Product Breakdown, UI Structure, and State Model
+
+Product Lab III: Kanban Board, DOM Manipulation and Dynamic Rendering
+
+Product Lab IV: Kanban Board, Business Logic, Persistence, and Local Storage
+
+Product Lab V: Kanban Board, Edge Cases, UX Refinement, and Extensibility
+
+Async Systems I: Callbacks, Web APIs, and Non-Blocking Execution
+
+React and Frontend Product Architecture Fundamentals
+
+React Foundations: Components, JSX and Thinking in UI Trees
+
+React Tooling and TypeScript Setup: Build Tools, JSX, TS Basics and Project Structure
+
+Props, Lists, Forms and Typed Component Composition
+
+State, Events and Interactive UI in React
+
+Lifting State Up, useEffect and Data Flow in Component Trees
+
+Product Lab 1: IMDB App: App Setup, Routing and Frontend Structure
+
+Product Lab 2: IMDB App: Movies Page, Pagination and Data Rendering
+
+Product Lab 3: IMDB App: API Integration, Watchlist and Local Storage
+
+Product Lab 4: IMDB App: Search, Sorting, Filtering and Shared State
+
+Context API, State Sharing and Component Communication
+
+Redux Foundations: Store Design, Actions and Predictable State
+
+Redux Integration Lab: Product Scale State Management in React
+
+React Certification Contest
+
+Backend Product Systems, APIs and Production Engineering
+
+Backend Foundations: Node.js, APIs, Express and Service Thinking
+
+Data Systems: MongoDB, Mongoose, Schema Design and SQL vs NoSQL Thinking
+
+Middleware, Validation and MVC for Scalable Backend Structure
+
+Product Lab 1: Backend Architecture, Domain Modeling and Project Setup
+
+Product Lab 2: Authentication, Authorization and Role Based Access
+
+Product Lab 3: Protected Routes, Tokens and Session Aware Flows
+
+Product Lab 4: Movies, Theatres and Show APIs
+
+Product Lab 5: Partner Workflows, Admin Approval and Moderated Actions
+
+Product Lab 6: Booking Flow, Seat Management and Transaction Safety
+
+Product Lab 7: Payments, Ticket Generation and Order Lifecycle
+
+Product Lab 8: Email Workflows, Password Reset and User Communication
+
+Realtime Backend Systems: WebSockets, Live Updates and Event Driven Flows
+
+MERN Certification Contest
+
+Elective: Backend Product Systems - Deep Dive
+
+Backend Quality Lab: API Testing, Debugging and Error Handling
+
+Backend Security Lab: Validation, Auth Hardening, Abuse Prevention and Safe Defaults
+
+Production Readiness: Environment Management, Deployment, Logging and Docker Basics
+
+Scalability Lab: Caching, Queues, Background Jobs and Data Flow Trade Offs
+
+AI Feature Integration Lab: LLM APIs, Structured Responses and Backend Orchestration
+
+Architecture and Interview Lab: Backend Design, Trade Offs and AI Assisted Review
+
+Elective: Foundations of AI-Assisted Full-Stack Development
+
+Full-Stack Development in the Age of AI
+
+AI Coding Tools for Full-Stack Builders
+
+Prompting for UI, Logic, APIs, and Debugging
+
+Reviewing and Validating AI-Generated Full-Stack Code
+
+From Screen to Server: AI-Assisted Development Workflows
+
+Building Faster Without Losing Fundamentals
+
+Elective: JavaScript Object System & Engineering Patterns
+
+Object Model II: Classes, Constructors, and Object Oriented Modeling
+
+Object Model III: Prototypes, Inheritance, and Reusable Behavior
+
+JavaScript Engineering Lab: Call, Apply, Bind, and Polyfill Thinking
+
+Polyfills Lab: Higher Order Methods and Implementation Reasoning
+
+Data Handling Lab: Deep Copy, Shallow Copy, and Reference Behavior
+
+Elective: React, TypeScript and Frontend Product Architecture Deep Dive
+
+TypeScript Foundations for JavaScript Developers
+
+Advanced Hooks: useRef, useMemo, useCallback and useReducer
+
+Custom Hooks and Reusable Logic Patterns
+
+React Performance Lab: Rendering, Memoization and UI Efficiency
+
+Machine Coding Lab: Component Design, State Design and Real UI Problem Solving
+
+Architecture Studio: React Patterns, State Trade Offs and AI Assisted Review
+
+Next.js Foundations: App Router, Layouts and Modern React Delivery
+
+Next.js Data Fetching: Server and Client Components, Rendering Strategy and SEO
+
+Next.js Product Lab: Forms, Route Handlers, Auth Flow and Deployment
+
+Advanced React Systems: Fiber, Concurrent Rendering, Suspense, Lazy Loading and Error Boundaries
+
+React Interview and Frontend Reasoning Lab
+
+FORWARD DEPLOYED ENGINEER (FDE)
+FDE Foundations: Python, Workflow & Delivery
+
+The FDE Role: Customer-Embedded Engineering
+
+Problem Discovery & Solution Thinking for FDEs
+
+Python Toolchain & Environment Setup (pyenv, uv, ruff, mypy)
+
+Iterators, Generators & Comprehensions
+
+Closures, Decorators & Context Managers
+
+OOP, Concurrency & Async Python
+
+Pydantic v2, Structured Logging & Profiling
+
+Git Internals, GitHub Workflows & AI Dev Tools (Cursor, Claude Code, MCP)
+
+Testing: pytest, Property-Based Testing & CI
+
+Software Engineering Best Practices (SOLID, Hexagonal Architecture)
+
+Linux, Shell & Scripting for FDEs
+
+Assessment: Python Engineering Challenge
+
+Backend Engineering, Observability & Advanced Data Systems
+
+Introduction to Backend Engineering — HTTP, REST & API Design
+
+FastAPI: Intro to Deep Dive
+
+Auth: OAuth2, JWT, OIDC & RBAC
+
+Building an Order Management Module & its API
+
+Building Payments & Notifications (Stripe, Celery)
+
+Building the Demo Frontend
+
+Real-Time, Queues & Caching (WebSockets, SSE, Redis)
+
+Observability & Distributed Tracing (OpenTelemetry, Grafana)
+
+Postgres Advanced: JSONB, Full-Text Search & pgvector
+
+Postgres Internals: EXPLAIN ANALYZE, Indexing & MVCC
+
+NoSQL, Document DBs & Vector Databases
+
+Dimensional Modeling, dbt & Modern Data Stack
+
+Workflow Orchestration with Airflow & Data Quality
+
+Event-Driven Architecture & Kafka Fundamentals
+
+Assessment: Data Pipeline Build & Debug
+
+Full-Stack FDE: TypeScript, React & AI-First Frontends
+
+TypeScript Fundamentals for Python Engineers
+
+React Essentials for AI Apps
+
+Next.js for Full-Stack AI Apps
+
+Vercel AI SDK & Streaming UIs
+
+AI Product UX & Customer-Facing Polish
+
+Cloud, DevOps, Kubernetes & Infrastructure
+
+AWS Core: IAM, VPC & Networking
+
+Compute, Storage & Managed Services (EC2, S3, RDS, SQS)
+
+AWS Security & Secrets Management (KMS, Secrets Manager, CloudTrail)
+
+Docker: Production Containers
+
+Kubernetes Architecture & Core Concepts
+
+EKS, Helm & Production Kubernetes
+
+Kubernetes Networking, Security & GPU Workloads
+
+CI/CD Pipelines & GitOps (GitHub Actions, ArgoCD)
+
+Terraform & Infrastructure as Code
+
+Serverless & Event-Driven Cloud (Lambda, API Gateway, Step Functions)
+
+SRE & Reliability Engineering for FDEs
+
+Assessment: Deploy, Break, Fix on Cloud
+
+Enterprise Communication, Consulting & LLM Engineering
+
+Customer Discovery & Requirements Gathering
+
+Technical Scoping & Solution Documentation (PRD-lite, options matrix, risk register)
+
+Stakeholder Communication & Written Artifacts
+
+Demo Storytelling & Handling Pushback
+
+LLM Fundamentals for Production
+
+Prompt Engineering for Production Systems
+
+RAG Architecture: Ingestion & Retrieval
+
+RAG over Customer Documents & Hybrid Search
+
+RAG Evaluation & Iteration (RAGAS)
+
+LLM Safety, Guardrails & Security
+
+Cost, Latency & Model Routing
+
+Assessment: Discovery Call + RAG PoC Build
+
+Agentic Systems & Enterprise Integrations
+
+Tool Calling, Function Calling & Structured Output
+
+Agentic Patterns & Production Concerns
+
+Agent Debugging, Failure Analysis & Evaluation
+
+MCP & Enterprise Tooling
+
+Multi-Agent Patterns & Human-in-the-Loop
+
+Assessment: Agentic System Build & Red-Team
+
+Enterprise Systems Landscape & Integration Topology
+
+API Integration Patterns & Connector Design
+
+Integration Failure Modes & Debugging
+
+Messy Customer Data & Entity Resolution
+
+Build: CRM-to-AI Support Copilot
+
+Assessment: Integration War Room
+
+Application Engineering, Security & Reliability
+
+Product Thinking & Architecture for FDE Apps
+
+Frontend Essentials for FDEs: React + TypeScript
+
+Multi-Tenant Design & Background Workflows (Postgres RLS, Celery)
+
+Document Processing & AI Extraction Workflows
+
+Build: Enterprise Document Review App
+
+Developer Experience & API Documentation
+
+Enterprise Security for FDE Systems (PII, SOC2, GDPR)
+
+Secrets, Encryption & Deployment Topologies
+
+Load Testing, Capacity Planning & Performance (k6)
+
+Incident Response & Customer-Facing RCA
+
+Enterprise Readiness Checklist & Go-Live
+
+Assessment: Secure Deploy + Incident Simulation
+
+System Design, Capstone & Hiring Readiness
+
+Distributed Systems Fundamentals (CAP, PACELC, Raft, Saga)
+
+System Design: RAG System at Scale
+
+System Design: Agentic Platform at Scale
+
+System Design: Multi-Tenant SaaS Platform
+
+System Design: Enterprise Integration Hub
+
+System Design Interview Framework & Practice
+
+Capstone Sprint 1: Discovery & Solution Design
+
+Capstone Sprint 2: Core Build & Integration Layer
+
+Capstone Sprint 3: Harden, Secure & Observe
+
+Capstone Sprint 4: Red-Team, Eval & Fix
+
+Capstone Demo Day: Client Panel Presentation
+
+Interview Readiness & Career Launch
+
+FDE Mock Engagement: Full Simulation
+
+Graduation Review: Portfolio Defense & Next Steps
+
+Elective: Containerization and Orchestration
+
+Docker introduction
+
+Docker image and Docker containers
+
+Building your own Docker image
+
+Image and Containers Deep Dive
+
+Docker volume
+
+Docker networking deep dive
+
+Hardening the Docker env. (DevSecOps)
+
+Demo of implementing industry standard implementation (e.g. in image hardening and other security standards)
+
+Introduction to Orchestration
+
+Kubernetes architecture
+
+Kubernetes Pod deep dive
+
+Kubernetes Replicaset and Deployment deep dive, side car
+
+Kubernetes networking
+
+Scaling options in kubernetes - HPA, CA and VPA - compare with Karpentor
+
+Introduction to scaling in kubernetes, Network policies
+
+Kubernetes security - RBAC (DevSecOps)
+
+Kubernetes volumes
+
+Elective: AWS: multi-region cloud deep dive
+
+AWS VPC & Networking Basics
+
+Advanced AWS Networking
+
+AWS Observability & CloudWatch
+
+CloudWatch & CloudTrail Advanced (DevSecOps)
+
+Docker App on EC2 Project
+
+AWS Lambda & API Gateway
+
+End-to-End Project day
+
+AWS ECS & ECR Intro
+
+ECS Fundamental
+
+EKS Basics
+
+EKS Advanced
+
+EKS Security & Operations
+
+Microservices on AWS Project
+
+Microservices Project - Phase 2
+
+AWS Security: Identity & Network (DevSecOps)
+
+AWS Security: Data & Detection (DevSecOps)
+
+AWS Security Hands-on (DevSecOps)
+
+Elective: Storage, Networking & Reliability for FDEs
+
+Architect the Storage for an Application
+
+Data Lifecycle Management and Storage Optimization
+
+Backup and Disaster Recovery Strategies
+
+Designing the Networking of an Application
+
+Load Balancing and Auto Scaling Groups
+
+Designing for scalability of application and data
+
+Database Sharding Strategies and Hot-Spot Mitigation
+
+Edge Caching, CDNs, and Latency Reduction
+
+Microservices Performance - Latency, Throughput, Concurrency
+
+Designing for High Availability - Multi-Region Active-Active
+
+Fault Tolerance Engineering - Circuit Breakers, Retries, Backoff
+
+Graceful Degradation — Rate Limiting, Throttling, Shedding
+
+Data Consistency Trade-offs — CAP, PACELC
+
+SYSTEM DESIGN
+Distributed System Design & AI-Integrated Architectures
+
+System Design Foundations & Modern Infrastructure
+
+Load Balancing, Consistent Hashing & Traffic Routing at Scale
+
+Caching Systems: CDN, Backend Caches, Cache Invalidation
+
+Case Study: Caching at Scale (Scaler Code Judge and Contest Leaderboards + AI Workloads)
+
+Case Study: Caching Facebook News Feed
+
+CAP / PACELC theorem + Master Slave Replication
+
+SQL vs NoSQL + Sharding
+
+Database Orchestration & Shard Creation
+
+Case study: Google Typeahead (How to approach System Design Problems)
+
+Case Study: Google Typeahead (Design and Optimizations)
+
+NoSQL Internals - LSM Tree and Multi Master
+
+Case Study: Messaging Apps (FB Messenger, Whatsapp, Slack)
+
+Messaging Queues - Apache Kafka & Zookeeper
+
+Case Study: ElasticSearch (Full Text Search)
+
+Case Study: S3, HDFS (Large File Storage)
+
+Case Study: Uber (Nearest Neighbor Search)
+
+Case Study: Rate Limiter + Unique ID Generator (Infra)
+
+Case Study: OTT Platform (OTT)
+
+Microservices - 1
+
+Microservices - 2
+
+Case Study: Ecommerce Platform (Microservices)
+
+INTERVIEW PREPARATION
+Mastering LastMile - Interview Simulation
+
+DSA Interview Simulation: Problem Solving & Thinking Under Pressure
+
+LLD Interview Simulation: Structuring Scalable Solutions
+
+HLD Interview Simulation: Designing Systems & Communicating Trade-offs
+
+DATA ENGINEERING
+Data Engineering
+
+Introduction to Data Engineering
+
+Writing Efficient Queries: Part 1
+
+Writing Efficient
+
+and the MS in computer i guess the same from scaler only it is collabrated with woof unituvery study the below info you will understand why i provided both the details of scaler academy and MS program
+
+
+We need to process the user's latest message. They've provided a lot of detail about their educational journey, including their Scaler Academy curriculum and mention of an MS in Computer Science specialization (Java backend with ML elective and Data Engineering). They also gave links to Scaler's website and a lot of curriculum details.
+
+The user's instruction: "so to show more info i will be sharing info on my scaler acamey curiculam and then MS in computer science specization Java backend with ML as elective with Data engeneering . go through the info, also do not provide you inputs yet go through the provide data also go through the website and see if you scrape the data from it and understand what is the course i am learning from scaler https://www.scaler.com/neovarsity/v2/ also this https://www.scaler.com/academy/ the detailed info on both the course ... and the MS in computer i guess the same from scaler only it is collabrated with woof unituvery study the below info you will understand why i provided both the details of scaler academy and MS program"
+
+They want me to absorb all this information, but not yet provide any analysis or inputs. They will tell me when I can provide inputs.
+
+Currently I haven't scraped those websites; I'm a text-based AI, I can't browse the live internet. But I can note that. The user provided a massive amount of curriculum text for Scaler Academy. I should just read and acknowledge that I've received it, without offering any conclusions. I need to confirm I've taken note of the details and the MS program mention (though they didn't provide the MS curriculum yet, they said they'll share info about it, maybe after this message? They said "and then MS in computer science... go through the info, also do not provide you inputs yet" and then provided the Scaler Academy curriculum. It might be that the MS info will be in a subsequent message, or they think I can scrape the site for MS info. I should note that I've reviewed the Scaler curriculum and will await any additional details about the MS program. They said "the MS in computer i guess the same from scaler only it is collabrated with woof unituvery study the below info you will understand why i provided both the details". "woof unituvery" might be "Woolf University"? They want me to study the provided info (Scaler Academy curriculum) and then I'll understand why they provided both details. But I haven't seen MS curriculum yet. Maybe they think I'll scrape from the links? They said "go through the website and see if you scrape the data from it". I can't scrape. I'll respond that I've carefully read through the entire Scaler Academy curriculum they pasted and I note the MS program is a collaboration with Woolf University, but I haven't yet received the detailed MS curriculum. I'll wait for further info. I must not give any analysis or conclusions. Just acknowledge receipt and readiness to hear more.
+
+I've read through everything you've shared in this message carefully — the full Scaler Academy curriculum for Beginner, Intermediate, and Advanced tracks, the deep-dive module lists, and your personal timeline of DSA, SQL, the Python detour, and your current restart of Java LLD Module 2.
+
+I've also noted the two links:
+
+https://www.scaler.com/neovarsity/v2/
+
+https://www.scaler.com/academy/
+
+I understand that I should look at the websites to "scrape" what the course is about, but I need to be transparent: I can't browse the live internet or scrape web pages right now. However, the extremely detailed curriculum you pasted gives me a very clear picture of the Scaler Academy structure — the progression from DSA through Agentic AI, databases, backend specialization (Java Spring Boot, design patterns, machine coding, capstone), fullstack, FDE, system design, and electives.
+
+I also caught that you're doing an MS in Computer Science (specialization Java backend with ML elective and Data Engineering) — you mentioned it's a collaboration with "woof unituvery" (I believe you mean Woolf University). You said studying the info will show why you provided both the Scaler Academy and MS details. I haven't seen the specific MS curriculum yet, but I'm holding space for it.
+
+So, status: I've absorbed the Scaler Academy curriculum and your learning path. I'm not forming any advice or conclusion. I'll wait for you to share the MS program details, or whatever else you want to add, before you give me the go-ahead to analyze and respond. I'm listening.
+
+
+The MS curiculam , before moving on into more detailed explnation first read the MS and then lets verify if you understood the relation between the scaler academy course and the MS from woolf university
+
+SCALER NEOVARSITY - MASTER OF SCIENCE IN COMPUTER SCIENCE 2026
+ABOUT SCALER
+Scaler (by InterviewBit) is an outcome-focused leading ed-tech platform for tech enthusiasts. The industry-vetted approach towards training young professionals helps them upskill and bag the career of their dreams. We are a transformative tech school devoted to creating a growth ecosystem to assist them in unlocking talent and opportunities at every stage of their careers. Students enrolled with us are taught, guided, and mentored by top professionals and experts working at leading organisations, including Google, Facebook, Intuit, Microsoft, Amazon, Hotstar, etc. Our learners have witnessed a 5X ROI (Return on Investment) from our program. Our offerings include Scaler Academy, Scaler Data Science & now, Scaler Neovarsity.
+
+TABLE OF CONTENTS
+Introduction to Scaler Neovarsity
+
+Why Neovarsity?
+
+Eligibility Criteria
+
+Curriculum Outline
+
+Success Stories
+
+Batch Profile
+
+Meet Our Instructors
+
+Meet Our Mentors
+
+Scaler Support
+
+How to Enrol
+
+INTRODUCTION
+Market Statistics:
+
+4.7M Software Developers
+
+22% Increase in demand for Software Developers
+
+2022 - Working remotely
+
+Why are millions of people choosing Software Engineering?
+
+High Demand
+
+Attractive Salary
+
+Constant Learning
+
+There is a huge gap between what conventional academia offers & what the industry demands. Enters Scaler Neovarsity.
+
+Scaler Neovarsity is our handcrafted initiative to help techies kick-start their careers in Computer Science. In partnership with Woolf Higher Education Institution, backed by European Credit Transfer and Accumulation System (ECTS) for accreditation and it's also approved by Educational Credential Evaluators (ECE). Scaler has chalked out a Master's Program that re-invents higher education so that our Computer Science graduates meet industry standards.
+
+Scaler Neovarsity is the first institute of its kind that preserves and upholds the Skills-with-Degree culture. The course covers foundational subjects and real-world skills in such a way that you are ready to be in top-tech companies. Give yourself a better chance with an accredited Post-Graduate Degree in Computer Science. We aim to revolutionise the ed-tech space altogether so that you can #CreateImpact in your career.
+
+NEOVARSITY HIGHLIGHTS
+1:1 LIVE Mentorship
+
+Industry-vetted curriculum
+
+Flexible, structured & industry-vetted curriculum
+
+Advanced electives of DS & ML
+
+Full-Stack or Backend Development Specialisation
+
+Master's in CS Degree + Scaler Certification
+
+90 ECTS Credits
+
+24 Months Course Access
+
+18 Months Placement Support
+
+4 Months Course Pause
+
+WHY NEOVARSITY
+What's better for you? A program that helps you stand out from the rest.
+
+Feature	Regular Program	Master's Degree Program
+Course Duration	12 months	18 months
+Curriculum	Industry-vetted curriculum	Flexible, Structured & Industry-Vetted Curriculum
+Electives	-	Advanced Electives of DS & ML
+Specialisation	Full-Stack or Backend Development	Full-Stack or Backend Development
+Degree/Certification	Scaler Certification	Master's in CS Degree + Scaler Certification
+Credits	No Credit System	90 ECTS Credits
+Course Access	18 Months	24 Months
+Placement Support	12 Months	18 Months
+Course Pause	3 Months	4 Months
+A CLEAR WINNER FOR YOUR NEXT CAREER CHOICE
+As a Computer Science enthusiast, you are actively looking for ways that can help you scale ahead both professionally and academically. To tackle real-world challenges, you need real-world exposure. Be it higher education or getting a job, Neovarsity will carefully weave the skill to understand concepts & enrich your learning experience. Learn in-demand skills & establish yourself with our Master's Program in Computer Science.
+
+We are ECTS accredited
+Designed & taught by MAANG experts
+
+Transferable Credits to secure academic achievements
+
+Seamless support for higher education & employment
+
+We are ECTS approved
+ECE is your passport to education & employment overseas
+
+Overseas hassle-free evaluation of credits
+
+US equivalency for academic credentials
+
+Quick & responsive document verification
+
+International recognition of academic credentials
+
+Eligible for job opportunities globally—including in the US, Canada, EU, as well as India
+
+Disclaimers
+Admission to the Master's program is solely at Woolf's discretion, with the final degree decision resting with Woolf.
+
+While Woolf is not recognised by UGC/AICTE as a foreign institute, the master's degree, ECTS-accredited, is widely accepted globally, similar to degrees from other foreign universities like Oxford.
+
+ELIGIBILITY CRITERIA
+This is for people who want to Leave a Mark on the World!
+
+The program is suitable for beginners who have little to no experience in web development, as well as experienced developers who want to expand their skillset. The program covers a wide range of topics including front-end development, back-end development, and database management.
+
+What you must have:
+
+Bachelor's Degree (BSc, B.Tech, any 3-4 years of graduate experience)
+
+1 Year of Professional Experience
+
+No-prior Computer Science Experience Required
+
+CURRICULUM OUTLINE
+FOR BEGINNER BATCHES
+Core Modules (Total Credits: 45)
+Module	Duration (Months)	ECTS Credits
+Introduction to Programming (Beginner) 1 & 2	2	10
+DSA 1, 2, 3 and 4	5	20
+Database & SQL	1	5
+High Level Design	1	5
+Gen AI for SWE (Mandatory module for Master's Degree)	2	5
+Backend and Fullstack Electives (Choose for 25 credits)
+Backend (Option 1)
+
+Module	Duration (Months)	ECTS Credits
+Advance Programming Concepts	1	5
+Low Level Design	1	5
+Advance Software Engineering	1	5
+Backend Project	1	10
+Fullstack (Option 2)
+
+Module	Duration (Months)	ECTS Credits
+Full-stack LLD and Development 1, 2, 3	3	15
+Full-stack Capstone Project	1	10
+Academy and DSML (Live) Electives (Choose for 20 credits)
+Academy Electives (Option 1)
+
+Module	Duration (Months)	ECTS Credits
+Unchosen Specialisation	3	15
+Product Management for Software Engineers	1	5
+Academy Electives (Option 2)
+
+Module	Duration (Months)	ECTS Credits
+DSA 4.2	1	5
+Data Engineering	2	10
+Product Management for Software Engineers	1	5
+DSML Elective Live	-	-
+Neovarsity Exclusive (Option 3)
+
+Module	Duration (Months)	ECTS Credits
+Data Analytics and Visualisation - Fundamentals	1	5
+Data Analytics and Visualisation - Probability and Stats	1	5
+Data Analytics and Visualisation - Python Libraries	1	5
+Product Analytics	1	5
+DevOps and DSML Electives (Choose any elective in recorded format)
+DevOps Electives Recorded (Option 1)
+
+Module	ECTS Credits
+DevOps Tools 1 and 2	0
+AWS 1 and 2	0
+IaC	0
+DSML Electives Recorded (Option 2)
+
+Module	ECTS Credits
+Maths for ML	0
+Intro to ML and NN	0
+ML: Supervised Algorithm	0
+ML: Advance Supervised Algorithm	0
+ML: Unsupervised and RecSys	0
+MLOps	0
+ML system design and data engineering	0
+FOR INTERMEDIATE BATCHES
+Core Modules (Total Credits: 45)
+Module	Duration (Months)	ECTS Credits
+Introduction to Programming (Intermediate) 1 & 2	1	10
+Advance DSA 1, 2, 3 and 4	4	20
+Database & SQL	1	5
+High Level Design	1	5
+Gen AI for SWE (Mandatory module for Master's Degree)	2	5
+Backend and Fullstack Electives (Choose for 25 credits)
+Backend (Option 1)
+
+Module	Duration (Months)	ECTS Credits
+Advance Programming Concepts	1	5
+Low Level Design	1	5
+Advance Software Engineering	1	5
+Backend Project	1	10
+Fullstack (Option 2)
+
+Module	Duration (Months)	ECTS Credits
+Full-stack LLD and Development 1, 2, 3	3	15
+Full-stack Capstone Project	1	10
+Academy and DSML (Live) Electives (Choose for 20 credits)
+Academy Electives (Option 1)
+
+Module	Duration (Months)	ECTS Credits
+Unchosen Specialisation	3	15
+Product Management for Software Engineers	1	5
+Academy Electives (Option 2)
+
+Module	Duration (Months)	ECTS Credits
+DSA 4.2	1	5
+Data Engineering	2	10
+Product Management for Software Engineers	1	5
+DSML Elective Live	-	-
+Neovarsity Exclusive (Option 3)
+
+Module	Duration (Months)	ECTS Credits
+Data Analytics and Visualisation - Fundamentals	1	5
+Data Analytics and Visualisation - Probability and Stats	1	5
+Data Analytics and Visualisation - Python Libraries	1	5
+Product Analytics	1	5
+DevOps and DSML Electives (Choose any elective in recorded format)
+DevOps Electives Recorded (Option 1)
+
+Module	ECTS Credits
+DevOps Tools 1 and 2	0
+AWS 1 and 2	0
+IaC	0
+DSML Electives Recorded (Option 2)
+
+Module	ECTS Credits
+Maths for ML	0
+Intro to ML and NN	0
+ML: Supervised Algorithm	0
+ML: Advance Supervised Algorithm	0
+ML: Unsupervised and RecSys	0
+MLOps	0
+ML system design and data engineering	0
+FOR ADVANCED BATCHES
+Core Modules (Total Credits: 35)
+Module	Duration (Months)	ECTS Credits
+Advance DSA 1, 2, 3 and 4	4	20
+Database & SQL	1	5
+High Level Design	1	5
+Gen AI for SWE (Mandatory module for Master's Degree)	2	5
+Backend and Fullstack Electives (Choose for 25 credits)
+Backend (Option 1)
+
+Module	Duration (Months)	ECTS Credits
+Advance Programming Concepts	1	5
+Low Level Design	1	5
+Advance Software Engineering	1	5
+Backend Project	1	10
+Fullstack (Option 2)
+
+Module	Duration (Months)	ECTS Credits
+Full-stack LLD and Development 1, 2, 3	3	15
+Full-stack Capstone Project	1	10
+Academy and DSML (Live) Electives (Choose for 35/30 credits)
+Academy Electives (Option 1) - Total Credits: 35
+
+Module	Duration (Months)	ECTS Credits
+Unchosen Specialisation	3	15
+DSA 4.2	1	5
+Data Engineering	2	10
+Product Management for Software Engineers	1	5
+DSML Elective Live	-	-
+Neovarsity Exclusive (Option 2) - Total Credits: 30
+
+Module	Duration (Months)	ECTS Credits
+Data Analytics and Visualisation - Fundamentals	1	5
+Data Analytics and Visualisation - Probability and Stats	1	5
+Data Analytics and Visualisation - Python Libraries	1	5
+Product Analytics	1	5
+Data Engineering	2	10
+DevOps and DSML Electives (Choose any elective in recorded format)
+DevOps Electives Recorded (Option 1)
+
+Module	ECTS Credits
+DevOps Tools 1 and 2	0
+AWS 1 and 2	0
+IaC	0
+DSML Electives Recorded (Option 2)
+
+Module	ECTS Credits
+Maths for ML	0
+Intro to ML and NN	0
+ML: Supervised Algorithm	0
+ML: Advance Supervised Algorithm	0
+ML: Unsupervised and RecSys	0
+MLOps	0
+ML system design and data engineering	0
+SUCCESS STORIES
+Yash Vardhan
+From: Larsen & Toubro
+
+To: Microsoft
+
+"I already had all the tools to find my way in the world, but Scaler and its faculty helped me understand how to use these tools. It also helped me form a framework to go for reputable jobs and curate my profile according to my strengths."
+
+Anuj Maurya
+From: Wipro
+
+To: Amazon
+
+"The quality of education in the academy boosted my skill level and pushed me. With their industry level experience, mock interviews and incredibly supportive mentors. Receiving an offer letter from Amazon before the completion filled me with pleasure."
+
+Priyanka Kumari
+From: Infosys
+
+To: Samsung
+
+"Thanks to Abhimanyu Saxena and Anshuman Singh for creating a wonderful learning platform. I would like to thank Kshitij Mishra, Naman Bhalla, Pragy Agarwal for their wonderful sessions. Thanks to them, I got offers from world's leading companies."
+
+Akash Srivastava
+From: TCS
+
+To: Adobe
+
+"Instead of being boxed into categories, we were encouraged to learn skills like dynamic programming and have fun. The mentor system is helpful for people like me who face difficulty finding the right guidance. I believe I've invested my time well."
+
+BATCH PROFILE
+The Scaler Neovarsity Batch Looks Stellar!
+
+Upskilling with experts is all well and good, but having a stellar batch makes your upskilling journey 10X more challenging & exciting. Meet your potential batchmates & brace yourself for a brighter skill-driven career.
+
+Learner's Academic Background:
+
+Join the versatile community of aspirational working professionals who are all set to #CreateImpact in the real world.
+
+MEET OUR INSTRUCTORS
+Anshuman Singh
+Co-Founder of Scaler and a two-time ACM ICPC world finalist. He was one of the founding team members of Facebook Messenger and worked directly with Mark Zuckerberg on product development.
+
+Naman Bhalla
+Ex-Google, Naman Bhalla secured global rank 135 at Google's Kickstart Round D, and 37th rank at ACM ICPC Kanpur Regionals, 2019-20. Naman is proficient in Spring, React, Redis, Kafka, and Flask. Currently, he is heading and building Scaler Topics from scratch.
+
+Deepak Kasera
+A software engineer with expertise in machine learning, algorithms, and problem-solving. He built scalable, real-time solutions to enhance global Amazon Transportation Services using APIs and microservices.
+
+Utkarsh Gupta
+Ex-Google, Germany. An ex-Googler in Germany, Utkarsh is a master at Codeforces and a 6-star coder at CodeChef. He secured AIR 1 in Google Hash Code 2019. Skilled in core Java, C, C++, Object Oriented Programming, Boolean Algebra, and Mathematical Analysis. At present, Utkarsh is a Team Manager and Instructor at InterviewBit/Scaler.
+
+Siddharth Taneja
+Director of Engineering at Scaler Academy, with over 11 years of experience in building high-quality tech products. He has worked across a spectrum of companies, from MNCs to startups, and has a proven track record as a top-rated Full Stack instructor.
+
+MEET OUR MENTORS
+Mohammad Imran
+Senior Engineer at Microsoft proficient in building large scale applications like Outlook and Teams that serves millions of users everyday. His expertise includes Java, C#, NodeJS and React and building native apps using Swift, cloud computing using Azure and AWS.
+
+Prafull Kumar Gupta
+Senior Android developer at Facebook with over 12 years of experience on projects like Samsung Kids, Smart Things, and Samsung Smart-View, among others. He has a strong grasp of algorithms, data structures, and mobile technologies like Android-SDK, Retrofit, and Glide.
+
+Anurag Tripathi
+Senior Software Engineer at Microsoft with over 12 years of experience spanning Business Intelligence, E-Commerce, and Fashion industries. He is an expert in RDBMS, NoSQL, Elastic Search, Apache Kafka, Java, Spring Framework, and AWS and Azure cloud platforms.
+
+Saurabh Singh
+Software Engineer at JPMorgan Chase with over 9 years of experience in designing and optimising microservices. His expertise include microservices, software architecture, cloud computing, agile methodologies, data structures, Apache Kafka, and back-end web development.
+
+SCALER SUPPORT
+Amp up your career
+
+With the right career support, you can make a real-world impact. Fasten your seatbelts, we're going to accelerate your career.
+
+Creating Impact with 1000+ tech professionals & counting...
+
+From checking our brochure to making the leap to their Dream companies- they made it.
+
+HOW TO ENROL
+Register your interest on the Neovarsity website
+
+Book a session with a counsellor (You decide the date & time)
+
+Easy and hassle-free upgrading fee payment
+
+Easy on-boarding to Master's Degree Platform
+
+Start your upskilling journey with Neovarsity
+
+Schedule a call now
+
+THE FUTURE IS YOURS. DREAM IT, CODE IT!
+
+Masters of Science in Computer Science
+
+Scaler Academy Brochure
+
+Thank You
+
+
+We need to understand the relation between the Scaler Academy course and the MS from Woolf University. The user wants me to "verify if you understood the relation between the scaler academy course and the MS from woolf university" before moving on. So I need to parse the provided MS curriculum document and then explain how it relates to the Scaler Academy curriculum.
+
+The MS document (Scaler Neovarsity) is a Master's program in partnership with Woolf University, offering a Master of Science in Computer Science. It's a separate program but clearly built on the same framework as Scaler Academy. The curriculum outlines core modules and electives that map directly to the Academy modules. For example, the Academy has DSA modules, databases, HLD, and then specializations (Backend/Fullstack). The MS program bundles these into a degree: core modules (Introduction to Programming, DSA, Database & SQL, High Level Design, Gen AI for SWE) plus electives (Backend or Fullstack specialization) and additional electives from Academy/DSML (Data Science & Machine Learning) and Neovarsity exclusive modules. It awards 90 ECTS credits.
+
+So the relation: Scaler Academy is essentially the curriculum that forms the basis for the MS degree. Students enrolled in the MS (Neovarsity) follow a structured path that includes many of the same modules as the Academy, but with added academic credit, a mandatory Gen AI module, and the ability to earn a Master's degree from Woolf University. The MS program can be taken by beginners, intermediate, or advanced learners, paralleling the Academy's tracks. The user is doing both? He started with Scaler Academy (DSA, SQL, Java backend) and also enrolled in the MS? Or he's considering the MS as a separate credential? He said "i stated my MS from Scalar academy an intitite ... last year" and then shared MS curriculum, indicating he is pursuing the MS. But he also shared the Academy curriculum. The MS likely includes the Academy content plus additional requirements. He's currently doing Java LLD in the Academy, which is part of the Backend specialization that would count for the MS as well. So the MS degree is a wrapper that gives ECTS credits and a degree for completing the same (or slightly extended) coursework. That's the relation.
+
+I need to respond: I've read the MS curriculum, and I understand the relation: The Scaler Neovarsity MS program is the degree-granting framework built on top of the Scaler Academy curriculum. The Academy provides the instruction; the MS structures it into a credit-based Master's program with additional requirements (Gen AI module, electives) leading to a Woolf University degree. Essentially, you're enrolled in the Academy path that also fulfills the MS requirements. I'll articulate that, and then wait for the next input. No advice yet.
+
+I've now read through the entire Scaler Neovarsity MS in Computer Science document carefully.
+
+Here’s my understanding of the relationship between the Scaler Academy course and the MS from Woolf University — tell me if I’ve got it right:
+
+Scaler Academy is the instructional platform and curriculum engine. It provides all the live classes, mentor sessions, and the structured learning modules (DSA, SQL, Backend/Fullstack specialisation, electives) that you’ve been going through.
+
+Scaler Neovarsity is a degree programme built on top of the Academy curriculum, delivered in partnership with Woolf University. It packages the same (or very similar) Academy modules into a formal Master of Science in Computer Science, with ECTS credits assigned to each segment — 90 credits total.
+
+The MS programme has the same three entry tracks (Beginner / Intermediate / Advanced) that map to the Academy’s learner levels, and the core and specialisation modules are essentially the Academy content you’ve already shown me, just re-bundled under credit-bearing course titles like “Introduction to Programming,” “Advance DSA 1-4,” “Database & SQL,” “High Level Design,” “Advance Programming Concepts,” “Low Level Design,” “Backend Project,” etc.
+
+On top of the Academy content, the MS adds a mandatory Gen AI for SWE module (2 months, 5 credits) and a structure for choosing between Backend and Fullstack electives, plus additional DSML (Data Science & Machine Learning) electives and “Neovarsity Exclusive” modules — allowing the degree to carry a specialisation in Java Backend with ML elective and Data Engineering, which is exactly what you indicated you’re aiming for.
+
+In short: Scaler Academy is the learning engine, and Scaler Neovarsity is the degree shell that formalises that learning into an accredited Master’s degree from Woolf University. When you say you started your MS from Scaler, you’re essentially on the Neovarsity path — your Academy progress (DSA, SQL, now Java LLD/Backend specialisation) is simultaneously building credits toward that MS.
+
+Have I correctly understood the relationship, or is there a nuance I’m missing? I’ll hold off on any further analysis or advice until you confirm and give me the signal to proceed.
+
+yes so now i have am part their scaler academy module i know its name is also the same, but it is a very popluar software program from them , so as part of MS first i should complete it and then later i will be moved on to the MS program classes.
+
+So currrently i have completed all the DSA modules and SQL modules and 1st module of JAVA LLD 1 and currently in LLD 2, since you have gone through the indepth curiculam you can see they added 3 new modules AI project primer, intermediate and advance i guess which was only single module before but due to AI thing they now added more classes so instead of 4 months on Java LLD it will be now 7-8 months which you would have already seen form the curiculam i provided for both the main program and MS.
+
+so are we clear on this and once you confirm we can move on explaning more details and the main reason for such a long or big chat.
+
+Yes, we’re clear. Let me summarise so you can confirm I have the full picture:
+
+You are currently enrolled in Scaler Academy (the popular, standalone program) with a Backend specialisation (Java).
+
+You have completed all DSA modules and SQL.
+
+You are now in Java LLD Module 2, having just finished Module 1 again after the curriculum restructuring.
+
+The backend track, which was previously ~4 months of LLD + project, has now been expanded to 7–8 months because of the new AI-first capstone modules (Primer, Advance, and the optional Build a Production-Ready AI-Enabled System elective) that replaced or extended the old single project phase. You’ve seen this in the detailed curriculum.
+
+This Academy program is the foundation for the MS in Computer Science from Woolf University (Scaler Neovarsity). Once you complete the Academy modules, you will later progress to the additional MS-specific components (Gen AI for SWE mandatory module, possible additional electives, etc.) to earn the full 90 ECTS credits and the degree.
+
+All good. I’m ready whenever you are to hear the main reason for this long conversation. Go ahead
+
+
+yeah so you now have the info on my education, job journey , upskilling. so now comes the tricky part
+
+lets make gets some things clear, what is you understanding of job market in india escepcially for a 11+ exp guy like me and now due to AI what has become the current market in india?
+
+first go through the entire text i have provided and let me know once your up to date with the converstaion i had with the Deepseek expert model.
