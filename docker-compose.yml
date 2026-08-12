@@ -1,33 +1,70 @@
 version: '3.8'
 
 services:
+  database:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-studytracker}
+      POSTGRES_USER: ${POSTGRES_USER:-studyuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password_here}
+    command: postgres -c shared_buffers=128MB -c max_connections=50 -c work_mem=4MB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-studyuser} -d ${POSTGRES_DB:-studytracker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   api:
     build:
       context: .
       dockerfile: api/Dockerfile
-    ports:
-      - "5000:5000"
+    restart: always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=StudyTracker;User Id=sa;Password=Scaler@Course2026;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Host=database;Database=${POSTGRES_DB:-studytracker};Username=${POSTGRES_USER:-studyuser};Password=${POSTGRES_PASSWORD:-your_secure_password_here}
+      - API_KEY=${API_KEY:-your_api_key_here}
     depends_on:
-      - sqlserver
+      database:
+        condition: service_healthy
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   app:
     build:
-      context: .
-      dockerfile: app/Dockerfile
+      context: app
+      dockerfile: Dockerfile
+    restart: always
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Scaler@Course2026
-      - MSSQL_PID=Developer
-    ports:
-      - "1433:1433"
+volumes:
+  postgres_data:
+
+networks:
+  backend-net:
+    driver: bridge

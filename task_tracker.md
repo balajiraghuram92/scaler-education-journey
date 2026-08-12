@@ -53,3 +53,13 @@
 - [ ] **Sub-task 8.7**: AWS Infrastructure Setup (AWS ECR, AWS App Runner / ECS Fargate, AWS S3 / CloudFront)
 - [ ] **Sub-task 8.8**: GitHub Actions CI/CD Pipeline for AWS Deployment
 
+## Phase 9: Production AWS EC2 ARM64 (t4g.small) Docker Compose Stack
+- [x] **Sub-task 9.1**: Repository & Architecture Audit (Baseline captured at `b7faacc384164c99f40dd39553e137316b932f3b`)
+- [x] **Sub-task 9.2**: Decouple Azure Services & EF Core PostgreSQL Provider Migration (`Npgsql.EntityFrameworkCore.PostgreSQL`)
+- [x] **Sub-task 9.3**: Frontend Dockerfile & Nginx Reverse Proxy Fixes
+- [x] **Sub-task 9.4**: Production Docker Compose & Health Check Hardening (ARM64-native `postgres:16-alpine`)
+- [x] **Sub-task 9.5**: Security & Environment Standardization (`.env.example`, Fail-Closed API Key Auth)
+- [x] **Sub-task 9.6**: GitHub Actions Multi-Arch ARM64 ECR Build & OIDC Deployment Pipeline
+- [x] **Sub-task 9.7**: S3 Automated Database Backup & Disaster Recovery Scripts
+
+

@@ -9,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<StudyTrackerContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-        ?? "Data Source=studytracker.db";
-    options.UseSqlServer(connectionString);
+        ?? "Host=database;Database=studytracker;Username=studyuser;Password=ScalerPassword2026";
+    options.UseNpgsql(connectionString);
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -64,7 +64,15 @@ app.Use(async (context, next) =>
     var expectedApiKey = builder.Configuration["api_key"];
     if (string.IsNullOrWhiteSpace(expectedApiKey))
     {
-        // If no API key is configured in Azure, allow the request to prevent lock-out during testing
+        if (app.Environment.IsProduction())
+        {
+            app.Logger.LogError("API key is not configured in production environment.");
+            context.Response.StatusCode = 500;
+            await context.Response.WriteAsync("Internal Server Error: API key is not configured.");
+            return;
+        }
+
+        // If no API key is configured in non-production environment, allow the request to prevent lock-out during testing
         await next(context);
         return;
     }
