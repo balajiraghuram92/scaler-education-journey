@@ -1,0 +1,29 @@
+# Environment variables and secrets
+.env
+.env.production
+.env.local
+.env.development
+.env*.local
+
+# Build outputs and dependencies
+bin/
+obj/
+dist/
+build/
+node_modules/
+
+# Database dumps and local backups
+*.dump
+*.sql.gz
+*.tar.gz
+*.db
+
+# Logs
+*.log
+logs/
+
+# Operating system & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

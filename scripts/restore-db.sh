@@ -17,7 +17,7 @@ fi
 # Environment variables with defaults
 POSTGRES_DB="${POSTGRES_DB:-studytracker}"
 POSTGRES_USER="${POSTGRES_USER:-studyuser}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-your_secure_password_here}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:?Error: POSTGRES_PASSWORD environment variable is required}"
 S3_BUCKET="${S3_BUCKET:-scaler-studytracker-backups}"
 S3_PREFIX="${S3_PREFIX:-database-backups}"
 
@@ -65,18 +65,18 @@ fi
 
 echo "[INFO] Restoring database ${POSTGRES_DB}..."
 
-CONTAINER_ID="$(docker compose -f "${PROJECT_DIR}/docker-compose.yml" ps -q database 2>/dev/null || true)"
+CONTAINER_ID="$(docker compose -f "${PROJECT_DIR}/docker-compose.yml" ps -q database 2>/devnull || true)"
 
 if [ -n "${CONTAINER_ID}" ]; then
     echo "[INFO] Performing pg_restore via Docker container ('database')..."
     cat "${LOCAL_RESTORE_PATH}" | docker compose -f "${PROJECT_DIR}/docker-compose.yml" exec -T \
         -e PGPASSWORD="${POSTGRES_PASSWORD}" \
-        database pg_restore -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" --clean --if-exists --no-owner --no-privileges || true
+        database pg_restore -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" --clean --if-exists --no-owner --no-privileges
 else
     echo "[INFO] Docker database container not detected. Performing direct pg_restore..."
     POSTGRES_HOST="${POSTGRES_HOST:-localhost}"
     POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-    PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT}" -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" --clean --if-exists --no-owner --no-privileges "${LOCAL_RESTORE_PATH}" || true
+    PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT}" -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" --clean --if-exists --no-owner --no-privileges "${LOCAL_RESTORE_PATH}"
 fi
 
 echo "[SUCCESS] Database restore process completed for ${POSTGRES_DB}."

@@ -17,7 +17,7 @@ fi
 # Environment variables with defaults
 POSTGRES_DB="${POSTGRES_DB:-studytracker}"
 POSTGRES_USER="${POSTGRES_USER:-studyuser}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-your_secure_password_here}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:?Error: POSTGRES_PASSWORD environment variable is required}"
 S3_BUCKET="${S3_BUCKET:-scaler-studytracker-backups}"
 S3_PREFIX="${S3_PREFIX:-database-backups}"
 

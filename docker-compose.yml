@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-studytracker}
       POSTGRES_USER: ${POSTGRES_USER:-studyuser}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password_here}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     command: postgres -c shared_buffers=128MB -c max_connections=50 -c work_mem=4MB
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -28,15 +28,15 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__DefaultConnection=Host=database;Database=${POSTGRES_DB:-studytracker};Username=${POSTGRES_USER:-studyuser};Password=${POSTGRES_PASSWORD:-your_secure_password_here}
-      - API_KEY=${API_KEY:-your_api_key_here}
+      - ConnectionStrings__DefaultConnection=Host=database;Database=${POSTGRES_DB:-studytracker};Username=${POSTGRES_USER:-studyuser};Password=${POSTGRES_PASSWORD}
+      - API_KEY=${API_KEY}
     depends_on:
       database:
         condition: service_healthy
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -62,4 +62,12 @@
 - [x] **Sub-task 9.6**: GitHub Actions Multi-Arch ARM64 ECR Build & OIDC Deployment Pipeline
 - [x] **Sub-task 9.7**: S3 Automated Database Backup & Disaster Recovery Scripts
 
+## Phase 10: Production-Readiness Review & Remediation Pass
+- [x] **Sub-task 10.1**: Comprehensive Audit & Defect Discovery (Identified 3 P0, 4 P1, 1 P2 defects)
+- [x] **Sub-task 10.2**: Hardcoded Secret Sanitization & Fail-Closed Environment Security
+- [x] **Sub-task 10.3**: ASP.NET Core `/health` Endpoint & Runtime Container Utility Hardening (`curl`)
+- [x] **Sub-task 10.4**: Disaster Recovery Script Verification & Strict Error Propagation (`scripts/*.sh`)
+- [x] **Sub-task 10.5**: Deterministic Immutable Tag CI/CD Deployment & Health Check Verification
+- [x] **Sub-task 10.6**: Root Repository Hygiene & `.gitignore` Protection
+
 

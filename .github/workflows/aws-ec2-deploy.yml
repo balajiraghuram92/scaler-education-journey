@@ -27,7 +27,7 @@ jobs:
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Configure AWS Credentials
+      - name: Configure AWS Credentials (OIDC or Static Keys)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
@@ -83,23 +83,27 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT || 22 }}
           script: |
-            set -e
-            echo "===> Authenticating with ECR..."
+            set -euo pipefail
+            echo "===> Authenticating with Amazon ECR..."
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
             
-            echo "===> Pulling latest images..."
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:latest
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_APP }}:latest
+            echo "===> Pulling immutable image tag ${{ steps.vars.outputs.sha_short }}..."
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:${{ steps.vars.outputs.sha_short }}
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_APP }}:${{ steps.vars.outputs.sha_short }}
             
-            echo "===> Restarting stack via Docker Compose..."
+            echo "===> Deploying stack via Docker Compose..."
             cd /home/${{ secrets.EC2_USERNAME || 'ubuntu' }}/app || cd /app || cd ~/
-            docker compose pull || true
+            
+            export ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+            export IMAGE_TAG="${{ steps.vars.outputs.sha_short }}"
+            
             docker compose up -d --remove-orphans
             
-            echo "===> Performing health verification..."
+            echo "===> Verifying container health..."
             sleep 5
             docker compose ps
-            curl -f http://localhost:5000/health || curl -f http://localhost/ || docker ps
+            curl -f http://localhost:5000/health
+            curl -f http://localhost/
 
       - name: Deploy to AWS EC2 via SSM Command
         if: ${{ secrets.EC2_INSTANCE_ID != '' && secrets.EC2_HOST == '' }}
@@ -108,13 +112,17 @@ jobs:
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=[
+              "set -euo pipefail",
               "aws ecr get-login-password --region '${{ env.AWS_REGION }}' | docker login --username AWS --password-stdin '${{ steps.login-ecr.outputs.registry }}'",
-              "docker pull '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:latest'",
-              "docker pull '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_APP }}:latest'",
+              "docker pull '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:${{ steps.vars.outputs.sha_short }}'",
+              "docker pull '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_APP }}:${{ steps.vars.outputs.sha_short }}'",
               "cd /app || cd /home/ubuntu/app",
+              "export ECR_REGISTRY='${{ steps.login-ecr.outputs.registry }}'",
+              "export IMAGE_TAG='${{ steps.vars.outputs.sha_short }}'",
               "docker compose up -d --remove-orphans",
               "docker compose ps",
-              "curl -f http://localhost:5000/health || curl -f http://localhost/ || docker ps"
+              "curl -f http://localhost:5000/health",
+              "curl -f http://localhost/"
             ]' \
             --query "Command.CommandId" \
             --output text)

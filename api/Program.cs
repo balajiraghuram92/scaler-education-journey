@@ -8,8 +8,31 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDbContext<StudyTrackerContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-        ?? "Host=database;Database=studytracker;Username=studyuser;Password=ScalerPassword2026";
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        var dbHost = builder.Configuration["DATABASE_HOST"] ?? "database";
+        var dbPort = builder.Configuration["DATABASE_PORT"] ?? "5432";
+        var dbName = builder.Configuration["DATABASE_NAME"] ?? "studytracker";
+        var dbUser = builder.Configuration["DATABASE_USER"] ?? "studyuser";
+        var dbPass = builder.Configuration["DATABASE_PASSWORD"] ?? builder.Configuration["POSTGRES_PASSWORD"];
+
+        if (!string.IsNullOrWhiteSpace(dbPass))
+        {
+            connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass}";
+        }
+    }
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        if (builder.Environment.IsProduction())
+        {
+            throw new InvalidOperationException("Production database connection configuration is missing.");
+        }
+        connectionString = "Host=localhost;Database=studytracker;Username=studyuser;Password=studyuserpass";
+    }
+
     options.UseNpgsql(connectionString);
 });
 
@@ -55,13 +78,15 @@ app.UseCors("AllowVite");
 // Apply API Key security
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path.StartsWithSegments("/swagger") || context.Request.Method == "OPTIONS")
+    if (context.Request.Path.StartsWithSegments("/health") || 
+        context.Request.Path.StartsWithSegments("/swagger") || 
+        context.Request.Method == "OPTIONS")
     {
         await next(context);
         return;
     }
 
-    var expectedApiKey = builder.Configuration["api_key"];
+    var expectedApiKey = builder.Configuration["api_key"] ?? builder.Configuration["API_KEY"];
     if (string.IsNullOrWhiteSpace(expectedApiKey))
     {
         if (app.Environment.IsProduction())
@@ -72,7 +97,7 @@ app.Use(async (context, next) =>
             return;
         }
 
-        // If no API key is configured in non-production environment, allow the request to prevent lock-out during testing
+        // Allow unauthenticated access only in non-production development testing
         await next(context);
         return;
     }
@@ -87,6 +112,25 @@ app.Use(async (context, next) =>
     await next(context);
 });
 
+// Health check endpoint for Docker Compose & CI/CD verification
+app.MapGet("/health", async (StudyTrackerContext db) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (canConnect)
+        {
+            return Results.Ok(new { status = "Healthy", database = "Connected", timestamp = DateTime.UtcNow });
+        }
+        return Results.Json(new { status = "Unhealthy", database = "Disconnected" }, statusCode: 503);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Health check database connection failed.");
+        return Results.Json(new { status = "Unhealthy", error = "Database connection error" }, statusCode: 503);
+    }
+}).WithName("HealthCheck");
+
 // Check if running as a separate script to populate data
 if (args.Contains("--seed"))
 {
@@ -96,14 +140,14 @@ if (args.Contains("--seed"))
     return; // Exit script after seeding
 }
 
-// Apply schema migrations (usual way) on startup
+// Apply schema migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
     db.Database.Migrate();
 }
 
-app.MapGet("/", () => "StudyTracker API is running. Use /swagger for API docs.");
+app.MapGet("/", () => "StudyTracker API is running. Use /health for service health.");
 
 // API Endpoints
 app.MapGet("/api/verticals", async (StudyTrackerContext db) =>
