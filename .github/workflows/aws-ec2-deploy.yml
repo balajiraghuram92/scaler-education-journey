@@ -95,6 +95,8 @@ jobs:
             cd /home/${{ secrets.EC2_USERNAME || 'ubuntu' }}/app || cd /app || cd ~/
             
             export ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+            export ECR_REPOSITORY_API="${{ env.ECR_REPOSITORY_API }}"
+            export ECR_REPOSITORY_APP="${{ env.ECR_REPOSITORY_APP }}"
             export IMAGE_TAG="${{ steps.vars.outputs.sha_short }}"
             
             docker compose up -d --remove-orphans
@@ -102,7 +104,7 @@ jobs:
             echo "===> Verifying container health..."
             sleep 5
             docker compose ps
-            curl -f http://localhost:5000/health
+            docker compose exec -T api curl -f http://localhost:5000/health
             curl -f http://localhost/
 
       - name: Deploy to AWS EC2 via SSM Command
@@ -118,10 +120,12 @@ jobs:
               "docker pull '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_APP }}:${{ steps.vars.outputs.sha_short }}'",
               "cd /app || cd /home/ubuntu/app",
               "export ECR_REGISTRY='${{ steps.login-ecr.outputs.registry }}'",
+              "export ECR_REPOSITORY_API='${{ env.ECR_REPOSITORY_API }}'",
+              "export ECR_REPOSITORY_APP='${{ env.ECR_REPOSITORY_APP }}'",
               "export IMAGE_TAG='${{ steps.vars.outputs.sha_short }}'",
               "docker compose up -d --remove-orphans",
               "docker compose ps",
-              "curl -f http://localhost:5000/health",
+              "docker compose exec -T api curl -f http://localhost:5000/health",
               "curl -f http://localhost/"
             ]' \
             --query "Command.CommandId" \
