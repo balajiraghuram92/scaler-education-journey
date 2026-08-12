@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+
   workflow_dispatch:
 
 permissions:
@@ -20,36 +21,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set Git SHA Short Tag
+      - name: Calculate image tag
         id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: Configure AWS Credentials (OIDC or Static Keys)
+          SHA_SHORT="$(git rev-parse --short=12 HEAD)"
+
+          echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActionsEC2Deploy
 
-      - name: Log in to Amazon ECR
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set up QEMU for ARM64
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: linux/arm64
+          platforms: arm64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and Push API Image to ECR
-        uses: docker/build-push-action@v5
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./api/Dockerfile
@@ -61,8 +66,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and Push Frontend Image to ECR
-        uses: docker/build-push-action@v5
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
         with:
           context: ./app
           file: ./app/Dockerfile
@@ -74,62 +79,125 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy to AWS EC2 via SSH
+      - name: Deploy to EC2 via SSH
         if: ${{ secrets.EC2_HOST != '' }}
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME || 'ubuntu' }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT || 22 }}
+          script_stop: true
           script: |
             set -euo pipefail
+
+            APP_DIR="/home/${{ secrets.EC2_USERNAME || 'ubuntu' }}/app"
+
+            if [ ! -d "$APP_DIR" ]; then
+              APP_DIR="/app"
+            fi
+
+            cd "$APP_DIR"
+
             echo "===> Authenticating with Amazon ECR..."
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-            
-            echo "===> Pulling immutable image tag ${{ steps.vars.outputs.sha_short }}..."
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:${{ steps.vars.outputs.sha_short }}
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_APP }}:${{ steps.vars.outputs.sha_short }}
-            
-            echo "===> Deploying stack via Docker Compose..."
-            cd /home/${{ secrets.EC2_USERNAME || 'ubuntu' }}/app || cd /app || cd ~/
-            
+            aws ecr get-login-password \
+              --region "${{ env.AWS_REGION }}" \
+              | docker login \
+                  --username AWS \
+                  --password-stdin \
+                  "${{ steps.login-ecr.outputs.registry }}"
+
             export ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
             export ECR_REPOSITORY_API="${{ env.ECR_REPOSITORY_API }}"
             export ECR_REPOSITORY_APP="${{ env.ECR_REPOSITORY_APP }}"
             export IMAGE_TAG="${{ steps.vars.outputs.sha_short }}"
-            
-            docker compose up -d --remove-orphans
-            
-            echo "===> Verifying container health..."
-            sleep 5
-            docker compose ps
-            docker compose exec -T api curl -f http://localhost:5000/health
-            curl -f http://localhost/
 
-      - name: Deploy to AWS EC2 via SSM Command
+            echo "===> Pulling exact release images..."
+            docker pull "${ECR_REGISTRY}/${ECR_REPOSITORY_API}:${IMAGE_TAG}"
+            docker pull "${ECR_REGISTRY}/${ECR_REPOSITORY_APP}:${IMAGE_TAG}"
+
+            echo "===> Validating production Compose..."
+            docker compose -f docker-compose.yml config >/tmp/scaler-compose-rendered.yml
+
+            echo "===> Deploying production stack..."
+            docker compose \
+              -f docker-compose.yml \
+              up -d \
+              --remove-orphans \
+              --no-build
+
+            echo "===> Waiting for API..."
+            for i in $(seq 1 30); do
+              if docker compose -f docker-compose.yml exec -T api \
+                curl -fsS http://localhost:5000/health >/dev/null; then
+                echo "API is healthy."
+                break
+              fi
+
+              if [ "$i" -eq 30 ]; then
+                echo "API failed health check."
+                docker compose -f docker-compose.yml ps
+                docker compose -f docker-compose.yml logs --tail=200 api
+                exit 1
+              fi
+
+              sleep 2
+            done
+
+            echo "===> Waiting for frontend..."
+            for i in $(seq 1 30); do
+              if curl -fsS http://127.0.0.1/ >/dev/null; then
+                echo "Frontend is healthy."
+                break
+              fi
+
+              if [ "$i" -eq 30 ]; then
+                echo "Frontend failed health check."
+                docker compose -f docker-compose.yml ps
+                docker compose -f docker-compose.yml logs --tail=200 app
+                exit 1
+              fi
+
+              sleep 2
+            done
+
+            echo "===> Deployment successful."
+            docker compose -f docker-compose.yml ps
+
+      - name: Deploy to EC2 via SSM
         if: ${{ secrets.EC2_INSTANCE_ID != '' && secrets.EC2_HOST == '' }}
+        shell: bash
         run: |
-          COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
-            --document-name "AWS-RunShellScript" \
-            --parameters 'commands=[
-              "set -euo pipefail",
-              "aws ecr get-login-password --region '${{ env.AWS_REGION }}' | docker login --username AWS --password-stdin '${{ steps.login-ecr.outputs.registry }}'",
-              "docker pull '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:${{ steps.vars.outputs.sha_short }}'",
-              "docker pull '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_APP }}:${{ steps.vars.outputs.sha_short }}'",
-              "cd /app || cd /home/ubuntu/app",
-              "export ECR_REGISTRY='${{ steps.login-ecr.outputs.registry }}'",
-              "export ECR_REPOSITORY_API='${{ env.ECR_REPOSITORY_API }}'",
-              "export ECR_REPOSITORY_APP='${{ env.ECR_REPOSITORY_APP }}'",
-              "export IMAGE_TAG='${{ steps.vars.outputs.sha_short }}'",
-              "docker compose up -d --remove-orphans",
-              "docker compose ps",
-              "docker compose exec -T api curl -f http://localhost:5000/health",
-              "curl -f http://localhost/"
-            ]' \
-            --query "Command.CommandId" \
-            --output text)
-          
-          echo "SSM Command sent successfully with ID: $COMMAND_ID"
-          aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
+          set -euo pipefail
+
+          COMMAND_ID="$(
+            aws ssm send-command \
+              --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+              --document-name "AWS-RunShellScript" \
+              --parameters 'commands=[
+                "set -euo pipefail",
+                "cd /app || cd /home/ubuntu/app",
+                "aws ecr get-login-password --region '"${{ env.AWS_REGION }}"' | docker login --username AWS --password-stdin '"${{ steps.login-ecr.outputs.registry }}"'",
+                "export ECR_REGISTRY='"${{ steps.login-ecr.outputs.registry }}"'",
+                "export ECR_REPOSITORY_API='"${{ env.ECR_REPOSITORY_API }}"'",
+                "export ECR_REPOSITORY_APP='"${{ env.ECR_REPOSITORY_APP }}"'",
+                "export IMAGE_TAG='"${{ steps.vars.outputs.sha_short }}"'",
+                "docker pull \"$ECR_REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG\"",
+                "docker pull \"$ECR_REGISTRY/$ECR_REPOSITORY_APP:$IMAGE_TAG\"",
+                "docker compose -f docker-compose.yml config >/tmp/scaler-compose-rendered.yml",
+                "docker compose -f docker-compose.yml up -d --remove-orphans --no-build",
+                "for i in $(seq 1 30); do if docker compose -f docker-compose.yml exec -T api curl -fsS http://localhost:5000/health >/dev/null; then break; fi; if [ \"$i\" -eq 30 ]; then docker compose -f docker-compose.yml logs --tail=200 api; exit 1; fi; sleep 2; done",
+                "for i in $(seq 1 30); do if curl -fsS http://127.0.0.1/ >/dev/null; then break; fi; if [ \"$i\" -eq 30 ]; then docker compose -f docker-compose.yml logs --tail=200 app; exit 1; fi; sleep 2; done",
+                "docker compose -f docker-compose.yml ps"
+              ]' \
+              --query "Command.CommandId" \
+              --output text
+          )"
+
+          echo "SSM command: ${COMMAND_ID}"
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
+
+          echo "SSM deployment completed successfully."

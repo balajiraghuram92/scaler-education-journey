@@ -1,66 +1,106 @@
-version: '3.8'
-
 services:
   database:
     image: postgres:16-alpine
-    restart: always
+    restart: unless-stopped
+
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-studytracker}
       POSTGRES_USER: ${POSTGRES_USER:-studyuser}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    command: postgres -c shared_buffers=128MB -c max_connections=50 -c work_mem=4MB
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+
+    command:
+      - postgres
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - max_connections=50
+      - -c
+      - work_mem=4MB
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     networks:
       - backend-net
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-studyuser} -d ${POSTGRES_DB:-studytracker}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-studyuser} -d ${POSTGRES_DB:-studytracker}"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
 
   api:
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY_API:-scaler-journey-api}:${IMAGE_TAG:-latest}
-    restart: always
+    image: ${ECR_REGISTRY:?ECR_REGISTRY must be set}/${ECR_REPOSITORY_API:-scaler-journey-api}:${IMAGE_TAG:?IMAGE_TAG must be set}
+
+    restart: unless-stopped
+
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__DefaultConnection=Host=database;Database=${POSTGRES_DB:-studytracker};Username=${POSTGRES_USER:-studyuser};Password=${POSTGRES_PASSWORD}
-      - API_KEY=${API_KEY}
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5000
+
+      ConnectionStrings__DefaultConnection: >-
+        Host=database;
+        Port=5432;
+        Database=${POSTGRES_DB:-studytracker};
+        Username=${POSTGRES_USER:-studyuser};
+        Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+
+      API_KEY: ${API_KEY:?API_KEY must be set}
+
     depends_on:
       database:
         condition: service_healthy
+
     networks:
       - backend-net
+
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost:5000/health || exit 1"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 20s
 
   app:
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY_APP:-scaler-journey-app}:${IMAGE_TAG:-latest}
-    restart: always
+    image: ${ECR_REGISTRY:?ECR_REGISTRY must be set}/${ECR_REPOSITORY_APP:-scaler-journey-app}:${IMAGE_TAG:?IMAGE_TAG must be set}
+
+    restart: unless-stopped
+
     ports:
       - "80:80"
-      - "443:443"
+
     depends_on:
       api:
         condition: service_healthy
+
     networks:
       - backend-net
+
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost/ || exit 1"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
 
 volumes:
   postgres_data:
+    name: scaler_postgres_data
 
 networks:
   backend-net:
+    name: scaler_backend_net
     driver: bridge
