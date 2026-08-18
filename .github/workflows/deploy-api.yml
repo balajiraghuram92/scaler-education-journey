@@ -62,7 +62,17 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Test EC2 port 22 from GitHub runner
+        shell: bash
+        run: |
+          echo "Testing ${{ secrets.EC2_HOST }}:22"
 
+          timeout 10 bash -c "</dev/tcp/${{ secrets.EC2_HOST }}/22" \
+            && echo "EC2 port 22 is reachable from GitHub runner" \
+            || {
+              echo "EC2 port 22 is NOT reachable from GitHub runner"
+              exit 1
+            }
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.2.2
         with:
