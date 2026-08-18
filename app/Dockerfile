@@ -14,7 +14,11 @@ RUN npm ci
 # Copy application source
 COPY . .
 
-# Build production distribution
+# Accept build arguments from GitHub Actions / Docker CLI
+ARG VITE_API_KEY
+ENV VITE_API_KEY=$VITE_API_KEY
+
+# Build production distribution with baked environment variables
 RUN npm run build
 
 # Stage 2: Production Nginx runtime (runs as native ARM64 on EC2)
