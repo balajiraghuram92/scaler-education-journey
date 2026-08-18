@@ -62,10 +62,13 @@ jobs:
         with:
           context: ./api
           file: ./api/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ${{ env.IMAGE_API }}:${{ github.sha }}
             ${{ env.IMAGE_API }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
 
       # ---------------------------------------------------------
