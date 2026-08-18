@@ -90,6 +90,8 @@ jobs:
           tags: |
             ${{ env.IMAGE_APP }}:${{ github.sha }}
             ${{ env.IMAGE_APP }}:latest
+          build-args: |
+            VITE_API_KEY=${{ secrets.VITE_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
