@@ -97,7 +97,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       # ---------------------------------------------------------
-      # 8. Deploy to EC2 using AWS SSM
+      # 8. Deploy to EC2 using AWS SSM (Zero hardcoded secrets)
       # ---------------------------------------------------------
       - name: Deploy to EC2 using SSM
         run: |
@@ -124,7 +124,7 @@ jobs:
 
               "docker network connect --alias database --alias studytracker-db --alias studytracker-postgres scaler-network studytracker-postgres 2>/dev/null || true",
 
-              "docker run -d --name studytracker-api --network scaler-network --restart unless-stopped -p 5000:8080 -e ASPNETCORE_ENVIRONMENT=Production -e DATABASE_HOST=studytracker-postgres -e DATABASE_PORT=5432 -e DATABASE_NAME=studytracker -e DATABASE_USER=studyuser -e DATABASE_PASSWORD=rythmos@1992 -e API_KEY=rythmos@1992 ${{ env.IMAGE_API }}:latest",
+              "docker run -d --name studytracker-api --network scaler-network --restart unless-stopped -p 5000:8080 -e ASPNETCORE_ENVIRONMENT=Production -e DATABASE_HOST=studytracker-postgres -e DATABASE_PORT=5432 -e DATABASE_NAME=studytracker -e DATABASE_USER=studyuser -e DATABASE_PASSWORD=\"${{ secrets.POSTGRES_PASSWORD }}\" -e API_KEY=\"${{ secrets.API_KEY }}\" ${{ env.IMAGE_API }}:latest",
 
               "docker run -d --name studytracker-app --network scaler-network --restart unless-stopped -p 80:80 ${{ env.IMAGE_APP }}:latest",
 
