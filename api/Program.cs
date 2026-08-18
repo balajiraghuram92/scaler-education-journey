@@ -140,19 +140,33 @@ if (args.Contains("--seed"))
     return; // Exit script after seeding
 }
 
-// Apply schema migrations on startup
+// Apply schema migrations & idempotent seed on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
     db.Database.Migrate();
+    DbSeeder.Initialize(db);
 }
 
 app.MapGet("/", () => "StudyTracker API is running. Use /health for service health.");
 
-// API Endpoints
+// ==========================================
+// 1. VERTICALS & TASKS ENDPOINTS (Base & Dynamic)
+// ==========================================
+
 app.MapGet("/api/verticals", async (StudyTrackerContext db) =>
-    await db.Verticals.Include(v => v.Tasks).ToListAsync())
+    await db.Verticals.AsNoTracking().Include(v => v.Tasks).ToListAsync())
     .WithName("GetVerticals");
+
+app.MapGet("/api/verticals/{id:int}", async (int id, StudyTrackerContext db) =>
+{
+    var vertical = await db.Verticals.AsNoTracking()
+        .Include(v => v.Tasks)
+        .FirstOrDefaultAsync(v => v.Id == id);
+
+    return vertical != null ? Results.Ok(vertical) : Results.NotFound();
+})
+.WithName("GetVerticalById");
 
 app.MapPost("/api/verticals", async (CreateVerticalRequest req, StudyTrackerContext db) =>
 {
@@ -235,7 +249,7 @@ app.MapPost("/api/verticals/ingest", async (IngestRequest req, StudyTrackerConte
 })
 .WithName("IngestVerticalMarkdown");
 
-app.MapPut("/api/tasks/{id}/toggle", async (int id, StudyTrackerContext db) =>
+app.MapPut("/api/tasks/{id:int}/toggle", async (int id, StudyTrackerContext db) =>
 {
     var task = await db.Tasks.FindAsync(id);
     if (task == null)
@@ -250,9 +264,369 @@ app.MapPut("/api/tasks/{id}/toggle", async (int id, StudyTrackerContext db) =>
 })
 .WithName("ToggleTask");
 
+// ==========================================
+// 2. COURSES & CURRICULUM ENDPOINTS (Hierarchical)
+// ==========================================
+
+app.MapGet("/api/courses", async (StudyTrackerContext db) =>
+{
+    var courses = await db.Courses.AsNoTracking()
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Problems)
+        .OrderBy(c => c.OrderIndex)
+        .ToListAsync();
+
+    var dtos = courses.Select(c =>
+    {
+        var allLessons = c.Modules.SelectMany(m => m.Lessons).ToList();
+        var allProblems = allLessons.SelectMany(l => l.Problems).ToList();
+        var totalLessons = allLessons.Count;
+        var completedLessons = allLessons.Count(l => l.IsCompleted);
+        var totalProblems = allProblems.Count;
+        var completedProblems = allProblems.Count(p => p.IsCompleted);
+        var progressPercent = totalLessons > 0 ? (int)Math.Round((double)completedLessons / totalLessons * 100) : 0;
+
+        var moduleDtos = c.Modules.OrderBy(m => m.OrderIndex).Select(m =>
+        {
+            var mLessons = m.Lessons.OrderBy(l => l.OrderIndex).ToList();
+            var mTotal = mLessons.Count;
+            var mCompleted = mLessons.Count(l => l.IsCompleted);
+            var mProgress = mTotal > 0 ? (int)Math.Round((double)mCompleted / mTotal * 100) : 0;
+
+            return new ModuleSummaryDto(
+                m.Id,
+                m.CourseId,
+                m.Slug,
+                m.Title,
+                m.Description,
+                m.Badge,
+                m.OrderIndex,
+                mTotal,
+                mCompleted,
+                mProgress,
+                mLessons.Select(l => new LessonSummaryDto(
+                    l.Id,
+                    l.ModuleId,
+                    l.Slug,
+                    l.Title,
+                    l.Description,
+                    l.LectureNumber,
+                    l.ClassDate,
+                    l.HorstmannRef,
+                    l.EstimatedMinutes,
+                    l.IsCompleted,
+                    l.OrderIndex,
+                    l.Problems.Count
+                )).ToList()
+            );
+        }).ToList();
+
+        return new CourseSummaryDto(
+            c.Id,
+            c.Slug,
+            c.Title,
+            c.Description,
+            c.OrderIndex,
+            c.VerticalId,
+            totalLessons,
+            completedLessons,
+            totalProblems,
+            completedProblems,
+            progressPercent,
+            moduleDtos
+        );
+    }).ToList();
+
+    return Results.Ok(dtos);
+})
+.WithName("GetCourses");
+
+app.MapGet("/api/courses/{slugOrId}", async (string slugOrId, StudyTrackerContext db) =>
+{
+    var query = db.Courses.AsNoTracking()
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Problems);
+
+    Course? course = null;
+    if (int.TryParse(slugOrId, out int id))
+    {
+        course = await query.FirstOrDefaultAsync(c => c.Id == id);
+    }
+    else
+    {
+        course = await query.FirstOrDefaultAsync(c => c.Slug == slugOrId);
+    }
+
+    if (course == null) return Results.NotFound(new { message = "Course not found." });
+
+    var allLessons = course.Modules.SelectMany(m => m.Lessons).ToList();
+    var allProblems = allLessons.SelectMany(l => l.Problems).ToList();
+    var totalLessons = allLessons.Count;
+    var completedLessons = allLessons.Count(l => l.IsCompleted);
+    var totalProblems = allProblems.Count;
+    var completedProblems = allProblems.Count(p => p.IsCompleted);
+    var progressPercent = totalLessons > 0 ? (int)Math.Round((double)completedLessons / totalLessons * 100) : 0;
+
+    var moduleDtos = course.Modules.OrderBy(m => m.OrderIndex).Select(m =>
+    {
+        var mLessons = m.Lessons.OrderBy(l => l.OrderIndex).ToList();
+        var mTotal = mLessons.Count;
+        var mCompleted = mLessons.Count(l => l.IsCompleted);
+        var mProgress = mTotal > 0 ? (int)Math.Round((double)mCompleted / mTotal * 100) : 0;
+
+        return new ModuleSummaryDto(
+            m.Id,
+            m.CourseId,
+            m.Slug,
+            m.Title,
+            m.Description,
+            m.Badge,
+            m.OrderIndex,
+            mTotal,
+            mCompleted,
+            mProgress,
+            mLessons.Select(l => new LessonSummaryDto(
+                l.Id,
+                l.ModuleId,
+                l.Slug,
+                l.Title,
+                l.Description,
+                l.LectureNumber,
+                l.ClassDate,
+                l.HorstmannRef,
+                l.EstimatedMinutes,
+                l.IsCompleted,
+                l.OrderIndex,
+                l.Problems.Count
+            )).ToList()
+        );
+    }).ToList();
+
+    var result = new CourseSummaryDto(
+        course.Id,
+        course.Slug,
+        course.Title,
+        course.Description,
+        course.OrderIndex,
+        course.VerticalId,
+        totalLessons,
+        completedLessons,
+        totalProblems,
+        completedProblems,
+        progressPercent,
+        moduleDtos
+    );
+
+    return Results.Ok(result);
+})
+.WithName("GetCourseBySlugOrId");
+
+// ==========================================
+// 3. LESSONS ENDPOINTS
+// ==========================================
+
+app.MapGet("/api/lessons/{id:int}", async (int id, StudyTrackerContext db) =>
+{
+    var lesson = await db.Lessons.AsNoTracking()
+        .Include(l => l.Module)
+            .ThenInclude(m => m!.Course)
+        .Include(l => l.Problems.OrderBy(p => p.OrderIndex))
+        .Include(l => l.Resources.OrderBy(r => r.OrderIndex))
+        .FirstOrDefaultAsync(l => l.Id == id);
+
+    if (lesson == null) return Results.NotFound(new { message = "Lesson not found." });
+
+    var dto = new LessonDetailDto(
+        lesson.Id,
+        lesson.ModuleId,
+        lesson.Module?.Title ?? string.Empty,
+        lesson.Module?.CourseId ?? 0,
+        lesson.Module?.Course?.Title ?? string.Empty,
+        lesson.Slug,
+        lesson.Title,
+        lesson.Description,
+        lesson.LectureNumber,
+        lesson.ClassDate,
+        lesson.ContentBody,
+        lesson.HorstmannRef,
+        lesson.EstimatedMinutes,
+        lesson.IsCompleted,
+        lesson.OrderIndex,
+        lesson.Problems.Select(p => new ProblemSummaryDto(
+            p.Id,
+            p.LessonId,
+            p.Slug,
+            p.Title,
+            p.Difficulty,
+            p.PackageName,
+            p.TestClassName,
+            p.ProblemStatement,
+            p.RequirementsBody,
+            p.WorkedExample,
+            p.Hints,
+            p.IsCompleted,
+            p.OrderIndex
+        )).ToList(),
+        lesson.Resources.Select(r => new LessonResourceDto(
+            r.Id,
+            r.LessonId,
+            r.ResourceType,
+            r.Title,
+            r.ContentBody,
+            r.OrderIndex
+        )).ToList()
+    );
+
+    return Results.Ok(dto);
+})
+.WithName("GetLessonById");
+
+app.MapPost("/api/lessons", async (CreateLessonRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.Slug))
+    {
+        return Results.BadRequest(new { message = "Title and Slug are required." });
+    }
+
+    var moduleExists = await db.Modules.AnyAsync(m => m.Id == req.ModuleId);
+    if (!moduleExists)
+    {
+        return Results.BadRequest(new { message = "Invalid ModuleId." });
+    }
+
+    var lesson = new Lesson
+    {
+        ModuleId = req.ModuleId,
+        Slug = req.Slug.Trim().ToLowerInvariant(),
+        Title = req.Title.Trim(),
+        Description = req.Description ?? string.Empty,
+        LectureNumber = req.LectureNumber,
+        ClassDate = req.ClassDate ?? DateTime.UtcNow.ToString("yyyy-MM-dd"),
+        ContentBody = req.ContentBody ?? string.Empty,
+        HorstmannRef = req.HorstmannRef ?? string.Empty,
+        EstimatedMinutes = req.EstimatedMinutes ?? 45,
+        OrderIndex = req.OrderIndex ?? 0
+    };
+
+    db.Lessons.Add(lesson);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/lessons/{lesson.Id}", lesson);
+})
+.WithName("CreateLesson");
+
+app.MapPut("/api/lessons/{id:int}", async (int id, UpdateLessonRequest req, StudyTrackerContext db) =>
+{
+    var lesson = await db.Lessons.FindAsync(id);
+    if (lesson == null) return Results.NotFound();
+
+    if (!string.IsNullOrWhiteSpace(req.Title)) lesson.Title = req.Title;
+    if (req.Description != null) lesson.Description = req.Description;
+    if (req.ContentBody != null) lesson.ContentBody = req.ContentBody;
+    if (req.HorstmannRef != null) lesson.HorstmannRef = req.HorstmannRef;
+    if (req.EstimatedMinutes.HasValue) lesson.EstimatedMinutes = req.EstimatedMinutes.Value;
+    if (req.IsCompleted.HasValue) lesson.IsCompleted = req.IsCompleted.Value;
+    lesson.UpdatedAt = DateTime.UtcNow;
+
+    await db.SaveChangesAsync();
+    return Results.Ok(lesson);
+})
+.WithName("UpdateLesson");
+
+app.MapPatch("/api/lessons/{id:int}/progress", async (int id, StudyTrackerContext db) =>
+{
+    var lesson = await db.Lessons.FindAsync(id);
+    if (lesson == null) return Results.NotFound();
+
+    lesson.IsCompleted = !lesson.IsCompleted;
+    lesson.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new ToggleProgressResponse(lesson.Id, lesson.IsCompleted, $"Lesson status toggled to {(lesson.IsCompleted ? "Completed" : "Pending")}"));
+})
+.WithName("ToggleLessonProgress");
+
+// ==========================================
+// 4. PROBLEMS ENDPOINTS
+// ==========================================
+
+app.MapGet("/api/problems/{id:int}", async (int id, StudyTrackerContext db) =>
+{
+    var p = await db.Problems.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+    if (p == null) return Results.NotFound();
+
+    var dto = new ProblemSummaryDto(
+        p.Id,
+        p.LessonId,
+        p.Slug,
+        p.Title,
+        p.Difficulty,
+        p.PackageName,
+        p.TestClassName,
+        p.ProblemStatement,
+        p.RequirementsBody,
+        p.WorkedExample,
+        p.Hints,
+        p.IsCompleted,
+        p.OrderIndex
+    );
+    return Results.Ok(dto);
+})
+.WithName("GetProblemById");
+
+app.MapPost("/api/problems", async (CreateProblemRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.Slug))
+    {
+        return Results.BadRequest(new { message = "Title and Slug are required." });
+    }
+
+    var lessonExists = await db.Lessons.AnyAsync(l => l.Id == req.LessonId);
+    if (!lessonExists)
+    {
+        return Results.BadRequest(new { message = "Invalid LessonId." });
+    }
+
+    var problem = new Problem
+    {
+        LessonId = req.LessonId,
+        Slug = req.Slug.Trim().ToLowerInvariant(),
+        Title = req.Title.Trim(),
+        Difficulty = req.Difficulty ?? "Warm-up",
+        PackageName = req.PackageName ?? string.Empty,
+        TestClassName = req.TestClassName ?? string.Empty,
+        ProblemStatement = req.ProblemStatement ?? string.Empty,
+        RequirementsBody = req.RequirementsBody ?? string.Empty,
+        WorkedExample = req.WorkedExample ?? string.Empty,
+        Hints = req.Hints ?? string.Empty,
+        OrderIndex = req.OrderIndex ?? 0
+    };
+
+    db.Problems.Add(problem);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/problems/{problem.Id}", problem);
+})
+.WithName("CreateProblem");
+
+app.MapPatch("/api/problems/{id:int}/progress", async (int id, StudyTrackerContext db) =>
+{
+    var problem = await db.Problems.FindAsync(id);
+    if (problem == null) return Results.NotFound();
+
+    problem.IsCompleted = !problem.IsCompleted;
+    problem.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new ToggleProgressResponse(problem.Id, problem.IsCompleted, $"Problem status toggled to {(problem.IsCompleted ? "Completed" : "Pending")}"));
+})
+.WithName("ToggleProblemProgress");
+
 app.Run();
 
-// Helper Function & DTOs
+// Helper Function
 List<StudyTask> ParseMarkdownToTasks(string markdown)
 {
     var tasks = new List<StudyTask>();
@@ -293,4 +667,3 @@ List<StudyTask> ParseMarkdownToTasks(string markdown)
 
 public record CreateVerticalRequest(string Name, string? Description);
 public record IngestRequest(int? VerticalId, string? Name, string? Description, string MarkdownContent);
-

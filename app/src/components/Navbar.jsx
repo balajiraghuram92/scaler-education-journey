@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Hexagon, FolderGit2, BookOpen, ChevronDown, Server, BrainCircuit, Home as HomeIcon, UploadCloud } from 'lucide-react';
+import { Hexagon, FolderGit2, BookOpen, ChevronDown, Server, BrainCircuit, Home as HomeIcon, UploadCloud, Coffee, PlusCircle } from 'lucide-react';
 import MarkdownIngestModal from './MarkdownIngestModal';
 import './Navbar.css';
 
@@ -8,6 +8,7 @@ export default function Navbar() {
   const [verticals, setVerticals] = useState([]);
   const [labId, setLabId] = useState(1);
   const [fdeId, setFdeId] = useState(3);
+  const [javaId, setJavaId] = useState(4);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
@@ -23,6 +24,8 @@ export default function Navbar() {
           if (lab) setLabId(lab.id);
           const fde = data.find((v) => v.name.toLowerCase().includes('fde'));
           if (fde) setFdeId(fde.id);
+          const java = data.find((v) => v.name.toLowerCase().includes('java') || v.name.toLowerCase().includes('spring'));
+          if (java) setJavaId(java.id);
         }
       })
       .catch(() => {});
@@ -134,7 +137,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => toggleDropdown('lessons')}
-              className={`ai-nav-link ${openDropdown === 'lessons' || location.pathname.startsWith(`/vertical/${fdeId}`) ? 'active' : ''}`}
+              className={`ai-nav-link ${openDropdown === 'lessons' || location.pathname.startsWith(`/vertical/${fdeId}`) || location.pathname.startsWith(`/vertical/${javaId}`) ? 'active' : ''}`}
               aria-expanded={openDropdown === 'lessons'}
             >
               <BookOpen size={16} />
@@ -144,6 +147,20 @@ export default function Navbar() {
 
             {openDropdown === 'lessons' && (
               <div className="ai-nav-dropdown-menu">
+                <Link
+                  to={`/vertical/${javaId}`}
+                  className="ai-dropdown-item"
+                  onClick={() => setOpenDropdown(null)}
+                >
+                  <div className="ai-dropdown-item-icon" style={{ background: 'rgba(234, 88, 12, 0.1)', color: '#ea580c' }}>
+                    <Coffee size={18} />
+                  </div>
+                  <div>
+                    <div className="ai-dropdown-item-title">Java & Spring Architecture</div>
+                    <div className="ai-dropdown-item-desc">LLD 1, Concurrency & OOP-2 Practice</div>
+                  </div>
+                </Link>
+
                 <Link
                   to={`/vertical/${fdeId}`}
                   className="ai-dropdown-item"
@@ -157,6 +174,7 @@ export default function Navbar() {
                     <div className="ai-dropdown-item-desc">Agentic AI Curriculum Track</div>
                   </div>
                 </Link>
+
                 <button
                   type="button"
                   className="ai-dropdown-item"

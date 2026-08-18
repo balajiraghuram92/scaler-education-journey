@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
-import { Server, Cloud, BrainCircuit, Grid3x3, ArrowRight, CheckCircle2, Clock, PlayCircle } from 'lucide-react';
+import { Server, Cloud, BrainCircuit, Grid3x3, ArrowRight, CheckCircle2, Clock, PlayCircle, Coffee, Code2 } from 'lucide-react';
 
 export default function VerticalCard({ title, icon: IconName, description, linkTo, tasks = [] }) {
   const iconMap = {
     server: Server,
     cloud: Cloud,
     'brain-circuit': BrainCircuit,
+    coffee: Coffee,
+    code: Code2,
     'grid-3x3': Grid3x3,
   };
   

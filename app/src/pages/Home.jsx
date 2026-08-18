@@ -42,6 +42,7 @@ export default function Home() {
 
   const getIconByVertical = (name) => {
     const lower = name.toLowerCase();
+    if (lower.includes('java') || lower.includes('spring') || lower.includes('lld')) return 'coffee';
     if (lower.includes('lab')) return 'server';
     if (lower.includes('azure') || lower.includes('cert')) return 'cloud';
     if (lower.includes('fde') || lower.includes('ai')) return 'brain-circuit';

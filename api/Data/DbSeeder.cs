@@ -46,6 +46,9 @@ public static class DbSeeder
             }
         }
 
+        // 4. Seed Java & Spring Architecture Vertical and Courses
+        JavaVerticalSeedData.Seed(db);
+
         // Save all changes
         db.SaveChanges();
         

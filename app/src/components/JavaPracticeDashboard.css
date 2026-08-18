@@ -1,0 +1,496 @@
+/* =========================================================
+   JavaPracticeDashboard.css — Neural Ascent Theme Integration
+   ========================================================= */
+
+.java-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  margin-top: var(--space-md);
+}
+
+/* Header & Progress Summary */
+.java-header-card {
+  background: var(--surface, #ffffff);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.java-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.java-title-group h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+}
+
+.java-subtitle {
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.java-header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.java-btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.java-btn-action:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.java-btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+}
+
+.java-btn-primary:hover {
+  background: #1d4ed8;
+}
+
+/* Big Stat & Progress Bar */
+.java-progress-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-top: 16px;
+}
+
+.java-stat-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.java-stat-text small {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.java-bar-track {
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.java-bar-fill {
+  height: 100%;
+  background: #10b981;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* Problem Navigation Chips */
+.java-nav-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.java-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.java-chip:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.java-chip.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.java-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  background: #94a3b8;
+}
+
+.java-chip.pass .java-chip-dot {
+  background: #10b981;
+}
+
+.java-chip.fail .java-chip-dot {
+  background: #ef4444;
+}
+
+.java-chip-badge {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-left: 4px;
+}
+
+/* Collapsible Study Guide */
+.java-study-guide {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.java-study-guide-header {
+  padding: 16px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: #ffffff;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.java-study-guide-header:hover {
+  background: #f8fafc;
+}
+
+.java-study-guide-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.java-study-guide-body {
+  padding: 20px 24px;
+  border-top: 1px solid #e2e8f0;
+  max-height: 650px;
+  overflow-y: auto;
+  background: #fafafa;
+}
+
+.java-topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.java-topic-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  transition: all 0.2s;
+}
+
+.java-topic-card:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.java-topic-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.java-topic-body {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* Problem Cards */
+.java-problem-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 5px solid #94a3b8;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+}
+
+.java-problem-card.pass {
+  border-left-color: #10b981;
+}
+
+.java-problem-card.pending {
+  border-left-color: #f59e0b;
+}
+
+.java-card-head {
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.java-card-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.java-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+}
+
+.java-card-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.java-card-meta code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #334155;
+}
+
+.java-card-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.java-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: #94a3b8;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.java-pill.pass {
+  background: #10b981;
+}
+
+.java-pill.pass:hover {
+  background: #059669;
+}
+
+.java-pill.pending {
+  background: #64748b;
+}
+
+.java-pill.pending:hover {
+  background: #475569;
+}
+
+.java-diff-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* Split Pane Layout */
+.java-split-pane {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 0;
+}
+
+@media (max-width: 960px) {
+  .java-split-pane {
+    grid-template-columns: 1fr;
+  }
+}
+
+.java-statement-pane {
+  padding: 24px;
+  min-width: 0;
+  background: #ffffff;
+}
+
+.java-result-pane {
+  padding: 24px;
+  background: #f8fafc;
+  border-left: 1px solid #e2e8f0;
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .java-result-pane {
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+  }
+}
+
+.java-section-header {
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #475569;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.java-statement-text {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: #334155;
+  margin-bottom: 18px;
+  white-space: pre-wrap;
+}
+
+.java-code-block {
+  background: #0f172a;
+  color: #f8fafc;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  margin: 12px 0;
+  position: relative;
+}
+
+.java-code-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.java-code-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.java-hints-drawer {
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 0.86rem;
+  color: #92400e;
+}
+
+/* Test Assertion List */
+.java-tests-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.java-test-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.java-test-item:last-child {
+  border-bottom: none;
+}
+
+.java-test-ico {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.java-test-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-family: ui-monospace, monospace;
+}
+
+.java-test-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.java-quick-info {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 0.85rem;
+  color: #1e40af;
+  margin-top: 18px;
+}

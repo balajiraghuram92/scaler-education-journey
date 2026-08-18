@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { CheckCircle2, ChevronRight, LayoutGrid } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import JavaPracticeDashboard from '../components/JavaPracticeDashboard';
 import './VerticalDetail.css';
 
 export default function VerticalDetail() {
@@ -10,7 +11,7 @@ export default function VerticalDetail() {
   const [loading, setLoading] = useState(true);
   const [activeModule, setActiveModule] = useState(null);
 
-  useEffect(() => {
+  const fetchVertical = useCallback(() => {
     fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`, {
       headers: {
         'x-api-key': import.meta.env.VITE_API_KEY || ''
@@ -33,6 +34,10 @@ export default function VerticalDetail() {
         setLoading(false);
       });
   }, [id]);
+
+  useEffect(() => {
+    fetchVertical();
+  }, [fetchVertical]);
 
   const toggleTask = async (taskId) => {
     try {
@@ -61,6 +66,24 @@ export default function VerticalDetail() {
 
   if (loading) return <div className="container mt-xl"><p className="text-secondary">Loading...</p></div>;
   if (!vertical) return <div className="container mt-xl"><p className="text-secondary">Vertical not found</p></div>;
+
+  // Check if this is the Java & Spring Architecture vertical
+  const isJavaVertical = vertical.name.toLowerCase().includes('java') || 
+                         vertical.name.toLowerCase().includes('spring') || 
+                         vertical.name.toLowerCase().includes('lld');
+
+  if (isJavaVertical) {
+    return (
+      <div className="vertical-detail-wrapper">
+        <div className="container mt-md">
+          <Link to="/" className="btn btn-secondary mb-lg">
+            ← Back to Dashboard
+          </Link>
+          <JavaPracticeDashboard vertical={vertical} onUpdate={fetchVertical} />
+        </div>
+      </div>
+    );
+  }
 
   const totalTasks = vertical.tasks.length;
   const completedTasks = vertical.tasks.filter(t => t.isCompleted).length;
@@ -122,9 +145,9 @@ export default function VerticalDetail() {
           <div className="fde-dashboard">
             <div className="hero-section text-center mb-xl">
               <span className="hero-badge">🚀 IN DEVELOPMENT</span>
-              <h1 className="hero-title mt-sm">Lab Projects</h1>
+              <h1 className="hero-title mt-sm">{vertical.name}</h1>
               <p className="hero-subtitle mt-sm">
-                Crafting next-generation applications. A showcase of architectural excellence using <strong style={{color: '#1e293b'}}>React Frontend</strong> and <strong style={{color: '#1e293b'}}>.NET Backend</strong>.
+                {vertical.description || "Crafting next-generation applications. A showcase of architectural excellence."}
               </p>
             </div>
 
