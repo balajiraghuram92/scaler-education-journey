@@ -65,7 +65,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       # ---------------------------------------------------------
-      # AWS OIDC TEST
+      # AWS OIDC AUTHENTICATION TEST
       # ---------------------------------------------------------
 
       - name: Configure AWS credentials
