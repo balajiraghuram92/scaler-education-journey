@@ -5,7 +5,11 @@ export default function Profile() {
   const [verticals, setVerticals] = useState([]);
 
   const fetchVerticals = () => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`)
+    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`, {
+      headers: {
+        'x-api-key': import.meta.env.VITE_API_KEY || ''
+      }
+    })
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) setVerticals(data);
