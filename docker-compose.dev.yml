@@ -1,12 +1,12 @@
 services:
   api:
     build:
-      context: .
-      dockerfile: api/Dockerfile
+      context: ./api
+      dockerfile: Dockerfile
     image: scaler-journey-api:dev
 
   app:
     build:
       context: ./app
       dockerfile: Dockerfile
-    image: scaler-journey-app:dev 
+    image: scaler-journey-app:dev

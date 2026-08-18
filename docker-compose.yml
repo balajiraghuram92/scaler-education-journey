@@ -35,7 +35,7 @@ services:
       start_period: 15s
 
   api:
-    image: ${ECR_REGISTRY:?ECR_REGISTRY must be set}/${ECR_REPOSITORY_API:-scaler-journey-api}:${IMAGE_TAG:?IMAGE_TAG must be set}
+    image: ${IMAGE_API:-ghcr.io/balajiraghuram92/scaler-education-journey-api}:${IMAGE_TAG:-latest}
 
     restart: unless-stopped
 
@@ -71,7 +71,7 @@ services:
       start_period: 20s
 
   app:
-    image: ${ECR_REGISTRY:?ECR_REGISTRY must be set}/${ECR_REPOSITORY_APP:-scaler-journey-app}:${IMAGE_TAG:?IMAGE_TAG must be set}
+    image: ${IMAGE_APP:-ghcr.io/balajiraghuram92/scaler-education-journey-app}:${IMAGE_TAG:-latest}
 
     restart: unless-stopped
 
