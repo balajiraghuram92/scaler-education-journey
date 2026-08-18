@@ -90,6 +90,8 @@ jobs:
           tags: |
             ${{ env.IMAGE_APP }}:${{ github.sha }}
             ${{ env.IMAGE_APP }}:latest
+          build-args: |
+            VITE_API_KEY=${{ secrets.VITE_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -112,6 +114,7 @@ jobs:
               "docker pull ${{ env.IMAGE_APP }}:latest",
 
               "docker network create scaler-network || true",
+              "docker network connect scaler-network studytracker-postgres || true",
 
               "docker stop studytracker-api || true",
               "docker rm studytracker-api || true",
@@ -119,7 +122,7 @@ jobs:
               "docker stop studytracker-app || true",
               "docker rm studytracker-app || true",
 
-              "docker run -d --name studytracker-api --network scaler-network --restart unless-stopped -p 5000:8080 ${{ env.IMAGE_API }}:latest",
+              "docker run -d --name studytracker-api --network scaler-network --restart unless-stopped -p 5000:8080 --add-host host.docker.internal:host-gateway --env-file /etc/studytracker/api.env ${{ env.IMAGE_API }}:latest",
 
               "docker run -d --name studytracker-app --network scaler-network --restart unless-stopped -p 80:80 ${{ env.IMAGE_APP }}:latest",
 
