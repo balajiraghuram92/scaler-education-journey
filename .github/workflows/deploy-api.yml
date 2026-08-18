@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -51,12 +52,16 @@ jobs:
 
 
       # ---------------------------------------------------------
-      # 4. Setup Docker Buildx
-      #
-      # Required for:
-      # - linux/arm64 builds
-      # - GitHub Actions cache
-      # - BuildKit
+      # 4. Set up QEMU (Required for ARM64 cross-building on x86 runner)
+      # ---------------------------------------------------------
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+
+      # ---------------------------------------------------------
+      # 5. Setup Docker Buildx
       # ---------------------------------------------------------
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
