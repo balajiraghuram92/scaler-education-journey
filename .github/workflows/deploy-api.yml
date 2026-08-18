@@ -1,4 +1,4 @@
-name: Build and Deploy to AWS EC2
+name: Build and Deploy to AWS
 
 on:
   push:
@@ -17,64 +17,68 @@ env:
   AWS_REGION: ap-south-2
 
 jobs:
-
-  # ============================================================
-  # 1. BUILD AND PUSH DOCKER IMAGES
-  # ============================================================
-
-  build:
-    name: Build and Push Docker Images
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
 
-      # ----------------------------------------------------------
-      # Checkout repository
-      # ----------------------------------------------------------
-
+      # ---------------------------------------------------------
+      # 1. Checkout repository
+      # ---------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ----------------------------------------------------------
-      # Login to GitHub Container Registry
-      # ----------------------------------------------------------
 
-      - name: Login to GHCR
+      # ---------------------------------------------------------
+      # 2. Login to GHCR
+      # ---------------------------------------------------------
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ----------------------------------------------------------
-      # Build and push .NET API
+
+      # ---------------------------------------------------------
+      # 3. Configure AWS using GitHub OIDC
+      # ---------------------------------------------------------
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+
+      # ---------------------------------------------------------
+      # 4. Build and push .NET API image
       #
       # IMPORTANT:
-      # context is repository root because the Dockerfile contains:
-      #
-      # COPY ["api/StudyTracker.Api.csproj", "api/"]
-      #
-      # Therefore context cannot be ./api
-      # ----------------------------------------------------------
-
+      # Dockerfile is inside ./api
+      # Therefore the build context is ./api
+      # ---------------------------------------------------------
       - name: Build and push API image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./api
           file: ./api/Dockerfile
           push: true
           tags: |
             ${{ env.IMAGE_API }}:${{ github.sha }}
             ${{ env.IMAGE_API }}:latest
 
-      # ----------------------------------------------------------
-      # Build and push React frontend
-      # ----------------------------------------------------------
 
-      - name: Build and push frontend image
+      # ---------------------------------------------------------
+      # 5. Build and push React image
+      #
+      # IMPORTANT:
+      # Dockerfile and nginx.conf are inside ./app
+      # Therefore the build context is ./app
+      # ---------------------------------------------------------
+      - name: Build and push React image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./app
           file: ./app/Dockerfile
           push: true
           tags: |
@@ -82,125 +86,33 @@ jobs:
             ${{ env.IMAGE_APP }}:latest
 
 
-  # ============================================================
-  # 2. DEPLOY TO EC2 THROUGH AWS SSM
-  # ============================================================
-
-  deploy:
-    name: Deploy to EC2 using SSM
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-
-      # ----------------------------------------------------------
-      # Configure AWS credentials using GitHub OIDC
-      # ----------------------------------------------------------
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
-
-      # ----------------------------------------------------------
-      # Verify AWS identity
-      # ----------------------------------------------------------
-
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
-
-      # ----------------------------------------------------------
-      # Send deployment command to EC2 through SSM
-      # ----------------------------------------------------------
-
-      - name: Deploy to EC2
+      # ---------------------------------------------------------
+      # 6. Deploy to EC2 using AWS SSM
+      #
+      # NO SSH
+      # NO EC2_HOST
+      # NO EC2_USERNAME
+      # NO EC2_SSH_KEY
+      # ---------------------------------------------------------
+      - name: Deploy to EC2 using SSM
         run: |
-
-          COMMAND_ID=$(aws ssm send-command \
-            --region "${AWS_REGION}" \
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
-            --targets "Key=instanceids,Values=${{ secrets.EC2_INSTANCE_ID }}" \
-            --comment "Deploy StudyTracker ${GITHUB_SHA}" \
-            --parameters commands='[
+            --comment "Deploy StudyTracker application" \
+            --parameters 'commands=[
               "set -e",
-              "cd /home/ubuntu/app",
-              "echo === Pulling API image ===",
-              "docker pull ghcr.io/balajiraghuram92/scaler-education-journey-api:'"${GITHUB_SHA}"'",
-              "echo === Pulling frontend image ===",
-              "docker pull ghcr.io/balajiraghuram92/scaler-education-journey-app:'"${GITHUB_SHA}"'",
-              "echo === Updating compose image tags ===",
-              "export IMAGE_TAG='"${GITHUB_SHA}"'",
-              "export IMAGE_API=ghcr.io/balajiraghuram92/scaler-education-journey-api",
-              "export IMAGE_APP=ghcr.io/balajiraghuram92/scaler-education-journey-app",
-              "echo === Validating Docker Compose ===",
-              "docker compose -f docker-compose.yml config",
-              "echo === Deploying containers ===",
-              "docker compose -f docker-compose.yml up -d --remove-orphans --no-build",
-              "echo === Container status ===",
-              "docker compose -f docker-compose.yml ps"
+              "echo Starting deployment",
+              "docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}",
+              "docker pull ${{ env.IMAGE_API }}:latest",
+              "docker pull ${{ env.IMAGE_APP }}:latest",
+              "docker stop studytracker-api || true",
+              "docker rm studytracker-api || true",
+              "docker stop studytracker-app || true",
+              "docker rm studytracker-app || true",
+              "docker run -d --name studytracker-api --restart unless-stopped -p 8080:8080 ${{ env.IMAGE_API }}:latest",
+              "docker run -d --name studytracker-app --restart unless-stopped -p 80:80 ${{ env.IMAGE_APP }}:latest",
+              "docker image prune -af",
+              "echo Deployment completed"
             ]' \
-            --query "Command.CommandId" \
-            --output text)
-
-          echo "SSM Command ID: ${COMMAND_ID}"
-
-          echo "Waiting for deployment..."
-
-          for i in $(seq 1 30); do
-
-            STATUS=$(aws ssm get-command-invocation \
-              --region "${AWS_REGION}" \
-              --command-id "${COMMAND_ID}" \
-              --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
-              --query "Status" \
-              --output text 2>/dev/null || true)
-
-            echo "Attempt ${i}: ${STATUS}"
-
-            case "${STATUS}" in
-
-              Success)
-                echo "Deployment completed successfully."
-
-                aws ssm get-command-invocation \
-                  --region "${AWS_REGION}" \
-                  --command-id "${COMMAND_ID}" \
-                  --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
-                  --query "StandardOutputContent" \
-                  --output text
-
-                exit 0
-                ;;
-
-              Failed|Cancelled|TimedOut|Cancelling)
-                echo "Deployment failed."
-
-                aws ssm get-command-invocation \
-                  --region "${AWS_REGION}" \
-                  --command-id "${COMMAND_ID}" \
-                  --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
-                  --query "{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}" \
-                  --output json
-
-                exit 1
-                ;;
-
-              *)
-                sleep 5
-                ;;
-
-            esac
-
-          done
-
-          echo "Deployment timed out waiting for SSM."
-
-          aws ssm get-command-invocation \
-            --region "${AWS_REGION}" \
-            --command-id "${COMMAND_ID}" \
-            --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
-            --query "{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}" \
-            --output json
-
-          exit 1
+            --region "${{ env.AWS_REGION }}"
