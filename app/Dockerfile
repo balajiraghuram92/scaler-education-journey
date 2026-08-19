@@ -27,15 +27,18 @@ RUN npm run build
 # Stage 2: Production Nginx runtime (native ARM64 on EC2)
 FROM nginx:alpine AS production
 
+# CRITICAL: Restrict envsubst to DOMAIN_NAME so Nginx internal vars ($host, $uri, etc.) are not erased
+ENV NGINX_ENVSUBST_FILTER=DOMAIN_NAME
+
 # Remove default nginx static files
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy compiled SPA assets from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy custom Nginx configuration with SPA fallback and API reverse proxy
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy template to Nginx templates directory for automatic substitution on container startup
+COPY default.conf.template /etc/nginx/templates/default.conf.template
 
-EXPOSE 80
+EXPOSE 80 443
 
 CMD ["nginx", "-g", "daemon off;"]
