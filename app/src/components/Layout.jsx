@@ -8,7 +8,7 @@ export default function Layout({ children }) {
       <Navbar />
 
       {/* Main Content */}
-      <main className="container mt-xl layout-main-content" style={{ position: 'relative', zIndex: 1 }}>
+      <main className="layout-main-content">
         {children}
       </main>
     </div>

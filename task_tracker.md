@@ -77,4 +77,14 @@
 - [x] **Sub-task 11.4**: Internal Container Health Networking Verification (`docker compose exec -T api curl -f http://localhost:5000/health`)
 - [x] **Sub-task 11.5**: Complete 44-Point Mandatory Compliance Verification Checklist
 
+## Phase 12: Knowledge Atlas Warm Editorial Redesign (Panel A - Home Page)
+- [x] **Sub-task 12.1**: Update `.agents/AGENTS.md` with Autonomous Full Implementation permissions
+- [x] **Sub-task 12.2**: Setup Google Fonts (*Newsreader*, *Playfair Display*, *Plus Jakarta Sans*, *JetBrains Mono*) in `app/index.html` & `app/src/index.css`
+- [x] **Sub-task 12.3**: Establish Warm Editorial Design Tokens (`--bg-parchment: #F8F6F0`, `--bg-paper: #FFFFFF`, `--accent-sage: #2C5E55`, `--rule-border: #E5E0D8`)
+- [x] **Sub-task 12.4**: Refactor `Navbar.jsx` and `Navbar.css` to 3-column editorial header (Wireframe Globe + Centered Neuralascent + Raghuram Balaji profile)
+- [x] **Sub-task 12.5**: Implement Anchored `ConceptDetailPopover.jsx` & `ConceptDetailPopover.css` (Prerequisites, Related Lessons, Next Lessons)
+- [x] **Sub-task 12.6**: Implement Interactive Bipartite Synaptic Graph (`KnowledgeAtlasGraph.jsx` & `KnowledgeAtlasGraph.css`) with cubic Bézier curve mathematical model
+- [x] **Sub-task 12.7**: Assemble Redesigned Knowledge Atlas Index page in `Home.jsx` & `Home.css`
+- [x] **Sub-task 12.8**: Backend Knowledge Graph PostgreSQL Schema & Seeding (8 Domains + 8 Concepts + `/api/knowledge-atlas`)
+
 

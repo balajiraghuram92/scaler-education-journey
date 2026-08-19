@@ -624,6 +624,77 @@ app.MapPatch("/api/problems/{id:int}/progress", async (int id, StudyTrackerConte
 })
 .WithName("ToggleProblemProgress");
 
+// ==========================================
+// 5. KNOWLEDGE ATLAS ENDPOINTS
+// ==========================================
+
+app.MapGet("/api/knowledge-atlas", async (StudyTrackerContext db) =>
+{
+    var domains = await db.KnowledgeDomains.AsNoTracking()
+        .OrderBy(d => d.OrderIndex)
+        .ToListAsync();
+
+    var domainDtos = domains.Select(d => new DomainSummaryDto(
+        d.Id,
+        d.Slug,
+        d.Name,
+        d.Code,
+        d.Description,
+        d.Icon,
+        d.ColorHex,
+        d.OrderIndex
+    )).ToList();
+
+    var concepts = await db.KnowledgeConcepts.AsNoTracking()
+        .Include(c => c.DomainConnections)
+            .ThenInclude(dc => dc.Domain)
+        .Include(c => c.Prerequisites)
+            .ThenInclude(cp => cp.PrerequisiteConcept)
+        .Include(c => c.OutgoingRelations)
+            .ThenInclude(cr => cr.TargetConcept)
+        .Include(c => c.NextLessons.OrderBy(nl => nl.OrderIndex))
+        .OrderBy(c => c.OrderIndex)
+        .ToListAsync();
+
+    var conceptDtos = concepts.Select(c => new ConceptSummaryDto(
+        c.Id,
+        c.Slug,
+        c.Title,
+        c.SubLabel,
+        c.Summary,
+        c.Description,
+        c.Difficulty,
+        c.Icon,
+        c.EstimatedHours,
+        c.OrderIndex,
+        c.DomainConnections.Select(dc => dc.Domain?.Slug ?? string.Empty).Where(s => !string.IsNullOrEmpty(s)).ToList(),
+        c.Prerequisites.Select(p => new ConceptPrerequisiteItemDto(
+            p.PrerequisiteConcept?.Title ?? "Prerequisite",
+            p.Status
+        )).ToList(),
+        c.OutgoingRelations.Select(r => r.TargetConcept?.Title ?? "Related Concept").ToList(),
+        c.NextLessons.Select(nl => nl.LessonTitle).ToList()
+    )).ToList();
+
+    var connections = await db.DomainConceptConnections.AsNoTracking()
+        .Include(dc => dc.Domain)
+        .Include(dc => dc.Concept)
+        .OrderBy(dc => dc.OrderIndex)
+        .ToListAsync();
+
+    var connectionDtos = connections
+        .Where(dc => dc.Domain != null && dc.Concept != null)
+        .Select(dc => new KnowledgeConnectionDto(
+            dc.Domain!.Slug,
+            dc.Concept!.Slug,
+            dc.RelevanceWeight,
+            dc.IsPrimary
+        )).ToList();
+
+    return Results.Ok(new KnowledgeAtlasDto(domainDtos, conceptDtos, connectionDtos));
+})
+.WithName("GetKnowledgeAtlas");
+
 app.Run();
 
 // Helper Function

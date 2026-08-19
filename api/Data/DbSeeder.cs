@@ -49,6 +49,9 @@ public static class DbSeeder
         // 4. Seed Java & Spring Architecture Vertical and Courses
         JavaVerticalSeedData.Seed(db);
 
+        // 5. Seed Knowledge Atlas Domains, Concepts, and Synapses
+        KnowledgeAtlasSeedData.Seed(db);
+
         // Save all changes
         db.SaveChanges();
         

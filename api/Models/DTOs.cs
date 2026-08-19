@@ -137,3 +137,54 @@ public record ToggleProgressResponse(
     bool IsCompleted,
     string Message
 );
+
+// ==========================================
+// KNOWLEDGE ATLAS DTOS
+// ==========================================
+
+public record KnowledgeAtlasDto(
+    List<DomainSummaryDto> Domains,
+    List<ConceptSummaryDto> Concepts,
+    List<KnowledgeConnectionDto> Connections
+);
+
+public record DomainSummaryDto(
+    int Id,
+    string Slug,
+    string Name,
+    string Code,
+    string Description,
+    string Icon,
+    string ColorHex,
+    int OrderIndex
+);
+
+public record ConceptSummaryDto(
+    int Id,
+    string Slug,
+    string Title,
+    string SubLabel,
+    string Summary,
+    string Description,
+    string Difficulty,
+    string Icon,
+    int EstimatedHours,
+    int OrderIndex,
+    List<string> ConnectedDomains,
+    List<ConceptPrerequisiteItemDto> Prerequisites,
+    List<string> RelatedLessons,
+    List<string> NextLessons
+);
+
+public record ConceptPrerequisiteItemDto(
+    string Name,
+    string Status
+);
+
+public record KnowledgeConnectionDto(
+    string From,
+    string To,
+    int RelevanceWeight,
+    bool IsPrimary
+);
+

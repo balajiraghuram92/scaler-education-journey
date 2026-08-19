@@ -18,6 +18,14 @@ public class StudyTrackerContext : DbContext
     public DbSet<Problem> Problems { get; set; } = null!;
     public DbSet<LessonResource> LessonResources { get; set; } = null!;
 
+    // Knowledge Atlas DbSets
+    public DbSet<KnowledgeDomain> KnowledgeDomains { get; set; } = null!;
+    public DbSet<KnowledgeConcept> KnowledgeConcepts { get; set; } = null!;
+    public DbSet<DomainConceptConnection> DomainConceptConnections { get; set; } = null!;
+    public DbSet<ConceptPrerequisite> ConceptPrerequisites { get; set; } = null!;
+    public DbSet<ConceptRelation> ConceptRelations { get; set; } = null!;
+    public DbSet<ConceptNextLesson> ConceptNextLessons { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -80,5 +88,86 @@ public class StudyTrackerContext : DbContext
             .WithMany(l => l.Resources)
             .HasForeignKey(r => r.LessonId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Knowledge Domains
+        modelBuilder.Entity<KnowledgeDomain>()
+            .HasIndex(d => d.Slug)
+            .IsUnique();
+
+        modelBuilder.Entity<KnowledgeDomain>()
+            .HasIndex(d => d.Code)
+            .IsUnique();
+
+        // Knowledge Concepts
+        modelBuilder.Entity<KnowledgeConcept>()
+            .HasIndex(c => c.Slug)
+            .IsUnique();
+
+        // Domain-Concept Connections
+        modelBuilder.Entity<DomainConceptConnection>()
+            .HasIndex(dc => new { dc.DomainId, dc.ConceptId })
+            .IsUnique();
+
+        modelBuilder.Entity<DomainConceptConnection>()
+            .HasOne(dc => dc.Domain)
+            .WithMany(d => d.ConceptConnections)
+            .HasForeignKey(dc => dc.DomainId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DomainConceptConnection>()
+            .HasOne(dc => dc.Concept)
+            .WithMany(c => c.DomainConnections)
+            .HasForeignKey(dc => dc.ConceptId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Concept Prerequisites
+        modelBuilder.Entity<ConceptPrerequisite>()
+            .HasIndex(cp => new { cp.ConceptId, cp.PrerequisiteConceptId })
+            .IsUnique();
+
+        modelBuilder.Entity<ConceptPrerequisite>()
+            .HasOne(cp => cp.Concept)
+            .WithMany(c => c.Prerequisites)
+            .HasForeignKey(cp => cp.ConceptId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ConceptPrerequisite>()
+            .HasOne(cp => cp.PrerequisiteConcept)
+            .WithMany(c => c.PrerequisiteFor)
+            .HasForeignKey(cp => cp.PrerequisiteConceptId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Concept Relations
+        modelBuilder.Entity<ConceptRelation>()
+            .HasIndex(cr => new { cr.SourceConceptId, cr.TargetConceptId })
+            .IsUnique();
+
+        modelBuilder.Entity<ConceptRelation>()
+            .HasOne(cr => cr.SourceConcept)
+            .WithMany(c => c.OutgoingRelations)
+            .HasForeignKey(cr => cr.SourceConceptId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ConceptRelation>()
+            .HasOne(cr => cr.TargetConcept)
+            .WithMany(c => c.IncomingRelations)
+            .HasForeignKey(cr => cr.TargetConceptId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Concept Next Lessons
+        modelBuilder.Entity<ConceptNextLesson>()
+            .HasIndex(cnl => cnl.ConceptId);
+
+        modelBuilder.Entity<ConceptNextLesson>()
+            .HasOne(cnl => cnl.Concept)
+            .WithMany(c => c.NextLessons)
+            .HasForeignKey(cnl => cnl.ConceptId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ConceptNextLesson>()
+            .HasOne(cnl => cnl.Lesson)
+            .WithMany()
+            .HasForeignKey(cnl => cnl.LessonId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

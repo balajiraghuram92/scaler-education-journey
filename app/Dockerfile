@@ -1,6 +1,6 @@
 # Multi-stage build for React Vite SPA targeting ARM64 / multi-platform
 
-# Stage 1: Build static assets (runs on host build platform for max speed)
+# Stage 1: Build static assets
 FROM --platform=$BUILDPLATFORM node:20-alpine AS builder
 
 WORKDIR /app
@@ -21,24 +21,28 @@ RUN npm ci
 # Copy application source
 COPY . .
 
-# Build production distribution to /app/dist
+# Build production distribution
 RUN npm run build
 
-# Stage 2: Production Nginx runtime (native ARM64 on EC2)
-FROM nginx:alpine AS production
 
-# CRITICAL: Restrict envsubst to DOMAIN_NAME so Nginx internal vars ($host, $uri, etc.) are not erased
-ENV NGINX_ENVSUBST_FILTER=DOMAIN_NAME
+# Stage 2: Nginx runtime
+FROM nginx:alpine AS production
 
 # Remove default nginx static files
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy compiled SPA assets from builder
+# Copy compiled SPA assets
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy template to Nginx templates directory for automatic substitution on container startup
-COPY default.conf.template /etc/nginx/templates/default.conf.template
+# Copy both environment-specific configs
+COPY default.conf.template /etc/nginx/default.conf.template
+COPY default.local.conf /etc/nginx/default.local.conf
+
+# Copy runtime configuration selector
+COPY docker-entrypoint-custom.sh /docker-entrypoint-custom.sh
+
+RUN chmod +x /docker-entrypoint-custom.sh
 
 EXPOSE 80 443
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint-custom.sh"]
