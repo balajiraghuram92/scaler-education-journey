@@ -19,8 +19,9 @@ env:
 
 jobs:
   build-and-deploy:
+    # Only runs if triggered manually OR commit message contains '[deploy]'
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy]')
     runs-on: ubuntu-latest
-
     steps:
       # ---------------------------------------------------------
       # 1. Checkout repository
