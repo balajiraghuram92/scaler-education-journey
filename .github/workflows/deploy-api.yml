@@ -17,7 +17,7 @@ env:
   IMAGE_APP: ghcr.io/balajiraghuram92/scaler-education-journey-app
   AWS_REGION: ap-south-2
   DOMAIN_NAME: neuralascent.top
-  LETSENCRYPT_EMAIL: your-email@example.com
+  LETSENCRYPT_EMAIL: admin@neuralascent.top # Replace with your real notification email
 
 jobs:
   build-and-deploy:
@@ -120,7 +120,7 @@ jobs:
               "docker rm studytracker-api || true",
               "docker stop studytracker-app || true",
               "docker rm studytracker-app || true",
-              "if [ ! -d /etc/letsencrypt/live/${{ env.DOMAIN_NAME }} ]; then docker run --rm -p 80:80 -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt certbot/certbot certonly --standalone --non-interactive --agree-tos -m ${{ env.LETSENCRYPT_EMAIL }} -d ${{ env.DOMAIN_NAME }} || true; else docker run --rm -p 80:80 -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt certbot/certbot renew --quiet || true; fi",
+              "if [ ! -d /etc/letsencrypt/live/${{ env.DOMAIN_NAME }} ]; then docker run --rm -p 80:80 -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt certbot/certbot certonly --standalone --non-interactive --agree-tos --no-eff-email -m ${{ env.LETSENCRYPT_EMAIL }} -d ${{ env.DOMAIN_NAME }} || true; else docker run --rm -p 80:80 -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt certbot/certbot renew --quiet || true; fi",
               "docker run -d --name studytracker-api --network scaler-network --restart unless-stopped -p 5000:8080 --add-host host.docker.internal:host-gateway --env-file /etc/studytracker/api.env ${{ env.IMAGE_API }}:latest",
               "docker run -d --name studytracker-app --network scaler-network --restart unless-stopped -p 80:80 -p 443:443 -e DOMAIN_NAME=${{ env.DOMAIN_NAME }} -v /etc/letsencrypt:/etc/letsencrypt:ro ${{ env.IMAGE_APP }}:latest",
               "docker image prune -af",
