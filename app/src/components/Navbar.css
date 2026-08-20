@@ -87,7 +87,36 @@
   color: var(--ink-primary);
 }
 
-/* Center Title */
+/* Center Navigation */
+.navbar-nav-link {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  text-decoration: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  transition: all var(--transition-fast);
+}
+
+.navbar-nav-link:hover {
+  color: var(--ink-primary);
+  background: var(--bg-paper-warm);
+}
+
+.navbar-nav-link.active {
+  color: var(--accent-sage);
+  font-weight: 600;
+  background: rgba(44, 94, 85, 0.08);
+}
+
+.navbar-nav-divider {
+  color: var(--rule-border);
+  font-weight: 700;
+  margin: 0 0.2rem;
+  user-select: none;
+}
+
 .navbar-center-title {
   font-family: var(--font-serif);
   font-size: 1.35rem;

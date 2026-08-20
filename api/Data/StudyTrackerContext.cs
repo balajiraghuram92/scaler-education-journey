@@ -26,6 +26,11 @@ public class StudyTrackerContext : DbContext
     public DbSet<ConceptRelation> ConceptRelations { get; set; } = null!;
     public DbSet<ConceptNextLesson> ConceptNextLessons { get; set; } = null!;
 
+    // Reading Map DbSets (Panel B: Progress / Reading Map)
+    public DbSet<ReadingMapItem> ReadingMapItems { get; set; } = null!;
+    public DbSet<ReadingActivityLog> ReadingActivityLogs { get; set; } = null!;
+    public DbSet<KnowledgeThread> KnowledgeThreads { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -169,5 +174,17 @@ public class StudyTrackerContext : DbContext
             .WithMany()
             .HasForeignKey(cnl => cnl.LessonId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Reading Map Items
+        modelBuilder.Entity<ReadingMapItem>()
+            .HasIndex(r => r.Category);
+
+        // Reading Activity Logs
+        modelBuilder.Entity<ReadingActivityLog>()
+            .HasIndex(a => a.DayLabel);
+
+        // Knowledge Threads
+        modelBuilder.Entity<KnowledgeThread>()
+            .HasIndex(k => k.Domain);
     }
 }

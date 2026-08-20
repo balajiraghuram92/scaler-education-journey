@@ -45,6 +45,18 @@ function App() {
             </Layout>
           }
         />
+        <Route
+          path="/reading-map"
+          element={
+            <Layout>
+              <LabProjects />
+            </Layout>
+          }
+        />
+        <Route
+          path="/progress"
+          element={<Navigate to="/reading-map" replace />}
+        />
       </Routes>
     </BrowserRouter>
   );

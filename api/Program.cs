@@ -695,6 +695,94 @@ app.MapGet("/api/knowledge-atlas", async (StudyTrackerContext db) =>
 })
 .WithName("GetKnowledgeAtlas");
 
+// ==========================================
+// 6. READING MAP ENDPOINTS (Panel B: Progress / Reading Map)
+// ==========================================
+
+app.MapGet("/api/reading-map", async (StudyTrackerContext db) =>
+{
+    var items = await db.ReadingMapItems.AsNoTracking()
+        .OrderBy(i => i.OrderIndex)
+        .ToListAsync();
+
+    var activities = await db.ReadingActivityLogs.AsNoTracking()
+        .OrderBy(a => a.OrderIndex)
+        .ToListAsync();
+
+    var threads = await db.KnowledgeThreads.AsNoTracking()
+        .OrderBy(t => t.OrderIndex)
+        .ToListAsync();
+
+    var mapDto = (string cat) => items
+        .Where(i => string.Equals(i.Category, cat, StringComparison.OrdinalIgnoreCase))
+        .Select(i => new ReadingMapItemDto(i.Id, i.Category, i.Title, i.SubText, i.IsCompleted, i.OrderIndex))
+        .ToList();
+
+    var activityDtos = activities.Select(a => new DailyActivityDto(a.Id, a.DayLabel, a.ActivityCount, a.OrderIndex)).ToList();
+
+    var threadDtos = threads.Select(t => new KnowledgeThreadDto(
+        t.Id,
+        t.Domain,
+        t.RawPath,
+        t.RawPath.Split('→').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList(),
+        t.OrderIndex
+    )).ToList();
+
+    var result = new ReadingMapDto(
+        mapDto("ReadThisWeek"),
+        mapDto("Revisited"),
+        mapDto("Deferred"),
+        mapDto("Lists"),
+        mapDto("Prerequisites"),
+        activityDtos,
+        threadDtos
+    );
+
+    return Results.Ok(result);
+})
+.WithName("GetReadingMap");
+
+app.MapPatch("/api/reading-map/items/{id:int}/toggle", async (int id, StudyTrackerContext db) =>
+{
+    var item = await db.ReadingMapItems.FindAsync(id);
+    if (item == null) return Results.NotFound();
+
+    item.IsCompleted = !item.IsCompleted;
+    item.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new ReadingMapItemDto(item.Id, item.Category, item.Title, item.SubText, item.IsCompleted, item.OrderIndex));
+})
+.WithName("ToggleReadingMapItem");
+
+app.MapPost("/api/reading-map/items", async (CreateReadingItemRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.Category))
+    {
+        return Results.BadRequest(new { message = "Category and Title are required." });
+    }
+
+    var maxOrder = await db.ReadingMapItems
+        .Where(i => i.Category.ToLower() == req.Category.ToLower())
+        .Select(i => (int?)i.OrderIndex)
+        .MaxAsync() ?? 0;
+
+    var item = new ReadingMapItem
+    {
+        Category = req.Category.Trim(),
+        Title = req.Title.Trim(),
+        SubText = req.SubText?.Trim(),
+        OrderIndex = req.OrderIndex ?? (maxOrder + 1),
+        IsCompleted = false
+    };
+
+    db.ReadingMapItems.Add(item);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/reading-map/items/{item.Id}", new ReadingMapItemDto(item.Id, item.Category, item.Title, item.SubText, item.IsCompleted, item.OrderIndex));
+})
+.WithName("CreateReadingMapItem");
+
 app.Run();
 
 // Helper Function

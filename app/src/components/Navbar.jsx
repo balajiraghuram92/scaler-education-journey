@@ -53,10 +53,20 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Center: Centered Neuralascent Wordmark */}
+          {/* Center: Navigation Links */}
           <div className="navbar-section navbar-center">
-            <Link to="/" className="navbar-center-title">
-              Neuralascent
+            <Link
+              to="/"
+              className={`navbar-nav-link ${location.pathname === '/' ? 'active' : ''}`}
+            >
+              Knowledge Atlas
+            </Link>
+            <span className="navbar-nav-divider">·</span>
+            <Link
+              to="/reading-map"
+              className={`navbar-nav-link ${location.pathname === '/reading-map' || location.pathname === '/lab-projects' ? 'active' : ''}`}
+            >
+              Reading Map
             </Link>
           </div>
 

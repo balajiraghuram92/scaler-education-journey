@@ -188,3 +188,49 @@ public record KnowledgeConnectionDto(
     bool IsPrimary
 );
 
+// ==========================================
+// READING MAP DTOS (Panel B: Progress / Reading Map)
+// ==========================================
+
+public record ReadingMapDto(
+    List<ReadingMapItemDto> ReadThisWeek,
+    List<ReadingMapItemDto> Revisited,
+    List<ReadingMapItemDto> Deferred,
+    List<ReadingMapItemDto> Lists,
+    List<ReadingMapItemDto> Prerequisites,
+    List<DailyActivityDto> ActivityTimeline,
+    List<KnowledgeThreadDto> KnowledgeThreads
+);
+
+public record ReadingMapItemDto(
+    int Id,
+    string Category,
+    string Title,
+    string? SubText,
+    bool IsCompleted,
+    int OrderIndex
+);
+
+public record DailyActivityDto(
+    int Id,
+    string DayLabel,
+    int ActivityCount,
+    int OrderIndex
+);
+
+public record KnowledgeThreadDto(
+    int Id,
+    string Domain,
+    string RawPath,
+    List<string> Nodes,
+    int OrderIndex
+);
+
+public record CreateReadingItemRequest(
+    string Category,
+    string Title,
+    string? SubText,
+    int? OrderIndex
+);
+
+

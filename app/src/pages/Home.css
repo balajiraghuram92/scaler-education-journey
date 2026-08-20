@@ -12,13 +12,44 @@
   text-align: left;
 }
 
+.atlas-header-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+}
+
+.atlas-reading-map-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-paper, #FFFFFF);
+  border: 1px solid var(--rule-border, #E5E0D8);
+  border-radius: var(--radius-pill, 999px);
+  padding: 0.45rem 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent-sage, #2C5E55);
+  text-decoration: none;
+  transition: all var(--transition-fast, 0.2s ease);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.atlas-reading-map-btn:hover {
+  background: var(--bg-paper-warm, #F8F6F0);
+  border-color: var(--accent-sage, #2C5E55);
+  transform: translateX(2px);
+}
+
 .atlas-main-title {
   font-family: var(--font-serif);
   font-size: clamp(2.8rem, 4.5vw, 4.2rem);
   font-weight: 500;
   letter-spacing: -0.025em;
   color: var(--ink-primary);
-  margin: 0 0 1.25rem 0;
+  margin: 0;
   line-height: 1.15;
 }
 

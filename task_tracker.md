@@ -87,4 +87,15 @@
 - [x] **Sub-task 12.7**: Assemble Redesigned Knowledge Atlas Index page in `Home.jsx` & `Home.css`
 - [x] **Sub-task 12.8**: Backend Knowledge Graph PostgreSQL Schema & Seeding (8 Domains + 8 Concepts + `/api/knowledge-atlas`)
 
+## Phase 13: Reading Map Warm Editorial Redesign (Panel B - Study Tracker)
+- [x] **Sub-task 13.1**: Create detailed redesign tracker document `study-tracker-webpage-redesign.md`
+- [x] **Sub-task 13.2**: Backend PostgreSQL Entity Models (`ReadingMapItem.cs`, `ReadingActivityLog.cs`, `KnowledgeThread.cs`)
+- [x] **Sub-task 13.3**: Register DbSets & indexes in `StudyTrackerContext.cs`
+- [x] **Sub-task 13.4**: Implement idempotent seeder `ReadingMapSeedData.cs` matching `Study-tracker.png`
+- [x] **Sub-task 13.5**: ASP.NET Core Minimal API endpoints (`GET /api/reading-map`, `PATCH /api/reading-map/items/{id}/toggle`, `POST /api/reading-map/items`)
+- [x] **Sub-task 13.6**: Implement `ReadingMap.jsx` with dynamic state management & optimistic updates
+- [x] **Sub-task 13.7**: Implement `ReadingMap.css` with 3-column asymmetric layout, custom SVG activity sparkline, and knowledge threads
+- [x] **Sub-task 13.8**: Update `App.jsx`, `LabProjects.jsx`, and `Navbar.jsx` with routes (`/reading-map`, `/lab-projects`) and navigation tabs
+
+
 

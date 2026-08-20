@@ -9,7 +9,43 @@ public static class DbSeeder
     {
         // Ensure database exists and schema is created
         // We use Migrate instead of EnsureCreated to support future migrations
-        db.Database.Migrate();
+        try
+        {
+            db.Database.Migrate();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Migration warning: {ex.Message}");
+        }
+
+        // Resilient DDL safeguard for Reading Map tables
+        db.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS reading_map_items (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""Category"" TEXT NOT NULL,
+                ""Title"" TEXT NOT NULL,
+                ""SubText"" TEXT,
+                ""OrderIndex"" INT NOT NULL DEFAULT 0,
+                ""IsCompleted"" BOOLEAN NOT NULL DEFAULT FALSE,
+                ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                ""UpdatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS reading_activity_logs (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""DayLabel"" TEXT NOT NULL,
+                ""ActivityCount"" INT NOT NULL DEFAULT 0,
+                ""OrderIndex"" INT NOT NULL DEFAULT 0,
+                ""LogDate"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS knowledge_threads (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""Domain"" TEXT NOT NULL,
+                ""RawPath"" TEXT NOT NULL,
+                ""OrderIndex"" INT NOT NULL DEFAULT 0
+            );
+        ");
 
         // 1. Seed Lab Projects
         if (!db.Verticals.Any(v => v.Name == "Lab Projects"))
@@ -51,6 +87,9 @@ public static class DbSeeder
 
         // 5. Seed Knowledge Atlas Domains, Concepts, and Synapses
         KnowledgeAtlasSeedData.Seed(db);
+
+        // 6. Seed Reading Map Items, Activity Timeline, and Knowledge Threads (Panel B)
+        ReadingMapSeedData.Seed(db);
 
         // Save all changes
         db.SaveChanges();

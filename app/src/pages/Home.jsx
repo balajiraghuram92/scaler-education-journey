@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import KnowledgeAtlasGraph, { DEFAULT_DOMAINS, DEFAULT_CONCEPTS, DEFAULT_CONNECTIONS } from '../components/KnowledgeAtlasGraph';
 import './Home.css';
 
@@ -82,7 +84,13 @@ export default function Home() {
     <div className="knowledge-atlas-page">
       {/* Page Header */}
       <header className="atlas-header">
-        <h1 className="atlas-main-title">‘Knowledge Atlas’ index</h1>
+        <div className="atlas-header-top">
+          <h1 className="atlas-main-title">‘Knowledge Atlas’ index</h1>
+          <Link to="/reading-map" className="atlas-reading-map-btn" title="View Reading Map & Progress">
+            <span>Reading Map</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
         <h2 className="atlas-section-subtitle">Major learning domains</h2>
       </header>
 
