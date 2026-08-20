@@ -31,6 +31,11 @@ public class StudyTrackerContext : DbContext
     public DbSet<ReadingActivityLog> ReadingActivityLogs { get; set; } = null!;
     public DbSet<KnowledgeThread> KnowledgeThreads { get; set; } = null!;
 
+    // Concept Chapter DbSets (Panel D: Concept Chapter Reader)
+    public DbSet<LessonCodeComparison> LessonCodeComparisons { get; set; } = null!;
+    public DbSet<LessonDiagram> LessonDiagrams { get; set; } = null!;
+    public DbSet<LessonNote> LessonNotes { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -186,5 +191,35 @@ public class StudyTrackerContext : DbContext
         // Knowledge Threads
         modelBuilder.Entity<KnowledgeThread>()
             .HasIndex(k => k.Domain);
+
+        // Lesson Code Comparisons
+        modelBuilder.Entity<LessonCodeComparison>()
+            .HasIndex(c => c.LessonId);
+
+        modelBuilder.Entity<LessonCodeComparison>()
+            .HasOne(c => c.Lesson)
+            .WithMany(l => l.CodeComparisons)
+            .HasForeignKey(c => c.LessonId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Lesson Diagrams
+        modelBuilder.Entity<LessonDiagram>()
+            .HasIndex(d => d.LessonId);
+
+        modelBuilder.Entity<LessonDiagram>()
+            .HasOne(d => d.Lesson)
+            .WithMany(l => l.Diagrams)
+            .HasForeignKey(d => d.LessonId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Lesson Notes
+        modelBuilder.Entity<LessonNote>()
+            .HasIndex(n => new { n.LessonId, n.NoteType });
+
+        modelBuilder.Entity<LessonNote>()
+            .HasOne(n => n.Lesson)
+            .WithMany(l => l.Notes)
+            .HasForeignKey(n => n.LessonId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -144,7 +144,14 @@ if (args.Contains("--seed"))
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
-    db.Database.Migrate();
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database migration notice: {ex.Message}");
+    }
     DbSeeder.Initialize(db);
 }
 
@@ -783,7 +790,440 @@ app.MapPost("/api/reading-map/items", async (CreateReadingItemRequest req, Study
 })
 .WithName("CreateReadingMapItem");
 
+// ==========================================
+// 7. CHAPTERS & EDITORIAL READING ENDPOINTS (Panel D)
+// ==========================================
+
+// GET /api/chapters — List all available chapters with module hierarchy and reading times
+app.MapGet("/api/chapters", async (
+    string? vertical,
+    string? course,
+    string? module,
+    StudyTrackerContext db) =>
+{
+    var query = db.Courses.AsNoTracking()
+        .Include(c => c.Vertical)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Problems)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Resources)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.CodeComparisons)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Diagrams)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Notes)
+        .OrderBy(c => c.OrderIndex)
+        .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(course))
+    {
+        query = query.Where(c => c.Slug == course);
+    }
+    if (!string.IsNullOrWhiteSpace(vertical))
+    {
+        query = query.Where(c => c.Vertical != null && c.Vertical.Name.ToLower().Contains(vertical.ToLower()));
+    }
+
+    var courseEntities = await query.ToListAsync();
+
+    var allLessons = courseEntities.SelectMany(c => c.Modules.SelectMany(m => m.Lessons)).ToList();
+    var totalChapters = allLessons.Count;
+    var completedChapters = allLessons.Count(l => l.IsCompleted);
+    var totalReadingTimeMinutes = allLessons.Sum(l => l.EstimatedMinutes > 0 ? l.EstimatedMinutes : 15);
+    var totalWords = allLessons.Sum(l => CountWords(l.ContentBody));
+
+    var courseDtos = courseEntities.Select(c =>
+    {
+        var modules = c.Modules.OrderBy(m => m.OrderIndex).AsEnumerable();
+        if (!string.IsNullOrWhiteSpace(module))
+        {
+            modules = modules.Where(m => m.Slug == module);
+        }
+
+        var moduleDtos = modules.Select(m =>
+        {
+            var lessons = m.Lessons.OrderBy(l => l.OrderIndex).ToList();
+            var mChapters = lessons.Select(l =>
+            {
+                var fullSlug = $"{c.Slug}/{m.Slug}/{l.Slug}";
+                var wordCount = CountWords(l.ContentBody);
+                return new ChapterSummaryDto(
+                    l.Id,
+                    l.Slug,
+                    fullSlug,
+                    l.Title,
+                    l.Description,
+                    l.LectureNumber,
+                    l.EstimatedMinutes,
+                    wordCount,
+                    l.Difficulty ?? "Intermediate",
+                    l.IsCompleted,
+                    l.OrderIndex,
+                    c.Slug,
+                    c.Title,
+                    c.Vertical?.Name,
+                    m.Slug,
+                    m.Title,
+                    m.Badge,
+                    l.Problems.Count,
+                    l.Resources.Count,
+                    l.CodeComparisons.Count > 0,
+                    l.Diagrams.Count > 0,
+                    l.Notes.Count
+                );
+            }).ToList();
+
+            var mTotalTime = mChapters.Sum(x => x.ReadingTimeMinutes);
+            var mCompleted = mChapters.Count(x => x.IsCompleted);
+
+            return new ModuleWithChaptersDto(
+                m.Id,
+                m.Slug,
+                m.Title,
+                m.Description,
+                m.Badge,
+                m.OrderIndex,
+                mChapters.Count,
+                mCompleted,
+                mTotalTime,
+                mChapters
+            );
+        }).ToList();
+
+        var cTotalChapters = moduleDtos.Sum(m => m.TotalChapters);
+        var cCompletedChapters = moduleDtos.Sum(m => m.CompletedChapters);
+        var cTotalTime = moduleDtos.Sum(m => m.TotalReadingTimeMinutes);
+
+        return new CourseWithChaptersDto(
+            c.Id,
+            c.Slug,
+            c.Title,
+            c.Description,
+            c.VerticalId,
+            c.Vertical?.Name,
+            cTotalChapters,
+            cCompletedChapters,
+            cTotalTime,
+            moduleDtos
+        );
+    }).ToList();
+
+    return Results.Ok(new ChapterHierarchyDto(
+        totalChapters,
+        completedChapters,
+        totalReadingTimeMinutes,
+        totalWords,
+        courseDtos
+    ));
+})
+.WithName("GetChaptersList");
+
+// GET /api/chapters/{slug} — Retrieve chapter by slug or composite slug
+app.MapGet("/api/chapters/{slug}", async (string slug, StudyTrackerContext db) =>
+{
+    return await BuildChapterDetailResponse(slug, null, null, db);
+})
+.WithName("GetChapterBySlug");
+
+// GET /api/chapters/{verticalOrCourseSlug}/{moduleSlug}/{lessonSlug} — Hierarchical chapter lookup
+app.MapGet("/api/chapters/{verticalOrCourseSlug}/{moduleSlug}/{lessonSlug}", async (
+    string verticalOrCourseSlug,
+    string moduleSlug,
+    string lessonSlug,
+    StudyTrackerContext db) =>
+{
+    return await BuildChapterDetailResponse(lessonSlug, moduleSlug, verticalOrCourseSlug, db);
+})
+.WithName("GetChapterByPath");
+
+// POST /api/chapters/{id:int}/notes — Add personal note or marginalia
+app.MapPost("/api/chapters/{id:int}/notes", async (int id, CreateChapterNoteRequest req, StudyTrackerContext db) =>
+{
+    var lesson = await db.Lessons.FindAsync(id);
+    if (lesson == null) return Results.NotFound(new { message = "Chapter/Lesson not found." });
+
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.ContentBody))
+    {
+        return Results.BadRequest(new { message = "Title and ContentBody are required." });
+    }
+
+    var maxOrder = await db.LessonNotes
+        .Where(n => n.LessonId == id)
+        .Select(n => (int?)n.OrderIndex)
+        .MaxAsync() ?? 0;
+
+    var note = new LessonNote
+    {
+        LessonId = id,
+        NoteType = string.IsNullOrWhiteSpace(req.NoteType) ? "FieldNote" : req.NoteType.Trim(),
+        AnchorSection = req.AnchorSection?.Trim(),
+        Title = req.Title.Trim(),
+        ContentBody = req.ContentBody.Trim(),
+        OrderIndex = req.OrderIndex ?? (maxOrder + 1),
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    db.LessonNotes.Add(note);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/chapters/{id}/notes/{note.Id}", new ChapterNoteDto(
+        note.Id,
+        note.NoteType,
+        note.AnchorSection,
+        note.Title,
+        note.ContentBody,
+        note.OrderIndex,
+        note.UpdatedAt
+    ));
+})
+.WithName("CreateChapterNote");
+
 app.Run();
+
+// Helper method for assembling ChapterDetailDto
+async Task<IResult> BuildChapterDetailResponse(
+    string lessonSlug,
+    string? moduleSlug,
+    string? courseOrVerticalSlug,
+    StudyTrackerContext db)
+{
+    var query = db.Lessons.AsNoTracking()
+        .Include(l => l.Module)
+            .ThenInclude(m => m!.Course)
+                .ThenInclude(c => c!.Vertical)
+        .Include(l => l.Problems.OrderBy(p => p.OrderIndex))
+        .Include(l => l.Resources.OrderBy(r => r.OrderIndex))
+        .Include(l => l.CodeComparisons.OrderBy(c => c.OrderIndex))
+        .Include(l => l.Diagrams.OrderBy(d => d.OrderIndex))
+        .Include(l => l.Notes.OrderBy(n => n.OrderIndex))
+        .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(moduleSlug) && !string.IsNullOrWhiteSpace(courseOrVerticalSlug))
+    {
+        query = query.Where(l => l.Slug == lessonSlug &&
+                                l.Module != null && l.Module.Slug == moduleSlug &&
+                                l.Module.Course != null && (l.Module.Course.Slug == courseOrVerticalSlug ||
+                                                          (l.Module.Course.Vertical != null && l.Module.Course.Vertical.Name.ToLower() == courseOrVerticalSlug.ToLower())));
+    }
+    else
+    {
+        query = query.Where(l => l.Slug == lessonSlug);
+    }
+
+    var lesson = await query.FirstOrDefaultAsync();
+
+    if (lesson == null)
+    {
+        // Try fallback search if user provided compound full slug like "oop-foundations/03-oop-2-access-modifiers-encapsulation"
+        if (lessonSlug.Contains('/'))
+        {
+            var parts = lessonSlug.Split('/');
+            var actualLessonSlug = parts[^1];
+            lesson = await db.Lessons.AsNoTracking()
+                .Include(l => l.Module)
+                    .ThenInclude(m => m!.Course)
+                        .ThenInclude(c => c!.Vertical)
+                .Include(l => l.Problems.OrderBy(p => p.OrderIndex))
+                .Include(l => l.Resources.OrderBy(r => r.OrderIndex))
+                .Include(l => l.CodeComparisons.OrderBy(c => c.OrderIndex))
+                .Include(l => l.Diagrams.OrderBy(d => d.OrderIndex))
+                .Include(l => l.Notes.OrderBy(n => n.OrderIndex))
+                .FirstOrDefaultAsync(l => l.Slug == actualLessonSlug);
+        }
+
+        if (lesson == null) return Results.NotFound(new { message = $"Chapter '{lessonSlug}' not found." });
+    }
+
+    var course = lesson.Module?.Course;
+    var module = lesson.Module;
+    var courseSlug = course?.Slug ?? "curriculum";
+    var currentModuleSlug = module?.Slug ?? "general";
+    var fullSlug = $"{courseSlug}/{currentModuleSlug}/{lesson.Slug}";
+
+    // Fetch sibling chapters in the same module
+    var siblingLessons = await db.Lessons.AsNoTracking()
+        .Where(l => l.ModuleId == lesson.ModuleId)
+        .OrderBy(l => l.OrderIndex)
+        .Select(l => new { l.Id, l.Slug, l.Title, l.EstimatedMinutes, l.IsCompleted, l.OrderIndex })
+        .ToListAsync();
+
+    var siblingDtos = siblingLessons.Select(s => new ChapterNavDto(
+        s.Id,
+        s.Slug,
+        $"{courseSlug}/{currentModuleSlug}/{s.Slug}",
+        s.Title,
+        module?.Title ?? string.Empty,
+        s.EstimatedMinutes,
+        s.IsCompleted
+    )).ToList();
+
+    var currentIndex = siblingLessons.FindIndex(s => s.Id == lesson.Id);
+    ChapterNavDto? prevChapter = currentIndex > 0 ? siblingDtos[currentIndex - 1] : null;
+    ChapterNavDto? nextChapter = currentIndex >= 0 && currentIndex < siblingDtos.Count - 1 ? siblingDtos[currentIndex + 1] : null;
+
+    // Fetch Linked Knowledge Concepts (Synaptic mesh)
+    var linkedConceptLinks = await db.ConceptNextLessons.AsNoTracking()
+        .Where(cnl => cnl.LessonId == lesson.Id || cnl.LessonSlug == lesson.Slug)
+        .Select(cnl => cnl.ConceptId)
+        .ToListAsync();
+
+    var linkedConcepts = await db.KnowledgeConcepts.AsNoTracking()
+        .Include(c => c.DomainConnections)
+            .ThenInclude(dc => dc.Domain)
+        .Include(c => c.Prerequisites)
+            .ThenInclude(p => p.PrerequisiteConcept)
+        .Where(c => linkedConceptLinks.Contains(c.Id) ||
+                    c.Slug.ToLower() == lesson.Slug.ToLower() ||
+                    lesson.Title.ToLower().Contains(c.Title.ToLower()))
+        .ToListAsync();
+
+    var directConceptDtos = linkedConcepts.Select(c => new ConnectedConceptDto(
+        c.Id,
+        c.Slug,
+        c.Title,
+        c.Summary,
+        c.Difficulty,
+        c.Icon,
+        c.DomainConnections.Select(dc => dc.Domain?.Name ?? string.Empty).Where(s => !string.IsNullOrEmpty(s)).ToList()
+    )).ToList();
+
+    var prerequisites = linkedConcepts.SelectMany(c => c.Prerequisites).Select(p => new ConceptPrerequisiteItemDto(
+        p.PrerequisiteConcept?.Title ?? "Prerequisite Topic",
+        p.Status
+    )).DistinctBy(p => p.Name).ToList();
+
+    var nextTopics = await db.ConceptNextLessons.AsNoTracking()
+        .Where(cnl => linkedConceptLinks.Contains(cnl.ConceptId) && cnl.LessonSlug != lesson.Slug)
+        .Select(cnl => cnl.LessonTitle)
+        .Distinct()
+        .ToListAsync();
+
+    var interchangeDomains = linkedConcepts.SelectMany(c => c.DomainConnections)
+        .Select(dc => dc.Domain?.Name ?? string.Empty)
+        .Where(s => !string.IsNullOrEmpty(s))
+        .Distinct()
+        .ToList();
+
+    var conceptConnections = new ChapterConceptConnectionsDto(
+        directConceptDtos,
+        prerequisites,
+        nextTopics,
+        interchangeDomains
+    );
+
+    var codeComparisons = lesson.CodeComparisons.Select(c => new CodeComparisonDto(
+        c.Id,
+        c.Title,
+        c.Description,
+        c.BeforeLabel,
+        c.BeforeLanguage,
+        c.BeforeCode,
+        c.AfterLabel,
+        c.AfterLanguage,
+        c.AfterCode,
+        c.Explanation,
+        c.OrderIndex
+    )).ToList();
+
+    var diagrams = lesson.Diagrams.Select(d => new ChapterDiagramDto(
+        d.Id,
+        d.Title,
+        d.Caption,
+        d.DiagramType,
+        d.SvgContent,
+        d.DiagramSpecJson,
+        d.OrderIndex
+    )).ToList();
+
+    var notes = lesson.Notes.Select(n => new ChapterNoteDto(
+        n.Id,
+        n.NoteType,
+        n.AnchorSection,
+        n.Title,
+        n.ContentBody,
+        n.OrderIndex,
+        n.UpdatedAt
+    )).ToList();
+
+    if (!string.IsNullOrWhiteSpace(lesson.HorstmannRef) && !notes.Any(n => n.NoteType == "HorstmannRef"))
+    {
+        notes.Add(new ChapterNoteDto(
+            0,
+            "HorstmannRef",
+            "Core Reading",
+            "Horstmann Core Java Reference",
+            lesson.HorstmannRef,
+            0,
+            lesson.UpdatedAt
+        ));
+    }
+
+    var result = new ChapterDetailDto(
+        lesson.Id,
+        lesson.Slug,
+        fullSlug,
+        lesson.Title,
+        lesson.Description,
+        lesson.LectureNumber,
+        lesson.ClassDate,
+        lesson.EstimatedMinutes > 0 ? lesson.EstimatedMinutes : 45,
+        CountWords(lesson.ContentBody),
+        lesson.Difficulty ?? "Intermediate",
+        lesson.IsCompleted,
+        lesson.OrderIndex,
+        lesson.ContentBody,
+        lesson.HorstmannRef,
+        new ChapterCourseInfoDto(course?.Id ?? 0, courseSlug, course?.Title ?? "Course", course?.VerticalId, course?.Vertical?.Name),
+        new ChapterModuleInfoDto(module?.Id ?? 0, currentModuleSlug, module?.Title ?? "Module", module?.Description ?? string.Empty, module?.Badge ?? "Module", module?.OrderIndex ?? 0),
+        codeComparisons,
+        diagrams,
+        notes,
+        conceptConnections,
+        lesson.Problems.Select(p => new ProblemSummaryDto(
+            p.Id,
+            p.LessonId,
+            p.Slug,
+            p.Title,
+            p.Difficulty,
+            p.PackageName,
+            p.TestClassName,
+            p.ProblemStatement,
+            p.RequirementsBody,
+            p.WorkedExample,
+            p.Hints,
+            p.IsCompleted,
+            p.OrderIndex
+        )).ToList(),
+        lesson.Resources.Select(r => new LessonResourceDto(
+            r.Id,
+            r.LessonId,
+            r.ResourceType,
+            r.Title,
+            r.ContentBody,
+            r.OrderIndex
+        )).ToList(),
+        prevChapter,
+        nextChapter,
+        siblingDtos
+    );
+
+    return Results.Ok(result);
+}
+
+// Utility: Word Count
+static int CountWords(string? text)
+{
+    if (string.IsNullOrWhiteSpace(text)) return 0;
+    return text.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+}
+
 
 // Helper Function
 List<StudyTask> ParseMarkdownToTasks(string markdown)

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   CheckCircle2, Circle, HelpCircle, ChevronDown, ChevronUp, Copy, Check, 
   Terminal, Sparkles, BookOpen, Layers, Code2, PlusCircle, RefreshCw,
@@ -139,11 +140,19 @@ export default function JavaPracticeDashboard({ vertical, onUpdate }) {
             </div>
           </div>
           <div className="java-header-actions">
+            <Link 
+              to={lessonDetail?.slug ? `/chapter/${lessonDetail.slug}` : '/chapter/structured-concurrency'}
+              className="java-btn-action"
+              style={{ textDecoration: 'none', background: '#F8F6F0', color: '#2C5E55', borderColor: '#2C5E55' }}
+            >
+              <BookOpen size={16} />
+              <span>Chapter Reader →</span>
+            </Link>
             <button 
               className="java-btn-action" 
               onClick={() => setIsStudyGuideOpen(!isStudyGuideOpen)}
             >
-              <BookOpen size={16} />
+              <Layers size={16} />
               <span>{isStudyGuideOpen ? "Hide Study Guide" : "15 Study Guide Topics"}</span>
             </button>
             <button className="java-btn-action java-btn-primary" onClick={fetchCourseData}>

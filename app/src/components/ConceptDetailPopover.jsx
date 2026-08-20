@@ -1,7 +1,9 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import './ConceptDetailPopover.css';
 
-export default function ConceptDetailPopover({ concept, isOpen }) {
+export default function ConceptDetailPopover({ concept, isOpen, onClose }) {
   if (!isOpen || !concept) return null;
 
   const displayTitle = concept.popoverTitle || concept.title || 'Concept Overview';
@@ -43,12 +45,20 @@ export default function ConceptDetailPopover({ concept, isOpen }) {
           <div className="popover-section">
             <h4 className="section-heading">Related Lessons</h4>
             <ul className="section-list">
-              {concept.relatedLessons.map((lesson, idx) => (
-                <li key={idx} className="list-item">
-                  <span className="bullet">•</span>
-                  <span className="item-text">{lesson}</span>
-                </li>
-              ))}
+              {concept.relatedLessons.map((lesson, idx) => {
+                const slug = lesson.toLowerCase().includes('agent') ? 'building-an-ai-agent' :
+                             lesson.toLowerCase().includes('rag') ? 'rag-retrieval-augmented-generation' :
+                             lesson.toLowerCase().includes('oop') ? '03-oop-2-access-modifiers-encapsulation' :
+                             'structured-concurrency';
+                return (
+                  <li key={idx} className="list-item">
+                    <span className="bullet">•</span>
+                    <Link to={`/chapter/${slug}`} className="item-text" style={{ color: '#2C5E55', textDecoration: 'none' }}>
+                      {lesson}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
@@ -58,12 +68,20 @@ export default function ConceptDetailPopover({ concept, isOpen }) {
           <div className="popover-section">
             <h4 className="section-heading">Next Lessons</h4>
             <ul className="section-list">
-              {concept.nextLessons.map((lesson, idx) => (
-                <li key={idx} className="list-item">
-                  <span className="bullet">•</span>
-                  <span className="item-text">{lesson}</span>
-                </li>
-              ))}
+              {concept.nextLessons.map((lesson, idx) => {
+                const slug = lesson.toLowerCase().includes('agent') ? 'building-an-ai-agent' :
+                             lesson.toLowerCase().includes('rag') ? 'rag-retrieval-augmented-generation' :
+                             lesson.toLowerCase().includes('oop') ? '03-oop-2-access-modifiers-encapsulation' :
+                             'structured-concurrency';
+                return (
+                  <li key={idx} className="list-item">
+                    <span className="bullet">•</span>
+                    <Link to={`/chapter/${slug}`} className="item-text" style={{ color: '#2C5E55', textDecoration: 'none' }}>
+                      {lesson}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

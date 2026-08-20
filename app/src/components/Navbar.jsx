@@ -68,6 +68,13 @@ export default function Navbar() {
             >
               Reading Map
             </Link>
+            <span className="navbar-nav-divider">·</span>
+            <Link
+              to="/chapter/structured-concurrency"
+              className={`navbar-nav-link ${location.pathname.startsWith('/chapter') || location.pathname === '/learning' ? 'active' : ''}`}
+            >
+              Concept Chapters
+            </Link>
           </div>
 
           {/* Right: Author Profile & Ingest Action */}

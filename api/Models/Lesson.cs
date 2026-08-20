@@ -61,6 +61,13 @@ public class Lesson
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    [MaxLength(50)]
+    [Column("difficulty")]
+    public string Difficulty { get; set; } = "Intermediate";
+
     public ICollection<Problem> Problems { get; set; } = new List<Problem>();
     public ICollection<LessonResource> Resources { get; set; } = new List<LessonResource>();
+    public ICollection<LessonCodeComparison> CodeComparisons { get; set; } = new List<LessonCodeComparison>();
+    public ICollection<LessonDiagram> Diagrams { get; set; } = new List<LessonDiagram>();
+    public ICollection<LessonNote> Notes { get; set; } = new List<LessonNote>();
 }

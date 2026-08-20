@@ -86,10 +86,16 @@ export default function Home() {
       <header className="atlas-header">
         <div className="atlas-header-top">
           <h1 className="atlas-main-title">‘Knowledge Atlas’ index</h1>
-          <Link to="/reading-map" className="atlas-reading-map-btn" title="View Reading Map & Progress">
-            <span>Reading Map</span>
-            <ArrowRight size={14} />
-          </Link>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Link to="/chapter/structured-concurrency" className="atlas-reading-map-btn" title="View Long-form Concept Chapters">
+              <span>Concept Chapters</span>
+              <ArrowRight size={14} />
+            </Link>
+            <Link to="/reading-map" className="atlas-reading-map-btn" title="View Reading Map & Progress">
+              <span>Reading Map</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
         <h2 className="atlas-section-subtitle">Major learning domains</h2>
       </header>

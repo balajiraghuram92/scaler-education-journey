@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import VerticalDetail from './pages/VerticalDetail';
 import LabProjects from './pages/LabProjects';
+import ChapterReader from './pages/ChapterReader';
 
 function App() {
   return (
@@ -56,6 +57,34 @@ function App() {
         <Route
           path="/progress"
           element={<Navigate to="/reading-map" replace />}
+        />
+        <Route
+          path="/chapter/:slug"
+          element={
+            <Layout>
+              <ChapterReader />
+            </Layout>
+          }
+        />
+        <Route
+          path="/chapter/:verticalOrCourseSlug/:moduleSlug/:lessonSlug"
+          element={
+            <Layout>
+              <ChapterReader />
+            </Layout>
+          }
+        />
+        <Route
+          path="/learning"
+          element={
+            <Layout>
+              <ChapterReader />
+            </Layout>
+          }
+        />
+        <Route
+          path="/concept-chapter"
+          element={<Navigate to="/chapter/structured-concurrency" replace />}
         />
       </Routes>
     </BrowserRouter>

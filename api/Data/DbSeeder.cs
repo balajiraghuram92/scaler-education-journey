@@ -18,8 +18,14 @@ public static class DbSeeder
             Console.WriteLine($"Migration warning: {ex.Message}");
         }
 
-        // Resilient DDL safeguard for Reading Map tables
+        // Resilient DDL safeguard for Lessons columns and Chapter tables
         db.Database.ExecuteSqlRaw(@"
+            ALTER TABLE lessons ADD COLUMN IF NOT EXISTS difficulty VARCHAR(50) DEFAULT 'Intermediate';
+            ALTER TABLE lessons ADD COLUMN IF NOT EXISTS content_body TEXT DEFAULT '';
+            ALTER TABLE lessons ADD COLUMN IF NOT EXISTS horstmann_ref VARCHAR(255) DEFAULT '';
+            ALTER TABLE lessons ADD COLUMN IF NOT EXISTS class_date VARCHAR(50) DEFAULT '';
+            ALTER TABLE lessons ADD COLUMN IF NOT EXISTS estimated_minutes INT DEFAULT 45;
+
             CREATE TABLE IF NOT EXISTS reading_map_items (
                 ""Id"" SERIAL PRIMARY KEY,
                 ""Category"" TEXT NOT NULL,
@@ -44,6 +50,59 @@ public static class DbSeeder
                 ""Domain"" TEXT NOT NULL,
                 ""RawPath"" TEXT NOT NULL,
                 ""OrderIndex"" INT NOT NULL DEFAULT 0
+            );
+
+            -- Clean drop of newly added empty chapter tables if casing was mismatched
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'lesson_code_comparisons' AND column_name = 'LessonId'
+                ) THEN
+                    DROP TABLE IF EXISTS lesson_notes CASCADE;
+                    DROP TABLE IF EXISTS lesson_diagrams CASCADE;
+                    DROP TABLE IF EXISTS lesson_code_comparisons CASCADE;
+                END IF;
+            END $$;
+
+            CREATE TABLE IF NOT EXISTS lesson_code_comparisons (
+                id SERIAL PRIMARY KEY,
+                lesson_id INT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+                title VARCHAR(200) NOT NULL,
+                description TEXT,
+                before_label VARCHAR(100) NOT NULL,
+                before_language VARCHAR(50) NOT NULL,
+                before_code TEXT NOT NULL,
+                after_label VARCHAR(100) NOT NULL,
+                after_language VARCHAR(50) NOT NULL,
+                after_code TEXT NOT NULL,
+                explanation TEXT,
+                order_index INT NOT NULL DEFAULT 0,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS lesson_diagrams (
+                id SERIAL PRIMARY KEY,
+                lesson_id INT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+                title VARCHAR(200) NOT NULL,
+                caption VARCHAR(300),
+                diagram_type VARCHAR(50) NOT NULL DEFAULT 'svg-inline',
+                svg_content TEXT NOT NULL,
+                diagram_spec_json TEXT,
+                order_index INT NOT NULL DEFAULT 0,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS lesson_notes (
+                id SERIAL PRIMARY KEY,
+                lesson_id INT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+                note_type VARCHAR(50) NOT NULL DEFAULT 'FieldNote',
+                anchor_section VARCHAR(150),
+                title VARCHAR(250) NOT NULL,
+                content_body TEXT NOT NULL,
+                order_index INT NOT NULL DEFAULT 0,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
             );
         ");
 
@@ -90,6 +149,9 @@ public static class DbSeeder
 
         // 6. Seed Reading Map Items, Activity Timeline, and Knowledge Threads (Panel B)
         ReadingMapSeedData.Seed(db);
+
+        // 7. Seed Concept Chapters, Code Comparisons, Diagrams & Notes (Panel D)
+        ChapterSeedData.Seed(db);
 
         // Save all changes
         db.SaveChanges();

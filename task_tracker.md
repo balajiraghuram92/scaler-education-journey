@@ -95,7 +95,21 @@
 - [x] **Sub-task 13.5**: ASP.NET Core Minimal API endpoints (`GET /api/reading-map`, `PATCH /api/reading-map/items/{id}/toggle`, `POST /api/reading-map/items`)
 - [x] **Sub-task 13.6**: Implement `ReadingMap.jsx` with dynamic state management & optimistic updates
 - [x] **Sub-task 13.7**: Implement `ReadingMap.css` with 3-column asymmetric layout, custom SVG activity sparkline, and knowledge threads
-- [x] **Sub-task 13.8**: Update `App.jsx`, `LabProjects.jsx`, and `Navbar.jsx` with routes (`/reading-map`, `/lab-projects`) and navigation tabs
+## Phase 14: Concept Chapter Reader Engine (Panel D - Text-First Reading Room)
+- [x] **Sub-task 14.1**: Build `ChapterReader.jsx` with 3-column asymmetric grid (Sticky ScrollSpy TOC Rail + Main Reading Chamber + Contextual Sidebar)
+- [x] **Sub-task 14.2**: Implement `ChapterReader.css` with Warm Editorial typography, generous line-height, and paper contrast
+- [x] **Sub-task 14.3**: Implement `CodeComparisonSwitcher.jsx` for interactive Before/After code snippet toggle
+- [x] **Sub-task 14.4**: Implement dynamic inline SVG architecture diagram renderer
+- [x] **Sub-task 14.5**: Add backend API endpoints `GET /api/chapters` and `GET /api/chapters/{slug}` with rich metadata
+
+## Phase 15: Full Java LLD & FDE Curriculum Migration into Text-First Chapters
+- [x] **Sub-task 15.1**: Migrate Java LLD Chapter: *Structured Concurrency & Virtual Threads in Java 21*
+- [x] **Sub-task 15.2**: Migrate Java LLD Chapter: *OOP-2: Access Modifiers, Constructor Chaining & Immutability*
+- [x] **Sub-task 15.3**: Migrate Java LLD Chapter: *The equals/hashCode Contract & Memory Symmetry*
+- [x] **Sub-task 15.4**: Migrate FDE Chapter: *Building an Autonomous AI Agent (The Observe-Plan-Act Loop)*
+- [x] **Sub-task 15.5**: Migrate FDE Chapter: *RAG (Retrieval-Augmented Generation) & Hybrid Vector Search*
+- [x] **Sub-task 15.6**: Update global navigation (`Navbar.jsx`, `App.jsx`, `VerticalDetail.jsx`, `Home.jsx`) linking to the new chapter reading rooms
+
 
 
 

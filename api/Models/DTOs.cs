@@ -233,4 +233,182 @@ public record CreateReadingItemRequest(
     int? OrderIndex
 );
 
+// ==========================================
+// CHAPTER & EDITORIAL READING DTOS (Panel D)
+// ==========================================
+
+public record ChapterDetailDto(
+    int Id,
+    string Slug,
+    string FullSlug,
+    string Title,
+    string Description,
+    int LectureNumber,
+    string ClassDate,
+    int ReadingTimeMinutes,
+    int WordCount,
+    string Difficulty,
+    bool IsCompleted,
+    int OrderIndex,
+    string ContentBody,
+    string HorstmannRef,
+    ChapterCourseInfoDto Course,
+    ChapterModuleInfoDto Module,
+    List<CodeComparisonDto> CodeComparisons,
+    List<ChapterDiagramDto> Diagrams,
+    List<ChapterNoteDto> Notes,
+    ChapterConceptConnectionsDto ConceptConnections,
+    List<ProblemSummaryDto> Problems,
+    List<LessonResourceDto> Resources,
+    ChapterNavDto? PreviousChapter,
+    ChapterNavDto? NextChapter,
+    List<ChapterNavDto> SiblingChapters
+);
+
+public record ChapterSummaryDto(
+    int Id,
+    string Slug,
+    string FullSlug,
+    string Title,
+    string Description,
+    int LectureNumber,
+    int ReadingTimeMinutes,
+    int WordCount,
+    string Difficulty,
+    bool IsCompleted,
+    int OrderIndex,
+    string CourseSlug,
+    string CourseTitle,
+    string? VerticalSlug,
+    string ModuleSlug,
+    string ModuleTitle,
+    string ModuleBadge,
+    int ProblemCount,
+    int ResourceCount,
+    bool HasCodeComparisons,
+    bool HasDiagrams,
+    int NotesCount
+);
+
+public record ChapterHierarchyDto(
+    int TotalChapters,
+    int CompletedChapters,
+    int TotalReadingTimeMinutes,
+    int TotalWords,
+    List<CourseWithChaptersDto> Courses
+);
+
+public record CourseWithChaptersDto(
+    int Id,
+    string Slug,
+    string Title,
+    string Description,
+    int? VerticalId,
+    string? VerticalName,
+    int TotalChapters,
+    int CompletedChapters,
+    int TotalReadingTimeMinutes,
+    List<ModuleWithChaptersDto> Modules
+);
+
+public record ModuleWithChaptersDto(
+    int Id,
+    string Slug,
+    string Title,
+    string Description,
+    string Badge,
+    int OrderIndex,
+    int TotalChapters,
+    int CompletedChapters,
+    int TotalReadingTimeMinutes,
+    List<ChapterSummaryDto> Chapters
+);
+
+public record ChapterCourseInfoDto(
+    int Id,
+    string Slug,
+    string Title,
+    int? VerticalId,
+    string? VerticalName
+);
+
+public record ChapterModuleInfoDto(
+    int Id,
+    string Slug,
+    string Title,
+    string Description,
+    string Badge,
+    int OrderIndex
+);
+
+public record CodeComparisonDto(
+    int Id,
+    string Title,
+    string Description,
+    string BeforeLabel,
+    string BeforeLanguage,
+    string BeforeCode,
+    string AfterLabel,
+    string AfterLanguage,
+    string AfterCode,
+    string Explanation,
+    int OrderIndex
+);
+
+public record ChapterDiagramDto(
+    int Id,
+    string Title,
+    string Caption,
+    string DiagramType,
+    string SvgContent,
+    string? DiagramSpecJson,
+    int OrderIndex
+);
+
+public record ChapterNoteDto(
+    int Id,
+    string NoteType,
+    string? AnchorSection,
+    string Title,
+    string ContentBody,
+    int OrderIndex,
+    DateTime UpdatedAt
+);
+
+public record ChapterConceptConnectionsDto(
+    List<ConnectedConceptDto> DirectConcepts,
+    List<ConceptPrerequisiteItemDto> Prerequisites,
+    List<string> NextRecommendedTopics,
+    List<string> InterchangeDomains
+);
+
+public record ConnectedConceptDto(
+    int Id,
+    string Slug,
+    string Title,
+    string Summary,
+    string Difficulty,
+    string Icon,
+    List<string> ConnectedDomains
+);
+
+public record ChapterNavDto(
+    int Id,
+    string Slug,
+    string FullSlug,
+    string Title,
+    string ModuleTitle,
+    int ReadingTimeMinutes,
+    bool IsCompleted
+);
+
+public record CreateChapterNoteRequest(
+    string NoteType,
+    string? AnchorSection,
+    string Title,
+    string ContentBody,
+    int? OrderIndex
+);
+
+
 

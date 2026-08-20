@@ -293,7 +293,23 @@ export default function VerticalDetail() {
                         </div>
                       </div>
 
-                      <ChevronRight size={20} className="text-secondary opacity-50" />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Link
+                          to={`/chapter/${
+                            task.title.toLowerCase().includes('agent') ? 'building-an-ai-agent' :
+                            task.title.toLowerCase().includes('rag') ? 'rag-retrieval-augmented-generation' :
+                            task.title.toLowerCase().includes('concurrency') ? 'structured-concurrency' :
+                            task.title.toLowerCase().includes('kuber') ? 'kubernetes-networking' :
+                            'structured-concurrency'
+                          }`}
+                          className="btn-text"
+                          style={{ fontSize: '0.78rem', color: '#2C5E55', textDecoration: 'none', padding: '4px 8px', borderRadius: '4px', background: '#F8F6F0', border: '1px solid #E5E0D8' }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          📖 Read Chapter
+                        </Link>
+                        <ChevronRight size={20} className="text-secondary opacity-50" />
+                      </div>
                     </div>
                   ))}
                 </div>
