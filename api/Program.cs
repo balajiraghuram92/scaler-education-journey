@@ -985,6 +985,110 @@ app.MapPost("/api/chapters/{id:int}/notes", async (int id, CreateChapterNoteRequ
 })
 .WithName("CreateChapterNote");
 
+// POST /api/chapters/map — Map & Ingest a New Curriculum Chapter
+app.MapPost("/api/chapters/map", async (MapChapterRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.MarkdownContent))
+    {
+        return Results.BadRequest(new { message = "Title and MarkdownContent are required." });
+    }
+
+    var domainName = string.IsNullOrWhiteSpace(req.Domain) ? "Backend" : req.Domain.Trim();
+    var moduleTitle = string.IsNullOrWhiteSpace(req.ModuleName) ? "Backend Architecture" : req.ModuleName.Trim();
+    var lessonTitle = req.Title.Trim();
+    var slug = string.IsNullOrWhiteSpace(req.Slug)
+        ? Regex.Replace(lessonTitle.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-')
+        : req.Slug.Trim().ToLowerInvariant();
+
+    // 1. Find or create Course / Domain Vertical
+    var course = await db.Courses.Include(c => c.Modules).FirstOrDefaultAsync(c => c.Title.ToLower().Contains(domainName.ToLower()) || c.Slug == domainName.ToLower());
+    if (course == null)
+    {
+        course = await db.Courses.FirstOrDefaultAsync(c => c.Slug == "java-spring-lld")
+            ?? await db.Courses.FirstOrDefaultAsync();
+    }
+
+    if (course == null)
+    {
+        course = new Course
+        {
+            Slug = "backend-systems",
+            Title = domainName,
+            Description = $"{domainName} curriculum and architectural patterns.",
+            OrderIndex = 1
+        };
+        db.Courses.Add(course);
+        await db.SaveChangesAsync();
+    }
+
+    // 2. Find or create CourseModule
+    var moduleSlug = Regex.Replace(moduleTitle.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
+    var courseModule = await db.Modules.Include(m => m.Lessons)
+        .FirstOrDefaultAsync(m => m.CourseId == course.Id && (m.Title.ToLower() == moduleTitle.ToLower() || m.Slug == moduleSlug));
+
+    if (courseModule == null)
+    {
+        var maxModuleOrder = await db.Modules.Where(m => m.CourseId == course.Id).Select(m => (int?)m.OrderIndex).MaxAsync() ?? 0;
+        courseModule = new CourseModule
+        {
+            CourseId = course.Id,
+            Slug = moduleSlug,
+            Title = moduleTitle,
+            Description = $"Module for {moduleTitle}",
+            Badge = "Module",
+            OrderIndex = maxModuleOrder + 1
+        };
+        db.Modules.Add(courseModule);
+        await db.SaveChangesAsync();
+    }
+
+    // 3. Find or create Lesson
+    var existingLesson = await db.Lessons.Include(l => l.CodeComparisons).Include(l => l.Resources)
+        .FirstOrDefaultAsync(l => l.ModuleId == courseModule.Id && (l.Slug == slug || l.Title.ToLower() == lessonTitle.ToLower()));
+
+    if (existingLesson != null)
+    {
+        existingLesson.Title = lessonTitle;
+        existingLesson.Description = req.Description ?? existingLesson.Description;
+        existingLesson.ContentBody = req.MarkdownContent;
+        existingLesson.Difficulty = req.Difficulty ?? "Intermediate";
+        existingLesson.EstimatedMinutes = req.EstimatedMinutes ?? 45;
+        existingLesson.UpdatedAt = DateTime.UtcNow;
+    }
+    else
+    {
+        var maxLessonOrder = await db.Lessons.Where(l => l.ModuleId == courseModule.Id).Select(l => (int?)l.OrderIndex).MaxAsync() ?? 0;
+        existingLesson = new Lesson
+        {
+            ModuleId = courseModule.Id,
+            Slug = slug,
+            Title = lessonTitle,
+            Description = req.Description ?? string.Empty,
+            LectureNumber = maxLessonOrder + 1,
+            ClassDate = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+            ContentBody = req.MarkdownContent,
+            Difficulty = req.Difficulty ?? "Intermediate",
+            EstimatedMinutes = req.EstimatedMinutes ?? 45,
+            OrderIndex = maxLessonOrder + 1,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        db.Lessons.Add(existingLesson);
+    }
+
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/chapters/{slug}", new {
+        id = existingLesson.Id,
+        slug = existingLesson.Slug,
+        title = existingLesson.Title,
+        domain = domainName,
+        module = moduleTitle,
+        message = "Chapter mapped and stored successfully."
+    });
+})
+.WithName("MapCurriculumChapter");
+
 app.Run();
 
 // Helper method for assembling ChapterDetailDto

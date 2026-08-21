@@ -410,5 +410,19 @@ public record CreateChapterNoteRequest(
     int? OrderIndex
 );
 
+public record MapChapterRequest(
+    string? Domain,
+    string? ModuleName,
+    string? Title,
+    string? Slug,
+    string? Description,
+    string? MarkdownContent,
+    List<string>? Prerequisites,
+    List<string>? RelatedConcepts,
+    List<string>? NextLessons,
+    string? Difficulty,
+    int? EstimatedMinutes
+);
+
 
 

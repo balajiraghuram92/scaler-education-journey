@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Plus, Calendar, Shield } from 'lucide-react';
 import CodeComparisonSwitcher from '../components/CodeComparisonSwitcher';
 import './ChapterReader.css';
 
@@ -209,6 +210,14 @@ export default function ChapterReader() {
               </ul>
             </div>
           )}
+
+          {/* Quick Admin TOC Action */}
+          <div className="toc-admin-footer">
+            <Link to="/curriculum-import" className="toc-map-chapter-btn" title="Map or import new chapter">
+              <Plus size={13} />
+              <span>Map New Chapter</span>
+            </Link>
+          </div>
         </aside>
 
         {/* ========================================================= */}
@@ -460,6 +469,40 @@ export default function ChapterReader() {
                 <button type="submit" className="save-note-btn">Save Note</button>
               </form>
             )}
+          </div>
+
+          <div className="sidebar-hairline-divider" />
+
+          {/* Upcoming Session & Curriculum Admin Trigger */}
+          <div className="sidebar-meta-block sidebar-upcoming-block">
+            <div className="sidebar-title-row">
+              <h5 className="sidebar-meta-title">Upcoming session</h5>
+              <Link
+                to="/curriculum-import"
+                className="sidebar-admin-plus-btn"
+                title="Map New Chapter (Admin Portal)"
+              >
+                <Plus size={13} />
+                <span>Map Chapter</span>
+              </Link>
+            </div>
+
+            <div className="sidebar-upcoming-card">
+              <div className="upcoming-tag-row">
+                <span className="upcoming-badge">Next Session</span>
+                <span className="upcoming-module-tag">{chapter.course?.title || 'Java & Spring'}</span>
+              </div>
+              <p className="upcoming-title">
+                {chapter.nextChapter ? chapter.nextChapter.title : 'Virtual Thread Pinning & Lock-Free Scope'}
+              </p>
+              <p className="upcoming-desc">
+                Investigating carrier thread synchronization bottlenecks, ReentrantLock migrations, and high-concurrency throughput benchmarks.
+              </p>
+              <div className="upcoming-admin-hint">
+                <Shield size={12} className="admin-lock-icon" />
+                <span>Authenticated Admin Action · IAM Protected</span>
+              </div>
+            </div>
           </div>
         </aside>
       </div>

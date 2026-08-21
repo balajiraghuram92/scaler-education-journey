@@ -110,6 +110,16 @@
 - [x] **Sub-task 15.5**: Migrate FDE Chapter: *RAG (Retrieval-Augmented Generation) & Hybrid Vector Search*
 - [x] **Sub-task 15.6**: Update global navigation (`Navbar.jsx`, `App.jsx`, `VerticalDetail.jsx`, `Home.jsx`) linking to the new chapter reading rooms
 
+## Phase 16: Curriculum Import & Chapter Mapper Redesign (Panel C - Map a New Chapter)
+- [x] **Sub-task 16.1**: Remove always-on legacy "Import" modal trigger from global `Navbar.jsx` to prevent public spamming.
+- [x] **Sub-task 16.2**: Design and build `CurriculumImporter.jsx` (Panel C: "Map a New Chapter") with Warm Editorial 3-column layout (Markdown Editor + Live Rendered Chamber + Domain/Module/Prereqs/Concept Tags rail).
+- [x] **Sub-task 16.3**: Implement `CurriculumImporter.css` matching `info/images-newdesign/Curiculam-updator.png` and `Final-Design.png` (Panel C) with Newsreader serif, sage `#2C5E55` import button, and interactive tag chips.
+- [x] **Sub-task 16.4**: Re-map the entry point to Curriculum Mapping into Concept Chapter (`ChapterReader.jsx` Panel D) — added upcoming session card with IAM-authenticated `+ Map Chapter` admin action and left TOC rail trigger.
+- [x] **Sub-task 16.5**: Register routes (`/curriculum-import`, `/map-chapter`, `/add-vertical`) in `App.jsx`.
+- [x] **Sub-task 16.6**: Add backend Minimal API endpoint `POST /api/chapters/map` in ASP.NET Core `Program.cs` and `DTOs.cs` to persist mapped chapters, modules, and concept associations into PostgreSQL.
+- [x] **Sub-task 16.7**: Comprehensive verification of 4-panel Warm Editorial suite (Panel A: Home, Panel B: Reading Map, Panel C: Curriculum Import, Panel D: Concept Chapters).
+
+
 
 
 

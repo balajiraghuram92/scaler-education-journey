@@ -5,6 +5,7 @@ import Profile from './pages/Profile';
 import VerticalDetail from './pages/VerticalDetail';
 import LabProjects from './pages/LabProjects';
 import ChapterReader from './pages/ChapterReader';
+import CurriculumImporter from './pages/CurriculumImporter';
 
 function App() {
   return (
@@ -57,6 +58,34 @@ function App() {
         <Route
           path="/progress"
           element={<Navigate to="/reading-map" replace />}
+        />
+        <Route
+          path="/curriculum-import"
+          element={
+            <Layout>
+              <CurriculumImporter />
+            </Layout>
+          }
+        />
+        <Route
+          path="/map-chapter"
+          element={
+            <Layout>
+              <CurriculumImporter />
+            </Layout>
+          }
+        />
+        <Route
+          path="/add-vertical"
+          element={
+            <Layout>
+              <CurriculumImporter />
+            </Layout>
+          }
+        />
+        <Route
+          path="/ingest"
+          element={<Navigate to="/curriculum-import" replace />}
         />
         <Route
           path="/chapter/:slug"

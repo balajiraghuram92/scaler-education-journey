@@ -588,6 +588,119 @@
   cursor: pointer;
 }
 
+/* TOC Rail Admin Footer */
+.toc-admin-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--chamber-rule-border);
+}
+
+.toc-map-chapter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--chamber-accent-sage);
+  text-decoration: none;
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  background: rgba(44, 94, 85, 0.06);
+  border: 1px solid rgba(44, 94, 85, 0.15);
+  transition: all 150ms ease;
+}
+
+.toc-map-chapter-btn:hover {
+  background: rgba(44, 94, 85, 0.12);
+  color: #234B44;
+}
+
+/* Sidebar Upcoming Session & Admin Trigger */
+.sidebar-admin-plus-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--chamber-accent-sage);
+  text-decoration: none;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(44, 94, 85, 0.08);
+  border: 1px solid rgba(44, 94, 85, 0.2);
+  transition: all 150ms ease;
+}
+
+.sidebar-admin-plus-btn:hover {
+  background: var(--chamber-accent-sage);
+  color: #FFFFFF;
+}
+
+.sidebar-upcoming-card {
+  background: var(--chamber-bg-card-warm);
+  border: 1px solid var(--chamber-rule-border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.upcoming-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.upcoming-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #2C5E55;
+  color: #FFFFFF;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+}
+
+.upcoming-module-tag {
+  font-size: 0.72rem;
+  color: var(--chamber-ink-muted);
+  font-weight: 500;
+}
+
+.upcoming-title {
+  font-family: var(--font-serif);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--chamber-ink-primary);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.upcoming-desc {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--chamber-ink-secondary);
+  margin: 0;
+}
+
+.upcoming-admin-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--chamber-accent-sage);
+  margin-top: 0.35rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed var(--chamber-rule-border);
+}
+
+.admin-lock-icon {
+  flex-shrink: 0;
+}
+
 /* Loading & Error States */
 .chapter-reader-loading,
 .chapter-reader-error {
