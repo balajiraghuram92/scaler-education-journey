@@ -3,6 +3,12 @@
 **Prepared:** 2026-08-23
 
 **Companion inventory:** [`website-comparison-baseline.md`](website-comparison-baseline.md)
+
+**Detailed architecture, schema, and execution plan:** [`technical-migration-architecture.md`](technical-migration-architecture.md)
+
+**Local-LLM implementation prompts:** [`local-llm-migration-prompts.md`](local-llm-migration-prompts.md)
+
+**Phase verification tracker:** [`migration-execution-tracker.md`](migration-execution-tracker.md)
 **Baseline comparison:** `8ac02c2947c3e3096f78517266bb4beb7d9d1969` → `7102e4d`
 
 ## Decision rule

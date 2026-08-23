@@ -28,16 +28,30 @@ export default function Navbar() {
             <span className="navbar-nav-divider">·</span>
             <Link
               to="/reading-map"
-              className={`navbar-nav-link ${location.pathname === '/reading-map' || location.pathname === '/lab-projects' ? 'active' : ''}`}
+              className={`navbar-nav-link ${location.pathname === '/reading-map' ? 'active' : ''}`}
             >
               Reading Map
             </Link>
             <span className="navbar-nav-divider">·</span>
             <Link
-              to="/chapter/structured-concurrency"
-              className={`navbar-nav-link ${location.pathname.startsWith('/chapter') || location.pathname === '/learning' ? 'active' : ''}`}
+              to="/lab-projects"
+              className={`navbar-nav-link ${location.pathname === '/lab-projects' ? 'active' : ''}`}
             >
-              Concept Chapters
+              Lab Projects
+            </Link>
+            <span className="navbar-nav-divider">·</span>
+            <Link
+              to="/curriculum-import"
+              className={`navbar-nav-link ${location.pathname === '/curriculum-import' ? 'active' : ''}`}
+            >
+              Importer
+            </Link>
+            <span className="navbar-nav-divider">·</span>
+            <Link
+              to="/chapter/structured-concurrency"
+              className={`navbar-nav-link ${location.pathname.startsWith('/chapter') || location.pathname.startsWith('/learning-paths') ? 'active' : ''}`}
+            >
+              Chapters
             </Link>
           </div>
 

@@ -36,6 +36,13 @@ public class Course
     [ForeignKey(nameof(VerticalId))]
     public StudyVertical? Vertical { get; set; }
 
+    [MaxLength(32)]
+    [Column("path_type")]
+    public string PathType { get; set; } = "Course"; // Course, Certification, Project
+
+    [Column("is_published")]
+    public bool IsPublished { get; set; } = true;
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -43,4 +50,5 @@ public class Course
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<CourseModule> Modules { get; set; } = new List<CourseModule>();
+    public ICollection<CourseDomainLink> DomainLinks { get; set; } = new List<CourseDomainLink>();
 }

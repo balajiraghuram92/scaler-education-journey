@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
@@ -64,4 +65,6 @@ public class Problem
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public ICollection<StudyTaskContentLink> LegacyTaskLinks { get; set; } = new List<StudyTaskContentLink>();
 }

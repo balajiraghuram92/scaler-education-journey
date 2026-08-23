@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\raghuram\\Documents\\study-plan-website\\api\\StudyTracker.Api.csproj": {}
+    "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/StudyTracker.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\raghuram\\Documents\\study-plan-website\\api\\StudyTracker.Api.csproj": {
+    "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/StudyTracker.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\raghuram\\Documents\\study-plan-website\\api\\StudyTracker.Api.csproj",
+        "projectUniqueName": "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/StudyTracker.Api.csproj",
         "projectName": "StudyTracker.Api",
-        "projectPath": "C:\\Users\\raghuram\\Documents\\study-plan-website\\api\\StudyTracker.Api.csproj",
-        "packagesPath": "C:\\Users\\raghuram\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\raghuram\\Documents\\study-plan-website\\api\\obj\\",
+        "projectPath": "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/StudyTracker.Api.csproj",
+        "packagesPath": "/Users/raghuram/.nuget/packages/",
+        "outputPath": "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\raghuram\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/Users/raghuram/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -53,13 +53,13 @@
               "target": "Package",
               "version": "[8.0.0, )"
             },
-            "Microsoft.EntityFrameworkCore.SqlServer": {
-              "target": "Package",
-              "version": "[8.0.0, )"
-            },
             "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.4, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
@@ -85,7 +85,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.422/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.424/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

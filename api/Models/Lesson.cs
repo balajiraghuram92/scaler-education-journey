@@ -65,9 +65,18 @@ public class Lesson
     [Column("difficulty")]
     public string Difficulty { get; set; } = "Intermediate";
 
+    [MaxLength(32)]
+    [Column("content_status")]
+    public string ContentStatus { get; set; } = "Published"; // Outline, Draft, Published, Archived
+
     public ICollection<Problem> Problems { get; set; } = new List<Problem>();
     public ICollection<LessonResource> Resources { get; set; } = new List<LessonResource>();
     public ICollection<LessonCodeComparison> CodeComparisons { get; set; } = new List<LessonCodeComparison>();
     public ICollection<LessonDiagram> Diagrams { get; set; } = new List<LessonDiagram>();
     public ICollection<LessonNote> Notes { get; set; } = new List<LessonNote>();
+    public ICollection<LessonConceptLink> ConceptLinks { get; set; } = new List<LessonConceptLink>();
+    public ICollection<LessonRelation> OutgoingRelations { get; set; } = new List<LessonRelation>();
+    public ICollection<LessonRelation> IncomingRelations { get; set; } = new List<LessonRelation>();
+    public ICollection<StudyTaskContentLink> LegacyTaskLinks { get; set; } = new List<StudyTaskContentLink>();
+    public ICollection<ReadingMapItem> ReadingMapItems { get; set; } = new List<ReadingMapItem>();
 }

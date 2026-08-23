@@ -48,4 +48,5 @@ public class KnowledgeDomain
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<DomainConceptConnection> ConceptConnections { get; set; } = new List<DomainConceptConnection>();
+    public ICollection<CourseDomainLink> CourseLinks { get; set; } = new List<CourseDomainLink>();
 }

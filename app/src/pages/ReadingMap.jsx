@@ -1,415 +1,198 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Check, ArrowRight, BookOpen, Layers, Clock, Sparkles } from 'lucide-react';
+import { api } from '../api/client';
+import { LoadingState, ErrorState, EmptyState, DevFixturesBanner } from '../components/common/StateViews';
 import './ReadingMap.css';
 
 const DEFAULT_READING_MAP = {
   readThisWeek: [
     { id: 1, category: 'ReadThisWeek', title: 'Virtual threads', isCompleted: true },
-    { id: 2, category: 'ReadThisWeek', title: 'Structured concurrency', isCompleted: true },
-    { id: 3, category: 'ReadThisWeek', title: 'Structured concurrency (8)', isCompleted: true },
-    { id: 4, category: 'ReadThisWeek', title: 'Structured concurrency', isCompleted: true }
+    { id: 2, category: 'ReadThisWeek', title: 'Structured concurrency', isCompleted: true }
   ],
   revisited: [
     { id: 5, category: 'Revisited', title: 'Spring async and resilience', isCompleted: false }
   ],
   deferred: [
-    { id: 6, category: 'Deferred', title: 'Next sometime', isCompleted: false },
-    { id: 7, category: 'Deferred', title: 'Deferred tomorrow', isCompleted: false }
+    { id: 6, category: 'Deferred', title: 'Next sometime', isCompleted: false }
   ],
-  lists: [
-    { id: 8, category: 'Lists', title: 'APIs in (2)', isCompleted: false },
-    { id: 9, category: 'Lists', title: 'Deferred (1)', isCompleted: false }
-  ],
-  prerequisites: [
-    { id: 10, category: 'Prerequisites', title: 'Java Concurrency', isCompleted: false }
-  ],
-  activityTimeline: [
-    { id: 1, dayLabel: 'Mon', activityCount: 1, orderIndex: 1 },
-    { id: 2, dayLabel: 'Tue', activityCount: 1, orderIndex: 2 },
-    { id: 3, dayLabel: 'Wed', activityCount: 3, orderIndex: 3 },
-    { id: 4, dayLabel: 'Thu', activityCount: 6, orderIndex: 4 },
-    { id: 5, dayLabel: 'Fri', activityCount: 2, orderIndex: 5 },
-    { id: 6, dayLabel: 'Sat', activityCount: 4, orderIndex: 6 },
-    { id: 7, dayLabel: 'Sun', activityCount: 0, orderIndex: 7 },
-    { id: 8, dayLabel: 'Sun', activityCount: 5, orderIndex: 8 }
-  ],
-  knowledgeThreads: [
-    {
-      id: 1,
-      domain: 'Java',
-      rawPath: 'Java → concurrency → virtual threads → structured concurrency',
-      nodes: ['Java', 'concurrency', 'virtual threads', 'structured concurrency']
-    },
-    {
-      id: 2,
-      domain: 'Backend',
-      rawPath: 'Backend → APIs → async processing → resilience',
-      nodes: ['Backend', 'APIs', 'async processing', 'resilience']
-    },
-    {
-      id: 3,
-      domain: 'Cloud',
-      rawPath: 'Cloud → containers → orchestration → networking',
-      nodes: ['Cloud', 'containers', 'orchestration', 'networking']
-    }
-  ]
+  lists: [],
+  prerequisites: [],
+  activityTimeline: [],
+  knowledgeThreads: []
 };
 
 export default function ReadingMap() {
-  const [readingData, setReadingData] = useState(DEFAULT_READING_MAP);
+  const [readingData, setReadingData] = useState({
+    items: [],
+    threads: [],
+    recentActivities: [],
+    statistics: { totalItems: 0, completedItems: 0, progressPercentage: 0 }
+  });
   const [loading, setLoading] = useState(true);
-  const [newItemText, setNewItemText] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('ReadThisWeek');
-  const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState(null);
+  const [isDevFixture, setIsDevFixture] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const fetchReadingMap = useCallback(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/reading-map`, {
-      headers: {
-        'x-api-key': import.meta.env.VITE_API_KEY || ''
+  const fetchReadingMap = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setIsDevFixture(false);
+    try {
+      const data = await api.v2.getReadingMap();
+      if (data) {
+        setReadingData({
+          items: data.items || [],
+          threads: data.threads || [],
+          recentActivities: data.recentActivities || [],
+          statistics: data.statistics || { totalItems: 0, completedItems: 0, progressPercentage: 0 }
+        });
       }
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && (data.readThisWeek || data.knowledgeThreads)) {
-          setReadingData({
-            readThisWeek: data.readThisWeek || [],
-            revisited: data.revisited || [],
-            deferred: data.deferred || [],
-            lists: data.lists || [],
-            prerequisites: data.prerequisites || [],
-            activityTimeline: data.activityTimeline?.length > 0 ? data.activityTimeline : DEFAULT_READING_MAP.activityTimeline,
-            knowledgeThreads: data.knowledgeThreads?.length > 0 ? data.knowledgeThreads : DEFAULT_READING_MAP.knowledgeThreads
-          });
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.warn('Backend reading-map API offline, utilizing default reading map dataset:', err);
-        setLoading(false);
-      });
+    } catch (err) {
+      console.warn('API error fetching Reading Map:', err);
+      if (import.meta.env.VITE_ENABLE_DEV_FIXTURES === 'true') {
+        setIsDevFixture(true);
+        setReadingData({
+          items: [...DEFAULT_READING_MAP.readThisWeek, ...DEFAULT_READING_MAP.revisited, ...DEFAULT_READING_MAP.deferred],
+          threads: DEFAULT_READING_MAP.knowledgeThreads,
+          recentActivities: [],
+          statistics: { totalItems: 4, completedItems: 2, progressPercentage: 50 }
+        });
+      } else {
+        setError(err);
+      }
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     fetchReadingMap();
   }, [fetchReadingMap]);
 
-  useEffect(() => {
-    const handleUpdate = () => {
-      fetchReadingMap();
-    };
-    window.addEventListener('verticalsUpdated', handleUpdate);
-    window.addEventListener('readingMapUpdated', handleUpdate);
-    return () => {
-      window.removeEventListener('verticalsUpdated', handleUpdate);
-      window.removeEventListener('readingMapUpdated', handleUpdate);
-    };
-  }, [fetchReadingMap]);
-
-  const toggleItem = async (item) => {
-    // Optimistic UI Update
-    setReadingData((prev) => {
-      const updateList = (list) =>
-        list.map((i) => (i.id === item.id ? { ...i, isCompleted: !i.isCompleted } : i));
-
-      return {
-        ...prev,
-        readThisWeek: updateList(prev.readThisWeek),
-        revisited: updateList(prev.revisited),
-        deferred: updateList(prev.deferred),
-        lists: updateList(prev.lists),
-        prerequisites: updateList(prev.prerequisites)
-      };
-    });
-
-    try {
-      await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/reading-map/items/${item.id}/toggle`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_API_KEY || ''
-        }
-      });
-    } catch (err) {
-      console.error('Failed to toggle reading item:', err);
-    }
-  };
-
-  const handleAddItem = async (e) => {
-    e.preventDefault();
-    if (!newItemText.trim()) return;
-
-    const optimisticItem = {
-      id: Date.now(),
-      category: selectedCategory,
-      title: newItemText.trim(),
-      isCompleted: selectedCategory === 'ReadThisWeek'
-    };
-
-    setReadingData((prev) => {
-      const keyMap = {
-        ReadThisWeek: 'readThisWeek',
-        Revisited: 'revisited',
-        Deferred: 'deferred',
-        Lists: 'lists',
-        Prerequisites: 'prerequisites'
-      };
-      const listKey = keyMap[selectedCategory] || 'readThisWeek';
-      return {
-        ...prev,
-        [listKey]: [...prev[listKey], optimisticItem]
-      };
-    });
-
-    const itemToAdd = newItemText.trim();
-    setNewItemText('');
-    setIsAdding(false);
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/reading-map/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_API_KEY || ''
-        },
-        body: JSON.stringify({
-          category: selectedCategory,
-          title: itemToAdd
-        })
-      });
-
-      if (response.ok) {
-        fetchReadingMap();
-      }
-    } catch (err) {
-      console.error('Failed to create reading item:', err);
-    }
-  };
-
-  const maxActivity = Math.max(...readingData.activityTimeline.map((a) => a.activityCount), 1);
+  const filteredItems = selectedCategory === 'All'
+    ? readingData.items
+    : readingData.items.filter(i => i.category === selectedCategory);
 
   return (
     <div className="reading-map-page">
-      {/* Editorial Canvas Container */}
+      {isDevFixture && <DevFixturesBanner />}
+
+      {/* Top Editorial Banner */}
+      <div className="reading-map-top-strip">
+        <div className="top-strip-inner">
+          <span className="panel-tag">PANEL B: READING MAP & CURATED JOURNEY</span>
+          <span className="synapse-badge">
+            <Sparkles size={12} />
+            Synaptic Bridge
+          </span>
+        </div>
+      </div>
+
       <div className="reading-map-container">
-        
-        {/* Top Header */}
+        {/* Header with Stats */}
         <header className="reading-map-header">
-          <h1 className="reading-map-title">‘Reading Map’</h1>
-          <div className="reading-map-controls">
-            <button
-              type="button"
-              className="editorial-pill-btn"
-              onClick={() => setIsAdding(!isAdding)}
-              title="Add a new study or reading topic"
-            >
-              <Plus size={14} className={isAdding ? 'rotate-45' : ''} />
-              <span>{isAdding ? 'Cancel' : 'Add Entry'}</span>
-            </button>
+          <div className="header-text-group">
+            <h1 className="reading-map-main-title">Reading Map & Knowledge Flow</h1>
+            <p className="reading-map-subtitle">
+              Curated reading queue, sequential learning tracks, and cognitive progression.
+            </p>
+          </div>
+
+          <div className="reading-map-stats-card">
+            <div className="stat-item">
+              <span className="stat-value">{readingData.statistics.completedItems} / {readingData.statistics.totalItems}</span>
+              <span className="stat-label">Items Read</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">{readingData.statistics.progressPercentage}%</span>
+              <span className="stat-label">Queue Progress</span>
+            </div>
           </div>
         </header>
 
-        {/* Quick Add Form (Inline Accordion) */}
-        {isAdding && (
-          <form className="reading-add-form" onSubmit={handleAddItem}>
-            <div className="form-inner">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="category-select"
-              >
-                <option value="ReadThisWeek">Read this week</option>
-                <option value="Revisited">Revisited</option>
-                <option value="Deferred">Deferred</option>
-                <option value="Lists">Lists</option>
-                <option value="Prerequisites">Prerequisites</option>
-              </select>
-              <input
-                type="text"
-                value={newItemText}
-                onChange={(e) => setNewItemText(e.target.value)}
-                placeholder="Enter topic title (e.g. Virtual threads, Concurrency)..."
-                className="entry-input"
-                autoFocus
-              />
-              <button type="submit" className="submit-entry-btn">
-                Add to Map
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Main 3-Column Editorial Grid */}
-        <main className="reading-map-grid">
-          
-          {/* Column 1: Reading Status Stream */}
-          <section className="grid-column column-status-stream">
-            {/* Read this week */}
-            <div className="reading-section">
-              <h2 className="section-title">Read this week</h2>
-              <div className="section-divider" />
-              <ul className="reading-list">
-                {readingData.readThisWeek.map((item) => (
-                  <li
-                    key={item.id}
-                    className={`reading-list-item ${item.isCompleted ? 'is-completed' : ''}`}
-                    onClick={() => toggleItem(item)}
-                    title="Click to toggle status"
-                  >
-                    <span className="bullet-point">•</span>
-                    <span className="item-text">{item.title}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Revisited */}
-            <div className="reading-section">
-              <h2 className="section-title">Revisited</h2>
-              <div className="section-divider" />
-              <ul className="reading-list">
-                {readingData.revisited.map((item) => (
-                  <li
-                    key={item.id}
-                    className={`reading-list-item ${item.isCompleted ? 'is-completed' : ''}`}
-                    onClick={() => toggleItem(item)}
-                    title="Click to toggle status"
-                  >
-                    <span className="bullet-point">•</span>
-                    <span className="item-text">{item.title}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Deferred */}
-            <div className="reading-section">
-              <h2 className="section-title">Deferred</h2>
-              <div className="section-divider" />
-              <ul className="reading-list">
-                {readingData.deferred.map((item) => (
-                  <li
-                    key={item.id}
-                    className={`reading-list-item ${item.isCompleted ? 'is-completed' : ''}`}
-                    onClick={() => toggleItem(item)}
-                    title="Click to toggle status"
-                  >
-                    <span className="bullet-point">•</span>
-                    <span className="item-text">{item.title}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          {/* Column 2: Lists & Queues */}
-          <section className="grid-column column-lists">
-            <div className="reading-section">
-              <h2 className="section-title">Lists</h2>
-              <div className="section-divider" />
-              <ul className="reading-list">
-                {readingData.lists.map((item) => (
-                  <li
-                    key={item.id}
-                    className={`reading-list-item ${item.isCompleted ? 'is-completed' : ''}`}
-                    onClick={() => toggleItem(item)}
-                    title="Click to toggle status"
-                  >
-                    <span className="bullet-point">•</span>
-                    <span className="item-text">{item.title}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          {/* Column 3: Prerequisites, Timeline Activity & Knowledge Threads */}
-          <section className="grid-column column-pathways">
-            
-            {/* Prerequisites */}
-            <div className="reading-section">
-              <h2 className="section-title">Prerequisites</h2>
-              <div className="section-divider" />
-              <ul className="reading-list">
-                {readingData.prerequisites.map((item) => (
-                  <li
-                    key={item.id}
-                    className={`reading-list-item ${item.isCompleted ? 'is-completed' : ''}`}
-                    onClick={() => toggleItem(item)}
-                    title="Click to toggle status"
-                  >
-                    <span className="bullet-point">•</span>
-                    <span className="item-text">{item.title}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Next & Activity Timeline */}
-            <div className="reading-section next-section">
-              <h2 className="section-title">Next</h2>
-              
-              {/* Daily Activity Sparkline */}
-              <div className="timeline-sparkline-wrapper">
-                <div className="sparkline-chart">
-                  {readingData.activityTimeline.map((act, index) => {
-                    const heightPercent = act.activityCount > 0 
-                      ? Math.max(15, (act.activityCount / maxActivity) * 100) 
-                      : 4;
-
-                    return (
-                      <div key={act.id || index} className="sparkline-col" title={`${act.dayLabel}: ${act.activityCount} study sessions`}>
-                        <div className="sparkline-bar-track">
-                          <div
-                            className={`sparkline-bar ${act.activityCount === 0 ? 'is-zero' : ''}`}
-                            style={{ height: `${heightPercent}%` }}
-                          />
-                        </div>
-                        <span className="day-label">{act.dayLabel}</span>
-                      </div>
-                    );
-                  })}
-                  <div className="timeline-baseline-arrow">
-                    <svg viewBox="0 0 24 24" className="arrow-svg">
-                      <path d="M5 12h14M12 5l7 7-7 7" stroke="#8C9A94" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
+        {error ? (
+          <ErrorState error={error} onRetry={fetchReadingMap} title="Unable to Load Reading Map" />
+        ) : loading ? (
+          <LoadingState message="Syncing Reading Map & Activity..." />
+        ) : (
+          <div className="reading-map-layout">
+            {/* Left Column: Categorized Reading Queue */}
+            <section className="reading-queue-section">
+              <div className="section-header">
+                <h2 className="section-title">
+                  <BookOpen size={18} />
+                  Reading Queue
+                </h2>
+                <div className="category-filter-pills">
+                  {['All', 'ReadThisWeek', 'Revisited', 'Deferred', 'Lists', 'Prerequisites'].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`filter-pill ${selectedCategory === cat ? 'active' : ''}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </div>
 
-            {/* Knowledge Threads */}
-            <div className="reading-section threads-section">
-              <h2 className="section-title">Knowledge threads</h2>
-              <div className="section-divider" />
-              
-              <div className="threads-list">
-                {readingData.knowledgeThreads.map((thread) => (
-                  <div key={thread.id} className="knowledge-thread-line">
-                    <div className="thread-nodes-flow">
-                      {thread.nodes && thread.nodes.length > 0 ? (
-                        thread.nodes.map((node, nIdx) => (
-                          <React.Fragment key={nIdx}>
-                            <span className={`thread-node ${nIdx === 0 ? 'is-domain' : ''}`}>
-                              {node}
-                            </span>
-                            {nIdx < thread.nodes.length - 1 && (
-                              <span className="thread-arrow">→</span>
-                            )}
-                          </React.Fragment>
-                        ))
-                      ) : (
-                        <span className="thread-raw-path">{thread.rawPath}</span>
-                      )}
+              {filteredItems.length === 0 ? (
+                <EmptyState message="No reading items in this category." />
+              ) : (
+                <div className="reading-items-list">
+                  {filteredItems.map((item) => (
+                    <div key={item.id} className={`reading-item-card ${item.isCompleted ? 'completed' : ''}`}>
+                      <div className="reading-item-left">
+                        <div className={`status-checkbox ${item.isCompleted ? 'checked' : ''}`}>
+                          {item.isCompleted && <Check size={12} />}
+                        </div>
+                        <div className="reading-item-info">
+                          <span className="reading-item-title">{item.title}</span>
+                          {item.subText && <span className="reading-item-subtext">{item.subText}</span>}
+                        </div>
+                      </div>
+                      <span className="reading-item-category-tag">{item.category}</span>
                     </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Right Column: Knowledge Threads & Activity */}
+            <aside className="knowledge-threads-section">
+              <div className="section-header">
+                <h2 className="section-title">
+                  <Layers size={18} />
+                  Knowledge Threads
+                </h2>
+              </div>
+
+              <div className="threads-list">
+                {readingData.threads?.map((thread) => (
+                  <div key={thread.id} className="thread-card">
+                    <span className="thread-domain-tag">{thread.domain}</span>
+                    <p className="thread-path-text">{thread.rawPath}</p>
                   </div>
                 ))}
               </div>
-            </div>
 
-          </section>
-
-        </main>
-
+              {readingData.recentActivities?.length > 0 && (
+                <div className="recent-activity-box" style={{ marginTop: '2rem' }}>
+                  <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Clock size={16} /> Recent Activity
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
+                    {readingData.recentActivities.slice(0, 5).map((act) => (
+                      <div key={act.id} style={{ padding: '0.4rem 0.6rem', backgroundColor: '#FFF', borderRadius: '4px', border: '1px solid #E5E7EB' }}>
+                        <strong>{act.eventType}</strong> {act.lessonTitle ? `• ${act.lessonTitle}` : ''}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </aside>
+          </div>
+        )}
       </div>
     </div>
   );

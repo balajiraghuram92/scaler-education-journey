@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UploadCloud, CheckCircle2, AlertCircle, FileText, Plus, X, ArrowRight, ShieldCheck, Sparkles, Code2, BookOpen, Layers } from 'lucide-react';
+import { api } from '../api/client';
 import './CurriculumImporter.css';
 
 const DEFAULT_MARKDOWN = `## Markdown consensus
@@ -250,63 +251,38 @@ export default function CurriculumImporter() {
     setSuccessMessage(null);
 
     const slug = chapterTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'new-chapter';
+    const courseSlug = domain.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'java-spring-lld';
+    const moduleSlug = moduleName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'general';
+
     const payload = {
-      domain,
-      moduleName,
+      courseSlug,
+      moduleSlug,
+      lessonSlug: slug,
       title: chapterTitle,
-      slug,
       description: parsedPreview.paragraphs[0] || `${chapterTitle} curriculum chapter in ${moduleName}.`,
-      markdownContent,
-      prerequisites: [prerequisite],
-      relatedConcepts,
-      nextLessons: [
-        'Java → concurrency → virtual threads',
-        'Backend → APIs → async processing → resilience',
-        'Cloud → containers → orchestration'
-      ],
+      contentBody: markdownContent,
       difficulty: 'Intermediate',
-      estimatedMinutes: 45
+      contentStatus: 'Published',
+      estimatedMinutes: 45,
+      conceptSlugs: relatedConcepts.map(c => c.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')),
+      relations: [
+        ...(prerequisite ? [{ targetTitle: prerequisite, relationshipType: 'Prerequisite' }] : [])
+      ]
     };
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/chapters/map`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_API_KEY || ''
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        // Attempt fallback to ingest vertical endpoint if specialized chapters/map is not yet in place
-        const fallbackRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals/ingest`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': import.meta.env.VITE_API_KEY || ''
-          },
-          body: JSON.stringify({
-            name: `${domain}: ${moduleName}`,
-            description: payload.description,
-            markdownContent: payload.markdownContent
-          })
-        });
-
-        if (!fallbackRes.ok) {
-          throw new Error('Could not persist chapter to database.');
-        }
+      const result = await api.v2.importCurriculum(payload);
+      if (result && result.success !== false) {
+        setCreatedSlug(slug);
+        setSuccessMessage(`Chapter '${chapterTitle}' mapped and imported successfully into ${courseSlug}/${moduleSlug}!`);
+        setIsSubmitting(false);
+        window.dispatchEvent(new CustomEvent('verticalsUpdated'));
+      } else {
+        throw new Error(result?.error || 'Curriculum import failed.');
       }
-
-      setCreatedSlug(slug);
-      setSuccessMessage(`Chapter '${chapterTitle}' mapped and imported successfully!`);
-      setIsSubmitting(false);
-      window.dispatchEvent(new CustomEvent('verticalsUpdated'));
     } catch (err) {
-      console.warn('API error during import, persisting optimistic chapter:', err);
-      // Optimistic success for tactile editing experience
-      setCreatedSlug(slug);
-      setSuccessMessage(`Chapter '${chapterTitle}' mapped successfully in session buffer.`);
+      console.error('API error during curriculum import:', err);
+      setErrorMessage(err.message || 'Failed to persist chapter to canonical curriculum.');
       setIsSubmitting(false);
     }
   };

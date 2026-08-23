@@ -36,190 +36,446 @@ public class StudyTrackerContext : DbContext
     public DbSet<LessonDiagram> LessonDiagrams { get; set; } = null!;
     public DbSet<LessonNote> LessonNotes { get; set; } = null!;
 
+    // Phase 2 Additive Bridge DbSets
+    public DbSet<CourseDomainLink> CourseDomainLinks { get; set; } = null!;
+    public DbSet<LessonConceptLink> LessonConceptLinks { get; set; } = null!;
+    public DbSet<LessonRelation> LessonRelations { get; set; } = null!;
+    public DbSet<StudyTaskContentLink> StudyTaskContentLinks { get; set; } = null!;
+    public DbSet<LearningActivity> LearningActivities { get; set; } = null!;
+    public DbSet<KnowledgeThreadStep> KnowledgeThreadSteps { get; set; } = null!;
+    public DbSet<MigrationReconciliation> MigrationReconciliations { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Verticals & Tasks
-        modelBuilder.Entity<StudyVertical>()
-            .HasIndex(v => v.Name)
-            .IsUnique();
+        // 1. Verticals & Tasks (Preserving Quoted PascalCase table & column names)
+        modelBuilder.Entity<StudyVertical>(entity =>
+        {
+            entity.ToTable("Verticals");
+            entity.HasKey(v => v.Id);
+            entity.Property(v => v.Id).HasColumnName("Id");
+            entity.Property(v => v.Name).HasColumnName("Name");
+            entity.Property(v => v.Description).HasColumnName("Description");
+            entity.Property(v => v.CanonicalVerticalId).HasColumnName("canonical_vertical_id");
+            entity.Property(v => v.ArchivedAt).HasColumnName("archived_at");
+            entity.Property(v => v.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<StudyTask>()
-            .HasOne(t => t.Vertical)
-            .WithMany(v => v.Tasks)
-            .HasForeignKey(t => t.VerticalId)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(v => v.Name).IsUnique();
+            entity.HasIndex(v => v.CanonicalVerticalId).HasDatabaseName("ix_verticals_canonical_vertical_id");
 
-        // Courses
-        modelBuilder.Entity<Course>()
-            .HasIndex(c => c.Slug)
-            .IsUnique();
+            entity.HasOne(v => v.CanonicalVertical)
+                .WithMany(v => v.Aliases)
+                .HasForeignKey(v => v.CanonicalVerticalId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
-        // Course Modules
-        modelBuilder.Entity<CourseModule>()
-            .HasIndex(m => new { m.CourseId, m.Slug })
-            .IsUnique();
+        modelBuilder.Entity<StudyTask>(entity =>
+        {
+            entity.ToTable("Tasks");
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.Id).HasColumnName("Id");
+            entity.Property(t => t.VerticalId).HasColumnName("VerticalId");
+            entity.Property(t => t.Title).HasColumnName("Title");
+            entity.Property(t => t.IsCompleted).HasColumnName("IsCompleted");
+            entity.Property(t => t.Module).HasColumnName("Module");
+            entity.Property(t => t.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<CourseModule>()
-            .HasOne(m => m.Course)
-            .WithMany(c => c.Modules)
-            .HasForeignKey(m => m.CourseId)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(t => t.Vertical)
+                .WithMany(v => v.Tasks)
+                .HasForeignKey(t => t.VerticalId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        // Lessons
-        modelBuilder.Entity<Lesson>()
-            .HasIndex(l => new { l.ModuleId, l.Slug })
-            .IsUnique();
+        // 2. Courses
+        modelBuilder.Entity<Course>(entity =>
+        {
+            entity.ToTable("courses", t =>
+            {
+                t.HasCheckConstraint("ck_courses_path_type", "path_type IN ('Course', 'Certification', 'Project')");
+            });
+            entity.HasIndex(c => c.Slug).IsUnique();
+            entity.Property(c => c.PathType).HasDefaultValue("Course");
+            entity.Property(c => c.IsPublished).HasDefaultValue(true);
+        });
 
-        modelBuilder.Entity<Lesson>()
-            .HasOne(l => l.Module)
-            .WithMany(m => m.Lessons)
-            .HasForeignKey(l => l.ModuleId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // 3. Course Modules
+        modelBuilder.Entity<CourseModule>(entity =>
+        {
+            entity.ToTable("course_modules");
+            entity.HasIndex(m => new { m.CourseId, m.Slug }).IsUnique();
+            entity.HasOne(m => m.Course)
+                .WithMany(c => c.Modules)
+                .HasForeignKey(m => m.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        // Problems
-        modelBuilder.Entity<Problem>()
-            .HasIndex(p => new { p.LessonId, p.Slug })
-            .IsUnique();
+        // 4. Lessons
+        modelBuilder.Entity<Lesson>(entity =>
+        {
+            entity.ToTable("lessons", t =>
+            {
+                t.HasCheckConstraint("ck_lessons_content_status", "content_status IN ('Outline', 'Draft', 'Published', 'Archived')");
+            });
+            entity.HasIndex(l => new { l.ModuleId, l.Slug }).IsUnique();
+            entity.Property(l => l.ContentStatus).HasDefaultValue("Published");
+            entity.HasOne(l => l.Module)
+                .WithMany(m => m.Lessons)
+                .HasForeignKey(l => l.ModuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        modelBuilder.Entity<Problem>()
-            .HasOne(p => p.Lesson)
-            .WithMany(l => l.Problems)
-            .HasForeignKey(p => p.LessonId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // 5. Problems
+        modelBuilder.Entity<Problem>(entity =>
+        {
+            entity.ToTable("problems");
+            entity.HasIndex(p => new { p.LessonId, p.Slug }).IsUnique();
+            entity.HasOne(p => p.Lesson)
+                .WithMany(l => l.Problems)
+                .HasForeignKey(p => p.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        // Lesson Resources
-        modelBuilder.Entity<LessonResource>()
-            .HasIndex(r => r.LessonId);
+        // 6. Lesson Resources
+        modelBuilder.Entity<LessonResource>(entity =>
+        {
+            entity.ToTable("lesson_resources");
+            entity.HasIndex(r => r.LessonId);
+            entity.HasOne(r => r.Lesson)
+                .WithMany(l => l.Resources)
+                .HasForeignKey(r => r.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        modelBuilder.Entity<LessonResource>()
-            .HasOne(r => r.Lesson)
-            .WithMany(l => l.Resources)
-            .HasForeignKey(r => r.LessonId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // 7. Knowledge Domains
+        modelBuilder.Entity<KnowledgeDomain>(entity =>
+        {
+            entity.ToTable("knowledge_domains");
+            entity.HasIndex(d => d.Slug).IsUnique();
+            entity.HasIndex(d => d.Code).IsUnique();
+        });
 
-        // Knowledge Domains
-        modelBuilder.Entity<KnowledgeDomain>()
-            .HasIndex(d => d.Slug)
-            .IsUnique();
+        // 8. Knowledge Concepts
+        modelBuilder.Entity<KnowledgeConcept>(entity =>
+        {
+            entity.ToTable("knowledge_concepts");
+            entity.HasIndex(c => c.Slug).IsUnique();
+        });
 
-        modelBuilder.Entity<KnowledgeDomain>()
-            .HasIndex(d => d.Code)
-            .IsUnique();
+        // 9. Domain-Concept Connections
+        modelBuilder.Entity<DomainConceptConnection>(entity =>
+        {
+            entity.ToTable("domain_concept_connections");
+            entity.HasIndex(dc => new { dc.DomainId, dc.ConceptId }).IsUnique();
+            entity.HasOne(dc => dc.Domain)
+                .WithMany(d => d.ConceptConnections)
+                .HasForeignKey(dc => dc.DomainId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(dc => dc.Concept)
+                .WithMany(c => c.DomainConnections)
+                .HasForeignKey(dc => dc.ConceptId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        // Knowledge Concepts
-        modelBuilder.Entity<KnowledgeConcept>()
-            .HasIndex(c => c.Slug)
-            .IsUnique();
+        // 10. Concept Prerequisites
+        modelBuilder.Entity<ConceptPrerequisite>(entity =>
+        {
+            entity.ToTable("concept_prerequisites");
+            entity.HasIndex(cp => new { cp.ConceptId, cp.PrerequisiteConceptId }).IsUnique();
+            entity.HasOne(cp => cp.Concept)
+                .WithMany(c => c.Prerequisites)
+                .HasForeignKey(cp => cp.ConceptId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(cp => cp.PrerequisiteConcept)
+                .WithMany(c => c.PrerequisiteFor)
+                .HasForeignKey(cp => cp.PrerequisiteConceptId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
-        // Domain-Concept Connections
-        modelBuilder.Entity<DomainConceptConnection>()
-            .HasIndex(dc => new { dc.DomainId, dc.ConceptId })
-            .IsUnique();
+        // 11. Concept Relations
+        modelBuilder.Entity<ConceptRelation>(entity =>
+        {
+            entity.ToTable("concept_relations");
+            entity.HasIndex(cr => new { cr.SourceConceptId, cr.TargetConceptId }).IsUnique();
+            entity.HasOne(cr => cr.SourceConcept)
+                .WithMany(c => c.OutgoingRelations)
+                .HasForeignKey(cr => cr.SourceConceptId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(cr => cr.TargetConcept)
+                .WithMany(c => c.IncomingRelations)
+                .HasForeignKey(cr => cr.TargetConceptId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
-        modelBuilder.Entity<DomainConceptConnection>()
-            .HasOne(dc => dc.Domain)
-            .WithMany(d => d.ConceptConnections)
-            .HasForeignKey(dc => dc.DomainId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // 12. Concept Next Lessons
+        modelBuilder.Entity<ConceptNextLesson>(entity =>
+        {
+            entity.ToTable("concept_next_lessons");
+            entity.HasIndex(cnl => cnl.ConceptId);
+            entity.HasOne(cnl => cnl.Concept)
+                .WithMany(c => c.NextLessons)
+                .HasForeignKey(cnl => cnl.ConceptId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(cnl => cnl.Lesson)
+                .WithMany()
+                .HasForeignKey(cnl => cnl.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
 
-        modelBuilder.Entity<DomainConceptConnection>()
-            .HasOne(dc => dc.Concept)
-            .WithMany(c => c.DomainConnections)
-            .HasForeignKey(dc => dc.ConceptId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // 13. Reading Map Items
+        modelBuilder.Entity<ReadingMapItem>(entity =>
+        {
+            entity.ToTable("reading_map_items", t =>
+            {
+                t.HasCheckConstraint("ck_reading_map_status", "status IN ('Planned', 'Reading', 'Completed', 'Revisited', 'Deferred', 'Archived')");
+                t.HasCheckConstraint("ck_reading_map_priority", "priority BETWEEN 0 AND 100");
+            });
+            entity.Property(r => r.Id).HasColumnName("Id");
+            entity.Property(r => r.Category).HasColumnName("Category");
+            entity.Property(r => r.Title).HasColumnName("Title");
+            entity.Property(r => r.SubText).HasColumnName("SubText");
+            entity.Property(r => r.OrderIndex).HasColumnName("OrderIndex");
+            entity.Property(r => r.IsCompleted).HasColumnName("IsCompleted");
+            entity.Property(r => r.CreatedAt).HasColumnName("CreatedAt");
+            entity.Property(r => r.UpdatedAt).HasColumnName("UpdatedAt");
 
-        // Concept Prerequisites
-        modelBuilder.Entity<ConceptPrerequisite>()
-            .HasIndex(cp => new { cp.ConceptId, cp.PrerequisiteConceptId })
-            .IsUnique();
+            entity.HasIndex(r => r.Category);
+            entity.HasIndex(r => new { r.Status, r.ScheduledFor, r.Priority })
+                .HasDatabaseName("ix_reading_map_status_schedule");
 
-        modelBuilder.Entity<ConceptPrerequisite>()
-            .HasOne(cp => cp.Concept)
-            .WithMany(c => c.Prerequisites)
-            .HasForeignKey(cp => cp.ConceptId)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(r => r.Lesson)
+                .WithMany(l => l.ReadingMapItems)
+                .HasForeignKey(r => r.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-        modelBuilder.Entity<ConceptPrerequisite>()
-            .HasOne(cp => cp.PrerequisiteConcept)
-            .WithMany(c => c.PrerequisiteFor)
-            .HasForeignKey(cp => cp.PrerequisiteConceptId)
-            .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(r => r.Task)
+                .WithMany()
+                .HasForeignKey(r => r.TaskId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
 
-        // Concept Relations
-        modelBuilder.Entity<ConceptRelation>()
-            .HasIndex(cr => new { cr.SourceConceptId, cr.TargetConceptId })
-            .IsUnique();
+        // 14. Reading Activity Logs
+        modelBuilder.Entity<ReadingActivityLog>(entity =>
+        {
+            entity.ToTable("reading_activity_logs");
+            entity.Property(a => a.Id).HasColumnName("Id");
+            entity.Property(a => a.DayLabel).HasColumnName("DayLabel");
+            entity.Property(a => a.ActivityCount).HasColumnName("ActivityCount");
+            entity.Property(a => a.OrderIndex).HasColumnName("OrderIndex");
+            entity.Property(a => a.LogDate).HasColumnName("LogDate");
+            entity.HasIndex(a => a.DayLabel);
+        });
 
-        modelBuilder.Entity<ConceptRelation>()
-            .HasOne(cr => cr.SourceConcept)
-            .WithMany(c => c.OutgoingRelations)
-            .HasForeignKey(cr => cr.SourceConceptId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // 15. Knowledge Threads
+        modelBuilder.Entity<KnowledgeThread>(entity =>
+        {
+            entity.ToTable("knowledge_threads");
+            entity.Property(k => k.Id).HasColumnName("Id");
+            entity.Property(k => k.Domain).HasColumnName("Domain");
+            entity.Property(k => k.RawPath).HasColumnName("RawPath");
+            entity.Property(k => k.OrderIndex).HasColumnName("OrderIndex");
+            entity.HasIndex(k => k.Domain);
+        });
 
-        modelBuilder.Entity<ConceptRelation>()
-            .HasOne(cr => cr.TargetConcept)
-            .WithMany(c => c.IncomingRelations)
-            .HasForeignKey(cr => cr.TargetConceptId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // 16. Lesson Code Comparisons
+        modelBuilder.Entity<LessonCodeComparison>(entity =>
+        {
+            entity.ToTable("lesson_code_comparisons");
+            entity.HasIndex(c => c.LessonId);
+            entity.HasOne(c => c.Lesson)
+                .WithMany(l => l.CodeComparisons)
+                .HasForeignKey(c => c.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        // Concept Next Lessons
-        modelBuilder.Entity<ConceptNextLesson>()
-            .HasIndex(cnl => cnl.ConceptId);
+        // 17. Lesson Diagrams
+        modelBuilder.Entity<LessonDiagram>(entity =>
+        {
+            entity.ToTable("lesson_diagrams");
+            entity.HasIndex(d => d.LessonId);
+            entity.HasOne(d => d.Lesson)
+                .WithMany(l => l.Diagrams)
+                .HasForeignKey(d => d.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        modelBuilder.Entity<ConceptNextLesson>()
-            .HasOne(cnl => cnl.Concept)
-            .WithMany(c => c.NextLessons)
-            .HasForeignKey(cnl => cnl.ConceptId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // 18. Lesson Notes
+        modelBuilder.Entity<LessonNote>(entity =>
+        {
+            entity.ToTable("lesson_notes");
+            entity.HasIndex(n => new { n.LessonId, n.NoteType });
+            entity.HasOne(n => n.Lesson)
+                .WithMany(l => l.Notes)
+                .HasForeignKey(n => n.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        modelBuilder.Entity<ConceptNextLesson>()
-            .HasOne(cnl => cnl.Lesson)
-            .WithMany()
-            .HasForeignKey(cnl => cnl.LessonId)
-            .OnDelete(DeleteBehavior.SetNull);
+        // ============================================================================
+        // 19. Phase 2 Bridge Schema Configurations
+        // ============================================================================
 
-        // Reading Map Items
-        modelBuilder.Entity<ReadingMapItem>()
-            .HasIndex(r => r.Category);
+        // CourseDomainLink (Composite PK)
+        modelBuilder.Entity<CourseDomainLink>(entity =>
+        {
+            entity.ToTable("course_domain_links");
+            entity.HasKey(cd => new { cd.CourseId, cd.DomainId });
+            entity.HasOne(cd => cd.Course)
+                .WithMany(c => c.DomainLinks)
+                .HasForeignKey(cd => cd.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(cd => cd.Domain)
+                .WithMany(d => d.CourseLinks)
+                .HasForeignKey(cd => cd.DomainId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(cd => new { cd.DomainId, cd.OrderIndex })
+                .HasDatabaseName("ix_course_domain_links_domain_id");
+        });
 
-        // Reading Activity Logs
-        modelBuilder.Entity<ReadingActivityLog>()
-            .HasIndex(a => a.DayLabel);
+        // LessonConceptLink (Composite PK & Check Constraint)
+        modelBuilder.Entity<LessonConceptLink>(entity =>
+        {
+            entity.ToTable("lesson_concept_links", t =>
+            {
+                t.HasCheckConstraint("ck_lesson_concept_relationship", "relationship_type IN ('Primary', 'Related', 'PrerequisiteContext')");
+            });
+            entity.HasKey(lc => new { lc.LessonId, lc.ConceptId, lc.RelationshipType });
+            entity.HasOne(lc => lc.Lesson)
+                .WithMany(l => l.ConceptLinks)
+                .HasForeignKey(lc => lc.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(lc => lc.Concept)
+                .WithMany(c => c.LessonLinks)
+                .HasForeignKey(lc => lc.ConceptId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(lc => new { lc.ConceptId, lc.RelationshipType, lc.OrderIndex })
+                .HasDatabaseName("ix_lesson_concept_links_concept");
+        });
 
-        // Knowledge Threads
-        modelBuilder.Entity<KnowledgeThread>()
-            .HasIndex(k => k.Domain);
+        // LessonRelation
+        modelBuilder.Entity<LessonRelation>(entity =>
+        {
+            entity.ToTable("lesson_relations", t =>
+            {
+                t.HasCheckConstraint("ck_lesson_relation_type", "relationship_type IN ('Prerequisite', 'Related', 'Next')");
+                t.HasCheckConstraint("ck_lesson_relation_resolution", "resolution_status IN ('Unresolved', 'Resolved', 'External')");
+                t.HasCheckConstraint("ck_lesson_relation_target", "target_lesson_id IS NOT NULL OR length(trim(target_title)) > 0");
+            });
+            entity.HasKey(lr => lr.Id);
+            entity.HasOne(lr => lr.SourceLesson)
+                .WithMany(l => l.OutgoingRelations)
+                .HasForeignKey(lr => lr.SourceLessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(lr => lr.TargetLesson)
+                .WithMany(l => l.IncomingRelations)
+                .HasForeignKey(lr => lr.TargetLessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(lr => new { lr.SourceLessonId, lr.RelationshipType, lr.TargetTitle })
+                .IsUnique()
+                .HasDatabaseName("ux_lesson_relations_identity");
+            entity.HasIndex(lr => lr.TargetLessonId)
+                .HasDatabaseName("ix_lesson_relations_target_lesson");
+        });
 
-        // Lesson Code Comparisons
-        modelBuilder.Entity<LessonCodeComparison>()
-            .HasIndex(c => c.LessonId);
+        // StudyTaskContentLink (Exclusive Arc Check & Restrict delete on Lesson/Problem)
+        modelBuilder.Entity<StudyTaskContentLink>(entity =>
+        {
+            entity.ToTable("study_task_content_links", t =>
+            {
+                t.HasCheckConstraint("ck_task_content_exactly_one_target", "num_nonnulls(lesson_id, problem_id) = 1");
+                t.HasCheckConstraint("ck_task_content_mapping_type", "mapping_type IN ('Exact', 'TitleAndModule', 'Manual', 'DuplicateAlias')");
+                t.HasCheckConstraint("ck_task_content_mapping_status", "mapping_status IN ('Proposed', 'Verified', 'Rejected')");
+                t.HasCheckConstraint("ck_task_content_confidence", "confidence >= 0 AND confidence <= 1");
+            });
+            entity.HasKey(tc => tc.TaskId);
+            entity.HasOne(tc => tc.Task)
+                .WithOne(t => t.ContentLink)
+                .HasForeignKey<StudyTaskContentLink>(tc => tc.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(tc => tc.Lesson)
+                .WithMany(l => l.LegacyTaskLinks)
+                .HasForeignKey(tc => tc.LessonId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(tc => tc.Problem)
+                .WithMany(p => p.LegacyTaskLinks)
+                .HasForeignKey(tc => tc.ProblemId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(tc => tc.LessonId)
+                .HasDatabaseName("ix_task_content_links_lesson");
+            entity.HasIndex(tc => tc.ProblemId)
+                .HasDatabaseName("ix_task_content_links_problem");
+        });
 
-        modelBuilder.Entity<LessonCodeComparison>()
-            .HasOne(c => c.Lesson)
-            .WithMany(l => l.CodeComparisons)
-            .HasForeignKey(c => c.LessonId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // LearningActivity
+        modelBuilder.Entity<LearningActivity>(entity =>
+        {
+            entity.ToTable("learning_activity", t =>
+            {
+                t.HasCheckConstraint("ck_learning_activity_event_type",
+                    "event_type IN ('LessonCompleted', 'LessonReopened', 'ProblemCompleted', 'ProblemReopened', 'TaskCompleted', 'TaskReopened', 'ReadingScheduled', 'ReadingDeferred', 'ReadingRevisited', 'NoteCreated', 'ChapterImported')");
+            });
+            entity.HasKey(la => la.Id);
+            entity.HasOne(la => la.Lesson)
+                .WithMany()
+                .HasForeignKey(la => la.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(la => la.Problem)
+                .WithMany()
+                .HasForeignKey(la => la.ProblemId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(la => la.Task)
+                .WithMany()
+                .HasForeignKey(la => la.TaskId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(la => la.ReadingMapItem)
+                .WithMany()
+                .HasForeignKey(la => la.ReadingMapItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(la => new { la.CorrelationId, la.EventType })
+                .IsUnique()
+                .HasDatabaseName("ux_learning_activity_correlation_event");
+            entity.HasIndex(la => la.OccurredAt)
+                .HasDatabaseName("ix_learning_activity_occurred_at");
+            entity.HasIndex(la => new { la.LessonId, la.OccurredAt })
+                .HasDatabaseName("ix_learning_activity_lesson");
+        });
 
-        // Lesson Diagrams
-        modelBuilder.Entity<LessonDiagram>()
-            .HasIndex(d => d.LessonId);
+        // KnowledgeThreadStep (Composite PK)
+        modelBuilder.Entity<KnowledgeThreadStep>(entity =>
+        {
+            entity.ToTable("knowledge_thread_steps", t =>
+            {
+                t.HasCheckConstraint("ck_knowledge_thread_step_label", "length(trim(label)) > 0");
+            });
+            entity.HasKey(kts => new { kts.ThreadId, kts.OrderIndex });
+            entity.HasOne(kts => kts.Thread)
+                .WithMany(kt => kt.Steps)
+                .HasForeignKey(kts => kts.ThreadId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(kts => kts.Concept)
+                .WithMany(kc => kc.ThreadSteps)
+                .HasForeignKey(kts => kts.ConceptId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(kts => kts.Lesson)
+                .WithMany()
+                .HasForeignKey(kts => kts.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(kts => kts.ConceptId)
+                .HasDatabaseName("ix_knowledge_thread_steps_concept");
+        });
 
-        modelBuilder.Entity<LessonDiagram>()
-            .HasOne(d => d.Lesson)
-            .WithMany(l => l.Diagrams)
-            .HasForeignKey(d => d.LessonId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Lesson Notes
-        modelBuilder.Entity<LessonNote>()
-            .HasIndex(n => new { n.LessonId, n.NoteType });
-
-        modelBuilder.Entity<LessonNote>()
-            .HasOne(n => n.Lesson)
-            .WithMany(l => l.Notes)
-            .HasForeignKey(n => n.LessonId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // MigrationReconciliation
+        modelBuilder.Entity<MigrationReconciliation>(entity =>
+        {
+            entity.ToTable("migration_reconciliation", t =>
+            {
+                t.HasCheckConstraint("ck_migration_reconciliation_status", "status IN ('Discovered', 'Mapped', 'Applied', 'Verified', 'Conflict', 'Skipped')");
+            });
+            entity.HasKey(mr => mr.Id);
+            entity.HasIndex(mr => new { mr.MigrationKey, mr.SourceType, mr.SourceId })
+                .IsUnique()
+                .HasDatabaseName("ux_migration_reconciliation_identity");
+            entity.HasIndex(mr => new { mr.MigrationKey, mr.Status })
+                .HasDatabaseName("ix_migration_reconciliation_status");
+        });
     }
 }

@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using StudyTracker.Api.Data;
+using StudyTracker.Api.Endpoints;
 using StudyTracker.Api.Models;
+using StudyTracker.Api.Services;
+using StudyTracker.Api.Services.Reconciliation;
 using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +41,19 @@ builder.Services.AddDbContext<StudyTrackerContext>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddProblemDetails();
+
+// Phase 4 Services & Reconciliation Engine DI
+builder.Services.AddScoped<ProgressService>();
+builder.Services.AddScoped<LearningPathQueryService>();
+builder.Services.AddScoped<AtlasQueryService>();
+builder.Services.AddScoped<ReadingMapService>();
+builder.Services.AddScoped<CurriculumImportService>();
+builder.Services.AddScoped<JavaReconciler>();
+builder.Services.AddScoped<FdeReconciler>();
+builder.Services.AddScoped<AzureLabsReconciler>();
+builder.Services.AddScoped<AtlasReadingReconciler>();
+builder.Services.AddScoped<ReconciliationEngine>();
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
@@ -51,12 +67,12 @@ builder.Services.AddCors(options =>
     {
         var frontendUrl = builder.Configuration["frontend_url"];
         var allowedOrigins = new List<string> { "http://localhost:5173" };
-        
+
         if (!string.IsNullOrWhiteSpace(frontendUrl))
         {
             allowedOrigins.Add(frontendUrl.TrimEnd('/'));
         }
-        
+
         policy.WithOrigins(allowedOrigins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod();
@@ -65,7 +81,164 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ---------------------------------------------------------
+// CLI Execution Modes: --migrate, --seed-reference-data, --reconcile-content
+// ---------------------------------------------------------
+if (args.Contains("--migrate"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        logger.LogInformation("[CLI] Executing database schema migration (--migrate)...");
+        await db.Database.MigrateAsync();
+        logger.LogInformation("[CLI] Database schema migration completed successfully.");
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "[CLI] Database schema migration failed critically.");
+        Environment.ExitCode = 1;
+        return 1;
+    }
+}
+
+if (args.Contains("--seed-reference-data") || args.Contains("--seed"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        logger.LogInformation("[CLI] Executing reference data seeding (--seed-reference-data)...");
+        DbSeeder.Initialize(db);
+        logger.LogInformation("[CLI] Reference data seeding completed successfully.");
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "[CLI] Reference data seeding failed critically.");
+        Environment.ExitCode = 1;
+        return 1;
+    }
+}
+
+if (args.Contains("--reconcile-content"))
+{
+    using var scope = app.Services.CreateScope();
+    var engine = scope.ServiceProvider.GetRequiredService<ReconciliationEngine>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var scopeArg = "all";
+        var scopeIdx = Array.IndexOf(args, "--scope");
+        if (scopeIdx >= 0 && scopeIdx + 1 < args.Length)
+        {
+            scopeArg = args[scopeIdx + 1];
+        }
+
+        var mode = ReconciliationExecutionMode.DryRun;
+        if (args.Contains("--apply")) mode = ReconciliationExecutionMode.Apply;
+        else if (args.Contains("--verify")) mode = ReconciliationExecutionMode.Verify;
+
+        logger.LogInformation("[CLI] Executing Reconciliation Engine (Scope: {Scope}, Mode: {Mode})...", scopeArg, mode);
+        var reports = await engine.ExecuteAsync(new ReconciliationOptions { Scope = scopeArg, Mode = mode });
+        logger.LogInformation("[CLI] Reconciliation completed with {Count} reports.", reports.Count);
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "[CLI] Reconciliation failed critically.");
+        Environment.ExitCode = 1;
+        return 1;
+    }
+}
+
+// ---------------------------------------------------------
+// Startup Database Readiness Verification (Fail-Fast in Production)
+// ---------------------------------------------------------
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        logger.LogInformation("Verifying database connectivity and schema readiness on startup...");
+        var canConnect = db.Database.CanConnect();
+        if (!canConnect)
+        {
+            if (app.Environment.IsProduction())
+            {
+                throw new InvalidOperationException("Cannot connect to the production database.");
+            }
+            logger.LogWarning("Database is not reachable in development mode.");
+        }
+        else
+        {
+            var pendingMigrations = db.Database.GetPendingMigrations().ToList();
+            if (pendingMigrations.Count > 0)
+            {
+                var msg = $"Database schema has {pendingMigrations.Count} pending migrations. Run application with '--migrate' CLI flag before starting web service.";
+                if (app.Environment.IsProduction())
+                {
+                    logger.LogError("Production schema mismatch: {Message}", msg);
+                    throw new InvalidOperationException(msg);
+                }
+                logger.LogWarning("Development database warning: {Message}", msg);
+            }
+            else
+            {
+                logger.LogInformation("Database connectivity and schema verified. 0 pending migrations.");
+            }
+        }
+    }
+    catch (Exception ex) when (!app.Environment.IsProduction())
+    {
+        logger.LogWarning(ex, "Startup database verification warning in Development mode: {Message}", ex.Message);
+    }
+}
+
+// ---------------------------------------------------------
+// Middleware: Correlation ID & Centralized Problem Details
+// ---------------------------------------------------------
+app.Use(async (context, next) =>
+{
+    var correlationId = context.Request.Headers["x-correlation-id"].FirstOrDefault() ?? Guid.NewGuid().ToString("N");
+    context.TraceIdentifier = correlationId;
+    context.Response.Headers["x-correlation-id"] = correlationId;
+
+    try
+    {
+        await next(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Unhandled exception on {Method} {Path} (CorrelationId: {CorrelationId})",
+            context.Request.Method, context.Request.Path, correlationId);
+
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/problem+json";
+
+            var problem = new
+            {
+                type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                title = "An internal error occurred processing your request.",
+                status = 500,
+                detail = app.Environment.IsDevelopment() ? ex.Message : "Internal server error. Please refer to traceId for support.",
+                instance = context.Request.Path.Value,
+                traceId = correlationId
+            };
+
+            await context.Response.WriteAsJsonAsync(problem);
+        }
+    }
+});
+
+// Configure Swagger in Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -78,8 +251,8 @@ app.UseCors("AllowVite");
 // Apply API Key security
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path.StartsWithSegments("/health") || 
-        context.Request.Path.StartsWithSegments("/swagger") || 
+    if (context.Request.Path.StartsWithSegments("/health") ||
+        context.Request.Path.StartsWithSegments("/swagger") ||
         context.Request.Method == "OPTIONS")
     {
         await next(context);
@@ -93,7 +266,16 @@ app.Use(async (context, next) =>
         {
             app.Logger.LogError("API key is not configured in production environment.");
             context.Response.StatusCode = 500;
-            await context.Response.WriteAsync("Internal Server Error: API key is not configured.");
+            context.Response.ContentType = "application/problem+json";
+            await context.Response.WriteAsJsonAsync(new
+            {
+                type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                title = "Internal Server Error",
+                status = 500,
+                detail = "API key configuration is required in production.",
+                instance = context.Request.Path.Value,
+                traceId = context.TraceIdentifier
+            });
             return;
         }
 
@@ -105,55 +287,108 @@ app.Use(async (context, next) =>
     if (!context.Request.Headers.TryGetValue("x-api-key", out var extractedApiKey) || extractedApiKey != expectedApiKey)
     {
         context.Response.StatusCode = 401;
-        await context.Response.WriteAsync("Unauthorized: Invalid or missing API Key.");
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            type = "https://tools.ietf.org/html/rfc7235#section-3.1",
+            title = "Unauthorized",
+            status = 401,
+            detail = "Invalid or missing API Key.",
+            instance = context.Request.Path.Value,
+            traceId = context.TraceIdentifier
+        });
         return;
     }
 
     await next(context);
 });
 
-// Health check endpoint for Docker Compose & CI/CD verification
-app.MapGet("/health", async (StudyTrackerContext db) =>
+// ---------------------------------------------------------
+// Health Check Endpoints: /health/live, /health/ready, /health
+// ---------------------------------------------------------
+app.MapGet("/health/live", () =>
+    Results.Ok(new {
+        status = "Live",
+        timestamp = DateTime.UtcNow
+    }))
+    .WithName("HealthLiveCheck");
+
+app.MapGet("/health/ready", async (StudyTrackerContext db, ILogger<Program> logger) =>
 {
     try
     {
         var canConnect = await db.Database.CanConnectAsync();
-        if (canConnect)
+        if (!canConnect)
         {
-            return Results.Ok(new { status = "Healthy", database = "Connected", timestamp = DateTime.UtcNow });
+            return Results.Json(new {
+                status = "Unhealthy",
+                database = "Disconnected",
+                error = "Database connection unavailable",
+                timestamp = DateTime.UtcNow
+            }, statusCode: 503);
         }
-        return Results.Json(new { status = "Unhealthy", database = "Disconnected" }, statusCode: 503);
+
+        var pendingMigrations = (await db.Database.GetPendingMigrationsAsync()).ToList();
+        if (pendingMigrations.Count > 0)
+        {
+            return Results.Json(new {
+                status = "Unhealthy",
+                database = "Connected",
+                error = "Pending database migrations exist",
+                pendingMigrations = pendingMigrations,
+                timestamp = DateTime.UtcNow
+            }, statusCode: 503);
+        }
+
+        var appliedMigrations = (await db.Database.GetAppliedMigrationsAsync()).ToList();
+        return Results.Ok(new {
+            status = "Ready",
+            database = "Connected",
+            appliedMigrationsCount = appliedMigrations.Count,
+            timestamp = DateTime.UtcNow
+        });
     }
     catch (Exception ex)
     {
-        app.Logger.LogError(ex, "Health check database connection failed.");
+        logger.LogError(ex, "Readiness health check failed.");
+        return Results.Json(new {
+            status = "Unhealthy",
+            error = "Database readiness check encountered an error",
+            timestamp = DateTime.UtcNow
+        }, statusCode: 503);
+    }
+}).WithName("HealthReadyCheck");
+
+// /health kept as backward-compatible alias to readiness
+app.MapGet("/health", async (StudyTrackerContext db, ILogger<Program> logger) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (!canConnect)
+        {
+            return Results.Json(new { status = "Unhealthy", database = "Disconnected" }, statusCode: 503);
+        }
+
+        var pendingMigrations = (await db.Database.GetPendingMigrationsAsync()).ToList();
+        if (pendingMigrations.Count > 0)
+        {
+            return Results.Json(new {
+                status = "Unhealthy",
+                database = "Connected",
+                error = "Pending database migrations exist",
+                pendingCount = pendingMigrations.Count
+            }, statusCode: 503);
+        }
+
+        return Results.Ok(new { status = "Healthy", database = "Connected", timestamp = DateTime.UtcNow });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Health check database connection failed.");
         return Results.Json(new { status = "Unhealthy", error = "Database connection error" }, statusCode: 503);
     }
 }).WithName("HealthCheck");
-
-// Check if running as a separate script to populate data
-if (args.Contains("--seed"))
-{
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
-    DbSeeder.Initialize(db);
-    return; // Exit script after seeding
-}
-
-// Apply schema migrations & idempotent seed on startup
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
-    try
-    {
-        db.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Database migration notice: {ex.Message}");
-    }
-    DbSeeder.Initialize(db);
-}
 
 app.MapGet("/", () => "StudyTracker API is running. Use /health for service health.");
 
@@ -256,18 +491,22 @@ app.MapPost("/api/verticals/ingest", async (IngestRequest req, StudyTrackerConte
 })
 .WithName("IngestVerticalMarkdown");
 
-app.MapPut("/api/tasks/{id:int}/toggle", async (int id, StudyTrackerContext db) =>
+app.MapPut("/api/tasks/{id:int}/toggle", async (int id, StudyTrackerContext db, ProgressService progressService) =>
 {
     var task = await db.Tasks.FindAsync(id);
     if (task == null)
     {
         return Results.NotFound();
     }
-    
-    task.IsCompleted = !task.IsCompleted;
-    await db.SaveChangesAsync();
-    
-    return Results.Ok(task);
+
+    var result = await progressService.SetTaskCompletionAsync(id, !task.IsCompleted);
+    if (!result.Success)
+    {
+        return Results.BadRequest(new { error = result.Error });
+    }
+
+    var updatedTask = await db.Tasks.FindAsync(id);
+    return Results.Ok(updatedTask);
 })
 .WithName("ToggleTask");
 
@@ -1089,7 +1328,12 @@ app.MapPost("/api/chapters/map", async (MapChapterRequest req, StudyTrackerConte
 })
 .WithName("MapCurriculumChapter");
 
+// Map Phase 4 & 4B Redesigned Endpoints
+app.MapV2Endpoints();
+app.MapImportEndpoints();
+
 app.Run();
+return 0;
 
 // Helper method for assembling ChapterDetailDto
 async Task<IResult> BuildChapterDetailResponse(

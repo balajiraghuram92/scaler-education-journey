@@ -3,36 +3,36 @@ import { useParams, Link } from 'react-router-dom';
 import { CheckCircle2, ChevronRight, LayoutGrid } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import JavaPracticeDashboard from '../components/JavaPracticeDashboard';
+import { api } from '../api/client';
+import { LoadingState, ErrorState, EmptyState } from '../components/common/StateViews';
 import './VerticalDetail.css';
 
 export default function VerticalDetail() {
   const { id } = useParams();
   const [vertical, setVertical] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeModule, setActiveModule] = useState(null);
 
-  const fetchVertical = useCallback(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`, {
-      headers: {
-        'x-api-key': import.meta.env.VITE_API_KEY || ''
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        const found = data.find(v => v.id === parseInt(id));
-        setVertical(found);
+  const fetchVertical = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.legacy.getVerticals();
+      const found = Array.isArray(data) ? data.find(v => v.id === parseInt(id)) : null;
+      setVertical(found);
 
-        const isModular = found && (found.layoutMode === "Modular" || (found.tasks && found.tasks.some(t => t.module && t.module !== "General" && t.module !== "Flat")));
-        if (found && isModular && found.tasks.length > 0) {
-          const firstMod = found.tasks[0].module || "Prerequisite: Agentic AI Core";
-          setActiveModule(firstMod);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to fetch vertical:', err);
-        setLoading(false);
-      });
+      const isModular = found && (found.layoutMode === "Modular" || (found.tasks && found.tasks.some(t => t.module && t.module !== "General" && t.module !== "Flat")));
+      if (found && isModular && found.tasks.length > 0) {
+        const firstMod = found.tasks[0].module || "Prerequisite: Agentic AI Core";
+        setActiveModule(firstMod);
+      }
+    } catch (err) {
+      console.error('Failed to fetch vertical:', err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => {
@@ -41,15 +41,7 @@ export default function VerticalDetail() {
 
   const toggleTask = async (taskId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/tasks/${taskId}/toggle`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_API_KEY || ''
-        },
-      });
-      const updatedTask = await response.json();
-
+      const updatedTask = await api.legacy.toggleTask(taskId);
       setVertical(prev => {
         if (!prev) return null;
         return {
@@ -64,8 +56,9 @@ export default function VerticalDetail() {
     }
   };
 
-  if (loading) return <div className="container mt-xl"><p className="text-secondary">Loading...</p></div>;
-  if (!vertical) return <div className="container mt-xl"><p className="text-secondary">Vertical not found</p></div>;
+  if (loading) return <LoadingState message="Opening learning vertical..." />;
+  if (error) return <ErrorState error={error} onRetry={fetchVertical} title="Failed to Load Vertical" />;
+  if (!vertical) return <EmptyState message="Vertical not found." />;
 
   // Check if this is the Java & Spring Architecture vertical
   const isJavaVertical = vertical.name.toLowerCase().includes('java') || 

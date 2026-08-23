@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Plus, Calendar, Shield } from 'lucide-react';
 import CodeComparisonSwitcher from '../components/CodeComparisonSwitcher';
+import { api } from '../api/client';
+import { LoadingState, ErrorState, DevFixturesBanner } from '../components/common/StateViews';
 import './ChapterReader.css';
 
 export default function ChapterReader() {
@@ -11,6 +13,7 @@ export default function ChapterReader() {
   const [chapter, setChapter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDevFixture, setIsDevFixture] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState('introduction');
   const [personalNotesList, setPersonalNotesList] = useState([]);
   const [newNoteText, setNewNoteText] = useState('');
@@ -23,47 +26,40 @@ export default function ChapterReader() {
     return 'structured-concurrency'; // default flagship
   }, [slug, lessonSlug]);
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchChapter = async () => {
     setLoading(true);
     setError(null);
+    setIsDevFixture(false);
 
-    const endpoint = verticalOrCourseSlug && moduleSlug && lessonSlug
-      ? `/api/chapters/${verticalOrCourseSlug}/${moduleSlug}/${lessonSlug}`
-      : `/api/chapters/${targetSlug}`;
+    try {
+      let data = null;
+      if (verticalOrCourseSlug && moduleSlug && lessonSlug) {
+        data = await api.v2.getChapter(verticalOrCourseSlug, moduleSlug, lessonSlug);
+      } else {
+        data = await api.legacy.getChapterBySlug(targetSlug);
+      }
 
-    fetch(endpoint)
-      .then((res) => {
-        if (!res.ok) {
-          // Fallback to generic chapters list or mock
-          return fetch(`/api/chapters/${targetSlug}`).then(r => {
-            if (!r.ok) throw new Error(`Chapter '${targetSlug}' not found.`);
-            return r.json();
-          });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (isMounted) {
-          setChapter(data);
-          setPersonalNotesList(data.notes || []);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        console.warn('API fetch warning, using local fallback state:', err);
-        if (isMounted) {
-          // Provide rich local state matching Learning-homepage.png if API is unreachable
-          const fallbackData = getFallbackChapter(targetSlug);
-          setChapter(fallbackData);
-          setPersonalNotesList(fallbackData.notes || []);
-          setLoading(false);
-        }
-      });
+      if (data) {
+        setChapter(data);
+        setPersonalNotesList(data.notes || []);
+      }
+    } catch (err) {
+      console.warn('API fetch warning for chapter:', err);
+      if (import.meta.env.VITE_ENABLE_DEV_FIXTURES === 'true') {
+        setIsDevFixture(true);
+        const fallbackData = getFallbackChapter(targetSlug);
+        setChapter(fallbackData);
+        setPersonalNotesList(fallbackData.notes || []);
+      } else {
+        setError(err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    fetchChapter();
   }, [targetSlug, verticalOrCourseSlug, moduleSlug, lessonSlug]);
 
   // ScrollSpy Intersection Observer
@@ -98,49 +94,30 @@ export default function ChapterReader() {
     };
 
     try {
-      const res = await fetch(`/api/chapters/${chapter.id}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newNote)
-      });
-      if (res.ok) {
-        const saved = await res.json();
-        setPersonalNotesList([...personalNotesList, saved]);
-        setNewNoteText('');
-        setIsAddingNote(false);
-      }
+      const res = await api.post(`/api/lessons/${chapter.id}/notes`, newNote);
+      setPersonalNotesList(prev => [res, ...prev]);
+      setNewNoteText('');
+      setIsAddingNote(false);
     } catch (err) {
-      // Optimistic local add
-      setPersonalNotesList([
-        ...personalNotesList,
-        { id: Date.now(), ...newNote, updatedAt: new Date().toISOString() }
-      ]);
+      console.error('Failed to save note:', err);
+      // Fallback local reflection
+      setPersonalNotesList(prev => [{
+        id: Date.now(),
+        title: 'Field Reflection (Local)',
+        contentBody: newNoteText.trim(),
+        createdAt: new Date().toISOString()
+      }, ...prev]);
       setNewNoteText('');
       setIsAddingNote(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="chapter-reader-page">
-        <div className="chapter-reader-loading">
-          <div className="reader-spinner" />
-          <p>Opening knowledge chamber...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Opening manuscript chapter chamber..." />;
   }
 
   if (error || !chapter) {
-    return (
-      <div className="chapter-reader-page">
-        <div className="chapter-reader-error">
-          <h3>Chapter Not Available</h3>
-          <p>{error || 'Could not load chapter content.'}</p>
-          <Link to="/learning" className="back-link">← Return to Learning Atlas</Link>
-        </div>
-      </div>
-    );
+    return <ErrorState error={error} onRetry={fetchChapter} title="Chapter Not Available" />;
   }
 
   // Generate Table of Contents
@@ -156,6 +133,7 @@ export default function ChapterReader() {
 
   return (
     <div className="chapter-reader-page">
+      {isDevFixture && <DevFixturesBanner />}
       {/* Top Editorial Panel Tag */}
       <div className="chapter-reader-top-strip">
         <div className="top-strip-inner">

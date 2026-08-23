@@ -57,4 +57,6 @@ public class KnowledgeConcept
     public ICollection<ConceptRelation> OutgoingRelations { get; set; } = new List<ConceptRelation>();
     public ICollection<ConceptRelation> IncomingRelations { get; set; } = new List<ConceptRelation>();
     public ICollection<ConceptNextLesson> NextLessons { get; set; } = new List<ConceptNextLesson>();
+    public ICollection<LessonConceptLink> LessonLinks { get; set; } = new List<LessonConceptLink>();
+    public ICollection<KnowledgeThreadStep> ThreadSteps { get; set; } = new List<KnowledgeThreadStep>();
 }

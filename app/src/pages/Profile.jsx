@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
 import { User, GitBranch, Award, Terminal, Cpu, ShieldCheck, Zap, Cloud, CheckCircle2, Sparkles, UploadCloud } from 'lucide-react';
+import { api } from '../api/client';
 
 export default function Profile() {
   const [verticals, setVerticals] = useState([]);
 
-  const fetchVerticals = () => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals`, {
-      headers: {
-        'x-api-key': import.meta.env.VITE_API_KEY || ''
-      }
-    })
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
-        if (Array.isArray(data)) setVerticals(data);
-      })
-      .catch(() => {});
+  const fetchVerticals = async () => {
+    try {
+      const data = await api.legacy.getVerticals();
+      if (Array.isArray(data)) setVerticals(data);
+    } catch {
+      // Non-blocking for profile static highlights
+    }
   };
 
   useEffect(() => {
