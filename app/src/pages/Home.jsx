@@ -6,6 +6,34 @@ import { api } from '../api/client';
 import { ErrorState, LoadingState, DevFixturesBanner } from '../components/common/StateViews';
 import './Home.css';
 
+function normalizePrerequisite(prerequisite) {
+  if (typeof prerequisite === 'string') {
+    return { name: prerequisite };
+  }
+
+  if (prerequisite && typeof prerequisite === 'object') {
+    return {
+      name: prerequisite.name || prerequisite.title || prerequisite.prerequisiteTitle || 'Prerequisite',
+      status: prerequisite.status
+    };
+  }
+
+  return { name: 'Prerequisite' };
+}
+
+function normalizeLessonLabel(lesson, fallback) {
+  if (typeof lesson === 'string') {
+    return lesson;
+  }
+
+  if (lesson && typeof lesson === 'object') {
+    return lesson.lessonTitle || lesson.targetTitle || lesson.title ||
+      lesson.lessonSlug || lesson.targetSlug || fallback;
+  }
+
+  return fallback;
+}
+
 export default function Home() {
   const [atlasData, setAtlasData] = useState({
     domains: [],
@@ -34,9 +62,11 @@ export default function Home() {
           title: c.title,
           subLabel: c.subLabel || c.title,
           connectedDomains: c.domainIds || [],
-          prerequisites: c.prerequisites || [],
-          relatedLessons: c.outgoingRelations || [],
-          nextLessons: c.nextLessons || []
+          prerequisites: (c.prerequisites || []).map(normalizePrerequisite),
+          relatedLessons: (c.outgoingRelations || [])
+            .map(relation => normalizeLessonLabel(relation, 'Related Concept')),
+          nextLessons: (c.nextLessons || [])
+            .map(lesson => normalizeLessonLabel(lesson, 'Next Lesson'))
         }));
 
         setAtlasData({

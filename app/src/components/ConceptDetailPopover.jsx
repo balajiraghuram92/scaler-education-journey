@@ -3,6 +3,24 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import './ConceptDetailPopover.css';
 
+function getPrerequisiteLabel(prerequisite) {
+  if (typeof prerequisite === 'string') return prerequisite;
+  return prerequisite?.name || prerequisite?.title || prerequisite?.prerequisiteTitle || 'Prerequisite';
+}
+
+function getLessonLabel(lesson) {
+  if (typeof lesson === 'string') return lesson;
+  return lesson?.lessonTitle || lesson?.targetTitle || lesson?.title ||
+    lesson?.lessonSlug || lesson?.targetSlug || 'Related Lesson';
+}
+
+function getLessonSlug(lessonLabel) {
+  return lessonLabel.toLowerCase().includes('agent') ? 'building-an-ai-agent' :
+         lessonLabel.toLowerCase().includes('rag') ? 'rag-retrieval-augmented-generation' :
+         lessonLabel.toLowerCase().includes('oop') ? '03-oop-2-access-modifiers-encapsulation' :
+         'structured-concurrency';
+}
+
 export default function ConceptDetailPopover({ concept, isOpen, onClose }) {
   if (!isOpen || !concept) return null;
 
@@ -30,8 +48,8 @@ export default function ConceptDetailPopover({ concept, isOpen, onClose }) {
               {concept.prerequisites.map((p, idx) => (
                 <li key={idx} className="list-item">
                   <span className="bullet">•</span>
-                  <span className="item-text">{p.name || p}</span>
-                  {p.status && (
+                  <span className="item-text">{getPrerequisiteLabel(p)}</span>
+                  {p?.status && (
                     <span className="status-tag">({p.status})</span>
                   )}
                 </li>
@@ -46,15 +64,13 @@ export default function ConceptDetailPopover({ concept, isOpen, onClose }) {
             <h4 className="section-heading">Related Lessons</h4>
             <ul className="section-list">
               {concept.relatedLessons.map((lesson, idx) => {
-                const slug = lesson.toLowerCase().includes('agent') ? 'building-an-ai-agent' :
-                             lesson.toLowerCase().includes('rag') ? 'rag-retrieval-augmented-generation' :
-                             lesson.toLowerCase().includes('oop') ? '03-oop-2-access-modifiers-encapsulation' :
-                             'structured-concurrency';
+                const lessonLabel = getLessonLabel(lesson);
+                const slug = getLessonSlug(lessonLabel);
                 return (
                   <li key={idx} className="list-item">
                     <span className="bullet">•</span>
                     <Link to={`/chapter/${slug}`} className="item-text" style={{ color: '#2C5E55', textDecoration: 'none' }}>
-                      {lesson}
+                      {lessonLabel}
                     </Link>
                   </li>
                 );
@@ -69,15 +85,13 @@ export default function ConceptDetailPopover({ concept, isOpen, onClose }) {
             <h4 className="section-heading">Next Lessons</h4>
             <ul className="section-list">
               {concept.nextLessons.map((lesson, idx) => {
-                const slug = lesson.toLowerCase().includes('agent') ? 'building-an-ai-agent' :
-                             lesson.toLowerCase().includes('rag') ? 'rag-retrieval-augmented-generation' :
-                             lesson.toLowerCase().includes('oop') ? '03-oop-2-access-modifiers-encapsulation' :
-                             'structured-concurrency';
+                const lessonLabel = getLessonLabel(lesson);
+                const slug = getLessonSlug(lessonLabel);
                 return (
                   <li key={idx} className="list-item">
                     <span className="bullet">•</span>
                     <Link to={`/chapter/${slug}`} className="item-text" style={{ color: '#2C5E55', textDecoration: 'none' }}>
-                      {lesson}
+                      {lessonLabel}
                     </Link>
                   </li>
                 );

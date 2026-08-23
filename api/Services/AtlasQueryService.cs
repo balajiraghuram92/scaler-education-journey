@@ -60,9 +60,22 @@ public class AtlasQueryService
                 c.EstimatedHours,
                 c.OrderIndex,
                 domainIds = c.DomainConnections.Select(dc => dc.DomainId).ToList(),
-                prerequisites = c.Prerequisites.Select(p => new { p.PrerequisiteConceptId, p.Status }),
-                outgoingRelations = c.OutgoingRelations.Select(r => new { r.TargetConceptId, r.RelationshipType }),
-                nextLessons = c.NextLessons.Select(nl => new { nl.LessonId, nl.LessonSlug, nl.LessonTitle, nl.ModuleName })
+                prerequisites = c.Prerequisites.Select(p => new
+                {
+                    name = p.PrerequisiteConcept?.Title ?? "Prerequisite",
+                    p.PrerequisiteConceptId,
+                    p.Status
+                }),
+                outgoingRelations = c.OutgoingRelations.Select(r => new
+                {
+                    r.TargetConceptId,
+                    targetTitle = r.TargetConcept?.Title ?? "Related Concept",
+                    targetSlug = r.TargetConcept?.Slug ?? string.Empty,
+                    r.RelationshipType
+                }),
+                nextLessons = c.NextLessons
+                    .OrderBy(nl => nl.OrderIndex)
+                    .Select(nl => new { nl.LessonId, nl.LessonSlug, nl.LessonTitle, nl.ModuleName })
             })
         };
     }
