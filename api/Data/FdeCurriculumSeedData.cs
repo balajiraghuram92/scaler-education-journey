@@ -17,6 +17,97 @@ public static class FdeCurriculumSeedData
 
     private sealed record ModuleGuide(string Slug, string Title, string Description, string Badge, string ReferenceUrl, string DeliveryContext);
     private sealed record TopicBrief(string Focus, string Scenario, string Practice);
+    private sealed record SupplementalLessonDefinition(string Title, string Focus, string CoreConcepts, string Scenario, string Practice, string Evidence, int EstimatedMinutes = 75);
+    private sealed record SupplementalModuleDefinition(string Slug, string Title, string Description, string ReferenceUrl, string DeliveryContext, IReadOnlyList<SupplementalLessonDefinition> Lessons);
+
+    private static SupplementalLessonDefinition Lesson(
+        string title,
+        string focus,
+        string coreConcepts,
+        string scenario,
+        string practice,
+        string evidence,
+        int estimatedMinutes = 75) =>
+        new(title, focus, coreConcepts, scenario, practice, evidence, estimatedMinutes);
+
+    private static readonly IReadOnlyList<SupplementalModuleDefinition> SupplementalModules = new[]
+    {
+        new SupplementalModuleDefinition(
+            "elective-containerization-orchestration",
+            "Containerization and Orchestration",
+            "Package FDE applications reproducibly, run them safely, and operate their workloads with Kubernetes primitives.",
+            "https://docs.docker.com/get-started/",
+            "An FDE often turns a local proof of value into a customer-managed deployment. The handoff is credible only when the image, runtime contract, security posture, and recovery path are explicit.",
+            new[]
+            {
+                Lesson("Docker Introduction", "Understand the container boundary and the problem Docker solves for repeatable delivery.", "Images, containers, the Docker client and daemon, namespaces, cgroups, and the difference between packaging and orchestration.", "A customer prototype works on a laptop but fails during handoff because its operating-system assumptions were never captured.", "Run a small service in a container, record its inputs and outputs, and compare the container contract with the host-machine setup.", "You can explain what is isolated, what is shared with the host, and which operational concerns Docker does not solve by itself."),
+                Lesson("Docker Images and Containers", "Use image layers and container lifecycle deliberately instead of treating a running container as a permanent server.", "Image manifests, layers, tags, registries, writable container layers, process lifecycles, and immutable artifact promotion.", "A support team needs to reproduce the exact build that handled a production incident weeks earlier.", "Build two image tags from a small application, inspect their layers, run each with explicit configuration, and record the digest used for the test.", "You can identify the immutable artifact, runtime configuration, persistent state, and rollback point in a deployment."),
+                Lesson("Building Your Own Docker Image", "Write a small, reproducible Dockerfile that is fast to build and safe to run.", "Build context, cache ordering, multi-stage builds, dependency pinning, `.dockerignore`, entrypoints, and non-root execution.", "A customer image is large, slow to rebuild, and accidentally includes local credentials and test data.", "Create a multi-stage image, measure its size and build time, remove unnecessary context, and run it as a non-root user with a health check.", "The image can be rebuilt from a clean checkout, contains no secret or development artefact, and starts with a documented command."),
+                Lesson("Images and Containers Deep Dive", "Diagnose container behaviour by separating image construction, runtime configuration, process signals, and resource limits.", "PID 1, signal propagation, environment precedence, stdout/stderr logging, CPU and memory limits, exit codes, and health checks.", "A worker ignores termination and is killed during a rollout, leaving duplicate customer jobs behind.", "Instrument a worker, send termination signals, impose a memory limit, and capture the resulting lifecycle and exit behaviour.", "You can distinguish an application bug from an image entrypoint, signal, resource-limit, or health-check problem.", 90),
+                Lesson("Docker Volumes", "Choose when data belongs in a container filesystem and when it requires a durable storage boundary.", "Named volumes, bind mounts, storage ownership, backup scope, portability, and the twelve-factor boundary between code and state.", "A document-processing demo loses uploaded files whenever the container is recreated.", "Move state to a named volume, document its backup and restore path, and test recovery after removing and recreating the container.", "You can state what survives replacement, who owns the data, and how a customer would restore it."),
+                Lesson("Docker Networking Deep Dive", "Design container-to-container reachability without exposing internal services unnecessarily.", "Bridge networks, service discovery, ports versus exposed ports, DNS names, network isolation, and connection troubleshooting.", "An API can reach its database from one compose service but is accidentally published to the public host.", "Create a private application network, publish only the edge service, test service-name resolution, and capture the reachable surface.", "You can trace a request from host to edge to internal service and explain why each port is or is not exposed."),
+                Lesson("Hardening the Docker Environment (DevSecOps)", "Reduce container attack surface before a customer sees the first deployment.", "Minimal bases, non-root users, read-only filesystems, dropped capabilities, secret handling, SBOMs, image scanning, and signed promotion.", "A customer security review finds a root process, an unpinned base image, and credentials embedded in an image layer.", "Harden an image and runtime, scan it, inspect its metadata, and write the exceptions that still need customer approval.", "The hardening report names the remaining risks, their owners, and the evidence supporting each mitigation."),
+                Lesson("Industry-Standard Container Hardening Demo", "Demonstrate a repeatable container security review that a customer team can operate after handoff.", "Threat modelling, policy checks, vulnerability severity, provenance, admission criteria, and the difference between a scanner result and exploitable risk.", "A platform team needs a short, auditable demo showing why a release is allowed or blocked.", "Create a before-and-after image, run automated checks in CI, review one false positive, and publish a release decision with evidence.", "A teammate can reproduce the checks and understand the policy threshold without relying on the original FDE."),
+                Lesson("Introduction to Orchestration", "Recognize when independently managed containers need scheduling, service discovery, rollout, and recovery control.", "Desired state, reconciliation, scheduling, replica management, service identity, health signals, and the limits of manual container commands.", "A customer has several services and a worker fleet that must survive host replacement and uneven traffic.", "List the manual operations in the current deployment, map each to an orchestration capability, and identify the first workload worth migrating.", "You can justify orchestration from an operational need rather than from technology preference."),
+                Lesson("Kubernetes Architecture", "Navigate the Kubernetes control plane and workload objects well enough to debug a customer deployment.", "API server, controllers, scheduler, etcd, nodes, kubelet, container runtime, desired state, and declarative reconciliation.", "A deployment is accepted by the API but never becomes ready because scheduling and node capacity were misunderstood.", "Draw the control-plane request path, deploy a small workload, inspect events, and correlate desired state with observed state.", "You can explain which component owns a failed transition and which signal would confirm the diagnosis.", 90),
+                Lesson("Kubernetes Pod Deep Dive", "Use pods as the smallest scheduling and lifecycle unit without confusing them with durable application identity.", "Pod sandboxing, containers, shared network and volumes, init containers, probes, QoS, restart policy, and ephemeral identity.", "A sidecar must share files and localhost with an application, but the team expects the pod to be a permanent machine.", "Run an application with an init container and a sidecar, add readiness and liveness probes, and observe restart behaviour.", "You can choose a pod boundary, explain shared resources, and identify state that must live outside the pod.", 90),
+                Lesson("ReplicaSets, Deployments, and Sidecars", "Roll out application versions safely while keeping auxiliary behaviour observable and bounded.", "ReplicaSets, Deployments, rolling strategy, revision history, sidecar responsibilities, termination order, and configuration separation.", "A customer wants request tracing added without changing application code, but the sidecar increases startup and resource cost.", "Deploy two revisions, force a failed rollout, roll back, and measure the sidecar's effect on readiness and resource requests.", "You can prove which revision served traffic and describe the failure and rollback path."),
+                Lesson("Kubernetes Networking", "Reason about service discovery and ingress as explicit traffic and trust boundaries.", "Services, cluster DNS, ClusterIP, NodePort, ingress, endpoint readiness, network plugins, and east-west versus north-south traffic.", "An internal worker must call an API, while only the customer portal should be reachable from outside the cluster.", "Expose the API internally, route the portal through ingress, test readiness changes, and document the traffic policy.", "You can trace a request to its service endpoints and identify where authorization or network policy belongs.", 90),
+                Lesson("Kubernetes Scaling: HPA, Cluster Autoscaler, VPA, and Karpenter", "Select a scaling mechanism based on workload signals, placement latency, and customer cost constraints.", "Pod replicas, CPU and custom metrics, HPA, node-group autoscaling, VPA recommendations, Karpenter provisioning, and stabilization windows.", "A bursty inference workload scales pods but remains pending because the cluster has no suitable capacity.", "Create a load experiment, observe pod and node signals, compare HPA with node provisioning, and record the cost and latency trade-off.", "You can state which layer is saturated, which scaler responds, and how oscillation or runaway cost is controlled.", 90),
+                Lesson("Kubernetes Scaling and Network Policies", "Combine capacity planning with least-privilege traffic so scaling does not silently widen access.", "Resource requests and limits, autoscaling signals, policy selectors, ingress and egress rules, default deny, and policy testing.", "A newly scaled worker needs database access but should not reach the administrative API or the public internet.", "Apply a default-deny policy, allow the required paths, scale the workload, and test both an expected and forbidden connection.", "The deployment remains functional under scale and the policy test proves the intended blast radius."),
+                Lesson("Kubernetes Security: RBAC and DevSecOps", "Make Kubernetes permissions narrow, auditable, and compatible with a customer security review.", "Users, groups, service accounts, Roles, ClusterRoles, bindings, impersonation, secret access, image policy, and admission controls.", "A debugging service account has cluster-admin permissions because a quick demo never separated observation from mutation.", "Create read-only and deployer identities, inspect their allowed verbs, remove the excessive binding, and record an emergency access path.", "You can show who can perform a privileged action, why they need it, and how that access is revoked.", 90),
+                Lesson("Kubernetes Volumes", "Match workload state to a volume type and recovery contract that survives the expected failure.", "Ephemeral volumes, ConfigMaps, Secrets, PersistentVolumes, PersistentVolumeClaims, StorageClasses, access modes, and snapshots.", "A stateful processing component needs durable scratch space while credentials and configuration must be mounted separately.", "Deploy the component with a PVC, rotate a secret, simulate pod replacement, and document snapshot and restore assumptions.", "You can explain the storage lifecycle, access mode, failure domain, and backup responsibility.", 90)
+            }),
+        new SupplementalModuleDefinition(
+            "elective-aws-multi-region-cloud-deep-dive",
+            "AWS Multi-Region Cloud Deep Dive",
+            "Design and operate AWS workloads across regions with explicit routing, observability, security, deployment, and recovery trade-offs.",
+            "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html",
+            "A multi-region design is a customer promise about failure and recovery, not a diagram with two copies of the same stack. The FDE must make data ownership, routing, detection, promotion, and cost testable.",
+            new[]
+            {
+                Lesson("AWS VPC and Networking Basics", "Build a private AWS network whose reachability and identity boundaries can be explained to a customer team.", "Regions, Availability Zones, VPCs, subnets, route tables, internet and NAT gateways, security groups, and network ACLs.", "A document service needs public ingress, private workers, and a database that must never receive direct internet traffic.", "Draw the packet path, implement public and private subnets in a sandbox, and test one permitted and one denied flow.", "You can identify the route, security group, and identity boundary for every important hop.", 90),
+                Lesson("Advanced AWS Networking", "Choose AWS connectivity and routing patterns for hybrid, cross-account, and multi-region customer environments.", "Transit Gateway, VPC peering, PrivateLink, Route 53 routing, inter-region links, DNS failure modes, and egress control.", "A customer wants a private integration between two accounts and a regional failover path without opening broad CIDR access.", "Compare two connectivity designs, model their route tables and ownership, and run a DNS or endpoint failure drill.", "The design documents traffic ownership, blast radius, cost, and the signal that proves failover is working.", 90),
+                Lesson("AWS Observability with CloudWatch", "Turn AWS service signals into a customer-facing view of health, latency, and capacity.", "Metrics, dimensions, logs, alarms, dashboards, embedded metrics, tracing boundaries, and service-level indicators.", "A customer reports intermittent slow document processing, but average latency hides a queue backlog and one unhealthy AZ.", "Define a journey-level SLI, publish service and queue metrics, build an alarm, and trace one slow request to a dependency.", "You can show the difference between symptom, cause, threshold, and customer impact."),
+                Lesson("CloudWatch and CloudTrail Advanced", "Correlate operational behaviour with control-plane activity and use audit evidence during an incident.", "CloudTrail management and data events, log integrity, event history, metric filters, alarms, retention, and least-privilege investigation.", "A production role changed a security rule and the customer needs a timeline that separates intended deployment from suspicious activity.", "Enable the relevant events, create a filter and alarm, perform a controlled change, and reconstruct the actor, time, resource, and outcome.", "The investigation produces an auditable timeline without relying on a screenshot or an engineer's memory.", 90),
+                Lesson("Docker App on EC2 Project", "Deploy a containerized FDE service on EC2 with a deliberate operating and recovery contract.", "AMI and instance lifecycle, IAM roles, security groups, user data, container runtime, health checks, logs, and replacement strategy.", "A customer needs a small private service quickly and has not yet adopted a managed container platform.", "Package and deploy an app, restrict inbound access, send logs to CloudWatch, replace the instance, and verify recovery from the documented steps.", "A new operator can deploy, inspect, restart, and replace the service without hand-crafted console actions.", 120),
+                Lesson("AWS Lambda and API Gateway", "Use serverless boundaries when event shape, execution limits, and retry behaviour fit the customer workflow.", "Invocation models, API Gateway routes, Lambda lifecycle, timeouts, concurrency, permissions, retries, idempotency, and cold starts.", "A customer wants a low-volume upload callback that validates a document and starts asynchronous processing.", "Implement the endpoint with an idempotency key, set a timeout and permission boundary, and exercise a duplicate and a downstream failure.", "You can explain whether failure is retried, returned, or queued and how a duplicate request is made safe.", 90),
+                Lesson("End-to-End Cloud Project Day", "Connect network, compute, data, identity, observability, and delivery into one evidence-backed cloud slice.", "Architecture boundaries, deployment sequencing, configuration, migrations, health checks, alarms, rollback, and handoff.", "The customer panel wants a working workflow by the end of the day and will judge operability as well as the demo path.", "Time-box discovery, deploy the smallest path, break one dependency, recover it, and finish with a one-page handoff and demo narrative.", "The project has a reproducible runbook, a failure demonstration, a measured outcome, and an explicit list of deferred risks.", 120),
+                Lesson("AWS ECS and ECR Introduction", "Use ECS and ECR to create a managed container delivery path with explicit artifact and task ownership.", "Repositories, image scanning, task definitions, clusters, services, capacity providers, execution roles, and deployment revisions.", "A team is ready to leave a single EC2 host but wants a simpler operational model than a self-managed cluster.", "Push an image, define a task, run it as a service, configure health checks, and inspect a failed deployment revision.", "You can identify the image digest, task role, execution role, service health, and rollback mechanism."),
+                Lesson("ECS Fundamentals", "Operate ECS services by understanding task lifecycle, placement, networking, and deployment behaviour.", "Fargate versus EC2 capacity, awsvpc networking, desired count, target groups, service discovery, rolling deployments, and task stops.", "A service scales out but tasks remain unhealthy because the target group and container port contract disagree.", "Deploy a service behind a load balancer, force a bad health check, inspect events, fix it, and verify a rolling update.", "You can diagnose a task that is pending, stopping, or unhealthy from service events and target health."),
+                Lesson("EKS Basics", "Map Kubernetes concepts onto EKS without hiding AWS identity, networking, or node ownership.", "EKS control plane, node groups, IAM integration, VPC CNI, kubeconfig, add-ons, and cluster responsibility boundaries.", "A customer has Kubernetes expertise but needs an AWS deployment with clear ownership of nodes, IAM, and upgrades.", "Create or inspect a small EKS design, deploy a workload, verify identity and networking, and write the operator boundary.", "You can state what AWS manages, what the customer manages, and where an FDE should look during a failed rollout.", 90),
+                Lesson("EKS Advanced", "Plan EKS capacity, upgrades, ingress, and workload placement for a customer environment that will evolve.", "Managed node groups, Fargate, taints and tolerations, cluster upgrades, ingress controllers, add-ons, and workload identity.", "A mixed workload needs isolated compute for background jobs, predictable upgrades, and a public ingress path.", "Model placement constraints, perform a staged upgrade plan, and test one workload with an explicit identity and ingress route.", "The plan includes a rollback or recovery path for control plane, node, add-on, and workload failures.", 120),
+                Lesson("EKS Security and Operations", "Operate EKS with least privilege, auditable changes, and signals that reveal cluster and workload failure.", "IRSA or pod identity, Kubernetes RBAC, security groups for pods, secrets, audit logs, control-plane logging, and runbooks.", "A customer security team needs evidence that a pod can access only its assigned bucket and that administrative changes are traceable.", "Create a narrow workload identity, deny an unrelated resource, enable relevant logs, and rehearse a pod and node incident.", "You can produce evidence for identity, permission, audit, detection, and recovery without granting cluster-admin access.", 120),
+                Lesson("Microservices on AWS Project", "Deliver a small multi-service workflow with service boundaries that reflect ownership and failure semantics.", "Service contracts, discovery, asynchronous events, data ownership, API gateways or load balancers, deployment units, and observability.", "A customer wants order, payment, and notification capabilities released by different teams without losing traceability.", "Build two or three services, define one synchronous and one asynchronous boundary, add correlation, and simulate a dependency outage.", "The architecture names ownership and failure behaviour, and the demo shows recovery rather than only the happy path.", 120),
+                Lesson("Microservices Project: Phase 2", "Harden a multi-service design with data consistency, delivery safety, and operational feedback.", "Outbox or event publication, idempotent consumers, retries, dead letters, contract tests, capacity, and progressive delivery.", "A duplicate payment event and a delayed notification expose that the first project treated at-least-once delivery as exactly once.", "Add idempotency and a recovery queue, run contract and failure tests, and compare a canary with a full rollout.", "You can show how a message is deduplicated, retried, inspected, and replayed without corrupting business state.", 120),
+                Lesson("AWS Security: Identity and Network", "Design AWS access around workload identity and network reachability rather than shared credentials.", "IAM policies, roles, trust policies, permission boundaries, VPC endpoints, security groups, private subnets, and egress control.", "A customer integration needs to read one bucket and call one private service, but the first prototype uses an admin key.", "Replace the key with a role, restrict the policy and routes, test allowed and denied actions, and document emergency access.", "The access review identifies principal, action, resource, condition, network path, and audit evidence."),
+                Lesson("AWS Security: Data and Detection", "Protect customer data while making suspicious access and configuration drift detectable.", "KMS keys, envelope encryption, S3 and database controls, secret rotation, CloudTrail data events, GuardDuty signals, and retention.", "A regulated customer asks how sensitive documents are encrypted and how an unusual download would be detected.", "Classify data, choose key and retention boundaries, generate a controlled access signal, and walk through the alert response.", "You can explain protection at rest and in transit plus the evidence used to investigate a data event.", 90),
+                Lesson("AWS Security Hands-on", "Demonstrate an end-to-end secure deployment and defend the decisions under customer questioning.", "Threat model, IAM, network isolation, encryption, secrets, audit, detection, patching, and security acceptance criteria.", "A customer review finds that a service is encrypted but still over-privileged and has no tested incident path.", "Run a security review against the project, fix the highest-risk findings, simulate an access incident, and present the before-and-after evidence.", "The final review distinguishes implemented controls, tested controls, residual risk, and the owner of each follow-up.", 120)
+            }),
+        new SupplementalModuleDefinition(
+            "elective-storage-networking-reliability",
+            "Storage, Networking & Reliability for FDEs",
+            "Make storage, network, performance, consistency, and recovery trade-offs explicit for customer-facing systems.",
+            "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html",
+            "FDE reliability work is about preserving the customer's critical workflow when data grows, dependencies slow down, or a region fails. Every design choice needs a failure model and a recovery story.",
+            new[]
+            {
+                Lesson("Architect the Storage for an Application", "Choose storage from access patterns, durability, consistency, and recovery needs rather than from habit.", "Operational versus analytical data, object versus block versus file storage, relational and key-value access patterns, metadata, and ownership.", "A document workflow needs durable binaries, transactional status, searchable metadata, and an audit trail with different retention rules.", "Create a storage decision matrix, map each data class to a service, and test one read, write, backup, and restore assumption.", "The design explains why each datum lives where it does and what happens when that store is unavailable.", 90),
+                Lesson("Data Lifecycle Management and Storage Optimization", "Control cost and risk by making data lifecycle, retention, archival, and deletion observable.", "Hot, warm, and cold data, TTLs, object lifecycle rules, compaction, partitioning, retention holds, and cost attribution.", "A customer archive grows faster than expected because temporary exports and historical versions never expire.", "Classify data, define retention and legal-hold exceptions, apply a lifecycle policy in a sandbox, and measure the resulting storage profile.", "You can show which data moves, when it is deleted, who can restore it, and how cost is attributed.", 90),
+                Lesson("Backup and Disaster Recovery Strategies", "Design recovery around explicit RPO, RTO, dependency order, and verified restore evidence.", "Full and incremental backups, snapshots, point-in-time recovery, cross-region copies, immutability, restore testing, RPO, and RTO.", "A customer can take backups but has never restored the database and cannot state how much work may be lost.", "Write an RPO/RTO table, perform a restore into an isolated environment, measure it, and record the gaps between the plan and the result.", "The recovery runbook has tested commands, owners, dependency order, validation checks, and a timestamped result.", 120),
+                Lesson("Designing the Networking of an Application", "Shape network paths around latency, trust, ownership, and failure domains.", "Request paths, DNS, routing, subnets, security groups, service discovery, egress, private connectivity, and network observability.", "A customer application works in one environment but has hidden cross-zone and public-egress assumptions.", "Draw the critical paths, identify every boundary, test a dependency timeout, and document the least-privilege network rule set.", "You can explain how traffic reaches each dependency and what signal distinguishes DNS, route, policy, and application failure.", 90),
+                Lesson("Load Balancing and Auto Scaling Groups", "Keep service capacity and traffic distribution aligned as instances change and workloads burst.", "Health checks, target registration, connection draining, listener rules, scaling policies, warm-up, and capacity limits.", "A deployment registers new instances before the application is ready, sending users to unhealthy targets.", "Configure a meaningful health check and scaling policy, run a load test, terminate an instance, and verify draining and replacement.", "You can relate target health, scaling events, user latency, and capacity headroom in one explanation.", 90),
+                Lesson("Designing for Scalability of Application and Data", "Scale the critical path by identifying its bottleneck and choosing the least complex effective boundary.", "Vertical and horizontal scaling, stateless services, queues, partitioning, read replicas, back-pressure, and capacity models.", "A customer expects ten times the traffic, but the real bottleneck is a serial database write and an unbounded in-memory queue.", "Estimate workload, model the bottleneck, add one scaling boundary, and measure throughput, latency, and failure behaviour before and after.", "The design names the bottleneck, the scaling signal, the new limit, and the operational cost of the change.", 90),
+                Lesson("Database Sharding Strategies and Hot-Spot Mitigation", "Partition data without creating uneven load, cross-shard transaction traps, or an unexplainable migration.", "Shard keys, cardinality, locality, consistent hashing, rebalancing, scatter-gather queries, hot keys, and tenant isolation.", "One large customer becomes a hot partition while smaller tenants remain healthy.", "Compare candidate shard keys, simulate skew, add a mitigation such as bucketing or isolation, and write a migration plan.", "You can quantify skew, state which queries become harder, and explain how to move a hot tenant safely.", 120),
+                Lesson("Edge Caching, CDNs, and Latency Reduction", "Use edge delivery and caching while preserving correctness, privacy, and invalidation semantics.", "Cache keys, TTLs, cache-control, invalidation, stale-while-revalidate, CDN origins, geographic latency, and tenant-sensitive content.", "A globally distributed portal is fast for static assets but leaks stale or cross-tenant responses through an overly broad cache key.", "Define cacheability rules, test hit and miss paths from multiple locations, invalidate a changed asset, and verify tenant separation.", "The cache policy states what may be cached, for how long, by which key, and how correctness is recovered.", 90),
+                Lesson("Microservices Performance: Latency, Throughput, and Concurrency", "Measure service performance as a queueing and dependency problem rather than chasing one slow function.", "Latency percentiles, throughput, concurrency, Little's Law, connection pools, back-pressure, batching, and tail amplification.", "A workflow's average response is acceptable while p99 latency grows because each request fans out to several services.", "Profile the critical path, measure p50 and p99, vary concurrency, and identify the first saturation point and the recovery lever.", "You can connect a performance symptom to queueing, dependency, resource, or code evidence and propose a bounded fix.", 90),
+                Lesson("Designing for High Availability: Multi-Region Active-Active", "Evaluate active-active architecture by data conflict, routing, operational readiness, and recovery evidence.", "Failure domains, health-based routing, replication, conflict resolution, regional independence, quorum choices, and failback.", "A customer wants users served from the nearest healthy region, but writes may arrive in both regions for the same account.", "Define the write ownership and conflict policy, simulate regional loss, measure recovery and reconciliation, and document the operator decision points.", "The design states what remains available, what may be stale or conflicted, and how the system returns to normal.", 120),
+                Lesson("Fault Tolerance Engineering: Circuit Breakers, Retries, and Backoff", "Prevent a failing dependency from becoming a cascading customer outage.", "Timeout budgets, retries, exponential backoff, jitter, circuit states, bulkheads, idempotency, and retryable versus permanent errors.", "A slow billing provider causes every request thread to wait and repeated retries multiply the load.", "Add a bounded timeout and retry policy, implement a circuit breaker or bulkhead, inject failure, and observe recovery and user feedback.", "The policy documents which errors retry, the maximum work, the fallback, and the signal that closes the circuit.", 90),
+                Lesson("Graceful Degradation", "Preserve the most valuable customer outcome when optional capabilities or dependencies fail.", "Critical versus optional paths, stale-but-useful data, feature flags, fallback responses, partial results, and user communication.", "An AI enrichment service is unavailable while the customer still needs to search, review, and export existing records.", "Define the minimum viable workflow, implement a feature-level fallback, inject the dependency failure, and verify that users understand the degraded state.", "You can state what is unavailable, what remains safe, and how the system signals recovery without hiding errors.", 75),
+                Lesson("Rate Limiting, Throttling, and Shedding", "Protect shared capacity and make overload behaviour fair, visible, and aligned with customer priorities.", "Token and leaky buckets, concurrency limits, quotas, priority, queue admission, load shedding, 429 contracts, and tenant fairness.", "One tenant's batch import consumes every worker and makes interactive requests time out for everyone else.", "Define per-tenant limits, apply priority-aware admission, simulate overload, and inspect rejected, delayed, and completed work.", "The policy has a capacity basis, a customer-facing response, an operator signal, and a documented exception process.", 90),
+                Lesson("Data Consistency Trade-offs: CAP and PACELC", "Choose consistency and latency trade-offs by business invariant and failure model, not by slogan.", "Partition tolerance, availability, consistency, latency, replica lag, quorum, read-your-writes, PACELC, and per-operation guarantees.", "A multi-region order view can tolerate slightly stale analytics but must never show a payment as settled before the authoritative record says so.", "Classify operations by invariant, choose read and write guarantees, inject partition and lag, and document the user-visible result.", "You can explain which guarantee each operation receives, what a partition changes, and why that is acceptable to the customer.", 90)
+            })
+    };
 
     private static readonly Dictionary<string, ModuleGuide> ModuleGuides = new(StringComparer.Ordinal)
     {
@@ -234,8 +325,191 @@ public static class FdeCurriculumSeedData
             }
         }
 
+        EnsureSupplementalModules(db, course);
         EnsureDomainLinks(db, course);
         db.SaveChanges();
+    }
+
+    private static void EnsureSupplementalModules(StudyTrackerContext db, Course course)
+    {
+        var existingModules = db.Modules
+            .Where(module => module.CourseId == course.Id)
+            .ToList();
+        var supplementalSlugs = SupplementalModules
+            .Select(module => module.Slug)
+            .ToHashSet(StringComparer.Ordinal);
+        var lastExistingOrder = existingModules
+            .Where(module => !supplementalSlugs.Contains(module.Slug))
+            .Select(module => module.OrderIndex)
+            .DefaultIfEmpty(0)
+            .Max();
+
+        for (var moduleIndex = 0; moduleIndex < SupplementalModules.Count; moduleIndex++)
+        {
+            var definition = SupplementalModules[moduleIndex];
+            var module = existingModules.SingleOrDefault(candidate => candidate.Slug == definition.Slug);
+            if (module == null)
+            {
+                module = new CourseModule
+                {
+                    CourseId = course.Id,
+                    Slug = definition.Slug,
+                    Title = definition.Title,
+                    Description = definition.Description,
+                    Badge = "Elective",
+                    OrderIndex = lastExistingOrder + moduleIndex + 1
+                };
+                db.Modules.Add(module);
+                existingModules.Add(module);
+            }
+        }
+
+        db.SaveChanges();
+
+        var modulesBySlug = db.Modules
+            .Where(module => module.CourseId == course.Id && supplementalSlugs.Contains(module.Slug))
+            .ToDictionary(module => module.Slug, StringComparer.Ordinal);
+        var moduleIds = modulesBySlug.Values.Select(module => module.Id).ToList();
+        var existingLessons = db.Lessons
+            .Where(lesson => moduleIds.Contains(lesson.ModuleId))
+            .ToList();
+
+        foreach (var definition in SupplementalModules)
+        {
+            var module = modulesBySlug[definition.Slug];
+            for (var lessonIndex = 0; lessonIndex < definition.Lessons.Count; lessonIndex++)
+            {
+                var lessonDefinition = definition.Lessons[lessonIndex];
+                var lessonSlug = $"{lessonIndex + 1:00}-{Slugify(lessonDefinition.Title)}";
+                var lesson = existingLessons.SingleOrDefault(candidate =>
+                    candidate.ModuleId == module.Id && candidate.Slug == lessonSlug);
+                var content = BuildSupplementalLessonContent(lessonDefinition, definition);
+
+                if (lesson == null)
+                {
+                    lesson = new Lesson
+                    {
+                        ModuleId = module.Id,
+                        Slug = lessonSlug,
+                        Title = lessonDefinition.Title,
+                        Description = lessonDefinition.Focus,
+                        LectureNumber = lessonIndex + 1,
+                        EstimatedMinutes = lessonDefinition.EstimatedMinutes,
+                        IsCompleted = false,
+                        OrderIndex = lessonIndex + 1,
+                        Difficulty = ResolveSupplementalDifficulty(lessonDefinition.Title),
+                        ContentStatus = "Draft",
+                        ContentBody = content,
+                        HorstmannRef = ResolveSupplementalReference(lessonDefinition.Title, definition)
+                    };
+                    db.Lessons.Add(lesson);
+                    existingLessons.Add(lesson);
+                }
+                else
+                {
+                    // Supplemental content is additive. Existing editorial text and progress always win.
+                    if (string.IsNullOrWhiteSpace(lesson.Description)) lesson.Description = lessonDefinition.Focus;
+                    if (string.IsNullOrWhiteSpace(lesson.ContentBody)) lesson.ContentBody = content;
+                    if (string.IsNullOrWhiteSpace(lesson.HorstmannRef))
+                    {
+                        lesson.HorstmannRef = ResolveSupplementalReference(lessonDefinition.Title, definition);
+                    }
+                    lesson.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+        }
+
+        db.SaveChanges();
+    }
+
+    private static string BuildSupplementalLessonContent(
+        SupplementalLessonDefinition lesson,
+        SupplementalModuleDefinition module)
+    {
+        var referenceUrl = ResolveSupplementalReference(lesson.Title, module);
+        return $@"# {lesson.Title}
+
+{lesson.Focus}
+
+## Core concepts
+
+{lesson.CoreConcepts}
+
+## Why it matters in an FDE engagement
+
+{module.DeliveryContext}
+
+## Worked FDE scenario
+
+{lesson.Scenario}
+
+## Practice loop
+
+1. {lesson.Practice}
+2. Capture the assumptions, owner, success signal, and failure boundary before changing the design.
+3. Demonstrate one successful path and one deliberately uncomfortable failure path to a teammate or customer stakeholder.
+
+## Evidence of understanding
+
+- {lesson.Evidence}
+- You can explain the trade-off in plain language as well as technical language.
+- You have a small artefact: a diagram, test, policy, query, deployment note, runbook, or measured experiment.
+- You can name the next signal you would inspect if the customer outcome degraded.
+
+## Continue learning
+
+- Primary reference: {referenceUrl}
+- Treat this chapter as a working draft and add customer-specific constraints, measurements, and implementation notes during review.";
+    }
+
+    private static string ResolveSupplementalReference(
+        string title,
+        SupplementalModuleDefinition module)
+    {
+        if (module.Slug == "elective-containerization-orchestration")
+        {
+            if (Contains(title, "Kubernetes") || Contains(title, "Orchestration") || Contains(title, "ReplicaSet") || Contains(title, "Scaling") || Contains(title, "Pod") || Contains(title, "RBAC"))
+            {
+                return "https://kubernetes.io/docs/concepts/";
+            }
+
+            if (Contains(title, "Volume")) return "https://docs.docker.com/engine/storage/";
+            if (Contains(title, "Networking")) return "https://docs.docker.com/engine/network/";
+            return "https://docs.docker.com/get-started/";
+        }
+
+        if (module.Slug == "elective-aws-multi-region-cloud-deep-dive")
+        {
+            if (Contains(title, "VPC") || Contains(title, "Networking")) return "https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html";
+            if (Contains(title, "CloudWatch") || Contains(title, "Observability")) return "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html";
+            if (Contains(title, "CloudTrail") || Contains(title, "Security")) return "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html";
+            if (Contains(title, "Lambda") || Contains(title, "API Gateway")) return "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html";
+            if (Contains(title, "EKS")) return "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html";
+            if (Contains(title, "ECS") || Contains(title, "ECR")) return "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html";
+            return "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html";
+        }
+
+        if (Contains(title, "Storage") || Contains(title, "Backup") || Contains(title, "Disaster Recovery"))
+        {
+            return "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html";
+        }
+
+        if (Contains(title, "Networking") || Contains(title, "Load Balancing") || Contains(title, "CDN") || Contains(title, "Caching"))
+        {
+            return "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html";
+        }
+
+        return module.ReferenceUrl;
+    }
+
+    private static string ResolveSupplementalDifficulty(string title)
+    {
+        if (Contains(title, "Project") || Contains(title, "Advanced") || Contains(title, "High Availability") || Contains(title, "Sharding") || Contains(title, "Disaster") || Contains(title, "Hands-on"))
+        {
+            return "Advanced";
+        }
+
+        return "Intermediate";
     }
 
     private static ModuleGuide ResolveModuleGuide(string legacyModule, int order)

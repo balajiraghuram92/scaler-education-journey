@@ -64,13 +64,104 @@ public class BackfillReconciliationTests
         FdeCurriculumSeedData.Seed(db);
 
         var course = db.Courses.Single(c => c.Slug == "fde-curriculum");
-        var lesson = db.Lessons.Single();
+        var lesson = db.Lessons.Single(l => l.Title == "Python Toolchain & Environment Setup (pyenv, uv, ruff, mypy)");
 
         Assert.Null(course.VerticalId);
         Assert.True(lesson.IsCompleted);
         Assert.Equal("Draft", lesson.ContentStatus);
         Assert.Contains("Why it matters in an FDE engagement", lesson.ContentBody);
         Assert.Empty(db.StudyTaskContentLinks);
+    }
+
+    [Fact]
+    public void FdeCurriculumSeedData_CreatesSupplementalElectivesWithoutProgressFabrication()
+    {
+        using var db = CreateInMemoryContext(Guid.NewGuid().ToString());
+        db.Verticals.Add(new StudyVertical
+        {
+            Id = 1,
+            Name = "FDE Self-Study",
+            Tasks = new List<StudyTask>
+            {
+                new()
+                {
+                    Id = 101,
+                    Module = "1. FDE Foundations: Python, Workflow & Delivery",
+                    Title = "Python Toolchain & Environment Setup (pyenv, uv, ruff, mypy)",
+                    IsCompleted = true
+                }
+            }
+        });
+        db.SaveChanges();
+
+        FdeCurriculumSeedData.Seed(db);
+
+        var course = db.Courses.Single(c => c.Slug == "fde-curriculum");
+        var expectedModuleSlugs = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "elective-containerization-orchestration",
+            "elective-aws-multi-region-cloud-deep-dive",
+            "elective-storage-networking-reliability"
+        };
+        var supplementalModules = db.Modules
+            .Where(module => module.CourseId == course.Id && expectedModuleSlugs.Contains(module.Slug))
+            .ToList();
+        var supplementalModuleIds = supplementalModules.Select(module => module.Id).ToHashSet();
+        var supplementalLessons = db.Lessons
+            .Where(lesson => supplementalModuleIds.Contains(lesson.ModuleId))
+            .ToList();
+
+        Assert.True(expectedModuleSlugs.SetEquals(supplementalModules.Select(module => module.Slug)));
+        Assert.Equal(3, supplementalModules.Count);
+        Assert.Equal(48, supplementalLessons.Count);
+        Assert.All(supplementalLessons, lesson => Assert.False(lesson.IsCompleted));
+        Assert.Empty(db.StudyTaskContentLinks);
+    }
+
+    [Fact]
+    public void JavaVerticalSeedData_AddsExpandedModulesAndIsIdempotent()
+    {
+        using var db = CreateInMemoryContext(Guid.NewGuid().ToString());
+
+        JavaVerticalSeedData.Seed(db);
+
+        var course = db.Courses.Single(c => c.Slug == "java-spring-lld");
+        var expectedModuleSlugs = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "databases-sql",
+            "design-principles-patterns",
+            "applied-design-machine-coding",
+            "ai-first-backend-capstone-primer",
+            "ai-first-backend-capstone-advanced",
+            "production-ai-enabled-system",
+            "high-level-design",
+            "data-engineering"
+        };
+        var firstModuleCounts = db.Modules
+            .Where(module => module.CourseId == course.Id && expectedModuleSlugs.Contains(module.Slug))
+            .ToDictionary(module => module.Slug, module => db.Lessons.Count(lesson => lesson.ModuleId == module.Id));
+        var firstModuleTotal = db.Modules.Count(module => module.CourseId == course.Id);
+        var firstLessonTotal = db.Lessons.Count(lesson => db.Modules
+            .Where(module => module.CourseId == course.Id)
+            .Select(module => module.Id)
+            .Contains(lesson.ModuleId));
+
+        Assert.True(expectedModuleSlugs.SetEquals(firstModuleCounts.Keys));
+
+        JavaVerticalSeedData.Seed(db);
+
+        var secondModuleCounts = db.Modules
+            .Where(module => module.CourseId == course.Id && expectedModuleSlugs.Contains(module.Slug))
+            .ToDictionary(module => module.Slug, module => db.Lessons.Count(lesson => lesson.ModuleId == module.Id));
+        var secondModuleTotal = db.Modules.Count(module => module.CourseId == course.Id);
+        var secondLessonTotal = db.Lessons.Count(lesson => db.Modules
+            .Where(module => module.CourseId == course.Id)
+            .Select(module => module.Id)
+            .Contains(lesson.ModuleId));
+
+        Assert.Equal(firstModuleCounts, secondModuleCounts);
+        Assert.Equal(firstModuleTotal, secondModuleTotal);
+        Assert.Equal(firstLessonTotal, secondLessonTotal);
     }
 
     [Fact]
