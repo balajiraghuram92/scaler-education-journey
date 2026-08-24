@@ -68,11 +68,17 @@ export default function Home() {
           nextLessons: (c.nextLessons || [])
             .map(lesson => normalizeLessonLabel(lesson, 'Next Lesson'))
         }));
+        const mappedConnections = (data.connections || [])
+          .map(connection => ({
+            from: connection.from || connection.source,
+            to: connection.to || connection.target
+          }))
+          .filter(connection => connection.from && connection.to);
 
         setAtlasData({
           domains: mappedDomains,
           concepts: mappedConcepts,
-          connections: []
+          connections: mappedConnections
         });
       }
 

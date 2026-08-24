@@ -34,6 +34,18 @@ public class AtlasQueryService
             .OrderBy(c => c.OrderIndex)
             .ToListAsync();
 
+        var connections = domains
+            .SelectMany(d => d.ConceptConnections
+                .Where(cc => cc.Concept != null)
+                .Select(cc => new
+                {
+                    from = d.Slug,
+                    to = cc.Concept!.Slug,
+                    cc.RelevanceWeight,
+                    cc.IsPrimary
+                }))
+            .ToList();
+
         return new
         {
             domains = domains.Select(d => new
@@ -76,7 +88,8 @@ public class AtlasQueryService
                 nextLessons = c.NextLessons
                     .OrderBy(nl => nl.OrderIndex)
                     .Select(nl => new { nl.LessonId, nl.LessonSlug, nl.LessonTitle, nl.ModuleName })
-            })
+            }),
+            connections
         };
     }
 }
