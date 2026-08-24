@@ -67,12 +67,13 @@ Examples:
 
 ### Phase 4 — Original lesson content
 
-- [x] Create original draft instructional bodies, worked scenarios, practice loops, and completion cues for every seeded FDE lesson.
+- [x] Create original draft instructional bodies, core concepts, worked scenarios, practice loops, and completion cues for every seeded FDE lesson.
 - [x] Add curated primary-source reference trails by curriculum module.
 - [ ] Keep incomplete or research-dependent material clearly marked as a draft rather than inventing notes.
 - [x] Keep FDE chapter bodies marked as `Draft` until editorial review.
 - [x] Add deterministic Java legacy-title mappings to the canonical Java course.
-- [ ] Review Java course coverage against the supplied curriculum reference and fill only confirmed gaps.
+- [x] Review Java course coverage against the supplied curriculum reference and fill confirmed lesson-body gaps with original material.
+- [x] Add an idempotent Java backfill that enriches empty or original outline-only lesson bodies without replacing substantive editorial work.
 
 ### Phase 5 — Validation
 
@@ -84,10 +85,10 @@ Examples:
 
 ## Implementation Evidence
 
-- **Completed in source:** Chapters catalog redesign, planned-pathway catalog, canonical FDE seed source, FDE reconciliation safety update, and Java title mappings.
+- **Completed in source:** Chapters catalog redesign, planned-pathway catalog, canonical FDE seed source, FDE reconciliation safety update, Java title mappings, 104 FDE draft lesson bodies, and substantive Java lesson-body backfills.
 - **Mapped source coverage:** the FDE seed catalogue contains 104 legacy tasks. The Java tracker contains 22 legacy items; its canonical pathway has 18 lessons (including the separately seeded Structured Concurrency chapter) and 5 practice problems.
 - **Static check:** `git diff --check` completed without whitespace errors on 2026-08-24.
-- **Not run:** Database seeding, reconciliation dry-run/apply, application build, tests, and browser verification. These require the user's local runtime and database according to the project execution policy.
+- **Not run:** Database seeding, reconciliation dry-run/apply, application build, tests, and browser verification. The first seed/reconciliation attempt was blocked before the application started because the published API image lacks a compatible manifest for the user's Linux platform; use the local Compose development override for the next attempt.
 
 ## Current Constraints and Risks
 

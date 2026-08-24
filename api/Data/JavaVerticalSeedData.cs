@@ -111,6 +111,11 @@ public static class JavaVerticalSeedData
 
             db.SaveChanges();
         }
+
+        // Existing databases may already have the course and its lessons. Backfill only
+        // lessons that still contain the original outline or no body at all.
+        BackfillLessonContent(db, course.Id);
+        db.SaveChanges();
     }
 
     private static List<StudyTask> GetVerticalTasks(int verticalId)
@@ -755,5 +760,426 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
             OrderIndex = 4,
             ContentBody = "# Lesson 17 — Machine Coding Capstone\nEnd-to-end implementation of multi-threaded service with clean architecture, high throughput, and robust edge case handling."
         });
+    }
+
+    private static void BackfillLessonContent(StudyTrackerContext db, int courseId)
+    {
+        var lessons = (from lesson in db.Lessons
+                       join module in db.Modules on lesson.ModuleId equals module.Id
+                       where module.CourseId == courseId
+                       select lesson).ToList();
+
+        foreach (var lesson in lessons)
+        {
+            var authoredContent = GetAuthoredLessonContent(lesson.Slug);
+            if (authoredContent == null || !NeedsLessonContent(lesson.ContentBody))
+            {
+                continue;
+            }
+
+            lesson.ContentBody = authoredContent;
+            lesson.UpdatedAt = DateTime.UtcNow;
+        }
+    }
+
+    private static bool NeedsLessonContent(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return true;
+        }
+
+        // Preserve an authored body even if it was written outside this seed file.
+        if (content.Contains("## Practical Backend Scenario", StringComparison.Ordinal) &&
+            content.Contains("## Practice Loop", StringComparison.Ordinal) &&
+            content.Contains("## Evidence of Understanding", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        // Lesson 3 predates this authoring pass but is already a detailed lesson with
+        // linked practice problems and a study guide. Do not replace it.
+        if (content.Length >= 900 && content.Contains("## Concepts Covered", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static string? GetAuthoredLessonContent(string slug)
+    {
+        return slug switch
+        {
+            "01-intro-to-lld" => @"# Lesson 1 — Intro to LLD for Scalable Systems
+
+## Concepts Covered
+Low-Level Design is the practice of turning a business capability into dependable objects, interfaces, state transitions, and failure boundaries. It sits below an HLD service diagram: the HLD may say that an order service owns checkout, while the LLD explains how an `Order`, `PaymentAttempt`, `InventoryReservation`, and `OrderRepository` collaborate without leaking persistence or transport concerns.
+
+Separate responsibilities before writing classes. A controller translates an HTTP request, an application service coordinates a use case, domain objects protect invariants, and adapters talk to databases or external systems. Prefer composition when behavior varies independently; use inheritance only when the subtype really satisfies the parent contract. Scaling concerns also appear in LLD: immutable values reduce coordination, idempotency prevents duplicate work, and bounded interfaces make later horizontal scaling safer.
+
+## Practical Backend Scenario
+Design the first slice of a ride-booking quote service. A `QuoteService` receives a pickup, destination, vehicle type, and request id. It asks a distance provider for route facts, applies a pricing policy, and returns an immutable quote with an expiry time. The HTTP layer should not calculate fares or know whether distance came from a cache or a remote provider. If the same request id arrives twice, the application boundary should return the same quote rather than create two independent negotiations.
+
+## Practice Loop
+1. Write the use-case sentence and list the invariants that must always hold.
+2. Draw the collaborators and mark which ones are domain objects, ports, or adapters.
+3. Implement the smallest happy path with constructor validation and no framework annotations.
+4. Add duplicate requests, provider timeout, expired quote, and unsupported vehicle tests.
+5. Review each public method: can it be called in an invalid order, and who owns that rule?
+
+## Evidence of Understanding
+You can explain why the controller does not own pricing, identify the boundary that makes a quote idempotent, and change the distance provider without editing the pricing policy. Your tests demonstrate that invalid state cannot be constructed and that a timeout becomes a deliberate application outcome rather than an accidental stack trace.
+
+## Suggested Extension
+Add a `QuoteRepository` port and two adapters: an in-memory implementation for tests and a PostgreSQL implementation for production. Compare the design before and after introducing the persistence boundary.
+",
+            "02-oop-1-intro-lab" => @"# Lesson 2 — OOP-1: Intro to OOP Lab
+
+## Concepts Covered
+An object combines state with the operations that are allowed to change that state. A class is a definition; an object is a runtime instance with identity, fields, and behavior. In Java, references point to heap objects, while local variables and call frames belong to an executing thread. This distinction explains why assigning one reference to another does not copy the object.
+
+Start a model with meaningful nouns and verbs, then make invalid transitions difficult to express. A constructor should establish the minimum valid state. Methods should represent business actions such as `reserve`, `cancel`, or `confirm`, rather than expose setters for every field. Keep data accessors small and make the object responsible for rules that belong to its own state.
+
+## Practical Backend Scenario
+Model a delivery order moving from `CREATED` to `ASSIGNED`, `PICKED_UP`, and `DELIVERED`. The order owns its status transition rules; a caller cannot move a delivered order back to created by mutating a public field. A `DeliveryAddress` value is validated once at construction. The application service coordinates the courier and notification ports but does not directly rewrite the order status.
+
+## Practice Loop
+1. List the fields, valid initial state, and allowed transitions.
+2. Implement a small immutable value object and a stateful aggregate with private fields.
+3. Write tests for a valid transition, an invalid transition, and a repeated command.
+4. Inspect the heap-reference behavior by assigning two variables to one object and then using a separate copy.
+5. Refactor any public setter into a named business operation or remove it.
+
+## Evidence of Understanding
+You can distinguish identity from value, explain why two references can mutate the same object, and show where the order prevents an illegal state transition. Your tests prove that construction rejects invalid addresses and that command methods report invalid status changes explicitly.
+
+## Suggested Extension
+Add an event such as `OrderDelivered` without allowing the event publisher to mutate the aggregate. Keep the event payload immutable and verify that a retry does not publish the same delivery twice.
+",
+            "04-oop-3-polymorphism-interfaces" => @"# Lesson 4 — OOP-3: Polymorphism & Interfaces
+
+## Concepts Covered
+Polymorphism lets application code depend on a stable contract while different implementations provide behavior. An interface expresses a capability; an abstract class is useful when related implementations share protected mechanics or invariant checks. Dynamic dispatch selects the overriding implementation at runtime, which makes a collection of interface values useful without a chain of type checks.
+
+Design interfaces around a consumer need. A `PaymentAuthorizer` should expose authorization behavior, not every detail of a gateway SDK. Keep interfaces small enough to fake in a unit test, and use default methods only for behavior that is genuinely safe for every implementation. Substitution means an implementation must honor the timing, error, nullability, and side-effect promises of the contract, not merely compile against it.
+
+## Practical Backend Scenario
+An order service supports card, wallet, and bank-transfer payments. It depends on `PaymentAuthorizer`, while `CardAuthorizer`, `WalletAuthorizer`, and `BankTransferAuthorizer` implement the contract. A registry selects the implementation by payment method. The service handles a declined authorization uniformly, while each adapter translates provider-specific responses at its own boundary.
+
+## Practice Loop
+1. Define a minimal interface from the use case rather than from a concrete SDK.
+2. Implement two real strategies and one deterministic fake for tests.
+3. Add an abstract base only if it removes duplicated invariant logic without hiding important behavior.
+4. Test dispatch through the interface reference, including a provider timeout and a declined payment.
+5. Replace any `instanceof` branch that is really a missing polymorphic operation.
+
+## Evidence of Understanding
+You can explain the difference between a type relationship and shared implementation, demonstrate dynamic dispatch through a collection of payment strategies, and show that the application service remains unchanged when a new payment method is added. Your tests assert contract behavior rather than implementation details.
+
+## Suggested Extension
+Add a `PaymentAuthorizerFactory` with explicit registration and validation for duplicate method names. Keep the factory separate from the payment adapters so composition remains visible at startup.
+",
+            "05-oop-4-lms-lab" => @"# Lesson 5 — OOP-4: Library Management System Lab
+
+## Concepts Covered
+This lab combines encapsulation, composition, interfaces, value objects, and policy objects in one small domain. Separate catalog data from lending transactions: a `BookCopy` has inventory identity, a `Member` has borrowing policy, and a `Loan` records a time-bounded agreement. A `Library` coordinates the use case but should delegate rules such as eligibility, due-date calculation, and fine calculation to focused collaborators.
+
+Model state transitions explicitly. A copy can be available, on loan, reserved, or under repair; a loan can be open, returned, or overdue. Avoid a collection of booleans that permits contradictory combinations. Use a repository interface for persistence and keep the aggregate independent of SQL, HTTP, and framework annotations.
+
+## Practical Backend Scenario
+A branch library receives a request to lend a particular edition. The service checks member eligibility, locks or atomically reserves one available copy, creates a loan, and emits a notification after the transaction succeeds. Two simultaneous requests must not lend the same copy. Returning a book calculates the fine from a clock abstraction so the rule is deterministic in tests.
+
+## Practice Loop
+1. Write the aggregate boundaries and a state diagram for copies and loans.
+2. Implement the happy path with in-memory repositories and explicit domain errors.
+3. Add concurrent checkout, duplicate return, unknown member, and overdue-fine tests.
+4. Introduce interfaces for clock, notification, and persistence only at real boundaries.
+5. Review the design for public setters, boolean state combinations, and hidden repository calls.
+
+## Evidence of Understanding
+You can trace a checkout from API command to domain decision and persistence without mixing responsibilities. Your tests prove that a copy cannot be loaned twice, a return is idempotent, and a fine calculation does not depend on the wall clock during a unit test.
+
+## Suggested Extension
+Add a reservation queue with a clear ordering rule and publish `CopyAvailable` only after a successful return. Document what happens if notification delivery is delayed.
+",
+            "06-concurrency-1-threads" => @"# Lesson 6 — Concurrency 1: Processes, Threads & Context Switching
+
+## Concepts Covered
+A process owns an address space and operating-system resources; threads within it share heap state but have independent stacks and execution positions. A context switch saves one execution context and restores another, so more threads do not automatically mean more throughput. Blocking I/O, CPU work, thread creation, scheduler decisions, and memory visibility all affect the useful concurrency of a backend.
+
+`Runnable` describes work without a return value, while `Callable` can return a value or fail. Thread interruption is a cooperative cancellation signal, not a forced kill. Code that catches `InterruptedException` should either propagate it or restore the interrupt flag. Shared mutable state must have an ownership or synchronization story before a thread is introduced.
+
+## Practical Backend Scenario
+An order endpoint needs to create a payment audit record and enqueue a notification. A naive implementation starts a raw thread per request, causing unbounded growth during a traffic burst and making failures invisible to the request lifecycle. Replace it with an explicit execution boundary, a bounded queue, and a clear decision about which work must finish before the HTTP response.
+
+## Practice Loop
+1. Sketch process, thread, heap, and stack ownership for the service.
+2. Run a small task with `Runnable`, then repeat with interruption and a slow dependency.
+3. Measure throughput and latency while varying task count and queue capacity.
+4. Add cancellation, exception reporting, and graceful shutdown behavior.
+5. Identify every shared field and write down its visibility and ownership rule.
+
+## Evidence of Understanding
+You can explain why a raw thread per request is unsafe, distinguish CPU-bound from I/O-bound work, and show how an interruption reaches a task. Your service has a bounded lifecycle and does not silently lose a background exception during shutdown.
+
+## Suggested Extension
+Add request correlation data to the task without using a mutable global. Verify that cancellation does not leave a half-written audit record.
+",
+            "07-concurrency-2-executors" => @"# Lesson 7 — Concurrency 2: Executors, Thread Pools & Callable/Future
+
+## Concepts Covered
+An executor separates task submission from thread management. A pool has a worker policy, queue policy, rejection policy, and shutdown contract; all four matter in production. Fixed pools protect a dependency with a known concurrency budget, while work-stealing pools suit many small CPU tasks with different trade-offs. A `Future` represents a result that may not be ready, and waiting on it at the wrong layer can erase the benefit of concurrency.
+
+Bound every fan-out. A pool that accepts unlimited work merely moves overload into memory. Timeouts need an owner, and cancellation must be propagated to the task and the downstream client where possible. Always close or shut down executors that the application owns, and expose metrics for active workers, queue depth, rejected work, and task duration.
+
+## Practical Backend Scenario
+A profile endpoint fetches account, recommendation, and loyalty data. It uses separate bounded executors because recommendation work is CPU-heavy while the other calls are I/O-bound. The application waits only until the response deadline, cancels unfinished work, and returns a partial response only when the product contract permits it.
+
+## Practice Loop
+1. Implement a `Callable` that returns a typed result and a task that fails predictably.
+2. Compare a fixed pool with an unbounded queue and a bounded queue under burst load.
+3. Add a deadline, cancellation, and a rejection response to the caller.
+4. Test shutdown while tasks are queued, running, and blocked on I/O.
+5. Record pool metrics and use them to explain whether the bottleneck is CPU, I/O, or queueing.
+
+## Evidence of Understanding
+You can choose a pool from workload characteristics, explain why queue capacity is part of the reliability design, and prove that a timeout does not leave work running indefinitely. Your tests distinguish task failure from executor failure and verify graceful shutdown.
+
+## Suggested Extension
+Build a small fan-out coordinator that returns the fastest acceptable result while cancelling the rest. Document the consistency trade-off of that choice.
+",
+            "08-concurrency-3-synchronization" => @"# Lesson 8 — Concurrency 3: Synchronization, Race Conditions & Locks
+
+## Concepts Covered
+A race condition occurs when the result depends on an unsafe interleaving of operations. Mutual exclusion protects a critical section, while visibility ensures one thread can observe another thread's completed write. `synchronized` provides an intrinsic monitor; `ReentrantLock` adds features such as timed acquisition and multiple conditions, but also adds responsibility to unlock in a `finally` block.
+
+Lock only the invariant that needs protection. Holding a lock across a network call increases contention and can create deadlocks when another component acquires locks in a different order. Prefer immutable values, atomic operations, or ownership transfer when they make the state simpler. A correct design states which lock guards which fields and in what order locks may be acquired.
+
+## Practical Backend Scenario
+Two checkout requests try to reserve the final seat for an event. A check-then-update sequence without synchronization lets both requests succeed. Protect the reservation invariant, keep external payment calls outside the critical section, and use a database constraint or transactional boundary as the final authority when multiple service instances are involved.
+
+## Practice Loop
+1. Write a deliberately racy counter and reproduce the failure with many workers.
+2. Fix it with `synchronized`, then compare an atomic counter and a lock-based design.
+3. Add a two-resource transfer test that exercises lock ordering and interruption.
+4. Use timeouts and thread dumps to diagnose a stalled lock rather than guessing.
+5. Document visibility, ownership, lock scope, and the cross-instance database guarantee.
+
+## Evidence of Understanding
+You can separate a thread-local fix from a distributed correctness guarantee, identify the exact invariant a lock protects, and explain why a network call should not happen while holding that lock. Your tests demonstrate both the race and the corrected behavior.
+
+## Suggested Extension
+Add optimistic versioning to the reservation record and compare conflict handling with in-memory locking when two application instances process the same seat.
+",
+            "09-concurrency-4-semaphores" => @"# Lesson 9 — Concurrency 4: Semaphores & Bounded Buffer
+
+## Concepts Covered
+A semaphore controls access to a finite number of permits. It is useful when several operations may proceed concurrently but a downstream resource has a hard capacity. A binary semaphore can resemble a mutex, but a semaphore does not require the releasing thread to be the acquiring thread. A bounded buffer combines producer and consumer coordination with backpressure so memory usage cannot grow without limit.
+
+Permit acquisition belongs at the boundary of the scarce resource. Always release a permit in a `finally` block, define what happens when no permit is available, and include cancellation in the wait. Fairness can reduce starvation but may reduce throughput, so make the choice explicit. A semaphore inside one process does not coordinate separate service replicas.
+
+## Practical Backend Scenario
+The service may make only eight concurrent calls to a partner shipping API. Incoming jobs enter a bounded queue, workers acquire a permit before the remote call, and the permit is released after the response or timeout. When the queue is full, the system applies backpressure instead of accepting work it cannot complete within its deadline.
+
+## Practice Loop
+1. Implement a producer-consumer buffer with explicit capacity and shutdown markers.
+2. Add a semaphore around a fake slow dependency and verify the maximum in-flight count.
+3. Test permit timeout, task interruption, downstream failure, and worker shutdown.
+4. Compare reject, block, and shed-load policies when the buffer is full.
+5. Explain why the local permit count is not a replacement for a distributed rate limiter.
+
+## Evidence of Understanding
+You can calculate the capacity represented by each permit, prove that permits are not leaked on exceptions, and show how bounded queues create backpressure. Your metrics expose queue depth, wait time, and in-flight calls.
+
+## Suggested Extension
+Add a token-bucket limiter for a multi-instance deployment and explain which guarantees remain local and which are shared.
+",
+            "10-java-adv-1-generics" => @"# Lesson 10 — Generics & Type Erasure
+
+## Concepts Covered
+Generics move type errors to compilation and let APIs express what they accept and return. A generic class or method can be reused without casts, while bounded wildcards describe variance at the point of use. The PECS rule is a useful shorthand: a producer of values is usually `? extends T`, and a consumer is usually `? super T`.
+
+Java implements generics through type erasure for most runtime code. This means a type parameter is not generally available for `instanceof`, generic arrays are restricted, and overloads that erase to the same signature are illegal. Bridge methods may be generated by the compiler to preserve polymorphism after erasure. These constraints should shape API design rather than be discovered through a production cast failure.
+
+## Practical Backend Scenario
+An event bus accepts `DomainEvent` values and routes them to handlers. `EventHandler<T>` should preserve the relationship between an event type and its payload at compile time, while a registry needs a deliberate strategy for runtime type tokens because erased generic parameters cannot identify `T` by themselves. A typed pagination wrapper similarly prevents a repository from returning an unvalidated mixture of records.
+
+## Practice Loop
+1. Implement a generic `Page<T>` with immutable items, total count, and cursor metadata.
+2. Write producer and consumer utilities using `extends` and `super`, then let the compiler guide misuse.
+3. Demonstrate one type-erasure limitation and redesign it with a `Class<T>` token.
+4. Remove an unsafe cast from the event bus and add a compile-time test case.
+5. Review public generic names and bounds for clarity at the call site.
+
+## Evidence of Understanding
+You can choose a wildcard from how a collection is used, explain why a generic type is unavailable at runtime, and design a typed repository API without raw collections. Your code contains no unchecked cast that could be replaced by a better boundary.
+
+## Suggested Extension
+Add a sealed event hierarchy and a handler registry that rejects duplicate runtime event types during startup.
+",
+            "11-java-adv-2-collections-lab" => @"# Lesson 11 — Collections Lab & Sorting
+
+## Concepts Covered
+Collection choice is a domain and workload decision. `ArrayList` is strong for indexed reads and append-heavy sequences, `HashMap` provides expected constant-time key lookup, `TreeMap` maintains sorted keys with logarithmic operations, and `PriorityQueue` exposes the next highest-priority item rather than the whole collection in sorted order. Hashing, equality, memory layout, and access patterns matter more than memorizing labels.
+
+`Comparable` defines a type's natural order; `Comparator` defines a context-specific order. Comparators must be transitive and consistent enough for the collection being used. A mutable key in a hash-based collection can become unreachable after its hash changes, so identity fields used for keys must be stable.
+
+## Practical Backend Scenario
+A dispatch service keeps drivers by id, selects the nearest eligible driver, and maintains a queue of urgent jobs. Use a map for identity lookup, a priority queue for the next job, and a separate scoring structure if the selection rule changes frequently. Do not sort the entire fleet for every request when a bounded or indexed strategy can answer the question directly.
+
+## Practice Loop
+1. Implement the dispatch operations with three candidate collection designs.
+2. Generate realistic data and measure lookup, insertion, selection, and memory behavior.
+3. Add comparator tests for ties, null policy, transitivity, and stable tie-breaking.
+4. Mutate a key after insertion in a safe experiment and explain the lookup failure.
+5. Document why the chosen structure matches the access pattern and consistency needs.
+
+## Evidence of Understanding
+You can justify a collection from operations and constraints, write a comparator that remains transitive under ties, and recognize when a benchmark is needed instead of relying on folklore. Your tests cover empty, duplicate, and large-input cases.
+
+## Suggested Extension
+Add a cache with a bounded size and eviction order. Compare insertion-order, access-order, and explicit priority semantics.
+",
+            "12-java-adv-3-lambdas-streams" => @"# Lesson 12 — Lambdas & Functional Streams
+
+## Concepts Covered
+Lambdas provide behavior as a value for a functional interface. A stream is a lazy pipeline over a source, not a collection that stores another result. Intermediate operations describe a transformation; a terminal operation starts traversal. `map` changes one value into another, `flatMap` removes nested structure, `filter` narrows values, and `collect` materializes a result.
+
+Keep stream pipelines readable and side-effect-light. A lambda should not silently mutate shared state, depend on execution order, or perform an expensive remote call inside an innocent-looking transformation. Parallel streams are not a free thread pool and are especially risky around blocking I/O. `Optional` can clarify a return value that may be absent, but it should not replace every nullable field or be used as a method parameter by default.
+
+## Practical Backend Scenario
+A reconciliation job reads payment records, removes duplicates by provider reference, filters settled entries, converts them to ledger commands, and groups the result by merchant. The stream performs in-memory transformations; database writes happen in a controlled batch boundary so retries, transaction size, and failure reporting remain visible.
+
+## Practice Loop
+1. Build the pipeline in named stages and inspect the type after each transformation.
+2. Add duplicate, missing, malformed, and empty input cases.
+3. Replace a side-effecting `forEach` with a collector or an explicit loop when the operation is stateful.
+4. Compare sequential execution with a measured parallel experiment only for CPU-bound work.
+5. Decide where absence becomes a domain result, an exception, or a filtered record.
+
+## Evidence of Understanding
+You can explain when a stream executes, why `flatMap` is needed for nested data, and where side effects make a pipeline unsafe. Your reconciliation output is deterministic, testable, and does not hide database writes inside a transformation.
+
+## Suggested Extension
+Add a custom collector for a balanced reconciliation summary and verify its behavior with sequential and parallel accumulation tests.
+",
+            "13-java-adv-4-streams-exceptions" => @"# Lesson 13 — Streams in Depth & Exception Architecture
+
+## Concepts Covered
+Collectors such as `groupingBy`, `partitioningBy`, `mapping`, and `toMap` express aggregation, but duplicate-key and null policies must be explicit. `flatMap` is useful for nested orders or line items, while `mapMulti` can avoid temporary collections in hot paths. Exception architecture should distinguish programmer errors, invalid input, transient dependency failures, and domain rejections so callers can choose retry, correction, or escalation.
+
+Checked exceptions document recoverable boundaries but can make functional pipelines noisy. Do not wrap every failure in a generic runtime exception and lose the original category. Translate exceptions at the adapter or application boundary, preserve the cause, and attach stable error codes. `try`-with-resources closes `AutoCloseable` resources in reverse order and retains suppressed failures, which is safer than hand-written cleanup.
+
+## Practical Backend Scenario
+A nightly settlement job reads paginated statements, flattens transactions, groups them by merchant, and writes a reconciliation report. A malformed record is quarantined with its source reference, a database timeout causes the batch to retry, and a duplicate provider reference becomes a conflict report rather than silently overwriting a map entry.
+
+## Practice Loop
+1. Define an exception taxonomy and the boundary that translates each category.
+2. Implement grouping with an explicit duplicate-key merge policy.
+3. Add a resource that fails on read and close; inspect the primary and suppressed exceptions.
+4. Test partial batch failure, retry safety, malformed records, and empty input.
+5. Review logs for stable identifiers and absence of sensitive payment data.
+
+## Evidence of Understanding
+You can choose between rejecting, quarantining, retrying, and compensating for a failure. Your collector cannot silently lose duplicate data, your resources close deterministically, and callers receive an error contract that is useful without exposing implementation details.
+
+## Suggested Extension
+Add a dead-letter output for quarantined records and make the retry command idempotent by storing a batch execution key.
+",
+            "14-spring-boot-core" => @"# Lesson 14 — Spring Boot Core: IoC & Dependency Injection
+
+## Concepts Covered
+Inversion of Control means application code declares dependencies while a container creates and wires the object graph. Constructor injection makes required dependencies visible, supports immutable fields, and lets a unit test construct a service without starting the framework. Component scanning is convenient, but explicit configuration is valuable when multiple implementations, security-sensitive clients, or environment-specific policies exist.
+
+A bean has a lifecycle: creation, dependency resolution, initialization, use, and destruction. Scope affects state safety; a singleton should not hold request-specific mutable data. Configuration properties should be validated at startup, secrets should come from a managed secret source, and profiles should select infrastructure wiring rather than change business rules.
+
+## Practical Backend Scenario
+A payment application has `PaymentService`, `PaymentGateway`, `PaymentRepository`, and `Clock` dependencies. Production wiring selects an HTTP gateway and PostgreSQL repository, while tests provide fakes. The service remains a plain Java class with constructor validation. A feature flag controls gateway routing through a policy object, not through scattered profile checks inside domain logic.
+
+## Practice Loop
+1. Write the service as a framework-free class and test it with hand-built fakes.
+2. Add Spring configuration at the edge with constructor injection.
+3. Validate required endpoint and timeout properties before the application accepts traffic.
+4. Test bean replacement, multiple implementations, and shutdown behavior.
+5. Search for field injection, hidden service locators, mutable singleton state, and configuration reads inside domain methods.
+
+## Evidence of Understanding
+You can draw the object graph, explain which dependencies are required at construction, and run the core payment behavior without a container. A misconfigured endpoint fails at startup with a useful message instead of failing on the first customer request.
+
+## Suggested Extension
+Add a decorator that records gateway latency and failure counts while keeping the payment service unaware of metrics implementation details.
+",
+            "15-spring-data-jpa" => @"# Lesson 15 — Spring Data JPA & PostgreSQL Integration
+
+## Concepts Covered
+JPA maps object state to relational rows, but the mapping is not the transaction boundary by itself. Decide aggregate ownership, identifier strategy, fetch behavior, and lifecycle before adding annotations. A persistence context tracks managed entities; lazy loading can trigger queries later, and an accidentally broad entity graph can load far more data than the endpoint needs.
+
+Transactions should be short, explicit, and aligned with a business operation. Use repository methods that match the read shape, project only required fields, and inspect generated SQL for hot paths. Prevent N+1 queries with a deliberate fetch plan, indexes, pagination, and query analysis. Optimistic locking is useful when conflicts are expected and should be surfaced as a retriable domain outcome.
+
+## Practical Backend Scenario
+An order history endpoint returns a page of orders with item summaries and payment status. The read model should not load every customer relation or serialize managed entities directly. The application uses a projection or fetch plan, a stable sort key, and a transaction that ends after the response data is assembled. The checkout write uses an idempotency key and a version check so retries do not create duplicate orders.
+
+## Practice Loop
+1. Model the order aggregate and identify which relations are owned, read-only, or external.
+2. Write the expected SQL shape before writing the repository method.
+3. Test query count for a page of orders and expose an N+1 regression deliberately.
+4. Add an index based on a measured filter and compare the query plan.
+5. Simulate a concurrent update and define the user-visible conflict behavior.
+
+## Evidence of Understanding
+You can explain the difference between an entity graph and an API response, identify where a transaction begins and ends, and diagnose an N+1 query from logs or a query-count test. Your repository does not rely on lazy loading during JSON serialization.
+
+## Suggested Extension
+Add an outbox record in the same transaction as an order state change, then describe how a separate publisher makes the event eventually delivered without duplicating the order write.
+",
+            "16-spring-rest-api" => @"# Lesson 16 — RESTful APIs, Validation & Security
+
+## Concepts Covered
+An HTTP API is a public contract of resources, methods, status codes, representations, validation errors, and retry semantics. Request DTOs protect the domain model from transport concerns; response DTOs prevent persistence fields from becoming accidental API commitments. Validation should fail close to the boundary, while business rules remain in the application or domain layer.
+
+Idempotency matters for payment, booking, and other retryable commands. Authentication establishes who is calling; authorization decides what that caller may do. API keys, sessions, and JWTs have different rotation, revocation, and audience considerations. Never treat a decoded token as permission by itself. Central error handling should return a stable problem shape, a correlation id, and no stack trace or secret.
+
+## Practical Backend Scenario
+Build a booking endpoint that accepts a customer id, event slot, and idempotency key. The controller validates shape and limits, the application service checks ownership and availability, and the repository enforces the final uniqueness rule. A second request with the same key returns the stored result, while a request from another customer receives an authorization error without revealing booking existence unnecessarily.
+
+## Practice Loop
+1. Define request, response, validation, and problem-detail contracts.
+2. Add tests for malformed JSON, missing fields, duplicate commands, forbidden access, and expired credentials.
+3. Separate authentication middleware from resource authorization policy.
+4. Add correlation logging and ensure sensitive fields are redacted.
+5. Verify timeout, retry, and pagination behavior with a client that repeats requests.
+
+## Evidence of Understanding
+You can explain which layer owns each validation, distinguish 401 from 403, and prove that a retried command does not duplicate a booking. The endpoint exposes stable errors and does not serialize internal entities or credentials.
+
+## Suggested Extension
+Add an idempotency table with request fingerprint and response metadata. Define how conflicting payloads using the same key are rejected.
+",
+            "17-machine-coding-capstone" => @"# Lesson 17 — Distributed Systems & Machine Coding Capstone
+
+## Concepts Covered
+The capstone combines object modeling, concurrency, persistence, API boundaries, and operational thinking under a time constraint. Start with invariants and the smallest vertical slice. Separate command handling from read concerns, make retry behavior explicit, and choose one consistency boundary before optimizing. A good submission is not the most abstract design; it is a coherent design whose failure behavior can be explained.
+
+Use an application service to coordinate a booking or ride-matching workflow, domain objects to protect state transitions, repositories for persistence, and ports for external providers. Concurrency needs a bounded execution policy and a uniqueness or version guarantee. Observability is part of correctness: record correlation ids, state transitions, latency, and failure categories without logging personal or payment data.
+
+## Practical Backend Scenario
+Implement a seat-booking service with inventory, payment authorization, and confirmation. Two customers may request the final seat at once, a payment provider may retry a callback, and notification delivery may fail after the booking commits. The design must prevent double allocation, make callbacks idempotent, and expose a recovery path for a committed booking whose notification is pending.
+
+## Practice Loop
+1. Spend the first pass writing requirements, invariants, entities, commands, and failure states.
+2. Build the happy path end to end with a narrow interface and one persistence strategy.
+3. Add duplicate requests, concurrent allocation, timeout, provider retry, and partial failure tests.
+4. Review transaction scope, thread ownership, API errors, indexes, and logs.
+5. Explain the next safe improvement and what evidence would justify it.
+
+## Evidence of Understanding
+You can defend the aggregate boundary, the concurrency guarantee, the idempotency key, and the recovery process. A reviewer can run your tests and see that the system remains correct when external calls fail or requests arrive concurrently. You can also name the assumptions that would need confirmation before production rollout.
+
+## Suggested Extension
+Add an outbox-backed notification publisher and a reconciliation command. Document duplicate delivery handling and the metrics that would alert an operator before customers report a problem.
+",
+            _ => null
+        };
     }
 }

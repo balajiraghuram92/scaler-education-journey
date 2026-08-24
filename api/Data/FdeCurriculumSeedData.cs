@@ -285,6 +285,10 @@ public static class FdeCurriculumSeedData
 
 {brief.Focus}
 
+## Core concepts
+
+{ResolveCoreConcepts(title)}
+
 ## Why it matters in an FDE engagement
 
 {guide.DeliveryContext}
@@ -301,6 +305,7 @@ public static class FdeCurriculumSeedData
 
 ## Evidence of understanding
 
+- {ResolveEvidence(title)}
 - You can explain the trade-off in plain language as well as technical language.
 - You have a small artefact: a diagram, test, query, deployment note, decision record, or working slice.
 - You can name the next signal you would inspect if the customer outcome degraded.
@@ -311,8 +316,199 @@ public static class FdeCurriculumSeedData
 - Treat this chapter as a working draft. Improve it with your own implementation notes, measurements, and customer-specific constraints.";
     }
 
+    private static string ResolveCoreConcepts(string title)
+    {
+        if (Contains(title, "The FDE Role")) return
+            "- Customer-embedded ownership: clarify the outcome, constraints, and handoff boundary.\n- The FDE loop: discover, prototype, instrument, validate, and enable the customer team.\n- Delivery judgment: optimise for a useful, operable slice before broad platform completeness.";
+        if (Contains(title, "Problem Discovery")) return
+            "- User pain versus requested feature.\n- Observable success measures and acceptance criteria.\n- Assumptions, constraints, risks, and the smallest test that can reduce uncertainty.";
+        if (Contains(title, "Python Toolchain")) return
+            "- Isolated interpreters and reproducible dependency locking.\n- Formatting, linting, static typing, and the boundary between local convenience and CI truth.\n- A repeatable command surface that another engineer can run without knowing the author's machine.";
+        if (Contains(title, "GenAI") || Contains(title, "LLM Landscape")) return
+            "- Model capabilities, context limits, latency, cost, and data-handling boundaries.\n- Predictive text versus retrieval, tools, workflows, and agents.\n- A customer outcome is the selection criterion, not novelty of the model.";
+        if (Contains(title, "LLM Built-in")) return
+            "- Structured generation, tool use, embeddings, vision, and model-provided capabilities.\n- Capability limits and fallback behaviour.\n- Separating a useful built-in primitive from a production-ready workflow.";
+        if (Contains(title, "Prompting") || Contains(title, "Prompt Engineering")) return
+            "- Task framing, context, examples, constraints, output schemas, and refusal behaviour.\n- Prompt versions and representative evaluation cases.\n- The prompt is one component of a controlled application boundary.";
+        if (Contains(title, "RAG")) return
+            "- Source ingestion, chunking, metadata, embeddings, retrieval, grounding, citations, and no-answer behaviour.\n- Retrieval quality separated from answer quality.\n- Customer data access enforced before context reaches a model.";
+        if (Contains(title, "n8n")) return
+            "- Triggers, state transitions, credentials, branching, retries, approvals, and idempotency.\n- Workflow automation as an explicit integration surface.\n- Human control for consequential customer actions.";
+        if (Contains(title, "What Is an AI Agent") || Contains(title, "Building Agents") || Contains(title, "OpenClaw")) return
+            "- An agent combines a model with state, tools, policies, and a termination condition.\n- Observe, decide, act, verify, and recover as distinct steps.\n- Autonomy must be bounded by permissions, budgets, and human escalation.";
+        if (Contains(title, "Debugging AI")) return
+            "- Retrieval, prompt, model, tool, policy, and rendering layers.\n- Trace evidence and a reproducible failure case.\n- Targeted experiments that distinguish a bad input from a bad decision.";
+        if (Contains(title, "Iterators") || Contains(title, "Closures")) return
+            "- Lazy evaluation and state carried across iterations.\n- Function scope, captured variables, decorators, and resource lifetime.\n- The operational difference between streaming work and materialising an entire dataset.";
+        if (Contains(title, "OOP, Concurrency")) return
+            "- Composition and ownership of mutable state.\n- Cooperative async execution, cancellation, back-pressure, and blocking work.\n- Explicit lifecycle boundaries for customer requests and background tasks.";
+        if (Contains(title, "Pydantic")) return
+            "- Boundary validation versus internal domain invariants.\n- Structured logs with correlation and customer-safe fields.\n- Profiling as measurement of a real bottleneck, not premature optimisation.";
+        if (Contains(title, "Git Internals")) return
+            "- Objects, refs, commits, branches, and the graph that makes changes recoverable.\n- Small reviewable changes and automated checks.\n- AI-assisted coding with human ownership of context, secrets, and final diffs.";
+        if (Contains(title, "Testing:")) return
+            "- Example-based tests for contracts and property-based tests for invariants.\n- Unit, integration, and end-to-end boundaries.\n- CI as a feedback system that protects delivery speed rather than a ceremonial gate.";
+        if (Contains(title, "SOLID") || Contains(title, "Hexagonal")) return
+            "- Business rules separated from transport, persistence, and vendor adapters.\n- Dependency inversion and ports-and-adapters boundaries.\n- Design for replacement, testing, and incremental customer-specific change.";
+        if (Contains(title, "Linux, Shell")) return
+            "- Processes, files, pipes, exit codes, signals, and environment variables.\n- Safe composition of small commands and explicit failure handling.\n- Diagnostics that can be copied into a ticket or runbook.";
+        if (Contains(title, "HTTP") || Contains(title, "FastAPI")) return
+            "- Resources, methods, status codes, idempotency, pagination, and error contracts.\n- Dependency injection and validation at the API boundary.\n- Authentication and authorization as separate decisions.";
+        if (Contains(title, "OAuth2") || Contains(title, "JWT") || Contains(title, "OIDC") || Contains(title, "RBAC")) return
+            "- Authentication, token claims, scopes, sessions, and identity-provider trust.\n- Authorization as a server-side policy decision.\n- Tenant, role, and audit context carried through every privileged action.";
+        if (Contains(title, "Order Management")) return
+            "- Explicit order state transitions and invariants.\n- Idempotency keys, optimistic concurrency, and audit history.\n- API behaviour that keeps retries from creating duplicate business effects.";
+        if (Contains(title, "Payments")) return
+            "- Payment intent versus payment confirmation.\n- Webhook verification, idempotency, retries, and reconciliation.\n- Background work that can be observed without blocking the customer request.";
+        if (Contains(title, "Demo Frontend")) return
+            "- A thin vertical slice across API, state, UI, and error handling.\n- Loading, empty, success, and failure states.\n- A demo narrative tied to a measurable user task, not a collection of disconnected screens.";
+        if (Contains(title, "Real-Time") || Contains(title, "Queues") || Contains(title, "Caching")) return
+            "- Push versus pull delivery, acknowledgement, ordering, and retry semantics.\n- Queue ownership, dead-letter handling, and duplicate events.\n- Cache key, freshness, invalidation, and the user-visible meaning of stale data.";
+        if (Contains(title, "Observability") || Contains(title, "Tracing") || Contains(title, "Logging") || Contains(title, "Profiling")) return
+            "- Signals: logs for detail, metrics for trends, traces for causality.\n- Correlation identifiers and context propagation.\n- Service-level indicators connected to a customer journey.";
+        if (Contains(title, "Postgres Advanced")) return
+            "- JSONB indexing and containment queries.\n- Full-text search versus vector similarity search.\n- Query shape, metadata filters, and retrieval quality for customer evidence.";
+        if (Contains(title, "Postgres Internals")) return
+            "- Query plans, selectivity, indexes, locks, and MVCC snapshots.\n- EXPLAIN ANALYZE as an evidence-driven tuning loop.\n- The difference between a fast local query and a safe production query under contention.";
+        if (Contains(title, "NoSQL")) return
+            "- Access-pattern-first modelling, partitioning, consistency, and document boundaries.\n- Vector index recall, filtering, and freshness.\n- Choosing a data store by workload and recovery contract.";
+        if (Contains(title, "Dimensional Modeling")) return
+            "- Facts, dimensions, grain, keys, and slowly changing business meaning.\n- Transformations, lineage, tests, and incremental models.\n- Separating operational truth from reporting-friendly projections.";
+        if (Contains(title, "Airflow")) return
+            "- DAG tasks, dependencies, retries, backfills, schedules, and data-quality gates.\n- Idempotent transformations and late-arriving data.\n- Ownership and alerting for a pipeline that a customer can trust.";
+        if (Contains(title, "Kafka")) return
+            "- Topics, partitions, consumer groups, offsets, ordering, and retention.\n- At-least-once delivery and idempotent consumers.\n- Schema evolution and replay as operational capabilities.";
+        if (Contains(title, "TypeScript")) return
+            "- Structural typing, unions, narrowing, generics, and runtime validation.\n- Types as communication between frontend and API teams.\n- The limit of compile-time safety when data comes from a customer or network.";
+        if (Contains(title, "React Essentials")) return
+            "- Component boundaries, props, state, effects, and controlled inputs.\n- Async state and optimistic versus confirmed UI.\n- Accessible interaction states for a user who is waiting on an AI workflow.";
+        if (Contains(title, "Next.js")) return
+            "- Server and client boundaries, routing, data loading, and caching.\n- Environment and secret boundaries.\n- Rendering choices based on freshness, interactivity, and customer data sensitivity.";
+        if (Contains(title, "Vercel AI SDK")) return
+            "- Token streaming, partial state, cancellation, and reconnect behavior.\n- Structured messages and tool results that the UI can render safely.\n- The distinction between a stream being open and an answer being trustworthy.";
+        if (Contains(title, "AI Product UX") || Contains(title, "Frontend Essentials")) return
+            "- User intent, confidence, source evidence, review, and recovery.\n- Progressive disclosure for complex AI behavior.\n- Accessible, keyboard-friendly, and honest feedback during partial failure.";
+        if (Contains(title, "AWS Core")) return
+            "- IAM principals, policies, roles, and least privilege.\n- VPC subnets, routes, security groups, and private versus public reachability.\n- Cloud operations as identity plus network plus observability.";
+        if (Contains(title, "Compute, Storage")) return
+            "- Compute lifecycle, object durability, relational transactions, and queue delivery.\n- Managed service boundaries and shared responsibility.\n- Mapping workload characteristics to scaling, recovery, and cost behaviour.";
+        if (Contains(title, "AWS Security")) return
+            "- Key ownership, envelope encryption, secret rotation, and audit trails.\n- Credential exposure paths and workload identity.\n- Evidence that a sensitive customer action was allowed or denied for the right reason.";
+        if (Contains(title, "Docker")) return
+            "- Image layers, reproducible builds, non-root execution, and runtime configuration.\n- Health checks, signal handling, resource limits, and graceful shutdown.\n- The difference between a container image and a production deployment.";
+        if (Contains(title, "Kubernetes Architecture")) return
+            "- Control plane reconciliation, desired state, pods, deployments, and services.\n- Readiness versus liveness and rollout history.\n- Scheduling and resource requests as customer-impacting decisions.";
+        if (Contains(title, "EKS") || Contains(title, "Helm")) return
+            "- Cluster ownership, namespaces, charts, values, ingress, and workload identity.\n- Rollout, rollback, and version compatibility.\n- A deployment handover that names what the customer team operates.";
+        if (Contains(title, "Kubernetes Networking")) return
+            "- Service discovery, ingress, network policies, and pod-to-pod reachability.\n- Secret and identity boundaries for workloads.\n- GPU scheduling and capacity as a product latency constraint.";
+        if (Contains(title, "CI/CD") || Contains(title, "GitOps")) return
+            "- Build, test, artifact promotion, deployment, verification, and rollback.\n- Declarative desired state and environment-specific configuration.\n- Approval and audit boundaries for customer production changes.";
+        if (Contains(title, "Terraform")) return
+            "- Resources, state, modules, plans, drift, and safe change sequencing.\n- Inputs and outputs as an infrastructure contract.\n- Reviewable infrastructure changes with recovery for partial apply.";
+        if (Contains(title, "Serverless")) return
+            "- Event triggers, execution limits, retries, idempotency, and orchestration state.\n- Synchronous API response versus asynchronous completion.\n- Cost and cold-start effects on a customer workflow.";
+        if (Contains(title, "SRE")) return
+            "- Service-level objectives, error budgets, toil, and incident ownership.\n- Reliability as a measurable customer promise.\n- Recovery, runbooks, and escalation paths.";
+        if (Contains(title, "Customer Discovery") || Contains(title, "Scoping") || Contains(title, "Stakeholder") || Contains(title, "Demo Storytelling")) return
+            "- Outcome, user, workflow, constraint, measure, and decision owner.\n- Options, risks, assumptions, dependencies, and non-goals.\n- Communication as a mechanism for reducing technical ambiguity.";
+        if (Contains(title, "LLM Fundamentals")) return
+            "- Tokens, context windows, sampling, embeddings, tool calls, and model limits.\n- Capability, latency, quality, privacy, and cost trade-offs.\n- Evaluation before model selection or prompt tuning.";
+        if (Contains(title, "Prompt Engineering")) return
+            "- Role and task framing, grounded context, examples, output schemas, and refusal rules.\n- Prompt versioning and regression cases.\n- Prompt changes as product changes that require evaluation.";
+        if (Contains(title, "RAG Architecture")) return
+            "- Ingestion, parsing, chunking, metadata, embeddings, retrieval, reranking, and generation.\n- Citation and source-boundary requirements.\n- Retrieval quality separated from answer quality.";
+        if (Contains(title, "RAG over Customer")) return
+            "- Tenant-aware document access, hybrid search, filters, freshness, and citations.\n- Source authority and conflicting documents.\n- Retrieval failures that should produce a transparent no-answer.";
+        if (Contains(title, "RAG Evaluation")) return
+            "- Dataset design, faithfulness, context relevance, answer relevance, and human review.\n- Slice-based evaluation by customer workflow and risk.\n- Iteration driven by a failure taxonomy rather than a single score.";
+        if (Contains(title, "LLM Safety")) return
+            "- Prompt injection, data leakage, unsafe tool use, output validation, and human review.\n- Threat modelling and defence in depth.\n- Safety controls that are observable and testable.";
+        if (Contains(title, "Cost, Latency")) return
+            "- Token budgets, batching, caching, routing, timeouts, and fallbacks.\n- Quality thresholds for model substitution.\n- Cost and latency measured per customer task, not only per API call.";
+        if (Contains(title, "Tool Calling") || Contains(title, "Structured Output")) return
+            "- JSON schema, validation, tool permissions, retries, and idempotency.\n- Planning versus execution boundaries.\n- Dry-run and approval modes for consequential actions.";
+        if (Contains(title, "Agentic Patterns")) return
+            "- State machines, planning loops, bounded context, memory, and termination.\n- Tool authority and recovery from partial completion.\n- Deterministic workflow steps around probabilistic model decisions.";
+        if (Contains(title, "Agent Debugging")) return
+            "- Trace spans for model, retrieval, tool, policy, and UI layers.\n- Failure taxonomy, reproducible evaluations, and counterexamples.\n- Debugging the first incorrect decision rather than the final symptom.";
+        if (Contains(title, "MCP")) return
+            "- Discoverable tools, resources, prompts, schemas, and transport boundaries.\n- Capability negotiation and least-authority integration.\n- Auditability when an agent accesses customer systems.";
+        if (Contains(title, "Multi-Agent")) return
+            "- Delegation, shared state, coordination, arbitration, and termination.\n- Human approval for high-impact steps.\n- Preventing duplicated work and conflicting agent actions.";
+        if (Contains(title, "Enterprise Systems") || Contains(title, "API Integration")) return
+            "- System ownership, source of truth, contracts, identity, rate limits, and change management.\n- Connector boundaries and anti-corruption layers.\n- Integration topology drawn from actual business workflows.";
+        if (Contains(title, "Integration Failure") || Contains(title, "Entity Resolution")) return
+            "- Timeouts, retries, dead letters, duplicates, stale records, and reconciliation.\n- Matching confidence and human review for ambiguous entities.\n- Failure evidence that lets two system owners collaborate.";
+        if (Contains(title, "CRM-to-AI")) return
+            "- CRM read authority, retrieval grounding, ticket-write permissions, and approval.\n- Entity resolution and idempotent follow-up actions.\n- End-to-end trace from customer record to generated recommendation to human decision.";
+        if (Contains(title, "Product Thinking")) return
+            "- User journey, domain model, permission boundary, feedback loop, and handover.\n- Thin-slice architecture that can grow without hiding risk.\n- Product decisions expressed as measurable behaviour.";
+        if (Contains(title, "Multi-Tenant")) return
+            "- Tenant identity propagation, row-level isolation, background-job ownership, and noisy-neighbor controls.\n- Secure defaults at every query and worker boundary.\n- Testing that proves one tenant cannot observe another tenant's work.";
+        if (Contains(title, "Document Processing")) return
+            "- Upload validation, parsing, extraction, confidence, provenance, and human review.\n- Asynchronous workflow state and repeatable reprocessing.\n- Separating extracted data from approved business truth.";
+        if (Contains(title, "Developer Experience")) return
+            "- Contract-first API documentation, examples, error semantics, authentication, and changelogs.\n- A first-success path for the next engineer.\n- Documentation tested as part of delivery.";
+        if (Contains(title, "Enterprise Security")) return
+            "- Data classification, PII minimisation, access review, retention, audit, and incident response.\n- Security controls mapped to customer obligations.\n- Evidence for compliance conversations without claiming certification.";
+        if (Contains(title, "Secrets, Encryption")) return
+            "- Secret lifecycle, key hierarchy, encryption in transit and at rest, and deployment trust zones.\n- Rotation without downtime.\n- Topology decisions that make blast radius explicit.";
+        if (Contains(title, "Load Testing")) return
+            "- Workload model, concurrency, saturation, latency percentiles, throughput, and bottleneck.\n- Capacity assumptions and headroom.\n- Load tests that resemble a customer journey rather than an isolated endpoint.";
+        if (Contains(title, "Incident Response")) return
+            "- Detection, triage, mitigation, communication, recovery, and learning.\n- Customer-facing facts separated from internal hypotheses.\n- RCA focused on contributing conditions and prevention, not blame.";
+        if (Contains(title, "Enterprise Readiness")) return
+            "- Functional acceptance, security, observability, support, runbooks, backups, and rollback.\n- Named owners and evidence for each go-live criterion.\n- Handover as a product deliverable.";
+        if (Contains(title, "Distributed Systems")) return
+            "- Failure, partitions, consistency, availability, latency, and coordination.\n- CAP, PACELC, Raft, and Saga as decision tools rather than slogans.\n- Recovery and compensation paths for an incomplete workflow.";
+        if (Contains(title, "System Design: RAG")) return
+            "- Ingestion scale, index freshness, tenant isolation, retrieval latency, evaluation, and cost.\n- Query path versus ingestion path.\n- Degraded behaviour when sources are stale or unavailable.";
+        if (Contains(title, "System Design: Agentic")) return
+            "- Agent runtime, tool gateway, state, policy, evaluation, tracing, and human escalation.\n- Bounded autonomy and replayable decisions.\n- Capacity and failure isolation across model and enterprise dependencies.";
+        if (Contains(title, "System Design: Multi-Tenant")) return
+            "- Tenant isolation, workload fairness, data lifecycle, authorization, queues, and observability.\n- Control plane versus data plane.\n- Trade-offs between shared infrastructure and dedicated isolation.";
+        if (Contains(title, "System Design: Enterprise Integration")) return
+            "- Connector registry, schema translation, identity, rate limits, retries, reconciliation, and audit.\n- Ownership across system boundaries.\n- A topology that supports adding integrations without multiplying failure modes.";
+        if (Contains(title, "Interview Readiness")) return
+            "- Clarify requirements, state assumptions, design the critical path, identify bottlenecks, and validate.\n- Trade-off vocabulary grounded in user and operational outcomes.\n- Clear communication under time pressure.";
+        if (Contains(title, "Capstone")) return
+            "- Discovery, architecture, vertical delivery, integration, security, observability, evaluation, and handover.\n- Milestones that create evidence before the final demo.\n- Scope control when requirements change.";
+        if (Contains(title, "Mock Engagement") || Contains(title, "Graduation Review")) return
+            "- End-to-end FDE behaviour: clarify, build, diagnose, communicate, and transfer ownership.\n- Portfolio evidence and decision records.\n- Honest treatment of limitations, unresolved risks, and next steps.";
+
+        return $"- Identify the purpose, inputs, outputs, invariants, and failure modes of {title}.\n- Connect the technical mechanism to a customer workflow and an observable outcome.\n- Record the assumptions that must be validated before production use.";
+    }
+
+    private static string ResolveEvidence(string title)
+    {
+        if (Contains(title, "Assessment") || Contains(title, "Capstone") || Contains(title, "Build:") || Contains(title, "Mock Engagement") || Contains(title, "Graduation Review"))
+            return "You can present a working slice, its acceptance evidence, known limitations, operating notes, and the next decision a customer should make.";
+        if (Contains(title, "Discovery") || Contains(title, "Scoping") || Contains(title, "Stakeholder") || Contains(title, "Demo"))
+            return "You can turn a customer conversation into a one-page brief with a measurable outcome, explicit non-goals, risks, owners, and a credible next step.";
+        if (Contains(title, "System Design") || Contains(title, "Distributed Systems"))
+            return "You can defend the architecture against one scale assumption and one failure scenario, including what you would measure after launch.";
+        if (Contains(title, "Security") || Contains(title, "Secrets") || Contains(title, "Auth") || Contains(title, "RBAC"))
+            return "You can demonstrate an allowed action, a denied action, the audit evidence for both, and the recovery path if a credential or policy is wrong.";
+        if (Contains(title, "Observability") || Contains(title, "Tracing") || Contains(title, "Logging") || Contains(title, "Incident") || Contains(title, "SRE"))
+            return "You can use the captured signals to locate a deliberately introduced failure and explain the customer impact without guessing.";
+        return "You can complete the practice task, explain one deliberate edge case, and show the artefact or measurement that proves the capability works.";
+    }
+
     private static TopicBrief ResolveTopicBrief(string title, ModuleGuide guide)
     {
+        if (Contains(title, "The FDE Role")) return new TopicBrief(
+            "Understand the Forward Deployed Engineer as the bridge between a customer's ambiguous workflow and a dependable technical outcome.",
+            "A customer describes a painful process but cannot yet name the right product or architecture. The FDE earns trust by observing the workflow, narrowing the first experiment, and staying accountable through validation and handover.",
+            "Write a one-page engagement brief with the user, current workflow, desired outcome, constraints, success measure, first slice, owner, and explicit non-goals.");
+        if (Contains(title, "Problem Discovery")) return new TopicBrief(
+            "Turn an observed customer problem into a testable solution hypothesis without prematurely committing to a framework, model, or feature list.",
+            "An operations team requests an AI assistant because analysts spend hours searching. Interview two users, map the actual search-and-decision workflow, and separate the expensive step from the merely visible step.",
+            "Create a problem statement, assumption log, opportunity-solution tree, and smallest validation experiment; include one plausible solution that you deliberately reject and why.");
+        if (Contains(title, "Python Toolchain")) return new TopicBrief(
+            "Make Python delivery reproducible across an FDE laptop, CI, staging, and the customer's environment.",
+            "A prototype works locally but a handoff fails because Python versions, dependencies, lint rules, and environment variables differ. The fix is a repeatable toolchain contract, not another manual setup note.",
+            "Create a clean environment with a locked dependency set, add ruff and mypy checks, run them in CI, and write the exact setup and verification commands for the next engineer.");
         if (Contains(title, "Assessment") || Contains(title, "Capstone") || Contains(title, "Mock Engagement") || Contains(title, "Graduation Review"))
         {
             return new TopicBrief(
