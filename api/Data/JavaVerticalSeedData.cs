@@ -7,6 +7,8 @@ namespace StudyTracker.Api.Data;
 
 public static class JavaVerticalSeedData
 {
+    private const string DatabaseCourseSlug = "databases-sql";
+
     public static void Seed(StudyTrackerContext db)
     {
         // 1. Seed or Update StudyVertical for Java & Spring Architecture
@@ -115,6 +117,7 @@ public static class JavaVerticalSeedData
         // Existing databases may already have the course and its lessons. Backfill only
         // lessons that still contain the original outline or no body at all.
         BackfillLessonContent(db, course.Id);
+        EnsureStandaloneDatabaseCourse(db, course);
         EnsureExpandedModules(db, course.Id);
         db.SaveChanges();
     }
@@ -763,14 +766,79 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
         });
     }
 
+    private static void EnsureStandaloneDatabaseCourse(StudyTrackerContext db, Course javaCourse)
+    {
+        var definition = GetExpandedModules().Single(module => module.Slug == DatabaseCourseSlug);
+        var databaseCourse = db.Courses.FirstOrDefault(c => c.Slug == DatabaseCourseSlug);
+
+        if (databaseCourse == null)
+        {
+            databaseCourse = new Course
+            {
+                Slug = DatabaseCourseSlug,
+                Title = definition.Title,
+                Description = definition.Description,
+                OrderIndex = 3,
+                PathType = "Course",
+                IsPublished = true,
+                VerticalId = null
+            };
+            db.Courses.Add(databaseCourse);
+            db.SaveChanges();
+        }
+        else
+        {
+            databaseCourse.Title = definition.Title;
+            databaseCourse.Description = definition.Description;
+            databaseCourse.PathType = "Course";
+            databaseCourse.IsPublished = true;
+            databaseCourse.OrderIndex = 3;
+        }
+
+        var javaDatabaseModule = db.Modules
+            .SingleOrDefault(module => module.CourseId == javaCourse.Id && module.Slug == DatabaseCourseSlug);
+        var standaloneDatabaseModule = db.Modules
+            .SingleOrDefault(module => module.CourseId == databaseCourse.Id && module.Slug == DatabaseCourseSlug);
+
+        if (javaDatabaseModule != null && standaloneDatabaseModule != null && javaDatabaseModule.Id != standaloneDatabaseModule.Id)
+        {
+            throw new InvalidOperationException(
+                "Database curriculum exists under both Java LLD and its standalone course. Resolve the duplicate modules before seeding.");
+        }
+
+        if (standaloneDatabaseModule == null && javaDatabaseModule != null)
+        {
+            // Re-home the existing module instead of recreating it. This keeps
+            // lesson ids, authored bodies, linked resources, and completion state.
+            javaDatabaseModule.CourseId = databaseCourse.Id;
+            javaDatabaseModule.UpdatedAt = DateTime.UtcNow;
+            standaloneDatabaseModule = javaDatabaseModule;
+        }
+
+        db.SaveChanges();
+        EnsureExpandedModules(db, databaseCourse.Id, new[] { definition });
+    }
+
     private static void EnsureExpandedModules(StudyTrackerContext db, int courseId)
+    {
+        var javaDefinitions = GetExpandedModules()
+            .Where(definition => definition.Slug != DatabaseCourseSlug)
+            .ToList();
+
+        EnsureExpandedModules(db, courseId, javaDefinitions);
+    }
+
+    private static void EnsureExpandedModules(
+        StudyTrackerContext db,
+        int courseId,
+        IReadOnlyList<ExpandedModuleSeed> definitions)
     {
         var nextLectureNumber = (from lesson in db.Lessons
                                  join module in db.Modules on lesson.ModuleId equals module.Id
                                  where module.CourseId == courseId
-                                 select (int?)lesson.LectureNumber).Max() ?? 17;
+                                 select (int?)lesson.LectureNumber).Max() ?? 0;
 
-        foreach (var definition in GetExpandedModules())
+        foreach (var definition in definitions)
         {
             var module = db.Modules.FirstOrDefault(m => m.CourseId == courseId && m.Slug == definition.Slug);
             if (module == null)

@@ -226,13 +226,21 @@ public static class FdeCurriculumSeedData
                 Title = "Forward Deployed Engineer (FDE)",
                 Description = "A customer-embedded engineering pathway spanning applied AI, delivery, product systems, cloud infrastructure, and enterprise integration.",
                 OrderIndex = 2,
-                PathType = "Specialisation",
+                PathType = "Course",
                 IsPublished = true,
                 // Keep this null until the FDE Curriculum / FDE Self-Study ownership decision is verified.
                 VerticalId = null
             };
             db.Courses.Add(course);
             db.SaveChanges();
+        }
+        else
+        {
+            // The canonical FDE path is a published learning course. Keep this
+            // idempotent repair aligned with the database check constraint and
+            // make an existing unpublished course visible to the Chapters page.
+            course.PathType = "Course";
+            course.IsPublished = true;
         }
 
         var modules = db.Modules
