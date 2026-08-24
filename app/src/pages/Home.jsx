@@ -1,9 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Layers, Terminal, Sparkles } from 'lucide-react';
+import { BookOpen, Layers, Terminal } from 'lucide-react';
 import KnowledgeAtlasGraph, { DEFAULT_DOMAINS, DEFAULT_CONCEPTS, DEFAULT_CONNECTIONS } from '../components/KnowledgeAtlasGraph';
+import CompactLearningPathways from '../components/CompactLearningPathways';
+import RecentLearningPathTracker from '../components/RecentLearningPathTracker';
 import { api } from '../api/client';
 import { ErrorState, LoadingState, DevFixturesBanner } from '../components/common/StateViews';
+import { readRecentLearningPathActivity, sortLearningPathsByRecency } from '../utils/recentLearningPaths';
 import './Home.css';
 
 function normalizePrerequisite(prerequisite) {
@@ -20,7 +23,6 @@ function normalizePrerequisite(prerequisite) {
 
   return { name: 'Prerequisite' };
 }
-
 function normalizeLessonLabel(lesson, fallback) {
   if (typeof lesson === 'string') {
     return lesson;
@@ -44,6 +46,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDevFixture, setIsDevFixture] = useState(false);
+  const [recentActivity] = useState(() => readRecentLearningPathActivity());
+
+  const sortedLearningPaths = useMemo(
+    () => sortLearningPathsByRecency(learningPaths, recentActivity),
+    [learningPaths, recentActivity]
+  );
 
   const fetchAtlasData = useCallback(async () => {
     setLoading(true);
@@ -117,7 +125,7 @@ export default function Home() {
       <header className="atlas-header">
         <div className="atlas-header-top">
           <h1 className="atlas-main-title">‘Knowledge Atlas’ index</h1>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="atlas-header-actions">
             <Link to="/reading-map" className="atlas-reading-map-btn" title="View Reading Map & Progress">
               <BookOpen size={14} />
               <span>Reading Map</span>
@@ -152,95 +160,11 @@ export default function Home() {
             </main>
           )}
 
-          {/* Canonical Learning Pathways Directory */}
-          {learningPaths.length > 0 && (
-            <section style={{ maxWidth: '1200px', margin: '3rem auto 2rem', padding: '0 1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h2 style={{ fontFamily: 'var(--font-serif, "Newsreader", serif)', fontSize: '1.75rem', color: 'var(--color-ink, #1F2937)', margin: 0 }}>
-                  Curriculum Learning Pathways
-                </h2>
-                <span style={{ fontSize: '0.875rem', color: 'var(--color-ink-muted, #6B7280)' }}>
-                  {learningPaths.length} active tracks
-                </span>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
-                {learningPaths.map((path) => (
-                  <Link
-                    key={path.id}
-                    to={`/chapters/${path.slug}`}
-                    style={{
-                      backgroundColor: 'var(--color-parchment-card, #FFFFFF)',
-                      border: '1px solid var(--color-border-subtle, #E2DDD5)',
-                      borderRadius: '10px',
-                      padding: '1.5rem',
-                      textDecoration: 'none',
-                      color: 'inherit',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <span style={{
-                          backgroundColor: 'rgba(44, 94, 85, 0.08)',
-                          color: 'var(--color-sage, #2C5E55)',
-                          padding: '0.15rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.7rem',
-                          fontWeight: '700',
-                          textTransform: 'uppercase'
-                        }}>
-                          {path.pathType}
-                        </span>
-                        <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--color-sage, #2C5E55)' }}>
-                          {path.progressPercentage}%
-                        </span>
-                      </div>
-                      <h3 style={{ margin: '0.5rem 0', fontSize: '1.15rem', color: 'var(--color-ink, #1F2937)' }}>
-                        {path.title}
-                      </h3>
-                      <p style={{
-                        color: 'var(--color-ink-muted, #6B7280)',
-                        fontSize: '0.85rem',
-                        lineHeight: '1.5',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        margin: 0
-                      }}>
-                        {path.description}
-                      </p>
-                    </div>
-
-                    <div style={{ marginTop: '1.25rem' }}>
-                      <div style={{
-                        width: '100%',
-                        height: '4px',
-                        backgroundColor: '#E5E7EB',
-                        borderRadius: '2px',
-                        overflow: 'hidden',
-                        marginBottom: '0.75rem'
-                      }}>
-                        <div style={{
-                          width: `${path.progressPercentage}%`,
-                          height: '100%',
-                          backgroundColor: 'var(--color-sage, #2C5E55)'
-                        }} />
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--color-ink-muted, #6B7280)' }}>
-                        <span>{path.completedLessons} / {path.totalLessons} lessons</span>
-                        <span style={{ fontWeight: '600', color: 'var(--color-sage, #2C5E55)' }}>Explore →</span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
+          {sortedLearningPaths.length > 0 && (
+            <>
+              <CompactLearningPathways paths={sortedLearningPaths} />
+              <RecentLearningPathTracker paths={sortedLearningPaths} />
+            </>
           )}
         </>
       )}

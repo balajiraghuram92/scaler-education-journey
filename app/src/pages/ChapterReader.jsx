@@ -4,6 +4,7 @@ import { Plus, Calendar, Shield } from 'lucide-react';
 import CodeComparisonSwitcher from '../components/CodeComparisonSwitcher';
 import { api } from '../api/client';
 import { LoadingState, ErrorState, DevFixturesBanner } from '../components/common/StateViews';
+import { markLearningPathOpened } from '../utils/recentLearningPaths';
 import './ChapterReader.css';
 
 function slugifyHeading(value, usedIds) {
@@ -168,6 +169,12 @@ export default function ChapterReader() {
       if (data) {
         setChapter(data);
         setPersonalNotesList(data.notes || []);
+        if (verticalOrCourseSlug && moduleSlug && lessonSlug) {
+          const verifiedPathSlug = data.course?.slug || verticalOrCourseSlug;
+          if (typeof verifiedPathSlug === 'string' && verifiedPathSlug.trim()) {
+            markLearningPathOpened(verifiedPathSlug);
+          }
+        }
       }
     } catch (err) {
       console.warn('API fetch warning for chapter:', err);

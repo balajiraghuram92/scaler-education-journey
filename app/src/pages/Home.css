@@ -1,7 +1,7 @@
 .knowledge-atlas-page {
   width: 100%;
   margin: 0;
-  padding: 0 0 3rem;
+  padding: 0 0 8rem;
   background-color: transparent;
   color: var(--ink-primary);
   font-family: var(--font-sans);
@@ -18,6 +18,13 @@
   justify-content: space-between;
   margin-bottom: 1.25rem;
   gap: 1rem;
+}
+
+.atlas-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .atlas-reading-map-btn {
@@ -68,10 +75,19 @@
 }
 
 @media (max-width: 768px) {
+  .knowledge-atlas-page {
+    padding-bottom: 6.5rem;
+  }
+
   .atlas-header {
     margin-bottom: 1.25rem;
   }
   .atlas-main-title {
     margin-bottom: 0.75rem;
+  }
+
+  .atlas-header-top {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

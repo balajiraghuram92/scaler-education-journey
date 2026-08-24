@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../../api/client';
 import { LoadingState, ErrorState, EmptyState } from '../../components/common/StateViews';
+import { markLearningPathOpened } from '../../utils/recentLearningPaths';
 
 export default function LearningPathDetail() {
   const { slug } = useParams();
@@ -15,6 +16,9 @@ export default function LearningPathDetail() {
     try {
       const data = await api.v2.getLearningPath(slug);
       setPath(data);
+      if (data && typeof data.slug === 'string' && data.slug.trim()) {
+        markLearningPathOpened(data.slug);
+      }
     } catch (err) {
       setError(err);
     } finally {
