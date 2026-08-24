@@ -7,7 +7,13 @@ namespace StudyTracker.Api.Data;
 
 public static class JavaVerticalSeedData
 {
-    private const string DatabaseCourseSlug = "databases-sql";
+    private static readonly IReadOnlyDictionary<string, int> StandaloneExpandedCourseOrders =
+        new Dictionary<string, int>(StringComparer.Ordinal)
+        {
+            ["databases-sql"] = 3,
+            ["high-level-design"] = 4,
+            ["data-engineering"] = 5
+        };
 
     public static void Seed(StudyTrackerContext db)
     {
@@ -117,7 +123,7 @@ public static class JavaVerticalSeedData
         // Existing databases may already have the course and its lessons. Backfill only
         // lessons that still contain the original outline or no body at all.
         BackfillLessonContent(db, course.Id);
-        EnsureStandaloneDatabaseCourse(db, course);
+        EnsureStandaloneExpandedCourses(db, course);
         EnsureExpandedModules(db, course.Id);
         db.SaveChanges();
     }
@@ -766,63 +772,82 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
         });
     }
 
-    private static void EnsureStandaloneDatabaseCourse(StudyTrackerContext db, Course javaCourse)
+    private static void EnsureStandaloneExpandedCourses(StudyTrackerContext db, Course javaCourse)
     {
-        var definition = GetExpandedModules().Single(module => module.Slug == DatabaseCourseSlug);
-        var databaseCourse = db.Courses.FirstOrDefault(c => c.Slug == DatabaseCourseSlug);
+        var definitions = GetExpandedModules()
+            .Where(definition => StandaloneExpandedCourseOrders.ContainsKey(definition.Slug))
+            .ToDictionary(definition => definition.Slug, StringComparer.Ordinal);
 
-        if (databaseCourse == null)
+        foreach (var standaloneCourse in StandaloneExpandedCourseOrders)
         {
-            databaseCourse = new Course
+            EnsureStandaloneExpandedCourse(
+                db,
+                javaCourse,
+                definitions[standaloneCourse.Key],
+                standaloneCourse.Value);
+        }
+    }
+
+    private static void EnsureStandaloneExpandedCourse(
+        StudyTrackerContext db,
+        Course javaCourse,
+        ExpandedModuleSeed definition,
+        int orderIndex)
+    {
+        var standaloneCourse = db.Courses.FirstOrDefault(c => c.Slug == definition.Slug);
+
+        if (standaloneCourse == null)
+        {
+            standaloneCourse = new Course
             {
-                Slug = DatabaseCourseSlug,
+                Slug = definition.Slug,
                 Title = definition.Title,
                 Description = definition.Description,
-                OrderIndex = 3,
+                OrderIndex = orderIndex,
                 PathType = "Course",
                 IsPublished = true,
                 VerticalId = null
             };
-            db.Courses.Add(databaseCourse);
+            db.Courses.Add(standaloneCourse);
             db.SaveChanges();
         }
         else
         {
-            databaseCourse.Title = definition.Title;
-            databaseCourse.Description = definition.Description;
-            databaseCourse.PathType = "Course";
-            databaseCourse.IsPublished = true;
-            databaseCourse.OrderIndex = 3;
+            standaloneCourse.Title = definition.Title;
+            standaloneCourse.Description = definition.Description;
+            standaloneCourse.PathType = "Course";
+            standaloneCourse.IsPublished = true;
+            standaloneCourse.OrderIndex = orderIndex;
         }
 
         var javaDatabaseModule = db.Modules
-            .SingleOrDefault(module => module.CourseId == javaCourse.Id && module.Slug == DatabaseCourseSlug);
+            .SingleOrDefault(module => module.CourseId == javaCourse.Id && module.Slug == definition.Slug);
         var standaloneDatabaseModule = db.Modules
-            .SingleOrDefault(module => module.CourseId == databaseCourse.Id && module.Slug == DatabaseCourseSlug);
+            .SingleOrDefault(module => module.CourseId == standaloneCourse.Id && module.Slug == definition.Slug);
 
         if (javaDatabaseModule != null && standaloneDatabaseModule != null && javaDatabaseModule.Id != standaloneDatabaseModule.Id)
         {
             throw new InvalidOperationException(
-                "Database curriculum exists under both Java LLD and its standalone course. Resolve the duplicate modules before seeding.");
+                $"Expanded curriculum '{definition.Slug}' exists under both Java LLD and its standalone course. Resolve the duplicate modules before seeding.");
         }
 
         if (standaloneDatabaseModule == null && javaDatabaseModule != null)
         {
             // Re-home the existing module instead of recreating it. This keeps
             // lesson ids, authored bodies, linked resources, and completion state.
-            javaDatabaseModule.CourseId = databaseCourse.Id;
+            javaDatabaseModule.CourseId = standaloneCourse.Id;
             javaDatabaseModule.UpdatedAt = DateTime.UtcNow;
             standaloneDatabaseModule = javaDatabaseModule;
         }
 
         db.SaveChanges();
-        EnsureExpandedModules(db, databaseCourse.Id, new[] { definition });
+        EnsureExpandedModules(db, standaloneCourse.Id, new[] { definition });
     }
 
     private static void EnsureExpandedModules(StudyTrackerContext db, int courseId)
     {
         var javaDefinitions = GetExpandedModules()
-            .Where(definition => definition.Slug != DatabaseCourseSlug)
+            .Where(definition => !StandaloneExpandedCourseOrders.ContainsKey(definition.Slug))
             .ToList();
 
         EnsureExpandedModules(db, courseId, javaDefinitions);
