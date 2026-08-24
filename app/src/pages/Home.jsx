@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Layers, Terminal } from 'lucide-react';
 import KnowledgeAtlasGraph, { DEFAULT_DOMAINS, DEFAULT_CONCEPTS, DEFAULT_CONNECTIONS } from '../components/KnowledgeAtlasGraph';
-import CompactLearningPathways from '../components/CompactLearningPathways';
 import RecentLearningPathTracker from '../components/RecentLearningPathTracker';
 import { api } from '../api/client';
 import { ErrorState, LoadingState, DevFixturesBanner } from '../components/common/StateViews';
@@ -162,7 +161,6 @@ export default function Home() {
 
           {sortedLearningPaths.length > 0 && (
             <>
-              <CompactLearningPathways paths={sortedLearningPaths} />
               <RecentLearningPathTracker paths={sortedLearningPaths} />
             </>
           )}
