@@ -7,6 +7,7 @@ import LabProjects from './pages/LabProjects';
 import ReadingMap from './pages/ReadingMap';
 import ChapterReader from './pages/ChapterReader';
 import CurriculumImporter from './pages/CurriculumImporter';
+import ChaptersIndex from './pages/ChaptersIndex';
 import LearningPathDetail from './pages/LearningPath/LearningPathDetail';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
@@ -25,7 +26,25 @@ function App() {
             }
           />
 
-          {/* Canonical Learning Paths */}
+          {/* Chapters / curriculum entry point */}
+          <Route
+            path="/chapters"
+            element={
+              <Layout>
+                <ChaptersIndex />
+              </Layout>
+            }
+          />
+          <Route
+            path="/chapters/:slug"
+            element={
+              <Layout>
+                <LearningPathDetail />
+              </Layout>
+            }
+          />
+
+          {/* Backward-compatible canonical learning-path URLs */}
           <Route
             path="/learning-paths/:slug"
             element={
@@ -140,7 +159,7 @@ function App() {
           />
           <Route
             path="/concept-chapter"
-            element={<Navigate to="/chapter/structured-concurrency" replace />}
+            element={<Navigate to="/chapters" replace />}
           />
         </Routes>
       </ErrorBoundary>

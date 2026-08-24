@@ -168,7 +168,7 @@ export default function Home() {
                 {learningPaths.map((path) => (
                   <Link
                     key={path.id}
-                    to={`/learning-paths/${path.slug}`}
+                    to={`/chapters/${path.slug}`}
                     style={{
                       backgroundColor: 'var(--color-parchment-card, #FFFFFF)',
                       border: '1px solid var(--color-border-subtle, #E2DDD5)',

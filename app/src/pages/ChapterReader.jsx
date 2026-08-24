@@ -1,14 +1,135 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { Plus, Calendar, Shield } from 'lucide-react';
 import CodeComparisonSwitcher from '../components/CodeComparisonSwitcher';
 import { api } from '../api/client';
 import { LoadingState, ErrorState, DevFixturesBanner } from '../components/common/StateViews';
 import './ChapterReader.css';
 
+function slugifyHeading(value, usedIds) {
+  const base = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'section';
+  const count = usedIds.get(base) || 0;
+  usedIds.set(base, count + 1);
+  return count === 0 ? base : `${base}-${count + 1}`;
+}
+
+function formatInline(text) {
+  return text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) return <strong key={`${part}-${index}`}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith('`') && part.endsWith('`')) return <code key={`${part}-${index}`}>{part.slice(1, -1)}</code>;
+    return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+  });
+}
+
+function buildContentSections(contentBody) {
+  const fallback = 'This chapter is being prepared. Return to the pathway for the latest learning outline.';
+  const lines = (contentBody || fallback).replace(/\r\n/g, '\n').split('\n');
+  const usedIds = new Map([['introduction', 1]]);
+  const sections = [{ id: 'introduction', title: 'Introduction', blocks: [] }];
+  let current = sections[0];
+  let paragraph = [];
+  let list = [];
+  let listType = null;
+  let codeLines = [];
+  let inCodeBlock = false;
+
+  const flushParagraph = () => {
+    if (paragraph.length > 0) {
+      current.blocks.push({ type: 'paragraph', text: paragraph.join(' ') });
+      paragraph = [];
+    }
+  };
+  const flushList = () => {
+    if (list.length > 0) {
+      current.blocks.push({ type: listType, items: list });
+      list = [];
+      listType = null;
+    }
+  };
+  const flushCode = () => {
+    if (codeLines.length > 0) {
+      current.blocks.push({ type: 'code', text: codeLines.join('\n') });
+      codeLines = [];
+    }
+  };
+  const flushBlocks = () => {
+    flushParagraph();
+    flushList();
+    flushCode();
+  };
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (line.startsWith('```')) {
+      if (inCodeBlock) flushCode();
+      else flushParagraph();
+      inCodeBlock = !inCodeBlock;
+      return;
+    }
+    if (inCodeBlock) {
+      codeLines.push(rawLine);
+      return;
+    }
+    if (/^#\s+/.test(line)) {
+      flushBlocks();
+      return;
+    }
+    if (/^##\s+/.test(line)) {
+      flushBlocks();
+      const title = line.replace(/^##\s+/, '');
+      current = { id: slugifyHeading(title, usedIds), title, blocks: [] };
+      sections.push(current);
+      return;
+    }
+    if (/^###\s+/.test(line)) {
+      flushBlocks();
+      current.blocks.push({ type: 'subheading', text: line.replace(/^###\s+/, '') });
+      return;
+    }
+    const unordered = line.match(/^[-*]\s+(.+)/);
+    const ordered = line.match(/^\d+\.\s+(.+)/);
+    if (unordered || ordered) {
+      const nextType = ordered ? 'ordered-list' : 'unordered-list';
+      if (listType && listType !== nextType) flushList();
+      flushParagraph();
+      listType = nextType;
+      list.push((unordered || ordered)[1]);
+      return;
+    }
+    if (!line) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+    paragraph.push(line);
+  });
+
+  flushBlocks();
+  return sections.filter((section) => section.blocks.length > 0);
+}
+
+function ChapterMarkdown({ sections }) {
+  return sections.map((section) => (
+    <section key={section.id} id={section.id} className="chapter-content-section">
+      {section.title !== 'Introduction' && <h3 className="chamber-section-heading">{section.title}</h3>}
+      <div className="chamber-prose">
+        {section.blocks.map((block, index) => {
+          if (block.type === 'subheading') return <h4 key={`${section.id}-${index}`} className="chamber-subheading">{block.text}</h4>;
+          if (block.type === 'unordered-list') return <ul key={`${section.id}-${index}`} className="chapter-markdown-list">{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{formatInline(item)}</li>)}</ul>;
+          if (block.type === 'ordered-list') return <ol key={`${section.id}-${index}`} className="chapter-markdown-list chapter-markdown-list--ordered">{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{formatInline(item)}</li>)}</ol>;
+          if (block.type === 'code') return <pre key={`${section.id}-${index}`} className="chapter-code-block"><code>{block.text}</code></pre>;
+          return <p key={`${section.id}-${index}`}>{formatInline(block.text)}</p>;
+        })}
+      </div>
+    </section>
+  ));
+}
+
 export default function ChapterReader() {
   const { slug, verticalOrCourseSlug, moduleSlug, lessonSlug } = useParams();
-  const navigate = useNavigate();
 
   const [chapter, setChapter] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,6 +146,11 @@ export default function ChapterReader() {
     if (slug) return slug;
     return 'structured-concurrency'; // default flagship
   }, [slug, lessonSlug]);
+
+  const contentSections = useMemo(
+    () => buildContentSections(chapter?.contentBody),
+    [chapter?.contentBody]
+  );
 
   const fetchChapter = async () => {
     setLoading(true);
@@ -120,24 +246,21 @@ export default function ChapterReader() {
     return <ErrorState error={error} onRetry={fetchChapter} title="Chapter Not Available" />;
   }
 
-  // Generate Table of Contents
+  const chapterCourseSlug = chapter.course?.slug || chapter.course?.courseSlug || 'java-spring-lld';
+
   const tocItems = [
-    { id: 'introduction', label: 'Introduction', level: 1 },
-    { id: 'core-invariants', label: 'Core Invariants', level: 1 },
-    { id: 'concept-connection', label: 'Concept Connection', level: 2 },
-    { id: 'code-comparison', label: 'Code Comparison', level: 2 },
-    { id: 'architecture-hierarchy', label: 'Architecture Hierarchy', level: 2 },
-    { id: 'worked-scenario', label: 'Worked Backend Scenario', level: 1 },
-    ...(chapter.problems?.length > 0 ? [{ id: 'practice-problems', label: 'Practice Problems & Verification', level: 1 }] : [])
+    ...contentSections.map((section) => ({ id: section.id, label: section.title, level: 1 })),
+    ...(chapter.codeComparisons?.length > 0 ? [{ id: 'code-comparison', label: 'Code comparison', level: 1 }] : []),
+    ...(chapter.diagrams?.length > 0 ? [{ id: 'architecture-hierarchy', label: 'Architecture diagram', level: 1 }] : []),
+    ...(chapter.problems?.length > 0 ? [{ id: 'practice-problems', label: 'Practice problems', level: 1 }] : [])
   ];
 
   return (
     <div className="chapter-reader-page">
       {isDevFixture && <DevFixturesBanner />}
-      {/* Top Editorial Panel Tag */}
       <div className="chapter-reader-top-strip">
         <div className="top-strip-inner">
-          <span className="panel-tag">PANEL D: CONCEPT CHAPTER</span>
+          <span className="panel-tag">PANEL D: CURRICULUM CHAPTER</span>
         </div>
       </div>
 
@@ -178,7 +301,7 @@ export default function ChapterReader() {
                 {chapter.siblingChapters.map((sib) => (
                   <li key={sib.id}>
                     <Link
-                      to={`/chapter/${sib.slug}`}
+                      to={`/chapter/${sib.fullSlug || sib.slug}`}
                       className={`sibling-link ${sib.id === chapter.id ? 'is-current' : ''}`}
                     >
                       {sib.title}
@@ -204,9 +327,11 @@ export default function ChapterReader() {
         <main className="chapter-reading-chamber">
           {/* Breadcrumbs */}
           <nav className="chamber-breadcrumb-trail">
-            <Link to="/" className="breadcrumb-crumb">Knowledge Atlas</Link>
+            <Link to="/chapters" className="breadcrumb-crumb">Chapters</Link>
             <span className="breadcrumb-sep">→</span>
-            <span className="breadcrumb-crumb">{chapter.course?.title || 'Java & Spring Architecture'}</span>
+            <Link to={`/chapters/${chapterCourseSlug}`} className="breadcrumb-crumb">
+              {chapter.course?.title || 'Java & Spring Architecture'}
+            </Link>
             <span className="breadcrumb-sep">→</span>
             <span className="breadcrumb-crumb is-leaf">{chapter.title}</span>
           </nav>
@@ -219,103 +344,26 @@ export default function ChapterReader() {
             )}
           </header>
 
-          {/* Section 1: Introduction */}
-          <section id="introduction" className="chapter-content-section">
-            <div className="chamber-prose">
-              <p>
-                <strong>{chapter.title}</strong> treats concurrent execution as a structured block of code—mirroring structured programming constructs like <code>if/else</code> and <code>for</code> loops. In traditional concurrent programming ("unstructured concurrency"), the lifecycle of concurrent tasks is detached from the lexical scope that initiated them.
-              </p>
-              <p>
-                When threads are spawned asynchronously across decoupled futures, background promises can outlive their originating caller. This leads to three fundamental engineering failures: leaked CPU/memory resources, orphaned database connection pool exhaustion, and swallowed exceptions.
-              </p>
-            </div>
-          </section>
+          <ChapterMarkdown sections={contentSections} />
 
-          {/* Section 2: Core Invariants */}
-          <section id="core-invariants" className="chapter-content-section">
-            <h3 className="chamber-section-heading">Core Invariants &amp; Scope Hierarchy</h3>
-            <div className="chamber-prose">
-              <p>
-                Under a structured concurrency model, if a task splits into concurrent subtasks, all subtasks must complete or abort before the parent lexical scope exits. Failure in any child immediately cascades cancellation to all sibling tasks and unwinds the scope cleanly.
-              </p>
-            </div>
+          {chapter.codeComparisons?.length > 0 && (
+            <section id="code-comparison" className="chapter-content-section">
+              <h3 className="chamber-section-heading">Code comparison</h3>
+              <CodeComparisonSwitcher comparisons={chapter.codeComparisons} />
+            </section>
+          )}
 
-            {/* Concept Connection Card */}
-            <div id="concept-connection" className="concept-connection-card">
-              <h4 className="concept-connection-title">Concept connection</h4>
-              <div className="concept-connection-divider" />
-              <div className="concept-connection-grid">
-                <div className="connection-col">
-                  <span className="connection-col-label">Builds on:</span>
-                  <ul className="connection-col-list">
-                    <li>• Executors, Futures</li>
-                    <li>• Virtual Threads</li>
-                    <li>• Lexical Lifecycles</li>
-                  </ul>
-                </div>
-                <div className="connection-col">
-                  <span className="connection-col-label">Leads to:</span>
-                  <ul className="connection-col-list">
-                    <li>• Spring asynchronous workflows</li>
-                    <li>• Resilient backend design</li>
-                    <li>• High-throughput payment gateways</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 3: Code Comparison Switcher */}
-          <section id="code-comparison" className="chapter-content-section">
-            <h3 className="chamber-section-heading">Code Comparison &amp; Pattern Shift</h3>
-            <CodeComparisonSwitcher comparisons={chapter.codeComparisons || []} />
-          </section>
-
-          {/* Section 4: Architecture Hierarchy SVG Diagram */}
-          <section id="architecture-hierarchy" className="chapter-content-section">
-            <h3 className="chamber-section-heading">Architecture &amp; Ownership Topology</h3>
-            {chapter.diagrams?.length > 0 ? (
-              chapter.diagrams.map((diag) => (
+          {chapter.diagrams?.length > 0 && (
+            <section id="architecture-hierarchy" className="chapter-content-section">
+              <h3 className="chamber-section-heading">Architecture diagram</h3>
+              {chapter.diagrams.map((diag) => (
                 <div key={diag.id} className="chamber-diagram-card">
-                  <div
-                    className="chamber-svg-canvas"
-                    dangerouslySetInnerHTML={{ __html: diag.svgContent }}
-                  />
+                  <div className="chamber-svg-canvas" dangerouslySetInnerHTML={{ __html: diag.svgContent }} />
                   {diag.caption && <p className="chamber-diagram-caption">{diag.caption}</p>}
                 </div>
-              ))
-            ) : (
-              <div className="chamber-diagram-card">
-                <svg viewBox="0 0 640 220" width="100%" height="100%" className="chamber-svg-canvas" style={{ background: 'transparent' }}>
-                  <rect x="220" y="20" width="200" height="40" rx="8" fill="#FFFFFF" stroke="#2C5E55" strokeWidth="2" />
-                  <text x="320" y="45" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#2C5E55">Task ownership</text>
-                  <path d="M 260 60 L 120 110" stroke="#2C5E55" strokeWidth="1.5" strokeDasharray="4 4" fill="none" />
-                  <path d="M 320 60 L 320 110" stroke="#2C5E55" strokeWidth="1.5" fill="none" />
-                  <path d="M 380 60 L 520 110" stroke="#2C5E55" strokeWidth="1.5" strokeDasharray="4 4" fill="none" />
-                  <rect x="40" y="110" width="160" height="38" rx="6" fill="#FFFFFF" stroke="#2C5E55" strokeWidth="1.5" />
-                  <text x="120" y="134" textAnchor="middle" fontSize="12" fill="#1C2421">Ownership</text>
-                  <rect x="240" y="110" width="160" height="38" rx="6" fill="#FFFFFF" stroke="#2C5E55" strokeWidth="1.5" />
-                  <text x="320" y="134" textAnchor="middle" fontSize="12" fill="#1C2421">Task ownership</text>
-                  <rect x="440" y="110" width="160" height="38" rx="6" fill="#FFFFFF" stroke="#2C5E55" strokeWidth="1.5" />
-                  <text x="520" y="134" textAnchor="middle" fontSize="12" fill="#1C2421">Fraction</text>
-                </svg>
-                <p className="chamber-diagram-caption">Fine-line ownership hierarchy</p>
-              </div>
-            )}
-          </section>
-
-          {/* Section 5: Worked Backend Scenario */}
-          <section id="worked-scenario" className="chapter-content-section">
-            <h3 className="chamber-section-heading">Worked backend scenario</h3>
-            <div className="chamber-prose">
-              <p>
-                In a high-throughput payment gateway, handling concurrent authentication, risk checks, and inventory reservations requires atomic failure semantics. When an downstream fraud service rejects a checkout attempt, continuing the inventory reservation causes stock locking anomalies.
-              </p>
-              <p>
-                By wrapping the three tasks in a bounded structured scope (e.g. <code>StructuredTaskScope.ShutdownOnFailure()</code>), the first failure cancels all sibling virtual threads instantly, guaranteeing that no partial state mutations survive.
-              </p>
-            </div>
-          </section>
+              ))}
+            </section>
+          )}
 
           {/* Section 6: Interactive Problems (if present) */}
           {chapter.problems?.length > 0 && (
@@ -347,14 +395,14 @@ export default function ChapterReader() {
           {/* Chapter Navigation Footer */}
           <footer className="chamber-nav-footer">
             {chapter.previousChapter ? (
-              <Link to={`/chapter/${chapter.previousChapter.slug}`} className="chamber-nav-btn prev">
+              <Link to={`/chapter/${chapter.previousChapter.fullSlug || chapter.previousChapter.slug}`} className="chamber-nav-btn prev">
                 <span className="nav-dir">← Previous Chapter</span>
                 <span className="nav-title">{chapter.previousChapter.title}</span>
               </Link>
             ) : <div />}
 
             {chapter.nextChapter ? (
-              <Link to={`/chapter/${chapter.nextChapter.slug}`} className="chamber-nav-btn next">
+              <Link to={`/chapter/${chapter.nextChapter.fullSlug || chapter.nextChapter.slug}`} className="chamber-nav-btn next">
                 <span className="nav-dir">Next Chapter →</span>
                 <span className="nav-title">{chapter.nextChapter.title}</span>
               </Link>
@@ -366,43 +414,40 @@ export default function ChapterReader() {
         {/* COLUMN 3: RIGHT CONTEXTUAL SIDEBAR                        */}
         {/* ========================================================= */}
         <aside className="chapter-context-sidebar">
-          {/* Related Lesson */}
           <div className="sidebar-meta-block">
-            <h5 className="sidebar-meta-title">Related lesson</h5>
-            <Link to="/vertical/java-spring-lld" className="sidebar-meta-link">
-              Concurrency → Structured Concurrency
+            <h5 className="sidebar-meta-title">Pathway</h5>
+            <Link to={`/chapters/${chapterCourseSlug}`} className="sidebar-meta-link">
+              {chapter.course?.title || 'Curriculum pathway'}
             </Link>
           </div>
 
           <div className="sidebar-hairline-divider" />
 
-          {/* Prerequisite */}
           <div className="sidebar-meta-block">
-            <h5 className="sidebar-meta-title">Prerequisite</h5>
-            <Link to="/chapter/03-oop-2-access-modifiers-encapsulation" className="sidebar-meta-link">
-              Structured concurrency → Structured Concurrency
-            </Link>
+            <h5 className="sidebar-meta-title">Module</h5>
+            <span className="sidebar-meta-text">{chapter.module?.title || 'Module context is being prepared.'}</span>
           </div>
 
           <div className="sidebar-hairline-divider" />
 
-          {/* Further Reading */}
           <div className="sidebar-meta-block">
             <h5 className="sidebar-meta-title">Further reading</h5>
             <ul className="sidebar-reading-list">
-              <li>
-                <a href="https://openjdk.org/jeps/453" target="_blank" rel="noreferrer" className="sidebar-meta-link">
-                  JEP 453: Structured Concurrency
-                </a>
-              </li>
-              <li>
-                <a href="https://docs.spring.io" target="_blank" rel="noreferrer" className="sidebar-meta-link">
-                  Spring asynchronous workflows
-                </a>
-              </li>
-              <li>
-                <span className="sidebar-meta-text">Further reading for resilient backend design</span>
-              </li>
+              {chapter.horstmannRef && (
+                <li>
+                  <a href={chapter.horstmannRef} target="_blank" rel="noreferrer" className="sidebar-meta-link">
+                    Primary reference
+                  </a>
+                </li>
+              )}
+              {chapter.relatedLessons?.map((lesson) => (
+                <li key={`${lesson.targetSlug || lesson.targetTitle}-${lesson.relationshipType}`}>
+                  <span className="sidebar-meta-text">{lesson.relationshipType}: {lesson.targetTitle}</span>
+                </li>
+              ))}
+              {!chapter.horstmannRef && !chapter.relatedLessons?.length && (
+                <li><span className="sidebar-meta-text">Keep a field note with the most useful reference you find.</span></li>
+              )}
             </ul>
           </div>
 
@@ -430,7 +475,7 @@ export default function ChapterReader() {
             ) : (
               <blockquote className="sidebar-personal-note-box">
                 <p className="note-text">
-                  "Remember to always join or cancel subtasks before exiting. Never catch InterruptedException without restoring the interrupt flag on carrier threads."
+                  "Add a short field note after trying this chapter in a real system."
                 </p>
               </blockquote>
             )}
@@ -471,10 +516,12 @@ export default function ChapterReader() {
                 <span className="upcoming-module-tag">{chapter.course?.title || 'Java & Spring'}</span>
               </div>
               <p className="upcoming-title">
-                {chapter.nextChapter ? chapter.nextChapter.title : 'Virtual Thread Pinning & Lock-Free Scope'}
+                {chapter.nextChapter ? chapter.nextChapter.title : 'Return to the pathway for the next chapter'}
               </p>
               <p className="upcoming-desc">
-                Investigating carrier thread synchronization bottlenecks, ReentrantLock migrations, and high-concurrency throughput benchmarks.
+                {chapter.nextChapter
+                  ? 'Continue the sequence when you are ready to apply this chapter in a broader workflow.'
+                  : 'Finish the practice loop, capture a field note, and choose the next module from the pathway.'}
               </p>
               <div className="upcoming-admin-hint">
                 <Shield size={12} className="admin-lock-icon" />

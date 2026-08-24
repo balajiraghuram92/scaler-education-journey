@@ -15,6 +15,39 @@ public class JavaReconciler
     private readonly StudyTrackerContext _db;
     private readonly ILogger<JavaReconciler> _logger;
 
+    // The legacy tracker used a different editorial title format from the canonical
+    // course. These are reviewed, deterministic title-to-slug mappings; they avoid
+    // fuzzy matching and keep progress synchronization safe.
+    private static readonly Dictionary<string, string> LegacyLessonSlugMap = new(StringComparer.Ordinal)
+    {
+        ["Lesson 01: Intro to LLD for Scalable & AI-Ready Systems"] = "01-intro-to-lld",
+        ["Lesson 02: OOP-1 Intro Lab (Core OOP Foundations)"] = "02-oop-1-intro-lab",
+        ["Lesson 03: OOP-2 Access Modifiers, Encapsulation & Inheritance"] = "03-oop-2-access-modifiers-encapsulation",
+        ["Lesson 04: OOP-3 Polymorphism, Interfaces & Abstract Classes"] = "04-oop-3-polymorphism-interfaces",
+        ["Lesson 05: OOP-4 Library Management System (LMS) Lab"] = "05-oop-4-lms-lab",
+        ["Lesson 06: Concurrency 1: Processes, Threads & PCB Context Switching"] = "06-concurrency-1-threads",
+        ["Lesson 07: Concurrency 2: Executors, Thread Pools & Callable/Future"] = "07-concurrency-2-executors",
+        ["Lesson 08: Concurrency 3: Synchronization, Race Conditions & Locks"] = "08-concurrency-3-synchronization",
+        ["Lesson 09: Concurrency 4: Semaphores & Bounded Buffer"] = "09-concurrency-4-semaphores",
+        ["Lesson 10: Java Advanced 1: Generics, Wildcards & Type Erasure"] = "10-java-adv-1-generics",
+        ["Lesson 11: Java Advanced 2: Collections Lab & Comparator/Comparable"] = "11-java-adv-2-collections-lab",
+        ["Lesson 12: Java Advanced 3: Lambdas, Functional Interfaces & Streams"] = "12-java-adv-3-lambdas-streams",
+        ["Lesson 13: Java Advanced 4: Streams in Depth & Exception Architecture"] = "13-java-adv-4-streams-exceptions",
+        ["Spring Boot 3 Core: Inversion of Control & Dependency Injection"] = "14-spring-boot-core",
+        ["Data Layer: Spring Data JPA, Hibernate & PostgreSQL 16"] = "15-spring-data-jpa",
+        ["API Architecture: RESTful Services, Validation & Security"] = "16-spring-rest-api",
+        ["Contest Capstone: Java, OOP & Concurrency Machine Coding"] = "17-machine-coding-capstone"
+    };
+
+    private static readonly Dictionary<string, string> LegacyProblemSlugMap = new(StringComparer.Ordinal)
+    {
+        ["OOP-2 Problem 1: Immutable Fare (Warm-up)"] = "prb1-immutable-fare",
+        ["OOP-2 Problem 2: Driver Onboarding (Easy-Mid)"] = "prb2-driver-onboarding",
+        ["OOP-2 Problem 3: Vehicle Hierarchy (Mid)"] = "prb3-vehicle-hierarchy",
+        ["OOP-2 Problem 4: Trip Copy Semantics (Mid-Hard)"] = "prb4-trip-copy-semantics",
+        ["OOP-2 Problem 5: The equals/hashCode Contract (Hard)"] = "prb5-equals-hashcode-contract"
+    };
+
     public JavaReconciler(StudyTrackerContext db, ILogger<JavaReconciler> logger)
     {
         _db = db;
@@ -100,8 +133,11 @@ public class JavaReconciler
                 SourceChecksum = checksum
             };
 
-            // Exact match to Problem
-            var matchingProblems = allProblems.Where(p => NormalizationHelper.NormalizeText(p.Title) == normalizedTitle).ToList();
+            // Prefer the explicit reviewed mapping because the legacy tracker and
+            // canonical course intentionally use different editorial titles.
+            var matchingProblems = LegacyProblemSlugMap.TryGetValue(task.Title, out var problemSlug)
+                ? allProblems.Where(p => p.Slug == problemSlug).ToList()
+                : allProblems.Where(p => NormalizationHelper.NormalizeText(p.Title) == normalizedTitle).ToList();
 
             if (matchingProblems.Count == 1)
             {
@@ -126,8 +162,9 @@ public class JavaReconciler
             }
             else
             {
-                // Exact match to Lesson
-                var matchingLessons = allLessons.Where(l => NormalizationHelper.NormalizeText(l.Title) == normalizedTitle).ToList();
+                var matchingLessons = LegacyLessonSlugMap.TryGetValue(task.Title, out var lessonSlug)
+                    ? allLessons.Where(l => l.Slug == lessonSlug).ToList()
+                    : allLessons.Where(l => NormalizationHelper.NormalizeText(l.Title) == normalizedTitle).ToList();
 
                 if (matchingLessons.Count == 1)
                 {

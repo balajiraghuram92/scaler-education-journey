@@ -41,6 +41,39 @@ public class BackfillReconciliationTests
     }
 
     [Fact]
+    public void FdeCurriculumSeedData_CreatesCanonicalDraftsWithoutChoosingLegacyOwnership()
+    {
+        using var db = CreateInMemoryContext(Guid.NewGuid().ToString());
+        db.Verticals.Add(new StudyVertical
+        {
+            Id = 1,
+            Name = "FDE Self-Study",
+            Tasks = new List<StudyTask>
+            {
+                new()
+                {
+                    Id = 101,
+                    Module = "1. FDE Foundations: Python, Workflow & Delivery",
+                    Title = "Python Toolchain & Environment Setup (pyenv, uv, ruff, mypy)",
+                    IsCompleted = true
+                }
+            }
+        });
+        db.SaveChanges();
+
+        FdeCurriculumSeedData.Seed(db);
+
+        var course = db.Courses.Single(c => c.Slug == "fde-curriculum");
+        var lesson = db.Lessons.Single();
+
+        Assert.Null(course.VerticalId);
+        Assert.True(lesson.IsCompleted);
+        Assert.Equal("Draft", lesson.ContentStatus);
+        Assert.Contains("Why it matters in an FDE engagement", lesson.ContentBody);
+        Assert.Empty(db.StudyTaskContentLinks);
+    }
+
+    [Fact]
     public void ThreadPathParsing_SplitsArrowSeparatorsCorrectly()
     {
         var rawPath = "Java → concurrency → virtual threads → structured concurrency";
@@ -229,7 +262,7 @@ public class BackfillReconciliationTests
     }
 
     [Fact]
-    public async Task FdeReconciler_SimilarName_DoesNotMatchAndRecordsConflict()
+    public async Task FdeReconciler_SimilarCurriculumName_IsIgnoredWhenSelfStudyIsTheOnlyExactSource()
     {
         using var db = CreateInMemoryContext(Guid.NewGuid().ToString());
         db.Verticals.AddRange(
@@ -241,8 +274,49 @@ public class BackfillReconciliationTests
         var reconciler = new FdeReconciler(db, NullLogger<FdeReconciler>.Instance);
         var report = await reconciler.ReconcileFdeAsync(ReconciliationExecutionMode.DryRun);
 
-        Assert.True(report.ConflictCount > 0);
-        Assert.Contains(report.AuditLog, log => log.Contains("Missing source conflict") && log.Contains("FDE Curriculum"));
+        Assert.Equal(0, report.ConflictCount);
+        Assert.Contains(report.AuditLog, log => log.Contains("Optional source vertical 'FDE Curriculum' was not found"));
+    }
+
+    [Fact]
+    public async Task JavaReconciler_ReviewedLegacyTitle_MapsToCanonicalLessonSlug()
+    {
+        using var db = CreateInMemoryContext(Guid.NewGuid().ToString());
+        db.Courses.Add(new Course
+        {
+            Id = 1,
+            Slug = "java-spring-lld",
+            Title = "Java",
+            Modules = new List<CourseModule>
+            {
+                new()
+                {
+                    Id = 1,
+                    Slug = "oop-foundations",
+                    Title = "OOP",
+                    Lessons = new List<Lesson>
+                    {
+                        new() { Id = 10, Slug = "03-oop-2-access-modifiers-encapsulation", Title = "Canonical editorial title", Problems = new List<Problem>() }
+                    }
+                }
+            }
+        });
+        db.Verticals.Add(new StudyVertical
+        {
+            Id = 2,
+            Name = "Java & Spring Architecture",
+            Tasks = new List<StudyTask>
+            {
+                new() { Id = 101, Module = "1. OOP & Design Foundations", Title = "Lesson 03: OOP-2 Access Modifiers, Encapsulation & Inheritance" }
+            }
+        });
+        await db.SaveChangesAsync();
+
+        var reconciler = new JavaReconciler(db, NullLogger<JavaReconciler>.Instance);
+        var report = await reconciler.ReconcileJavaAsync(ReconciliationExecutionMode.DryRun);
+
+        Assert.Equal(1, report.VerifiedCount);
+        Assert.Equal(10, report.Mappings.Single().TargetLessonId);
     }
 
     [Fact]

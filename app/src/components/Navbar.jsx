@@ -48,8 +48,8 @@ export default function Navbar() {
             </Link>
             <span className="navbar-nav-divider">·</span>
             <Link
-              to="/chapter/structured-concurrency"
-              className={`navbar-nav-link ${location.pathname.startsWith('/chapter') || location.pathname.startsWith('/learning-paths') ? 'active' : ''}`}
+              to="/chapters"
+              className={`navbar-nav-link ${location.pathname.startsWith('/chapters') || location.pathname.startsWith('/chapter') || location.pathname.startsWith('/learning-paths') ? 'active' : ''}`}
             >
               Chapters
             </Link>

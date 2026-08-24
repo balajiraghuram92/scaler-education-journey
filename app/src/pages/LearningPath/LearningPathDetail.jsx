@@ -34,7 +34,7 @@ export default function LearningPathDetail() {
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       {/* Breadcrumb Header */}
       <div style={{ marginBottom: '1.5rem', fontSize: '0.875rem', color: 'var(--color-ink-muted, #6B7280)' }}>
-        <Link to="/" style={{ color: 'var(--color-sage, #2C5E55)', textDecoration: 'none' }}>Knowledge Atlas</Link>
+        <Link to="/chapters" style={{ color: 'var(--color-sage, #2C5E55)', textDecoration: 'none' }}>Chapters</Link>
         <span style={{ margin: '0 0.5rem' }}>/</span>
         <span style={{ color: 'var(--color-ink, #1F2937)', fontWeight: '500' }}>{path.title}</span>
       </div>

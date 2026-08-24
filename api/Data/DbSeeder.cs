@@ -48,10 +48,14 @@ public static class DbSeeder
         // 5. Seed Knowledge Atlas Domains, Concepts, and Synapses
         KnowledgeAtlasSeedData.Seed(db);
 
-        // 6. Seed Reading Map Items, Activity Timeline, and Knowledge Threads (Panel B)
+        // 6. Seed canonical FDE course/modules/lessons from the legacy FDE outline.
+        // Task-to-lesson links remain a separate reconciliation step.
+        FdeCurriculumSeedData.Seed(db);
+
+        // 7. Seed Reading Map Items, Activity Timeline, and Knowledge Threads (Panel B)
         ReadingMapSeedData.Seed(db);
 
-        // 7. Seed Concept Chapters, Code Comparisons, Diagrams & Notes (Panel D)
+        // 8. Seed Concept Chapters, Code Comparisons, Diagrams & Notes (Panel D)
         ChapterSeedData.Seed(db);
 
         // Save all changes

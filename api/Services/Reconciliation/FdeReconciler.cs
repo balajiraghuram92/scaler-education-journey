@@ -48,8 +48,7 @@ public class FdeReconciler
         StudyVertical? fdeCurriculum = null;
         if (curriculumCandidates.Count == 0)
         {
-            report.ConflictCount++;
-            report.AuditLog.Add("Missing source conflict: Required source vertical 'FDE Curriculum' was not found.");
+            report.AuditLog.Add("Optional source vertical 'FDE Curriculum' was not found. Continuing with FDE Self-Study only; no alias or ownership decision will be made.");
         }
         else if (curriculumCandidates.Count > 1)
         {
@@ -79,18 +78,24 @@ public class FdeReconciler
             fdeSelfStudy = selfStudyCandidates[0];
         }
 
-        if (fdeCurriculum == null || fdeSelfStudy == null)
+        if (fdeSelfStudy == null)
         {
-            report.AuditLog.Add("Reconciliation stopped: One or more required FDE source verticals could not be uniquely resolved.");
+            report.AuditLog.Add("Reconciliation stopped: Required FDE Self-Study source vertical could not be uniquely resolved.");
             return report;
         }
 
         var allFdeTasks = new List<StudyTask>();
-        allFdeTasks.AddRange(fdeCurriculum.Tasks);
+        if (fdeCurriculum != null)
+        {
+            allFdeTasks.AddRange(fdeCurriculum.Tasks);
+        }
         allFdeTasks.AddRange(fdeSelfStudy.Tasks);
 
         report.DiscoveredCount = allFdeTasks.Count;
-        report.AuditLog.Add($"Discovered {allFdeTasks.Count} total FDE legacy tasks across 'FDE Curriculum' (Id: {fdeCurriculum.Id}) and 'FDE Self-Study' (Id: {fdeSelfStudy.Id}).");
+        var sourceSummary = fdeCurriculum == null
+            ? $"'FDE Self-Study' (Id: {fdeSelfStudy.Id})"
+            : $"'FDE Curriculum' (Id: {fdeCurriculum.Id}) and 'FDE Self-Study' (Id: {fdeSelfStudy.Id})";
+        report.AuditLog.Add($"Discovered {allFdeTasks.Count} total FDE legacy tasks across {sourceSummary}.");
 
         // 2. Fetch pre-existing canonical Course, Modules, Lessons, Problems for FDE (Do not fabricate new ones)
         var fdeCourseCandidates = await _db.Courses
@@ -200,13 +205,6 @@ public class FdeReconciler
             using var tx = await _db.Database.BeginTransactionAsync();
             try
             {
-                // Soft link aliases on StudyVertical if uniquely resolved
-                if (fdeSelfStudy.CanonicalVerticalId == null)
-                {
-                    fdeSelfStudy.CanonicalVerticalId = fdeCurriculum.Id;
-                    fdeSelfStudy.UpdatedAt = DateTime.UtcNow;
-                }
-
                 foreach (var candidate in report.Mappings)
                 {
                     // Create or update StudyTaskContentLink ONLY for Verified mappings
