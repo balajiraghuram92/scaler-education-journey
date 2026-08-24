@@ -41,7 +41,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "5000:8080"
+      - "127.0.0.1:5000:8080"
 
     environment:
       ASPNETCORE_ENVIRONMENT: Production
@@ -84,6 +84,10 @@ services:
 
     ports:
       - "80:80"
+
+    environment:
+      API_KEY: ${API_KEY:?API_KEY must be set}
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
 
     depends_on:
       api:

@@ -119,6 +119,17 @@
 - [x] **Sub-task 16.6**: Add backend Minimal API endpoint `POST /api/chapters/map` in ASP.NET Core `Program.cs` and `DTOs.cs` to persist mapped chapters, modules, and concept associations into PostgreSQL.
 - [x] **Sub-task 16.7**: Comprehensive verification of 4-panel Warm Editorial suite (Panel A: Home, Panel B: Reading Map, Panel C: Curriculum Import, Panel D: Concept Chapters).
 
+## Phase 17: Portable Single-EC2 Delivery Automation
+- [x] **Sub-task 17.1**: Replace invalid `get-docker.sh` HTML artifact with an idempotent Linux/EC2 bootstrap entry point.
+- [x] **Sub-task 17.2**: Add one-command native local build, migration, seed, and startup for AMD64/ARM64 Docker hosts and WSL2.
+- [x] **Sub-task 17.3**: Add fail-closed single-EC2 deployment with database discovery, deployment locking, digest references, health rollback, TLS renewal, and PostgreSQL volume preservation.
+- [x] **Sub-task 17.4**: Add validated pre-migration PostgreSQL dumps, S3 upload, and fresh-host restore from the latest checksum-verified backup.
+- [x] **Sub-task 17.5**: Add server-side Nginx API-key injection and loopback-only API host binding for the proposed production workflow.
+- [x] **Sub-task 17.6**: Prepare reviewed multi-platform GitHub Actions workflow proposal with CI validation, immutable digests, SSM polling, and timeout cancellation.
+- [x] **Sub-task 17.7**: Add Luna-authored future Terraform/RDS/ECS/ALB/S3/CloudFront migration plan.
+- [ ] **Sub-task 17.8**: User reviews and manually activates `deploy/deploy-api.proposed.yml` as `.github/workflows/deploy-api.yml` per workflow-freeze policy.
+- [ ] **Sub-task 17.9**: User configures encrypted SSM parameters and runs the first local and EC2 deployment verification.
+
 
 
 
