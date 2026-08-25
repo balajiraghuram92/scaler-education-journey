@@ -13,13 +13,13 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR /src
 
-COPY ["StudyTracker.Api.csproj", "./"]
+COPY ["api/StudyTracker.Api.csproj", "api/"]
 
-RUN dotnet restore "StudyTracker.Api.csproj"
+RUN dotnet restore "api/StudyTracker.Api.csproj"
 
-COPY . .
+COPY api/ api/
 
-RUN dotnet publish "StudyTracker.Api.csproj" \
+RUN dotnet publish "api/StudyTracker.Api.csproj" \
     -c Release \
     -o /app/publish \
     /p:UseAppHost=false
@@ -30,5 +30,6 @@ FROM base AS final
 WORKDIR /app
 
 COPY --from=build /app/publish .
+COPY exercises /app/exercises
 
 ENTRYPOINT ["dotnet", "StudyTracker.Api.dll"]

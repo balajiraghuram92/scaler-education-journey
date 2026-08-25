@@ -130,6 +130,16 @@
 - [ ] **Sub-task 17.8**: User reviews and manually activates `deploy/deploy-api.proposed.yml` as `.github/workflows/deploy-api.yml` per workflow-freeze policy.
 - [ ] **Sub-task 17.9**: User configures encrypted SSM parameters and runs the first local and EC2 deployment verification.
 
+## Phase 18: .NET API Java Exercise Runner Integration
+- [x] **Sub-task 18.1**: Add manifest-driven exercise configuration, contracts, and repository.
+- [x] **Sub-task 18.2**: Add submission validation and isolated workspace construction.
+- [x] **Sub-task 18.3**: Add `IExerciseRunner` and Docker.DotNet local execution backend.
+- [x] **Sub-task 18.4**: Add Surefire parsing and learner/infrastructure outcome classification.
+- [x] **Sub-task 18.5**: Add `ExerciseService`, Minimal API endpoints, and dependency injection.
+- [x] **Sub-task 18.6**: Integrate trusted exercise assets and Docker socket access into Compose packaging.
+- [x] **Sub-task 18.7**: Add exercise unit, endpoint-mapping, service, and opt-in Docker integration tests.
+- [x] **Sub-task 18.8**: Run .NET tests, Phase 1 regression validation, and actual Docker end-to-end scenarios.
+
 
 
 

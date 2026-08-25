@@ -1,8 +1,11 @@
+using Docker.DotNet;
 using Microsoft.EntityFrameworkCore;
 using StudyTracker.Api.Data;
 using StudyTracker.Api.Endpoints;
 using StudyTracker.Api.Models;
+using StudyTracker.Api.Options;
 using StudyTracker.Api.Services;
+using StudyTracker.Api.Services.Exercises;
 using StudyTracker.Api.Services.Reconciliation;
 using System.Text.RegularExpressions;
 
@@ -42,6 +45,46 @@ builder.Services.AddDbContext<StudyTrackerContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddOptions<ExerciseExecutionOptions>()
+    .BindConfiguration(ExerciseExecutionOptions.SectionName)
+    .PostConfigure(options =>
+    {
+        if (string.IsNullOrWhiteSpace(options.ExercisesRoot))
+        {
+            options.ExercisesRoot = Path.Combine(builder.Environment.ContentRootPath, "exercises");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.WorkspaceRoot))
+        {
+            options.WorkspaceRoot = Path.Combine(Path.GetTempPath(), "studytracker-exercises");
+        }
+    })
+    .Validate(options => !string.IsNullOrWhiteSpace(options.RunnerImage), "Exercise runner image is required.")
+    .Validate(options => !string.IsNullOrWhiteSpace(options.DockerEndpoint), "Docker endpoint is required.")
+    .Validate(options => options.MaxConcurrentExecutions > 0, "MaxConcurrentExecutions must be positive.")
+    .Validate(options => options.MaxFileBytes > 0 && options.MaxSubmissionBytes >= options.MaxFileBytes, "Exercise submission limits are invalid.")
+    .Validate(options => options.MaxOutputBytes > 0 && options.MaxExecutionSeconds > 0, "Exercise execution limits are invalid.")
+    .ValidateOnStart();
+
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExerciseExecutionOptions>>().Value;
+    return new DockerClientConfiguration(new Uri(options.DockerEndpoint), defaultTimeout: TimeSpan.FromSeconds(30)).CreateClient();
+});
+
+builder.Services.AddSingleton<IExerciseRepository, ExerciseRepository>();
+builder.Services.AddSingleton<ExerciseSubmissionValidator>();
+builder.Services.AddSingleton<ExerciseWorkspaceBuilder>();
+builder.Services.AddSingleton<SurefireResultParser>();
+builder.Services.AddSingleton<ExerciseExecutionClassifier>();
+builder.Services.AddSingleton<IExerciseRunner, LocalDockerExerciseRunner>();
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExerciseExecutionOptions>>().Value;
+    return new SemaphoreSlim(options.MaxConcurrentExecutions, options.MaxConcurrentExecutions);
+});
+builder.Services.AddScoped<ExerciseService>();
 
 // Phase 4 Services & Reconciliation Engine DI
 builder.Services.AddScoped<ProgressService>();
@@ -1331,6 +1374,7 @@ app.MapPost("/api/chapters/map", async (MapChapterRequest req, StudyTrackerConte
 // Map Phase 4 & 4B Redesigned Endpoints
 app.MapV2Endpoints();
 app.MapImportEndpoints();
+app.MapExerciseEndpoints();
 
 app.Run();
 return 0;
@@ -1614,3 +1658,5 @@ List<StudyTask> ParseMarkdownToTasks(string markdown)
 
 public record CreateVerticalRequest(string Name, string? Description);
 public record IngestRequest(int? VerticalId, string? Name, string? Description, string MarkdownContent);
+
+public partial class Program { }

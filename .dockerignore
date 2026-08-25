@@ -1,0 +1,14 @@
+.git
+.git/**
+.agents
+.codex
+api/bin
+api/obj
+app/node_modules
+app/dist
+tests
+info
+tmp
+*.user
+*.suo
+*.log

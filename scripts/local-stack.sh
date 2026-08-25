@@ -60,6 +60,10 @@ log "Starting PostgreSQL and waiting for readiness."
 log "Building native images for the current host architecture."
 "${COMPOSE[@]}" build --pull api app
 
+log "Building the local Java exercise runner image."
+EXERCISE_RUNNER_IMAGE="${EXERCISE_RUNNER_IMAGE:-neuralascent-java-runner:dev}" \
+    "${PROJECT_DIR}/scripts/build-java-runner.sh"
+
 log "Applying additive database migrations."
 "${COMPOSE[@]}" run --rm --no-deps api --migrate
 

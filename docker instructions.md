@@ -54,6 +54,16 @@ Start the database before running one-off API migration or seed commands:
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d database
 ```
 
+The API exercise endpoints require the local runner image and Docker socket:
+
+```powershell
+docker build -t neuralascent-java-runner:dev runner/java
+```
+
+The API container uses Docker.DotNet to create the runner container and copies
+the prepared workspace through the Docker archive API. It does not bind-mount
+API-container temporary paths into the runner container.
+
 Check the service state:
 
 ```powershell

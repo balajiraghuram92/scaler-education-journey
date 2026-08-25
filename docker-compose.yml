@@ -56,6 +56,12 @@ services:
 
       API_KEY: ${API_KEY:?API_KEY must be set}
 
+      ExerciseExecution__ExercisesRoot: /app/exercises
+      ExerciseExecution__WorkspaceRoot: /tmp/studytracker-exercises
+      ExerciseExecution__RunnerImage: ${EXERCISE_RUNNER_IMAGE:-neuralascent-java-runner:dev}
+      ExerciseExecution__DockerEndpoint: unix:///var/run/docker.sock
+      ExerciseExecution__MavenCacheVolume: ${EXERCISE_MAVEN_CACHE_VOLUME:-neuralascent-maven-cache}
+
     depends_on:
       database:
         condition: service_healthy
@@ -65,6 +71,9 @@ services:
         aliases:
           - studytracker-api
           - api
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
     healthcheck:
       test:
