@@ -4,11 +4,15 @@ export default function ArchitectureFlow({ eyebrow, nodes = [], boundaryLabel, b
   const contract = nodes.find((node) => node.kind === 'boundary');
   const adapters = nodes.filter((node) => node.kind === 'adapter');
   const output = nodes.find((node) => node.kind === 'output');
+  const flowNames = [request, service, contract, ...adapters, output]
+    .filter(Boolean)
+    .map((node) => node.label)
+    .join(', ');
 
   return (
     <section id="architecture-flow" className="architecture-flow" aria-labelledby="architecture-flow-title">
       <p id="architecture-flow-title" className="learning-eyebrow">{eyebrow}</p>
-      <div className="architecture-flow__diagram" role="img" aria-label="Payment request flows through PaymentService and the PaymentAuthorizer interface to provider adapters and an authorization result.">
+      <div className="architecture-flow__diagram" role="img" aria-label={`Architecture flow: ${flowNames}`}>
         <div className="architecture-flow__main-row">
           <div className="architecture-flow__node architecture-flow__node--input">{request?.label}</div>
           <span className="architecture-flow__connector" aria-hidden="true">→</span>

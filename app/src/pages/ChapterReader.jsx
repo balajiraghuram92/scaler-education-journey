@@ -141,6 +141,7 @@ function ChapterMarkdown({ sections, interactions, isExerciseExpanded, onToggleE
       {section.id === 'practical-backend-scenario' && architecture && <ArchitectureFlow {...architecture} />}
       {section.id === 'practice-loop' && exercise && (
         <ImplementationExercise
+          key={exercise.id}
           exercise={exercise}
           isExpanded={isExerciseExpanded}
           onToggleExpand={onToggleExerciseExpanded}
@@ -179,6 +180,7 @@ export default function ChapterReader() {
     setLoading(true);
     setError(null);
     setIsDevFixture(false);
+    setIsExerciseExpanded(false);
 
     try {
       let data = null;
