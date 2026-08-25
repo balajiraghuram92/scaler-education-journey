@@ -74,6 +74,7 @@ builder.Services.AddSingleton(sp =>
 });
 
 builder.Services.AddSingleton<IExerciseRepository, ExerciseRepository>();
+builder.Services.AddSingleton<ExerciseMetadataService>();
 builder.Services.AddSingleton<ExerciseSubmissionValidator>();
 builder.Services.AddSingleton<ExerciseWorkspaceBuilder>();
 builder.Services.AddSingleton<SurefireResultParser>();

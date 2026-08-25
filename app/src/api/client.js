@@ -27,7 +27,17 @@ export async function apiClient(endpoint, options = {}) {
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  const signal = customSignal || controller.signal;
+  const abortFromCaller = () => controller.abort(customSignal.reason);
+
+  if (customSignal) {
+    if (customSignal.aborted) {
+      controller.abort(customSignal.reason);
+    } else {
+      customSignal.addEventListener('abort', abortFromCaller, { once: true });
+    }
+  }
+
+  const signal = controller.signal;
 
   const correlationId = crypto.randomUUID ? crypto.randomUUID() : `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -60,6 +70,7 @@ export async function apiClient(endpoint, options = {}) {
   try {
     const response = await fetch(url, config);
     clearTimeout(timeoutId);
+    customSignal?.removeEventListener('abort', abortFromCaller);
 
     if (!response.ok) {
       let problemDetails = null;
@@ -89,6 +100,7 @@ export async function apiClient(endpoint, options = {}) {
     return await response.text();
   } catch (err) {
     clearTimeout(timeoutId);
+    customSignal?.removeEventListener('abort', abortFromCaller);
 
     if (err.name === 'AbortError') {
       throw new ApiError(`Request timeout after ${timeoutMs}ms`, 408);
@@ -108,6 +120,16 @@ export const api = {
   post: (endpoint, body, options) => apiClient(endpoint, { ...options, method: 'POST', body }),
   put: (endpoint, body, options) => apiClient(endpoint, { ...options, method: 'PUT', body }),
   delete: (endpoint, options) => apiClient(endpoint, { ...options, method: 'DELETE' }),
+
+  exercises: {
+    getMetadata: (exerciseId, options = {}) =>
+      apiClient(`/api/exercises/${encodeURIComponent(exerciseId)}`, {
+        ...options,
+        method: 'GET'
+      }),
+    run: (exerciseId, files, options = {}) => executeExercise('run', exerciseId, files, options),
+    check: (exerciseId, files, options = {}) => executeExercise('check', exerciseId, files, options)
+  },
 
   // V2 Specialized API Endpoints
   v2: {
@@ -136,3 +158,12 @@ export const api = {
     getChapterBySlug: (slug) => apiClient(`/api/chapters/${slug}`),
   }
 };
+
+function executeExercise(operation, exerciseId, files, options = {}) {
+  const { clientRequestId = null, ...requestOptions } = options;
+  return apiClient(`/api/exercises/${encodeURIComponent(exerciseId)}/${operation}`, {
+    ...requestOptions,
+    method: 'POST',
+    body: { files, clientRequestId }
+  });
+}

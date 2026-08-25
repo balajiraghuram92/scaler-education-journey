@@ -140,6 +140,12 @@
 - [x] **Sub-task 18.7**: Add exercise unit, endpoint-mapping, service, and opt-in Docker integration tests.
 - [x] **Sub-task 18.8**: Run .NET tests, Phase 1 regression validation, and actual Docker end-to-end scenarios.
 
+## Feature Phase 3: Learner Exercise Workspace Integration
+- [x] **Sub-task 19.1**: Add learner-safe exercise metadata endpoint and trusted starter delivery.
+- [x] **Sub-task 19.2**: Replace fixture-driven exercise UI with metadata-driven multi-file workspace execution.
+- [x] **Sub-task 19.3**: Add immutable execution snapshots, stale-result handling, and keyboard/accessibility behavior.
+- [x] **Sub-task 19.4**: Add focused Vitest and React Testing Library coverage.
+
 
 
 

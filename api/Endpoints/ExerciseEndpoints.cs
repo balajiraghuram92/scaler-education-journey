@@ -12,11 +12,33 @@ public static class ExerciseEndpoints
     {
         var group = app.MapGroup("/api/exercises");
 
+        group.MapGet("/{exerciseId}", GetMetadata)
+            .WithName("GetExerciseMetadata");
+
         group.MapPost("/{exerciseId}/run", ExecuteAsync)
             .WithName("RunExercise");
 
         group.MapPost("/{exerciseId}/check", ExecuteAsync)
             .WithName("CheckExercise");
+    }
+
+    private static IResult GetMetadata(
+        string exerciseId,
+        ExerciseMetadataService metadataService,
+        HttpContext httpContext)
+    {
+        try
+        {
+            return Results.Ok(metadataService.GetById(exerciseId));
+        }
+        catch (ExerciseNotFoundException)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Exercise not found.", "The requested exercise does not exist.");
+        }
+        catch (ExerciseInfrastructureException)
+        {
+            return Problem(httpContext, StatusCodes.Status503ServiceUnavailable, "Exercise metadata unavailable.", "The exercise metadata is temporarily unavailable.");
+        }
     }
 
     private static async Task<IResult> ExecuteAsync(

@@ -16,6 +16,8 @@ public sealed class ExerciseManifest
 
     public int EstimatedMinutes { get; set; }
 
+    public string? Instructions { get; set; }
+
     public ExerciseRuntimeManifest Runtime { get; set; } = new();
 
     public List<ExerciseFileManifest> Files { get; set; } = new();

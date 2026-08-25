@@ -6,6 +6,7 @@ import ConceptCheck from '../components/learning/ConceptCheck';
 import ArchitectureFlow from '../components/learning/ArchitectureFlow';
 import ImplementationExercise from '../components/learning/ImplementationExercise';
 import { getLessonInteractions } from '../data/lessonInteractions';
+import { getLessonExerciseAssociation } from '../data/lessonExerciseAssociations';
 import { api } from '../api/client';
 import { LoadingState, ErrorState, DevFixturesBanner } from '../components/common/StateViews';
 import { markLearningPathOpened } from '../utils/recentLearningPaths';
@@ -117,10 +118,9 @@ function buildContentSections(contentBody) {
   return sections.filter((section) => section.blocks.length > 0);
 }
 
-function ChapterMarkdown({ sections, interactions, isExerciseExpanded, onToggleExerciseExpanded }) {
+function ChapterMarkdown({ sections, interactions, exerciseId, isExerciseExpanded, onToggleExerciseExpanded }) {
   const conceptChecks = interactions?.conceptChecks || [];
   const architecture = interactions?.architecture;
-  const exercise = interactions?.exercise;
 
   return sections.map((section) => (
     <React.Fragment key={section.id}>
@@ -139,10 +139,10 @@ function ChapterMarkdown({ sections, interactions, isExerciseExpanded, onToggleE
 
       {section.id === 'concepts-covered' && conceptChecks.map((check) => <ConceptCheck key={check.id} {...check} />)}
       {section.id === 'practical-backend-scenario' && architecture && <ArchitectureFlow {...architecture} />}
-      {section.id === 'practice-loop' && exercise && (
+      {section.id === 'practice-loop' && exerciseId && (
         <ImplementationExercise
-          key={exercise.id}
-          exercise={exercise}
+          key={exerciseId}
+          exerciseId={exerciseId}
           isExpanded={isExerciseExpanded}
           onToggleExpand={onToggleExerciseExpanded}
         />
@@ -283,6 +283,11 @@ export default function ChapterReader() {
     chapter.module?.slug || moduleSlug || '',
     chapter.slug || targetSlug
   );
+  const lessonExercise = getLessonExerciseAssociation(
+    chapterCourseSlug,
+    chapter.module?.slug || moduleSlug || '',
+    chapter.slug || targetSlug
+  );
 
   const tocItems = [
     ...contentSections.map((section) => ({ id: section.id, label: section.title, level: 1 })),
@@ -383,6 +388,7 @@ export default function ChapterReader() {
           <ChapterMarkdown
             sections={contentSections}
             interactions={lessonInteractions}
+            exerciseId={lessonExercise?.exerciseId}
             isExerciseExpanded={isExerciseExpanded}
             onToggleExerciseExpanded={() => setIsExerciseExpanded((current) => !current)}
           />

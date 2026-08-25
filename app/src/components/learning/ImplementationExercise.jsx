@@ -1,57 +1,42 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, Minimize2, Play, RotateCcw } from 'lucide-react';
+import { AlertCircle, Check, ChevronDown, ChevronUp, Minimize2, Play, RotateCcw } from 'lucide-react';
+import useExerciseWorkspace from '../../hooks/useExerciseWorkspace';
+import { EVIDENCE_STATUSES, EXERCISE_STATUSES } from '../../api/exerciseModels';
+import ExerciseDiagnostics from './ExerciseDiagnostics';
+import ExerciseErrorState from './ExerciseErrorState';
 import TestEvidence from './TestEvidence';
-
-function normalizeExerciseFiles(exercise) {
-  if (Array.isArray(exercise.files)) return exercise.files;
-  if (exercise.starterCode) {
-    return [{
-      id: 'exercise-source',
-      name: exercise.editableFile || 'Main.java',
-      path: exercise.editableFile || 'Main.java',
-      editable: true,
-      role: 'editable',
-      content: exercise.starterCode
-    }];
-  }
-  return [];
-}
-
-function cloneFiles(files) {
-  return files.map((file) => ({ ...file }));
-}
-
-function getEntryFileId(files, entryFileId) {
-  if (entryFileId && files.some((file) => file.id === entryFileId)) return entryFileId;
-  return files.find((file) => file.editable !== false)?.id || files[0]?.id || null;
-}
 
 function getLineNumbers(source) {
   return source.split('\n').map((_, index) => index + 1);
 }
 
-function serializeWorkingFiles(files) {
-  return files.map((file) => ({
-    id: file.id,
-    path: file.path || file.name,
-    name: file.name,
-    editable: file.editable !== false,
-    content: file.content
-  }));
+function getStatusCopy(status, operation) {
+  if (status === EXERCISE_STATUSES.SUCCESS) return 'All expected behaviors verified.';
+  if (status === EXERCISE_STATUSES.TEST_FAILURE) return 'The code compiled, but one or more behaviors need another pass.';
+  if (status === EXERCISE_STATUSES.COMPILATION_FAILURE) return 'The submitted code could not compile.';
+  if (status === EXERCISE_STATUSES.TIMEOUT) return 'Execution exceeded the allowed time.';
+  if (status === 'apiFailure') return 'Neuralascent could not execute this workspace.';
+  if (status === 'running') return operation === 'check' ? 'Checking the current workspace…' : 'Running the current workspace…';
+  return '';
+}
+
+function getCompactResult(execution) {
+  if (!execution.result) return null;
+
+  const summary = execution.result.summary || {};
+  if (execution.stale) return 'Last result is stale · source changed';
+  if (execution.status === EXERCISE_STATUSES.SUCCESS) return `✓ ${summary.passed} / ${summary.total} checks passed`;
+  if (execution.status === EXERCISE_STATUSES.TEST_FAILURE) return `! ${summary.passed} / ${summary.total} checks passed`;
+  if (execution.status === EXERCISE_STATUSES.COMPILATION_FAILURE) return 'Compilation failed · tests not run';
+  if (execution.status === EXERCISE_STATUSES.TIMEOUT) return 'Execution timed out · tests not run';
+  return null;
 }
 
 function FileTabs({ files, activeFileId, onSelect, isCompact }) {
   const [isOverflowOpen, setIsOverflowOpen] = useState(false);
   const overflowRef = useRef(null);
+  const tabRefs = useRef(new Map());
   const activeFile = files.find((file) => file.id === activeFileId) || files[0];
-  const visibleLimit = isCompact ? 0 : files.length <= 4 ? files.length : 3;
-  const initialVisibleFiles = isCompact ? [] : files.slice(0, visibleLimit);
-  const activeIsVisible = initialVisibleFiles.some((file) => file.id === activeFile.id);
-  const visibleFiles = isCompact || activeIsVisible
-    ? initialVisibleFiles
-    : [...files.slice(0, Math.max(0, visibleLimit - 1)), activeFile];
-  const visibleIds = new Set(visibleFiles.map((file) => file.id));
-  const overflowFiles = isCompact ? files.filter((file) => file.id !== activeFile.id) : files.filter((file) => !visibleIds.has(file.id));
 
   useEffect(() => {
     if (!isOverflowOpen) return undefined;
@@ -62,27 +47,52 @@ function FileTabs({ files, activeFileId, onSelect, isCompact }) {
     return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, [isOverflowOpen]);
 
-  if (files.length <= 1) return null;
+  if (!activeFile || files.length <= 1) return null;
 
-  const handleKeyDown = (event) => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-    event.preventDefault();
-    const currentIndex = files.findIndex((file) => file.id === activeFileId);
-    const direction = event.key === 'ArrowRight' ? 1 : -1;
-    const nextIndex = (currentIndex + direction + files.length) % files.length;
-    onSelect(files[nextIndex].id);
-  };
+  const visibleLimit = isCompact ? 0 : files.length <= 4 ? files.length : 3;
+  const initialVisibleFiles = isCompact ? [] : files.slice(0, visibleLimit);
+  const activeIsVisible = initialVisibleFiles.some((file) => file.id === activeFile.id);
+  const visibleFiles = isCompact || activeIsVisible
+    ? initialVisibleFiles
+    : [...files.slice(0, Math.max(0, visibleLimit - 1)), activeFile];
+  const visibleIds = new Set(visibleFiles.map((file) => file.id));
+  const overflowFiles = isCompact
+    ? files.filter((file) => file.id !== activeFile.id)
+    : files.filter((file) => !visibleIds.has(file.id));
 
   const selectFile = (fileId) => {
     onSelect(fileId);
     setIsOverflowOpen(false);
   };
 
+  const moveTab = (event, direction) => {
+    event.preventDefault();
+    const currentIndex = files.findIndex((file) => file.id === activeFileId);
+    const nextIndex = (currentIndex + direction + files.length) % files.length;
+    const nextFile = files[nextIndex];
+    onSelect(nextFile.id);
+    requestAnimationFrame(() => tabRefs.current.get(nextFile.id)?.focus());
+  };
+
+  const moveToBoundary = (event, index) => {
+    event.preventDefault();
+    const nextFile = files[index];
+    onSelect(nextFile.id);
+    requestAnimationFrame(() => tabRefs.current.get(nextFile.id)?.focus());
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'ArrowLeft') moveTab(event, -1);
+    if (event.key === 'ArrowRight') moveTab(event, 1);
+    if (event.key === 'Home') moveToBoundary(event, 0);
+    if (event.key === 'End') moveToBoundary(event, files.length - 1);
+  };
+
   return (
     <div className={`implementation-exercise__file-tabs${isCompact ? ' is-compact' : ''}`} ref={overflowRef}>
       {isCompact ? (
         <div className="implementation-exercise__compact-file-identity">
-          <span className="implementation-exercise__compact-file-name" title={activeFile.path || activeFile.name}>{activeFile.name}</span>
+          <span className="implementation-exercise__compact-file-name" title={activeFile.path}>{activeFile.displayName}</span>
           <span className="implementation-exercise__compact-file-count">{files.length} files</span>
         </div>
       ) : (
@@ -90,15 +100,20 @@ function FileTabs({ files, activeFileId, onSelect, isCompact }) {
           {visibleFiles.map((file) => (
             <button
               key={file.id}
+              ref={(node) => {
+                if (node) tabRefs.current.set(file.id, node);
+                else tabRefs.current.delete(file.id);
+              }}
               type="button"
               role="tab"
+              tabIndex={activeFileId === file.id ? 0 : -1}
               aria-selected={activeFileId === file.id}
               aria-controls={`exercise-file-panel-${file.id}`}
               className={`implementation-exercise__file-tab${activeFileId === file.id ? ' is-active' : ''}`}
-              title={file.path || file.name}
+              title={file.path}
               onClick={() => selectFile(file.id)}
             >
-              {file.name}
+              {file.displayName}
             </button>
           ))}
         </div>
@@ -113,7 +128,7 @@ function FileTabs({ files, activeFileId, onSelect, isCompact }) {
             aria-expanded={isOverflowOpen}
             onClick={() => setIsOverflowOpen((current) => !current)}
           >
-            {isCompact ? 'Files' : 'More'} <span aria-hidden="true">{isCompact ? '▾' : '⋯'}</span>
+            {isCompact ? 'Files' : 'More'} <span aria-hidden="true">{isCompact ? '▾' : '…'}</span>
           </button>
           {isOverflowOpen && (
             <div className="implementation-exercise__file-overflow-menu" role="menu" aria-label="More exercise files">
@@ -123,10 +138,10 @@ function FileTabs({ files, activeFileId, onSelect, isCompact }) {
                   type="button"
                   role="menuitem"
                   className="implementation-exercise__file-overflow-item"
-                  title={file.path || file.name}
+                  title={file.path}
                   onClick={() => selectFile(file.id)}
                 >
-                  {file.name}
+                  {file.displayName}
                 </button>
               ))}
             </div>
@@ -137,103 +152,86 @@ function FileTabs({ files, activeFileId, onSelect, isCompact }) {
   );
 }
 
-export default function ImplementationExercise({ exercise, isExpanded, onToggleExpand }) {
-  const exerciseFiles = useMemo(() => normalizeExerciseFiles(exercise), [exercise]);
-  const [workingFiles, setWorkingFiles] = useState(() => cloneFiles(exerciseFiles));
-  const [activeFileId, setActiveFileId] = useState(() => getEntryFileId(exerciseFiles, exercise.entryFileId));
-  const [runState, setRunState] = useState('idle');
-  const [resultStatus, setResultStatus] = useState('failed');
+export default function ImplementationExercise({ exerciseId, isExpanded, onToggleExpand }) {
+  const {
+    metadata,
+    metadataState,
+    workingFiles,
+    activeFile,
+    activeFileId,
+    setActiveFileId,
+    updateFile,
+    reset,
+    execute,
+    retryMetadata,
+    execution,
+    isExecutionActive
+  } = useExerciseWorkspace(exerciseId);
   const [evidenceExpanded, setEvidenceExpanded] = useState(true);
-  const [selectedEvidenceId, setSelectedEvidenceId] = useState(() => exercise.evidence?.find((item) => item.status === 'failed')?.id || exercise.evidence?.[0]?.id);
-  const demoTimerRef = useRef(null);
-  const lastRunPayloadRef = useRef(null);
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState(null);
 
-  const activeFile = workingFiles.find((file) => file.id === activeFileId) || workingFiles[0];
+  useEffect(() => {
+    const failed = execution.result?.evidence?.find((item) => item.status === EVIDENCE_STATUSES.FAILED);
+    setSelectedEvidenceId(failed?.id || metadata?.evidence?.[0]?.id || null);
+    setEvidenceExpanded(true);
+  }, [execution.result?.evidence, execution.result?.runId, metadata?.evidence, metadata?.id]);
+
   const sourceCode = activeFile?.content || '';
   const lineNumbers = useMemo(() => getLineNumbers(sourceCode), [sourceCode]);
-  const isReadOnly = activeFile ? activeFile.editable === false : true;
-  const workspaceId = `exercise-${exercise.id}`;
-
-  useEffect(() => {
-    return () => {
-      if (demoTimerRef.current) window.clearTimeout(demoTimerRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!exercise.id) return;
-    if (demoTimerRef.current) window.clearTimeout(demoTimerRef.current);
-    setWorkingFiles(cloneFiles(exerciseFiles));
-    setActiveFileId(getEntryFileId(exerciseFiles, exercise.entryFileId));
-    setRunState('idle');
-    setResultStatus('failed');
-    setEvidenceExpanded(true);
-    setSelectedEvidenceId(exercise.evidence?.find((item) => item.status === 'failed')?.id || exercise.evidence?.[0]?.id);
-  }, [exercise.id, exercise.entryFileId, exercise.evidence, exerciseFiles]);
-
-  const handleFileSelect = (fileId) => {
-    setActiveFileId(fileId);
-  };
+  const workspaceId = `exercise-${exerciseId}`;
+  const compactResult = getCompactResult(execution);
+  const evidence = execution.result?.evidence
+    || metadata?.evidence?.map((item) => ({ ...item, status: EVIDENCE_STATUSES.NOT_RUN, durationMilliseconds: 0, message: null }))
+    || [];
+  const summary = execution.result?.summary || null;
+  const isReady = metadataState === 'ready' && Boolean(metadata);
+  const canExecute = isReady && !isExecutionActive;
 
   const handleSourceChange = (event) => {
-    if (!activeFile || isReadOnly) return;
-    const nextContent = event.target.value;
-    setWorkingFiles((currentFiles) => currentFiles.map((file) => (
-      file.id === activeFile.id ? { ...file, content: nextContent } : file
-    )));
-  };
-
-  const executeDemo = (mode) => {
-    if (runState === 'running' || workingFiles.length === 0) return;
-
-    // Keep execution at workspace scope even while the local behavior is simulated.
-    lastRunPayloadRef.current = {
-      exerciseId: exercise.id,
-      files: serializeWorkingFiles(workingFiles)
-    };
-
-    if (!isExpanded) onToggleExpand();
-    setRunState('running');
-    demoTimerRef.current = window.setTimeout(() => {
-      setResultStatus(mode === 'check' ? 'passed' : 'failed');
-      setSelectedEvidenceId(mode === 'check' ? exercise.evidence?.[0]?.id : exercise.evidence?.find((item) => item.status === 'failed')?.id);
-      setEvidenceExpanded(true);
-      setRunState('completed');
-    }, 320);
+    if (!activeFile || activeFile.editable === false) return;
+    updateFile(activeFile.id, event.target.value);
   };
 
   const handleEditorKeyDown = (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      if (!isExpanded || !canExecute) return;
       event.preventDefault();
-      executeDemo('run');
+      execute('run');
+      return;
     }
+
+    if (event.key !== 'Tab' || !activeFile || activeFile.editable === false) return;
+    event.preventDefault();
+    const textarea = event.currentTarget;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const nextContent = `${sourceCode.slice(0, start)}    ${sourceCode.slice(end)}`;
+    updateFile(activeFile.id, nextContent);
+    requestAnimationFrame(() => textarea.setSelectionRange(start + 4, start + 4));
   };
 
-  const handleReset = () => {
-    if (demoTimerRef.current) window.clearTimeout(demoTimerRef.current);
-    setWorkingFiles(cloneFiles(exerciseFiles));
-    setActiveFileId((currentId) => getEntryFileId(exerciseFiles, currentId));
-    setRunState('idle');
-    setResultStatus('failed');
-    setSelectedEvidenceId(exercise.evidence?.find((item) => item.status === 'failed')?.id || exercise.evidence?.[0]?.id);
-    setEvidenceExpanded(true);
-  };
-
-  if (workingFiles.length === 0) {
+  if (metadataState === 'loading') {
     return (
-      <section className="implementation-exercise implementation-exercise--unavailable" aria-labelledby={`${workspaceId}-title`}>
-        <p className="learning-eyebrow">{exercise.eyebrow}</p>
-        <h3 id={`${workspaceId}-title`}>{exercise.title}</h3>
-        <p>Exercise source unavailable.</p>
+      <section className="implementation-exercise implementation-exercise--loading" aria-labelledby={`${workspaceId}-title`}>
+        <p className="learning-eyebrow">IMPLEMENTATION EXERCISE · JAVA</p>
+        <h3 id={`${workspaceId}-title`}>Opening coding workspace…</h3>
+        <p>Loading the trusted starter files and exercise checks.</p>
       </section>
     );
   }
 
-  const compactResult = runState === 'completed' && (
-    <p className={`implementation-exercise__compact-result${resultStatus === 'passed' ? ' is-passed' : ''}`} role="status" aria-live="polite">
-      {resultStatus === 'passed' ? '✓' : '✕'} {resultStatus === 'passed' ? '5 / 5' : '4 / 5'} behaviors verified
-    </p>
-  );
+  if (!isReady || workingFiles.length === 0) {
+    return (
+      <section className="implementation-exercise implementation-exercise--unavailable" aria-labelledby={`${workspaceId}-title`}>
+        <p className="learning-eyebrow">IMPLEMENTATION EXERCISE · JAVA</p>
+        <h3 id={`${workspaceId}-title`}>Coding exercise unavailable</h3>
+        <ExerciseErrorState error={execution.error} onRetry={retryMetadata} />
+      </section>
+    );
+  }
+
+  const isReadOnly = activeFile?.editable === false;
+  const statusCopy = getStatusCopy(execution.status, execution.operation);
 
   return (
     <section
@@ -242,8 +240,8 @@ export default function ImplementationExercise({ exercise, isExpanded, onToggleE
     >
       <header className="implementation-exercise__header">
         <div>
-          <p className="learning-eyebrow">{exercise.eyebrow}</p>
-          <h3 id={`${workspaceId}-title`}>{exercise.title}</h3>
+          <p className="learning-eyebrow">IMPLEMENTATION EXERCISE · {metadata.language.toUpperCase()}</p>
+          <h3 id={`${workspaceId}-title`}>{metadata.title}</h3>
         </div>
         {isExpanded && (
           <button
@@ -260,34 +258,35 @@ export default function ImplementationExercise({ exercise, isExpanded, onToggleE
       </header>
 
       <div className="implementation-exercise__meta" aria-label="Exercise metadata">
-        <span>{exercise.language}</span>
-        <span>{exercise.difficulty}</span>
-        <span>~{exercise.estimatedMinutes} MIN</span>
+        <span>{metadata.language}</span>
+        <span>{metadata.difficulty}</span>
+        <span>~{metadata.estimatedMinutes} MIN</span>
       </div>
-      <p className="implementation-exercise__description">{exercise.description}</p>
+      {metadata.instructions && <p className="implementation-exercise__description">{metadata.instructions}</p>}
+      {!metadata.instructions && <p className="implementation-exercise__description">Edit the starter files, then run the checks to verify the behavior described in this lesson.</p>}
 
-      <div id={workspaceId} className="implementation-exercise__workspace" role="region" aria-label="Coding exercise workspace">
-        <FileTabs files={workingFiles} activeFileId={activeFileId} onSelect={handleFileSelect} isCompact={!isExpanded} />
+      <div id={workspaceId} className="implementation-exercise__workspace" role="region" aria-label="Coding exercise workspace" aria-busy={isExecutionActive}>
+        <FileTabs files={workingFiles} activeFileId={activeFileId} onSelect={setActiveFileId} isCompact={!isExpanded} />
 
         {(workingFiles.length === 1 || isExpanded || isReadOnly) && (
           <div className="implementation-exercise__toolbar">
             <div className="implementation-exercise__file-identity">
               {workingFiles.length === 1 && (
-                <span className="implementation-exercise__file-label" title={activeFile.path || activeFile.name}>{activeFile.name}</span>
+                <span className="implementation-exercise__file-label" title={activeFile.path}>{activeFile.displayName}</span>
               )}
               {isReadOnly && <span className="implementation-exercise__file-status">Reference · Read only</span>}
             </div>
             {isExpanded && (
               <div className="implementation-exercise__actions">
-                <button type="button" className="learning-button learning-button--quiet" onClick={handleReset}>
+                <button type="button" className="learning-button learning-button--quiet" onClick={reset} disabled={!canExecute}>
                   <RotateCcw size={13} /> Reset
                 </button>
-                <button type="button" className="learning-button learning-button--run" onClick={() => executeDemo('run')} disabled={runState === 'running'}>
-                  <Play size={13} /> {runState === 'running' ? 'Running…' : 'Run'}
+                <button type="button" className="learning-button learning-button--run" aria-label="Run (Ctrl + Enter)" onClick={() => execute('run')} disabled={!canExecute}>
+                  <Play size={13} /> {execution.operation === 'run' && isExecutionActive ? 'Running…' : 'Run'}
                   <span className="implementation-exercise__shortcut">Ctrl + Enter</span>
                 </button>
-                <button type="button" className="learning-button learning-button--check" onClick={() => executeDemo('check')} disabled={runState === 'running'}>
-                  <Check size={13} /> Check solution
+                <button type="button" className="learning-button learning-button--check" onClick={() => execute('check')} disabled={!canExecute}>
+                  <Check size={13} /> {execution.operation === 'check' && isExecutionActive ? 'Checking…' : 'Check solution'}
                 </button>
               </div>
             )}
@@ -298,7 +297,7 @@ export default function ImplementationExercise({ exercise, isExpanded, onToggleE
           id={`exercise-file-panel-${activeFile.id}`}
           className={`learning-editor${isExpanded ? ' learning-editor--expanded' : ' learning-editor--compact'}${isReadOnly ? ' learning-editor--read-only' : ''}`}
           role="tabpanel"
-          aria-label={`${activeFile.name} editor`}
+          aria-label={`${activeFile.displayName} editor`}
         >
           <div className="learning-editor__gutter" aria-hidden="true">
             {lineNumbers.map((line) => <span key={line}>{line}</span>)}
@@ -310,26 +309,58 @@ export default function ImplementationExercise({ exercise, isExpanded, onToggleE
             onKeyDown={handleEditorKeyDown}
             readOnly={isReadOnly}
             spellCheck={false}
-            aria-label={`${activeFile.name} source code`}
+            aria-label={`${activeFile.displayName} source code`}
             aria-readonly={isReadOnly}
           />
         </div>
       </div>
 
-      {runState === 'running' && <div className="implementation-exercise__running" role="status" aria-live="polite">Running workspace checks…</div>}
-
-      {isExpanded && runState !== 'running' && (
-        <TestEvidence
-          evidence={exercise.evidence}
-          expanded={evidenceExpanded}
-          onToggle={() => setEvidenceExpanded((current) => !current)}
-          selectedId={selectedEvidenceId}
-          onSelect={setSelectedEvidenceId}
-          resultStatus={resultStatus}
-        />
+      {isExecutionActive && (
+        <div className="implementation-exercise__running" role="status" aria-live="polite">
+          <span className="implementation-exercise__status-dot" aria-hidden="true" />
+          {statusCopy}
+          <span className="implementation-exercise__editing-note">You can keep editing; this run uses the captured snapshot.</span>
+        </div>
       )}
 
-      {!isExpanded && compactResult}
+      {!isExecutionActive && execution.status === 'apiFailure' && (
+        <ExerciseErrorState error={execution.error} onRetry={() => execute(execution.operation || 'run')} />
+      )}
+
+      {!isExecutionActive && execution.status !== 'apiFailure' && execution.result && (
+        <div className={`implementation-exercise__result implementation-exercise__result--${execution.status}`} role="status" aria-live="polite">
+          {execution.status === EXERCISE_STATUSES.SUCCESS ? <Check size={16} aria-hidden="true" /> : <AlertCircle size={16} aria-hidden="true" />}
+          <span>{statusCopy}</span>
+          {execution.stale && <strong>Result is from an earlier source version.</strong>}
+        </div>
+      )}
+
+      {isExpanded && !isExecutionActive && execution.status !== 'apiFailure' && (
+        <>
+          <TestEvidence
+            evidence={evidence}
+            summary={summary}
+            expanded={evidenceExpanded}
+            onToggle={() => setEvidenceExpanded((current) => !current)}
+            selectedId={selectedEvidenceId}
+            onSelect={setSelectedEvidenceId}
+            resultStatus={execution.result ? execution.status : 'idle'}
+            stale={execution.stale}
+          />
+          {execution.status === EXERCISE_STATUSES.COMPILATION_FAILURE && (
+            <ExerciseDiagnostics title="Compiler diagnostics" content={execution.result?.diagnostics?.compilerOutput} />
+          )}
+          {execution.status === EXERCISE_STATUSES.TEST_FAILURE && (
+            <ExerciseDiagnostics title="Execution output" content={execution.result?.diagnostics?.runtimeOutput} />
+          )}
+        </>
+      )}
+
+      {!isExpanded && compactResult && (
+        <p className={`implementation-exercise__compact-result${execution.status === EXERCISE_STATUSES.SUCCESS && !execution.stale ? ' is-passed' : ''}`} role="status" aria-live="polite">
+          {compactResult}
+        </p>
+      )}
 
       <button
         type="button"
