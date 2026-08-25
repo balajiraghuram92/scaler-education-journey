@@ -12,8 +12,12 @@ From the repository root:
 docker build -t neuralascent-java-runner:dev runner/java
 ```
 
-The base image is `maven:3.9.9-eclipse-temurin-11`, which provides Maven and a
-Java 11 JDK matching the supplied exercise POM.
+The base image is `maven:3.9.9-eclipse-temurin-11-alpine`, which provides Maven
+and a Java 11 JDK matching the supplied exercise POM while using Alpine Linux
+for a smaller runner footprint. The exercise is pure Java/JUnit, so it does not
+depend on native libraries. Alpine uses musl libc, and the Java 11 Alpine image
+is primarily intended for AMD64; use the non-Alpine Temurin image if future
+exercises require native tooling or a broader architecture matrix.
 
 ## Canonical exercise
 
