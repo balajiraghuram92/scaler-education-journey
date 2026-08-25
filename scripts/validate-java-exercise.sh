@@ -85,7 +85,9 @@ sed -i 's/ + y + "]"/ + (y + 1) + "]"/' \
   "$validation_root/behavioral-failure/Point.java"
 
 # Timeout: the first display call never returns; the outer harness must stop it.
-sed -i '/public void display()/a while (true) { }' \
+# Use a runtime-dependent condition so javac does not reject the following
+# statement as unreachable code.
+sed -i '/public void display()/a while (System.currentTimeMillis() >= 0) { }' \
   "$validation_root/timeout/Point.java"
 
 run_case "golden solution" success \
