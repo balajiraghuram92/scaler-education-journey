@@ -40,7 +40,28 @@ function serializeWorkingFiles(files) {
   }));
 }
 
-function FileTabs({ files, activeFileId, onSelect }) {
+function FileTabs({ files, activeFileId, onSelect, isCompact }) {
+  const [isOverflowOpen, setIsOverflowOpen] = useState(false);
+  const overflowRef = useRef(null);
+  const activeFile = files.find((file) => file.id === activeFileId) || files[0];
+  const visibleLimit = isCompact ? 0 : files.length <= 4 ? files.length : 3;
+  const initialVisibleFiles = isCompact ? [] : files.slice(0, visibleLimit);
+  const activeIsVisible = initialVisibleFiles.some((file) => file.id === activeFile.id);
+  const visibleFiles = isCompact || activeIsVisible
+    ? initialVisibleFiles
+    : [...files.slice(0, Math.max(0, visibleLimit - 1)), activeFile];
+  const visibleIds = new Set(visibleFiles.map((file) => file.id));
+  const overflowFiles = isCompact ? files.filter((file) => file.id !== activeFile.id) : files.filter((file) => !visibleIds.has(file.id));
+
+  useEffect(() => {
+    if (!isOverflowOpen) return undefined;
+    const handlePointerDown = (event) => {
+      if (!overflowRef.current?.contains(event.target)) setIsOverflowOpen(false);
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [isOverflowOpen]);
+
   if (files.length <= 1) return null;
 
   const handleKeyDown = (event) => {
@@ -52,22 +73,66 @@ function FileTabs({ files, activeFileId, onSelect }) {
     onSelect(files[nextIndex].id);
   };
 
+  const selectFile = (fileId) => {
+    onSelect(fileId);
+    setIsOverflowOpen(false);
+  };
+
   return (
-    <div className="implementation-exercise__file-tabs" role="tablist" aria-label="Exercise files" onKeyDown={handleKeyDown}>
-      {files.map((file) => (
-        <button
-          key={file.id}
-          type="button"
-          role="tab"
-          aria-selected={activeFileId === file.id}
-          aria-controls={`exercise-file-panel-${file.id}`}
-          className={`implementation-exercise__file-tab${activeFileId === file.id ? ' is-active' : ''}`}
-          title={file.path || file.name}
-          onClick={() => onSelect(file.id)}
-        >
-          {file.name}
-        </button>
-      ))}
+    <div className={`implementation-exercise__file-tabs${isCompact ? ' is-compact' : ''}`} ref={overflowRef}>
+      {isCompact ? (
+        <div className="implementation-exercise__compact-file-identity">
+          <span className="implementation-exercise__compact-file-name" title={activeFile.path || activeFile.name}>{activeFile.name}</span>
+          <span className="implementation-exercise__compact-file-count">{files.length} files</span>
+        </div>
+      ) : (
+        <div className="implementation-exercise__file-tabs-list" role="tablist" aria-label="Exercise files" onKeyDown={handleKeyDown}>
+          {visibleFiles.map((file) => (
+            <button
+              key={file.id}
+              type="button"
+              role="tab"
+              aria-selected={activeFileId === file.id}
+              aria-controls={`exercise-file-panel-${file.id}`}
+              className={`implementation-exercise__file-tab${activeFileId === file.id ? ' is-active' : ''}`}
+              title={file.path || file.name}
+              onClick={() => selectFile(file.id)}
+            >
+              {file.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {overflowFiles.length > 0 && (
+        <div className="implementation-exercise__file-overflow">
+          <button
+            type="button"
+            className="implementation-exercise__file-overflow-button"
+            aria-haspopup="menu"
+            aria-expanded={isOverflowOpen}
+            onClick={() => setIsOverflowOpen((current) => !current)}
+          >
+            {isCompact ? 'Files' : 'More'} <span aria-hidden="true">{isCompact ? '▾' : '⋯'}</span>
+          </button>
+          {isOverflowOpen && (
+            <div className="implementation-exercise__file-overflow-menu" role="menu" aria-label="More exercise files">
+              {overflowFiles.map((file) => (
+                <button
+                  key={file.id}
+                  type="button"
+                  role="menuitem"
+                  className="implementation-exercise__file-overflow-item"
+                  title={file.path || file.name}
+                  onClick={() => selectFile(file.id)}
+                >
+                  {file.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -202,32 +267,32 @@ export default function ImplementationExercise({ exercise, isExpanded, onToggleE
       <p className="implementation-exercise__description">{exercise.description}</p>
 
       <div id={workspaceId} className="implementation-exercise__workspace" role="region" aria-label="Coding exercise workspace">
-        <FileTabs files={workingFiles} activeFileId={activeFileId} onSelect={handleFileSelect} />
+        <FileTabs files={workingFiles} activeFileId={activeFileId} onSelect={handleFileSelect} isCompact={!isExpanded} />
 
-        <div className="implementation-exercise__toolbar">
-          <div className="implementation-exercise__file-identity">
-            {workingFiles.length === 1 ? (
-              <span className="implementation-exercise__file-label" title={activeFile.path || activeFile.name}>{activeFile.name}</span>
-            ) : (
-              <span className="implementation-exercise__file-label" title={activeFile.path || activeFile.name}>{activeFile.name}</span>
-            )}
-            {isReadOnly && <span className="implementation-exercise__file-status">Reference · Read only</span>}
-          </div>
-          {isExpanded && (
-            <div className="implementation-exercise__actions">
-              <button type="button" className="learning-button learning-button--quiet" onClick={handleReset}>
-                <RotateCcw size={13} /> Reset
-              </button>
-              <button type="button" className="learning-button learning-button--run" onClick={() => executeDemo('run')} disabled={runState === 'running'}>
-                <Play size={13} /> {runState === 'running' ? 'Running…' : 'Run'}
-                <span className="implementation-exercise__shortcut">Ctrl + Enter</span>
-              </button>
-              <button type="button" className="learning-button learning-button--check" onClick={() => executeDemo('check')} disabled={runState === 'running'}>
-                <Check size={13} /> Check solution
-              </button>
+        {(workingFiles.length === 1 || isExpanded || isReadOnly) && (
+          <div className="implementation-exercise__toolbar">
+            <div className="implementation-exercise__file-identity">
+              {workingFiles.length === 1 && (
+                <span className="implementation-exercise__file-label" title={activeFile.path || activeFile.name}>{activeFile.name}</span>
+              )}
+              {isReadOnly && <span className="implementation-exercise__file-status">Reference · Read only</span>}
             </div>
-          )}
-        </div>
+            {isExpanded && (
+              <div className="implementation-exercise__actions">
+                <button type="button" className="learning-button learning-button--quiet" onClick={handleReset}>
+                  <RotateCcw size={13} /> Reset
+                </button>
+                <button type="button" className="learning-button learning-button--run" onClick={() => executeDemo('run')} disabled={runState === 'running'}>
+                  <Play size={13} /> {runState === 'running' ? 'Running…' : 'Run'}
+                  <span className="implementation-exercise__shortcut">Ctrl + Enter</span>
+                </button>
+                <button type="button" className="learning-button learning-button--check" onClick={() => executeDemo('check')} disabled={runState === 'running'}>
+                  <Check size={13} /> Check solution
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         <div
           id={`exercise-file-panel-${activeFile.id}`}

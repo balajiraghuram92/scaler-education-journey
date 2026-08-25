@@ -478,20 +478,44 @@
   font-size: 0.61rem;
 }
 
+.implementation-exercise__workspace {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  margin-top: 0.8rem;
+  border: 1px solid var(--chamber-rule-border, #E5E0D8);
+  border-radius: 6px;
+  background: var(--chamber-bg-code, #F0ECE1);
+}
+
 .implementation-exercise__file-tabs {
   display: flex;
   align-items: stretch;
-  gap: 0.2rem;
+  justify-content: space-between;
+  gap: 0.35rem;
+  position: relative;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
-  margin-bottom: 0.35rem;
-  overflow-x: auto;
-  scrollbar-width: thin;
+  min-height: 2.1rem;
+  padding: 0 0.45rem;
+  border-bottom: 1px solid var(--chamber-rule-border, #E5E0D8);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.implementation-exercise__file-tabs-list {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: stretch;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .implementation-exercise__file-tab {
-  flex: 0 0 auto;
-  max-width: 230px;
-  padding: 0.4rem 0.55rem 0.42rem;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+  padding: 0.38rem 0.55rem 0.4rem;
   overflow: hidden;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -519,14 +543,117 @@
   outline-offset: -2px;
 }
 
+.implementation-exercise__compact-file-identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 0.55rem;
+}
+
+.implementation-exercise__compact-file-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--chamber-ink-body, #1C2421);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.implementation-exercise__compact-file-count {
+  flex: 0 0 auto;
+  color: var(--chamber-ink-muted, #64748B);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.64rem;
+}
+
+.implementation-exercise__file-overflow {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.implementation-exercise__file-overflow-button {
+  min-height: 1.7rem;
+  padding: 0.22rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--chamber-accent-sage, #2C5E55);
+  cursor: pointer;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.67rem;
+  font-weight: 700;
+}
+
+.implementation-exercise__file-overflow-button:hover,
+.implementation-exercise__file-overflow-button[aria-expanded="true"] {
+  border-color: var(--chamber-rule-border, #E5E0D8);
+  background: var(--chamber-bg-card, #FFFFFF);
+}
+
+.implementation-exercise__file-overflow-button:focus-visible {
+  outline: 2px solid var(--chamber-accent-sage, #2C5E55);
+  outline-offset: 2px;
+}
+
+.implementation-exercise__file-overflow-menu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  width: max-content;
+  min-width: 210px;
+  max-width: min(300px, calc(100vw - 2rem));
+  padding: 0.3rem;
+  border: 1px solid var(--chamber-rule-border, #E5E0D8);
+  border-radius: 5px;
+  background: var(--chamber-bg-card, #FFFFFF);
+  box-shadow: 0 8px 18px rgba(28, 36, 33, 0.11);
+}
+
+.implementation-exercise__file-overflow-item {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0.48rem 0.55rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--chamber-ink-secondary, #4A5568);
+  cursor: pointer;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.implementation-exercise__file-overflow-item:hover,
+.implementation-exercise__file-overflow-item:focus-visible {
+  background: var(--chamber-bg-card-warm, #FAF8F3);
+  color: var(--chamber-ink-display, #111111);
+  outline: none;
+}
+
+.implementation-exercise__workspace .implementation-exercise__toolbar {
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  border-top: 0;
+  border-bottom: 1px solid var(--chamber-rule-border, #E5E0D8);
+  background: rgba(255, 255, 255, 0.18);
+}
+
 .learning-editor {
   display: grid;
   grid-template-columns: 2.4rem minmax(0, 1fr);
   min-height: 260px;
-  margin-top: 0.8rem;
+  margin-top: 0;
   overflow: hidden;
-  border: 1px solid var(--chamber-rule-border, #E5E0D8);
-  border-radius: 6px;
+  border: 0;
+  border-radius: 0;
   background: var(--chamber-bg-code, #F0ECE1);
 }
 
