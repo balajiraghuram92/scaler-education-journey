@@ -1,0 +1,69 @@
+{
+  "id": "java-lld-oop3-point-threedpoint",
+  "lessonSlug": "04-oop-3-polymorphism-interfaces",
+  "title": "Point & ThreedPoint — Method Overriding",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 10,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "point",
+      "path": "src/main/java/Point.java",
+      "displayName": "Point.java",
+      "editable": true
+    },
+    {
+      "id": "threed-point",
+      "path": "src/main/java/ThreedPoint.java",
+      "displayName": "ThreedPoint.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/ThreedPointTest.java",
+    "className": "ThreedPointTest"
+  },
+  "evidence": [
+    {
+      "id": "point-x",
+      "label": "Point declares protected int x",
+      "testMethod": "testPointHasX"
+    },
+    {
+      "id": "point-y",
+      "label": "Point declares protected int y",
+      "testMethod": "testPointHasY"
+    },
+    {
+      "id": "point-display-signature",
+      "label": "Point exposes public display()",
+      "testMethod": "testPointHasDisplay"
+    },
+    {
+      "id": "point-display-output",
+      "label": "Point display format is correct",
+      "testMethod": "testPointDisplay"
+    },
+    {
+      "id": "threedpoint-inheritance",
+      "label": "ThreedPoint inherits from Point",
+      "testMethod": "testThreedPointInheritsPoint"
+    },
+    {
+      "id": "threedpoint-override",
+      "label": "ThreedPoint overrides display()",
+      "testMethod": "testThreedPointDisplayMethodOverride"
+    },
+    {
+      "id": "threedpoint-output",
+      "label": "Three-dimensional display format is correct",
+      "testMethod": "testThreedPointDisplayMethodOutput"
+    }
+  ]
+}
