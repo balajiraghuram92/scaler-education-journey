@@ -80,7 +80,9 @@ starter, failure, and bad-code checks.
 The harness creates a unique temporary Maven workspace, copies the canonical
 POM and trusted tests, copies only the selected source variant, mounts that
 workspace at `/workspace`, and removes the execution container with
-`docker run --rm`. `KEEP_WORKSPACE=1` retains the host workspace so
+`docker run --rm`. It runs Maven as the invoking WSL user and aligns the named
+cache volume ownership before execution, so generated `target/` files remain
+removable by the developer. `KEEP_WORKSPACE=1` retains the host workspace so
 `target/surefire-reports/` can be inspected after the run.
 
 Maven dependencies are stored in the dedicated named volume

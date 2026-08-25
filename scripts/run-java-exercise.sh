@@ -43,6 +43,8 @@ workspace=$(mktemp -d "${TMPDIR:-/tmp}/neuralascent-java-${exercise_id}.XXXXXX")
 keep_workspace="${KEEP_WORKSPACE:-0}"
 outer_timeout="${JAVA_RUNNER_TIMEOUT:-120}"
 container_name="neuralascent-java-$(basename "$workspace")"
+host_uid=$(id -u)
+host_gid=$(id -g)
 
 cleanup() {
   docker rm -f "$container_name" >/dev/null 2>&1 || true
@@ -63,10 +65,20 @@ echo "Exercise: $exercise_id"
 echo "Source variant: $source_label"
 echo "Workspace: $workspace"
 
+# The Maven cache is a named volume and Docker creates its mount point as
+# root-owned. Align it with the WSL user before running Maven so that target/
+# and retained Surefire reports remain removable by the developer.
+docker run --rm \
+  --mount "type=volume,src=neuralascent-maven-cache,dst=/root/.m2" \
+  --entrypoint /bin/sh \
+  neuralascent-java-runner:dev \
+  -c "chown -R $host_uid:$host_gid /root/.m2"
+
 set +e
 timeout --signal=TERM --kill-after=5s "${outer_timeout}s" \
   docker run --rm --init \
     --name "$container_name" \
+    --user "$host_uid:$host_gid" \
     --network bridge \
     --memory="${JAVA_RUNNER_MEMORY:-768m}" \
     --cpus="${JAVA_RUNNER_CPUS:-1.0}" \
