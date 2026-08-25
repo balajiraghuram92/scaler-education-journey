@@ -2,10 +2,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Plus, Calendar, Shield } from 'lucide-react';
 import CodeComparisonSwitcher from '../components/CodeComparisonSwitcher';
+import ConceptCheck from '../components/learning/ConceptCheck';
+import ArchitectureFlow from '../components/learning/ArchitectureFlow';
+import ImplementationExercise from '../components/learning/ImplementationExercise';
+import { getLessonInteractions } from '../data/lessonInteractions';
 import { api } from '../api/client';
 import { LoadingState, ErrorState, DevFixturesBanner } from '../components/common/StateViews';
 import { markLearningPathOpened } from '../utils/recentLearningPaths';
 import './ChapterReader.css';
+import '../components/learning/learning-interactions.css';
 
 function slugifyHeading(value, usedIds) {
   const base = value
@@ -112,20 +117,36 @@ function buildContentSections(contentBody) {
   return sections.filter((section) => section.blocks.length > 0);
 }
 
-function ChapterMarkdown({ sections }) {
+function ChapterMarkdown({ sections, interactions, isExerciseExpanded, onToggleExerciseExpanded }) {
+  const conceptChecks = interactions?.conceptChecks || [];
+  const architecture = interactions?.architecture;
+  const exercise = interactions?.exercise;
+
   return sections.map((section) => (
-    <section key={section.id} id={section.id} className="chapter-content-section">
-      {section.title !== 'Introduction' && <h3 className="chamber-section-heading">{section.title}</h3>}
-      <div className="chamber-prose">
-        {section.blocks.map((block, index) => {
-          if (block.type === 'subheading') return <h4 key={`${section.id}-${index}`} className="chamber-subheading">{block.text}</h4>;
-          if (block.type === 'unordered-list') return <ul key={`${section.id}-${index}`} className="chapter-markdown-list">{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{formatInline(item)}</li>)}</ul>;
-          if (block.type === 'ordered-list') return <ol key={`${section.id}-${index}`} className="chapter-markdown-list chapter-markdown-list--ordered">{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{formatInline(item)}</li>)}</ol>;
-          if (block.type === 'code') return <pre key={`${section.id}-${index}`} className="chapter-code-block"><code>{block.text}</code></pre>;
-          return <p key={`${section.id}-${index}`}>{formatInline(block.text)}</p>;
-        })}
-      </div>
-    </section>
+    <React.Fragment key={section.id}>
+      <section id={section.id} className="chapter-content-section">
+        {section.title !== 'Introduction' && <h3 className="chamber-section-heading">{section.title}</h3>}
+        <div className="chamber-prose">
+          {section.blocks.map((block, index) => {
+            if (block.type === 'subheading') return <h4 key={`${section.id}-${index}`} className="chamber-subheading">{block.text}</h4>;
+            if (block.type === 'unordered-list') return <ul key={`${section.id}-${index}`} className="chapter-markdown-list">{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{formatInline(item)}</li>)}</ul>;
+            if (block.type === 'ordered-list') return <ol key={`${section.id}-${index}`} className="chapter-markdown-list chapter-markdown-list--ordered">{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{formatInline(item)}</li>)}</ol>;
+            if (block.type === 'code') return <pre key={`${section.id}-${index}`} className="chapter-code-block"><code>{block.text}</code></pre>;
+            return <p key={`${section.id}-${index}`}>{formatInline(block.text)}</p>;
+          })}
+        </div>
+      </section>
+
+      {section.id === 'concepts-covered' && conceptChecks.map((check) => <ConceptCheck key={check.id} {...check} />)}
+      {section.id === 'practical-backend-scenario' && architecture && <ArchitectureFlow {...architecture} />}
+      {section.id === 'practice-loop' && exercise && (
+        <ImplementationExercise
+          exercise={exercise}
+          isExpanded={isExerciseExpanded}
+          onToggleExpand={onToggleExerciseExpanded}
+        />
+      )}
+    </React.Fragment>
   ));
 }
 
@@ -140,6 +161,7 @@ export default function ChapterReader() {
   const [personalNotesList, setPersonalNotesList] = useState([]);
   const [newNoteText, setNewNoteText] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [isExerciseExpanded, setIsExerciseExpanded] = useState(false);
 
   // Resolved lookup slug
   const targetSlug = useMemo(() => {
@@ -254,6 +276,11 @@ export default function ChapterReader() {
   }
 
   const chapterCourseSlug = chapter.course?.slug || chapter.course?.courseSlug || 'java-spring-lld';
+  const lessonInteractions = getLessonInteractions(
+    chapterCourseSlug,
+    chapter.module?.slug || moduleSlug || '',
+    chapter.slug || targetSlug
+  );
 
   const tocItems = [
     ...contentSections.map((section) => ({ id: section.id, label: section.title, level: 1 })),
@@ -263,7 +290,7 @@ export default function ChapterReader() {
   ];
 
   return (
-    <div className="chapter-reader-page">
+    <div className={`chapter-reader-page${isExerciseExpanded ? ' chapter-reader-page--exercise-expanded' : ''}`}>
       {isDevFixture && <DevFixturesBanner />}
       <div className="chapter-reader-top-strip">
         <div className="top-strip-inner">
@@ -351,7 +378,12 @@ export default function ChapterReader() {
             )}
           </header>
 
-          <ChapterMarkdown sections={contentSections} />
+          <ChapterMarkdown
+            sections={contentSections}
+            interactions={lessonInteractions}
+            isExerciseExpanded={isExerciseExpanded}
+            onToggleExerciseExpanded={() => setIsExerciseExpanded((current) => !current)}
+          />
 
           {chapter.codeComparisons?.length > 0 && (
             <section id="code-comparison" className="chapter-content-section">
