@@ -18,7 +18,7 @@ fi
 POSTGRES_DB="${POSTGRES_DB:-studytracker}"
 POSTGRES_USER="${POSTGRES_USER:-studyuser}"
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD:?Error: POSTGRES_PASSWORD environment variable is required}"
-S3_BUCKET="${S3_BUCKET:-scaler-studytracker-backups}"
+S3_BUCKET="${S3_BUCKET:-scaler-studytracker-backups-781863099926-ap-south-2-an}"
 S3_PREFIX="${S3_PREFIX:-database-backups}"
 
 INPUT_TARGET="${1:-}"

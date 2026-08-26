@@ -39,6 +39,8 @@ For a fresh EC2 host, store the complete environment-file value as an encrypted 
 - `kms:Decrypt` for its KMS key when a customer-managed key is used;
 - the existing SSM managed-instance permissions.
 
+Production backups use `s3://scaler-studytracker-backups-781863099926-ap-south-2-an/database-backups`.
+
 Run the bootstrap directly or through SSM:
 
 ```bash
@@ -65,6 +67,7 @@ sudo \
   IMAGE_TAG=<git-commit-sha> \
   DOMAIN_NAME=neuralascent.top \
   LETSENCRYPT_EMAIL=admin@neuralascent.top \
+  BACKUP_S3_URI=s3://scaler-studytracker-backups-781863099926-ap-south-2-an/database-backups \
   ALLOW_CREATE_DATABASE=false \
   bash scripts/deploy-single-ec2.sh
 ```

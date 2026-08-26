@@ -154,7 +154,7 @@ ls -lh "${HOST_BACKUP_DIR}/${BACKUP_FILE}"
 file "${HOST_BACKUP_DIR}/${BACKUP_FILE}"
 
 # 5. (Optional) Upload to S3 for disaster recovery
-# aws s3 cp "${HOST_BACKUP_DIR}/${BACKUP_FILE}" "s3://scaler-studytracker-backups/database-backups/${BACKUP_FILE}"
+# aws s3 cp "${HOST_BACKUP_DIR}/${BACKUP_FILE}" "s3://scaler-studytracker-backups-781863099926-ap-south-2-an/database-backups/${BACKUP_FILE}"
 ```
 
 ### Restore Rehearsal Procedure (Isolated Database)

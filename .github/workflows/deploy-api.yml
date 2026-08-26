@@ -25,7 +25,7 @@ env:
   LETSENCRYPT_EMAIL: admin@neuralascent.top
   STUDYTRACKER_ENV_PARAMETER: /neuralascent/prod/api-env
   STUDYTRACKER_REGISTRY_TOKEN_PARAMETER: /neuralascent/prod/ghcr-read-token
-  BACKUP_S3_URI: s3://scaler-studytracker-backups/database-backups
+  BACKUP_S3_URI: s3://scaler-studytracker-backups-781863099926-ap-south-2-an/database-backups
 
 jobs:
   build-and-deploy:
