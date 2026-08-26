@@ -12,12 +12,24 @@ From the repository root:
 docker build -t neuralascent-java-runner:dev runner/java
 ```
 
+The production build targets `linux/arm64` and publishes the runner at
+`ghcr.io/balajiraghuram92/neuralascent-java-runner:<git-sha>`. Verify the base
+image with Buildx before the first production release:
+
+```bash
+docker buildx build --platform linux/arm64 --load \
+  -t neuralascent-java-runner:arm64 \
+  -f runner/java/Dockerfile runner/java
+docker image inspect --format '{{.Os}}/{{.Architecture}}' \
+  neuralascent-java-runner:arm64
+```
+
 The base image is `maven:3.9.9-eclipse-temurin-11-alpine`, which provides Maven
 and a Java 11 JDK matching the supplied exercise POM while using Alpine Linux
 for a smaller runner footprint. The exercise is pure Java/JUnit, so it does not
-depend on native libraries. Alpine uses musl libc, and the Java 11 Alpine image
-is primarily intended for AMD64; use the non-Alpine Temurin image if future
-exercises require native tooling or a broader architecture matrix.
+depend on native libraries. If this ARM64 build fails in the validation
+environment, replace it with the smallest multi-architecture Temurin Java 11
+Maven image without changing the Maven or Java versions.
 
 ## Canonical exercise
 
@@ -125,6 +137,8 @@ failure messages, and durations for later Phase 2 parsing.
 
 ## Phase 1 boundaries
 
-This phase does not add ASP.NET execution endpoints, React integration,
-database persistence, a Java sandbox service, GHCR publishing, or production
-deployment. Those are Phase 2 concerns after the runner primitive is proven.
+The API creates runner containers dynamically through Docker.DotNet. The
+runner receives the copied `/workspace` archive and the named Maven cache
+volume only; it never receives the Docker socket, API environment, database
+credentials, cloud credentials, or arbitrary host mounts. Production starts
+with one concurrent execution through `ExerciseExecution__MaxConcurrentExecutions=1`.

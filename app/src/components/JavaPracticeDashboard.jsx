@@ -20,11 +20,7 @@ export default function JavaPracticeDashboard({ vertical, onUpdate }) {
   const fetchCourseData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/courses/java-spring-lld`, {
-        headers: {
-          'x-api-key': import.meta.env.VITE_API_KEY || ''
-        }
-      });
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/courses/java-spring-lld`);
       if (res.ok) {
         const data = await res.json();
         setCourseData(data);
@@ -53,11 +49,7 @@ export default function JavaPracticeDashboard({ vertical, onUpdate }) {
   useEffect(() => {
     if (!selectedLessonId) return;
 
-    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/lessons/${selectedLessonId}`, {
-      headers: {
-        'x-api-key': import.meta.env.VITE_API_KEY || ''
-      }
-    })
+    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/lessons/${selectedLessonId}`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
@@ -75,8 +67,7 @@ export default function JavaPracticeDashboard({ vertical, onUpdate }) {
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/problems/${problemId}/progress`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_API_KEY || ''
+          'Content-Type': 'application/json'
         }
       });
       if (res.ok) {

@@ -3,9 +3,11 @@ set -Eeuo pipefail
 
 API_IMAGE="${API_IMAGE:?API_IMAGE is required}"
 APP_IMAGE="${APP_IMAGE:?APP_IMAGE is required}"
-IMAGE_TAG="${IMAGE_TAG:-}"
+RUNNER_IMAGE="${RUNNER_IMAGE:-ghcr.io/balajiraghuram92/neuralascent-java-runner}"
+IMAGE_TAG="${IMAGE_TAG:-release}"
 API_REF="${API_REF:-}"
 APP_REF="${APP_REF:-}"
+RUNNER_REF="${RUNNER_REF:-}"
 DOMAIN_NAME="${DOMAIN_NAME:-localhost}"
 LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-}"
 ENV_FILE="${ENV_FILE:-/etc/studytracker/api.env}"
@@ -15,6 +17,8 @@ DATABASE_CONTAINER="${DATABASE_CONTAINER:-}"
 API_CONTAINER="${API_CONTAINER:-studytracker-api}"
 APP_CONTAINER="${APP_CONTAINER:-studytracker-app}"
 DATA_VOLUME="${DATA_VOLUME:-scaler_postgres_data}"
+MAVEN_CACHE_VOLUME="${MAVEN_CACHE_VOLUME:-}"
+MAX_CONCURRENT_EXECUTIONS="${MAX_CONCURRENT_EXECUTIONS:-}"
 CERT_DIR="${CERT_DIR:-/etc/letsencrypt}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/studytracker}"
 BACKUP_S3_URI="${BACKUP_S3_URI:-}"
@@ -174,25 +178,45 @@ database_is_empty() {
 
 start_api() {
     local image="$1"
-    docker run -d \
-        --name "${API_CONTAINER}" \
-        --network "${NETWORK_NAME}" \
-        --restart unless-stopped \
-        -p 127.0.0.1:5000:8080 \
-        --add-host host.docker.internal:host-gateway \
-        --env-file "${ENV_FILE}" \
-        "${image}" >/dev/null
+    local runner_ref="${2:-}"
+    local args=(
+        run -d
+        --name "${API_CONTAINER}"
+        --network "${NETWORK_NAME}"
+        --restart unless-stopped
+        -p 127.0.0.1:5000:8080
+        --add-host host.docker.internal:host-gateway
+        --env-file "${ENV_FILE}"
+        -e "ExerciseExecution__ExercisesRoot=/app/exercises"
+        -e "ExerciseExecution__WorkspaceRoot=/tmp/studytracker-exercises"
+        -e "ExerciseExecution__DockerEndpoint=unix:///var/run/docker.sock"
+        -e "ExerciseExecution__MavenCacheVolume=${MAVEN_CACHE_VOLUME}"
+        -e "ExerciseExecution__MaxConcurrentExecutions=${MAX_CONCURRENT_EXECUTIONS}"
+        -v /var/run/docker.sock:/var/run/docker.sock
+    )
+
+    if [ -n "${runner_ref}" ]; then
+        args+=( -e "ExerciseExecution__RunnerImage=${runner_ref}" )
+    fi
+
+    docker "${args[@]}" "${image}" >/dev/null
 }
 
 start_app() {
     local image="$1"
+    local app_env_file
+    local status
+    app_env_file="$(mktemp)"
+    chmod 600 "${app_env_file}"
+    printf 'API_KEY=%s\n' "$(env_value API_KEY)" > "${app_env_file}"
+
     local args=(
         run -d
         --name "${APP_CONTAINER}"
         --network "${NETWORK_NAME}"
         --restart unless-stopped
         -p 80:80
-        --env-file "${ENV_FILE}"
+        --env-file "${app_env_file}"
         -e "DOMAIN_NAME=${DOMAIN_NAME}"
     )
 
@@ -200,13 +224,60 @@ start_app() {
         args+=( -p 443:443 -v "${CERT_DIR}:${CERT_DIR}:ro" )
     fi
 
-    docker "${args[@]}" "${image}" >/dev/null
+    if docker "${args[@]}" "${image}" >/dev/null; then
+        status=0
+    else
+        status=$?
+    fi
+    rm -f "${app_env_file}"
+    return "${status}"
+}
+
+verify_digest_ref() {
+    local ref="$1"
+    local label="$2"
+    case "${ref}" in
+        *@sha256:*) ;;
+        *) fail "${label} must be pinned to an image digest." ;;
+    esac
+}
+
+verify_image_digest_ref() {
+    local ref="$1"
+    local label="$2"
+    local expected_image="$3"
+    case "${ref}" in
+        "${expected_image}"@sha256:*) ;;
+        *) fail "${label} must reference ${expected_image} with an image digest." ;;
+    esac
+}
+
+verify_host_image_platform() {
+    local ref="$1"
+    local label="$2"
+    local expected_arch actual_platform
+
+    case "$(uname -m)" in
+        aarch64|arm64) expected_arch="arm64" ;;
+        x86_64|amd64) expected_arch="amd64" ;;
+        *) fail "Unsupported host architecture: $(uname -m)." ;;
+    esac
+
+    actual_platform="$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "${ref}")"
+    [ "${actual_platform}" = "linux/${expected_arch}" ] || \
+        fail "${label} resolved to ${actual_platform}; expected linux/${expected_arch}."
 }
 
 require_command docker
 require_command curl
 require_command flock
 [ -f "${ENV_FILE}" ] || fail "Missing environment file: ${ENV_FILE}"
+
+MAVEN_CACHE_VOLUME="${MAVEN_CACHE_VOLUME:-$(env_value_or_default ExerciseExecution__MavenCacheVolume neuralascent-maven-cache)}"
+MAX_CONCURRENT_EXECUTIONS="${MAX_CONCURRENT_EXECUTIONS:-$(env_value_or_default ExerciseExecution__MaxConcurrentExecutions 1)}"
+
+[ -S /var/run/docker.sock ] || fail "Docker socket is unavailable on the deployment host."
+docker info >/dev/null 2>&1 || fail "Docker daemon is unavailable on the deployment host."
 
 install -d -m 0755 "$(dirname "${DEPLOY_LOCK_FILE}")"
 exec 9>"${DEPLOY_LOCK_FILE}"
@@ -225,11 +296,23 @@ if env_has_value POSTGRES_PASSWORD && env_has_value DATABASE_PASSWORD; then
         fail "POSTGRES_PASSWORD and DATABASE_PASSWORD must match for the local PostgreSQL container."
 fi
 
-if [ -z "${API_REF}" ] || [ -z "${APP_REF}" ]; then
-    [ -n "${IMAGE_TAG}" ] || fail "Provide API_REF and APP_REF digests, or an immutable IMAGE_TAG."
+if [ -z "${API_REF}" ] || [ -z "${APP_REF}" ] || [ -z "${RUNNER_REF}" ]; then
+    fail "API_REF, APP_REF, and RUNNER_REF digest references are required."
 fi
-api_ref="${API_REF:-${API_IMAGE}:${IMAGE_TAG}}"
-app_ref="${APP_REF:-${APP_IMAGE}:${IMAGE_TAG}}"
+api_ref="${API_REF}"
+app_ref="${APP_REF}"
+runner_ref="${RUNNER_REF}"
+verify_digest_ref "${api_ref}" "API_REF"
+verify_digest_ref "${app_ref}" "APP_REF"
+verify_digest_ref "${runner_ref}" "RUNNER_REF"
+verify_image_digest_ref "${api_ref}" "API_REF" "${API_IMAGE}"
+verify_image_digest_ref "${app_ref}" "APP_REF" "${APP_IMAGE}"
+verify_image_digest_ref "${runner_ref}" "RUNNER_REF" "${RUNNER_IMAGE}"
+
+case "$(uname -m)" in
+    aarch64|arm64) ;;
+    *) fail "Production deployment requires an ARM64 host; found $(uname -m)." ;;
+esac
 
 if [ -f "${REGISTRY_TOKEN_FILE}" ]; then
     log "Authenticating to ${REGISTRY_HOST} with the protected read-only token."
@@ -240,14 +323,21 @@ if [ -f "${REGISTRY_TOKEN_FILE}" ]; then
         --password-stdin < "${REGISTRY_TOKEN_FILE}"
 fi
 
-log "Pulling immutable application images for $(uname -m)."
+log "Pulling immutable application and runner images for $(uname -m)."
+docker pull "${runner_ref}"
 docker pull "${api_ref}"
 docker pull "${app_ref}"
 docker pull "${POSTGRES_IMAGE}"
+verify_host_image_platform "${runner_ref}" "Java runner image"
+verify_host_image_platform "${api_ref}" "API image"
+verify_host_image_platform "${app_ref}" "frontend image"
 
 docker network inspect "${NETWORK_NAME}" >/dev/null 2>&1 || docker network create "${NETWORK_NAME}" >/dev/null
 if ! docker volume inspect "${DATA_VOLUME}" >/dev/null 2>&1; then
     docker volume create "${DATA_VOLUME}" >/dev/null
+fi
+if ! docker volume inspect "${MAVEN_CACHE_VOLUME}" >/dev/null 2>&1; then
+    docker volume create "${MAVEN_CACHE_VOLUME}" >/dev/null
 fi
 
 if [ -z "${DATABASE_CONTAINER}" ]; then
@@ -333,6 +423,7 @@ docker run --rm --network "${NETWORK_NAME}" \
 
 previous_api_image="$(docker container inspect --format '{{.Config.Image}}' "${API_CONTAINER}" 2>/dev/null || true)"
 previous_app_image="$(docker container inspect --format '{{.Config.Image}}' "${APP_CONTAINER}" 2>/dev/null || true)"
+previous_runner_ref="$(docker container inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "${API_CONTAINER}" 2>/dev/null | sed -n 's/^ExerciseExecution__RunnerImage=//p' | tail -n 1 || true)"
 
 rollback() {
     local exit_code="${1:-1}"
@@ -341,7 +432,7 @@ rollback() {
     docker stop "${API_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
     docker rm "${API_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
     if [ -n "${previous_api_image}" ]; then
-        start_api "${previous_api_image}" || true
+        start_api "${previous_api_image}" "${previous_runner_ref}" || true
     fi
     if [ -n "${previous_app_image}" ]; then
         start_app "${previous_app_image}" || true
@@ -378,7 +469,7 @@ docker stop "${API_CONTAINER}" >/dev/null 2>&1 || true
 docker rm "${API_CONTAINER}" >/dev/null 2>&1 || true
 docker rm "${APP_CONTAINER}" >/dev/null 2>&1 || true
 
-start_api "${api_ref}"
+start_api "${api_ref}" "${runner_ref}"
 start_app "${app_ref}"
 
 wait_for_url http://localhost:5000/health "API" || rollback 1

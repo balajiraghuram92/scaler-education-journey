@@ -1,0 +1,750 @@
+diff --git a/.dockerignore b/.dockerignore
+index f2efa1f..ae38915 100644
+--- a/.dockerignore
++++ b/.dockerignore
+@@ -9,6 +9,13 @@ app/dist
+ tests
+ info
+ tmp
++app
++runner
++scripts
++deploy
++reference
++*.md
++*.diff
+ *.user
+ *.suo
+ *.log
+diff --git a/app/Dockerfile b/app/Dockerfile
+index f8a962c..57b996d 100644
+--- a/app/Dockerfile
++++ b/app/Dockerfile
+@@ -5,11 +5,10 @@ FROM --platform=$BUILDPLATFORM node:20-alpine AS builder
+ 
+ WORKDIR /app
+ 
+-# Build arguments from CI/CD secrets for Vite static asset compilation
+-ARG VITE_API_KEY
++# The API base URL is non-secret and may be set for a separately hosted API.
++# Authentication is injected by the same-origin Nginx proxy at runtime.
+ ARG VITE_API_BASE_URL=""
+ 
+-ENV VITE_API_KEY=$VITE_API_KEY
+ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ 
+ # Copy dependency manifests
+diff --git a/app/src/api/client.js b/app/src/api/client.js
+index 704c306..0b5e0b8 100644
+--- a/app/src/api/client.js
++++ b/app/src/api/client.js
+@@ -1,7 +1,7 @@
+ /**
+  * Neuralascent Unified API Client
+  * Enforces strict error propagation (no silent fake demo data in production),
+- * RFC 7807 problem details parsing, API authentication, and request correlation IDs.
++ * RFC 7807 problem details parsing and request correlation IDs.
+  */
+ 
+ const API_BASE_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+@@ -47,11 +47,6 @@ export async function apiClient(endpoint, options = {}) {
+     ...headers,
+   };
+ 
+-  const apiKey = import.meta.env.VITE_API_KEY;
+-  if (apiKey) {
+-    requestHeaders['x-api-key'] = apiKey;
+-  }
+-
+   if (body && typeof body === 'object' && !(body instanceof FormData)) {
+     requestHeaders['Content-Type'] = 'application/json';
+   }
+diff --git a/app/src/components/AddLessonModal.jsx b/app/src/components/AddLessonModal.jsx
+index ef8d24e..f3a294e 100644
+--- a/app/src/components/AddLessonModal.jsx
++++ b/app/src/components/AddLessonModal.jsx
+@@ -29,8 +29,7 @@ export default function AddLessonModal({ isOpen, onClose, onSuccess, modules = [
+       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/lessons`, {
+         method: 'POST',
+         headers: {
+-          'Content-Type': 'application/json',
+-          'x-api-key': import.meta.env.VITE_API_KEY || ''
++          'Content-Type': 'application/json'
+         },
+         body: JSON.stringify({
+           moduleId: parseInt(moduleId),
+diff --git a/app/src/components/JavaPracticeDashboard.jsx b/app/src/components/JavaPracticeDashboard.jsx
+index 57a72c4..42d39c9 100644
+--- a/app/src/components/JavaPracticeDashboard.jsx
++++ b/app/src/components/JavaPracticeDashboard.jsx
+@@ -20,11 +20,7 @@ export default function JavaPracticeDashboard({ vertical, onUpdate }) {
+   const fetchCourseData = useCallback(async () => {
+     setLoading(true);
+     try {
+-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/courses/java-spring-lld`, {
+-        headers: {
+-          'x-api-key': import.meta.env.VITE_API_KEY || ''
+-        }
+-      });
++      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/courses/java-spring-lld`);
+       if (res.ok) {
+         const data = await res.json();
+         setCourseData(data);
+@@ -53,11 +49,7 @@ export default function JavaPracticeDashboard({ vertical, onUpdate }) {
+   useEffect(() => {
+     if (!selectedLessonId) return;
+ 
+-    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/lessons/${selectedLessonId}`, {
+-      headers: {
+-        'x-api-key': import.meta.env.VITE_API_KEY || ''
+-      }
+-    })
++    fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/lessons/${selectedLessonId}`)
+       .then(res => res.ok ? res.json() : null)
+       .then(data => {
+         if (data) {
+@@ -75,8 +67,7 @@ export default function JavaPracticeDashboard({ vertical, onUpdate }) {
+       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/problems/${problemId}/progress`, {
+         method: 'PATCH',
+         headers: {
+-          'Content-Type': 'application/json',
+-          'x-api-key': import.meta.env.VITE_API_KEY || ''
++          'Content-Type': 'application/json'
+         }
+       });
+       if (res.ok) {
+diff --git a/app/src/components/MarkdownIngestModal.jsx b/app/src/components/MarkdownIngestModal.jsx
+index cf9f884..91976b1 100644
+--- a/app/src/components/MarkdownIngestModal.jsx
++++ b/app/src/components/MarkdownIngestModal.jsx
+@@ -123,8 +123,7 @@ export default function MarkdownIngestModal({ isOpen, onClose, onSuccess, vertic
+       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/verticals/ingest`, {
+         method: 'POST',
+         headers: { 
+-          'Content-Type': 'application/json',
+-          'x-api-key': import.meta.env.VITE_API_KEY || ''
++          'Content-Type': 'application/json'
+         },
+         body: JSON.stringify(payload)
+       });
+diff --git a/deploy/deploy-api.proposed.yml b/deploy/deploy-api.proposed.yml
+index f4ddc8d..cd8ec15 100644
+--- a/deploy/deploy-api.proposed.yml
++++ b/deploy/deploy-api.proposed.yml
+@@ -19,6 +19,7 @@ env:
+   REGISTRY: ghcr.io
+   IMAGE_API: ghcr.io/balajiraghuram92/scaler-education-journey-api
+   IMAGE_APP: ghcr.io/balajiraghuram92/scaler-education-journey-app
++  IMAGE_RUNNER: ghcr.io/balajiraghuram92/neuralascent-java-runner
+   AWS_REGION: ap-south-2
+   DOMAIN_NAME: neuralascent.top
+   LETSENCRYPT_EMAIL: admin@neuralascent.top
+@@ -57,6 +58,7 @@ jobs:
+         run: |
+           npm ci
+           npm run lint
++          npm run test
+           npm run build
+ 
+       - name: Login to GHCR
+@@ -75,7 +77,7 @@ jobs:
+       - name: Set up QEMU
+         uses: docker/setup-qemu-action@v3
+         with:
+-          platforms: all
++          platforms: arm64
+ 
+       - name: Set up Docker Buildx
+         uses: docker/setup-buildx-action@v3
+@@ -84,15 +86,15 @@ jobs:
+         id: build_api
+         uses: docker/build-push-action@v6
+         with:
+-          context: ./api
++          context: .
+           file: ./api/Dockerfile
+-          platforms: linux/amd64,linux/arm64
++          platforms: linux/arm64
+           push: true
+           tags: |
+             ${{ env.IMAGE_API }}:${{ github.sha }}
+             ${{ env.IMAGE_API }}:latest
+-          cache-from: type=gha
+-          cache-to: type=gha,mode=max
++          cache-from: type=gha,scope=api
++          cache-to: type=gha,scope=api,mode=max
+ 
+       - name: Build and push frontend image
+         id: build_app
+@@ -100,21 +102,34 @@ jobs:
+         with:
+           context: ./app
+           file: ./app/Dockerfile
+-          platforms: linux/amd64,linux/arm64
++          platforms: linux/arm64
+           push: true
+           tags: |
+             ${{ env.IMAGE_APP }}:${{ github.sha }}
+             ${{ env.IMAGE_APP }}:latest
+-          cache-from: type=gha
+-          cache-to: type=gha,mode=max
++          cache-from: type=gha,scope=app
++          cache-to: type=gha,scope=app,mode=max
++
++      - name: Build and push Java runner image
++        id: build_runner
++        uses: docker/build-push-action@v6
++        with:
++          context: ./runner/java
++          file: ./runner/java/Dockerfile
++          platforms: linux/arm64
++          push: true
++          tags: |
++            ${{ env.IMAGE_RUNNER }}:${{ github.sha }}
++            ${{ env.IMAGE_RUNNER }}:latest
++          cache-from: type=gha,scope=java-runner
++          cache-to: type=gha,scope=java-runner,mode=max
+ 
+       - name: Verify published platforms
+         shell: bash
+         run: |
+           set -euo pipefail
+-          for image in "${IMAGE_API}:${GITHUB_SHA}" "${IMAGE_APP}:${GITHUB_SHA}"; do
++          for image in "${IMAGE_API}:${GITHUB_SHA}" "${IMAGE_APP}:${GITHUB_SHA}" "${IMAGE_RUNNER}:${GITHUB_SHA}"; do
+             manifest=$(docker buildx imagetools inspect "${image}")
+-            grep -q 'linux/amd64' <<<"${manifest}"
+             grep -q 'linux/arm64' <<<"${manifest}"
+           done
+ 
+@@ -134,7 +149,7 @@ jobs:
+               "curl -fsSL $SCRIPT_BASE/scripts/deploy-single-ec2.sh -o /tmp/deploy-single-ec2.sh",
+               "chmod 700 /tmp/bootstrap-single-ec2.sh /tmp/deploy-single-ec2.sh",
+               "STUDYTRACKER_ENV_PARAMETER=${{ env.STUDYTRACKER_ENV_PARAMETER }} STUDYTRACKER_REGISTRY_TOKEN_PARAMETER=${{ env.STUDYTRACKER_REGISTRY_TOKEN_PARAMETER }} /tmp/bootstrap-single-ec2.sh",
+-              "API_IMAGE=${{ env.IMAGE_API }} APP_IMAGE=${{ env.IMAGE_APP }} API_REF=${{ env.IMAGE_API }}@${{ steps.build_api.outputs.digest }} APP_REF=${{ env.IMAGE_APP }}@${{ steps.build_app.outputs.digest }} IMAGE_TAG=${{ github.sha }} DOMAIN_NAME=${{ env.DOMAIN_NAME }} LETSENCRYPT_EMAIL=${{ env.LETSENCRYPT_EMAIL }} BACKUP_S3_URI=${{ env.BACKUP_S3_URI }} RESTORE_LATEST_BACKUP=true ALLOW_CREATE_DATABASE=true /tmp/deploy-single-ec2.sh"
++              "API_IMAGE=${{ env.IMAGE_API }} APP_IMAGE=${{ env.IMAGE_APP }} RUNNER_IMAGE=${{ env.IMAGE_RUNNER }} API_REF=${{ env.IMAGE_API }}@${{ steps.build_api.outputs.digest }} APP_REF=${{ env.IMAGE_APP }}@${{ steps.build_app.outputs.digest }} RUNNER_REF=${{ env.IMAGE_RUNNER }}@${{ steps.build_runner.outputs.digest }} IMAGE_TAG=${{ github.sha }} DOMAIN_NAME=${{ env.DOMAIN_NAME }} LETSENCRYPT_EMAIL=${{ env.LETSENCRYPT_EMAIL }} BACKUP_S3_URI=${{ env.BACKUP_S3_URI }} RESTORE_LATEST_BACKUP=true ALLOW_CREATE_DATABASE=false /tmp/deploy-single-ec2.sh"
+             ]' \
+             --region "${AWS_REGION}" \
+             --query 'Command.CommandId' \
+@@ -142,7 +157,7 @@ jobs:
+ 
+           echo "Waiting for SSM deployment command ${COMMAND_ID}"
+           STATUS=Pending
+-          for attempt in $(seq 1 180); do
++          for attempt in $(seq 1 120); do
+             STATUS=$(aws ssm get-command-invocation \
+               --command-id "${COMMAND_ID}" \
+               --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
+diff --git a/deploy/single-ec2-automation.md b/deploy/single-ec2-automation.md
+index 6b8ea42..f4928de 100644
+--- a/deploy/single-ec2-automation.md
++++ b/deploy/single-ec2-automation.md
+@@ -7,7 +7,7 @@ This is the immediate deployment contract for Neuralascent. It supports:
+ - idempotent PostgreSQL migration and reference-data seeding;
+ - one existing or freshly bootstrapped EC2 host;
+ - immutable commit-SHA releases with health-gated rollback;
+-- published multi-platform images containing `linux/amd64` and `linux/arm64`.
++- production images published for the existing `linux/arm64` EC2 host.
+ 
+ ## Local one-command setup
+ 
+@@ -58,28 +58,42 @@ The deployment script requires the exact commit SHA generated by GitHub Actions:
+ sudo \
+   API_IMAGE=ghcr.io/balajiraghuram92/scaler-education-journey-api \
+   APP_IMAGE=ghcr.io/balajiraghuram92/scaler-education-journey-app \
++  RUNNER_IMAGE=ghcr.io/balajiraghuram92/neuralascent-java-runner \
++  API_REF=ghcr.io/balajiraghuram92/scaler-education-journey-api@sha256:<api-index-digest> \
++  APP_REF=ghcr.io/balajiraghuram92/scaler-education-journey-app@sha256:<app-index-digest> \
++  RUNNER_REF=ghcr.io/balajiraghuram92/neuralascent-java-runner@sha256:<runner-index-digest> \
+   IMAGE_TAG=<git-commit-sha> \
+   DOMAIN_NAME=neuralascent.top \
+   LETSENCRYPT_EMAIL=admin@neuralascent.top \
+-  ALLOW_CREATE_DATABASE=true \
++  ALLOW_CREATE_DATABASE=false \
+   bash scripts/deploy-single-ec2.sh
+ ```
+ 
+ The script:
+ 
+-1. Pulls the immutable API/app images selected automatically for the host architecture.
++1. Requires and pulls immutable API, frontend, and Java runner image-index digests, then verifies that each resolves to `linux/arm64` on the host.
+ 2. Creates or starts PostgreSQL without deleting its named volume.
+ 3. Waits for PostgreSQL readiness.
+ 4. Creates a checksum-protected pre-migration dump in `/var/backups/studytracker` and optionally uploads it when `BACKUP_S3_URI` is configured.
+ 5. Runs `--migrate` and fails before replacing the live app if migration fails.
+ 6. Runs idempotent `--seed-reference-data`.
+ 7. Obtains or renews TLS when a production domain is configured.
+-8. Replaces the API and frontend containers.
++8. Replaces the API and frontend containers. The API alone receives the Docker socket and is configured with the exact runner digest; dynamically created runner containers receive only the named Maven cache volume.
+ 9. Verifies API and frontend health.
+ 10. Restores the prior API/app images when deployment health fails.
+ 11. Prunes only dangling images; it retains rollback images.
+ 
+-With the proposed workflow, the frontend no longer relies on a Vite-embedded API key. Nginx receives `API_KEY` at runtime, injects it only while proxying same-origin `/api` calls, and the production API host port is bound to loopback. This removes the backend key from the downloadable JavaScript bundle. A temporary legacy fallback remains so the currently active workflow can still start the app before the proposed workflow is manually installed; production should use the proposed workflow. This remains an owner-only single-user boundary, not a replacement for future user authentication.
++With the proposed workflow, the frontend no longer accepts or embeds `VITE_API_KEY`. Nginx receives `API_KEY` at runtime, injects it only while proxying same-origin `/api` calls, and the production API host port is bound to loopback. This removes the backend key from the downloadable JavaScript bundle. A temporary legacy fallback remains in the Nginx entrypoint so the currently active workflow can still start the app before the proposed workflow is manually installed; production should use the proposed workflow. This remains an owner-only single-user boundary, not a replacement for future user authentication.
++
++Production starts with `ExerciseExecution__MaxConcurrentExecutions=1`. The deployment script supplies that override unless a reviewed host-specific override is explicitly provided. Local and development Compose settings remain unchanged.
++
++The internal Java smoke check is run from the trusted API host/container boundary with:
++
++```bash
++bash scripts/smoke-java-exercise.sh
++```
++
++It reads the canonical golden source through `docker exec`, sends only a loopback request, checks the seven Surefire-derived evidence results, and never prints the source or API key.
+ 
+ ## Required GitHub Actions changes
+ 
+@@ -87,12 +101,13 @@ Repository policy freezes direct agent edits to `.github/workflows`. Review [`de
+ 
+ The patch changes the release to:
+ 
+-- build both `linux/amd64` and `linux/arm64` manifests;
++- build `linux/arm64` images for the existing production host;
+ - deploy the commit SHA rather than `latest`;
+ - bootstrap a compatible EC2 host idempotently;
+ - run migration and seed through the versioned deployment script;
+-- wait for the remote SSM command and fail GitHub Actions when deployment fails.
++- wait for the remote SSM command and fail GitHub Actions when deployment fails;
+ - deploy the Buildx image-index digests rather than mutable tags;
++- build and publish the Java runner image alongside the API and frontend images;
+ - upload every pre-migration dump and checksum to the configured S3 prefix;
+ - restore the latest validated dump automatically when PostgreSQL is created on a replacement host.
+ 
+@@ -106,6 +121,6 @@ No script can infer production secrets or grant its own AWS permissions safely.
+ - DNS pointing at the host;
+ - enough persistent disk for PostgreSQL and backups.
+ 
+-The GitHub OIDC deployment role needs `ssm:SendCommand`, `ssm:GetCommandInvocation`, and the existing package-publish permissions. The EC2 instance profile needs SSM managed-instance access, `ssm:GetParameter` for the two named parameters, `kms:Decrypt` for their KMS key when applicable, and `s3:ListBucket`, `s3:GetObject`, and `s3:PutObject` limited to the configured backup prefix. The workflow performs API tests, frontend lint/build validation, multi-platform image verification, and a bounded twenty-minute SSM status poll before reporting success.
++The GitHub OIDC deployment role needs `ssm:SendCommand`, `ssm:GetCommandInvocation`, and the existing package-publish permissions. The EC2 instance profile needs SSM managed-instance access, `ssm:GetParameter` for the two named parameters, `kms:Decrypt` for their KMS key when applicable, and `s3:ListBucket`, `s3:GetObject`, and `s3:PutObject` limited to the configured backup prefix. The workflow performs API tests, frontend lint/build validation, ARM64 image verification for the API, frontend, and runner, and a bounded twenty-minute SSM status poll before reporting success.
+ 
+ The future Terraform/OpenTofu phase will create those resources automatically. Until PostgreSQL moves to RDS, replacing an EC2 instance creates a fresh seeded database unless the Docker volume is reattached or an S3 backup is restored. Application automation must not be mistaken for database disaster recovery.
+diff --git a/deploy/single-ec2.env.example b/deploy/single-ec2.env.example
+index 1dfa784..fd55c6e 100644
+--- a/deploy/single-ec2.env.example
++++ b/deploy/single-ec2.env.example
+@@ -11,3 +11,8 @@ DATABASE_PASSWORD=replace-with-the-same-postgres-password
+ API_KEY=replace-with-a-strong-generated-server-side-proxy-key
+ ASPNETCORE_ENVIRONMENT=Production
+ ASPNETCORE_URLS=http://+:8080
++
++# The deployment script supplies ExerciseExecution__RunnerImage from the
++# immutable RUNNER_REF for each release. Keep the cache named and persistent.
++ExerciseExecution__MavenCacheVolume=neuralascent-maven-cache
++ExerciseExecution__MaxConcurrentExecutions=1
+diff --git a/runner/java/README.md b/runner/java/README.md
+index f7d2db3..f1ac5c9 100644
+--- a/runner/java/README.md
++++ b/runner/java/README.md
+@@ -12,12 +12,24 @@ From the repository root:
+ docker build -t neuralascent-java-runner:dev runner/java
+ ```
+ 
++The production build targets `linux/arm64` and publishes the runner at
++`ghcr.io/balajiraghuram92/neuralascent-java-runner:<git-sha>`. Verify the base
++image with Buildx before the first production release:
++
++```bash
++docker buildx build --platform linux/arm64 --load \
++  -t neuralascent-java-runner:arm64 \
++  -f runner/java/Dockerfile runner/java
++docker image inspect --format '{{.Os}}/{{.Architecture}}' \
++  neuralascent-java-runner:arm64
++```
++
+ The base image is `maven:3.9.9-eclipse-temurin-11-alpine`, which provides Maven
+ and a Java 11 JDK matching the supplied exercise POM while using Alpine Linux
+ for a smaller runner footprint. The exercise is pure Java/JUnit, so it does not
+-depend on native libraries. Alpine uses musl libc, and the Java 11 Alpine image
+-is primarily intended for AMD64; use the non-Alpine Temurin image if future
+-exercises require native tooling or a broader architecture matrix.
++depend on native libraries. If this ARM64 build fails in the validation
++environment, replace it with the smallest multi-architecture Temurin Java 11
++Maven image without changing the Maven or Java versions.
+ 
+ ## Canonical exercise
+ 
+@@ -125,6 +137,8 @@ failure messages, and durations for later Phase 2 parsing.
+ 
+ ## Phase 1 boundaries
+ 
+-This phase does not add ASP.NET execution endpoints, React integration,
+-database persistence, a Java sandbox service, GHCR publishing, or production
+-deployment. Those are Phase 2 concerns after the runner primitive is proven.
++The API creates runner containers dynamically through Docker.DotNet. The
++runner receives the copied `/workspace` archive and the named Maven cache
++volume only; it never receives the Docker socket, API environment, database
++credentials, cloud credentials, or arbitrary host mounts. Production starts
++with one concurrent execution through `ExerciseExecution__MaxConcurrentExecutions=1`.
+diff --git a/scripts/deploy-single-ec2.sh b/scripts/deploy-single-ec2.sh
+index 9b2d042..8526762 100644
+--- a/scripts/deploy-single-ec2.sh
++++ b/scripts/deploy-single-ec2.sh
+@@ -3,9 +3,11 @@ set -Eeuo pipefail
+ 
+ API_IMAGE="${API_IMAGE:?API_IMAGE is required}"
+ APP_IMAGE="${APP_IMAGE:?APP_IMAGE is required}"
+-IMAGE_TAG="${IMAGE_TAG:-}"
++RUNNER_IMAGE="${RUNNER_IMAGE:-ghcr.io/balajiraghuram92/neuralascent-java-runner}"
++IMAGE_TAG="${IMAGE_TAG:-release}"
+ API_REF="${API_REF:-}"
+ APP_REF="${APP_REF:-}"
++RUNNER_REF="${RUNNER_REF:-}"
+ DOMAIN_NAME="${DOMAIN_NAME:-localhost}"
+ LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-}"
+ ENV_FILE="${ENV_FILE:-/etc/studytracker/api.env}"
+@@ -15,6 +17,8 @@ DATABASE_CONTAINER="${DATABASE_CONTAINER:-}"
+ API_CONTAINER="${API_CONTAINER:-studytracker-api}"
+ APP_CONTAINER="${APP_CONTAINER:-studytracker-app}"
+ DATA_VOLUME="${DATA_VOLUME:-scaler_postgres_data}"
++MAVEN_CACHE_VOLUME="${MAVEN_CACHE_VOLUME:-}"
++MAX_CONCURRENT_EXECUTIONS="${MAX_CONCURRENT_EXECUTIONS:-}"
+ CERT_DIR="${CERT_DIR:-/etc/letsencrypt}"
+ BACKUP_DIR="${BACKUP_DIR:-/var/backups/studytracker}"
+ BACKUP_S3_URI="${BACKUP_S3_URI:-}"
+@@ -174,25 +178,45 @@ database_is_empty() {
+ 
+ start_api() {
+     local image="$1"
+-    docker run -d \
+-        --name "${API_CONTAINER}" \
+-        --network "${NETWORK_NAME}" \
+-        --restart unless-stopped \
+-        -p 127.0.0.1:5000:8080 \
+-        --add-host host.docker.internal:host-gateway \
+-        --env-file "${ENV_FILE}" \
+-        "${image}" >/dev/null
++    local runner_ref="${2:-}"
++    local args=(
++        run -d
++        --name "${API_CONTAINER}"
++        --network "${NETWORK_NAME}"
++        --restart unless-stopped
++        -p 127.0.0.1:5000:8080
++        --add-host host.docker.internal:host-gateway
++        --env-file "${ENV_FILE}"
++        -e "ExerciseExecution__ExercisesRoot=/app/exercises"
++        -e "ExerciseExecution__WorkspaceRoot=/tmp/studytracker-exercises"
++        -e "ExerciseExecution__DockerEndpoint=unix:///var/run/docker.sock"
++        -e "ExerciseExecution__MavenCacheVolume=${MAVEN_CACHE_VOLUME}"
++        -e "ExerciseExecution__MaxConcurrentExecutions=${MAX_CONCURRENT_EXECUTIONS}"
++        -v /var/run/docker.sock:/var/run/docker.sock
++    )
++
++    if [ -n "${runner_ref}" ]; then
++        args+=( -e "ExerciseExecution__RunnerImage=${runner_ref}" )
++    fi
++
++    docker "${args[@]}" "${image}" >/dev/null
+ }
+ 
+ start_app() {
+     local image="$1"
++    local app_env_file
++    local status
++    app_env_file="$(mktemp)"
++    chmod 600 "${app_env_file}"
++    printf 'API_KEY=%s\n' "$(env_value API_KEY)" > "${app_env_file}"
++
+     local args=(
+         run -d
+         --name "${APP_CONTAINER}"
+         --network "${NETWORK_NAME}"
+         --restart unless-stopped
+         -p 80:80
+-        --env-file "${ENV_FILE}"
++        --env-file "${app_env_file}"
+         -e "DOMAIN_NAME=${DOMAIN_NAME}"
+     )
+ 
+@@ -200,7 +224,48 @@ start_app() {
+         args+=( -p 443:443 -v "${CERT_DIR}:${CERT_DIR}:ro" )
+     fi
+ 
+-    docker "${args[@]}" "${image}" >/dev/null
++    if docker "${args[@]}" "${image}" >/dev/null; then
++        status=0
++    else
++        status=$?
++    fi
++    rm -f "${app_env_file}"
++    return "${status}"
++}
++
++verify_digest_ref() {
++    local ref="$1"
++    local label="$2"
++    case "${ref}" in
++        *@sha256:*) ;;
++        *) fail "${label} must be pinned to an image digest." ;;
++    esac
++}
++
++verify_image_digest_ref() {
++    local ref="$1"
++    local label="$2"
++    local expected_image="$3"
++    case "${ref}" in
++        "${expected_image}"@sha256:*) ;;
++        *) fail "${label} must reference ${expected_image} with an image digest." ;;
++    esac
++}
++
++verify_host_image_platform() {
++    local ref="$1"
++    local label="$2"
++    local expected_arch actual_platform
++
++    case "$(uname -m)" in
++        aarch64|arm64) expected_arch="arm64" ;;
++        x86_64|amd64) expected_arch="amd64" ;;
++        *) fail "Unsupported host architecture: $(uname -m)." ;;
++    esac
++
++    actual_platform="$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "${ref}")"
++    [ "${actual_platform}" = "linux/${expected_arch}" ] || \
++        fail "${label} resolved to ${actual_platform}; expected linux/${expected_arch}."
+ }
+ 
+ require_command docker
+@@ -208,6 +273,12 @@ require_command curl
+ require_command flock
+ [ -f "${ENV_FILE}" ] || fail "Missing environment file: ${ENV_FILE}"
+ 
++MAVEN_CACHE_VOLUME="${MAVEN_CACHE_VOLUME:-$(env_value_or_default ExerciseExecution__MavenCacheVolume neuralascent-maven-cache)}"
++MAX_CONCURRENT_EXECUTIONS="${MAX_CONCURRENT_EXECUTIONS:-$(env_value_or_default ExerciseExecution__MaxConcurrentExecutions 1)}"
++
++[ -S /var/run/docker.sock ] || fail "Docker socket is unavailable on the deployment host."
++docker info >/dev/null 2>&1 || fail "Docker daemon is unavailable on the deployment host."
++
+ install -d -m 0755 "$(dirname "${DEPLOY_LOCK_FILE}")"
+ exec 9>"${DEPLOY_LOCK_FILE}"
+ flock -n 9 || fail "Another Neuralascent deployment is already running."
+@@ -225,11 +296,23 @@ if env_has_value POSTGRES_PASSWORD && env_has_value DATABASE_PASSWORD; then
+         fail "POSTGRES_PASSWORD and DATABASE_PASSWORD must match for the local PostgreSQL container."
+ fi
+ 
+-if [ -z "${API_REF}" ] || [ -z "${APP_REF}" ]; then
+-    [ -n "${IMAGE_TAG}" ] || fail "Provide API_REF and APP_REF digests, or an immutable IMAGE_TAG."
++if [ -z "${API_REF}" ] || [ -z "${APP_REF}" ] || [ -z "${RUNNER_REF}" ]; then
++    fail "API_REF, APP_REF, and RUNNER_REF digest references are required."
+ fi
+-api_ref="${API_REF:-${API_IMAGE}:${IMAGE_TAG}}"
+-app_ref="${APP_REF:-${APP_IMAGE}:${IMAGE_TAG}}"
++api_ref="${API_REF}"
++app_ref="${APP_REF}"
++runner_ref="${RUNNER_REF}"
++verify_digest_ref "${api_ref}" "API_REF"
++verify_digest_ref "${app_ref}" "APP_REF"
++verify_digest_ref "${runner_ref}" "RUNNER_REF"
++verify_image_digest_ref "${api_ref}" "API_REF" "${API_IMAGE}"
++verify_image_digest_ref "${app_ref}" "APP_REF" "${APP_IMAGE}"
++verify_image_digest_ref "${runner_ref}" "RUNNER_REF" "${RUNNER_IMAGE}"
++
++case "$(uname -m)" in
++    aarch64|arm64) ;;
++    *) fail "Production deployment requires an ARM64 host; found $(uname -m)." ;;
++esac
+ 
+ if [ -f "${REGISTRY_TOKEN_FILE}" ]; then
+     log "Authenticating to ${REGISTRY_HOST} with the protected read-only token."
+@@ -240,15 +323,22 @@ if [ -f "${REGISTRY_TOKEN_FILE}" ]; then
+         --password-stdin < "${REGISTRY_TOKEN_FILE}"
+ fi
+ 
+-log "Pulling immutable application images for $(uname -m)."
++log "Pulling immutable application and runner images for $(uname -m)."
++docker pull "${runner_ref}"
+ docker pull "${api_ref}"
+ docker pull "${app_ref}"
+ docker pull "${POSTGRES_IMAGE}"
++verify_host_image_platform "${runner_ref}" "Java runner image"
++verify_host_image_platform "${api_ref}" "API image"
++verify_host_image_platform "${app_ref}" "frontend image"
+ 
+ docker network inspect "${NETWORK_NAME}" >/dev/null 2>&1 || docker network create "${NETWORK_NAME}" >/dev/null
+ if ! docker volume inspect "${DATA_VOLUME}" >/dev/null 2>&1; then
+     docker volume create "${DATA_VOLUME}" >/dev/null
+ fi
++if ! docker volume inspect "${MAVEN_CACHE_VOLUME}" >/dev/null 2>&1; then
++    docker volume create "${MAVEN_CACHE_VOLUME}" >/dev/null
++fi
+ 
+ if [ -z "${DATABASE_CONTAINER}" ]; then
+     mapfile -t volume_containers < <(docker ps -a --filter "volume=${DATA_VOLUME}" --format '{{.Names}}')
+@@ -333,6 +423,7 @@ docker run --rm --network "${NETWORK_NAME}" \
+ 
+ previous_api_image="$(docker container inspect --format '{{.Config.Image}}' "${API_CONTAINER}" 2>/dev/null || true)"
+ previous_app_image="$(docker container inspect --format '{{.Config.Image}}' "${APP_CONTAINER}" 2>/dev/null || true)"
++previous_runner_ref="$(docker container inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "${API_CONTAINER}" 2>/dev/null | sed -n 's/^ExerciseExecution__RunnerImage=//p' | tail -n 1 || true)"
+ 
+ rollback() {
+     local exit_code="${1:-1}"
+@@ -341,7 +432,7 @@ rollback() {
+     docker stop "${API_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
+     docker rm "${API_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
+     if [ -n "${previous_api_image}" ]; then
+-        start_api "${previous_api_image}" || true
++        start_api "${previous_api_image}" "${previous_runner_ref}" || true
+     fi
+     if [ -n "${previous_app_image}" ]; then
+         start_app "${previous_app_image}" || true
+@@ -378,7 +469,7 @@ docker stop "${API_CONTAINER}" >/dev/null 2>&1 || true
+ docker rm "${API_CONTAINER}" >/dev/null 2>&1 || true
+ docker rm "${APP_CONTAINER}" >/dev/null 2>&1 || true
+ 
+-start_api "${api_ref}"
++start_api "${api_ref}" "${runner_ref}"
+ start_app "${app_ref}"
+ 
+ wait_for_url http://localhost:5000/health "API" || rollback 1
+diff --git a/scripts/local-stack.sh b/scripts/local-stack.sh
+index f8d5a5c..fed9894 100644
+--- a/scripts/local-stack.sh
++++ b/scripts/local-stack.sh
+@@ -41,7 +41,6 @@ POSTGRES_DB=studytracker
+ POSTGRES_USER=studyuser
+ POSTGRES_PASSWORD=${db_password}
+ API_KEY=${api_key}
+-VITE_API_KEY=${api_key}
+ ASPNETCORE_ENVIRONMENT=Production
+ IMAGE_TAG=latest
+ EOF
+diff --git a/scripts/smoke-java-exercise.sh b/scripts/smoke-java-exercise.sh
+new file mode 100644
+index 0000000..800c464
+--- /dev/null
++++ b/scripts/smoke-java-exercise.sh
+@@ -0,0 +1,133 @@
++#!/usr/bin/env bash
++set -Eeuo pipefail
++
++API_CONTAINER="${API_CONTAINER:-studytracker-api}"
++API_BASE_URL="${API_BASE_URL:-http://127.0.0.1:5000}"
++ENV_FILE="${ENV_FILE:-/etc/studytracker/api.env}"
++EXERCISE_ID="java-lld-oop3-point-threedpoint"
++
++fail() {
++    printf '[exercise-smoke] ERROR: %s\n' "$*" >&2
++    exit 1
++}
++
++command -v docker >/dev/null 2>&1 || fail "docker is required."
++command -v python3 >/dev/null 2>&1 || fail "python3 is required for safe JSON encoding."
++[ -f "${ENV_FILE}" ] || fail "Missing environment file: ${ENV_FILE}"
++
++api_key="$(sed -n 's/^API_KEY=//p' "${ENV_FILE}" | tail -n 1)"
++[ -n "${api_key}" ] || fail "API_KEY is missing from ${ENV_FILE}."
++
++export SMOKE_API_BASE_URL="${API_BASE_URL}"
++export SMOKE_API_CONTAINER="${API_CONTAINER}"
++export SMOKE_API_KEY="${api_key}"
++
++python3 - <<'PY'
++import json
++import os
++import subprocess
++import sys
++from urllib.error import HTTPError, URLError
++from urllib.request import Request, urlopen
++
++base_url = os.environ["SMOKE_API_BASE_URL"].rstrip("/")
++container = os.environ["SMOKE_API_CONTAINER"]
++api_key = os.environ["SMOKE_API_KEY"]
++exercise_id = "java-lld-oop3-point-threedpoint"
++metadata_timeout_seconds = 30
++exercise_timeout_seconds = 180
++
++solution_files = [
++    "src/main/java/Point.java",
++    "src/main/java/ThreedPoint.java",
++]
++expected_evidence = {
++    "point-x",
++    "point-y",
++    "point-display-signature",
++    "point-display-output",
++    "threedpoint-inheritance",
++    "threedpoint-override",
++    "threedpoint-output",
++}
++
++
++def fail(message):
++    print(f"[exercise-smoke] ERROR: {message}", file=sys.stderr)
++    raise SystemExit(1)
++
++
++def request(method, path, payload=None, timeout_seconds=30):
++    body = None if payload is None else json.dumps(payload).encode("utf-8")
++    headers = {"Accept": "application/json", "x-api-key": api_key}
++    if body is not None:
++        headers["Content-Type"] = "application/json"
++    request_value = Request(f"{base_url}{path}", data=body, headers=headers, method=method)
++    try:
++        with urlopen(request_value, timeout=timeout_seconds) as response:
++            raw = response.read()
++            return response.status, json.loads(raw.decode("utf-8"))
++    except HTTPError as error:
++        try:
++            details = json.loads(error.read().decode("utf-8"))
++        except Exception:
++            details = {}
++        title = details.get("title", "request failed")
++        fail(f"{method} {path} returned HTTP {error.code}: {title}")
++    except URLError:
++        fail(f"{method} {path} could not reach the loopback API.")
++
++
++def read_solution(relative_path):
++    container_path = f"/app/exercises/{exercise_id}/solution/{relative_path}"
++    try:
++        result = subprocess.run(
++            ["docker", "exec", container, "cat", container_path],
++            check=True,
++            stdout=subprocess.PIPE,
++            stderr=subprocess.DEVNULL,
++        )
++    except (OSError, subprocess.CalledProcessError):
++        fail("The trusted golden solution could not be read from the API container.")
++    return result.stdout.decode("utf-8")
++
++
++metadata_status, metadata = request(
++    "GET",
++    f"/api/exercises/{exercise_id}",
++    timeout_seconds=metadata_timeout_seconds,
++)
++if metadata_status != 200 or metadata.get("id") != exercise_id:
++    fail("Exercise metadata smoke check failed.")
++if "solution" in json.dumps(metadata, ensure_ascii=False).lower():
++    fail("Exercise metadata exposed a solution marker.")
++
++files = [
++    {"path": relative_path, "content": read_solution(relative_path)}
++    for relative_path in solution_files
++]
++status, result = request(
++    "POST",
++    f"/api/exercises/{exercise_id}/run",
++    {"files": files, "clientRequestId": "phase4-production-smoke"},
++    timeout_seconds=exercise_timeout_seconds,
++)
++
++if status != 200:
++    fail(f"Exercise execution returned HTTP {status}.")
++if result.get("status") != "success":
++    fail("Golden solution did not return success.")
++
++summary = result.get("summary") or {}
++if summary.get("total") != 7 or summary.get("passed") != 7:
++    fail("Golden solution did not produce 7/7 passed tests.")
++
++evidence = result.get("evidence") or []
++evidence_by_id = {item.get("id"): item for item in evidence}
++if set(evidence_by_id) != expected_evidence:
++    fail("Golden solution evidence IDs did not match the trusted manifest.")
++if any(item.get("status") != "passed" for item in evidence_by_id.values()):
++    fail("Golden solution evidence was not completely passed.")
++
++print("[exercise-smoke] metadata ok; golden execution success; evidence 7/7 passed")
++PY

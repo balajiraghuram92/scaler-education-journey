@@ -9,6 +9,13 @@ app/dist
 tests
 info
 tmp
+app
+runner
+scripts
+deploy
+reference
+*.md
+*.diff
 *.user
 *.suo
 *.log

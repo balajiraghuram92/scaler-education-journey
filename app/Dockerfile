@@ -5,11 +5,10 @@ FROM --platform=$BUILDPLATFORM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Build arguments from CI/CD secrets for Vite static asset compilation
-ARG VITE_API_KEY
+# The API base URL is non-secret and may be set for a separately hosted API.
+# Authentication is injected by the same-origin Nginx proxy at runtime.
 ARG VITE_API_BASE_URL=""
 
-ENV VITE_API_KEY=$VITE_API_KEY
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Copy dependency manifests

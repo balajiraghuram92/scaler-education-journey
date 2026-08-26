@@ -1,7 +1,7 @@
 /**
  * Neuralascent Unified API Client
  * Enforces strict error propagation (no silent fake demo data in production),
- * RFC 7807 problem details parsing, API authentication, and request correlation IDs.
+ * RFC 7807 problem details parsing and request correlation IDs.
  */
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
@@ -46,11 +46,6 @@ export async function apiClient(endpoint, options = {}) {
     'x-correlation-id': correlationId,
     ...headers,
   };
-
-  const apiKey = import.meta.env.VITE_API_KEY;
-  if (apiKey) {
-    requestHeaders['x-api-key'] = apiKey;
-  }
 
   if (body && typeof body === 'object' && !(body instanceof FormData)) {
     requestHeaders['Content-Type'] = 'application/json';

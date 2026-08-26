@@ -41,7 +41,6 @@ POSTGRES_DB=studytracker
 POSTGRES_USER=studyuser
 POSTGRES_PASSWORD=${db_password}
 API_KEY=${api_key}
-VITE_API_KEY=${api_key}
 ASPNETCORE_ENVIRONMENT=Production
 IMAGE_TAG=latest
 EOF
