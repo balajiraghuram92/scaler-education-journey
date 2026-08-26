@@ -1,7 +1,7 @@
 # Multi-stage build for React Vite SPA targeting ARM64 / multi-platform
 
 # Stage 1: Build static assets
-FROM --platform=$BUILDPLATFORM node:20-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:24-alpine AS builder
 
 WORKDIR /app
 
