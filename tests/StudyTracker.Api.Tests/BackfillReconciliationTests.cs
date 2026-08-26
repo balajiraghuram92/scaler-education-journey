@@ -126,19 +126,29 @@ public class BackfillReconciliationTests
         JavaVerticalSeedData.Seed(db);
 
         var course = db.Courses.Single(c => c.Slug == "java-spring-lld");
-        var expectedModuleSlugs = new HashSet<string>(StringComparer.Ordinal)
+        var expectedJavaModuleSlugs = new HashSet<string>(StringComparer.Ordinal)
         {
-            "databases-sql",
             "design-principles-patterns",
             "applied-design-machine-coding",
             "ai-first-backend-capstone-primer",
             "ai-first-backend-capstone-advanced",
-            "production-ai-enabled-system",
+            "production-ai-enabled-system"
+        };
+        var expectedStandaloneModuleSlugs = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "databases-sql",
             "high-level-design",
             "data-engineering"
         };
         var firstModuleCounts = db.Modules
-            .Where(module => module.CourseId == course.Id && expectedModuleSlugs.Contains(module.Slug))
+            .Where(module => module.CourseId == course.Id && expectedJavaModuleSlugs.Contains(module.Slug))
+            .ToDictionary(module => module.Slug, module => db.Lessons.Count(lesson => lesson.ModuleId == module.Id));
+        var firstStandaloneCourseIds = db.Courses
+            .Where(candidate => expectedStandaloneModuleSlugs.Contains(candidate.Slug))
+            .Select(candidate => candidate.Id)
+            .ToHashSet();
+        var firstStandaloneModuleCounts = db.Modules
+            .Where(module => firstStandaloneCourseIds.Contains(module.CourseId) && expectedStandaloneModuleSlugs.Contains(module.Slug))
             .ToDictionary(module => module.Slug, module => db.Lessons.Count(lesson => lesson.ModuleId == module.Id));
         var firstModuleTotal = db.Modules.Count(module => module.CourseId == course.Id);
         var firstLessonTotal = db.Lessons.Count(lesson => db.Modules
@@ -146,12 +156,20 @@ public class BackfillReconciliationTests
             .Select(module => module.Id)
             .Contains(lesson.ModuleId));
 
-        Assert.True(expectedModuleSlugs.SetEquals(firstModuleCounts.Keys));
+        Assert.True(expectedJavaModuleSlugs.SetEquals(firstModuleCounts.Keys));
+        Assert.True(expectedStandaloneModuleSlugs.SetEquals(firstStandaloneModuleCounts.Keys));
 
         JavaVerticalSeedData.Seed(db);
 
         var secondModuleCounts = db.Modules
-            .Where(module => module.CourseId == course.Id && expectedModuleSlugs.Contains(module.Slug))
+            .Where(module => module.CourseId == course.Id && expectedJavaModuleSlugs.Contains(module.Slug))
+            .ToDictionary(module => module.Slug, module => db.Lessons.Count(lesson => lesson.ModuleId == module.Id));
+        var secondStandaloneCourseIds = db.Courses
+            .Where(candidate => expectedStandaloneModuleSlugs.Contains(candidate.Slug))
+            .Select(candidate => candidate.Id)
+            .ToHashSet();
+        var secondStandaloneModuleCounts = db.Modules
+            .Where(module => secondStandaloneCourseIds.Contains(module.CourseId) && expectedStandaloneModuleSlugs.Contains(module.Slug))
             .ToDictionary(module => module.Slug, module => db.Lessons.Count(lesson => lesson.ModuleId == module.Id));
         var secondModuleTotal = db.Modules.Count(module => module.CourseId == course.Id);
         var secondLessonTotal = db.Lessons.Count(lesson => db.Modules
@@ -160,6 +178,7 @@ public class BackfillReconciliationTests
             .Contains(lesson.ModuleId));
 
         Assert.Equal(firstModuleCounts, secondModuleCounts);
+        Assert.Equal(firstStandaloneModuleCounts, secondStandaloneModuleCounts);
         Assert.Equal(firstModuleTotal, secondModuleTotal);
         Assert.Equal(firstLessonTotal, secondLessonTotal);
     }
