@@ -24,12 +24,12 @@ docker image inspect --format '{{.Os}}/{{.Architecture}}' \
   neuralascent-java-runner:arm64
 ```
 
-The base image is `maven:3.9.9-eclipse-temurin-11-alpine`, which provides Maven
-and a Java 11 JDK matching the supplied exercise POM while using Alpine Linux
-for a smaller runner footprint. The exercise is pure Java/JUnit, so it does not
-depend on native libraries. If this ARM64 build fails in the validation
-environment, replace it with the smallest multi-architecture Temurin Java 11
-Maven image without changing the Maven or Java versions.
+The base image is `maven:3.9.9-eclipse-temurin-11`, which provides Maven 3.9.9
+and a Java 11 JDK matching the supplied exercise POM. The official image
+publishes a `linux/arm64` variant for the production runner. Alpine is not
+required: the runner uses only the POSIX shell, Maven, and standard JDK
+behavior, so the non-Alpine variant avoids the current Alpine image's
+architecture limitation without changing exercise semantics.
 
 ## Canonical exercise
 
