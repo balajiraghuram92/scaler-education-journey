@@ -38,6 +38,17 @@ public sealed class ExerciseNotFoundException : Exception
     public string ExerciseId { get; }
 }
 
+public sealed class ExerciseSolutionNotFoundException : Exception
+{
+    public ExerciseSolutionNotFoundException(string exerciseId)
+        : base($"Exercise '{exerciseId}' does not have a reference solution.")
+    {
+        ExerciseId = exerciseId;
+    }
+
+    public string ExerciseId { get; }
+}
+
 public sealed class ExerciseConcurrencyLimitException : Exception
 {
     public ExerciseConcurrencyLimitException()

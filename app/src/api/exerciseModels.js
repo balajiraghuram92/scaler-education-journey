@@ -36,6 +36,16 @@
  * @property {string} content
  */
 
+/**
+ * @typedef {Object} ExerciseSolutionFile
+ * @property {string} id
+ * @property {string} path
+ * @property {string} displayName
+ * @property {string} language
+ * @property {string} content
+ * @property {number} displayOrder
+ */
+
 export const EXERCISE_STATUSES = Object.freeze({
   SUCCESS: 'success',
   TEST_FAILURE: 'testFailure',
@@ -86,6 +96,32 @@ export function normalizeExerciseMetadata(rawMetadata) {
     evidence: rawMetadata.evidence
       .filter((item) => item?.id && item?.label)
       .map((item) => ({ id: item.id, label: item.label }))
+  };
+}
+
+export function normalizeExerciseSolution(rawSolution) {
+  if (!rawSolution || !Array.isArray(rawSolution.files) || rawSolution.files.length === 0) {
+    throw new Error('Reference solution is unavailable.');
+  }
+
+  const files = rawSolution.files.map((file, index) => {
+    if (!file?.id || !file.path || typeof file.content !== 'string') {
+      throw new Error('Reference solution files are incomplete.');
+    }
+
+    return {
+      id: file.id,
+      path: file.path,
+      displayName: file.displayName || file.path.split('/').pop(),
+      language: file.language || 'text',
+      content: file.content,
+      displayOrder: Number.isInteger(file.displayOrder) ? file.displayOrder : index
+    };
+  });
+
+  return {
+    exerciseId: rawSolution.exerciseId || '',
+    files: files.sort((left, right) => left.displayOrder - right.displayOrder)
   };
 }
 

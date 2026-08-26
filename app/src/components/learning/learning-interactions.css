@@ -379,8 +379,6 @@
 .implementation-exercise.is-expanded {
   position: relative;
   z-index: 2;
-  margin-right: -2rem;
-  margin-left: -2rem;
   background: var(--chamber-bg-card, #FFFFFF);
   box-shadow: 0 8px 24px rgba(28, 36, 33, 0.08);
 }
@@ -763,6 +761,82 @@
   outline-offset: 3px;
 }
 
+.implementation-exercise__solution {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--chamber-rule-border, #E5E0D8);
+  border-radius: 7px;
+  background: var(--chamber-bg-card-warm, #FAF8F3);
+}
+
+.implementation-exercise__solution-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.implementation-exercise__solution-header h4 {
+  margin: 0.35rem 0 0;
+  color: var(--chamber-ink-display, #111111);
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.implementation-exercise__solution-note,
+.implementation-exercise__solution-status,
+.implementation-exercise__solution-error p {
+  margin: 0.55rem 0 0;
+  color: var(--chamber-ink-secondary, #4A5568);
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+
+.implementation-exercise__solution-status {
+  color: var(--chamber-accent-sage, #2C5E55);
+  font-family: var(--font-mono, monospace);
+}
+
+.implementation-exercise__solution-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--chamber-rule-border, #E5E0D8);
+}
+
+.implementation-exercise__solution-error p {
+  margin: 0;
+}
+
+.implementation-exercise__solution-workspace {
+  min-width: 0;
+  margin-top: 0.85rem;
+  border: 1px solid var(--chamber-rule-border, #E5E0D8);
+  border-radius: 6px;
+  background: var(--chamber-bg-code, #F0ECE1);
+  overflow: hidden;
+}
+
+.implementation-exercise__solution-workspace .implementation-exercise__file-tabs {
+  border-bottom: 1px solid var(--chamber-rule-border, #E5E0D8);
+}
+
+.implementation-exercise__solution-toolbar {
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  border-top: 0;
+  border-bottom: 1px solid var(--chamber-rule-border, #E5E0D8);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.implementation-exercise__solution-workspace .learning-editor {
+  border: 0;
+}
+
 .implementation-exercise--unavailable p:not(.learning-eyebrow) {
   margin-bottom: 0;
   color: var(--chamber-ink-secondary, #4A5568);
@@ -1123,7 +1197,9 @@
   }
 
   .implementation-exercise__header,
-  .implementation-exercise__toolbar {
+  .implementation-exercise__toolbar,
+  .implementation-exercise__solution-header,
+  .implementation-exercise__solution-error {
     align-items: flex-start;
     flex-direction: column;
   }

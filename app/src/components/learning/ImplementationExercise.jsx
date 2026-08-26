@@ -10,13 +10,13 @@ function getLineNumbers(source) {
   return source.split('\n').map((_, index) => index + 1);
 }
 
-function getStatusCopy(status, operation) {
+function getStatusCopy(status) {
   if (status === EXERCISE_STATUSES.SUCCESS) return 'All expected behaviors verified.';
   if (status === EXERCISE_STATUSES.TEST_FAILURE) return 'The code compiled, but one or more behaviors need another pass.';
   if (status === EXERCISE_STATUSES.COMPILATION_FAILURE) return 'The submitted code could not compile.';
   if (status === EXERCISE_STATUSES.TIMEOUT) return 'Execution exceeded the allowed time.';
   if (status === 'apiFailure') return 'Neuralascent could not execute this workspace.';
-  if (status === 'running') return operation === 'check' ? 'Checking the current workspace…' : 'Running the current workspace…';
+  if (status === 'running') return 'Running the current workspace…';
   return '';
 }
 
@@ -32,7 +32,14 @@ function getCompactResult(execution) {
   return null;
 }
 
-function FileTabs({ files, activeFileId, onSelect, isCompact }) {
+function FileTabs({
+  files,
+  activeFileId,
+  onSelect,
+  isCompact,
+  ariaLabel = 'Exercise files',
+  panelIdPrefix = 'exercise-file-panel'
+}) {
   const [isOverflowOpen, setIsOverflowOpen] = useState(false);
   const overflowRef = useRef(null);
   const tabRefs = useRef(new Map());
@@ -96,7 +103,7 @@ function FileTabs({ files, activeFileId, onSelect, isCompact }) {
           <span className="implementation-exercise__compact-file-count">{files.length} files</span>
         </div>
       ) : (
-        <div className="implementation-exercise__file-tabs-list" role="tablist" aria-label="Exercise files" onKeyDown={handleKeyDown}>
+        <div className="implementation-exercise__file-tabs-list" role="tablist" aria-label={ariaLabel} onKeyDown={handleKeyDown}>
           {visibleFiles.map((file) => (
             <button
               key={file.id}
@@ -108,7 +115,7 @@ function FileTabs({ files, activeFileId, onSelect, isCompact }) {
               role="tab"
               tabIndex={activeFileId === file.id ? 0 : -1}
               aria-selected={activeFileId === file.id}
-              aria-controls={`exercise-file-panel-${file.id}`}
+              aria-controls={`${panelIdPrefix}-${file.id}`}
               className={`implementation-exercise__file-tab${activeFileId === file.id ? ' is-active' : ''}`}
               title={file.path}
               onClick={() => selectFile(file.id)}
@@ -131,7 +138,7 @@ function FileTabs({ files, activeFileId, onSelect, isCompact }) {
             {isCompact ? 'Files' : 'More'} <span aria-hidden="true">{isCompact ? '▾' : '…'}</span>
           </button>
           {isOverflowOpen && (
-            <div className="implementation-exercise__file-overflow-menu" role="menu" aria-label="More exercise files">
+            <div className="implementation-exercise__file-overflow-menu" role="menu" aria-label={`More ${ariaLabel.toLowerCase()}`}>
               {overflowFiles.map((file) => (
                 <button
                   key={file.id}
@@ -152,6 +159,119 @@ function FileTabs({ files, activeFileId, onSelect, isCompact }) {
   );
 }
 
+function SourceEditor({ file, isExpanded, readOnly = false, onChange, onKeyDown, panelIdPrefix }) {
+  const sourceCode = file?.content || '';
+  const lineNumbers = useMemo(() => getLineNumbers(sourceCode), [sourceCode]);
+
+  if (!file) return null;
+
+  return (
+    <div
+      id={`${panelIdPrefix}-${file.id}`}
+      className={`learning-editor${isExpanded ? ' learning-editor--expanded' : ' learning-editor--compact'}${readOnly ? ' learning-editor--read-only' : ''}`}
+      role="tabpanel"
+      aria-label={`${file.displayName} editor`}
+    >
+      <div className="learning-editor__gutter" aria-hidden="true">
+        {lineNumbers.map((line) => <span key={line}>{line}</span>)}
+      </div>
+      <textarea
+        className="learning-editor__textarea"
+        value={sourceCode}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        readOnly={readOnly}
+        spellCheck={false}
+        aria-label={`${file.displayName} source code`}
+        aria-readonly={readOnly}
+      />
+    </div>
+  );
+}
+
+function getSolutionErrorCopy(error) {
+  if (error?.status === 404) return 'This exercise does not have a reference solution yet.';
+  return 'The reference solution could not be loaded. Try again shortly.';
+}
+
+function ReferenceSolution({
+  solution,
+  solutionState,
+  solutionError,
+  isVisible,
+  onHide,
+  onRetry
+}) {
+  const [activeFileId, setActiveFileId] = useState(solution?.files[0]?.id || null);
+
+  useEffect(() => {
+    setActiveFileId((currentFileId) => (
+      solution?.files.some((file) => file.id === currentFileId)
+        ? currentFileId
+        : solution?.files[0]?.id || null
+    ));
+  }, [solution]);
+
+  if (!isVisible) return null;
+
+  const activeFile = solution?.files.find((file) => file.id === activeFileId) || solution?.files[0];
+
+  return (
+    <section className="implementation-exercise__solution" aria-labelledby="reference-solution-title">
+      <header className="implementation-exercise__solution-header">
+        <div>
+          <p className="learning-eyebrow">REFERENCE SOLUTION</p>
+          <h4 id="reference-solution-title">Reference solution</h4>
+          <p className="implementation-exercise__solution-note">Read-only reference files for comparison. Your editor remains unchanged.</p>
+        </div>
+        {solutionState === 'ready' && (
+          <button type="button" className="learning-text-button" onClick={onHide}>
+            Hide solution
+          </button>
+        )}
+      </header>
+
+      {solutionState === 'loading' && (
+        <p className="implementation-exercise__solution-status" role="status" aria-live="polite">
+          Loading the reference solution...
+        </p>
+      )}
+
+      {solutionState === 'error' && (
+        <div className="implementation-exercise__solution-error" role="alert">
+          <p>{getSolutionErrorCopy(solutionError)}</p>
+          <button type="button" className="learning-button learning-button--quiet" onClick={onRetry}>
+            Try again
+          </button>
+        </div>
+      )}
+
+      {solutionState === 'ready' && activeFile && (
+        <div className="implementation-exercise__solution-workspace">
+          <FileTabs
+            files={solution.files}
+            activeFileId={activeFileId}
+            onSelect={setActiveFileId}
+            isCompact={false}
+            ariaLabel="Reference solution files"
+            panelIdPrefix="reference-solution-file-panel"
+          />
+          <div className="implementation-exercise__toolbar implementation-exercise__solution-toolbar">
+            <span className="implementation-exercise__file-label" title={activeFile.path}>{activeFile.displayName}</span>
+            <span className="implementation-exercise__file-status">Reference / Read only</span>
+          </div>
+          <SourceEditor
+            file={activeFile}
+            isExpanded
+            readOnly
+            panelIdPrefix="reference-solution-file-panel"
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function ImplementationExercise({ exerciseId, isExpanded, onToggleExpand }) {
   const {
     metadata,
@@ -165,10 +285,16 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
     execute,
     retryMetadata,
     execution,
-    isExecutionActive
+    isExecutionActive,
+    solution,
+    solutionState,
+    solutionError,
+    revealSolution,
+    retrySolution
   } = useExerciseWorkspace(exerciseId);
   const [evidenceExpanded, setEvidenceExpanded] = useState(true);
   const [selectedEvidenceId, setSelectedEvidenceId] = useState(null);
+  const [isSolutionVisible, setIsSolutionVisible] = useState(false);
 
   useEffect(() => {
     const failed = execution.result?.evidence?.find((item) => item.status === EVIDENCE_STATUSES.FAILED);
@@ -176,8 +302,11 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
     setEvidenceExpanded(true);
   }, [execution.result?.evidence, execution.result?.runId, metadata?.evidence, metadata?.id]);
 
-  const sourceCode = activeFile?.content || '';
-  const lineNumbers = useMemo(() => getLineNumbers(sourceCode), [sourceCode]);
+  useEffect(() => {
+    if (!solution) return;
+    setIsSolutionVisible(true);
+  }, [solution]);
+
   const workspaceId = `exercise-${exerciseId}`;
   const compactResult = getCompactResult(execution);
   const evidence = execution.result?.evidence
@@ -190,6 +319,16 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
   const handleSourceChange = (event) => {
     if (!activeFile || activeFile.editable === false) return;
     updateFile(activeFile.id, event.target.value);
+  };
+
+  const handleRevealSolution = () => {
+    if (solutionState === 'ready') {
+      setIsSolutionVisible(true);
+      return;
+    }
+
+    setIsSolutionVisible(true);
+    void revealSolution();
   };
 
   const handleEditorKeyDown = (event) => {
@@ -205,6 +344,7 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
     const textarea = event.currentTarget;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
+    const sourceCode = activeFile.content || '';
     const nextContent = `${sourceCode.slice(0, start)}    ${sourceCode.slice(end)}`;
     updateFile(activeFile.id, nextContent);
     requestAnimationFrame(() => textarea.setSelectionRange(start + 4, start + 4));
@@ -231,7 +371,7 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
   }
 
   const isReadOnly = activeFile?.editable === false;
-  const statusCopy = getStatusCopy(execution.status, execution.operation);
+  const statusCopy = getStatusCopy(execution.status);
 
   return (
     <section
@@ -285,34 +425,22 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
                   <Play size={13} /> {execution.operation === 'run' && isExecutionActive ? 'Running…' : 'Run'}
                   <span className="implementation-exercise__shortcut">Ctrl + Enter</span>
                 </button>
-                <button type="button" className="learning-button learning-button--check" onClick={() => execute('check')} disabled={!canExecute}>
-                  <Check size={13} /> {execution.operation === 'check' && isExecutionActive ? 'Checking…' : 'Check solution'}
+                <button type="button" className="learning-button learning-button--check" onClick={handleRevealSolution} disabled={isExecutionActive || solutionState === 'loading'}>
+                  <Check size={13} /> Check solution
                 </button>
               </div>
             )}
           </div>
         )}
 
-        <div
-          id={`exercise-file-panel-${activeFile.id}`}
-          className={`learning-editor${isExpanded ? ' learning-editor--expanded' : ' learning-editor--compact'}${isReadOnly ? ' learning-editor--read-only' : ''}`}
-          role="tabpanel"
-          aria-label={`${activeFile.displayName} editor`}
-        >
-          <div className="learning-editor__gutter" aria-hidden="true">
-            {lineNumbers.map((line) => <span key={line}>{line}</span>)}
-          </div>
-          <textarea
-            className="learning-editor__textarea"
-            value={sourceCode}
-            onChange={handleSourceChange}
-            onKeyDown={handleEditorKeyDown}
-            readOnly={isReadOnly}
-            spellCheck={false}
-            aria-label={`${activeFile.displayName} source code`}
-            aria-readonly={isReadOnly}
-          />
-        </div>
+        <SourceEditor
+          file={activeFile}
+          isExpanded={isExpanded}
+          readOnly={isReadOnly}
+          onChange={handleSourceChange}
+          onKeyDown={handleEditorKeyDown}
+          panelIdPrefix="exercise-file-panel"
+        />
       </div>
 
       {isExecutionActive && (
@@ -324,7 +452,7 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
       )}
 
       {!isExecutionActive && execution.status === 'apiFailure' && (
-        <ExerciseErrorState error={execution.error} onRetry={() => execute(execution.operation || 'run')} />
+        <ExerciseErrorState error={execution.error} onRetry={() => execute('run')} />
       )}
 
       {!isExecutionActive && execution.status !== 'apiFailure' && execution.result && (
@@ -361,6 +489,18 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
           {compactResult}
         </p>
       )}
+
+      <ReferenceSolution
+        solution={solution}
+        solutionState={solutionState}
+        solutionError={solutionError}
+        isVisible={isSolutionVisible}
+        onHide={() => setIsSolutionVisible(false)}
+        onRetry={() => {
+          setIsSolutionVisible(true);
+          retrySolution();
+        }}
+      />
 
       <button
         type="button"

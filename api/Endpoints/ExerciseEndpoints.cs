@@ -15,6 +15,9 @@ public static class ExerciseEndpoints
         group.MapGet("/{exerciseId}", GetMetadata)
             .WithName("GetExerciseMetadata");
 
+        group.MapGet("/{exerciseId}/solution", GetSolution)
+            .WithName("GetExerciseSolution");
+
         group.MapPost("/{exerciseId}/run", ExecuteAsync)
             .WithName("RunExercise");
 
@@ -38,6 +41,29 @@ public static class ExerciseEndpoints
         catch (ExerciseInfrastructureException)
         {
             return Problem(httpContext, StatusCodes.Status503ServiceUnavailable, "Exercise metadata unavailable.", "The exercise metadata is temporarily unavailable.");
+        }
+    }
+
+    private static IResult GetSolution(
+        string exerciseId,
+        ExerciseSolutionService solutionService,
+        HttpContext httpContext)
+    {
+        try
+        {
+            return Results.Ok(solutionService.GetById(exerciseId));
+        }
+        catch (ExerciseNotFoundException)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Exercise not found.", "The requested exercise does not exist.");
+        }
+        catch (ExerciseSolutionNotFoundException)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Reference solution unavailable.", "This exercise does not include a reference solution.");
+        }
+        catch (ExerciseInfrastructureException)
+        {
+            return Problem(httpContext, StatusCodes.Status503ServiceUnavailable, "Reference solution unavailable.", "The reference solution is temporarily unavailable.");
         }
     }
 

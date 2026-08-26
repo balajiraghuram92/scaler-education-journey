@@ -5,7 +5,8 @@ import {
   getInitialFileId,
   getSourceFingerprint,
   mergeEvidence,
-  normalizeExerciseMetadata
+  normalizeExerciseMetadata,
+  normalizeExerciseSolution
 } from '../api/exerciseModels';
 
 const EXECUTION_TIMEOUT_MS = 135000;
@@ -28,16 +29,23 @@ export default function useExerciseWorkspace(exerciseId) {
     error: null,
     stale: false
   });
+  const [solutionState, setSolutionState] = useState('idle');
+  const [solution, setSolution] = useState(null);
+  const [solutionError, setSolutionError] = useState(null);
 
   const filesRef = useRef([]);
   const metadataControllerRef = useRef(null);
   const executionControllerRef = useRef(null);
   const activeRequestRef = useRef(null);
+  const solutionControllerRef = useRef(null);
+  const solutionRequestRef = useRef(null);
 
   useEffect(() => {
     metadataControllerRef.current?.abort();
     executionControllerRef.current?.abort();
+    solutionControllerRef.current?.abort();
     activeRequestRef.current = null;
+    solutionRequestRef.current = null;
 
     const controller = new AbortController();
     metadataControllerRef.current = controller;
@@ -49,6 +57,9 @@ export default function useExerciseWorkspace(exerciseId) {
     filesRef.current = [];
     setActiveFileId(null);
     setExecution({ status: 'idle', operation: null, result: null, error: null, stale: false });
+    setSolutionState('idle');
+    setSolution(null);
+    setSolutionError(null);
 
     if (!exerciseId) {
       setMetadataState('error');
@@ -85,7 +96,9 @@ export default function useExerciseWorkspace(exerciseId) {
   useEffect(() => () => {
     metadataControllerRef.current?.abort();
     executionControllerRef.current?.abort();
+    solutionControllerRef.current?.abort();
     activeRequestRef.current = null;
+    solutionRequestRef.current = null;
   }, []);
 
   const activeFile = workingFiles.find((file) => file.id === activeFileId) || workingFiles[0] || null;
@@ -116,13 +129,46 @@ export default function useExerciseWorkspace(exerciseId) {
     setMetadataAttempt((current) => current + 1);
   }, []);
 
+  const revealSolution = useCallback(async ({ force = false } = {}) => {
+    if (metadataState !== 'ready' || !metadata || solutionRequestRef.current) return;
+    if (!force && solutionState === 'ready') return;
+
+    const controller = new AbortController();
+    const requestId = createRequestId();
+    solutionControllerRef.current = controller;
+    solutionRequestRef.current = requestId;
+    setSolutionState('loading');
+    setSolutionError(null);
+
+    try {
+      const response = await api.exercises.getSolution(metadata.id, { signal: controller.signal });
+      if (controller.signal.aborted || solutionRequestRef.current !== requestId) return;
+      setSolution(normalizeExerciseSolution(response));
+      setSolutionState('ready');
+    } catch (error) {
+      if (solutionRequestRef.current !== requestId || controller.signal.aborted) return;
+      setSolution(null);
+      setSolutionState('error');
+      setSolutionError(error);
+    } finally {
+      if (solutionRequestRef.current === requestId) {
+        solutionRequestRef.current = null;
+        solutionControllerRef.current = null;
+      }
+    }
+  }, [metadata, metadataState, solutionState]);
+
+  const retrySolution = useCallback(() => {
+    void revealSolution({ force: true });
+  }, [revealSolution]);
+
   const execute = useCallback(async (operation) => {
     if (
       metadataState !== 'ready'
       || !metadata
       || execution.status === 'running'
       || activeRequestRef.current
-      || !['run', 'check'].includes(operation)
+      || operation !== 'run'
     ) {
       return;
     }
@@ -146,7 +192,7 @@ export default function useExerciseWorkspace(exerciseId) {
     }));
 
     try {
-      const response = await api.exercises[operation](metadata.id, snapshot, {
+      const response = await api.exercises.run(metadata.id, snapshot, {
         signal: controller.signal,
         timeoutMs: EXECUTION_TIMEOUT_MS,
         clientRequestId: requestId
@@ -194,6 +240,11 @@ export default function useExerciseWorkspace(exerciseId) {
     execute,
     retryMetadata,
     execution,
-    isExecutionActive: execution.status === 'running'
+    isExecutionActive: execution.status === 'running',
+    solution,
+    solutionState,
+    solutionError,
+    revealSolution,
+    retrySolution
   };
 }

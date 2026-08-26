@@ -22,9 +22,12 @@
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   
-  --toc-rail-width: 220px;
-  --context-sidebar-width: 240px;
-  --reading-chamber-max-width: 760px;
+  --chapter-shell-max-width: 1880px;
+  --chapter-shell-gutter: clamp(1rem, 2.8vw, 3rem);
+  --chapter-column-gap: clamp(1.25rem, 2.6vw, 3rem);
+  --toc-rail-width: clamp(190px, 13vw, 230px);
+  --context-sidebar-width: clamp(220px, 15vw, 280px);
+  --chapter-prose-max-width: 70ch;
   --navbar-height: 68px;
 }
 
@@ -40,11 +43,11 @@
 .chapter-reader-top-strip {
   border-bottom: 1px solid var(--chamber-rule-border);
   background: var(--chamber-bg-card-warm);
-  padding: 0.4rem 1.5rem;
+  padding: 0.4rem var(--chapter-shell-gutter);
 }
 
 .top-strip-inner {
-  max-width: 1380px;
+  width: min(100%, var(--chapter-shell-max-width));
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -61,12 +64,12 @@
 
 /* Master 3-Column Container */
 .chapter-reader-container {
-  max-width: 1380px;
+  width: min(100%, var(--chapter-shell-max-width));
   margin: 0 auto;
-  padding: 2.5rem clamp(1.25rem, 3vw, 3rem);
+  padding: 2.5rem var(--chapter-shell-gutter);
   display: grid;
-  grid-template-columns: var(--toc-rail-width) minmax(0, 1fr) var(--context-sidebar-width);
-  gap: clamp(2rem, 3.5vw, 3.5rem);
+  grid-template-columns: minmax(0, var(--toc-rail-width)) minmax(0, 1fr) minmax(0, var(--context-sidebar-width));
+  gap: var(--chapter-column-gap);
   align-items: start;
 }
 
@@ -184,12 +187,19 @@
    COLUMN 2: CENTER READING CHAMBER
    ========================================================================== */
 .chapter-reading-chamber {
-  max-width: var(--reading-chamber-max-width);
+  min-width: 0;
+  max-width: none;
   margin: 0 auto;
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 2.25rem;
+}
+
+.chamber-header,
+.chapter-content-section > .chamber-section-heading,
+.chapter-content-section > .chamber-prose {
+  max-width: var(--chapter-prose-max-width);
 }
 
 /* Breadcrumb */
@@ -781,11 +791,12 @@
 /* Responsive Rules */
 @media (max-width: 1199px) {
   .chapter-reader-container {
-    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-columns: minmax(180px, 200px) minmax(0, 1fr);
     gap: 2rem;
   }
 
   .chapter-context-sidebar {
+    grid-column: 1 / -1;
     position: static;
     border-left: none;
     padding-left: 0;
@@ -835,6 +846,7 @@
   }
 
   .chapter-context-sidebar {
+    grid-column: auto;
     grid-template-columns: 1fr;
   }
 }

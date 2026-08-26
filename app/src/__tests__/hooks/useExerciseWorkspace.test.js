@@ -33,6 +33,14 @@ const metadata = {
   ]
 };
 
+const solution = {
+  exerciseId: metadata.id,
+  files: [
+    { id: 'point', path: 'src/main/java/Point.java', displayName: 'Point.java', language: 'java', content: 'class Point { int x; }', displayOrder: 0 },
+    { id: 'threed-point', path: 'src/main/java/ThreedPoint.java', displayName: 'ThreedPoint.java', language: 'java', content: 'class ThreedPoint extends Point { int z; }', displayOrder: 1 }
+  ]
+};
+
 function executionResponse(status = 'success') {
   return {
     runId: 'run-1',
@@ -54,7 +62,7 @@ describe('useExerciseWorkspace', () => {
     vi.restoreAllMocks();
     vi.spyOn(api.exercises, 'getMetadata').mockResolvedValue(metadata);
     vi.spyOn(api.exercises, 'run').mockResolvedValue(executionResponse());
-    vi.spyOn(api.exercises, 'check').mockResolvedValue(executionResponse('testFailure'));
+    vi.spyOn(api.exercises, 'getSolution').mockResolvedValue(solution);
   });
 
   it('initializes starter files and preserves independent edits across files', async () => {
@@ -131,7 +139,23 @@ describe('useExerciseWorkspace', () => {
     expect(result.current.execution.stale).toBe(true);
   });
 
-  it('keeps Check separate and blocks duplicate execution while running', async () => {
+  it('reveals a separate solution and preserves working files', async () => {
+    const { result } = renderHook(() => useExerciseWorkspace(metadata.id));
+    await waitFor(() => expect(result.current.metadataState).toBe('ready'));
+
+    act(() => result.current.updateFile('point', 'student edit'));
+    await act(async () => result.current.revealSolution());
+
+    expect(api.exercises.getSolution).toHaveBeenCalledTimes(1);
+    expect(result.current.solutionState).toBe('ready');
+    expect(result.current.solution.files[0].content).toBe('class Point { int x; }');
+    expect(result.current.workingFiles[0].content).toBe('student edit');
+
+    await act(async () => result.current.revealSolution());
+    expect(api.exercises.getSolution).toHaveBeenCalledTimes(1);
+  });
+
+  it('blocks duplicate Run requests while running', async () => {
     let resolveRun;
     api.exercises.run.mockImplementation(() => new Promise((resolve) => {
       resolveRun = resolve;
@@ -142,18 +166,13 @@ describe('useExerciseWorkspace', () => {
 
     act(() => {
       result.current.execute('run');
-      result.current.execute('check');
+      result.current.execute('run');
     });
     await waitFor(() => expect(result.current.isExecutionActive).toBe(true));
     expect(api.exercises.run).toHaveBeenCalledTimes(1);
-    expect(api.exercises.check).not.toHaveBeenCalled();
 
     await act(async () => resolveRun(executionResponse()));
     await waitFor(() => expect(result.current.isExecutionActive).toBe(false));
-
-    await act(async () => result.current.execute('check'));
-    await waitFor(() => expect(result.current.execution.operation).toBe('check'));
-    expect(api.exercises.check).toHaveBeenCalledTimes(1);
   });
 
   it.each(['success', 'testFailure', 'compilationFailure', 'timeout'])('accepts learner result status %s', async (status) => {

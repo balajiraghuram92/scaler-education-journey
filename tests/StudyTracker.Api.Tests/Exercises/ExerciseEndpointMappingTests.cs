@@ -32,5 +32,6 @@ public class ExerciseEndpointMappingTests
         Assert.Contains("RunExercise", routeNames);
         Assert.Contains("CheckExercise", routeNames);
         Assert.Contains("GetExerciseMetadata", routeNames);
+        Assert.Contains("GetExerciseSolution", routeNames);
     }
 }

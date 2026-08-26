@@ -24,6 +24,21 @@ describe('exercise API client', () => {
     );
   });
 
+  it('loads reference solution files only when requested', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({
+      exerciseId: 'exercise-1',
+      files: [{ id: 'one', path: 'src/One.java', content: 'class One {}' }]
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await api.exercises.getSolution('exercise/one');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/exercises/exercise%2Fone/solution',
+      expect.objectContaining({ method: 'GET' })
+    );
+  });
+
   it('sends only the complete file payload to Run', async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ status: 'success' }));
     vi.stubGlobal('fetch', fetchMock);

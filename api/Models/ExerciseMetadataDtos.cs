@@ -21,3 +21,15 @@ public sealed record ExerciseFileMetadataDto(
 public sealed record ExerciseEvidenceMetadataDto(
     string Id,
     string Label);
+
+public sealed record ExerciseSolutionResponse(
+    string ExerciseId,
+    IReadOnlyList<ExerciseSolutionFileDto> Files);
+
+public sealed record ExerciseSolutionFileDto(
+    string Id,
+    string Path,
+    string DisplayName,
+    string Language,
+    string Content,
+    int DisplayOrder);

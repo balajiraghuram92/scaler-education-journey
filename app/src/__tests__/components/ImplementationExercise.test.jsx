@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../../api/client';
 import ImplementationExercise from '../../components/learning/ImplementationExercise';
@@ -18,6 +18,14 @@ const metadata = {
   evidence: [
     { id: 'point-x', label: 'Point declares protected int x' },
     { id: 'point-y', label: 'Point declares protected int y' }
+  ]
+};
+
+const solution = {
+  exerciseId: metadata.id,
+  files: [
+    { id: 'point', path: 'src/main/java/Point.java', displayName: 'Point.java', language: 'java', content: 'class Point { int x; }', displayOrder: 0 },
+    { id: 'threed-point', path: 'src/main/java/ThreedPoint.java', displayName: 'ThreedPoint.java', language: 'java', content: 'class ThreedPoint extends Point { int z; }', displayOrder: 1 }
   ]
 };
 
@@ -51,7 +59,7 @@ describe('ImplementationExercise', () => {
     vi.restoreAllMocks();
     vi.spyOn(api.exercises, 'getMetadata').mockResolvedValue(metadata);
     vi.spyOn(api.exercises, 'run').mockResolvedValue(result());
-    vi.spyOn(api.exercises, 'check').mockResolvedValue(result('testFailure'));
+    vi.spyOn(api.exercises, 'getSolution').mockResolvedValue(solution);
   });
 
   it('loads API-provided starter files and keeps edits when switching tabs', async () => {
@@ -97,20 +105,37 @@ describe('ImplementationExercise', () => {
     await waitFor(() => expect(screen.getByText(/earlier source version/)).toBeInTheDocument());
   });
 
-  it('uses Check and renders Surefire-derived evidence and diagnostics', async () => {
-    api.exercises.check.mockResolvedValue(result('testFailure', {
-      diagnostics: { compilerOutput: null, runtimeOutput: 'behavioral output' }
-    }));
+  it('reveals a read-only multi-file reference solution without changing student code', async () => {
     render(<ImplementationExercise exerciseId={metadata.id} isExpanded onToggleExpand={vi.fn()} />);
-    await screen.findByLabelText('Point.java source code');
+    const pointEditor = await screen.findByLabelText('Point.java source code');
+    fireEvent.change(pointEditor, { target: { value: 'student implementation' } });
     fireEvent.click(screen.getByRole('button', { name: /Check solution/ }));
 
-    await waitFor(() => expect(screen.getByText(/compiled, but one or more behaviors/)).toBeInTheDocument());
-    expect(api.exercises.check).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Reference solution' })).toBeInTheDocument());
+    const referencePanel = screen.getByRole('region', { name: 'Reference solution' });
+    const studentWorkspace = screen.getByRole('region', { name: 'Coding exercise workspace' });
+    expect(api.exercises.getSolution).toHaveBeenCalledTimes(1);
     expect(api.exercises.run).not.toHaveBeenCalled();
-    expect(screen.getByText('Point declares protected int x')).toBeInTheDocument();
-    expect(screen.getByText('Expected protected field.')).toBeInTheDocument();
-    expect(screen.getByText('behavioral output')).toBeInTheDocument();
+    expect(within(studentWorkspace).getByLabelText('Point.java source code')).toHaveValue('student implementation');
+    expect(within(referencePanel).getByLabelText('Point.java source code')).toHaveAttribute('readonly');
+    expect(within(referencePanel).getByLabelText('Point.java source code')).toHaveValue('class Point { int x; }');
+    expect(within(referencePanel).getByRole('tab', { name: 'ThreedPoint.java' })).toHaveAttribute('aria-selected', 'false');
+    fireEvent.click(within(referencePanel).getByRole('tab', { name: 'ThreedPoint.java' }));
+    await waitFor(() => expect(within(screen.getByRole('region', { name: 'Reference solution' })).getByLabelText('ThreedPoint.java source code')).toHaveValue('class ThreedPoint extends Point { int z; }'));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Check solution' }));
+    expect(api.exercises.getSolution).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a missing reference solution state and preserves the student editor', async () => {
+    api.exercises.getSolution.mockRejectedValue({ status: 404 });
+    render(<ImplementationExercise exerciseId={metadata.id} isExpanded onToggleExpand={vi.fn()} />);
+    const pointEditor = await screen.findByLabelText('Point.java source code');
+    fireEvent.change(pointEditor, { target: { value: 'student implementation' } });
+    fireEvent.click(screen.getByRole('button', { name: /Check solution/ }));
+
+    await waitFor(() => expect(screen.getByText('This exercise does not have a reference solution yet.')).toBeInTheDocument());
+    expect(screen.getByLabelText('Point.java source code')).toHaveValue('student implementation');
   });
 
   it('renders compilation diagnostics and keeps evidence not run', async () => {
