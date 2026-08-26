@@ -74,7 +74,7 @@ sudo \
 
 The script:
 
-1. Requires and pulls immutable API, frontend, and Java runner image-index digests, then verifies that each resolves to `linux/arm64` on the host.
+1. Requires and pulls immutable API, frontend, and Java runner image-index digests, then verifies that each resolves to `linux/arm64` on the host. The pulled runner image is retained with a non-`latest` local tag because it is created on demand rather than run as a persistent service.
 2. Creates or starts PostgreSQL without deleting its named volume.
 3. Waits for PostgreSQL readiness.
 4. Creates a checksum-protected pre-migration dump in `/var/backups/studytracker` and optionally uploads it when `BACKUP_S3_URI` is configured.

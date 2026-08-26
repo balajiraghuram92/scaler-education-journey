@@ -302,6 +302,7 @@ fi
 api_ref="${API_REF}"
 app_ref="${APP_REF}"
 runner_ref="${RUNNER_REF}"
+runner_local_tag="${RUNNER_IMAGE}:deployed"
 verify_digest_ref "${api_ref}" "API_REF"
 verify_digest_ref "${app_ref}" "APP_REF"
 verify_digest_ref "${runner_ref}" "RUNNER_REF"
@@ -325,6 +326,9 @@ fi
 
 log "Pulling immutable application and runner images for $(uname -m)."
 docker pull "${runner_ref}"
+# The runner is intentionally not a persistent container. Retain the exact
+# pulled image through cleanup without changing the digest passed to the API.
+docker tag "${runner_ref}" "${runner_local_tag}"
 docker pull "${api_ref}"
 docker pull "${app_ref}"
 docker pull "${POSTGRES_IMAGE}"
