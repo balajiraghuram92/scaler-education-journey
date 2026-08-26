@@ -62,6 +62,19 @@ describe('ImplementationExercise', () => {
     vi.spyOn(api.exercises, 'getSolution').mockResolvedValue(solution);
   });
 
+  it('starts with a persistent collapsed reference solution control', async () => {
+    render(<ImplementationExercise exerciseId={metadata.id} isExpanded onToggleExpand={vi.fn()} />);
+    await screen.findByLabelText('Point.java source code');
+
+    const referencePanel = screen.getByRole('region', { name: 'Reference solution' });
+    const solutionToggle = screen.getByRole('button', { name: 'View solution' });
+    expect(referencePanel).toBeInTheDocument();
+    expect(solutionToggle).toHaveAttribute('aria-expanded', 'false');
+    expect(solutionToggle).toHaveAttribute('aria-controls', `exercise-${metadata.id}-reference-solution-content`);
+    expect(screen.queryByRole('button', { name: /Check solution/i })).not.toBeInTheDocument();
+    expect(within(referencePanel).queryByLabelText('Point.java source code')).not.toBeInTheDocument();
+  });
+
   it('loads API-provided starter files and keeps edits when switching tabs', async () => {
     render(<ImplementationExercise exerciseId={metadata.id} isExpanded onToggleExpand={vi.fn()} />);
     const pointEditor = await screen.findByLabelText('Point.java source code');

@@ -200,6 +200,7 @@ function ReferenceSolution({
   solutionError,
   isVisible,
   isExecutionActive,
+  contentId,
   onToggle,
   onRetry
 }) {
@@ -230,13 +231,15 @@ function ReferenceSolution({
           onClick={onToggle}
           disabled={isExecutionActive || solutionState === 'loading'}
           aria-expanded={isSolutionOpen}
+          aria-controls={contentId}
         >
           {isSolutionOpen ? 'Hide solution' : 'View solution'}
           {isSolutionOpen ? <ChevronUp size={13} aria-hidden="true" /> : <ChevronDown size={13} aria-hidden="true" />}
         </button>
       </header>
 
-      {isVisible && (
+      <div id={contentId} className="implementation-exercise__solution-content">
+        {isVisible && (
         <>
           {solutionState === 'loading' && (
             <p className="implementation-exercise__solution-status" role="status" aria-live="polite">
@@ -276,7 +279,8 @@ function ReferenceSolution({
             </div>
           )}
         </>
-      )}
+        )}
+      </div>
     </section>
   );
 }
@@ -502,6 +506,7 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
         solutionError={solutionError}
         isVisible={isSolutionVisible}
         isExecutionActive={isExecutionActive}
+        contentId={`${workspaceId}-reference-solution-content`}
         onToggle={handleSolutionToggle}
         onRetry={() => {
           setIsSolutionVisible(true);
