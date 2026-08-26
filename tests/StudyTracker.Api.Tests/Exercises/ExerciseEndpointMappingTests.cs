@@ -14,6 +14,7 @@ public class ExerciseEndpointMappingTests
     {
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddScoped<ExerciseService>();
+        builder.Services.AddSingleton<ExerciseMetadataService>();
         var app = builder.Build();
 
         app.MapExerciseEndpoints();
