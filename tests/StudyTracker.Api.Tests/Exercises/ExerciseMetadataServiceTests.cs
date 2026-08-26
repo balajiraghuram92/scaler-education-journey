@@ -21,7 +21,7 @@ public class ExerciseMetadataServiceTests
             var repository = new StubRepository(definition);
             var service = new ExerciseMetadataService(
                 repository,
-                Options.Create(ExerciseTestFactory.Options()));
+                Microsoft.Extensions.Options.Options.Create(ExerciseTestFactory.Options()));
 
             var metadata = service.GetById("test-exercise");
 
@@ -47,7 +47,7 @@ public class ExerciseMetadataServiceTests
             var definition = ExerciseTestFactory.CreateDefinition(root);
             var service = new ExerciseMetadataService(
                 new StubRepository(definition),
-                Options.Create(ExerciseTestFactory.Options()));
+                Microsoft.Extensions.Options.Options.Create(ExerciseTestFactory.Options()));
 
             Assert.Throws<ExerciseNotFoundException>(() => service.GetById("missing"));
         }
