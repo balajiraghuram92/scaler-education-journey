@@ -61,10 +61,6 @@
   color: #FFFFFF;
 }
 
-.learning-button--check {
-  background: var(--chamber-bg-card-warm, #FAF8F3);
-}
-
 .learning-text-button {
   padding: 0.2rem 0;
   border: 0;

@@ -199,7 +199,8 @@ function ReferenceSolution({
   solutionState,
   solutionError,
   isVisible,
-  onHide,
+  isExecutionActive,
+  onToggle,
   onRetry
 }) {
   const [activeFileId, setActiveFileId] = useState(solution?.files[0]?.id || null);
@@ -212,61 +213,69 @@ function ReferenceSolution({
     ));
   }, [solution]);
 
-  if (!isVisible) return null;
-
   const activeFile = solution?.files.find((file) => file.id === activeFileId) || solution?.files[0];
+  const isSolutionOpen = solutionState === 'ready' && isVisible;
 
   return (
-    <section className="implementation-exercise__solution" aria-labelledby="reference-solution-title">
+    <section className={`implementation-exercise__solution${isVisible ? '' : ' implementation-exercise__solution--collapsed'}`} aria-labelledby="reference-solution-title">
       <header className="implementation-exercise__solution-header">
         <div>
           <p className="learning-eyebrow">REFERENCE SOLUTION</p>
           <h4 id="reference-solution-title">Reference solution</h4>
           <p className="implementation-exercise__solution-note">Read-only reference files for comparison. Your editor remains unchanged.</p>
         </div>
-        {solutionState === 'ready' && (
-          <button type="button" className="learning-text-button" onClick={onHide}>
-            Hide solution
-          </button>
-        )}
+        <button
+          type="button"
+          className="learning-button learning-button--quiet implementation-exercise__solution-toggle"
+          onClick={onToggle}
+          disabled={isExecutionActive || solutionState === 'loading'}
+          aria-expanded={isSolutionOpen}
+        >
+          {isSolutionOpen ? 'Hide solution' : 'View solution'}
+          {isSolutionOpen ? <ChevronUp size={13} aria-hidden="true" /> : <ChevronDown size={13} aria-hidden="true" />}
+        </button>
       </header>
 
-      {solutionState === 'loading' && (
-        <p className="implementation-exercise__solution-status" role="status" aria-live="polite">
-          Loading the reference solution...
-        </p>
-      )}
+      {isVisible && (
+        <>
+          {solutionState === 'loading' && (
+            <p className="implementation-exercise__solution-status" role="status" aria-live="polite">
+              Loading the reference solution...
+            </p>
+          )}
 
-      {solutionState === 'error' && (
-        <div className="implementation-exercise__solution-error" role="alert">
-          <p>{getSolutionErrorCopy(solutionError)}</p>
-          <button type="button" className="learning-button learning-button--quiet" onClick={onRetry}>
-            Try again
-          </button>
-        </div>
-      )}
+          {solutionState === 'error' && (
+            <div className="implementation-exercise__solution-error" role="alert">
+              <p>{getSolutionErrorCopy(solutionError)}</p>
+              <button type="button" className="learning-button learning-button--quiet" onClick={onRetry}>
+                Try again
+              </button>
+            </div>
+          )}
 
-      {solutionState === 'ready' && activeFile && (
-        <div className="implementation-exercise__solution-workspace">
-          <FileTabs
-            files={solution.files}
-            activeFileId={activeFileId}
-            onSelect={setActiveFileId}
-            isCompact={false}
-            ariaLabel="Reference solution files"
-            panelIdPrefix="reference-solution-file-panel"
-          />
-          <div className="implementation-exercise__toolbar implementation-exercise__solution-toolbar">
-            <span className="implementation-exercise__file-label" title={activeFile.path}>{activeFile.displayName}</span>
-            <span className="implementation-exercise__file-status">Reference / Read only</span>
-          </div>
-          <SourceEditor
-            file={activeFile}
-            isExpanded
-            readOnly
-            panelIdPrefix="reference-solution-file-panel"
-          />
-        </div>
+          {solutionState === 'ready' && activeFile && (
+            <div className="implementation-exercise__solution-workspace">
+              <FileTabs
+                files={solution.files}
+                activeFileId={activeFileId}
+                onSelect={setActiveFileId}
+                isCompact={false}
+                ariaLabel="Reference solution files"
+                panelIdPrefix="reference-solution-file-panel"
+              />
+              <div className="implementation-exercise__toolbar implementation-exercise__solution-toolbar">
+                <span className="implementation-exercise__file-label" title={activeFile.path}>{activeFile.displayName}</span>
+                <span className="implementation-exercise__file-status">Reference / Read only</span>
+              </div>
+              <SourceEditor
+                file={activeFile}
+                isExpanded
+                readOnly
+                panelIdPrefix="reference-solution-file-panel"
+              />
+            </div>
+          )}
+        </>
       )}
     </section>
   );
@@ -321,9 +330,9 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
     updateFile(activeFile.id, event.target.value);
   };
 
-  const handleRevealSolution = () => {
+  const handleSolutionToggle = () => {
     if (solutionState === 'ready') {
-      setIsSolutionVisible(true);
+      setIsSolutionVisible((current) => !current);
       return;
     }
 
@@ -425,9 +434,6 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
                   <Play size={13} /> {execution.operation === 'run' && isExecutionActive ? 'Running…' : 'Run'}
                   <span className="implementation-exercise__shortcut">Ctrl + Enter</span>
                 </button>
-                <button type="button" className="learning-button learning-button--check" onClick={handleRevealSolution} disabled={isExecutionActive || solutionState === 'loading'}>
-                  <Check size={13} /> Check solution
-                </button>
               </div>
             )}
           </div>
@@ -495,7 +501,8 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
         solutionState={solutionState}
         solutionError={solutionError}
         isVisible={isSolutionVisible}
-        onHide={() => setIsSolutionVisible(false)}
+        isExecutionActive={isExecutionActive}
+        onToggle={handleSolutionToggle}
         onRetry={() => {
           setIsSolutionVisible(true);
           retrySolution();

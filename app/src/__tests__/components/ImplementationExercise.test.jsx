@@ -87,7 +87,7 @@ describe('ImplementationExercise', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Run (Ctrl + Enter)' }));
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Run (Ctrl + Enter)' })).toBeDisabled());
-    expect(screen.getByRole('button', { name: /Check solution/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /View solution/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Reset/ })).toBeDisabled();
     expect(pointEditor).not.toHaveAttribute('readonly');
 
@@ -109,21 +109,26 @@ describe('ImplementationExercise', () => {
     render(<ImplementationExercise exerciseId={metadata.id} isExpanded onToggleExpand={vi.fn()} />);
     const pointEditor = await screen.findByLabelText('Point.java source code');
     fireEvent.change(pointEditor, { target: { value: 'student implementation' } });
-    fireEvent.click(screen.getByRole('button', { name: /Check solution/ }));
+    fireEvent.click(screen.getByRole('button', { name: /View solution/ }));
 
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'Reference solution' })).toBeInTheDocument());
+    await waitFor(() => expect(api.exercises.getSolution).toHaveBeenCalledTimes(1));
     const referencePanel = screen.getByRole('region', { name: 'Reference solution' });
     const studentWorkspace = screen.getByRole('region', { name: 'Coding exercise workspace' });
-    expect(api.exercises.getSolution).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(within(referencePanel).getByLabelText('Point.java source code')).toHaveAttribute('readonly'));
     expect(api.exercises.run).not.toHaveBeenCalled();
     expect(within(studentWorkspace).getByLabelText('Point.java source code')).toHaveValue('student implementation');
-    expect(within(referencePanel).getByLabelText('Point.java source code')).toHaveAttribute('readonly');
     expect(within(referencePanel).getByLabelText('Point.java source code')).toHaveValue('class Point { int x; }');
     expect(within(referencePanel).getByRole('tab', { name: 'ThreedPoint.java' })).toHaveAttribute('aria-selected', 'false');
     fireEvent.click(within(referencePanel).getByRole('tab', { name: 'ThreedPoint.java' }));
     await waitFor(() => expect(within(screen.getByRole('region', { name: 'Reference solution' })).getByLabelText('ThreedPoint.java source code')).toHaveValue('class ThreedPoint extends Point { int z; }'));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Check solution' }));
+    const solutionToggle = screen.getByRole('button', { name: 'Hide solution' });
+    fireEvent.click(solutionToggle);
+    expect(solutionToggle).toHaveAttribute('aria-expanded', 'false');
+    expect(within(referencePanel).queryByLabelText('Point.java source code')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'View solution' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'View solution' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Hide solution' })).toHaveAttribute('aria-expanded', 'true'));
     expect(api.exercises.getSolution).toHaveBeenCalledTimes(1);
   });
 
@@ -132,7 +137,7 @@ describe('ImplementationExercise', () => {
     render(<ImplementationExercise exerciseId={metadata.id} isExpanded onToggleExpand={vi.fn()} />);
     const pointEditor = await screen.findByLabelText('Point.java source code');
     fireEvent.change(pointEditor, { target: { value: 'student implementation' } });
-    fireEvent.click(screen.getByRole('button', { name: /Check solution/ }));
+    fireEvent.click(screen.getByRole('button', { name: /View solution/ }));
 
     await waitFor(() => expect(screen.getByText('This exercise does not have a reference solution yet.')).toBeInTheDocument());
     expect(screen.getByLabelText('Point.java source code')).toHaveValue('student implementation');
