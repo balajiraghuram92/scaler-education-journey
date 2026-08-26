@@ -20,7 +20,7 @@ public class ExerciseSolutionServiceTests
             definition.Manifest.Language = "java";
             var service = new ExerciseSolutionService(
                 new StubRepository(definition),
-                Options.Create(ExerciseTestFactory.Options()));
+                Microsoft.Extensions.Options.Options.Create(ExerciseTestFactory.Options()));
 
             var solution = service.GetById("test-exercise");
 
@@ -47,7 +47,7 @@ public class ExerciseSolutionServiceTests
             var definition = ExerciseTestFactory.CreateDefinition(root);
             var service = new ExerciseSolutionService(
                 new StubRepository(definition),
-                Options.Create(ExerciseTestFactory.Options()));
+                Microsoft.Extensions.Options.Options.Create(ExerciseTestFactory.Options()));
 
             Assert.Throws<ExerciseSolutionNotFoundException>(() => service.GetById("test-exercise"));
         }
@@ -66,7 +66,7 @@ public class ExerciseSolutionServiceTests
             var definition = ExerciseTestFactory.CreateDefinition(root);
             var service = new ExerciseSolutionService(
                 new StubRepository(definition),
-                Options.Create(ExerciseTestFactory.Options()));
+                Microsoft.Extensions.Options.Options.Create(ExerciseTestFactory.Options()));
 
             Assert.Throws<ExerciseNotFoundException>(() => service.GetById("unknown"));
         }
@@ -86,7 +86,7 @@ public class ExerciseSolutionServiceTests
             definition.Manifest.Files[0].Path = "../outside.java";
             var service = new ExerciseSolutionService(
                 new StubRepository(definition),
-                Options.Create(ExerciseTestFactory.Options()));
+                Microsoft.Extensions.Options.Options.Create(ExerciseTestFactory.Options()));
 
             Assert.Throws<ExerciseInfrastructureException>(() => service.GetById("test-exercise"));
         }
