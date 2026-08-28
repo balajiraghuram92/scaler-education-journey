@@ -61,7 +61,7 @@ export default function ConceptCheck({
                     value={option.id}
                     checked={isSelected}
                     disabled={submitted}
-                    onChange={() => setSelectedOption(option.id)}
+                    onChange={() => { setSelectedOption(option.id); setSubmitted(true); }}
                   />
                   <span className="concept-check__radio" aria-hidden="true" />
                   <span className="concept-check__option-copy">
@@ -73,12 +73,6 @@ export default function ConceptCheck({
             })}
           </div>
         </fieldset>
-
-        {!submitted && (
-          <button type="submit" className="learning-button learning-button--quiet" disabled={!selectedOption}>
-            Check answer
-          </button>
-        )}
 
         {result === 'correct' && (
           <div className="concept-check__feedback concept-check__feedback--correct" role="status" aria-live="polite">

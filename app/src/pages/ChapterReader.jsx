@@ -5,6 +5,7 @@ import CodeComparisonSwitcher from '../components/CodeComparisonSwitcher';
 import ConceptCheck from '../components/learning/ConceptCheck';
 import ArchitectureFlow from '../components/learning/ArchitectureFlow';
 import ImplementationExercise from '../components/learning/ImplementationExercise';
+import PracticeQuestions from '../components/learning/PracticeQuestions';
 import { getLessonInteractions } from '../data/lessonInteractions';
 import { getLessonExerciseAssociation } from '../data/lessonExerciseAssociations';
 import { api } from '../api/client';
@@ -121,6 +122,7 @@ function buildContentSections(contentBody) {
 function ChapterMarkdown({ sections, interactions, exerciseId, isExerciseExpanded, onToggleExerciseExpanded }) {
   const conceptChecks = interactions?.conceptChecks || [];
   const architecture = interactions?.architecture;
+  const practiceQuestions = interactions?.practiceQuestions || [];
 
   return sections.map((section) => (
     <React.Fragment key={section.id}>
@@ -146,6 +148,9 @@ function ChapterMarkdown({ sections, interactions, exerciseId, isExerciseExpande
           isExpanded={isExerciseExpanded}
           onToggleExpand={onToggleExerciseExpanded}
         />
+      )}
+      {section.id === 'practice-loop' && practiceQuestions?.length > 0 && (
+        <PracticeQuestions questions={practiceQuestions} />
       )}
     </React.Fragment>
   ));

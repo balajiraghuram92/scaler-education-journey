@@ -1169,6 +1169,7 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
             }
 
             lesson.ContentBody = authoredContent;
+            lesson.ContentStatus = "Draft";
             lesson.UpdatedAt = DateTime.UtcNow;
         }
     }

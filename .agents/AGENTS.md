@@ -18,7 +18,9 @@
 5. **Workflow Modification Policy (STRICT):**
     - The agent does **NOT** have permission to make changes directly to any GitHub Actions workflow files (`.github/workflows/*`) in the workspace.
     - The agent can **ONLY** suggest workflow changes, explain the rationale, and provide the exact YAML snippet for the user to review and apply manually.
-6. **Build & Deploy Execution:** Do NOT run project build or deployment commands directly on remote instances. Always prompt the user with the exact CLI commands for them to execute manually.
+6. **Build & Deploy Execution Policy (STRICT):**
+    - The agent does **NOT** have permission to run build or deployment commands directly (`dotnet build`, `npm run build`, `docker build`, `docker compose up --build`, etc.) on local or remote instances.
+    - Upon task completion, the agent must **ALWAYS** output the exact CLI commands and verification steps so the user can pull, build, and test the changes manually.
 
 ## Cost-Aware Delegation Policy
 

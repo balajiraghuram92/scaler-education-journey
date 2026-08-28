@@ -124,8 +124,14 @@ A short, correct, idiomatic Java/Spring/SQL fenced code block is welcome and oft
 If earlier lessons in the same module are given as context, do not re-explain their concepts — build on them by name.
 
 ### Rule 8: Minimum Depth
-- `Concepts Covered` should run noticeably longer than one short paragraph — aim for the density of the worked example below.
-- **If the full output falls under roughly 350 words, you have not met the bar.** Go deeper on mechanism, trade-offs, and concrete scenario instead of padding.
+Target word counts depend on lesson difficulty and scope:
+
+- **Foundational / conceptual lessons** (intro lessons, orientation, paradigm overviews): **500–800 words**
+- **Advanced mechanism lessons** (SOLID principles, design patterns, concurrency, threading, generics): **1200–1500 words**
+
+Advanced lessons covering SOLID principles, design patterns (Creational, Structural, Behavioral), concurrency, and threading genuinely need more space to show multiple code examples and trade-offs. Senior engineers reading these will skim-abandon content padded to length, so the higher cap is not a license to pad — it is space for additional code blocks and concrete trade-off discussion that shorter lessons do not need.
+
+`Concepts Covered` should run noticeably longer than one short paragraph — aim for the density of the worked example below. Go deeper on mechanism, trade-offs, and concrete scenario instead of padding.
 
 ---
 
@@ -173,7 +179,7 @@ Before passing a chapter to human review, check:
 7. **PRACTICE LOOP:** All 5 steps are concrete actions specific to THIS scenario, or do any read generic ("practice the concept", "review your code")? Step 3 in particular should be a diagnostic or measurement exercise, not a conceptual reflection.
 8. **REFERENCE:** Is the final Reference line a single source? Not a bulleted list?
 9. **SOURCE_TYPE:** Do all MCQ blocks and all Exercise blocks carry a `SOURCE_TYPE` field (FROM_MATERIAL or LLM_GENERATED)?
-10. **WORD COUNT:** Full body well above 350 words (Tier-1 chapters run 500–800+ words)?
+10. **WORD COUNT:** Foundational lessons target 500–800 words; advanced mechanism lessons target 1200–1500 words. Does this lesson meet its target tier?
 
 **Verdict:** PASS (ready for human review) or REVISE (list exactly what must change).
 
@@ -615,7 +621,7 @@ This mirrors the existing `BackfillLessonContent` pattern and is idempotent and 
 
 | Item | Details |
 |---|---|
-| **Target Quality** | Tier-1: two dense Concepts paragraphs, concrete scenario, 5-step Practice Loop, Evidence paragraph, code blocks, depth 500–800+ words |
+| **Target Quality** | Tier-1: two dense Concepts paragraphs, concrete scenario, 5-step Practice Loop, Evidence paragraph, code blocks. Foundational: 500–800 words; Advanced: 1200–1500 words. |
 | **Structure** | # Title, ## Concepts Covered, ## Practical Backend Scenario, ## Practice Loop (1–5 steps), ## Evidence of Understanding, ## Suggested Extension |
 | **Tone** | Second person, present tense, direct. Explain to a capable colleague. No marketing cadence. |
 | **Voice** | Intermediate programmer assumption: knows general programming, not this specific mechanism. |
@@ -625,7 +631,7 @@ This mirrors the existing `BackfillLessonContent` pattern and is idempotent and 
 | **Extension** | One to two sentences. Name a specific addition (new class, constraint, behavior). Not filler. |
 | **Code Blocks** | Real, compiling-quality Java/Spring/SQL. Never pseudocode. A before/after pair for the lesson's central claim is ideal. |
 | **Reference** | Single line. One authoritative source. Not a bulleted list. |
-| **Minimum Length** | Full chapter ~350 words minimum (Tier-1 runs 500–800+). |
+| **Minimum Length** | Foundational lessons: 500–800 words target. Advanced mechanism lessons: 1200–1500 words target. |
 | **No Bullet Lists in Concepts** | Prose only. Connected paragraphs explaining mechanism + consequences. |
 | **No Generic Filler** | Every sentence specific to THIS concept. Delete if swapping topics makes it still true. |
 | **SOURCE_TYPE** | Required on every MCQ block and every Exercise block. `FROM_MATERIAL` (from provided sources) or `LLM_GENERATED` (added by LLM). Enables targeted human review of independently introduced content. |
