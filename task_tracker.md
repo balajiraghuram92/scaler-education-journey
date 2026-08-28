@@ -146,7 +146,8 @@
 - [x] **Sub-task 19.3**: Add immutable execution snapshots, stale-result handling, and keyboard/accessibility behavior.
 - [x] **Sub-task 19.4**: Add focused Vitest and React Testing Library coverage.
 
-
-
-
-
+## Phase 20: Curriculum Pipeline — Lesson 3 Ingestion (Completed)
+- [x] **Sub-task 20.1**: Ingest Lesson 3 chapter body into `api/Data/JavaVerticalSeedData.cs` (`GetAuthoredLessonContent`).
+- [x] **Sub-task 20.2**: Wire Lesson 3 concept checks (2 gated MCQs) and practice questions (8 MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 20.3**: Associate Lesson 3 coding exercise with `app/src/data/lessonExerciseAssociations.js`.
+- [x] **Sub-task 20.4**: Update task tracking and provide Docker verification commands.

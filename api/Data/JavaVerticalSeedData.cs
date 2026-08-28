@@ -211,16 +211,7 @@ public static class JavaVerticalSeedData
             EstimatedMinutes = 120,
             IsCompleted = true,
             OrderIndex = 3,
-            ContentBody = @"# Lesson 3 — OOP-2: Access Modifiers, Encapsulation & Inheritance
-
-## Concepts Covered
-- **Access Modifiers**: `private`, package-private, `protected`, and `public` controlling field and method visibility.
-- **Encapsulation**: Bundling state and behavior together while preventing unrestricted external mutation.
-- **Constructor Chaining**: Using `this(...)` to delegate to a single canonical constructor.
-- **Inheritance (`extends`)**: Declaring IS-A relationships and constructor delegation with `super(...)`.
-- **`final` Keyword**: Freezing variable references, locking methods against overrides, and sealing classes against subclassing.
-- **Copy Semantics**: Deep copy vs shallow copy, and defending object invariants at API boundaries.
-- **`equals()` & `hashCode()` Contract**: Symmetry under subclassing, hash bucket consistency, and `getClass()` vs `instanceof`."
+            ContentBody = GetAuthoredLessonContent("03-oop-2-access-modifiers-encapsulation") ?? string.Empty
         };
         db.Lessons.Add(lesson3);
         db.SaveChanges();
@@ -1273,6 +1264,56 @@ Add a `maskPhoneNumber()` method to `Driver` that returns a `String` in the form
 ---
 
 Reference: Lecture material — ""OOP-1: Classes, Objects & Encapsulation"" (Scaler, June 2026)
+",
+            "03-oop-2-access-modifiers-encapsulation" or "03-oop2-encapsulation-inheritance" => @"# Lesson 3 — OOP-2: Encapsulation Complete, Copy Semantics & Inheritance
+
+## Concepts Covered
+
+Access modifiers form the outer visibility boundary of encapsulation. The four tiers — `private` (declaring class only), default/package-private (same package, no keyword), `protected` (same package and subclasses across any package), and `public` (unrestricted) — impose a graduated perimeter that controls which callers can reach which state. The design discipline is to grant the minimum required visibility: a field that serves only its own class has no reason to be package-private, and a method intended for subclass specialization has no reason to be public. The `final` keyword adds a second enforcement axis orthogonal to visibility: a `final` field cannot be reassigned after the constructor completes (the compiler treats any subsequent assignment as an error), a `final` method cannot be overridden by a subclass even when it is `public`, and a `final` class cannot be extended at all. Combining these produces the immutability pattern: declare the class `final`, make every field `private final`, provide getters and computed results but no setters, and perform defensive copies on any mutable objects passed in as constructor arguments. An immutable `Fare` class is the canonical example — once a surge multiplier of 1.2x is locked in at trip-acceptance time, no downstream repricing service can silently alter it because `setMultiplier()` simply does not exist on the type. Any renegotiated fare requires constructing a new `Fare` object, leaving the accepted original untouched. Constructor chaining via `this(...)` keeps initialization DRY within this sealed structure: a `Driver` class may expose a full four-argument constructor, a two-argument partial constructor, and a no-arg default, but all three must route through the master constructor that increments `totalRegisteredDrivers++`. Without chaining, each overload carries its own copy of that bookkeeping, and a future change — adding a secondary metric, say — has to be applied across every branch. The rule is absolute: `this(...)` must be the very first statement in a constructor body, and it is mutually exclusive with `super(...)` in the same constructor, because both demand the first slot.
+
+Copy semantics address a failure mode that access modifiers alone cannot close. When an object holds a reference to a mutable inner object, assigning that reference during copy construction creates an alias — not a copy. Two `Trip` instances that both hold `this.route = other.route` share a single `Route` heap object; a call to `tripCopy.getRoute().setSource(""Whitefield"")` silently rewrites the source on `originalTrip` as well, because both variables reach the same memory address. A deep copy constructor fixes this by allocating a fresh inner object with the same values: `this.route = new Route(other.route)`. The decision rule is crisp: if the nested object is immutable — a `String`, a `Fare`, or any properly sealed class — sharing its reference is safe and memory-efficient because no caller can mutate the shared value; if it is mutable, deep copying is mandatory for isolation. This distinction is not merely theoretical: shallow aliasing is one of the most common root causes of state-corruption bugs in multi-threaded Java services, where two threads operate on what they believe are independent entities that are actually one. Inheritance layers on top of sealed structure through the `extends` keyword. An abstract `Vehicle` parent declares shared fields (`vehicleId`, `licensePlate`, `capacity`) and an abstract `calculateFare(double distanceKm)` method; `Car`, `Auto`, and `Bike` each call `super(vehicleId, licensePlate, capacity)` to delegate shared initialization and override only what differs — their per-km rate and fare formula. Every class in Java implicitly extends `java.lang.Object`, which supplies a default `equals()` that compares references (identity, not value equality) and a default `hashCode()` derived from the object's memory address. The contract between them is strict: if `a.equals(b)` returns `true`, then `a.hashCode()` must equal `b.hashCode()`. Overriding only `equals()` breaks this contract. Two `Trip` objects with the same `tripId` that are logically equal produce different hash codes under the default implementation; `HashSet` computes the bucket from the hash first, never reaching `equals()` to compare them, and stores both as distinct entries — a silent deduplication failure in a collection you expected to hold unique trips.
+
+```java
+// Shallow Copy — reference assignment. One Route object lives in heap memory;
+// both tripA and tripCopy point to it. Mutating one corrupts the other.
+public Trip(Trip other) {
+    this.tripId     = other.tripId;
+    this.fareAmount = other.fareAmount;
+    this.route      = other.route;           // aliased reference, not a copy
+}
+
+// Deep Copy — a fresh Route is constructed with the same field values.
+// tripA.route and tripCopy.route are independent heap objects.
+public Trip(Trip other) {
+    this.tripId     = other.tripId;
+    this.fareAmount = other.fareAmount;
+    this.route      = new Route(other.route); // independent heap object
+}
+```
+
+## Practical Backend Scenario
+
+A ride dispatch service manages `Trip` entities, each carrying a mutable `Route` that the system can update mid-trip for traffic rerouting or pickup-point corrections. When a driver is reassigned mid-trip, the dispatcher archives the pre-reassignment `Trip` to preserve the audit trail for dispute resolution. Without a deep copy constructor, the archived instance shares the `Route` reference with the live trip — rerouting the live trip's source address for the new pickup also silently rewrites the archived record, making the pre-reassignment state unrecoverable. The `Fare` attached to each `Trip` is an immutable value object: once set at 1.2x surge at acceptance time, no repricing thread can mutate it; any updated fare creates a new `Fare` instance, while the fare stored in the archived trip remains exactly what the driver accepted and what the audit record must show.
+
+## Practice Loop
+
+1. Implement `Fare` as a fully immutable value object: declare the class `final`, mark all fields `private final` (base fare and surge multiplier), provide only getters and a `getFinalFare()` computed result, and write no setters — verify the compiler rejects any attempt to reassign a field after the constructor completes.
+2. Implement `Route` (mutable: source and destination settable) and `Trip` (holds a `Route` and a `Fare`). Write a shallow copy constructor for `Trip` using direct reference assignment for the `route` field, then write a unit test that modifies the copy's route source and asserts the original is unchanged — confirm the assertion fails, proving aliasing.
+3. Count every call site outside `Trip` that reaches `route.setSource()` or `route.setDestination()` on the inner field. Each is a line of code that can corrupt the original through the aliased copy. Replace the shallow assignment with `this.route = new Route(other.route)` and re-run the test; confirm the assertion now passes.
+4. Add an abstract `Vehicle` class with `protected` fields `vehicleId`, `licensePlate`, and `capacity`, and an abstract `calculateFare(double distanceKm)` method. Implement `Car` (15.0 per km) and `Auto` (10.0 per km), each calling `super(vehicleId, licensePlate, capacity)` from their constructor and providing a concrete fare override.
+5. Override `equals()` and `hashCode()` on `Trip` using `tripId` as the identity field. Add two `Trip` objects with the same `tripId` to a `HashSet<Trip>` and assert the set size is 1. Then remove only the `hashCode()` override, re-run, and observe the size become 2 — confirming that `equals()` without `hashCode()` leaves the contract broken.
+
+## Evidence of Understanding
+
+You can explain why `private final` fields alone are insufficient for immutability — a non-`final` class can be subclassed, and the subclass can introduce setters that expose the parent's state through the child's type. You can trace heap state after a shallow copy to show that two object references point to the same inner object, then demonstrate in a test that a deep copy constructor eliminates the aliasing. You can build a two-level vehicle hierarchy using `extends` and `super()`, override `calculateFare` in each subclass, and confirm that a polymorphic collection of `Vehicle` references dispatches to the correct implementation at runtime. You can break the `equals`/`hashCode` contract deliberately — overriding only `equals` — and show the resulting `HashSet` duplication that makes the violation concrete.
+
+## Suggested Extension
+
+Add a `TripArchiveService` backed by a `HashMap<String, Trip>` that stores deep copies of trips at dispatch time. Write a test that reroutes the live trip's source address after archiving, then retrieves the archived trip by `tripId` and confirms its route still holds the original source — verifying deep copy isolation and the `equals`/`hashCode` contract in a single, integrated scenario.
+
+---
+
+Reference: Effective Java, 3rd ed., Joshua Bloch — Items 10 (equals), 11 (hashCode), 17 (Minimize mutability)
 ",
             "04-oop-3-polymorphism-interfaces" => @"# Lesson 4 — OOP-3: Polymorphism & Interfaces
 
