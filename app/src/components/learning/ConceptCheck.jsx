@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { Check, Lightbulb, RotateCcw, X } from 'lucide-react';
+import { formatInline, FormattedContent } from './formatUtils';
 
 export default function ConceptCheck({
   eyebrow = 'CONCEPT CHECK',
@@ -38,7 +39,7 @@ export default function ConceptCheck({
         <p className="learning-eyebrow">{eyebrow}</p>
         <fieldset className="concept-check__fieldset">
           <legend id={`${groupId}-title`} className="concept-check__question">
-            {question}
+            <FormattedContent text={question} />
           </legend>
 
           <div className="concept-check__options">
@@ -66,7 +67,7 @@ export default function ConceptCheck({
                   <span className="concept-check__radio" aria-hidden="true" />
                   <span className="concept-check__option-copy">
                     <span className="concept-check__option-label">{option.label}.</span>
-                    <span>{option.text}</span>
+                    <span>{formatInline(option.text)}</span>
                   </span>
                 </label>
               );
@@ -77,7 +78,7 @@ export default function ConceptCheck({
         {result === 'correct' && (
           <div className="concept-check__feedback concept-check__feedback--correct" role="status" aria-live="polite">
             <div className="concept-check__feedback-heading"><Check size={15} /> Correct.</div>
-            <p>{explanation}</p>
+            <p>{formatInline(explanation)}</p>
             <a className="learning-inline-link" href="#practical-backend-scenario">
               Continue reading <span aria-hidden="true">→</span>
             </a>
@@ -87,7 +88,7 @@ export default function ConceptCheck({
         {result === 'incorrect' && (
           <div className="concept-check__feedback concept-check__feedback--incorrect" role="status" aria-live="polite">
             <div className="concept-check__feedback-heading"><X size={15} /> Not quite.</div>
-            <p>{incorrectExplanation}</p>
+            <p>{formatInline(incorrectExplanation)}</p>
             <div className="concept-check__feedback-actions">
               <button type="button" className="learning-button learning-button--quiet" onClick={handleRetry}>
                 <RotateCcw size={13} /> Try again
@@ -96,7 +97,7 @@ export default function ConceptCheck({
                 <Lightbulb size={13} /> {showHint ? 'Hide hint' : 'Hint'}
               </button>
             </div>
-            {showHint && <p className="concept-check__hint">{hint}</p>}
+            {showHint && <p className="concept-check__hint">{formatInline(hint)}</p>}
           </div>
         )}
       </form>

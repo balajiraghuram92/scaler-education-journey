@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { Check, X } from 'lucide-react';
+import { formatInline } from './formatUtils';
 
 function PracticeQuestionItem({ item, index }) {
   const groupId = useId();
@@ -13,8 +14,12 @@ function PracticeQuestionItem({ item, index }) {
       <p className="learning-eyebrow">QUESTION {String(index + 1).padStart(2, '0')}</p>
       <fieldset className="concept-check__fieldset">
         <legend id={`${groupId}-title`} className="concept-check__question">
-          {item.question}
+          {formatInline(item.question)}
         </legend>
+
+        {item.codeBlock && (
+          <pre className="concept-check__code-block"><code>{item.codeBlock}</code></pre>
+        )}
 
         <div className="concept-check__options">
           {item.options.map((option) => {
@@ -41,7 +46,7 @@ function PracticeQuestionItem({ item, index }) {
                 <span className="concept-check__radio" aria-hidden="true" />
                 <span className="concept-check__option-copy">
                   <span className="concept-check__option-label">{option.label}.</span>
-                  <span>{option.text}</span>
+                  <span>{formatInline(option.text)}</span>
                 </span>
               </label>
             );
@@ -58,7 +63,7 @@ function PracticeQuestionItem({ item, index }) {
           <div className="concept-check__feedback-heading">
             {isCorrect ? <Check size={15} /> : <X size={15} />} {isCorrect ? 'Correct.' : 'Not quite.'}
           </div>
-          <p>{item.explanation}</p>
+          <p>{formatInline(item.explanation)}</p>
         </div>
       )}
     </article>

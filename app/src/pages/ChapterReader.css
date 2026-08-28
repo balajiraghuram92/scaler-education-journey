@@ -850,3 +850,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+.concept-check__code-block {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 13px;
+  background: var(--surface-1, #1E222B);
+  border: 0.5px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius, 6px);
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0 1rem;
+  overflow-x: auto;
+  white-space: pre;
+}

@@ -254,8 +254,8 @@ const lessonInteractions = {
       // FROM_MATERIAL
       {
         id: 'lesson-2-mcq-01',
-        question:
-          'What does the following code print?\n\nDriver d1 = new Driver();\nd1.name = "Rahul";\nDriver d2 = d1;\nd2.name = "Suresh";\nSystem.out.println(d1.name);',
+        question: 'What does the following code print?',
+        codeBlock: 'Driver d1 = new Driver();\nd1.name = "Rahul";\nDriver d2 = d1;\nd2.name = "Suresh";\nSystem.out.println(d1.name);',
         options: [
           { id: 'a', label: 'A', text: 'Rahul' },
           { id: 'b', label: 'B', text: 'Suresh' },
@@ -270,7 +270,8 @@ const lessonInteractions = {
       {
         id: 'lesson-2-mcq-02',
         question:
-          'After calling `new Driver("Rahul", 4.8)` with the constructor `name = name; rating = rating;` (no `this`), what is the value of the driver\'s name field?',
+          'After calling `new Driver("Rahul", 4.8)` with the constructor below, what is the value of the driver\'s `name` field?',
+        codeBlock: 'public Driver(String name, double rating) {\n    name = name;\n    rating = rating;\n}',
         options: [
           { id: 'a', label: 'A', text: '"Rahul" — assigned correctly' },
           { id: 'b', label: 'B', text: 'A compile error — name appears twice' },

@@ -1,0 +1,74 @@
+{
+  "id": "java-lld-oop2-rider-entity",
+  "lessonSlug": "02-oop-1-intro-lab",
+  "title": "Build the Rider Entity",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "rider",
+      "path": "src/main/java/Rider.java",
+      "displayName": "Rider.java",
+      "editable": true
+    },
+    {
+      "id": "rider-exception",
+      "path": "src/main/java/RiderException.java",
+      "displayName": "RiderException.java",
+      "editable": false
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/RiderTest.java",
+    "className": "RiderTest"
+  },
+  "evidence": [
+    {
+      "id": "rider-constructor-valid",
+      "label": "Constructor initializes fields, defaults rating to 5.0, isActive to true, and increments totalRiders",
+      "testMethod": "testConstructorValidInitialState"
+    },
+    {
+      "id": "rider-constructor-invalid-email",
+      "label": "Constructor rejects null or empty email with RiderException",
+      "testMethod": "testConstructorInvalidEmailThrows"
+    },
+    {
+      "id": "rider-set-rating-validation",
+      "label": "setRating accepts values between 1.0 and 5.0 and rejects values outside range",
+      "testMethod": "testSetRatingValidAndInvalid"
+    },
+    {
+      "id": "rider-save-address-active-check",
+      "label": "saveHomeAddress saves address when active and throws RiderException when inactive",
+      "testMethod": "testSaveHomeAddressWhenActiveAndInactive"
+    },
+    {
+      "id": "rider-deactivate-idempotency",
+      "label": "deactivate sets isActive to false and throws RiderException if already inactive",
+      "testMethod": "testDeactivateIdempotencyThrows"
+    },
+    {
+      "id": "rider-masked-email",
+      "label": "getMaskedEmail masks characters before '@' with '****'",
+      "testMethod": "testGetMaskedEmail"
+    },
+    {
+      "id": "rider-static-total-count",
+      "label": "getTotalRiders returns correct count across all instances using static field",
+      "testMethod": "testStaticTotalRidersCount"
+    },
+    {
+      "id": "rider-encapsulated-fields",
+      "label": "All instance fields are declared private with no unsafe public setters",
+      "testMethod": "testFieldsArePrivateAndEncapsulated"
+    }
+  ]
+}

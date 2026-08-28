@@ -10,6 +10,14 @@ describe('lesson exercise associations', () => {
     )).toEqual({ exerciseId: 'java-lld-oop1-trip-state-management' });
   });
 
+  it('associates the oop 1 lab lesson with the rider entity exercise', () => {
+    expect(getLessonExerciseAssociation(
+      'java-spring-lld',
+      'oop-foundations',
+      '02-oop-1-intro-lab'
+    )).toEqual({ exerciseId: 'java-lld-oop2-rider-entity' });
+  });
+
   it('associates the polymorphism lesson with the canonical exercise', () => {
     expect(getLessonExerciseAssociation(
       'java-spring-lld',
