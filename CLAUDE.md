@@ -11,7 +11,10 @@ This applies to:
 - Seed data (`api/Data/*.cs`)
 - Any other file in the repo
 
-**The only exception** is this file (`CLAUDE.md`) and the memory directory.
+**The only exceptions are:**
+- This file (`CLAUDE.md`)
+- The memory directory
+- Files inside `info/.notes/` — Claude may read and write these (reference guides, notes, pipeline docs). These are meta/documentation files with no effect on the running app.
 
 ---
 

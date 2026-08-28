@@ -3,7 +3,7 @@
 **Purpose:** Paste this at the start of each new chat session before providing lesson-specific material. This ensures consistent Tier-1 quality and efficient Local LLM parsing without re-explaining the platform.
 
 **Last updated:** 2026-08-28
-**Version:** 2.1 (Added SOURCE_TYPE content tracking for MCQs and exercises)
+**Version:** 2.2 (Added architecture diagram inclusion criteria and React UI data guidance)
 
 ---
 
@@ -180,6 +180,7 @@ Before passing a chapter to human review, check:
 8. **REFERENCE:** Is the final Reference line a single source? Not a bulleted list?
 9. **SOURCE_TYPE:** Do all MCQ blocks and all Exercise blocks carry a `SOURCE_TYPE` field (FROM_MATERIAL or LLM_GENERATED)?
 10. **WORD COUNT:** Foundational lessons target 500–800 words; advanced mechanism lessons target 1200–1500 words. Does this lesson meet its target tier?
+11. **ARCHITECTURE DIAGRAM:** If you are recommending an architecture diagram for `lessonInteractions.js`, does it pass the inclusion test? (See §8.) A linear flow diagram that just restates the Practical Backend Scenario prose fails — cut it.
 
 **Verdict:** PASS (ready for human review) or REVISE (list exactly what must change).
 
@@ -534,7 +535,7 @@ A labeled code pair showing improvement:
 ```
 
 ### LessonDiagram (Inline SVG or Spec)
-Render a concept visually if the lesson genuinely benefits.
+Render a concept visually if the lesson genuinely benefits. See §8a for detailed inclusion criteria — most lessons do not need a diagram.
 
 ### Problem (Static Problem Card)
 A lighter-weight exercise distinct from coding exercises.
@@ -544,6 +545,121 @@ Only if the concept has genuine common misconceptions or 3–4 plausible-looking
 
 ### Coding Exercise Package
 Only if the lesson teaches a mechanic small enough to verify with JUnit tests in a few files. Use Maven project structure with starter code, hidden tests, and solution reference. Include a `WHY_THIS_MATTERS` field for senior learners.
+
+---
+
+## 8a. React UI Data — lessonInteractions.js
+
+Each lesson in `app/src/data/lessonInteractions.js` can carry three optional UI data objects: concept checks, an architecture diagram, and practice questions. This section governs when to include each one and what good looks like.
+
+The key for each entry is `{pathway-id}/{module-slug}/{lesson-slug}`:
+```js
+'java-spring-lld/oop-foundations/01-intro-to-lld': {
+  conceptChecks: [...],
+  architecture: {...},      // optional — see inclusion criteria below
+  practiceQuestions: [...]
+}
+```
+
+---
+
+### Concept Checks (max 2 per lesson)
+
+Concept checks are gated interaction points — they stop the learner mid-page to verify understanding before they continue. **Maximum 2 per lesson.** They appear after the `Concepts Covered` section in the chapter reader.
+
+**What makes a good concept check:**
+- Tests a single, non-trivial point that is easy to get wrong
+- Has 3–4 plausible wrong answers that reflect real misconceptions (not obviously silly distractors)
+- The correct answer explains *why*, not just *what*
+- Should NOT test a fact the learner just read verbatim — test application or recognition of a pattern
+
+**Data shape:**
+```js
+{
+  id: 'lesson-N-concept-check-01',
+  eyebrow: 'CONCEPT CHECK 01 — TOPIC NAME',
+  question: '...',
+  options: [
+    { id: 'a', label: 'A', text: '...' },
+    { id: 'b', label: 'B', text: '...' },
+    { id: 'c', label: 'C', text: '...' },
+    { id: 'd', label: 'D', text: '...' }
+  ],
+  correctOptionId: 'b',
+  explanation: '...',           // shown on correct answer
+  incorrectExplanation: '...',  // shown on wrong answer — diagnostic, not a re-statement
+  hint: '...'                   // shown on demand after wrong answer — one sentence
+}
+```
+
+**DO NOT hardcode `initialSelectedOption` or `initialSubmitted` — these cause the question to appear pre-answered on load.**
+
+---
+
+### Architecture Diagram — Inclusion Criteria
+
+The architecture diagram renders as an annotated flow chart after the `Practical Backend Scenario` section. **It is optional and most lessons should not include one.**
+
+**Include a diagram only if ALL of these are true:**
+1. The flow is genuinely non-obvious from prose alone (multi-actor async flow, decorator chain, strategy switching at runtime, event-driven pattern)
+2. The diagram shows something the Practical Backend Scenario prose does NOT already cover
+3. The diagram would give a 7-8 year developer a faster mental model than reading another paragraph
+
+**Do NOT include a diagram if:**
+- It is a linear request → controller → entity → output flow that is already described in the scenario text
+- It just repeats what the code block already shows
+- It is the only visual on the page for its own sake
+
+**Best pattern for OOP / procedural-vs-OOP lessons:**
+Do NOT use a linear flow. Use a **before/after contrast** — two separate node groups on one diagram, left showing procedural data mutation (multiple services reaching into the struct directly), right showing OOP (all services calling through the entity method). This earns the diagram's space and makes the lesson's central claim visible at a glance.
+
+**Data shape (when included):**
+```js
+architecture: {
+  id: 'lesson-N-{concept-slug}',
+  eyebrow: 'PRACTICAL BACKEND SCENARIO — {SCENARIO NAME IN CAPS}',
+  boundaryLabel: 'BOUNDARY LABEL',
+  boundaryText: 'One sentence explaining what the boundary enforces.',
+  nodes: [
+    { id: 'input',    label: 'Entry Point',             kind: 'input'    },
+    { id: 'service',  label: 'ServiceName',             kind: 'service'  },
+    { id: 'boundary', label: 'Entity.method()',         kind: 'boundary', highlighted: true },
+    { id: 'adapter',  label: 'DownstreamService',       kind: 'adapter'  },
+    { id: 'output',   label: 'Result State',            kind: 'output'   }
+  ]
+}
+```
+
+Node `kind` values: `input`, `service`, `boundary`, `adapter`, `output`.
+Only one node should be `highlighted: true` — the enforcement point (entity method or interface contract).
+
+**If the lesson does not meet the inclusion criteria, omit the `architecture` key entirely from the entry.**
+
+---
+
+### Practice Questions (all lesson MCQs go here)
+
+All MCQs from the lesson file's MCQ section go into `practiceQuestions` as structured objects. They render at the bottom of the chapter page after the concept checks and exercise. There is **no DB-backed `Question` model** — MCQs live entirely in this frontend data file.
+
+**Data shape:**
+```js
+practiceQuestions: [
+  {
+    id: 'lesson-N-mcq-01',       // lesson-N-mcq-01 through lesson-N-mcq-NN
+    question: '...',
+    options: [
+      { id: 'a', label: 'A', text: '...' },
+      { id: 'b', label: 'B', text: '...' },
+      { id: 'c', label: 'C', text: '...' },
+      { id: 'd', label: 'D', text: '...' }
+    ],
+    correctOptionId: 'b',
+    explanation: '...'           // shown after selection — no retry, no hint
+  }
+]
+```
+
+SOURCE_TYPE is a JS comment only — do not add it as a data field.
 
 ---
 
@@ -639,12 +755,28 @@ This mirrors the existing `BackfillLessonContent` pattern and is idempotent and 
 | **Exercise Format** | Structured blocks with EXERCISE_ID, SOURCE_TYPE, EXTERNAL_RESOURCE (zip), SKILLS_TESTED, WHY_THIS_MATTERS for competency mapping and senior context. |
 | **Section Markers** | HTML comments (<!-- SECTION_START --> to <!-- SECTION_END -->) for programmatic extraction. |
 | **Metadata** | YAML with database field names; supplementary_content flags enable validation. |
+| **Architecture Diagram** | Optional. Include ONLY if the flow is non-obvious from prose. Best pattern for OOP lessons: before/after contrast (procedural vs. OOP), not a linear request→entity→output flow. Most lessons: omit entirely. (See §8a.) |
+| **Concept Checks** | Max 2 per lesson. Test application or misconception, not verbatim recall. Never hardcode `initialSelectedOption` or `initialSubmitted`. (See §8a.) |
+| **Practice Questions** | All lesson MCQs go here as `practiceQuestions[]` in lessonInteractions.js — no DB `Question` model exists. SOURCE_TYPE is a JS comment only. (See §8a.) |
 
 ---
 
 ## Changelog
 
-### v2.1 (2026-08-28) — Current
+### v2.2 (2026-08-28) — Current
+
+**What's New:**
+
+- ✅ **Section §8a — React UI Data (lessonInteractions.js):** New dedicated section covering all three UI data objects (concept checks, architecture diagram, practice questions) with data shapes, inclusion criteria, and anti-patterns. This replaces guessing what goes where in the frontend data file.
+- ✅ **Architecture diagram — inclusion criteria:** Explicit pass/fail test for whether a lesson earns a diagram. Key rule: a linear request→entity→output flow that repeats the Practical Backend Scenario prose does NOT pass. Best pattern for OOP lessons: before/after contrast (procedural vs. OOP), not a linear flow.
+- ✅ **Concept checks — `initialSelectedOption`/`initialSubmitted` anti-pattern:** Explicitly banned. These cause questions to appear pre-answered on page load.
+- ✅ **Practice questions — no DB Question model:** Clarified that all MCQs go into `practiceQuestions[]` in lessonInteractions.js. There is no DB-backed Question model; SOURCE_TYPE is a JS comment only, not a data field.
+- ✅ **Self-review checklist §6:** Added item 11 for architecture diagram inclusion decision.
+- ✅ **Quick Reference table:** Added rows for Architecture Diagram, Concept Checks, and Practice Questions.
+- ✅ **CLAUDE.md (repo root):** Updated to allow Claude to read and write `info/.notes/` files directly (meta/reference docs with no effect on the running app).
+- ✅ **Word count tiers (v2.1 carryover):** Foundational 500–800; Advanced mechanism 1200–1500.
+
+### v2.1 (2026-08-28)
 
 **What's New:**
 
