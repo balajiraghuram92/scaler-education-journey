@@ -15,6 +15,7 @@ This applies to:
 - This file (`CLAUDE.md`)
 - The memory directory
 - Files inside `info/.notes/` — Claude may read and write these (reference guides, notes, pipeline docs). These are meta/documentation files with no effect on the running app.
+- Files inside `exercises/` — Claude may create and edit exercise directories (`.json`, `.xml`, `.java` files). These are exercise manifests, pom files, starter stubs, test classes, and reference solutions. Claude must never modify an existing exercise that is already wired and working; only create new ones or fix a broken one the user explicitly flags.
 
 ---
 

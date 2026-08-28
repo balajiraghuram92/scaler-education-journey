@@ -1,0 +1,104 @@
+{
+  "id": "java-lld-oop2-point-rectangle",
+  "lessonSlug": "03-oop-2-access-modifiers-encapsulation",
+  "title": "Point & Rectangle Deep Copy",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 30,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "point",
+      "path": "src/main/java/Point.java",
+      "displayName": "Point.java",
+      "editable": true
+    },
+    {
+      "id": "rectangle",
+      "path": "src/main/java/Rectangle.java",
+      "displayName": "Rectangle.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/PointRectangleTest.java",
+    "className": "PointRectangleTest"
+  },
+  "evidence": [
+    {
+      "id": "point-x-field",
+      "label": "Point has an int field named x",
+      "testMethod": "testXDataMemberExists"
+    },
+    {
+      "id": "point-y-field",
+      "label": "Point has an int field named y",
+      "testMethod": "testYDataMemberExists"
+    },
+    {
+      "id": "point-two-param-sig",
+      "label": "Point(int x, int y) constructor exists with correct signature",
+      "testMethod": "testTwoParamConstructorSignature"
+    },
+    {
+      "id": "point-two-param-values",
+      "label": "Point(int, int) correctly assigns x and y",
+      "testMethod": "testTwoParamConstructor"
+    },
+    {
+      "id": "point-copy-sig",
+      "label": "Point(Point p) copy constructor exists",
+      "testMethod": "testCopyConstructorSignature"
+    },
+    {
+      "id": "point-copy-independence",
+      "label": "Copy constructor creates a distinct object with identical coordinates",
+      "testMethod": "testCopyConstructor"
+    },
+    {
+      "id": "rect-topleft-field",
+      "label": "Rectangle has a Point field named topLeft",
+      "testMethod": "testTopLeftFieldExists"
+    },
+    {
+      "id": "rect-bottomright-field",
+      "label": "Rectangle has a Point field named bottomRight",
+      "testMethod": "testBottomRightFieldExists"
+    },
+    {
+      "id": "rect-four-param-exists",
+      "label": "Rectangle(int, int, int, int) constructor exists and is public",
+      "testMethod": "testFourParamConstructorExists"
+    },
+    {
+      "id": "rect-two-point-exists",
+      "label": "Rectangle(Point, Point) constructor exists and is public",
+      "testMethod": "testTwoPointParamConstructorExists"
+    },
+    {
+      "id": "rect-copy-exists",
+      "label": "Rectangle(Rectangle) copy constructor exists and is public",
+      "testMethod": "testRectangleCopyConstructorExists"
+    },
+    {
+      "id": "rect-two-point-deep-copy",
+      "label": "Rectangle(Point, Point) stores deep copies — not the same references",
+      "testMethod": "testRectangleDeepCopyWith2Points"
+    },
+    {
+      "id": "rect-copy-deep-copy",
+      "label": "Rectangle(Rectangle) copy constructor deep copies topLeft",
+      "testMethod": "testRectangleCopyConstructorDeepCopy"
+    },
+    {
+      "id": "rect-four-param-values",
+      "label": "Rectangle(int, int, int, int) correctly initialises all four coordinates",
+      "testMethod": "testFourParamConstructorValues"
+    }
+  ]
+}
