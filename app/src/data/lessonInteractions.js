@@ -38,22 +38,6 @@ const lessonInteractions = {
         hint: 'Service classes coordinate workflows; entities govern their own internal state transitions.'
       }
     ],
-    architecture: {
-      id: 'lesson-1-trip-state-flow',
-      eyebrow: 'PRACTICAL BACKEND SCENARIO — RIDE-SHARING TRIP STATE MANAGEMENT',
-      boundaryLabel: 'ENCAPSULATED STATE BOUNDARY',
-      boundaryText:
-        'The Trip entity validates and mutates status internally; services coordinate workflows without directly mutating fields.',
-      nodes: [
-        { id: 'request', label: 'Passenger Cancel Request', kind: 'input' },
-        { id: 'controller', label: 'TripController', kind: 'service' },
-        { id: 'service', label: 'CancellationService', kind: 'service' },
-        { id: 'boundary', label: 'Trip.cancelTrip() (Entity Invariant)', kind: 'boundary', highlighted: true },
-        { id: 'notification', label: 'NotificationService', kind: 'adapter' },
-        { id: 'fare', label: 'FareService', kind: 'adapter' },
-        { id: 'output', label: 'Guarded Trip State (Cancelled)', kind: 'output' }
-      ]
-    },
     practiceQuestions: [
       // FROM_MATERIAL
       {

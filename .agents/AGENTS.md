@@ -20,7 +20,10 @@
     - The agent can **ONLY** suggest workflow changes, explain the rationale, and provide the exact YAML snippet for the user to review and apply manually.
 6. **Build & Deploy Execution Policy (STRICT):**
     - The agent does **NOT** have permission to run build or deployment commands directly (`dotnet build`, `npm run build`, `docker build`, `docker compose up --build`, etc.) on local or remote instances.
-    - Upon task completion, the agent must **ALWAYS** output the exact CLI commands and verification steps so the user can pull, build, and test the changes manually.
+    - **Docker-First Workflow (WSL2 / Linux / EC2 Parity):** All verification and deployment instructions must **STRICTLY** use Docker Compose commands (`docker-compose.yml` + `docker-compose.dev.yml`). Never instruct the user to run `dotnet run` or `npm run` directly on the host machine.
+    - **Database Seeding in Docker:** When curriculum or database changes are made, instruct the user to build and run the database seeder container:
+      `docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps api --seed-reference-data`
+    - Upon task completion, the agent must **ALWAYS** output the exact Docker CLI commands and verification steps so the user can pull, build, seed, and test the changes manually.
 
 ## Cost-Aware Delegation Policy
 

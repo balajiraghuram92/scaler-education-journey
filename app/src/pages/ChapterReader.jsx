@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { Plus, Calendar, Shield } from 'lucide-react';
 import CodeComparisonSwitcher from '../components/CodeComparisonSwitcher';
 import ConceptCheck from '../components/learning/ConceptCheck';
-import ArchitectureFlow from '../components/learning/ArchitectureFlow';
 import ImplementationExercise from '../components/learning/ImplementationExercise';
 import PracticeQuestions from '../components/learning/PracticeQuestions';
 import { getLessonInteractions } from '../data/lessonInteractions';
@@ -121,7 +120,6 @@ function buildContentSections(contentBody) {
 
 function ChapterMarkdown({ sections, interactions, exerciseId, isExerciseExpanded, onToggleExerciseExpanded }) {
   const conceptChecks = interactions?.conceptChecks || [];
-  const architecture = interactions?.architecture;
   const practiceQuestions = interactions?.practiceQuestions || [];
 
   return sections.map((section) => (
@@ -140,7 +138,6 @@ function ChapterMarkdown({ sections, interactions, exerciseId, isExerciseExpande
       </section>
 
       {section.id === 'concepts-covered' && conceptChecks.map((check) => <ConceptCheck key={check.id} {...check} />)}
-      {section.id === 'practical-backend-scenario' && architecture && <ArchitectureFlow {...architecture} />}
       {section.id === 'practice-loop' && exerciseId && (
         <ImplementationExercise
           key={exerciseId}
