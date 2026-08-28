@@ -54,6 +54,10 @@ Read all source files carefully before writing any output.
    Find the `const lessonInteractions = { ... }` object.
    You will add one new key to it. Do NOT touch any existing keys.
 
+4. **`app/src/data/lessonExerciseAssociations.js`**
+   Find the `const lessonExerciseAssociations = { ... }` object.
+   If this lesson has a coding exercise (EXERCISE_BLOCK present in the lesson file), you will add one new entry. If there is no exercise, do not touch this file.
+
 ---
 
 ## STEP 2 — UPDATE `api/Data/JavaVerticalSeedData.cs`
@@ -170,6 +174,7 @@ practiceQuestions: [
   {
     id: 'lesson-[LESSON_NUMBER]-mcq-01',
     question: '...',
+    // codeBlock: '...',   ← OPTIONAL — see rules below
     options: [
       { id: 'a', label: 'A', text: '...' },
       { id: 'b', label: 'B', text: '...' },
@@ -183,19 +188,46 @@ practiceQuestions: [
 ]
 ```
 
+**`codeBlock` field rules (optional field):**
+Add `codeBlock` when the question requires the learner to read code carefully to answer — multi-line snippets, constructor bodies, assignment chains, or "what does this print?" style questions. When `codeBlock` is present, keep `question` as pure prose (e.g. "What does the following code print?") with NO embedded code in the question string. The component renders `codeBlock` as a dark monospace block between the question text and the options.
+
+Do NOT add `codeBlock` for questions that reference a short identifier or keyword inline (e.g. "A class has `public double rating`. Which is most accurate?") — those stay as prose with backtick-formatted inline code in the `question` string. Single-expression references embedded in a sentence do not need a separate block.
+
 SOURCE_TYPE from the lesson file is a review marker — do NOT add it as a data field in the JS objects. JS comment only if you want to note it, e.g. `// FROM_MATERIAL`.
 
 ---
 
-## STEP 4 — CONSTRAINTS
+## STEP 4 — UPDATE `app/src/data/lessonExerciseAssociations.js` (only if lesson has an exercise)
+
+If the lesson file contains an `EXERCISE_BLOCK` in the `EXERCISES_SECTION`, add one entry to `lessonExerciseAssociations.js`:
+
+```js
+'java-spring-lld/{module-slug}/[LESSON_SLUG]': {
+  exerciseId: 'java-lld-{exercise-id}'
+},
+```
+
+The `{exercise-id}` comes from the `EXERCISE_ID` field in the EXERCISE_BLOCK (lowercased, hyphenated). The `exerciseId` value must match the `Id` (or slug) of the Exercise record in the database — the component uses this to fetch exercise data from the API.
+
+**CRITICAL:** If no entry exists in `lessonExerciseAssociations.js` for this lesson slug, the `ImplementationExercise` component will never render — even if the exercise is correctly seeded in the database and correctly described in the lesson file. Both the database record AND the association file entry are required for the exercise to appear.
+
+If the lesson has NO coding exercise, skip this step entirely. Do not add a placeholder entry.
+
+Do NOT touch any existing entries in `lessonExerciseAssociations.js`.
+
+---
+
+## STEP 5 — CONSTRAINTS
 
 Do NOT touch:
 - Any other case in `GetAuthoredLessonContent` switch
 - Any existing key in `lessonInteractions`
+- Any existing entry in `lessonExerciseAssociations.js`
 - Any CSS file
 - Any other `.cs` file
 - `BackfillLessonContent` or `NeedsLessonContent` methods
 - The `getLessonInteractions` export at the bottom of `lessonInteractions.js`
+- The `getLessonExerciseAssociation` export at the bottom of `lessonExerciseAssociations.js`
 
 Match code style exactly:
 - `JavaVerticalSeedData.cs`: C# verbatim strings, double-quote escaping, 4-space indent
@@ -203,7 +235,7 @@ Match code style exactly:
 
 ---
 
-## STEP 5 — OUTPUT
+## STEP 6 — OUTPUT
 
 Produce the following, clearly labeled:
 
@@ -216,6 +248,9 @@ Print the entire file. It must contain all existing entries unchanged, plus the 
 
 ### OUTPUT C: Architecture diagram decision
 State whether you included or omitted the `architecture` key, and the one-sentence reason.
+
+### OUTPUT D: Addition to `app/src/data/lessonExerciseAssociations.js` (only if exercise exists)
+Show only the new entry to add. If the lesson has no exercise, state "No exercise — lessonExerciseAssociations.js not changed."
 
 ═══════════════════════════════════════════════
 END OF PROMPT
@@ -233,6 +268,8 @@ END OF PROMPT
 - [ ] Verified concept check 01 is NOT pre-answered on load
 - [ ] Verified concept check 02 is NOT pre-answered on load
 - [ ] Verified practice questions appear at bottom of page
+- [ ] If lesson has an exercise: exercise component appears after the Practice Loop section
+- [ ] If lesson has an exercise: confirm the `exerciseId` in `lessonExerciseAssociations.js` matches an Exercise record in the database
 - [ ] If content shows old content: run the force-reset command and restart:
   ```
   docker exec -it studytracker-db psql -U studyuser -d studytracker \

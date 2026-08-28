@@ -3,7 +3,7 @@
 **Purpose:** Paste this at the start of each new chat session before providing lesson-specific material. This ensures consistent Tier-1 quality and efficient Local LLM parsing without re-explaining the platform.
 
 **Last updated:** 2026-08-28
-**Version:** 2.2 (Added architecture diagram inclusion criteria and React UI data guidance)
+**Version:** 2.3 (Added lessonExerciseAssociations.js documentation and codeBlock field for practiceQuestions)
 
 ---
 
@@ -548,9 +548,25 @@ Only if the lesson teaches a mechanic small enough to verify with JUnit tests in
 
 ---
 
-## 8a. React UI Data — lessonInteractions.js
+## 8a. React UI Data — lessonInteractions.js and lessonExerciseAssociations.js
 
-Each lesson in `app/src/data/lessonInteractions.js` can carry three optional UI data objects: concept checks, an architecture diagram, and practice questions. This section governs when to include each one and what good looks like.
+Each lesson in `app/src/data/lessonInteractions.js` can carry three optional UI data objects: concept checks, an architecture diagram, and practice questions. A fourth file — `app/src/data/lessonExerciseAssociations.js` — controls whether the coding exercise component appears. This section governs when to include each one and what good looks like.
+
+### Exercise linking — lessonExerciseAssociations.js
+
+The `ImplementationExercise` component (which renders the coding exercise widget) reads its `exerciseId` from `lessonExerciseAssociations.js`, NOT from `lessonInteractions.js`. If a lesson's slug has no entry in `lessonExerciseAssociations.js`, the component never renders — regardless of how well the exercise is authored or whether its database record exists.
+
+For an exercise to appear on a lesson page, **both** of the following must be true:
+1. An Exercise record with the matching `exerciseId` exists in the database (seeded via the exercise seed data)
+2. The lesson slug has an entry in `lessonExerciseAssociations.js`:
+
+```js
+'java-spring-lld/{module-slug}/{lesson-slug}': {
+  exerciseId: 'java-lld-{exercise-id}'
+}
+```
+
+Omitting the entry from `lessonExerciseAssociations.js` silently suppresses the exercise — no error, no placeholder, nothing renders. This is the most common reason an exercise does not appear after seeding.
 
 The key for each entry is `{pathway-id}/{module-slug}/{lesson-slug}`:
 ```js
@@ -646,7 +662,8 @@ All MCQs from the lesson file's MCQ section go into `practiceQuestions` as struc
 practiceQuestions: [
   {
     id: 'lesson-N-mcq-01',       // lesson-N-mcq-01 through lesson-N-mcq-NN
-    question: '...',
+    question: '...',             // prose only when codeBlock is present
+    codeBlock: '...',            // OPTIONAL — see rules below
     options: [
       { id: 'a', label: 'A', text: '...' },
       { id: 'b', label: 'B', text: '...' },
@@ -658,6 +675,8 @@ practiceQuestions: [
   }
 ]
 ```
+
+**`codeBlock` (optional field):** Add when the question requires reading code carefully to answer — multi-line snippets, constructor bodies, reference assignment chains, or "what does this print?" style questions. When present, keep `question` as pure prose; the component renders `codeBlock` as a dark monospace block between the question and the options. Do NOT add `codeBlock` for questions that only reference a short identifier inline in a prose sentence (e.g. "A class has `public double rating`") — those stay as prose with backtick-formatted inline code inside the `question` string.
 
 SOURCE_TYPE is a JS comment only — do not add it as a data field.
 
@@ -758,12 +777,23 @@ This mirrors the existing `BackfillLessonContent` pattern and is idempotent and 
 | **Architecture Diagram** | Optional. Include ONLY if the flow is non-obvious from prose. Best pattern for OOP lessons: before/after contrast (procedural vs. OOP), not a linear request→entity→output flow. Most lessons: omit entirely. (See §8a.) |
 | **Concept Checks** | Max 2 per lesson. Test application or misconception, not verbatim recall. Never hardcode `initialSelectedOption` or `initialSubmitted`. (See §8a.) |
 | **Practice Questions** | All lesson MCQs go here as `practiceQuestions[]` in lessonInteractions.js — no DB `Question` model exists. SOURCE_TYPE is a JS comment only. (See §8a.) |
+| **`codeBlock` field** | Optional on each `practiceQuestions` entry. Use for multi-line code or "what does this print?" questions — renders as a dark monospace block. Keep `question` as pure prose when present. Short inline identifiers stay in the `question` string with backtick formatting. |
+| **Exercise linking** | Exercises appear only when `lessonExerciseAssociations.js` has an entry for the lesson slug AND the Exercise record exists in the database. Missing the association file entry silently suppresses the exercise component. (See §8a.) |
 
 ---
 
 ## Changelog
 
-### v2.2 (2026-08-28) — Current
+### v2.3 (2026-08-28) — Current
+
+**What's New:**
+
+- ✅ **Section §8a — lessonExerciseAssociations.js:** New subsection documenting that exercises render ONLY when `app/src/data/lessonExerciseAssociations.js` has an entry for the lesson slug. Missing this entry silently suppresses the exercise component. Both the database record and the association file entry are required.
+- ✅ **`codeBlock` optional field on `practiceQuestions`:** Documented with usage rules — use for multi-line or mentally-executed code; keep `question` as pure prose when `codeBlock` is present; do not use for short inline identifier references.
+- ✅ **Quick Reference table:** Added rows for `codeBlock` field and exercise linking.
+- ✅ **Ingestion Prompt (companion update):** Steps renumbered; Step 4 added for `lessonExerciseAssociations.js`; `codeBlock` rules added to §3c; Output D added; post-ingestion checklist updated.
+
+### v2.2 (2026-08-28)
 
 **What's New:**
 
