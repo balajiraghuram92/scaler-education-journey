@@ -1,0 +1,64 @@
+{
+  "id": "java-lld-oop1-trip-state-management",
+  "lessonSlug": "01-intro-to-lld",
+  "title": "Trip State Management — Encapsulation & Invariants",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 20,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "trip",
+      "path": "src/main/java/Trip.java",
+      "displayName": "Trip.java",
+      "editable": true
+    },
+    {
+      "id": "trip-exception",
+      "path": "src/main/java/TripException.java",
+      "displayName": "TripException.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/TripTest.java",
+    "className": "TripTest"
+  },
+  "evidence": [
+    {
+      "id": "trip-status-private",
+      "label": "Trip status and fields are declared private",
+      "testMethod": "testTripFieldsArePrivate"
+    },
+    {
+      "id": "trip-accept-valid",
+      "label": "acceptTrip transitions status from REQUESTED to ACCEPTED_BY_DRIVER",
+      "testMethod": "testAcceptTripValidTransition"
+    },
+    {
+      "id": "trip-accept-invalid",
+      "label": "acceptTrip throws TripException when not in REQUESTED state",
+      "testMethod": "testAcceptTripInvalidTransitionThrows"
+    },
+    {
+      "id": "trip-cancel-valid",
+      "label": "cancelTrip transitions status to CANCELLED when valid",
+      "testMethod": "testCancelTripValidTransition"
+    },
+    {
+      "id": "trip-cancel-invalid",
+      "label": "cancelTrip throws TripException when IN_PROGRESS or COMPLETED",
+      "testMethod": "testCancelTripInvalidTransitionThrows"
+    },
+    {
+      "id": "trip-no-public-setter",
+      "label": "Trip has no public setStatus method",
+      "testMethod": "testNoPublicStatusSetter"
+    }
+  ]
+}

@@ -179,12 +179,7 @@ public static class JavaVerticalSeedData
             EstimatedMinutes = 60,
             IsCompleted = true,
             OrderIndex = 1,
-            ContentBody = @"# Lesson 1 — Intro to LLD for Scalable Systems
-## Concepts Covered
-- **High-Level Design (HLD)**: Architecture diagrams, microservices boundaries, database choices, load balancers, caching layers.
-- **Low-Level Design (LLD)**: Class diagrams, design patterns, schemas, interfaces, thread safety, and method contracts.
-- **Scaling Axes**: Vertical scaling (bigger compute) vs Horizontal scaling (more nodes).
-- **Procedural vs Object-Oriented**: Moving from centralized state mutation to localized state and encapsulated behaviors."
+            ContentBody = GetAuthoredLessonContent("01-intro-to-lld") ?? string.Empty
         });
 
         // Lesson 2
@@ -1207,28 +1202,28 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
     {
         return slug switch
         {
-            "01-intro-to-lld" => @"# Lesson 1 — Intro to LLD for Scalable Systems
+            "01-intro-to-lld" => @"# Lesson 1 — Intro to LLD for Scalable & AI-Ready Systems
 
 ## Concepts Covered
-Low-Level Design is the practice of turning a business capability into dependable objects, interfaces, state transitions, and failure boundaries. It sits below an HLD service diagram: the HLD may say that an order service owns checkout, while the LLD explains how an `Order`, `PaymentAttempt`, `InventoryReservation`, and `OrderRepository` collaborate without leaking persistence or transport concerns.
+System design operates at two altitudes: infrastructure and code. High-Level Design (HLD) answers what components exist and how they connect — load balancers, application servers, databases, caches, message queues. It is a bird's-eye view of the system, deliberately silent on internals. Low-Level Design (LLD) answers how each component is actually written in code. The critical realization is that every infrastructure layer is itself just software. A load balancer is code that reads requests, applies a routing algorithm (round-robin, least-connections, ip-hash), and forwards them. A database is code that handles query parsing, storage engines, indexing, and transaction management. Once HLD has decided what to build, LLD governs how we write that code: maintainably (a teammate can read, modify, and extend it without breaking adjacent behaviour), extensibly (new requirements don't trigger rewrites of existing logic), and reusably (a payment abstraction written once plugs into checkout, refunds, and subscriptions without duplication). The gap between adding a new payment provider taking a day versus three weeks with regressions is an LLD question.
 
-Separate responsibilities before writing classes. A controller translates an HTTP request, an application service coordinates a use case, domain objects protect invariants, and adapters talk to databases or external systems. Prefer composition when behavior varies independently; use inheritance only when the subtype really satisfies the parent contract. Scaling concerns also appear in LLD: immutable values reduce coordination, idempotency prevents duplicate work, and bounded interfaces make later horizontal scaling safer.
+In Procedural style, functions are the active concept and data structs are passive — the puppeteer and the puppets. A `Trip` struct with fields `driverId`, `passengerId`, and `status` can be mutated by `updateTripStatus(trip, ""CANCELLED"")`, by direct assignment `trip.status = ""COMPLETED""`, or by any function across the entire codebase holding a reference. As the system grows across hundreds of files and dozens of engineers, tracing which function corrupted a status field becomes an investigation, not a lookup. OOP resolves this by making entities the primary cognitive unit — a `Trip` object owns its state and exposes controlled methods that enforce business rules at the point where the data lives. Real OOP keeps behaviour close to the data it governs: state transitions belong in the entity, not in an anemic service class that reaches into getters and setters. Service classes coordinate across entities; entities govern their own state.
 
 ## Practical Backend Scenario
-Design the first slice of a ride-booking quote service. A `QuoteService` receives a pickup, destination, vehicle type, and request id. It asks a distance provider for route facts, applies a pricing policy, and returns an immutable quote with an expiry time. The HTTP layer should not calculate fares or know whether distance came from a cache or a remote provider. If the same request id arrives twice, the application boundary should return the same quote rather than create two independent negotiations.
+A passenger requests a ride and a driver accepts. While the driver is en route, the passenger attempts to cancel. In the procedural codebase, three different service functions — `CancellationService`, `NotificationService`, and `FareService` — each reach directly into the `Trip` struct to read and compare `status`. When a race condition under concurrent load corrupts the field, the bug trace spans three files and pulls in four engineers to determine which write landed last. In the OOP design, `Trip.cancelTrip()` is the single method that reads, validates, and writes `status`. All three service functions call it. A `TripException` is thrown if the cancel violates a business rule (trip is already `IN_PROGRESS`); the caller handles that exception at its own boundary. When the same concurrency bug surfaces, the trace ends in one method in one class. The application runs stateless across 15 backend servers; any server can receive the cancel request. The `Trip` entity persisted in the shared database is the single source of truth, and its method contracts prevent concurrent writes from producing incoherent state.
 
 ## Practice Loop
-1. Write the use-case sentence and list the invariants that must always hold.
-2. Draw the collaborators and mark which ones are domain objects, ports, or adapters.
-3. Implement the smallest happy path with constructor validation and no framework annotations.
-4. Add duplicate requests, provider timeout, expired quote, and unsupported vehicle tests.
-5. Review each public method: can it be called in an invalid order, and who owns that rule?
+1. Write down what data a `Trip` holds (passenger ID, driver ID, source, destination, current status, fare) and what actions it must support (`acceptTrip`, `cancelTrip`, `markArrived`, `complete`).
+2. Sketch a procedural version with public struct fields and standalone functions modifying fields directly.
+3. Count your blast radius: inspect every line across service functions, HTTP handlers, and helpers reading or writing `trip.status` directly.
+4. Refactor into OOP: move state and behaviour into a `Trip` class, make fields private, and enforce state transition invariants internally.
+5. Verify encapsulation: ensure internal representation changes (like switching status from String to enum) require zero caller modifications.
 
 ## Evidence of Understanding
-You can explain why the controller does not own pricing, identify the boundary that makes a quote idempotent, and change the distance provider without editing the pricing policy. Your tests demonstrate that invalid state cannot be constructed and that a timeout becomes a deliberate application outcome rather than an accidental stack trace.
+You can explain why scaling a team on procedural code becomes exponentially harder as the codebase grows — any function can modify any entity's state, so there is no single authoritative location for business rules — and you can design a `Trip` entity that consolidates state ownership and enforces invariants through method contracts. You can demonstrate the difference by refactoring the same scenario from procedural to OOP, showing that the OOP version requires checking exactly one class for trip-state bugs. You can identify an Anemic Domain Model in a Spring codebase — a class with only getters/setters and a Service class holding all logic — and articulate why it recreates the procedural problem in Java syntax.
 
 ## Suggested Extension
-Add a `QuoteRepository` port and two adapters: an in-memory implementation for tests and a PostgreSQL implementation for production. Compare the design before and after introducing the persistence boundary.
+Add a `Discount` entity and a method `applyDiscount(Discount d)` to `Trip` that applies a discount code only if the trip is still in `REQUESTED` state and the discount has not already been applied. Ensure discount validation logic stays in `Discount`, fare recalculation stays in `Trip`, and neither class leaks internal representation across the boundary.
 ",
             "02-oop-1-intro-lab" => @"# Lesson 2 — OOP-1: Intro to OOP Lab
 

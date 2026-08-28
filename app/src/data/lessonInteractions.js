@@ -3,40 +3,59 @@ const lessonInteractions = {
     conceptChecks: [
       {
         id: 'lesson-1-concept-check-01',
-        eyebrow: 'CONCEPT CHECK 01',
+        eyebrow: 'CONCEPT CHECK 01 — PROCEDURAL VS OOP',
         question:
-          'A client retries the same quote request with the same request ID. Which boundary should ensure the retry returns the original quote instead of starting a second negotiation?',
+          'Which of the following is the core problem with Procedural Programming as the codebase scales across a large engineering team?',
         options: [
-          { id: 'a', label: 'A', text: 'The controller should calculate the fare and cache the HTTP response.' },
-          { id: 'b', label: 'B', text: 'The application boundary should remember the request ID and return the existing immutable quote.' },
-          { id: 'c', label: 'C', text: 'The distance provider should decide whether a quote has already been negotiated.' },
-          { id: 'd', label: 'D', text: 'The pricing policy should mutate the previous quote before applying the fare again.' }
+          { id: 'a', label: 'A', text: 'Procedures cannot call other procedures or external libraries.' },
+          { id: 'b', label: 'B', text: 'Entities are passive data structs — any procedure across the codebase can read or modify state freely without centralized invariant enforcement.' },
+          { id: 'c', label: 'C', text: 'Procedural code does not support functions or memory allocation.' },
+          { id: 'd', label: 'D', text: 'Procedural code cannot interact with relational databases.' }
         ],
         correctOptionId: 'b',
         explanation:
-          'QuoteService is the use-case boundary that owns idempotency. It can return the same immutable Quote for a repeated request ID while keeping transport, routing, distance lookup, and fare calculation in their own responsibilities.',
+          'In Procedural style, data structs are passive puppets and external functions are active puppeteers. When an entity status is corrupted, finding the offending write requires auditing every function that touches it. Real OOP resolves this by making entities own their state and enforce their own business invariants.',
         incorrectExplanation:
-          'Look for the boundary that coordinates the use case. Idempotency belongs where the request is interpreted and the quote is created, not in the controller, provider adapter, or pricing algorithm.',
-        hint: 'request ID → QuoteService → immutable Quote',
+          'Focus on how state is manipulated in procedural vs. object-oriented design and what happens when dozens of engineers touch the same shared struct across multiple services.',
+        hint: 'Passive structs + unbounded external mutation = impossible bug tracing at scale.',
         initialSelectedOption: 'b',
         initialSubmitted: true
+      },
+      {
+        id: 'lesson-1-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — THE ANEMIC DOMAIN MODEL',
+        question:
+          'A Spring backend has a Payment class with private fields and only getters/setters, and a PaymentService containing validatePayment(), applyDiscount(), and markComplete(). Why does this represent the Anemic Domain Model anti-pattern?',
+        options: [
+          { id: 'a', label: 'A', text: 'Using private fields and a separate service class violates Spring Boot conventions.' },
+          { id: 'b', label: 'B', text: 'Payment has no behaviour; all business logic lives in PaymentService, reducing the entity to an anemic data struct and recreating procedural programming in Java syntax.' },
+          { id: 'c', label: 'C', text: 'The fix is to merge PaymentService into Payment as static helper methods.' },
+          { id: 'd', label: 'D', text: 'Service classes should always hold all state mutation rules to keep entities purely passive.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'An Anemic Domain Model creates classes that are merely data holders with getters and setters, while services act as external procedures manipulating them. Real OOP dictates that entities govern their own state transitions (e.g. payment.markComplete()), while service classes focus on coordinating workflows across entities.',
+        incorrectExplanation:
+          'Think about who owns state transitions: an entity governing its own invariants, or a service class reaching into passive getters and setters.',
+        hint: 'Service classes coordinate workflows; entities govern their own internal state transitions.'
       }
     ],
     architecture: {
-      id: 'lesson-1-quote-service-flow',
-      eyebrow: 'PRACTICAL BACKEND SCENARIO — RIDE-BOOKING QUOTE SERVICE',
-      boundaryLabel: 'BOUNDARY ACCEPTED',
+      id: 'lesson-1-trip-state-flow',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — RIDE-SHARING TRIP STATE MANAGEMENT',
+      boundaryLabel: 'ENCAPSULATED STATE BOUNDARY',
       boundaryText:
-        'QuoteService depends on distance and pricing capabilities, not on the infrastructure that supplies them.',
+        'The Trip entity validates and mutates status internally; services coordinate workflows without directly mutating fields.',
       nodes: [
-        { id: 'request', label: 'Request', kind: 'input' },
-        { id: 'controller', label: 'QuoteController', kind: 'service' },
-        { id: 'service', label: 'QuoteService', kind: 'boundary', highlighted: true },
-        { id: 'distance', label: 'DistanceProvider', kind: 'adapter' },
-        { id: 'pricing', label: 'PricingPolicy', kind: 'adapter' },
-        { id: 'quote', label: 'Immutable Quote', kind: 'output' }
+        { id: 'request', label: 'Passenger Cancel Request', kind: 'input' },
+        { id: 'controller', label: 'TripController', kind: 'service' },
+        { id: 'service', label: 'CancellationService', kind: 'service' },
+        { id: 'boundary', label: 'Trip.cancelTrip() (Entity Invariant)', kind: 'boundary', highlighted: true },
+        { id: 'notification', label: 'NotificationService', kind: 'adapter' },
+        { id: 'fare', label: 'FareService', kind: 'adapter' },
+        { id: 'output', label: 'Guarded Trip State (Cancelled)', kind: 'output' }
       ]
-    },
+    }
   },
 
   'java-spring-lld/oop-foundations/04-oop-3-polymorphism-interfaces': {
