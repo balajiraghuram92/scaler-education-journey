@@ -187,16 +187,15 @@ public static class JavaVerticalSeedData
         {
             ModuleId = moduleId,
             Slug = "02-oop-1-intro-lab",
-            Title = "Lesson 2 — OOP-1: Intro to OOP Lab",
-            Description = "Hands-on foundation lab covering classes, objects, state encapsulation, and instance methods.",
+            Title = "Lesson 2 — OOP-1: Classes, Objects & Encapsulation",
+            Description = "Distinguish a class from an object, predict JVM memory reference model results, use constructors/this keyword, static vs instance fields, and enforce business rules with encapsulation.",
             LectureNumber = 2,
             ClassDate = "2026-06-21",
             HorstmannRef = "Core Java Vol I Ch. 4 §4.4",
-            EstimatedMinutes = 45,
+            EstimatedMinutes = 60,
             IsCompleted = true,
             OrderIndex = 2,
-            ContentBody = @"# Lesson 2 — OOP-1: Intro to OOP Lab
-*Note: Foundation lab covering Java class anatomy, reference types, heap vs stack memory allocation, and constructors.*"
+            ContentBody = GetAuthoredLessonContent("02-oop-1-intro-lab") ?? string.Empty
         });
 
         // Lesson 3 - THE COMPREHENSIVE OOP-2 LESSON
@@ -1226,28 +1225,54 @@ You can explain why scaling a team on procedural code becomes exponentially hard
 ## Suggested Extension
 Add a `Discount` entity and a method `applyDiscount(Discount d)` to `Trip` that applies a discount code only if the trip is still in `REQUESTED` state and the discount has not already been applied. Ensure discount validation logic stays in `Discount`, fare recalculation stays in `Trip`, and neither class leaks internal representation across the boundary.
 ",
-            "02-oop-1-intro-lab" => @"# Lesson 2 — OOP-1: Intro to OOP Lab
+            "02-oop-1-intro-lab" or "02-oop-classes-objects" => @"# Lesson 2 — OOP-1: Classes, Objects & Encapsulation
 
 ## Concepts Covered
-An object combines state with the operations that are allowed to change that state. A class is a definition; an object is a runtime instance with identity, fields, and behavior. In Java, references point to heap objects, while local variables and call frames belong to an executing thread. This distinction explains why assigning one reference to another does not copy the object.
 
-Start a model with meaningful nouns and verbs, then make invalid transitions difficult to express. A constructor should establish the minimum valid state. Methods should represent business actions such as `reserve`, `cancel`, or `confirm`, rather than expose setters for every field. Keep data accessors small and make the object responsible for rules that belong to its own state.
+Abstraction is the overarching principle of OOP — the idea that a complex system is best understood as a set of clearly-bounded ideas working together. Encapsulation, inheritance, and polymorphism are the three mechanisms that implement it. A **class** is a template: it defines the fields an object will carry and the methods it exposes. The class definition occupies minimal JVM memory (bytecode only) and creates no object at runtime. Every call to `new Driver(...)` allocates a distinct **object** on the **heap** — the JVM memory region for dynamically allocated instances — and initializes each field independently. A reference variable on the stack (`Driver d1`) holds the heap address, not the object itself. Assigning `Driver d2 = d1` copies that address; both variables now point at the same heap allocation. `d2.name = ""Suresh""` modifies the single shared object, and `d1.name` returns ""Suresh"" afterwards. Two independent Driver objects require two separate `new` calls.
+
+Java initializes unassigned instance fields to zero-equivalents — reference types to `null`, numerics to `0`, booleans to `false` — so a `Driver` created with `new Driver()` and no constructor body has `name = null` and `rating = 0.0`. Constructors replace those defaults with real values; the `this` keyword distinguishes an instance field from a same-named parameter. Without it, `name = name` in a constructor is a no-op: the parameter is assigned to itself, the field stays `null`, and the compiler raises no warning. The `static` keyword marks class-level members shared across every instance — a `totalDrivers` counter that tracks how many Driver objects exist belongs on the class, not on each driver; making it an instance field means every driver holds its own counter starting at zero, which is nonsensical. **Encapsulation** serves two jobs: bundling state and behaviour inside a class, and protecting that state by making fields `private` and routing all changes through methods that enforce business rules. With public fields, any caller anywhere can write `driver.rating = 10.0`, bypassing every validation the team ever agreed on; private fields close that door at compile time:
+
+```java
+// Without encapsulation — invalid state compiles silently
+public double rating;
+driver.rating = 10.0;  // Uber max is 5.0 — no error
+
+// With encapsulation — the rule lives in exactly one place
+private double rating;
+
+public void setRating(double newRating) {
+    if (newRating < 1.0 || newRating > 5.0) {
+        throw new IllegalArgumentException(
+            ""Rating must be between 1.0 and 5.0, got: "" + newRating);
+    }
+    this.rating = newRating;
+}
+```
 
 ## Practical Backend Scenario
-Model a delivery order moving from `CREATED` to `ASSIGNED`, `PICKED_UP`, and `DELIVERED`. The order owns its status transition rules; a caller cannot move a delivered order back to created by mutating a public field. A `DeliveryAddress` value is validated once at construction. The application service coordinates the courier and notification ports but does not directly rewrite the order status.
+
+A `FareBoostService` computes dynamic fare multipliers based on driver ratings. In the unencapsulated `Driver` class, `rating` is a public field. A junior engineer writing a test fixture types `driver.rating = 10.0` to simulate a high-rated driver, commits the fixture, and the corrupt value reaches the staging database. Every trip processed by that driver in staging now carries an inflated multiplier, and the regression surfaces only when fare totals look wrong in a dashboard review. In the encapsulated design, `Driver.rating` is `private`; `setRating(double r)` throws `IllegalArgumentException` for any value outside `[1.0, 5.0]`. The test fixture doesn't compile until the engineer supplies a valid rating. The `FareBoostService` reads the value through `driver.getRating()` and has no path to write it directly. When a rating bug does surface in production, the entire blame radius is one method in one class — not a search across every service that ever touched the public field.
 
 ## Practice Loop
-1. List the fields, valid initial state, and allowed transitions.
-2. Implement a small immutable value object and a stateful aggregate with private fields.
-3. Write tests for a valid transition, an invalid transition, and a repeated command.
-4. Inspect the heap-reference behavior by assigning two variables to one object and then using a separate copy.
-5. Refactor any public setter into a named business operation or remove it.
+
+1. List the `Driver` class fields (`name`, `driverId`, `rating`, `isOnline`, `phoneNumber`) and the operations it must support (`goOnline`, `goOffline`, `acceptRide`, `setRating`, `getRating`, `maskPhoneNumber`) on paper, without any code — you are naming the entity's responsibility boundary before a single line is written.
+2. Write the bare class with `public` fields and no methods; from a separate `Main` class, set `driver.rating = 10.0` and `driver.rating = -3.0` — observe that both compile and execute without error.
+3. Count every line in your codebase that reads or writes `driver.rating` directly and write down the total. That count is your blast radius: every one of those sites must be audited when an incorrect rating surfaces in production.
+4. Add the `private` modifier to `rating`; add `setRating(double r)` with the 1.0–5.0 guard; recompile — observe that every direct field write in step 2 now fails at compile time, forcing all callers through the validated method.
+5. Add `private static int totalDrivers = 0;` to the class, increment it inside the constructor with `totalDrivers++`, and add `public static int getTotalDrivers()`. Create three separate Driver objects and call `Driver.getTotalDrivers()` — verify the counter reflects the total across all instances, not a per-object value of 1.
 
 ## Evidence of Understanding
-You can distinguish identity from value, explain why two references can mutate the same object, and show where the order prevents an illegal state transition. Your tests prove that construction rejects invalid addresses and that command methods report invalid status changes explicitly.
+
+You can explain why `Driver d2 = d1` creates no new object and predict that `d2.name = ""Suresh""` changes what `d1.name` returns, because both variables hold the same heap address. You can write a `Driver` constructor using `this` to disambiguate field names from parameters and demonstrate that omitting `this` causes fields to silently retain their default values. You can explain the difference between a static field and an instance field by showing that `Driver.totalDrivers` increments with each constructor call while `d1.rating` and `d2.rating` are independent — and you can articulate why making a shared counter an instance field is a design error, not just a style one. You can build a `Driver` class with private fields and a `setRating()` method that rejects invalid values with a descriptive exception, and you can demonstrate that the resulting design eliminates the compile-time path for a `FareBoostService` to corrupt a driver's rating.
 
 ## Suggested Extension
-Add an event such as `OrderDelivered` without allowing the event publisher to mutate the aggregate. Keep the event payload immutable and verify that a retry does not publish the same delivery twice.
+
+Add a `maskPhoneNumber()` method to `Driver` that returns a `String` in the format `+91 XXXXX XX234` — exposing only the last three digits of the subscriber number. Verify that `phoneNumber` is `private`, that no getter returns the raw number, and that the masking logic lives entirely inside `Driver`. The caller that needs the display string receives it in one call without knowing the internal format or length.
+
+---
+
+Reference: Lecture material — ""OOP-1: Classes, Objects & Encapsulation"" (Scaler, June 2026)
 ",
             "04-oop-3-polymorphism-interfaces" => @"# Lesson 4 — OOP-3: Polymorphism & Interfaces
 

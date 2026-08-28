@@ -211,6 +211,175 @@ const lessonInteractions = {
     ]
   },
 
+  'java-spring-lld/oop-foundations/02-oop-1-intro-lab': {
+    conceptChecks: [
+      {
+        id: 'lesson-2-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — REFERENCE MODEL',
+        question:
+          'After `Driver d2 = d1;` followed by `d2.name = "Suresh";`, what does `System.out.println(d1.name)` print?',
+        options: [
+          { id: 'a', label: 'A', text: 'Rahul — d1 was assigned first and is unchanged' },
+          { id: 'b', label: 'B', text: 'Suresh — both variables point to the same heap object' },
+          { id: 'c', label: 'C', text: 'null — d2 points to a new empty object' },
+          { id: 'd', label: 'D', text: 'A NullPointerException is thrown' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Assigning d2 = d1 copies the reference (the heap address), not the object. Both variables point at the same Driver on the heap, so writing to d2 is writing to d1.',
+        incorrectExplanation:
+          'Java reference variables hold addresses, not objects. d2 = d1 means both point to the same heap allocation — there is still only one Driver in memory.',
+        hint: 'Ask yourself: after d2 = d1, how many Driver objects exist on the heap?'
+      },
+      {
+        id: 'lesson-2-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — STATIC KEYWORD',
+        question:
+          'A `Driver` class has `int totalDrivers = 0;` (no `static`) and the constructor does `totalDrivers++`. After creating three Driver objects, what does `d1.totalDrivers` equal?',
+        options: [
+          { id: 'a', label: 'A', text: '3 — it tracks the total across all instances' },
+          { id: 'b', label: 'B', text: '1 — each object has its own copy, incremented once at construction' },
+          { id: 'c', label: 'C', text: '0 — instance fields are not modified by constructors' },
+          { id: 'd', label: 'D', text: 'A compile error — non-static fields cannot be incremented in constructors' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Without `static`, every Driver object gets its own copy of `totalDrivers`. Each copy is incremented once by that object\'s constructor, ending at 1. Only `static int totalDrivers` is shared across all instances and would reach 3.',
+        incorrectExplanation:
+          'Instance fields belong to each object independently. `d1.totalDrivers`, `d2.totalDrivers`, and `d3.totalDrivers` are three separate integers, each holding 1. To get a shared counter, the field must be `static`.',
+        hint: 'How many copies of a non-static field exist when you create three objects?'
+      }
+    ],
+    practiceQuestions: [
+      // FROM_MATERIAL
+      {
+        id: 'lesson-2-mcq-01',
+        question:
+          'What does the following code print?\n\nDriver d1 = new Driver();\nd1.name = "Rahul";\nDriver d2 = d1;\nd2.name = "Suresh";\nSystem.out.println(d1.name);',
+        options: [
+          { id: 'a', label: 'A', text: 'Rahul' },
+          { id: 'b', label: 'B', text: 'Suresh' },
+          { id: 'c', label: 'C', text: 'null' },
+          { id: 'd', label: 'D', text: 'A NullPointerException is thrown' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'd2 = d1 copies the reference (heap address), not the object. Both variables point at the same Driver. Writing d2.name modifies that shared object, so d1.name returns "Suresh".'
+      },
+      // FROM_MATERIAL
+      {
+        id: 'lesson-2-mcq-02',
+        question:
+          'After calling `new Driver("Rahul", 4.8)` with the constructor `name = name; rating = rating;` (no `this`), what is the value of the driver\'s name field?',
+        options: [
+          { id: 'a', label: 'A', text: '"Rahul" — assigned correctly' },
+          { id: 'b', label: 'B', text: 'A compile error — name appears twice' },
+          { id: 'c', label: 'C', text: 'null — the parameter assigned to itself, field untouched' },
+          { id: 'd', label: 'D', text: '"Rahul" — Java auto-infers this.name when names match' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'name = name reassigns the local parameter to itself — a legal no-op. The instance field this.name is never touched and stays null. The fix is this.name = name.'
+      },
+      // FROM_MATERIAL
+      {
+        id: 'lesson-2-mcq-03',
+        question:
+          'A Driver class has `int totalDrivers = 0;` (no static) and increments it in the constructor. After three Driver objects are created, what does d1.totalDrivers equal?',
+        options: [
+          { id: 'a', label: 'A', text: '3 — shared total across all instances' },
+          { id: 'b', label: 'B', text: '1 — each object has its own copy, incremented once' },
+          { id: 'c', label: 'C', text: '0 — instance fields are not modified by constructors' },
+          { id: 'd', label: 'D', text: 'Compile error — cannot increment non-static in constructor' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Without static, every Driver gets its own totalDrivers, each equal to 1. Only static int totalDrivers is shared and would accumulate to 3.'
+      },
+      // FROM_MATERIAL
+      {
+        id: 'lesson-2-mcq-04',
+        question: 'Which statement correctly describes the relationship between a class and an object in Java?',
+        options: [
+          { id: 'a', label: 'A', text: 'A class holds all its objects — deleting the class deletes the objects' },
+          { id: 'b', label: 'B', text: 'A class is a blueprint with minimal memory; each object is a separate heap allocation created by new' },
+          { id: 'c', label: 'C', text: 'A class and an object are the same thing; "object" is just informal for a class at runtime' },
+          { id: 'd', label: 'D', text: 'An object is stored on the stack and the class is stored on the heap' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The class definition (bytecode) is the template. Each new call allocates a separate heap block for one object with its own copy of every instance field. Class and objects are independent.'
+      },
+      // FROM_MATERIAL
+      {
+        id: 'lesson-2-mcq-05',
+        question: 'A Driver class has `public double rating`. Which statement is most accurate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Acceptable — developers will know not to set invalid values' },
+          { id: 'b', label: 'B', text: 'Should be protected to prevent subclass corruption' },
+          { id: 'c', label: 'C', text: 'Any code anywhere can write driver.rating = 10.0; making it private with a validated setRating() is the only design that enforces the rule' },
+          { id: 'd', label: 'D', text: 'Fine to keep public; a validateRating() method called by callers is sufficient' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'Convention-based protection fails at scale. Any code with a Driver reference can write any value to a public field. Private + setRating() means the compiler rejects direct writes and the method is the single enforcement point.'
+      },
+      // FROM_MATERIAL
+      {
+        id: 'lesson-2-mcq-06',
+        question: 'Which access modifier restricts a field so that only the class that declares it can read or write it?',
+        options: [
+          { id: 'a', label: 'A', text: 'private' },
+          { id: 'b', label: 'B', text: 'protected' },
+          { id: 'c', label: 'C', text: 'public' },
+          { id: 'd', label: 'D', text: 'package-private (no modifier)' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'private limits access to the declaring class only. protected allows same-package + subclasses. Package-private allows the same package. public allows everywhere.'
+      },
+      // FROM_MATERIAL
+      {
+        id: 'lesson-2-mcq-07',
+        question:
+          'A developer lists "four pillars of OOP: Abstraction, Encapsulation, Inheritance, Polymorphism." A senior engineer says the framing is imprecise. Which response is most accurate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The developer is correct — all four are independent equal pillars' },
+          { id: 'b', label: 'B', text: 'Abstraction is not part of OOP; it belongs to functional programming' },
+          { id: 'c', label: 'C', text: 'Abstraction is the overarching principle OOP exists to implement; Encapsulation, Inheritance, and Polymorphism are the three mechanisms that achieve it' },
+          { id: 'd', label: 'D', text: 'Abstraction and Encapsulation are synonyms; the real pillars are only Inheritance and Polymorphism' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'Abstraction is the destination (represent a system as bounded ideas). The three pillars are mechanisms to get there. Treating all four as equal obscures the hierarchy.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-2-mcq-08',
+        question:
+          'A Driver is created with `Driver d = new Driver()` (empty constructor). The code then calls `System.out.println(d.name.length())`. What happens?',
+        options: [
+          { id: 'a', label: 'A', text: 'Prints 0 — Java initializes Strings to empty string ""' },
+          { id: 'b', label: 'B', text: 'Prints the length of the class name "Driver"' },
+          { id: 'c', label: 'C', text: 'NullPointerException — reference-type fields default to null, not ""' },
+          { id: 'd', label: 'D', text: 'Prints -1 — Java uses -1 for uninitialized Strings' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'Reference-type fields default to null, not to "". Calling .length() on null throws NullPointerException at runtime. Constructors exist precisely to replace null defaults with real values before use.'
+      }
+    ]
+  },
+
+  'java-spring-lld/oop-foundations/02-oop-classes-objects': {
+    get conceptChecks() {
+      return lessonInteractions['java-spring-lld/oop-foundations/02-oop-1-intro-lab'].conceptChecks;
+    },
+    get practiceQuestions() {
+      return lessonInteractions['java-spring-lld/oop-foundations/02-oop-1-intro-lab'].practiceQuestions;
+    }
+  },
+
   'java-spring-lld/oop-foundations/04-oop-3-polymorphism-interfaces': {
     conceptChecks: [
       {
