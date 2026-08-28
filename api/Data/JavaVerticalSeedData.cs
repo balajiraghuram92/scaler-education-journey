@@ -1179,13 +1179,6 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
             return false;
         }
 
-        // Lesson 3 predates this authoring pass but is already a detailed lesson with
-        // linked practice problems and a study guide. Do not replace it.
-        if (content.Length >= 900 && content.Contains("## Concepts Covered", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
         return true;
     }
 
