@@ -286,16 +286,33 @@ const lessonInteractions = {
       {
         id: 'lesson-2-mcq-03',
         question:
-          'A Driver class has `int totalDrivers = 0;` (no static) and increments it in the constructor. After three Driver objects are created, what does d1.totalDrivers equal?',
+          'A `Driver` class needs a counter that tracks how many `Driver` objects have ever been created across the entire application. A developer writes this code. What is wrong with this design?',
+        codeBlock: 'public class Driver {\n    int totalDrivers = 0;  // incremented in constructor\n    // ...\n}',
         options: [
-          { id: 'a', label: 'A', text: '3 — shared total across all instances' },
-          { id: 'b', label: 'B', text: '1 — each object has its own copy, incremented once' },
-          { id: 'c', label: 'C', text: '0 — instance fields are not modified by constructors' },
-          { id: 'd', label: 'D', text: 'Compile error — cannot increment non-static in constructor' }
+          {
+            id: 'a',
+            label: 'A',
+            text: 'Nothing — `totalDrivers` will correctly track the total across all Driver objects'
+          },
+          {
+            id: 'b',
+            label: 'B',
+            text: 'Every Driver object gets its own copy of `totalDrivers`, each starting at 0; the field tracks nothing meaningful at the application level'
+          },
+          {
+            id: 'c',
+            label: 'C',
+            text: 'The field will cause a compile error because counters must be declared `final`'
+          },
+          {
+            id: 'd',
+            label: 'D',
+            text: 'The field is private and cannot be incremented from the constructor'
+          }
         ],
         correctOptionId: 'b',
         explanation:
-          'Without static, every Driver gets its own totalDrivers, each equal to 1. Only static int totalDrivers is shared and would accumulate to 3.'
+          'An instance field belongs to each individual object. If five Driver objects are created, there are five separate `totalDrivers` fields, each holding the value 1 (or whatever the constructor set). No single number reflects the total. The fix is `static int totalDrivers = 0` — a static field belongs to the class itself and is shared by every instance, so incrementing it in any constructor accumulates the true total.'
       },
       // FROM_MATERIAL
       {
@@ -358,16 +375,20 @@ const lessonInteractions = {
       {
         id: 'lesson-2-mcq-08',
         question:
-          'A Driver is created with `Driver d = new Driver()` (empty constructor). The code then calls `System.out.println(d.name.length())`. What happens?',
+          'A `Driver` object is created with `Driver d = new Driver()` using only the no-argument constructor (which has an empty body). The code then calls `System.out.println(d.name.length())`. What happens, and why?',
         options: [
-          { id: 'a', label: 'A', text: 'Prints 0 — Java initializes Strings to empty string ""' },
-          { id: 'b', label: 'B', text: 'Prints the length of the class name "Driver"' },
-          { id: 'c', label: 'C', text: 'NullPointerException — reference-type fields default to null, not ""' },
-          { id: 'd', label: 'D', text: 'Prints -1 — Java uses -1 for uninitialized Strings' }
+          { id: 'a', label: 'A', text: 'It prints 0 — Java initializes String fields to an empty string `""`' },
+          { id: 'b', label: 'B', text: 'It prints the length of the class name "Driver"' },
+          {
+            id: 'c',
+            label: 'C',
+            text: 'A NullPointerException is thrown — reference-type fields default to null, and calling `.length()` on null dereferences a null reference'
+          },
+          { id: 'd', label: 'D', text: 'It prints -1 — Java uses -1 to indicate an uninitialized String' }
         ],
         correctOptionId: 'c',
         explanation:
-          'Reference-type fields default to null, not to "". Calling .length() on null throws NullPointerException at runtime. Constructors exist precisely to replace null defaults with real values before use.'
+          'Java initializes unassigned instance fields to type-specific zero-equivalents: reference types (including `String`) default to `null`, not to `""`. Calling any method on a null reference throws `NullPointerException` at runtime. This is why constructors exist: to replace null defaults with real values before the object is used. The fix is either a constructor that sets `this.name` explicitly, or a null guard before the call. NullPointerException is the most common Java runtime error and almost always traces back to a field or return value that was assumed to be non-null but was not initialized.'
       }
     ]
   },
