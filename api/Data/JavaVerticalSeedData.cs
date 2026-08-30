@@ -1056,235 +1056,1399 @@ Add a `TripArchiveService` backed by a `HashMap<String, Trip>` that stores deep 
 
 Reference: Effective Java, 3rd ed., Joshua Bloch — Items 10 (equals), 11 (hashCode), 17 (Minimize mutability)
 ",
-            "04-oop-3-polymorphism-interfaces" => @"# Lesson 4 — OOP-3: Polymorphism & Interfaces
+            "04-oop-3-polymorphism-interfaces" => @"# Lesson 4 — OOP-3: Polymorphism, Abstract Classes & Interfaces
 
 ## Concepts Covered
-Polymorphism lets application code depend on a stable contract while different implementations provide behavior. An interface expresses a capability; an abstract class is useful when related implementations share protected mechanics or invariant checks. Dynamic dispatch selects the overriding implementation at runtime, which makes a collection of interface values useful without a chain of type checks.
 
-Design interfaces around a consumer need. A `PaymentAuthorizer` should expose authorization behavior, not every detail of a gateway SDK. Keep interfaces small enough to fake in a unit test, and use default methods only for behavior that is genuinely safe for every implementation. Substitution means an implementation must honor the timing, error, nullability, and side-effect promises of the contract, not merely compile against it.
+Polymorphism originates from the Greek roots *poly* (multiple) and *morph* (form): the core object-oriented principle where a single entity, interface, or method call can take on multiple concrete forms at runtime and compile time. Without polymorphism, software systems become rigid and brittle — adding a new vehicle type or payment gateway would require modifying and rewriting dispatch logic across every calling service.
+
+Object-oriented polymorphism divides into two primary mechanisms:
+1. **Runtime Polymorphism (Dynamic Dispatch):** Implemented via **method overriding**, where a subclass provides its own specific implementation of a method declared in its parent class. Dynamic dispatch is governed by a fundamental dual-perspective rule:
+   - **Reference type** $\rightarrow$ determines which methods you **CAN** call (enforced strictly by the compiler at compile time).
+   - **Actual object type** $\rightarrow$ determines which implementation **RUNS** (dispatched dynamically by the JVM at runtime).
+   When `Vehicle v = new Cab(); v.calculateFare();` executes, the compiler verifies that `Vehicle` declares `calculateFare()`, but the JVM dispatches execution to `Cab.calculateFare()`.
+2. **Compile-Time Polymorphism (Static Resolution):** Implemented via **method overloading**, where multiple methods in the same class share the exact same method name but differ in their parameter signatures (parameter count, parameter types, or parameter order). The compiler resolves the exact method to invoke before execution. Return type alone, access modifiers, or variable parameter names cannot differentiate overloads because the compiler cannot resolve call sites based on discarded return values. Static methods can be overloaded, but cannot be overridden (they are hidden). Operator overloading is not supported in Java.
+
+**Abstraction as Code:**
+The `abstract` keyword represents an idea, concept, or blueprint rather than a concrete instance. A generic base class like `Vehicle` represents a thought; concrete entities like `Cab`, `Auto`, and `Bike` represent physical vehicles. Declaring `public abstract class Vehicle` prevents direct instantiation (`new Vehicle()` is a compile-time error) while enforcing implementation obligations on subclasses through abstract methods such as `public abstract double getBaseFare();`.
+
+**The Diamond Problem & Interfaces:**
+Multiple class inheritance creates structural ambiguity when two parent classes (`A` and `B`) extend a common base class and override the same method — a child class `C` inheriting from both cannot determine which parent implementation to execute. Java solves this by prohibiting multiple class inheritance, using `interface` instead. An interface is a pure capability contract across unrelated class hierarchies (`class C implements A, B`). Interface fields are implicitly `public static final`, and methods define capability contracts (expanded to include `default` methods in Java 8+).
+
+**Composition vs. Inheritance — The Three-Question Design Test:**
+Inheritance couples classes tightly. The decision framework for choosing the correct design tool is:
+
+| Relationship Type | Question | Tool |
+|---|---|---|
+| IS A TYPE OF | Does X inherit structural identity and shared mechanics from Y? | `extends` / abstract class |
+| CAN DO | Does X possess capability Y across unrelated class families? | `implements` / interface |
+| HAS A | Does X contain Y as an internal collaborator or component? | composition / private field |
 
 ## Practical Backend Scenario
-An order service supports card, wallet, and bank-transfer payments. It depends on `PaymentAuthorizer`, while `CardAuthorizer`, `WalletAuthorizer`, and `BankTransferAuthorizer` implement the contract. A registry selects the implementation by payment method. The service handles a declined authorization uniformly, while each adapter translates provider-specific responses at its own boundary.
+
+A ride-hailing dispatch fleet service manages multimodal transport options across a metropolitan network. The system defines an abstract base class `Vehicle` that encapsulates shared state (`vehicleId`, `driverName`) and exposes a template method `calculateFare(int distanceKm) { return distanceKm * getBaseFare(); }` with an abstract `getBaseFare()`. Subclasses specialize only their per-kilometer pricing: `Cab` returns 15.0, `Auto` returns 10.0, and `Bike` returns 5.0.
+
+The dispatch service layer `CabBookingService` overloads `bookRide()` to support multiple client workflows: `bookRide(String pickup, String drop)`, `bookRide(String pickup, String drop, int rideTimeMinutes)`, and `bookRide(String pickup, String drop, int rideTimeMinutes, Coupon coupon)`. When dispatching a trip, the fleet orchestrator iterates over a polymorphic `List<Vehicle> fleet`. Calling `v.calculateFare(distanceKm)` dynamically executes each vehicle's specialized rate without any `instanceof` inspection. Payment processing is decoupled using a `PaymentGateway` interface (`CAN DO`), allowing `RazorpayAdapter` or `StripeAdapter` to be composed into the booking workflow (`HAS A`).
 
 ## Practice Loop
-1. Define a minimal interface from the use case rather than from a concrete SDK.
-2. Implement two real strategies and one deterministic fake for tests.
-3. Add an abstract base only if it removes duplicated invariant logic without hiding important behavior.
-4. Test dispatch through the interface reference, including a provider timeout and a declined payment.
-5. Replace any `instanceof` branch that is really a missing polymorphic operation.
+
+1. Write an abstract `Vehicle` class with private fields (`vehicleId`, `driverName`), a concrete `calculateFare(int km)` method, and an abstract `getBaseFare()` method.
+2. Create concrete subclasses `Cab`, `Auto`, and `Bike` extending `Vehicle`, implementing `getBaseFare()` and adding `@Override` annotations.
+3. Implement `CabBookingService` with overloaded `bookRide()` methods demonstrating parameter count and type variations.
+4. Construct a `List<Vehicle>` containing a `Cab`, `Auto`, and `Bike`; iterate through the collection and invoke `calculateFare(10)`, observing dynamic method dispatch at runtime.
+5. Create a `PaymentGateway` interface (`CAN DO`) with `processPayment(double amount)` and compose it as a private field (`HAS A`) inside `CabBookingService`, verifying that payment changes require zero modifications to the vehicle hierarchy.
 
 ## Evidence of Understanding
-You can explain the difference between a type relationship and shared implementation, demonstrate dynamic dispatch through a collection of payment strategies, and show that the application service remains unchanged when a new payment method is added. Your tests assert contract behavior rather than implementation details.
+
+You can articulate the dual-perspective rule of polymorphism — reference type governs compile-time method accessibility while actual heap type governs runtime execution. You can explain why return types cannot differentiate overloaded methods, demonstrate how abstract classes enforce subclass obligations, and explain how interfaces prevent the Diamond Problem. You can apply the Three-Question Design Test to justify choosing composition over inheritance.
 
 ## Suggested Extension
-Add a `PaymentAuthorizerFactory` with explicit registration and validation for duplicate method names. Keep the factory separate from the payment adapters so composition remains visible at startup.
+
+Add a `Rentable` capability interface with `rent(int hours)` and attach it to both `LuxuryCab` and an unrelated `OfficeSpace` class. Demonstrate that client code can process a `List<Rentable>` polymorphically across completely disjoint class hierarchies.
+
+## Self-Check (From Class Material)
+
+**Q1.** Consider the following statements:
+i. Calling of overloaded methods is decided at compile time
+ii. Calling of overridden methods is decided at runtime.
+Which of the following is correct?
+- A. Both are correct
+- B. Both are incorrect
+- C. i is correct, ii is incorrect
+- D. i is incorrect, ii is correct
+
+**Answer: A** — Overloaded method resolution is performed statically by the compiler based on parameter signatures, while overridden method invocation is dispatched dynamically by the JVM at runtime based on the actual object instance.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 5; answer determined from source material, not marked in original)*
+
+**Q2.** Which of the following does Java not support?
+- A. Method overriding
+- B. Method overloading
+- C. Operator overloading
+- D. Method hiding
+
+**Answer: C** — Java natively supports method overriding, method overloading, and static method hiding, but intentionally does not support programmer-defined operator overloading.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 7; answer determined from source material, not marked in original)*
+
+**Q3.** What is true about static methods?
+i. They can be overloaded
+ii. They can be overridden
+Which of the following is correct?
+- A. Both are correct
+- B. Both are incorrect
+- C. i is correct, ii is incorrect
+- D. i is incorrect, ii is correct
+
+**Answer: C** — Static methods belong to the class rather than an instance; they can be overloaded with different parameter signatures, but cannot be polymorphically overridden (redefining them in a subclass results in method hiding).
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 7; answer determined from source material, not marked in original)*
+
+**Q4.** Consider the following classes:
+```java
+public class P {
+  protected int d1 = 10;
+  protected int d = 100;
+
+  protected void fun1(){
+    System.out.println(""P's fun1"");
+  }
+  protected void fun(){
+    System.out.println(""P's fun"");
+  }
+  static protected void sfun(){
+    System.out.println(""P's sfun"");
+  }
+}
+
+public class C extends P {
+  protected int d2 = 20;
+  protected int d = 200;
+
+  protected void fun2(){
+    System.out.println(""C's fun2"");
+  }
+  protected void fun(){
+    System.out.println(""C's fun"");
+  }
+  static protected void sfun(){
+    System.out.println(""C's sfun"");
+  }
+}
+```
+If client code does `P obj = new C(); obj.display();` where `display()` prints `d1`, `d`,
+then calls `fun1()`, `fun()`, `sfun()` — what is the output?
+- A. Compile Time Error
+- B. 10 100 P's fun1 C's fun P's sfun
+- C. 100 100 P's fun1 C's fun P's sfun
+- D. 10 10 P's fun1 C's fun P's sfun
+
+**Answer: B** — Fields are never polymorphic in Java; `obj.d1` and `obj.d` resolve by the
+*reference type* (`P`), so both read `P`'s fields (10, 100) regardless of the actual object
+being a `C`. `fun1()` is not overridden in `C`, so it prints `P's fun1`. `fun()` **is**
+overridden, and instance methods dispatch dynamically on the *actual object type* (`C`), so
+it prints `C's fun`. `sfun()` is `static`, so it is hidden, not overridden — static calls
+resolve at compile time by reference type (`P`), printing `P's sfun`.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/56-66.md, MCQ 60; answer determined from source material, not marked in original)*
 ",
             "05-oop-4-lms-lab" => @"# Lesson 5 — OOP-4: Library Management System Lab
 
 ## Concepts Covered
-This lab combines encapsulation, composition, interfaces, value objects, and policy objects in one small domain. Separate catalog data from lending transactions: a `BookCopy` has inventory identity, a `Member` has borrowing policy, and a `Loan` records a time-bounded agreement. A `Library` coordinates the use case but should delegate rules such as eligibility, due-date calculation, and fine calculation to focused collaborators.
 
-Model state transitions explicitly. A copy can be available, on loan, reserved, or under repair; a loan can be open, returned, or overdue. Avoid a collection of booleans that permits contradictory combinations. Use a repository interface for persistence and keep the aggregate independent of SQL, HTTP, and framework annotations.
+This lab synthesizes all four core pillars of Object-Oriented Programming — **Encapsulation**, **Abstraction**, **Inheritance**, and **Polymorphism** — by constructing a comprehensive Library Management System (LMS) from scratch.
+
+**1. Abstraction & System Blueprinting:**
+Abstraction models complex systems as interacting, bounded entities while hiding implementation mechanics. In the LMS architecture, abstraction operates across two distinct constructs:
+- **Abstract Classes:** `User` and `Book` serve as abstract base blueprints that cannot be instantiated directly. They define shared state and contract obligations for concrete specializations.
+- **Interfaces:** `Lendable` serves as a pure capability contract (`lend`, `returnItem`, `isAvailable`) that attaches lending behavior across disparate entity hierarchies without imposing an unnatural inheritance tree.
+
+**2. Inheritance & Constructor Chaining:**
+Inheritance shares structural identity across the domain (`Member IS-A User`, `Librarian IS-A User`). When a subclass object is instantiated (`new Member(""Asha"", ""asha@email.com"")`), Java enforces strict constructor ordering:
+1. `Member` constructor is invoked.
+2. `super(...)` passes execution immediately to `User`.
+3. `User` initializes shared identity fields, generates a unique ID, and increments `totalUsers`.
+4. Control returns to `Member` for subclass-specific field initialization.
+
+**3. Class-Level Rules with `static` and `final`:**
+- `static` fields (`idCounter`, `totalUsers`) belong to the class itself, maintaining a single shared copy in memory across all instances. `getTotalUsers()` is a `static` method callable on `User` directly.
+- `final` instance fields (`final String userId`) are assigned exactly once during constructor execution and cannot be reassigned afterwards.
+- `static final` constants (`static final int MAX_BORROW_LIMIT = 5`) define immutable, class-wide policy constants.
+
+**4. The Three Constructor Types & Copy Semantics:**
+- **Default Constructor:** Initializes objects with safe, deterministic initial values.
+- **Parameterized Constructor:** Provides complete field initialization at creation time.
+- **Copy Constructor:** Creates an independent object cloned from an existing instance. In the LMS, a copied user invokes `generateUniqueId()` and increments `totalUsers` rather than copying `other.userId` directly, preserving the strict invariant that all users possess distinct IDs. Similarly, a copied book resets `isAvailable = true`.
+
+**5. Polymorphic Execution Without `instanceof`:**
+In `Book.lend(User user)`, the method executes:
+```java
+if (isAvailable && user.canBorrowBooks()) {
+    isAvailable = false;
+    return true;
+}
+```
+`user.canBorrowBooks()` executes polymorphically: for a `Member`, it checks `borrowedBooksCount < MAX_BORROW_LIMIT`; for a `Librarian`, it returns `true` unconditionally. No `instanceof` type checks are required.
+
+**6. The Access Modifiers Table (Why Every LMS Field Is `private`):**
+| Modifier | Same Class | Same Package | Subclass | Everywhere |
+|----------|------------|--------------|----------|------------|
+| `private` | yes | no | no | no |
+| default | yes | yes | no | no |
+| `protected` | yes | yes | yes | no |
+| `public` | yes | yes | yes | yes |
+
+Every entity field in the LMS (`userId`, `borrowedBooksCount`, `isAvailable`) stays
+`private`, with access only through public getters and controlled mutator methods. This is
+why `Member.borrowedBooksCount` cannot be touched directly by `Book.lend()` — the two
+classes are not in an inheritance relationship, so `protected` would not even help; the
+field must go through `Member`'s own public methods.
+
+**7. Why `Book.lend()` Never Calls `incrementBorrowCount()` Directly:**
+`LibraryManagementSystem.lendBook()` delegates in two separate steps: first `book.lend(member)`,
+then — only if that succeeded — `member.incrementBorrowCount()`. `Book.lend()` itself never
+calls `incrementBorrowCount()`. This separation is deliberate: a `Book` should not need to
+know how a `Member` tracks its own borrow count internally, and a `Member`'s counting logic
+should not need to know how a `Book` decides availability. Each class stays responsible for
+exactly one piece of state, and the orchestrator (`LibraryManagementSystem`) is the only
+place that knows both steps must happen together.
+
+**8. The IS-A Test for This Domain:**
+Every inheritance relationship in the LMS should pass a simple intuition check: does
+""Child IS-A Parent"" read naturally as a sentence? ""Member IS-A User"" and ""Librarian IS-A
+User"" both read naturally, confirming `extends` is the right tool. If a relationship does
+not read naturally as IS-A, composition (a field reference) is the correct choice instead,
+not inheritance.
 
 ## Practical Backend Scenario
-A branch library receives a request to lend a particular edition. The service checks member eligibility, locks or atomically reserves one available copy, creates a loan, and emits a notification after the transaction succeeds. Two simultaneous requests must not lend the same copy. Returning a book calculates the fine from a clock abstraction so the rule is deterministic in tests.
+
+The Library Management System is structured across three core progressive milestones:
+
+**Milestone 1 — User Hierarchy & Identity Management:**
+Implement abstract base class `User` with private fields (`userId`, `name`, `contactInfo`), a `static int idCounter`, and a `static int totalUsers`. Implement constructor chaining across default, parameterized, and copy constructors. Implement `Member` with private `borrowedBooksCount`, `static final int MAX_BORROW_LIMIT = 5`, and concrete `canBorrowBooks()`. Implement `Librarian` with unrestricted borrowing privileges.
+
+**Milestone 2 — Lending Architecture & Capability Attachment:**
+Define the `Lendable` interface declaring `boolean lend(User user)`, `void returnItem(User user)`, and `boolean isAvailable()`. Implement abstract base `Book` implementing `Lendable`, encapsulating private fields (`bookId`, `title`, `author`, `isAvailable`). Create concrete subclasses `TextBook` (with subject/edition fields) and `NovelBook` (with genre fields) overriding `displayBookDetails()`. Non-lendable reference items (`Journal`, `Encyclopedia`) extend `Book` but do not implement `Lendable` (or throw unsupported operation exceptions), maintaining clean separation between what an item IS versus what it CAN DO.
+
+**Milestone 3 — Full Management System Coordination:**
+Build the central orchestrator `LibraryManagementSystem` managing `List<Book>` and `List<User>`. Implement methods for `registerUser(User u)`, `addBook(Book b)`, `lendBook(String bookId, String userId)`, and `returnBook(String bookId, String userId)`. Implement overloaded book search methods: `searchBooks(String titleQuery)` and `searchBooks(String titleQuery, String itemType)`. Implement `displayRegisteredUsers()` iterating polymorphically over `List<User>` and invoking `u.displayDashboard()`.
 
 ## Practice Loop
-1. Write the aggregate boundaries and a state diagram for copies and loans.
-2. Implement the happy path with in-memory repositories and explicit domain errors.
-3. Add concurrent checkout, duplicate return, unknown member, and overdue-fine tests.
-4. Introduce interfaces for clock, notification, and persistence only at real boundaries.
-5. Review the design for public setters, boolean state combinations, and hidden repository calls.
+
+1. Build Milestone 1: Create `User`, `Member`, and `Librarian`. Verify that creating three users and one copied member increments `User.getTotalUsers()` to 4 and assigns 4 distinct unique IDs.
+2. Build Milestone 2: Define `Lendable`, `Book`, `TextBook`, and `NovelBook`. Verify `TextBook` and `NovelBook` inherit lending logic and implement specific details.
+3. Build Milestone 3: Implement `LibraryManagementSystem` coordinating user registration, catalog storage, and borrowing transactions.
+4. Test borrowing invariants: Register a `Member`, borrow 5 books successfully, and assert that the 6th borrow attempt fails. Register a `Librarian` and assert that borrowing beyond 5 succeeds.
+5. Test encapsulation boundaries: Ensure `Member.borrowedBooksCount` cannot be mutated directly by `Book.lend()`, but only through controlled helper methods `incrementBorrowCount()` and `decrementBorrowCount()`.
+6. Trace this exact sequence and predict how many `User` objects exist and how many unique
+   IDs are generated:
+   ```java
+   Member asha = new Member(""Asha"", ""asha@email.com"");
+   User copy = new Member(asha);
+   System.out.println(asha.getUserId().equals(copy.getUserId()));
+   ```
+   (Two independent `Member` objects exist; the copy constructor must call
+   `generateUniqueId()` rather than copying `asha`'s ID, so the printed result is `false`.)
 
 ## Evidence of Understanding
-You can trace a checkout from API command to domain decision and persistence without mixing responsibilities. Your tests prove that a copy cannot be loaned twice, a return is idempotent, and a fine calculation does not depend on the wall clock during a unit test.
+
+You can explain why `User` and `Book` are abstract classes, why copy constructors must generate fresh unique IDs and increment static instance counters, how `Book.lend()` relies on runtime polymorphism rather than `instanceof` checks, and how interfaces attach capabilities across class hierarchies without forcing unrelated entities into an artificial inheritance tree.
 
 ## Suggested Extension
-Add a reservation queue with a clear ordering rule and publish `CopyAvailable` only after a successful return. Document what happens if notification delivery is delayed.
+
+Add a `FinePolicy` strategy interface (`calculateFine(int overdueDays)`) with `StandardFinePolicy` (\$1/day) and `PremiumMemberFinePolicy` (first 3 days free), injecting the appropriate policy into `Member` at registration time.
+
+## Self-Check (From Class Material)
+
+**Q1.** Consider the following about interface data-members:
+1. They are final
+2. They are static
+Which of the following is true?
+- A. Both are correct
+- B. Both are incorrect
+- C. i is correct, ii is incorrect
+- D. i is incorrect, ii is correct
+
+**Answer: A** — All fields declared in a Java interface are implicitly `public static final` constants.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 1; answer determined from source material, not marked in original)*
+
+**Q2.** Consider the following two statements:
+1. Abstract classes should necessarily have abstract methods
+2. Classes having abstract methods should be abstract
+Which of the following is true?
+- A. Both are correct
+- B. Both are incorrect
+- C. i is correct, ii is incorrect
+- D. i is incorrect, ii is correct
+
+**Answer: D** — An abstract class is not required to declare any abstract methods (it may contain only concrete methods to prevent instantiation), but any class that contains at least one abstract method must be declared abstract.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 9; answer determined from source material, not marked in original)*
+
+**Q3.** Which keyword is used to make a non-inheritable class in Java?
+- A. static
+- B. abstract
+- C. final
+- D. finally
+
+**Answer: C** — Applying the `final` keyword to a class declaration prevents any other class from extending it.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 9; answer determined from source material, not marked in original)*
 ",
             "06-concurrency-1-threads" => @"# Lesson 6 — Concurrency 1: Processes, Threads & Context Switching
 
 ## Concepts Covered
-A process owns an address space and operating-system resources; threads within it share heap state but have independent stacks and execution positions. A context switch saves one execution context and restores another, so more threads do not automatically mean more throughput. Blocking I/O, CPU work, thread creation, scheduler decisions, and memory visibility all affect the useful concurrency of a backend.
 
-`Runnable` describes work without a return value, while `Callable` can return a value or fail. Thread interruption is a cooperative cancellation signal, not a forced kill. Code that catches `InterruptedException` should either propagate it or restore the interrupt flag. Shared mutable state must have an ownership or synchronization story before a thread is introduced.
+Concurrent software execution requires understanding how operating systems allocate processing resources and memory at runtime.
+
+**The Office / Company Metaphor:**
+A running system is analogous to an office environment:
+- **Company = Process:** A self-contained running program allocated its own physical floor space, address space in RAM, and OS resources.
+- **Employees = Threads:** Lightweight execution units operating inside the process. Each employee has their own private notepad (Call Stack) and task bookmark (Program Counter), but all employees share the office desks, filing cabinets, and whiteboard (Heap Memory).
+- **Managers = CPU Scheduler:** The decision-maker determining which employee works at a physical desk during each time slice.
+- **Desks = CPU Cores:** The physical processing hardware where instructions actively advance.
+
+**Diagnostic Questions — Concurrency vs. Parallelism:**
+- *How many tasks are partially done simultaneously?*
+- *How many tasks actively advance right now?*
+- **Concurrency (Managing Many Things at Once):** A single-core CPU executing multiple tasks via rapid time-slicing. Multiple tasks are in various stages of completion, but only one task actively advances at any given instant.
+- **Parallelism (Doing Many Things at Once):** Multi-core hardware running multiple tasks simultaneously. Multiple tasks are partially done AND multiple tasks actively advance at the exact same physical moment across separate cores.
+
+**Five Real-World Anchors for the Office Metaphor (from class):**
+- **Process = browser tabs:** modern browsers run separate tabs in separate processes; one
+  tab crashing does not take down the others, because each has its own isolated memory space.
+- **Thread = a video game's internal workers:** one thread renders graphics, a second
+  manages audio, a third reads controller input, and a fourth autosaves progress — all four
+  share the same game state in memory but run independently.
+- **CPU Scheduler = a web server under load:** when incoming requests outnumber the
+  server's processing capacity, the scheduler decides execution order so no request starves
+  while avoiding excessive switching overhead.
+- **Context Switching = losing your place while studying:** pausing one subject to
+  context-switch to another and back costs real time re-orienting yourself — time spent on
+  logistics, not on the actual work. A CPU pays the same cost saving and restoring register
+  state on every thread switch.
+- **Runnable = handing off a written task:** a scheduled report defines *what* needs doing
+  without specifying *which* employee performs it — exactly like handing a task description
+  to whichever thread the scheduler assigns next.
+
+**From Code to Process in Memory:**
+- Source code $\rightarrow$ Compiled into an Executable on Disk (Program) $\rightarrow$ Loaded into RAM upon execution (Process).
+- The OS tracks each process using a **Process Control Block (PCB)**, which stores `ProcessID`, `ProcessName`, `State` (Ready, Running, Blocked), `ExecutionTime`, `MemoryLimit`, `ResourcesAllocated`, and `LastLineExecuted` / register snapshots.
+- Processes execute in isolated memory spaces; inter-process communication (IPC) requires heavy operating-system mechanisms.
+
+**Threads — Lightweight Execution Units:**
+- A **Thread** is the smallest unit of execution scheduled by the CPU.
+- Every thread within a process owns an independent **Call Stack** (local variables, method frames) and **Program Counter (PC)**.
+- All threads in the same process share the common **Heap**, static memory, and file descriptors. Communication between threads is instant via shared memory, but requires synchronization to prevent corruption.
+
+**Context Switching & Scheduling Overhead:**
+- When the CPU switches execution from Thread 1 to Thread 2, it saves Thread 1's register state, program counter, and stack pointer, and loads Thread 2's context.
+- Context switching consumes CPU cycles and causes CPU cache line invalidation (cache thrashing). Excessive thread creation degrades throughput because the CPU spends more time switching contexts than executing application logic.
+
+**Standard Operating Procedure (SOP) for Multithreading in Java:**
+1. *Think in terms of tasks to be completed in parallel, not raw threads.*
+2. Create a dedicated task class implementing the `Runnable` functional interface.
+3. Place execution logic inside the `public void run()` method.
+4. Pass required parameters to the task object via its constructor.
+5. Pass the task object to a new `Thread` instance: `Thread t = new Thread(task);`.
+6. Invoke `t.start()`. *Critical rule:* Calling `t.run()` executes the method synchronously on the current thread without spawning a new execution thread. Calling `t.start()` registers the thread with the JVM/OS scheduler to begin concurrent execution.
+7. Recognize that thread execution order is **non-deterministic** — the CPU scheduler controls thread execution timing.
 
 ## Practical Backend Scenario
-An order endpoint needs to create a payment audit record and enqueue a notification. A naive implementation starts a raw thread per request, causing unbounded growth during a traffic burst and making failures invisible to the request lifecycle. Replace it with an explicit execution boundary, a bounded queue, and a clear decision about which work must finish before the HTTP response.
+
+A collaborative document processing engine (such as Google Docs or MS Word) runs as a single application process in RAM. Within this process, multiple concurrent threads operate over the shared in-memory document model:
+- **Thread 1 (UI & Event Handling):** Captures real-time keyboard inputs, mouse clicks, and renders updates to the display buffer.
+- **Thread 2 (Background Autosave):** Periodically serializes document state and flushes changes to persistent cloud storage every 30 seconds.
+- **Thread 3 (Spell & Grammar Checking):** Tokenizes text in the background, cross-referencing dictionaries and grammar models without interrupting the user.
+- **Thread 4 (Real-time Collaboration Sync):** Listens on WebSockets for incoming remote edits from other collaborators.
+
+All threads share heap memory, allowing instant visibility of text buffer edits, while maintaining independent call stacks so that an I/O pause during cloud autosave never freezes the interactive UI thread.
 
 ## Practice Loop
-1. Sketch process, thread, heap, and stack ownership for the service.
-2. Run a small task with `Runnable`, then repeat with interruption and a slow dependency.
-3. Measure throughput and latency while varying task count and queue capacity.
-4. Add cancellation, exception reporting, and graceful shutdown behavior.
-5. Identify every shared field and write down its visibility and ownership rule.
+
+1. Write a `NumberPrinterTask` implementing `Runnable` that takes an integer `number` via constructor and prints `number` along with `Thread.currentThread().getName()`.
+2. In `main()`, spawn 10 threads running `NumberPrinterTask` for numbers 1 through 10 using `new Thread(task).start()`; run the program 5 times and observe the non-deterministic output sequence.
+3. Replace `t.start()` with `t.run()` in the loop; observe that execution becomes strictly sequential (1..10) on the `main` thread, demonstrating that `run()` bypasses thread creation.
+4. Implement a background `AutosaveTask` with a `while(true)` loop containing `Thread.sleep(2000)` and a print statement; run it concurrently alongside a main loop reading user input from `Scanner`.
+5. Use an OS process monitor (`Task Manager`, `Activity Monitor`, or `jconsole`) to inspect live thread counts and CPU utilization while varying the number of active worker threads.
 
 ## Evidence of Understanding
-You can explain why a raw thread per request is unsafe, distinguish CPU-bound from I/O-bound work, and show how an interruption reaches a task. Your service has a bounded lifecycle and does not silently lose a background exception during shutdown.
+
+You can map the office metaphor to processes, threads, CPU schedulers, and cores. You can distinguish concurrency from parallelism using the two diagnostic questions. You can detail which memory segments are private to a thread (Stack, PC) versus shared across threads (Heap), explain context switching overhead, and demonstrate the mandatory SOP for creating and starting Java threads with `Runnable` and `start()`.
 
 ## Suggested Extension
-Add request correlation data to the task without using a mutable global. Verify that cancellation does not leave a half-written audit record.
+
+Build a concurrent word frequency counter where a large text document is divided into 4 distinct text chunks, each processed by a separate `ChunkWordCounter` thread implementing `Runnable`, aggregating partial word counts into a shared reporting data structure.
+
+## Self-Check (From Class Material)
+
+**Q1.** Consider the following two statements:
+i. Runnable interface is implemented by class which will be invoked via a separate Thread
+ii. The name of the function to start a new Thread is run
+Which of the following is correct?
+- A. Both a and b are true
+- B. Only a is true
+- C. Only b is true
+- D. Both a and b are false
+
+**Answer: B** — Statement i is true; statement ii is false because the method to start a new concurrent thread is `start()`. Calling `run()` directly merely executes the method synchronously on the calling thread.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 11; answer determined from source material, not marked in original)*
+
+**Q2.** Consider the following two statements:
+1. Threads of same process can access each other's stack data
+2. Threads of same process can access each other's global data
+Which of the following is correct?
+- A. Both a and b are true
+- B. Only a is true
+- C. Only b is true
+- D. Both a and b are false
+
+**Answer: C** — Each thread has its own private call stack and local variable storage, while global, static, and heap data is shared across all threads within the same process.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 7; answer determined from source material, not marked in original)*
+
+**Q3.** Consider the following two statements:
+1. Parallel programming requires multiple program counters
+2. Concurrent programming requires time-bound CPU scheduling
+Which of the following is correct?
+- A. Both a and b are true
+- B. Only a is true
+- C. Only b is true
+- D. Both a and b are false
+
+**Answer: A** — Parallel execution requires multiple physical CPU cores executing instructions simultaneously (each with its own hardware Program Counter), whereas concurrency on a single core relies on time-sliced CPU scheduling and context switching.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 1; answer determined from source material, not marked in original)*
 ",
             "07-concurrency-2-executors" => @"# Lesson 7 — Concurrency 2: Executors, Thread Pools & Callable/Future
 
 ## Concepts Covered
-An executor separates task submission from thread management. A pool has a worker policy, queue policy, rejection policy, and shutdown contract; all four matter in production. Fixed pools protect a dependency with a known concurrency budget, while work-stealing pools suit many small CPU tasks with different trade-offs. A `Future` represents a result that may not be ready, and waiting on it at the wrong layer can erase the benefit of concurrency.
 
-Bound every fan-out. A pool that accepts unlimited work merely moves overload into memory. Timeouts need an owner, and cancellation must be propagated to the task and the downstream client where possible. Always close or shut down executors that the application owns, and expose metrics for active workers, queue depth, rejected work, and task duration.
+Creating raw threads on demand introduces severe scalability bottlenecks in production systems.
+
+**The Too-Many-Threads Problem:**
+- Creating a new `Thread` object for every task requires allocating ~1MB of stack memory and making operating system system calls.
+- If a server receives 10,000 requests and spawns 10,000 threads, the operating system exhausts RAM and enters severe CPU context-switching thrashing, where CPU cores spend all their time saving and restoring thread states rather than executing application code.
+- Threads that finish short tasks immediately die, wasting the resource investment of creating them.
+
+**The TATA Motor Production Line Analogy:**
+To manufacture 1,000 cars in a day, TATA Motors does not build 1,000 distinct production assembly lines and demolish each after assembling a single vehicle. Instead, the plant maintains a fixed, reusable set of production lines (e.g. 5 lines). As 1,000 car assembly orders arrive, they enter a waiting queue. Line 1 picks up order 1, completes it, and immediately pulls the next waiting order from the queue.
+A **Thread Pool** operates on this exact principle: a bounded roster of pre-allocated worker threads continuously pulls tasks from an internal thread-safe blocking queue, eliminating per-task creation costs and capping resource consumption.
+
+**The Executor Framework Architecture:**
+- `Executor`: Root interface declaring `void execute(Runnable command)` to decouple task submission from execution mechanics.
+- `ExecutorService`: Sub-interface managing pool lifecycle, batching, and returning `Future` handles for asynchronous computation.
+- `Executors`: Factory utility class providing pre-configured thread pool implementations:
+  - `Executors.newFixedThreadPool(int nThreads)`: Creates a pool with an exact, unchanging number of worker threads and an unbounded internal queue (`LinkedBlockingQueue`). Excess tasks wait in the queue until a worker becomes free.
+  - `Executors.newCachedThreadPool()`: Creates an elastic pool that creates new threads on demand for bursts of work and terminates idle threads (after 60 seconds). *Risk:* Under sustained heavy load, it can spawn unbounded threads and crash system memory.
+
+**Returning Results with `Callable<V>` and `Future<V>`:**
+- `Runnable.run()` returns `void` and cannot throw checked exceptions, preventing tasks from returning computed values to the caller.
+- `Callable<V>` functional interface declares `V call() throws Exception`, allowing tasks to return typed values and propagate checked exceptions.
+- `Future<V>` acts as an asynchronous claim ticket (claim slip / dry-cleaning ticket) representing the eventual result of the computation.
+- `Future.get()` blocks the calling thread until the worker completes the task, returning the computed value or throwing an `ExecutionException` wrapping any task error.
+
+**The Submit-First / Collect-Last Pattern:**
+A critical bug in concurrent code is calling `.get()` immediately after submitting each individual task:
+```java
+// WRONG — Silently serializes execution
+int a = pool.submit(taskA).get();
+int b = pool.submit(taskB).get();
+
+// RIGHT — Genuine parallel execution
+Future<Integer> fa = pool.submit(taskA);
+Future<Integer> fb = pool.submit(taskB);
+int total = fa.get() + fb.get();
+```
+*Rule:* Submit all tasks first so the pool can execute them concurrently, and collect results via `.get()` only after all tasks are in flight.
+
+**Executor Lifecycle Management:**
+Worker threads in a thread pool stay alive waiting for new tasks. Without explicit shutdown, the JVM process will never terminate even after `main()` finishes.
+- `pool.shutdown()`: Orderly shutdown — stops accepting new tasks, completes all currently queued/running tasks, then terminates. Non-blocking.
+- `pool.shutdownNow()`: Attempts immediate stop — cancels queued tasks and interrupts running workers.
+- `pool.awaitTermination(timeout, unit)`: Blocks the caller until all tasks complete or the timeout elapses.
+
+**Multithreaded Merge Sort (Parallel Decomposition):**
+Merge Sort recursively decomposes an unsorted list into independent left and right halves that never touch each other's data:
+1. Split list into `left` and `right`.
+2. Create `MergeSortTask` implementing `Callable<List<Integer>>`.
+3. Submit both subtasks to a **single shared `ExecutorService`**:
+   ```java
+   Future<List<Integer>> leftFuture = pool.submit(new MergeSortTask(left, pool));
+   Future<List<Integer>> rightFuture = pool.submit(new MergeSortTask(right, pool));
+   List<Integer> sortedLeft = leftFuture.get();
+   List<Integer> sortedRight = rightFuture.get();
+   return merge(sortedLeft, sortedRight);
+   ```
+4. *Critical Pitfall — The Shared Executor Requirement:* Never create `Executors.newFixedThreadPool()` inside the recursive `call()` method. Each recursive call would spawn its own pool, creating thousands of thread pools and causing pool exhaustion. Pass a single shared `ExecutorService` through the task constructor.
+5. *Pool Starvation:* In a small fixed thread pool, recursive parent tasks waiting on `leftFuture.get()` occupy all worker slots while child tasks wait in the queue, causing a deadlock where CPU usage drops to zero. In production, work-stealing pools (`ForkJoinPool`) or sequential cut-offs for small sub-lists resolve starvation.
 
 ## Practical Backend Scenario
-A profile endpoint fetches account, recommendation, and loyalty data. It uses separate bounded executors because recommendation work is CPU-heavy while the other calls are I/O-bound. The application waits only until the response deadline, cancels unfinished work, and returns a partial response only when the product contract permits it.
+
+A financial portfolio dashboard aggregator compiles real-time asset summaries across stock holdings, mutual fund valuations, fixed-deposit returns, and crypto wallet balances. Each external provider API call takes between 80ms and 250ms. Running them sequentially takes $80 + 150 + 120 + 250 = 600\text{ms}$.
+
+The service constructs an `ExecutorService pool = Executors.newFixedThreadPool(4)` and models each provider query as a `Callable<AssetSummary>`. Using the submit-first / collect-last pattern, the service submits all four queries in parallel and awaits results with a strict timeout `future.get(300, TimeUnit.MILLISECONDS)`. The total response latency drops to $\sim 250\text{ms}$ (the duration of the slowest single provider), and any failed or timed-out subtask is isolated without crashing the entire user dashboard.
 
 ## Practice Loop
-1. Implement a `Callable` that returns a typed result and a task that fails predictably.
-2. Compare a fixed pool with an unbounded queue and a bounded queue under burst load.
-3. Add a deadline, cancellation, and a rejection response to the caller.
-4. Test shutdown while tasks are queued, running, and blocked on I/O.
-5. Record pool metrics and use them to explain whether the bottleneck is CPU, I/O, or queueing.
+
+1. Write a `NumberPrinter` task and submit 20 tasks to `Executors.newFixedThreadPool(5)`; verify via printed thread names that exactly 5 threads process all 20 tasks.
+2. Implement `NumberGenerator` implementing `Callable<Integer>` that sums integers $1..N$; submit it to a pool and retrieve the result using `Future.get()`.
+3. Implement the serializing anti-pattern (`pool.submit(t1).get()` before submitting `t2`) and measure execution time against the correct submit-first / collect-last pattern.
+4. Implement `MergeSortTask` implementing `Callable<List<Integer>>` passing a shared `ExecutorService`, sorting a list of 1,000 random integers.
+5. Omit `pool.shutdown()` to verify the JVM remains running indefinitely, then add `pool.shutdown()` and `awaitTermination()` to verify clean termination.
 
 ## Evidence of Understanding
-You can choose a pool from workload characteristics, explain why queue capacity is part of the reliability design, and prove that a timeout does not leave work running indefinitely. Your tests distinguish task failure from executor failure and verify graceful shutdown.
+
+You can explain the TATA production line analogy for thread pools, distinguish `Executors` from `ExecutorService`, contrast `Runnable` with `Callable`, articulate why calling `.get()` immediately after `.submit()` serializes work, explain why a single shared executor must be passed down recursive decompositions, and explain the cause of pool starvation in fixed thread pools.
 
 ## Suggested Extension
-Build a small fan-out coordinator that returns the fastest acceptable result while cancelling the rest. Document the consistency trade-off of that choice.
+
+Implement a parallel array sum task `ArraySumTask` implementing `Callable<Long>` that splits an array of 1,000,000 elements across $N$ threads using a shared `ExecutorService`, with a sequential threshold cutoff of 5,000 elements to eliminate thread overhead on small partitions.
+
+## Self-Check (From Class Material)
+
+**Q1.** Consider the following two statements:
+i. ExecutorService.submit returns a Future object
+ii. The method name to receive a value from Future object is get.
+Which of the following is correct?
+- A. Both a and b are true
+- B. Only a is true
+- C. Only b is true
+- D. Both a and b are false
+
+**Answer: A** — `ExecutorService.submit()` returns a `Future` instance representing the pending asynchronous computation, and `.get()` blocks the calling thread until the computed value is available.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 9; answer determined from source material, not marked in original)*
+
+**Q2.** Consider the following two statements:
+1. The responsibility of the Executor is to decide how to run different tasks on different threads
+2. The responsibility of class implementing Callable is to define a task to be done on a separate thread
+Which of the following is correct?
+- A. Both a and b are true
+- B. Only a is true
+- C. Only b is true
+- D. Both a and b are false
+
+**Answer: A** — `Executor` manages thread lifecycle, pooling, and task scheduling, while a `Callable` implementation encapsulates the specific computation and return value of the task itself.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 1; answer determined from source material, not marked in original)*
+
+**Q3.** Consider the following two statements:
+1. Executor manages the assignment of tasks to threads within the thread pool.
+2. Waiting Queue holds the tasks that couldn't be assigned to threads in the thread pool.
+Which of the following is correct?
+- A. Both a and b are true
+- B. Only a is true
+- C. Only b is true
+- D. Both a and b are false
+
+**Answer: A** — An Executor assigns queued tasks to available worker threads in the pool, while the internal waiting queue holds tasks when all pool threads are currently busy.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 2; answer determined from source material, not marked in original)*
+
+**Q4.** Consider the following two statements:
+1. Runnable interface is used to create classes that run on a separate thread and return values to the main thread.
+2. Callable interface is used to create classes that run on a separate thread and don't need to return values to the main thread.
+Which of the following is correct?
+- A. Both a and b are true
+- B. Only a is true
+- C. Only b is true
+- D. Both a and b are false
+
+**Answer: D** — Both statements have it backwards: `Runnable.run()` returns `void` and
+cannot return a value to the caller, while `Callable<V>.call()` is specifically designed to
+return a typed value `V`. Neither statement correctly describes its interface.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 8; answer determined from source material, not marked in original)*
+
+**Q5.** Consider the following two statements:
+1. A class implementing Callable<Integer> will have a call function that returns integer
+2. To get a value from a class implementing Callable<Integer>, we can use Future<Integer>
+Which of the following is correct?
+- A. Both a and b are true
+- B. Only a is true
+- C. Only b is true
+- D. Both are false
+
+**Answer: A** — `Callable<Integer>.call()` is declared to return `Integer`, and submitting
+that `Callable` to an `ExecutorService` returns a `Future<Integer>` whose `.get()` retrieves
+the computed value once ready.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 10; answer determined from source material, not marked in original)*
 ",
             "08-concurrency-3-synchronization" => @"# Lesson 8 — Concurrency 3: Synchronization, Race Conditions & Locks
 
 ## Concepts Covered
-A race condition occurs when the result depends on an unsafe interleaving of operations. Mutual exclusion protects a critical section, while visibility ensures one thread can observe another thread's completed write. `synchronized` provides an intrinsic monitor; `ReentrantLock` adds features such as timed acquisition and multiple conditions, but also adds responsibility to unlock in a `finally` block.
 
-Lock only the invariant that needs protection. Holding a lock across a network call increases contention and can create deadlocks when another component acquires locks in a different order. Prefer immutable values, atomic operations, or ownership transfer when they make the state simpler. A correct design states which lock guards which fields and in what order locks may be acquired.
+Foundational Law of Concurrency: **""Separate memory is safe. Shared memory is danger.""**
+In Concurrency-2, multithreaded Merge Sort executed without conflicts because child tasks operated on completely disjoint list allocations. The moment multiple concurrent threads read and write to the *same* shared mutable memory, safety collapses.
+
+**The Adder-Subtractor Problem (Worked Race Condition):**
+- A shared `Count` object holds a single field `private int value = 0`.
+- An `Adder` task runs on Thread 1, executing a loop 100,000 times: `count.value++`.
+- A `Subtractor` task runs on Thread 2, executing a loop 100,000 times: `count.value--`.
+- Mathematically, adding 1 and subtracting 1 the exact same number of times must yield `0`.
+- Yet running this program in Java yields unpredictable, corrupted results like `-14`, `37`, or `423`.
+
+**Why Single-Line Statements Fail — The Three-Step Breakdown:**
+At the CPU/bytecode level, `count++` is not an atomic operation. It decomposes into three discrete steps:
+1. **Read:** Fetch the current value of `count.value` from RAM into a CPU register ($x = \text{value}$).
+2. **Modify:** Increment the value in the register ($x = x + 1$).
+3. **Write:** Write the register value back to memory in RAM ($\text{value} = x$).
+
+**Pre-emption and Interleaving:**
+The OS CPU scheduler can pre-empt (interrupt) a thread between any of these steps. If Thread 1 reads `0` and is pre-empted, Thread 2 runs through read (`0`), decrement (`-1`), and write (`-1`). When Thread 1 resumes, its register holds stale value `0`; it increments to `1` and writes `1` to RAM. Thread 2's completed decrement is completely obliterated.
+
+**Core Concurrency Vocabulary:**
+- **Critical Section:** Any region of code that accesses (reads or writes) shared mutable data where concurrent execution can cause corruption.
+- **Race Condition:** A defect where the correctness of a program depends on the non-deterministic timing and execution interleaving of concurrent threads.
+- **Pre-emption:** The scheduler pausing an active thread mid-task without warning to allocate CPU time to another thread.
+
+**Solution 1: Explicit Mutex (`ReentrantLock`):**
+- Mutex = *Mutually Exclusive* lock.
+- Only one thread can hold the lock at any time. A thread must acquire the lock before entering the critical section and release it immediately upon exiting.
+- *Strict Java Discipline:* Always release the lock inside a `finally` block so that runtime exceptions never cause a permanent lock leak:
+  ```java
+  Lock lock = new ReentrantLock();
+  lock.lock();
+  try {
+      // Critical Section
+      count.value++;
+  } finally {
+      lock.unlock();
+  }
+  ```
+
+**Solution 2: The `synchronized` Block:**
+Java's intrinsic monitor lock built into every object header.
+Syntax: `synchronized (sharedObject) { count.value++; }`.
+The JVM automatically acquires the lock upon entering the block and releases it upon exiting (even if an uncaught exception is thrown).
+
+**Solution 3: The `synchronized` Method:**
+Declaring `public synchronized void increment()` locks the calling instance (`this`). Declaring `public static synchronized void helper()` locks the class's `Class` object (`Count.class`).
+
+**The Object-Level Lock Ownership Rule:**
+**""The lock is on the OBJECT. Not on the method. Not on the thread.""**
+- Every Java object has exactly one intrinsic monitor lock.
+- If class `A` has two synchronized methods `fun1()` and `fun2()`, two threads calling `obj1.fun1()` and `obj1.fun2()` on the *same* instance `obj1` cannot execute concurrently — both compete for `obj1`'s single lock.
+- Two threads calling `obj1.fun1()` and `obj2.fun1()` on *different* instances run concurrently because each object has its own independent lock.
+- An unsynchronized method `fun3()` on `obj1` executes concurrently with `fun1()` because `fun3()` does not request the lock.
+
+**Producer-Consumer Introduction & The Check-Then-Act Bug:**
+Multiple producer threads add items to a shared `Store`; multiple consumer threads remove items.
+Naive code (`if (store.size() > 0) store.removeItem();`) crashes with `IndexOutOfBoundsException` because multiple threads check `size() > 0` simultaneously before any thread removes an item.
+Wrapping methods in `synchronized(store)` fixes correctness, but introduces a major throughput limitation: `synchronized` is binary (all-or-nothing), admitting only 1 thread even when a store with capacity 5 has 4 empty shelves.
 
 ## Practical Backend Scenario
-Two checkout requests try to reserve the final seat for an event. A check-then-update sequence without synchronization lets both requests succeed. Protect the reservation invariant, keep external payment calls outside the critical section, and use a database constraint or transactional boundary as the final authority when multiple service instances are involved.
+
+An e-commerce seat-booking service processes simultaneous ticket reservations for a high-demand concert (like BookMyShow). Two customer requests arrive at the exact same millisecond to reserve the final remaining VIP seat.
+Without synchronization, both threads check `if (seat.isAvailable())` and evaluate `true`. Both threads charge the respective customers' credit cards, and both write `seat.setBooked(true)`. The seat is double-booked, resulting in customer escalations and transaction disputes.
+
+By enclosing the reservation logic inside a synchronized critical section (or using `ReentrantLock`), the check-and-book sequence executes atomically:
+```java
+public synchronized boolean reserveSeat(String customerId) {
+    if (this.isAvailable) {
+        this.isAvailable = false;
+        this.bookedBy = customerId;
+        return true;
+    }
+    return false;
+}
+```
+The first thread acquires the lock, confirms availability, marks the seat booked, and releases the lock. The second thread acquires the lock, sees `isAvailable == false`, and is safely rejected.
 
 ## Practice Loop
-1. Write a deliberately racy counter and reproduce the failure with many workers.
-2. Fix it with `synchronized`, then compare an atomic counter and a lock-based design.
-3. Add a two-resource transfer test that exercises lock ordering and interruption.
-4. Use timeouts and thread dumps to diagnose a stalled lock rather than guessing.
-5. Document visibility, ownership, lock scope, and the cross-instance database guarantee.
+
+1. Implement the `Count` class and reproduce the Adder-Subtractor race condition with 100,000 iterations across two threads, verifying non-zero output.
+2. Fix the Adder-Subtractor race using `ReentrantLock`, placing `lock.lock()` before the `try` block and `lock.unlock()` inside `finally`.
+3. Refactor `Count` using `synchronized` methods on `increment()` and `decrement()`; execute 20 test runs and confirm the result is consistently `0`.
+4. Create class `A` with `synchronized void fun1()`, `synchronized void fun2()`, and `void fun3()`; launch threads against the same and different instances to empirically verify the object-level locking rule.
+5. Replace locking with Java's lock-free `AtomicInteger` using Compare-And-Swap (CAS) hardware instructions and compare benchmark performance under contention.
 
 ## Evidence of Understanding
-You can separate a thread-local fix from a distributed correctness guarantee, identify the exact invariant a lock protects, and explain why a network call should not happen while holding that lock. Your tests demonstrate both the race and the corrected behavior.
+
+You can explain the three discrete CPU steps of `count++` (read-modify-write), define Critical Section, Race Condition, and Pre-emption, demonstrate proper `ReentrantLock` usage with `finally`, articulate the object-level lock ownership rule, and explain why `synchronized` limits concurrency in multi-capacity systems.
 
 ## Suggested Extension
-Add optimistic versioning to the reservation record and compare conflict handling with in-memory locking when two application instances process the same seat.
+
+Implement a thread-safe banking `Account` class with `transfer(Account from, Account to, double amount)`. Enforce a strict lock-ordering protocol based on account IDs (`from.getId().compareTo(to.getId())`) to prevent circular wait deadlocks when two accounts transfer funds to each other simultaneously.
+
+## Self-Check (From Class Material)
+
+**Q1.** What is the name of the algorithm used by Atomic Data types for thread-safety?
+- A. Mark and Sweep
+- B. Binary Search
+- C. Compare and Swap
+- D. None of the above
+
+**Answer: C** — Atomic classes (such as `AtomicInteger`) achieve lock-free thread safety using the hardware-level Compare-And-Swap (CAS) instruction.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 1; answer determined from source material, not marked in original)*
+
+**Q2.** Which of the following statements about mutex locks in Java is true?
+- A. Mutex locks are used to achieve parallel execution of threads.
+- B. Mutex locks are synonymous with atomic data types in Java.
+- C. Mutex locks are used to protect critical sections of code from concurrent access.
+- D. Mutex locks are only applicable to single-threaded programs
+
+**Answer: C** — A mutex lock enforces mutual exclusion, ensuring that only one thread can execute within a protected critical section at any given time.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 3; answer determined from source material, not marked in original)*
+
+**Q3.** Which of the following statements is true about the synchronized keyword?
+- A. It can only be applied to instance methods
+- B. It can be applied to both instance methods and static methods
+- C. It can only be applied to static methods
+- D. It cannot be used in a multithreaded application
+
+**Answer: B** — The `synchronized` keyword can be applied to instance methods (locking the instance `this`), static methods (locking the `Class` object), and standalone synchronized blocks.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 6; answer determined from source material, not marked in original)*
+
+**Q4.** Which of the following is true regarding the differences between Hashtable and
+ConcurrentHashMap in Java?
+- A. Hashtable allows multiple threads to access different parts of the map at the same time, while ConcurrentHashMap does not.
+- B. ConcurrentHashMap is synchronized, while Hashtable is not.
+- C. Hashtable is synchronized, ConcurrentHashMap is not.
+- D. ConcurrentHashMap allows multiple threads to access different parts of the map at the same time, while Hashtable does not.
+
+**Answer: D** — `Hashtable` synchronizes on the entire map for every operation, allowing
+only one thread in at a time. `ConcurrentHashMap` uses finer-grained internal locking
+(segment/bucket-level), letting multiple threads operate on different parts of the map
+concurrently.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 5; answer determined from source material, not marked in original)*
+
+**Q5.** Consider the following class:
+```java
+public class A {
+  synchronized static void fun1(){}
+  synchronized void fun2(){}
+  void fun3(){}
+}
+```
+And client code creating `A obj1 = new A();` and `A obj2 = new A();`. Which pair of calls
+CANNOT execute concurrently?
+- A. obj1.fun1() and obj1.fun2()
+- B. obj1.fun1() and obj2.fun1()
+- C. obj2.fun2() and obj2.fun3()
+- D. obj1.fun2() and obj2.fun2()
+
+**Answer: B** — `fun1()` is `static synchronized`, so it locks the shared `Class` object
+(`A.class`), not any particular instance. Both `obj1.fun1()` and `obj2.fun1()` compete for
+that one class-level lock regardless of which instance calls it, so they cannot run
+concurrently. `fun2()` is an instance-level lock, so different instances (`obj1`/`obj2`)
+calling it are unaffected by each other.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 2; answer determined from source material, not marked in original)*
 ",
             "09-concurrency-4-semaphores" => @"# Lesson 9 — Concurrency 4: Semaphores & Bounded Buffer
 
 ## Concepts Covered
-A semaphore controls access to a finite number of permits. It is useful when several operations may proceed concurrently but a downstream resource has a hard capacity. A binary semaphore can resemble a mutex, but a semaphore does not require the releasing thread to be the acquiring thread. A bounded buffer combines producer and consumer coordination with backpressure so memory usage cannot grow without limit.
 
-Permit acquisition belongs at the boundary of the scarce resource. Always release a permit in a `finally` block, define what happens when no permit is available, and include cancellation in the wait. Fairness can reduce starvation but may reduce throughput, so make the choice explicit. A semaphore inside one process does not coordinate separate service replicas.
+In Concurrency-3, `synchronized` solved race conditions by admitting exactly one thread at a time. However, this created an all-or-nothing bottleneck: in a Producer-Consumer store with capacity 5, only 1 producer was permitted to work even when all 5 slots were empty. `synchronized` cannot express admitting up to $N$ concurrent threads.
+
+**The Semaphore Primitive:**
+A **Semaphore** is a synchronization construct that maintains an internal count of available **permits** and coordinates access to shared resources through two atomic operations:
+- `acquire()`: Decrements the permit count by 1. If the count is 0, the calling thread blocks until a permit is released.
+- `release()`: Increments the permit count by 1 and unblocks a waiting thread if one exists. `release()` never blocks.
+- **Binary Semaphore (`new Semaphore(1)`):** Initialized with 1 permit; behaves like a mutex for capacity control.
+- **Counting Semaphore (`new Semaphore(N)`):** Initialized with $N$ permits; admits up to $N$ threads concurrently into a resource.
+
+**Producer-Consumer with Two Signaling Semaphores:**
+Instead of a single lock, the system tracks two independent quantities using two semaphores:
+1. `producerSemaphore`: Initialized to total capacity (e.g. $S = 6$), tracking **empty slots**.
+2. `consumerSemaphore`: Initialized to 0, tracking **available items**.
+
+**Cross-Thread Signaling Flow:**
+- **Producer:**
+  ```java
+  producerSemaphore.acquire(); // wait for an empty slot
+  store.addItem(item);         // insert item
+  consumerSemaphore.release(); // signal: an item is now available
+  ```
+- **Consumer:**
+  ```java
+  consumerSemaphore.acquire(); // wait for an item
+  store.removeItem();          // take item
+  producerSemaphore.release(); // signal: an empty slot is now free
+  ```
+Each side acquires its own semaphore and releases the other's, passing signals between threads without direct coupling.
+
+**Store State Analysis (Queue Capacity Cases from Class Notes):**
+For a store with maximum capacity $S = 6$:
+- **Case 1 (Full Store — 6 items, 0 empty slots):** `producerSemaphore = 0`, `consumerSemaphore = 6`. Up to 6 consumers may proceed; 0 producers allowed (producers block on `acquire()`).
+- **Case 2 (Partially Filled Store — 3 items, 3 empty slots):** `producerSemaphore = 3`, `consumerSemaphore = 3`. Up to 3 producers and 3 consumers may proceed in parallel.
+- **Case 3 (Empty Store — 0 items, 6 empty slots):** `producerSemaphore = 6`, `consumerSemaphore = 0`. Up to 6 producers may proceed; 0 consumers allowed (consumers block on `acquire()`).
+
+**The Bounded Buffer Pattern — Semaphore for Capacity, Mutex for Mutation:**
+A counting semaphore solves the **Capacity Problem** (""how many threads may enter""). It does NOT solve the **Mutation Problem** (""what happens when multiple threads touch the underlying `ArrayList` simultaneously""). If 3 producers enter and execute `items.add(item)` concurrently on a plain list, internal array pointers corrupt.
+The **Bounded Buffer Pattern** combines both: counting semaphores govern capacity and cross-thread signaling, while a mutex (`ReentrantLock`) guards the brief moment of mutating the shared list.
+
+**Semaphore vs. Mutex — The Ownership Difference:**
+- **Mutex has an owner:** Only the thread that called `lock()` may call `unlock()`.
+- **Semaphore has NO owner:** Any thread can call `release()`, including a thread that never called `acquire()`.
+- *No ownership is the strength:* Enables cross-thread signaling where a Consumer releases a Producer permit.
+- *No ownership is the danger:* An accidental or duplicate `release()` call creates a **phantom permit**, silently inflating the permit count beyond actual physical capacity without error.
+
+**Specialized Coordination Patterns:**
+- **Baton Pattern (Strict Ordering / Turn-Taking):** Enforces ordered interleaving (e.g. *Print Zero Even Odd*). `zeroSem` starts at 1, `oddSem` and `evenSem` start at 0. The zero thread prints `0` and releases `oddSem` or `evenSem`; the number thread prints and releases `zeroSem` back.
+- **Grouping Pattern (`acquire(n)` / `release(n)`):** Enforces multi-permit batch assembly (e.g. *Building H2O*). Hydrogen calls `h.acquire()` (starts at 2) and signals `o.release()`; Oxygen calls `o.acquire(2)` (starts at 0) to await two hydrogens before proceeding, then calls `h.release(2)` for the next molecule.
 
 ## Practical Backend Scenario
-The service may make only eight concurrent calls to a partner shipping API. Incoming jobs enter a bounded queue, workers acquire a permit before the remote call, and the permit is released after the response or timeout. When the queue is full, the system applies backpressure instead of accepting work it cannot complete within its deadline.
+
+An outbound notification dispatch gateway connects to a third-party SMS carrier API with a strict contractual rate limit of at most 8 concurrent HTTP connections. A batch of 1,000 urgent one-time passwords (OTPs) arrives for dispatch.
+
+The service initializes `Semaphore connectionLimiter = new Semaphore(8)`. When a worker thread processes an OTP dispatch job:
+```java
+connectionLimiter.acquire();
+try {
+    smsClient.sendSms(otpRequest); // Up to 8 concurrent network calls
+} finally {
+    connectionLimiter.release();
+}
+```
+Up to 8 worker threads execute HTTP requests concurrently in parallel, achieving maximum allowable throughput while strictly guaranteeing that the downstream carrier's concurrency threshold is never exceeded.
 
 ## Practice Loop
-1. Implement a producer-consumer buffer with explicit capacity and shutdown markers.
-2. Add a semaphore around a fake slow dependency and verify the maximum in-flight count.
-3. Test permit timeout, task interruption, downstream failure, and worker shutdown.
-4. Compare reject, block, and shed-load policies when the buffer is full.
-5. Explain why the local permit count is not a replacement for a distributed rate limiter.
+
+1. Implement the two-semaphore Producer-Consumer `Store` with capacity 5 (`producerSemaphore(5)`, `consumerSemaphore(0)`); spawn 8 producers and 20 consumers, verifying active parallel execution.
+2. Add a `ReentrantLock` inside `Store.addItem()` and `Store.removeItem()` to complete the Bounded Buffer pattern, verifying mutation safety on an underlying `ArrayList`.
+3. Deliberately add an unmatched `producerSemaphore.release()` inside the producer loop; observe phantom permit inflation violating the capacity limit, demonstrating the lack of semaphore ownership.
+4. Implement the Baton pattern for LeetCode 1116 (*Print Zero Even Odd*) using three semaphores (`zero=1`, `odd=0`, `even=0`).
+5. Complete the Homework Problem: Implement a multithreaded array sum calculator dividing 1,000,000 numbers across $N$ threads using `Callable` and `Future`, verifying result accuracy against single-threaded reduction.
 
 ## Evidence of Understanding
-You can calculate the capacity represented by each permit, prove that permits are not leaked on exceptions, and show how bounded queues create backpressure. Your metrics expose queue depth, wait time, and in-flight calls.
+
+You can define counting vs binary semaphores, explain why two semaphores are required for Producer-Consumer coordination, articulate why bounded buffers require both a semaphore (capacity) and a mutex (mutation), explain the ownership difference between mutex and semaphore, and demonstrate `acquire(n)` / `release(n)` for event grouping.
 
 ## Suggested Extension
-Add a token-bucket limiter for a multi-instance deployment and explain which guarantees remain local and which are shared.
+
+Implement a `DatabaseConnectionPool` managing 10 physical database connections using a `Semaphore(10)` and a thread-safe `ConcurrentLinkedQueue<Connection>`, with connection validation and timeout handling on `acquire()`.
+
+## Self-Check (From Class Material)
+
+**Q1.** Which of the following statements is true regarding mutex locks and semaphores?
+- A. Mutex Locks are used for synchronization while Semaphores is a syntax for creating threads
+- B. Mutex Locks allow only 1 thread in critical section while Semaphores can allow multiple threads in the critical section at same time
+- C. Lock and unlock are methods of semaphores
+- D. Acquire and release are methods of mutex locks
+
+**Answer: B** — A mutex restricts critical section access to at most one thread, whereas a counting semaphore maintains a permit count allowing multiple threads to enter simultaneously up to its capacity limit.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 4; answer determined from source material, not marked in original)*
+
+**Q2.** Which of the following methods in a Semaphore is a blocking method?
+- A. acquire
+- B. release
+- C. Both acquire and release
+- D. Neither acquire nor release
+
+**Answer: A** — `acquire()` blocks the calling thread if no permits are available (permit count is 0), whereas `release()` increments the permit count and never blocks.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 3; answer determined from source material, not marked in original)*
+
+**Q3.** Consider the following two statements:
+1. Release method of Semaphores increases the number of threads allowed in the critical section by 1.
+2. If the value of Semaphore is 0, Release method of Semaphores blocks the thread
+Which of the following is true?
+- A. Only 1 is true
+- B. Only 2 is true
+- C. Both 1 and 2 are true
+- D. Both 1 and 2 are false
+
+**Answer: A** — Statement 1 is true because `release()` increments the permit count; statement 2 is false because `release()` is a non-blocking operation that unblocks waiting threads rather than blocking itself.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 8; answer determined from source material, not marked in original)*
+
+**Q4.** Consider the following two statements:
+a. If the value of a Semaphore is greater than 0, `acquire()` reduces the permit count by 1 but allows the thread to enter the critical section.
+b. If the value of a Semaphore is 0, `acquire()` blocks the thread.
+Which of the following is true?
+- A. Only a is true
+- B. Only b is true
+- C. Both a and b are true
+- D. Both a and b are false
+
+**Answer: C** — Both statements correctly describe `acquire()`'s behavior: when permits
+remain, it decrements the count and lets the thread proceed immediately; when the permit
+count has reached zero, it blocks the calling thread until another thread calls
+`release()`.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 1; answer determined from source material, not marked in original)*
+
+**Q5.** Which of the following is true about the critical section of a correctly working
+producer-consumer problem using two semaphores (a producer semaphore tracking empty slots,
+a consumer semaphore tracking filled slots)?
+- A. Critical section of producer should begin with acquire on producer semaphore and end with release on consumer semaphore
+- B. Critical section of producer should begin with acquire on producer semaphore and end with release on producer semaphore
+- C. Critical section of consumer should begin with acquire on producer semaphore and end with release on consumer semaphore
+- D. Critical section of consumer should begin with acquire on consumer semaphore and end with release on consumer semaphore
+
+**Answer: A** — A producer must first `acquire()` an empty slot (the producer semaphore),
+then after producing, `release()` the consumer semaphore to signal that a new item is
+available. Signaling the *other* semaphore, not your own, is what lets the two sides
+coordinate.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 7; answer determined from source material, not marked in original)*
 ",
-            "10-java-adv-1-generics" => @"# Lesson 10 — Generics & Type Erasure
+            "10-java-adv-1-generics" => @"# Lesson 10 — Java Advanced 1: Generics & Type Erasure
 
 ## Concepts Covered
-Generics move type errors to compilation and let APIs express what they accept and return. A generic class or method can be reused without casts, while bounded wildcards describe variance at the point of use. The PECS rule is a useful shorthand: a producer of values is usually `? extends T`, and a consumer is usually `? super T`.
 
-Java implements generics through type erasure for most runtime code. This means a type parameter is not generally available for `instanceof`, generic arrays are restricted, and overloads that erase to the same signature are illegal. Bridge methods may be generated by the compiler to preserve polymorphism after erasure. These constraints should shape API design rather than be discovered through a production cast failure.
+Prior to Java 5, building reusable data structures required storing and passing data as `Object`.
+
+**The Pre-Generics Problem — `Object`-Based Containers:**
+Consider the need to store coordinate pairs (`class Coordinate { double x, y; }`) versus name pairs (`class Name { String x, y; }`). To eliminate duplicate classes, developers wrote universal containers backed by `Object`:
+```java
+class Pair {
+    Object first, second;
+    void setFirst(Object f) { first = f; }
+    void setSecond(Object s) { second = s; }
+}
+```
+While flexible, this design completely eliminated compile-time type safety:
+```java
+Pair p = new Pair();
+p.setFirst(""yosh"");
+p.setSecond(19);
+
+double calculateSum(Pair p) {
+    return (Double) p.first + (Double) p.second; // Crashes at runtime!
+}
+```
+The compiler raised zero warnings during compilation. The mismatch surfaced only at runtime as a fatal `ClassCastException`.
+
+**Generics — Parameterized Types:**
+Generics allow classes, interfaces, and methods to be parameterized with placeholder type variables (`T`, `V`, `K`):
+```java
+class Pair<T, V> {
+    private T first;
+    private V second;
+    public Pair(T first, V second) { this.first = first; this.second = second; }
+    public T getFirst() { return first; }
+    public V getSecond() { return second; }
+}
+```
+Client code binds the concrete types at creation time: `Pair<String, Integer> p = new Pair<>(""Rohit"", 100);`. Attempting `p.setFirst(100)` fails at compile time, eliminating runtime type-cast errors.
+**Raw Types (`Pair p = new Pair();`):** Supported for backward compatibility with pre-Java 5 code. Raw types bypass generic type checking and treat fields as `Object`; they should never be used in modern Java.
+
+**Generic Methods:**
+Methods can declare their own independent type parameters, even within non-generic classes. This is mandatory for `static` utility methods because static members have no access to class-level type parameters:
+```java
+public static <T> T getFirstElement(List<T> list) {
+    return (list == null || list.isEmpty()) ? null : list.get(0);
+}
+```
+
+**Generics with Inheritance — Why Subtyping Does Not Transfer:**
+If `Dog` extends `Animal`, is `List<Dog>` a subtype of `List<Animal>`? **No.**
+If Java allowed `List<Animal> animals = new ArrayList<Dog>();`, a caller could execute `animals.add(new Cat());`. Because `animals` references a list of dogs on the heap, adding a `Cat` would corrupt heap type safety. Therefore, generic collections are **invariant**: `List<Dog>` and `List<Animal>` are treated as completely unrelated types.
+
+**Bounded Wildcards & The PECS Framework:**
+To allow generic methods to operate flexibly across class hierarchies, Java provides **wildcards** (`?`):
+1. **Upper-Bounded Wildcard (`? extends T`):** Accepts `T` and any subclass of `T` (`List<? extends Animal>`). Used when **reading** data from a collection. Writing elements into the collection is prohibited (except `null`) because the compiler cannot determine the exact underlying subtype.
+2. **Lower-Bounded Wildcard (`? super T`):** Accepts `T` and any superclass of `T` (`List<? super Dog>`). Used when **writing / inserting** elements into a collection. Reading from the collection only returns `Object`.
+3. **PECS Rule:** **Producer `extends`, Consumer `super`.**
+   - If your method reads data from a collection (the collection *produces* values for you), declare it with `? extends`.
+   - If your method writes data into a collection (the collection *consumes* values from you), declare it with `? super`.
+
+**Type Erasure & Runtime Implications:**
+Java implements generics via **Type Erasure** to maintain binary backward compatibility with legacy JVM bytecode:
+- The compiler verifies all type safety rules at compile time and inserts necessary casts into the bytecode.
+- The compiler then *erases* type parameters, replacing unbounded parameters `T` with `Object` and bounded parameters `T extends Number` with `Number`.
+- *Runtime Consequences:* `new T()` is illegal, creating generic arrays `new T[10]` is prohibited, `instanceof List<String>` is disallowed (only `instanceof List<?>` is valid), and type parameters cannot be queried reflectively without passing explicit `Class<T>` type tokens.
+
+**Collections Framework Hierarchy Overview:**
+- Root `Collection<E>` interface branches into `List<E>` (`ArrayList`, `LinkedList`, `Vector`), `Queue<E>` / `Deque<E>` (`PriorityQueue`, `ArrayDeque`), and `Set<E>` (`HashSet`, `LinkedHashSet`, `TreeSet`).
+- `Map<K, V>` operates as an independent key-value hierarchy (`HashMap`, `TreeMap`, `LinkedHashMap`).
 
 ## Practical Backend Scenario
-An event bus accepts `DomainEvent` values and routes them to handlers. `EventHandler<T>` should preserve the relationship between an event type and its payload at compile time, while a registry needs a deliberate strategy for runtime type tokens because erased generic parameters cannot identify `T` by themselves. A typed pagination wrapper similarly prevents a repository from returning an unvalidated mixture of records.
+
+A multi-tenant SaaS analytics engine manages diverse domain entities (`Customer`, `Order`, `Invoice`) extending a common `BaseEntity`. Instead of writing separate database access objects for every entity, the backend defines a generic repository interface `Repository<T extends BaseEntity, ID>` and a generic response wrapper `Page<T>`.
+
+A batch processing service uses bounded wildcards to process entity streams:
+```java
+public void logEntityTimestamps(List<? extends BaseEntity> entities) {
+    for (BaseEntity entity : entities) {
+        System.out.println(entity.getId() + "": "" + entity.getCreatedAt());
+    }
+}
+```
+`logEntityTimestamps` accepts `List<Customer>`, `List<Order>`, or `List<Invoice>` safely (`Producer extends`). When seeding default accounts, `public void seedAccounts(List<? super Customer> sink)` safely inserts `Customer` instances (`Consumer super`).
 
 ## Practice Loop
-1. Implement a generic `Page<T>` with immutable items, total count, and cursor metadata.
-2. Write producer and consumer utilities using `extends` and `super`, then let the compiler guide misuse.
-3. Demonstrate one type-erasure limitation and redesign it with a `Class<T>` token.
-4. Remove an unsafe cast from the event bus and add a compile-time test case.
-5. Review public generic names and bounds for clarity at the call site.
+
+1. Write a non-generic `Pair` class with `Object` fields; store a `String` and an `Integer`, attempt a cast to `Double`, and observe the runtime `ClassCastException`.
+2. Refactor into generic `Pair<T, V>` with private fields and typed getters/setters; verify that type mismatches fail immediately at compile time.
+3. Write a generic method `public static <T> void swap(T[] array, int i, int j)` and test it on both `String[]` and `Integer[]`.
+4. Create an `Animal`, `Dog`, `Cat` hierarchy; demonstrate that `List<Dog>` cannot be passed to `List<Animal>`, and fix the method signature using `List<? extends Animal>`.
+5. Implement the PECS utility method `public static <T> void copy(List<? super T> dest, List<? extends T> src)` and verify data copying between subtype sources and supertype destinations.
 
 ## Evidence of Understanding
-You can choose a wildcard from how a collection is used, explain why a generic type is unavailable at runtime, and design a typed repository API without raw collections. Your code contains no unchecked cast that could be replaced by a better boundary.
+
+You can explain why `Object`-based containers fail type safety, define type parameters versus raw types, articulate why `List<Dog>` is not a subtype of `List<Animal>`, apply the PECS rule (`? extends` for reading, `? super` for writing), and explain how type erasure influences runtime JVM execution.
 
 ## Suggested Extension
-Add a sealed event hierarchy and a handler registry that rejects duplicate runtime event types during startup.
+
+Build a generic `InMemoryCache<K, V>` with TTL expiration, implementing `putAll(Map<? extends K, ? extends V> entries)` and `getAll(Collection<? extends K> keys)` following strict PECS conventions.
+
+## Self-Check (From Class Material)
+
+**Q1.** What does T denote in the following code:
+```java
+public class Box<T> {
+  // class implementation
+}
+```
+- A. Type parameter
+- B. Generic instance
+- C. Class name
+- D. Class type
+
+**Answer: A** — `T` is a formal type parameter that serves as a placeholder for the concrete type specified when the `Box` class is instantiated.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/56-66.md, MCQ 64; answer determined from source material, not marked in original)*
+
+**Q2.** What is the purpose of using bounded wildcards in Java generics?
+- A. To allow any type to be passed as an argument
+- B. To restrict the type of objects that can be used
+- C. To enforce type safety in generic classes
+- D. To simplify the syntax of generic declarations
+
+**Answer: B** — Bounded wildcards (like `? extends Number` or `? super Integer`) restrict the acceptable type arguments to a specific inheritance hierarchy for controlled reading or writing.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/56-66.md, MCQ 62; answer determined from source material, not marked in original)*
+
+**Q3.** When is it appropriate to use wildcards with an upper bound in Java generics?
+- A. To allow any type as a method parameter
+- B. When the method should work with specific subclasses
+- C. When the method should work with any object type
+- D. To specify a lower limit on the allowed types
+
+**Answer: B** — Upper-bounded wildcards (`? extends SuperType`) are used when a method needs to operate on a collection of elements belonging to any subclass of a given supertype (read-only producer operations).
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 10; answer determined from source material, not marked in original)*
+
+**Q4.** Suppose you are writing a generic method to return the first element of a list.
+What is the correct method declaration?
+- A. `public static <T> T getFirstElement(List<T> list)`
+- B. `public static T getFirstElement(List<T> list)`
+- C. `public static void getFirstElement(List<T> list)`
+- D. `public static <T> void getFirstElement(List<T> list)`
+
+**Answer: A** — A generic static method must declare its own type parameter `<T>`
+immediately before the return type, since static members have no access to a class-level
+type parameter. The return type must also be `T`, not `void`, since the method returns the
+first element.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 49; answer determined from source material, not marked in original)*
+
+**Q5.** What does the `extends` keyword signify in the context of Java generics (e.g.
+`<T extends Number>`)?
+- A. It specifies a lower bound for a type parameter.
+- B. It restricts the use of wildcard types.
+- C. It indicates inheritance for a generic class.
+- D. It denotes an upper bound for a type parameter.
+
+**Answer: D** — In a generic type-parameter declaration, `extends` denotes an upper bound:
+`T` must be that type or a subtype of it. This is distinct from wildcard usage but relies on
+the same ""extends = upper bound"" idea.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/56-66.md, MCQ 59; answer determined from source material, not marked in original)*
 ",
-            "11-java-adv-2-collections-lab" => @"# Lesson 11 — Collections Lab & Sorting
+            "11-java-adv-2-collections-lab" => @"# Lesson 11 — Java Advanced 2: Collections Framework & Sorting Lab
 
 ## Concepts Covered
-Collection choice is a domain and workload decision. `ArrayList` is strong for indexed reads and append-heavy sequences, `HashMap` provides expected constant-time key lookup, `TreeMap` maintains sorted keys with logarithmic operations, and `PriorityQueue` exposes the next highest-priority item rather than the whole collection in sorted order. Hashing, equality, memory layout, and access patterns matter more than memorizing labels.
 
-`Comparable` defines a type's natural order; `Comparator` defines a context-specific order. Comparators must be transitive and consistent enough for the collection being used. A mutable key in a hash-based collection can become unreachable after its hash changes, so identity fields used for keys must be stable.
+Selecting the appropriate collection is a core architectural decision dictated by operational access patterns, Big-O algorithmic complexity, and memory overhead.
+
+**Collections Framework Architecture & Trade-Offs:**
+- `ArrayList`: Dynamic resizable array. Fast $O(1)$ indexed reads and cache locality; amortized $O(1)$ append; expensive $O(N)$ arbitrary insertions/deletions due to element shifting.
+- `LinkedList`: Doubly linked list. $O(1)$ insertions and removals at head and tail (`addFirst()`, `removeLast()`); $O(N)$ sequential search with higher pointer memory overhead per node.
+- `Vector`: Legacy synchronized dynamic array. Thread-safe but imposes per-operation lock overhead; superseded by `ArrayList` and `java.util.concurrent` collections in modern design.
+- `HashSet`: Backed by a hash table (`HashMap`). Expected $O(1)$ search, insertion, and deletion; unordered.
+- `LinkedHashSet`: `HashSet` backed by a doubly linked list; maintains insertion order.
+- `TreeSet`: Backed by a balanced Red-Black Tree (`NavigableMap`). Guaranteed $O(\log N)$ search, insertion, and removal; maintains sorted natural or comparator order.
+- `PriorityQueue`: Backed by a balanced binary heap. $O(1)$ retrieval of minimum/maximum element via `peek()`, $O(\log N)$ extraction via `poll()`; iteration is unordered.
+
+**Natural Ordering with `Comparable<T>`:**
+- `Comparable<T>` defines an entity's single, intrinsic **natural ordering** implemented inside the class via `int compareTo(T other)`.
+- Returns a negative integer if `this < other`, zero if `this.equals(other)`, and a positive integer if `this > other`.
+- Classes implementing `Comparable` (`String`, `Integer`, `Item`) can be sorted automatically by `Collections.sort(list)` and inserted into `TreeSet` / `TreeMap` without custom configuration.
+
+**Contextual Ordering with `Comparator<T>`:**
+- `Comparator<T>` defines an external, swappable sorting strategy implemented outside the target entity via `int compare(T a, T b)`.
+- A class can have multiple comparators (e.g. `PriceAscendingComparator`, `QuantityDescendingComparator`, `Comparator.comparing(Item::getName)`).
+- Allows adding new sorting criteria without modifying existing entity classes.
+
+**The Strict `equals()` and `hashCode()` Contract:**
+**""If `a.equals(b)` is true, then `a.hashCode()` must equal `b.hashCode()`.""**
+- `HashSet` and `HashMap` compute the storage bucket using `hashCode() % numBuckets` first.
+- If `equals()` is overridden without overriding `hashCode()`, two logically identical objects produce different memory-derived hash codes and land in different buckets. `HashSet` fails to find the existing entry and inserts a duplicate, silently violating uniqueness.
+- *Mutable Key Hazard:* If an object's fields used in `hashCode()` mutate after insertion into a map or set, its hash code changes, making the object permanently lost and unretrievable.
 
 ## Practical Backend Scenario
-A dispatch service keeps drivers by id, selects the nearest eligible driver, and maintains a queue of urgent jobs. Use a map for identity lookup, a priority queue for the next job, and a separate scoring structure if the selection rule changes frequently. Do not sort the entire fleet for every request when a bounded or indexed strategy can answer the question directly.
+
+The lab builds a comprehensive **Inventory Management System (IMS)** structured across six progressive milestones:
+
+**Milestone 1 — Item Entity & Natural Ordering:**
+Create base `Item` class with fields `sku`, `name`, `price`, and `quantity`. Implement `Comparable<Item>` establishing natural ordering sorted by `sku` (or ascending `price`).
+
+**Milestone 2 — Generic Inventory Container:**
+Build `Inventory<T extends Item>` backed by `HashMap<String, T>` providing $O(1)$ item lookup, stock additions, and inventory updates by SKU.
+
+**Milestone 3 — Recently-Viewed Item Cache:**
+Implement an LRU-style recently-viewed history buffer using `LinkedList<T>` with $O(1)$ front insertion via `addFirst()` on item access and bounded capacity eviction via `removeLast()`.
+
+**Milestone 4 — Priority Order Processing Queue:**
+Build an order fulfillment pipeline using `PriorityQueue<Order>` backed by a binary heap, ensuring high-urgency and VIP orders are extracted for fulfillment ahead of standard orders regardless of insertion sequence.
+
+**Milestone 5 — Multi-Criteria Comparator Sorting:**
+Implement external `Comparator<Item>` sorting strategies: sorting by stock quantity descending, alphabetical by name, and chained sorting `Comparator.comparing(Item::getPrice).thenComparing(Item::getQuantity)`.
+
+**Milestone 6 — Set Deduplication & Hash Contract Verification:**
+Enforce unique product catalog tagging using `HashSet<Item>`. Implement consistent `equals()` and `hashCode()` methods based on `sku`, demonstrating that omitting `hashCode()` causes duplicate entries in hash sets.
 
 ## Practice Loop
-1. Implement the dispatch operations with three candidate collection designs.
-2. Generate realistic data and measure lookup, insertion, selection, and memory behavior.
-3. Add comparator tests for ties, null policy, transitivity, and stable tie-breaking.
-4. Mutate a key after insertion in a safe experiment and explain the lookup failure.
-5. Document why the chosen structure matches the access pattern and consistency needs.
+
+1. Build Milestone 1: Create `Item` implementing `Comparable<Item>`, populate a `List<Item>`, and sort using `Collections.sort(list)`.
+2. Build Milestone 2: Implement generic `Inventory<T extends Item>` with `HashMap<String, T>` storage and bounded type parameter constraints.
+3. Build Milestone 3: Implement the recently-viewed cache using `LinkedList`, verifying $O(1)$ `addFirst()` and `removeLast()` operations.
+4. Build Milestone 4: Enqueue orders into `PriorityQueue<Order>` and verify that `poll()` extracts orders strictly in priority sequence.
+5. Build Milestone 5 & 6: Create custom `Comparator` lambdas, override `equals()` and `hashCode()` on `Item`, and verify duplicate rejection in `HashSet<Item>`.
 
 ## Evidence of Understanding
-You can justify a collection from operations and constraints, write a comparator that remains transitive under ties, and recognize when a benchmark is needed instead of relying on folklore. Your tests cover empty, duplicate, and large-input cases.
+
+You can justify collection choices based on access patterns ($O(1)$ vs $O(\log N)$ vs $O(N)$), contrast `Comparable` (single internal natural order) with `Comparator` (multiple external strategies), trace how `HashSet` uses hash buckets and equality checks, and explain why violating the `equals`/`hashCode` contract breaks set deduplication.
 
 ## Suggested Extension
-Add a cache with a bounded size and eviction order. Compare insertion-order, access-order, and explicit priority semantics.
+
+Implement an in-memory `LruCache<K, V>` by extending `LinkedHashMap<K, V>` with access-order enabled (`new LinkedHashMap<>(capacity, 0.75f, true)`) and overriding `removeEldestEntry()`, verifying $O(1)$ lookup and automated eviction of least-recently-used entries.
+
+## Self-Check (From Class Material)
+
+**Q1.** Consider the following two statements about Vector, ArrayList and LinkedList:
+1. Both vector and arraylist are dynamic arrays but the vector is thread-safe while arraylist is not
+2. Both arraylist and linkedlist can grow dynamically but memory in an arraylist is contiguous while not so in linkedlist
+Which of the following is correct?
+- A. Both 1 and 2 are true
+- B. Only 1 is true
+- C. Only 2 is true
+- D. Both 1 and 2 are false
+
+**Answer: A** — Statement 1 is true because `Vector` synchronizes its methods for thread safety while `ArrayList` is unsynchronized; statement 2 is true because `ArrayList` uses contiguous array memory while `LinkedList` allocates disconnected heap nodes linked by pointers.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 4; answer determined from source material, not marked in original)*
+
+**Q2.** Which of the following require the elements passed to implement Comparable interface?
+- A. HashSet
+- B. ArrayDeque
+- C. TreeSet
+- D. Stack
+
+**Answer: C** — `TreeSet` requires elements to implement `Comparable` (or have an explicit `Comparator` provided) to maintain its internal Red-Black tree sorted order.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 4; answer determined from source material, not marked in original)*
+
+**Q3.** What should go inside <> if you want to write a generic compare method?
+```java
+public static <____> int compareTo(T a, T b) {
+    return a.compareTo(b);
+}
+```
+- A. T
+- B. ?
+- C. T extends Comparable
+- D. T extends Comparator
+
+**Answer: C** — Declaring `<T extends Comparable<T>>` bounds the type parameter `T` to types that implement `Comparable`, enabling the method body to invoke `.compareTo()`.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 3; answer determined from source material, not marked in original)*
+
+**Q4.** Which of the following is thread-safe?
+- A. ArrayList
+- B. HashMap
+- C. Hashtable
+- D. LinkedList
+
+**Answer: C** — `Hashtable` synchronizes every method internally, making it thread-safe
+(though coarse-grained and slower under contention). `ArrayList`, `HashMap`, and
+`LinkedList` are all unsynchronized by default.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 46; answer determined from source material, not marked in original)*
+
+**Q5.** Which of the following classes doesn't implement the `List` interface (directly or
+indirectly)?
+- A. Vector
+- B. Stack
+- C. ArrayList
+- D. PriorityQueue
+
+**Answer: D** — `Vector`, `Stack` (which extends `Vector`), and `ArrayList` all implement
+`List`. `PriorityQueue` implements the `Queue` interface instead — it is backed by a binary
+heap and does not offer indexed `List` access.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 5; answer determined from source material, not marked in original)*
 ",
-            "12-java-adv-3-lambdas-streams" => @"# Lesson 12 — Lambdas & Functional Streams
+            "12-java-adv-3-lambdas-streams" => @"# Lesson 12 — Java Advanced 3: Lambdas & Functional Streams
 
 ## Concepts Covered
-Lambdas provide behavior as a value for a functional interface. A stream is a lazy pipeline over a source, not a collection that stores another result. Intermediate operations describe a transformation; a terminal operation starts traversal. `map` changes one value into another, `flatMap` removes nested structure, `filter` narrows values, and `collect` materializes a result.
 
-Keep stream pipelines readable and side-effect-light. A lambda should not silently mutate shared state, depend on execution order, or perform an expensive remote call inside an innocent-looking transformation. Parallel streams are not a free thread pool and are especially risky around blocking I/O. `Optional` can clarify a return value that may be absent, but it should not replace every nullable field or be used as a method parameter by default.
+Modern Java balances object-oriented structure with functional programming paradigms introduced in Java 8.
+
+**Functional Interfaces (SAM Interfaces):**
+A **Functional Interface** is an interface that declares **exactly one abstract method** (Single Abstract Method). It may contain any number of `default` or `static` methods. Annotated with `@FunctionalInterface`.
+Core functional interfaces in `java.util.function`:
+- `Predicate<T>`: `boolean test(T t)` — conditional checks and filtering.
+- `Consumer<T>`: `void accept(T t)` — accepting inputs and performing side effects (e.g. logging).
+- `Function<T, R>`: `R apply(T t)` — transforming an input of type `T` into an output of type `R`.
+- `Supplier<T>`: `T get()` — factory supplier returning values without arguments.
+- `BinaryOperator<T>`: `T apply(T a, T b)` — combining two operands of the same type.
+- `IntFunction<R>`: `R apply(int value)` — primitive-specialized mapping avoiding boxing overhead.
+
+**Evolution of Interface Implementation:**
+Consider running a task on a separate thread:
+1. **Named Class:** Standalone class `public class MyTask implements Runnable` with boilerplate class definitions.
+2. **Anonymous Class:** Inline `new Runnable() { @Override public void run() { System.out.println(""Hello""); } }` — eliminates separate files but carries heavy syntax ceremony.
+3. **Lambda Expression:** Direct functional syntax: `Runnable r = () -> System.out.println(""Hello"");`.
+Because a functional interface has exactly one abstract method, the compiler infers parameter types, return types, and method identity from target context.
+
+**Syntax Variations for Lambdas:**
+- Multiple parameters: `(a, b) -> a + b`
+- Single parameter (parentheses optional): `x -> x * x`
+- Multi-statement body (requires braces and explicit `return`): `(a, b) -> { int sum = a + b; return sum; }`
+- Code Examples from Class Notes:
+  ```java
+  Consumer<String> c = x -> System.out.println(""hello "" + x);
+  Predicate<Integer> isEven = x -> x % 2 == 0;
+  ```
+
+**Streams API — Thinking in Pipelines:**
+A **Stream** is a sequence of computational elements supporting sequential and parallel aggregate operations. A stream is NOT a data structure — it does not store data; it conveys elements from a source through a pipeline of transformations.
+
+**The Three Pipeline Stages:**
+1. **Source:** Collection, array, or I/O generator (`list.stream()`, `Arrays.stream(arr)`).
+2. **Intermediate Operations (Lazy):** Transform a stream into another stream. Intermediate operations execute **lazily** — no computation occurs until a terminal operation is invoked. Examples: `filter(Predicate)`, `map(Function)`, `sorted(Comparator)`, `distinct()`, `limit(long)`, `skip(long)`.
+3. **Terminal Operations (Eager):** Trigger pipeline traversal, process elements, and produce a result or side effect. Examples: `collect(Collector)`, `forEach(Consumer)`, `count()`, `reduce()`, `allMatch(Predicate)`, `anyMatch(Predicate)`, `findFirst()`.
+
+**Lazy vs. Eager Evaluation & Imperative Loop Elimination:**
+Traditional imperative loops require throwaway intermediate lists (`List<Integer> evens = new ArrayList<>()`), multiple passes over data, and inefficient repeated scanning (`contains()`).
+Stream pipelines evaluate lazily: elements flow through chained operations vertically element-by-element, short-circuiting early when possible (`findFirst()`, `allMatch()`).
+
+**Design Judgment — When NOT to Use Lambdas:**
+Lambdas are intended for concise, locally scoped logic (such as in-line sorting or filtering). Reusable business rules shared across multiple controllers, complex multi-line validation algorithms, or logic requiring isolated unit tests should remain in named, dedicated classes or methods.
 
 ## Practical Backend Scenario
-A reconciliation job reads payment records, removes duplicates by provider reference, filters settled entries, converts them to ledger commands, and groups the result by merchant. The stream performs in-memory transformations; database writes happen in a controlled batch boundary so retries, transaction size, and failure reporting remain visible.
+
+A financial transaction auditing engine processes high-volume customer payment events. The service receives a stream of raw transaction records, filters out non-settled payments, isolates transactions exceeding \$100, transforms each transaction into an audit summary DTO with masked account numbers, sorts them in descending order of transaction amount, and collects unique transaction references into a reporting list.
+
+Instead of writing 15 lines of nested loops with temporary collections, the backend expresses the workflow as a clean, declarative stream pipeline:
+```java
+List<String> highValueAudits = transactions.stream()
+    .filter(t -> t.getStatus() == TransactionStatus.SETTLED)
+    .filter(t -> t.getAmount() > 100.0)
+    .sorted(Comparator.comparing(Transaction::getAmount).reversed())
+    .map(Transaction::toMaskedAuditLog)
+    .distinct()
+    .collect(Collectors.toList());
+```
 
 ## Practice Loop
-1. Build the pipeline in named stages and inspect the type after each transformation.
-2. Add duplicate, missing, malformed, and empty input cases.
-3. Replace a side-effecting `forEach` with a collector or an explicit loop when the operation is stateful.
-4. Compare sequential execution with a measured parallel experiment only for CPU-bound work.
-5. Decide where absence becomes a domain result, an exception, or a filtered record.
+
+1. Declare a custom `@FunctionalInterface StringTransformer` with `String transform(String input)`; implement it using a named class, an anonymous class, and a lambda expression.
+2. Instantiate standard functional interfaces (`IntFunction`, `BinaryOperator`, `Function`) and execute them using lambda syntax.
+3. Refactor a multi-step imperative loop (filtering even numbers, squaring them, sorting descending, deduplicating) into a declarative stream pipeline.
+4. Demonstrate lazy evaluation: construct a stream pipeline with `filter()` and `map()` printing debug logs; verify that nothing executes until `count()` or `collect()` is invoked.
+5. Implement custom comparator sorting with lambdas and method references (`Comparator.comparing(String::length).reversed()`).
 
 ## Evidence of Understanding
-You can explain when a stream executes, why `flatMap` is needed for nested data, and where side effects make a pipeline unsafe. Your reconciliation output is deterministic, testable, and does not hide database writes inside a transformation.
+
+You can define functional interfaces (SAM), explain why lambda expressions are syntactic sugar over functional interfaces, distinguish intermediate (lazy) from terminal (eager) stream operations, contrast declarative stream pipelines with imperative loops, and explain when named classes should be chosen over lambdas.
 
 ## Suggested Extension
-Add a custom collector for a balanced reconciliation summary and verify its behavior with sequential and parallel accumulation tests.
+
+Build a customer analytics pipeline that processes a list of order records, calculates total revenue per customer tier using `mapToDouble()` and `sum()`, and filters the top 5 spenders into an immutable list.
+
+## Self-Check (From Class Material)
+
+**Q1.** Output of above code:
+```java
+public class LambdaExample {
+  public static void main(String[] args) {
+    IntFunction<Integer> square = x -> x * x;
+    System.out.println(square.apply(5));
+    
+    BinaryOperator<Integer> addition = (x, y) -> x + y;
+    System.out.println(addition.apply(10, 20));
+    
+    Function<Integer, Integer> increment = x -> x + 1;
+    System.out.println(increment.apply(7));
+  }
+}
+```
+- A. 25 30 8
+- B. 25 30 7
+- C. 5 30 7
+- D. Compile Error
+
+**Answer: A** — `square.apply(5)` computes $5 \times 5 = 25$, `addition.apply(10, 20)` computes $10 + 20 = 30$, and `increment.apply(7)` computes $7 + 1 = 8$.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 10; answer determined from source material, not marked in original)*
+
+**Q2.** Which of the following is a terminal function in streams api?
+- A. map
+- B. filter
+- C. foreach
+- D. none of the above
+
+**Answer: C** — `forEach` is a terminal operation that triggers pipeline execution; `map` and `filter` are lazy intermediate operations.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 6; answer determined from source material, not marked in original)*
+
+**Q3.** In the above code, Function, BinaryOperator, IntFunction are types of:
+```java
+IntFunction<Integer> square = x -> x * x;
+BinaryOperator<Integer> addition = (x, y) -> x + y;
+Function<Integer, Integer> increment = x -> x + 1;
+```
+- A. Lambda Expressions
+- B. Functional Interfaces
+- C. Functions
+- D. Classes
+
+**Answer: B** — `IntFunction`, `BinaryOperator`, and `Function` are standard functional interfaces provided in the `java.util.function` package.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 52; answer determined from source material, not marked in original)*
+
+**Q4.** What does the following code snippet do?
+```java
+Set<String> uniqueFruits = fruits.stream()
+  .collect(Collectors.toSet());
+System.out.println(""Result: "" + uniqueFruits);
+```
+- A. Removes duplicate fruits from the list.
+- B. Creates a set of all fruit names.
+- C. Concatenates all fruits into a single string.
+- D. Compile Error.
+
+**Answer: B** — `Collectors.toSet()` collects the stream elements into a `Set<String>`.
+Deduplication is a natural consequence of the `Set` contract, but the collector's direct
+action is building that set, not ""removing duplicates"" as a separate step.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 8; answer determined from source material, not marked in original)*
+
+**Q5.** Which of the following comparators will sort a list of strings in descending order
+according to length?
+- A. `Comparator<String> c = (s1, s2) -> Integer.compare(s2.length(), s1.length());`
+- B. `Comparator<String> c = (s1, s2) -> s2.length() - s1.length();`
+- C. `Comparator<String> c = Comparator.comparingInt(String::length).reversed();`
+- D. All of the above
+
+**Answer: D** — All three are valid, equivalent ways of expressing a descending-by-length
+comparator: two hand-written lambda forms (integer subtraction and `Integer.compare` for
+overflow safety) and one built from the fluent `Comparator.comparingInt(...).reversed()`
+API.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 8; answer determined from source material, not marked in original)*
 ",
-            "13-java-adv-4-streams-exceptions" => @"# Lesson 13 — Streams in Depth & Exception Architecture
+            "13-java-adv-4-streams-exceptions" => @"# Lesson 13 — Java Advanced 4: Streams in Depth & Exception Architecture
 
 ## Concepts Covered
-Collectors such as `groupingBy`, `partitioningBy`, `mapping`, and `toMap` express aggregation, but duplicate-key and null policies must be explicit. `flatMap` is useful for nested orders or line items, while `mapMulti` can avoid temporary collections in hot paths. Exception architecture should distinguish programmer errors, invalid input, transient dependency failures, and domain rejections so callers can choose retry, correction, or escalation.
 
-Checked exceptions document recoverable boundaries but can make functional pipelines noisy. Do not wrap every failure in a generic runtime exception and lose the original category. Translate exceptions at the adapter or application boundary, preserve the cause, and attach stable error codes. `try`-with-resources closes `AutoCloseable` resources in reverse order and retains suppressed failures, which is safer than hand-written cleanup.
+Building enterprise backend applications requires mastering advanced stream collectors for data aggregation and designing a resilient exception architecture for production fault tolerance.
+
+**Advanced Stream Collectors & Aggregations:**
+The `Collectors` utility class provides powerful aggregation operations for terminal stream processing:
+- `Collectors.groupingBy()`: Groups elements by a classifier function into a `Map<K, List<V>>` (e.g. `fruits.stream().collect(Collectors.groupingBy(String::length))` maps character lengths to fruit name lists).
+- **Downstream Collectors:** Combining `groupingBy` with secondary collectors such as `Collectors.counting()`, `Collectors.mapping()`, `Collectors.toSet()`, or `Collectors.averagingDouble()` to perform multi-level aggregations in a single pass.
+- `Collectors.partitioningBy()`: Specialized grouping using a `Predicate<T>`, partitioning elements into exactly two groups stored in `Map<Boolean, List<T>>`.
+- `Collectors.toMap()`: Collects stream elements into key-value maps. *Critical Rule:* An explicit merge function `(existing, replacement) -> existing` must be supplied when keys may collide, preventing runtime `IllegalStateException`.
+- `Collectors.joining(delimiter)`: Concatenates stream elements into a single formatted string.
+
+**Java Exception Architecture & Type Hierarchy:**
+`Throwable` is the root superclass of all errors and exceptions in Java:
+- **`Error`:** Critical system-level failures outside application control (`OutOfMemoryError`, `StackOverflowError`). Application code should never catch `Error`.
+- **`Exception`:** Application-level conditions that programs can reasonably intercept and handle.
+  - **`RuntimeException` (Unchecked Exceptions):** Subclasses of `RuntimeException` representing programming defects, logic errors, and broken invariants (`NullPointerException`, `IllegalArgumentException`, `IndexOutOfBoundsException`). Unchecked by the compiler; do not require explicit `throws` declarations.
+  - **Checked Exceptions:** Subclasses of `Exception` (excluding `RuntimeException`) representing anticipated, recoverable operational failures (`IOException`, `SQLException`). Enforced at compile time; must be caught or declared in method signatures.
+
+**Enterprise Exception Handling Best Practices:**
+- **`try`-with-resources:** Automatically closes all `AutoCloseable` resources (database connections, file streams, sockets) in reverse order of declaration upon block exit, safely preserving suppressed exceptions.
+- **Layered Exception Translation:** Catch low-level technical exceptions (e.g. `SQLException`, `IOException`) at infrastructure boundaries and translate them into typed domain/application exceptions (`EntityNotFoundException`, `DuplicateKeyException`, `PaymentGatewayException`) carrying structured error codes and HTTP status metadata.
+- **Checked Exceptions in Stream Lambdas:** Stream lambdas cannot throw unhandled checked exceptions. Wrap checked exceptions into unchecked domain exceptions or bridge them using dedicated functional error wrappers.
 
 ## Practical Backend Scenario
-A nightly settlement job reads paginated statements, flattens transactions, groups them by merchant, and writes a reconciliation report. A malformed record is quarantined with its source reference, a database timeout causes the batch to retry, and a duplicate provider reference becomes a conflict report rather than silently overwriting a map entry.
+
+A nightly reconciliation and settlement engine processes paginated merchant transaction batches. The service reads transaction statements, filters settled entries, partitions transactions into domestic versus international settlements (`partitioningBy`), groups transactions by merchant ID (`groupingBy`), and sums total revenue per merchant into a summary map using `Collectors.toMap(Transaction::getMerchantId, Transaction::getAmount, Double::sum)`.
+
+During batch file parsing, the service uses `try`-with-resources to read statement streams. If a corrupted line or database timeout occurs, the system catches the low-level exception, wraps it in a typed `SettlementProcessingException` with batch correlation IDs, logs the failure without exposing sensitive cardholder data, quarantines the malformed record into a dead-letter queue, and allows remaining merchant reconciliations to complete.
 
 ## Practice Loop
-1. Define an exception taxonomy and the boundary that translates each category.
-2. Implement grouping with an explicit duplicate-key merge policy.
-3. Add a resource that fails on read and close; inspect the primary and suppressed exceptions.
-4. Test partial batch failure, retry safety, malformed records, and empty input.
-5. Review logs for stable identifiers and absence of sensitive payment data.
+
+1. Construct a stream pipeline grouping a list of product names by character length using `Collectors.groupingBy(String::length)`.
+2. Partition a list of integers into prime versus non-prime numbers using `Collectors.partitioningBy()`.
+3. Implement `Collectors.toMap()` on a list containing duplicate keys, providing an explicit merge function `(v1, v2) -> v1 + v2` to accumulate colliding values.
+4. Build a custom exception hierarchy with a base `ApplicationException` and specialized subclasses `ResourceNotFoundException` and `ValidationException`.
+5. Implement a file reader method using `try`-with-resources, demonstrating automated resource cleanup and layered exception translation.
 
 ## Evidence of Understanding
-You can choose between rejecting, quarantining, retrying, and compensating for a failure. Your collector cannot silently lose duplicate data, your resources close deterministically, and callers receive an error contract that is useful without exposing implementation details.
+
+You can implement multi-level grouping and partitioning with downstream collectors, explain why `toMap()` requires duplicate-key merge functions, articulate the distinction between Checked and Unchecked exceptions in the Java hierarchy, and design layered exception translation that maps internal errors to clean API error contracts.
 
 ## Suggested Extension
-Add a dead-letter output for quarantined records and make the retry command idempotent by storing a batch execution key.
+
+Implement a resilient stream wrapper utility `CheckedFunction<T, R, E extends Exception>` that cleanly catches checked exceptions within stream mapping pipelines, rethrowing them as typed runtime domain exceptions with structured error context.
+
+## Self-Check (From Class Material)
+
+**Q1.** What does the following code snippet do?
+```java
+Map<Integer, List<String>> groupedByLength = fruits.stream()
+    .collect(Collectors.groupingBy(String::length));
+```
+- A. Creates a map where keys are fruit lengths and values are fruit names.
+- B. Creates a map where keys are fruit names and values are fruit length.
+- C. Counts the total number of fruits.
+- D. Compile Error.
+
+**Answer: A** — `Collectors.groupingBy(String::length)` classifies elements by their string length, returning a `Map<Integer, List<String>>` where each key is a word length and the value is the list of matching fruits.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 8; answer determined from source material, not marked in original)*
+
+**Q2.** Which of the following stream methods return a boolean?
+- A. findFirst
+- B. filter
+- C. allMatch
+- D. collect
+
+**Answer: C** — `allMatch` is a short-circuiting terminal operation that returns a `boolean` indicating whether all elements match the given predicate.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 10; answer determined from source material, not marked in original)*
+
+**Q3.** What does the following code snippet do?
+```java
+String result = fruits.stream()
+  .collect(Collectors.joining("", ""));
+```
+- A. Concatenates all fruits into a single string.
+- B. Creates a list of fruits.
+- C. Calculates the total length of all fruits.
+- D. Compilation Error.
+
+**Answer: A** — `Collectors.joining("", "")` is a terminal collector that concatenates the stream of fruit strings into a single delimited `String`.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 55; answer determined from source material, not marked in original)*
+
+**Q4.** Which of the following is NOT a way of creating a stream?
+- A. `Stream.of()`
+- B. `list.stream()`
+- C. `Stream.iterate()`
+- D. `stream.collect()`
+
+**Answer: D** — `Stream.of()`, `list.stream()`, and `Stream.iterate()` all *create* a
+stream. `collect()` is a terminal operation that *consumes* an existing stream and produces
+a result — it does not create a new stream.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 6; answer determined from source material, not marked in original)*
 ",
             "14-spring-boot-core" => @"# Lesson 14 — Spring Boot Core: IoC & Dependency Injection
 

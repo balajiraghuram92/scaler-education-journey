@@ -1,0 +1,106 @@
+Structural Design
+             Patterns.Adapter
+
+           facade
+
+                             FlyweightDecorator
+
+ Adapter
+
+Tight couplingSend
+
+BankPhoneleYes                                   Money Src dest
+
+                                                                amount
+
+ICICI transferMoney Src amount
+
+                                     dest
+                                                     transfer Src dest x
+
+                                 24 BankAPI
+
+PhoneleBank                       YesBankAdapter          ICICI Adapter
+
+     API api                          YB Sb              I 1111 icici
+
+            newYB                transfer Svcdest I  transfer Svcdest x
+                                      yb send
+                      Adapter                             icici maketen
+                                    733                            rlarlineggfhtlte
+                   Ilic Adapter
+
+ api transfer i i
+
+                                      ICICIYes
+
+BankIScaler
+
+                                                   OpenAI
+
+                              Tight coupling
+                   K ChatModel
+
+7Mod7el SmocdelalerChart
+                   AdapterOpenAI
+new OpenAIAdaptal
+AnthropicAdaptallAnthropic
+Adaptermodel
+I
+
+C
+
+                   OpenAIAuturopic
+facade.Class
+
+              Amazon
+
+InvoiceGenservice           service
+
+InventoryServsiecerviceiinnvveonictoeryservice
+
+              Notification  notificationservice
+
+              Void   on Orderplaced IE
+
+                    inventoryservice updateInventory
+
+                    invoiceservice generate Invoices
+
+                     notificationservice sendNotification1
+
+33
+Class  On OrderPlacedfacade
+
+       InvoiceGenservice invoiceservice
+
+       InventoryService inventoryservice
+
+       Notificationservicenotificationservice
+
+          void on Orderplaced IE
+                  inventoryservice updateInventory
+
+                 invoiceservice generate Invoices
+
+                   notificationservice sendNotification1
+
+33Class
+
+           Amazon
+
+       OrderPlacedFacade
+
+   oponfO:rdverpolaciedd E
+
+               opf onorderplaced
+
+ J3
+Adapter vs facade
+
+Compatibility              component
+
+          systems.Complex
+
+3 party
+
