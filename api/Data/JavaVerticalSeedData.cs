@@ -92,17 +92,43 @@ public static class JavaVerticalSeedData
             db.Modules.Add(mod3);
             db.SaveChanges();
 
-            // Module 4: Spring & Enterprise Architecture
+            // Module 4: Design Principles & Patterns
             var mod4 = new CourseModule
+            {
+                CourseId = course.Id,
+                Slug = "design-principles-patterns",
+                Title = "Design Principles & Patterns for Extensible Systems",
+                Description = "SOLID principles, creational, structural, and behavioural design patterns, and UML class diagrams.",
+                Badge = "Module 4",
+                OrderIndex = 4
+            };
+            db.Modules.Add(mod4);
+            db.SaveChanges();
+
+            // Module 5: Applied Design & Machine Coding
+            var mod5 = new CourseModule
+            {
+                CourseId = course.Id,
+                Slug = "applied-machine-coding",
+                Title = "Applied Design & Machine Coding",
+                Description = "End-to-end object-oriented design and implementation of real-world systems: TicTacToe, Parking Lot, BookMyShow, and Splitwise.",
+                Badge = "Module 5",
+                OrderIndex = 5
+            };
+            db.Modules.Add(mod5);
+            db.SaveChanges();
+
+            // Module 6: Spring & Enterprise Architecture
+            var mod6Spring = new CourseModule
             {
                 CourseId = course.Id,
                 Slug = "spring-enterprise-architecture",
                 Title = "Spring Boot & Enterprise Architecture",
                 Description = "Dependency injection, Spring Data JPA, RESTful API design, PostgreSQL integration, and distributed architectures.",
-                Badge = "Module 4",
-                OrderIndex = 4
+                Badge = "Module 6",
+                OrderIndex = 6
             };
-            db.Modules.Add(mod4);
+            db.Modules.Add(mod6Spring);
             db.SaveChanges();
 
             // Seed Lessons for Module 1
@@ -117,7 +143,64 @@ public static class JavaVerticalSeedData
             // Seed Lessons for Module 4
             SeedModule4Lessons(db, mod4.Id);
 
+            // Seed Lessons for Module 5
+            SeedModule5Lessons(db, mod5.Id);
+
+            // Seed Lessons for Module 6
+            SeedModule6Lessons(db, mod6Spring.Id);
+
             db.SaveChanges();
+        }
+
+        // Idempotent module restructure — safe to run on existing databases
+        // Ensures the correct 6-module ordering regardless of when the database was first seeded.
+        var existingCourse = db.Courses.FirstOrDefault(c => c.Slug == "java-spring-lld");
+        if (existingCourse != null)
+        {
+            // Ensure Spring module is at OrderIndex 6 (it may be at 4 in older seeds)
+            var springModule = db.Modules.FirstOrDefault(m => m.CourseId == existingCourse.Id && m.Slug == "spring-enterprise-architecture");
+            if (springModule != null && springModule.OrderIndex != 6)
+            {
+                springModule.OrderIndex = 6;
+                springModule.Badge = "Module 6";
+                db.SaveChanges();
+            }
+
+            // Ensure Module 4 (design-principles-patterns) exists
+            var designModule = db.Modules.FirstOrDefault(m => m.CourseId == existingCourse.Id && m.Slug == "design-principles-patterns");
+            if (designModule == null)
+            {
+                designModule = new CourseModule
+                {
+                    CourseId = existingCourse.Id,
+                    Slug = "design-principles-patterns",
+                    Title = "Design Principles & Patterns for Extensible Systems",
+                    Description = "SOLID principles, creational, structural, and behavioural design patterns, and UML class diagrams.",
+                    Badge = "Module 4",
+                    OrderIndex = 4
+                };
+                db.Modules.Add(designModule);
+                db.SaveChanges();
+                SeedModule4Lessons(db, designModule.Id);
+            }
+
+            // Ensure Module 5 (applied-machine-coding) exists
+            var machineModule = db.Modules.FirstOrDefault(m => m.CourseId == existingCourse.Id && m.Slug == "applied-machine-coding");
+            if (machineModule == null)
+            {
+                machineModule = new CourseModule
+                {
+                    CourseId = existingCourse.Id,
+                    Slug = "applied-machine-coding",
+                    Title = "Applied Design & Machine Coding",
+                    Description = "End-to-end object-oriented design and implementation of real-world systems: TicTacToe, Parking Lot, BookMyShow, and Splitwise.",
+                    Badge = "Module 5",
+                    OrderIndex = 5
+                };
+                db.Modules.Add(machineModule);
+                db.SaveChanges();
+                SeedModule5Lessons(db, machineModule.Id);
+            }
         }
 
         // Existing databases may already have the course and its lessons. Backfill only
@@ -447,6 +530,177 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
     }
 
     private static void SeedModule4Lessons(StudyTrackerContext db, int moduleId)
+    {
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "14-solid-principles",
+            Title = "Lesson 14 — SOLID Principles for Extensible Systems",
+            Description = "Single Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion — applied to Java backend design with AI service integration examples.",
+            LectureNumber = 14,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 90,
+            IsCompleted = false,
+            OrderIndex = 1,
+            ContentBody = "# Lesson 14 — SOLID Principles\n## Key Topics\n- Single Responsibility Principle\n- Open-Closed Principle\n- Liskov Substitution Principle\n- Interface Segregation Principle\n- Dependency Inversion Principle"
+        });
+
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "15-creational-patterns",
+            Title = "Lesson 15 — Creational Design Patterns",
+            Description = "Singleton, Builder, Prototype, Registry, and Factory — controlling object creation and dependency setup in production Java systems.",
+            LectureNumber = 15,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 90,
+            IsCompleted = false,
+            OrderIndex = 2,
+            ContentBody = "# Lesson 15 — Creational Patterns\n## Key Topics\n- Singleton (thread-safe variants)\n- Builder pattern\n- Prototype and Registry\n- Factory pattern for service abstraction"
+        });
+
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "16-structural-patterns",
+            Title = "Lesson 16 — Structural Design Patterns",
+            Description = "Adapter, Facade, Decorator, and Flyweight — composing objects and classes into larger structures without breaking client contracts.",
+            LectureNumber = 16,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 90,
+            IsCompleted = false,
+            OrderIndex = 3,
+            ContentBody = "# Lesson 16 — Structural Patterns\n## Key Topics\n- Adapter pattern\n- Facade pattern\n- Decorator pattern\n- Flyweight pattern"
+        });
+
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "17-behavioural-patterns-uml",
+            Title = "Lesson 17 — Behavioural Patterns & UML Diagrams",
+            Description = "Observer, Strategy, Command, Chain of Responsibility — managing algorithms and object communication — plus reading and writing UML class diagrams.",
+            LectureNumber = 17,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 90,
+            IsCompleted = false,
+            OrderIndex = 4,
+            ContentBody = "# Lesson 17 — Behavioural Patterns & UML\n## Key Topics\n- Observer pattern\n- Strategy pattern\n- Command pattern\n- Chain of Responsibility\n- UML class diagram notation"
+        });
+    }
+
+    private static void SeedModule5Lessons(StudyTrackerContext db, int moduleId)
+    {
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "18-how-to-approach-design",
+            Title = "Lesson 18 — How to Approach Design Problems",
+            Description = "A repeatable framework for machine coding interviews and real-world system design: requirements gathering, entity identification, relationship mapping, and iterative refinement.",
+            LectureNumber = 18,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 60,
+            IsCompleted = false,
+            OrderIndex = 1,
+            ContentBody = "# Lesson 18 — How to Approach Design Problems\n## Key Topics\n- Clarifying requirements before coding\n- Identifying entities and their relationships\n- Choosing between inheritance and composition\n- Iterative design: sketch first, code second"
+        });
+
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "19-machine-coding-tictactoe",
+            Title = "Lesson 19 — Machine Coding: TicTacToe",
+            Description = "Design and implement a clean, extensible TicTacToe engine: board abstraction, player management, win-condition strategy, and handling NxN generalization.",
+            LectureNumber = 19,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 150,
+            IsCompleted = false,
+            OrderIndex = 2,
+            ContentBody = "# Lesson 19 — Machine Coding: TicTacToe\n## Key Topics\n- Board and cell abstraction\n- Player and symbol management\n- Win-condition checking strategy\n- NxN board generalization\n- Game loop and turn management"
+        });
+
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "20-machine-coding-parking-lot",
+            Title = "Lesson 20 — Machine Coding: Parking Lot",
+            Description = "Design and implement a multi-floor parking lot system: spot types, vehicle hierarchy, entry/exit ticketing, fee calculation strategy, and concurrent slot management.",
+            LectureNumber = 20,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 150,
+            IsCompleted = false,
+            OrderIndex = 3,
+            ContentBody = "# Lesson 20 — Machine Coding: Parking Lot\n## Key Topics\n- Parking spot and floor abstraction\n- Vehicle type hierarchy\n- Ticket and fee calculation strategy\n- Entry/exit gate management\n- Availability tracking"
+        });
+
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "21-machine-coding-bookmyshow",
+            Title = "Lesson 21 — Machine Coding: BookMyShow",
+            Description = "Design and implement a seat booking system: event and venue modelling, seat locking under concurrency, booking confirmation flow, and payment state management.",
+            LectureNumber = 21,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 180,
+            IsCompleted = false,
+            OrderIndex = 4,
+            ContentBody = "# Lesson 21 — Machine Coding: BookMyShow\n## Key Topics\n- Event, show, and venue entities\n- Seat locking and concurrency\n- Booking confirmation and cancellation\n- Payment state machine"
+        });
+
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "22-machine-coding-splitwise",
+            Title = "Lesson 22 — Machine Coding: Splitwise",
+            Description = "Design and implement an expense-splitting system: expense categories, split strategies (equal, exact, percentage), debt simplification, and balance sheet computation.",
+            LectureNumber = 22,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 150,
+            IsCompleted = false,
+            OrderIndex = 5,
+            ContentBody = "# Lesson 22 — Machine Coding: Splitwise\n## Key Topics\n- User and group management\n- Expense and split strategy\n- Equal, exact, and percentage splits\n- Balance computation and debt simplification"
+        });
+
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "23-machine-coding-contest",
+            Title = "Lesson 23 — Machine Coding Contest",
+            Description = "Timed machine coding assessment applying all design patterns and OOP principles to a new, unseen problem under interview conditions.",
+            LectureNumber = 23,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 120,
+            IsCompleted = false,
+            OrderIndex = 6,
+            ContentBody = "# Lesson 23 — Machine Coding Contest\n## Key Topics\n- Timed system design under pressure\n- Applying SOLID and design patterns to new problems\n- Code review and self-assessment"
+        });
+
+        db.Lessons.Add(new Lesson
+        {
+            ModuleId = moduleId,
+            Slug = "24-machine-coding-hotel-management",
+            Title = "Lesson 24 — Machine Coding: Hotel Management System",
+            Description = "Design and implement a layered hotel booking system across four incremental stages: adding rooms, browsing availability, booking rooms, and generating invoices — Controller/DTO/Repository/Service architecture.",
+            LectureNumber = 24,
+            ClassDate = "TBD",
+            HorstmannRef = "TBD",
+            EstimatedMinutes = 180,
+            IsCompleted = false,
+            OrderIndex = 7,
+            ContentBody = GetAuthoredLessonContent("24-machine-coding-hotel-management") ?? string.Empty
+        });
+    }
+
+    private static void SeedModule6Lessons(StudyTrackerContext db, int moduleId)
     {
         db.Lessons.Add(new Lesson
         {
@@ -2449,6 +2703,778 @@ String result = fruits.stream()
 stream. `collect()` is a terminal operation that *consumes* an existing stream and produces
 a result — it does not create a new stream.
 *(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 6; answer determined from source material, not marked in original)*
+",
+            "14-solid-principles" => @"# Lesson 14 — SOLID Principles for Extensible Systems
+
+## Concepts Covered
+
+SOLID names five instincts about code quality precisely enough to diagnose and discuss a design problem in specific terms, rather than a vague sense that ""this code is messy."" Each principle in this lesson is anchored to the same running example: a naive `Bird` class holding every bird's data and a branching `fly()` method, corrected one principle at a time.
+
+**Single Responsibility Principle (SRP):** a code unit should have exactly one reason to change. The violation is not about length — a long method built from steps of one coherent algorithm can still respect SRP — it is specifically when the reasons a method might change are unrelated to each other. A `Bird.fly()` method with an `if/else` chain per bird type is really doing two jobs: representing a bird, and knowing how every kind of bird flies. Real-world anchor: an employee expected to simultaneously be the accountant, the IT support, and the receptionist will drop something the moment two of those unrelated responsibilities compete for attention at once.
+
+**Open/Closed Principle (OCP):** a system should be open for extension but closed for modification — a new requirement should be met with new code, not edits to code that already worked and already has passing tests. Refactoring `Bird` into an `abstract class Bird` with an abstract `fly()` method, overridden by `Pigeon`, `Sparrow`, and `Peacock`, means adding a new bird type is a new subclass, not a new `else if` branch in a shared method. Real-world anchor: a well-designed house allows a new room to be added without demolishing the kitchen to do it.
+
+**The Penguin Problem — the bridge from OCP to LSP:** the abstract-`fly()` refactor immediately hits a wall: a `Penguin` cannot honestly fly. Giving it an empty `fly()` body or having it `throw new UnsupportedOperationException()` both compile fine, but both are lies about the contract every other `Bird` subtype honors — client code that does `for (Bird b : birds) b.fly();` now either does nothing for a penguin (silently wrong) or crashes (a runtime surprise nothing in the type system warned about).
+
+**Liskov Substitution Principle (LSP):** a subtype must be usable anywhere its parent type is expected, without the caller needing special-case handling, and this is about a promise being kept, not about inheritance syntax being valid — code that compiles cleanly can still violate LSP. A subclass may only make preconditions less strict (require less than the parent demanded) and postconditions more strict (guarantee at least as much as the parent promised); weakening a guarantee or demanding more up front breaks substitutability even if every method technically overrides correctly. The `Penguin.fly()` problem is exactly an LSP violation dressed up as an OCP fix: client code that loops over `List<Bird>` and calls `.fly()` on each one now needs a `Penguin`-specific `if (b.type == ""Penguin"") continue;` check to avoid a crash — the moment a caller needs a type check or a `try/catch` to safely use a subtype where its parent type was expected, LSP is broken. Real-world anchor: a ""Backend Developer"" job description promises the ability to write REST APIs — anyone hired into that role is expected to deliver on it without the team handling them differently.
+
+**Interface Segregation Principle (ISP):** no client should be forced to depend on methods it does not use. An interface that bundles several unrelated capabilities into one contract forces every implementer to take on obligations it may not actually have — exactly the same shape of problem the Penguin hit, but at the interface level instead of the inheritance level. Real-world anchor: a fixed thali forces every customer to take the full combination of courses, whether they want all of it or not; an à la carte menu lets a customer order exactly what they need.
+
+**Dependency Inversion Principle (DIP):** high-level modules should not depend on low-level modules — both should depend on abstractions. A class that depends directly on another concrete class is wired in a way that makes both classes harder to change independently and harder to test in isolation. Real-world anchor: a phone charger does not wire itself directly into the power plant; it plugs into a wall socket, a standard interface both sides agree to.
+
+**Dependency Injection (not itself a SOLID letter):** a natural consequence of DIP, not a sixth principle — supplying a class's dependencies from outside rather than having the class construct them itself. Real-world anchor: a new employee joining a company is not expected to bring their own laptop and desk; the company supplies it, and the employee simply plugs in and starts working.
+
+**Where this leads next:** by the end of the `Bird` refactor, flying has been extracted into its own `FlyingBehaviour` interface, supplied to a bird rather than hard-coded inside it — this is already a named, well-established design pattern (Strategy), the subject of the very next class, and easier to follow because this lesson builds the underlying reasoning by hand first, before the pattern is named.
+
+## Practical Backend Scenario
+
+A notification system started with a single class containing `if/else` branches for email, SMS, and push notifications — every new channel required editing that same tested method (an OCP violation identical in shape to the `Bird.fly()` branching problem). A separate `UserService` class was found to be simultaneously validating credentials, querying the database directly, and formatting API responses — three unrelated reasons to change bundled into one class (an SRP violation). A `PaymentProcessor` interface required every implementer to expose `refund()`, `chargeSubscription()`, and `generateInvoice()`, even though a one-time-payment provider had no concept of a subscription — forcing that implementer to throw `UnsupportedOperationException` from methods it could never honestly support (an ISP violation with the exact same ""Penguin smell"" as the `Bird` example). Fixing all three: the notification class became a `NotificationChannel` interface with one implementation per channel (OCP), `UserService` was split so authentication, persistence, and formatting each live in their own focused class (SRP), and the fat `PaymentProcessor` interface was split into `Refundable`, `SubscriptionCapable`, and `InvoiceGenerating`, each implemented only by the providers that can genuinely support it (ISP).
+
+## Practice Loop
+
+1. Take the `Bird` class with a branching `fly()` method; refactor it into an abstract class with one subclass per bird type, and identify the exact `Penguin`-shaped case where a subtype cannot honestly implement the forced method.
+2. Rewrite the caller loop over `List<Bird>` so that it needs zero special-case type checks for any subtype — if it still needs one, the LSP violation has not actually been fixed yet.
+3. Find a fat interface in any codebase (or write one deliberately) where at least one implementer throws `UnsupportedOperationException` from a required method; split it into smaller, capability-specific interfaces.
+4. Take two concrete classes wired directly to each other (`new ConcreteLogger()` called directly inside a service); introduce a shared interface and inject the dependency through the constructor instead.
+5. Write down, for a class you already have, exactly one sentence naming its single reason to change; if you cannot do it in one sentence, it likely violates SRP.
+
+## Evidence of Understanding
+
+You can recognize an SRP violation as unrelated reasons to change, not merely length. You can distinguish extending a system from modifying its existing, working code, and explain the regression risk of the latter. You can identify the ""Penguin problem"" pattern — a forced method a subtype cannot honestly implement — as the shared root of an OCP-refactor gone wrong and an LSP violation. You can restate LSP as a promise being kept (in terms of precondition/postcondition strictness) rather than a compiler-checked guarantee. You can split a fat interface using ISP and rewrite a direct concrete-to-concrete dependency using DIP, and explain why Dependency Injection is a consequence of DIP rather than a sixth principle.
+
+## Suggested Extension
+
+Take the `FlyingBehaviour` interface this lesson arrives at (flying extracted out of `Bird` and supplied from outside) and predict, before the next lesson, what pattern this already is and why supplying it through a constructor rather than hard-coding it inside `Bird` is itself an application of DIP.
+
+## Self-Check (From Class Material)
+
+**Q1.** A class is responsible for generating reports in different formats such as PDF, HTML, and CSV using a switch case with one branch per format. Adding TXT support requires modifying the class. Which SOLID principle is violated?
+- A. Open/closed
+- B. Liskov substitution
+- C. Interface segregation
+- D. Dependency inversion
+
+**Answer: A** — Every new format requires editing the existing, already-tested switch statement instead of adding new code, the defining shape of an Open/Closed violation.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 6)*
+
+**Q2.** In a video game, a class handles different enemy types and their behaviors. As new enemies are introduced, the developer adds a new if-else block to the same class each time. Which SOLID principle is violated?
+- A. Open/closed
+- B. Liskov substitution
+- C. Interface segregation
+- D. Dependency inversion
+
+**Answer: A** — Same shape as the report-generator case: a new enemy type should be new code (a new class), not a new branch inside an existing method.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 9)*
+
+**Q3.** In an inventory management system, one class handles inventory operations, generates sales reports, AND sends notifications to suppliers. Which SOLID principle is violated?
+- A. Single responsibility
+- B. Open/closed
+- C. Liskov substitution
+- D. Interface segregation
+
+**Answer: A** — Three unrelated reasons to change (inventory logic, reporting, notifications) are bundled into one class.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 7)*
+
+**Q4.** A class handles both user authentication (verifying credentials) and database interactions (querying, updating user records). Which SOLID principle is violated?
+- A. Single responsibility
+- B. Open/closed
+- C. Liskov substitution
+- D. Interface segregation
+
+**Answer: A** — Authentication logic and persistence logic are two unrelated reasons to change, bundled into one class.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 3)*
+
+**Q5.** According to the Liskov Substitution Principle, if class B is a subclass of class A, what must be true when replacing an instance of A with an instance of B?
+- A. The program's execution speed must remain identical or increase
+- B. The program must continue to function correctly without violating the behavioral expectations established by class A
+- C. Class B must override every single public and private method defined in class A
+- D. The client code must explicitly cast class B back to class A before calling any inherited methods
+
+**Answer: B** — LSP is about behavioral substitutability: the caller must not need any special handling to safely use B wherever A was expected.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 4)*
+
+**Q6.** Under LSP, how must a subclass handle the preconditions and postconditions established by its parent class?
+- A. It must make preconditions stricter and postconditions weaker
+- B. It cannot change preconditions, but it can safely remove all postconditions
+- C. It can make preconditions less strict (require less) and postconditions more strict (guarantee more)
+- D. It must ignore the parent class's conditions and define completely independent validation rules
+
+**Answer: C** — A subtype may only ask for less and promise at least as much as its parent — this is the precise technical definition behind ""a promise being kept.""
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 45)*
+
+**Q7.** Why is the Interface Segregation Principle highly relevant when designing object-oriented applications?
+- A. It requires all classes to implement a single, massive interface to guarantee consistency across the application
+- B. It prevents bloated interfaces from forcing subclasses to implement ""dummy"" or empty methods, which pollutes the API and misleads developers
+- C. It guarantees that an application will consume less memory at runtime
+- D. It dictates that interfaces should only contain private methods to secure implementation details
+
+**Answer: B** — This is exactly the ""Penguin problem"" transplanted to interfaces: a fat interface forces implementers into dummy or exception-throwing methods they cannot honestly support.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 54)*
+
+**Q8.** How do ISP and DIP conceptually work together in a well-architected system?
+- A. DIP forces the creation of abstractions, and ISP ensures those abstractions are granular, focused, and client-specific
+- B. ISP restricts the total number of interfaces allowed, while DIP forces all classes to eventually merge into a single abstract base class
+- C. They inherently contradict each other; applying DIP requires violating ISP
+- D. ISP solely dictates the UI layer, while DIP solely manages the database layer
+
+**Answer: A** — DIP says depend on abstractions; ISP says make sure those abstractions are small and focused rather than fat — the two principles work at different levels of the same design decision.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 5)*
+
+**Q9.** The Dependency Inversion Principle consists of two core parts regarding high-level and low-level modules. Which statement perfectly captures the essence of DIP?
+- A. High-level modules should depend on low-level modules; both should depend on concrete details
+- B. Low-level modules should inherit directly from high-level modules to invert the control flow
+- C. High-level modules should not depend on low-level modules; both must depend on abstractions (like interfaces or abstract classes)
+- D. Dependencies should always be instantiated globally at the very top of a source file
+
+**Answer: C** — Both sides depend on a shared abstraction rather than one depending directly on the other's concrete implementation.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 2)*
+
+**Q10.** Why does DIP explicitly advocate for depending on abstractions rather than concretions?
+- A. Because abstract classes compile faster than concrete classes in modern languages
+- B. Because it eliminates the need for unit testing, as abstractions are inherently bug-free
+- C. Because concretions are volatile and change frequently, whereas abstractions represent stable business concepts
+- D. Because object-oriented languages physically do not allow high-level modules to directly instantiate concrete classes
+
+**Answer: C** — Concrete implementations (a specific database driver, a specific payment SDK) change far more often than the stable business-level contract they fulfill; depending on the stable abstraction insulates high-level code from that churn.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 11)*
+
+**Q11.** When a system consistently violates LSP, ISP, and DIP simultaneously across a major codebase, what is the most likely structural consequence during a system redesign?
+- A. High Rigidity and Fragility: changing a low-level detail forces massive cascading rewrites across high-level business logic, and code reuse becomes nearly impossible
+- B. Memory Leaks: the garbage collector will consistently fail to clean up instances of classes that use inheritance
+- C. Syntax Errors: the compiler will refuse to process files containing deep inheritance hierarchies
+- D. Loss of Thread Safety: the application will automatically lose its ability to handle concurrent tasks
+
+**Answer: A** — These three principles all exist to keep high-level and low-level code loosely coupled; violating all three together produces exactly the rigid, fragile, hard-to-reuse codebase SOLID as a whole is meant to prevent.
+*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 3)*
+",
+            "15-creational-patterns" => @"# Lesson 15 — Creational Design Patterns
+
+## Concepts Covered
+
+A design pattern is a well-known, reusable solution to a problem that keeps showing up across different, unrelated software systems — not one person's clever idea, but a shape many engineers independently arrive at. In 1994, four authors (Gamma, Helm, Johnson, Vlissides — the ""Gang of Four"" or GoF) catalogued 23 of these. Design patterns are not separate from SOLID; they are named, reusable shapes for applying principles like SOLID to a recurring problem. This module covers the **creational** family — patterns about how and when objects get created.
+
+**Singleton — Exactly One Shared Object:** use Singleton when a shared resource sits behind the class (a DB connection, a logger, a cache — one shared office printer beats five competing ones), or when creating the object is genuinely expensive (a DB connection setup involves real network round-trips before the first query even runs). Building one correctly, step by step: (1) make the constructor `private` so outside code cannot call `new` directly; (2) keep one `private static` field holding the single instance; (3) expose a `public static getInstance()` that creates the instance only if it doesn't exist yet, then returns it — never make the instance field itself `public`, since that removes all protection over the ""only one"" rule. **Eager loading** (`private static Instance = new Instance();`, built at class-load time) needs no locking but slows startup and locks in configuration too early; **lazy loading** (built on first `getInstance()` call) avoids that cost but introduces a real concurrency danger: two threads can both see `instance == null` at nearly the same moment and both create their own object, a race condition. The fix, **double-checked locking**, checks for null once without a lock (fast, used almost every call), and only takes the lock — then checks null *again* inside it — during the one risky moment; the inner check exists because a second thread could have been waiting for the lock while the first thread finished creating the instance, and skipping it lets two objects slip through anyway. Even correct double-checked locking has one more gap that AI-generated code frequently misses: the `instance` field must be declared `private static volatile`, because `instance = new DBConnection()` is really three steps (allocate memory, run the constructor, assign the reference) that the compiler and CPU are otherwise free to reorder — without `volatile`, a second thread could see a non-null reference pointing to a half-constructed object. Serialization is a separate hole double-checked locking does not close at all: Java deserialization rebuilds an object directly from saved bytes, skipping the private constructor and `getInstance()` entirely, which is why many engineers reach for an **enum Singleton** instead — the JVM guarantees exactly one instance, thread-safety, and serialization-safety for free. Since a Singleton always hands back the same object, tests can silently leak state between each other; a `resetInstance()` helper (not part of the original GoF pattern, added purely for testing) clears the stored instance so each test starts fresh — but must never be called from production code, since resetting a live instance while other parts of the app still hold the old one creates two competing ""shared"" objects, exactly what Singleton exists to prevent.
+
+**Builder — Safely Constructing Objects with Many Optional Fields:** a large constructor with many same-typed parameters is easy to call with arguments silently swapped (the compiler cannot catch it), and a `Map<String, Object>` of settings makes a wrong key ""silently do nothing"" with type errors only surfacing at runtime. Builder fixes this with a nested helper class that collects values with compiler-checked chainable setters (each setter returns `this`), then performs validation and constructs the real object through a single `build()` method. Four things make a production-quality Builder: a static `getBuilder()` on the main class showing how to begin; `build()` performing real validation before constructing; every setter returning the Builder itself for fluent chaining (`.setAge(21).setName(""Naman"").build()`); and a `private` constructor on the main class so nothing can bypass the Builder's validation. Mutable fields like `List`s must be defensively copied inside `build()`, not just referenced, or the caller can mutate the ""finished"" object from outside after construction completes.
+
+**Prototype and Registry — Copying Instead of Constructing:** manually copying an object's fields from outside the class couples the caller to every internal field name, cannot reach private fields with no setters, and forces a growing `instanceof` chain to handle subclasses (an OCP violation). Prototype fixes this with a `Prototype<T>` interface requiring `T clone()`; every subclass must override `clone()` itself and call `super(instance)`, because a child that forgets to override `clone()` silently runs its parent's clone logic and drops any fields the child added. A **Registry** is a separate `Map`-based store (`ConcurrentHashMap` for thread safety) for retrieving named prototype templates — `registry.get(""ubuntu-base"")` — where a missing key returns `null` silently, which then causes a `NullPointerException` later, on a completely different line, the moment `.clone()` runs on that `null`. The most common implementation bug is a **shallow copy trap**: copying a mutable field like a `List` by reference (`this.list = instance.list;`) leaves the original and the copy sharing the exact same underlying list, so mutating one mutates both; the fix constructs a genuinely new container from the source's contents (`new ArrayList<>(instance.list)`).
+
+**Factory — Deciding Which Class to Instantiate:** the problem Factory solves is a decision (""which class to build"") becoming known only at runtime, from configuration or user choice. A naive `if/else` chain hardcoded inside a client (`if (provider.equals(""openai""))...`) is an OCP violation — a new provider means editing tested code — and duplicates the same decision logic anywhere else it's needed. A **Simple/Static Factory** centralizes that decision into one method (`AIServiceClientProvider.getClient(provider)`), so the client depends only on an interface. This is deliberately not the strict GoF Factory Method (which uses an abstract method overridden by subclasses, with polymorphism doing the dispatch) — the practical static-factory shape is far more common in real codebases. An **Abstract Factory** goes one level up: when a single provider must supply a *family* of related objects that must stay compatible with each other (a chat client, an embeddings client, and a moderation client that must all come from the same vendor), an `AIProviderFactory` interface groups the related creation methods together so a caller can never accidentally mix an OpenAI chat client with a Gemini moderation client. Even a well-intentioned static factory can still secretly violate OCP: if adding a new provider still means reopening `getClient()`'s `if/else` chain, it has only centralized the branching, not eliminated the extensibility problem — a **registry-backed factory** (`Map<String, Supplier<T>>`, populated via a `register(name, Constructor::new)` call from each provider's own bootstrap code) genuinely lets a different team add a new provider without ever touching the factory class itself. Java's built-in `ServiceLoader` takes this even further, discovering implementations automatically from `META-INF/services` metadata files with no shared registration code at all — this is exactly how JDBC drivers and SLF4J logging backends register themselves.
+
+## Practical Backend Scenario
+
+A payments platform needs exactly one shared `ConnectionPoolManager` coordinating all database connections (Singleton, built with double-checked locking and `volatile`, with a `resetInstance()` used only in its test suite). Creating a `PaymentRequest` object safely, with required fields (amount, currency) and several optional ones (idempotency key, metadata, retry policy), uses a `Builder` with a private constructor so no `PaymentRequest` can exist without passing through validation. When a new merchant account is provisioned, its default settings are cloned from a `MerchantConfigTemplate` `Prototype`, looked up by tier name (""gold"", ""silver"") from a `ConfigRegistry`, with every clone defensively copying its mutable `allowedCurrencies` list rather than sharing a reference. Finally, routing a chat completion request to OpenAI, Anthropic, or Gemini goes through a registry-backed `AIServiceClientFactory`, so integrating a fourth provider next quarter is a one-line `register()` call from that provider's own module, not an edit to the factory class.
+
+## Practice Loop
+
+1. Build a `DBConnection` Singleton from scratch, in order: private constructor, static field, `getInstance()`; deliberately remove `volatile` first and explain in one sentence why the code still compiles but is unsafe, then add it back.
+2. Add a `resetInstance()` to your Singleton and use it in a `@BeforeEach` to prove two sequential tests don't leak state between each other.
+3. Build a `Builder` for a class with at least 5 fields (2 required, 3 optional, one of them a `List`); verify the `List` is defensively copied by mutating the caller's original list after `build()` and confirming the built object is unaffected.
+4. Implement `Prototype<T>` on a two-level class hierarchy (a subclass adding its own field); deliberately forget to override `clone()` on the subclass first, observe the dropped field, then fix it with `super(instance)`.
+5. Refactor an `if/else` factory into a registry-backed one (`Map<String, Supplier<T>>`), and prove a new type can be registered from a separate class without touching the factory itself.
+
+## Evidence of Understanding
+
+You can name the two legitimate reasons to reach for Singleton and explain why double-checked locking needs two null checks and a `volatile` field. You can build a Builder with proper validation, chaining, and defensive copying, and explain why a public constructor defeats the pattern's entire purpose. You can implement Prototype correctly across a subclass hierarchy and identify the shallow-copy trap on sight. You can distinguish a Simple Factory from an Abstract Factory by whether a single object or a compatible family of objects is being created, and explain why a registry-backed factory is more genuinely extensible than a static if/else factory.
+
+## Suggested Extension
+
+Build a small plugin-style system where a `Registry` of `Prototype` templates is populated at startup via a registry-backed `Factory`, so that adding a new template type requires registering it from that type's own module — combining all four patterns from this lesson into one cohesive design.
+",
+            "16-structural-patterns" => @"# Lesson 16 — Structural Patterns: Adapter, Facade, Decorator & Flyweight
+
+## Concepts Covered
+
+Structural patterns govern how objects are organized and connected *after* they already exist — a different concern from creational patterns (which govern *how* objects come into being).
+
+**Adapter — Translating Without Touching Either Side:**
+An adapter is a middle layer connecting two things that don't fit together, without changing either side. The classic production scenario: PhonePe needs to integrate Yes Bank, HDFC, and other banks, each with its own incompatible API shape, without rewriting PhonePe's core code for every new bank and without editing the banks' own SDK code (which would be overwritten on the next upstream update anyway). An adapter has three components: a **Target Interface** (the client's expected contract, e.g. PhonePe's internal `BankAPI`), an **Adaptee** (the existing incompatible class — the actual bank SDK), and the **Adapter** itself, which implements the target interface while internally wrapping and translating calls to the adaptee. Translation can take several forms: type conversion (an int status code becomes a boolean), data reshaping (an object's fields become primitive arguments), pass-through (when shapes already align), and method renaming (identical behavior under a different name). The everyday physical analogy is a MacBook USB-C-to-HDMI dongle: it changes neither the laptop's port nor the monitor's cable, it just translates between the two shapes.
+
+**Facade — One Simple Entry Point Over Complexity:**
+A facade provides one simple entry point that hides the coordination of several complex subsystems behind it. The production scenario: instead of `Amazon.orderPlace()` directly calling invoice, warehouse, inventory, and email services itself (violating single responsibility), a dedicated `OrderPlacedFacade` coordinates all of that complexity behind one method call. A correctly designed facade receives its subsystem dependencies through its constructor (dependency injection) rather than constructing them internally with `new` — this keeps the facade swappable and testable with mocks, and prevents it from being locked to one concrete implementation.
+
+**Distinguishing Adapter from Facade:** the test is *why* the wrapper exists. If the problem is two incompatible interfaces that need translating, it's an Adapter (typically one adaptee). If the problem is a complex, hard-to-use system that needs a simpler front door, it's a Facade (typically multiple subsystems). Real systems often combine both — an adapter can live inside a facade.
+
+**Decorator — Adding Behavior by Wrapping, Not Editing:**
+Decorator attaches new responsibilities to an object dynamically by wrapping it in another object that implements the same interface, leaving the original class completely untouched. The canonical worked example is a coffee shop: `Espresso implements Beverage` costs 80.0. Wrapping it as `new Mocha(order)` adds 20.0 by delegating to the wrapped beverage's `cost()` and adding its own charge on top; wrapping again as `new Whip(order)` adds another 15.0 the same way — three layers deep, `order.cost()` returns 115.0. Because decorators are just objects implementing the same interface as what they wrap, they compose: wrapping in `Mocha` *twice* (`new Mocha(new Mocha(order))`) naturally produces a ""double mocha"" with zero new code, which is the entire point of the pattern. The failure mode to recognize: if someone adds boolean flags like `hasMocha`/`hasWhip` and `if` branches directly inside `Espresso` to fake this behavior, they have reintroduced the exact tight coupling Decorator exists to eliminate — every new add-on then requires editing the base class again, and each new combination needs its own branch. A concrete bug to know: a `CondimentDecorator` subclass must have a constructor that receives and stores the wrapped `Beverage` (often via `super(beverage)`); forgetting this constructor is a common reason this pattern fails to compile.
+
+**Flyweight — Sharing State to Cut Memory:**
+Flyweight splits an object's data into **intrinsic state** (identical across many instances, safe to share from one cached object) and **extrinsic state** (unique per instance, passed in from the caller at the moment of use, never stored in the shared object). The canonical example: a game needs millions of bullets on screen, but they only come in a handful of *types* (e.g. ""AKM"") — the bullet's damage, model, and sound are intrinsic (identical for every AKM bullet fired) and belong in one cached `BulletType` object per type name, while each bullet's current position is extrinsic and passed in separately per bullet instance. A `BulletTypeFactory` backed by a `HashMap` returns the *same* cached object for the same type name (`getBulletType(""AKM"") == getBulletType(""AKM"")` is `true`), which is what makes the memory saving real. The most common mistake when applying this pattern is inverting the split — for example, in a text-editor `Character` class rendering millions of characters, the *font/size/color* are usually shared across large runs of text (intrinsic, cacheable) while each character's *row/column position* is unique per occurrence (extrinsic, passed in); a design that puts position into the shared/cached class and formatting into the per-instance class has the split exactly backwards. The same reasoning scales to any domain with a small fixed set of categories shared across a huge number of records — a food delivery app with only 30 order categories but millions of daily line items should cache one `Category` object per name and have every line item reference it, not duplicate the category data into every line item.
+
+## Practical Backend Scenario
+
+A payments platform (like PhonePe) needs to onboard a new bank partner every few months, each with its own SDK shape — this is solved with an `Adapter` per bank implementing a shared internal `BankAPI` interface, so onboarding a bank never requires editing the core payment-routing code. That same platform's order-completion flow touches five subsystems (payment confirmation, invoice generation, warehouse dispatch, inventory decrement, and email notification) — a `Facade` coordinates all five behind one `completeOrder()` call, with every subsystem dependency injected through the constructor so the flow can be tested with mocks. The platform's promotions team wants to stack optional order-level perks (free delivery, gift wrap, priority handling) without rewriting the base `Order` class for every combination — `Decorator` lets each perk be its own wrapper class, composable in any combination the promotions team invents later. Finally, the platform's catalog has only ~200 distinct product categories but tens of millions of line items across all orders — a `Flyweight`-backed `CategoryFactory` caches one `Category` object per category name so line items reference shared instances instead of duplicating category data millions of times over.
+
+## Practice Loop
+
+1. Implement a `BankAPI` target interface and two adapters (e.g. `YesBankAdapter`, `HDFCBankAdapter`) wrapping two differently-shaped fake bank SDKs, demonstrating at least one type-conversion translation and one method-renaming translation.
+2. Implement an `OrderPlacedFacade` with four injected subsystem dependencies (constructor injection, no internal `new`), and write a test that substitutes a mock for one subsystem to prove testability.
+3. Implement the coffee shop `Beverage`/`CondimentDecorator` hierarchy from scratch: `Espresso`, `Mocha`, `Whip`, verify triple-wrapping produces the correct additive cost, and verify double-wrapping the same decorator works without new code.
+4. Implement a `BulletTypeFactory` backed by a `HashMap<String, BulletType>`; verify with `==` that two lookups of the same type name return the identical cached object, and that a new type name creates and caches a new object.
+5. Take the `CharacterIntrinsic`/`CharacterExtrinsic` split example from this lesson's self-check, deliberately implement it backwards first (position cached, formatting passed in), observe why it fails to deliver any memory saving, then correct the split.
+
+## Evidence of Understanding
+
+You can state the three components of an Adapter and explain why editing third-party SDK code directly is unsafe. You can explain why a Facade's dependencies must be injected rather than constructed internally. You can trace a three-layer Decorator chain's `cost()` calculation by hand and explain why stacking the same decorator twice works without new code. You can classify any given field in a domain object as intrinsic or extrinsic state and justify a Flyweight factory design from an object count versus distinct-type count argument.
+
+## Suggested Extension
+
+Combine two of these patterns in one worked example: build a `PaymentGatewayFacade` that internally selects between `RazorpayAdapter` and `StripeAdapter` (Adapter used inside a Facade), and separately extend the coffee shop model with a `Decorator`-based loyalty-discount chain that a `Flyweight`-backed `DiscountRuleFactory` supplies shared, cached discount-rule objects to.
+
+## Self-Check (From Class Material)
+
+**Q1.** What is the main idea behind the Decorator pattern?
+- A. Copying an existing object to create a new one
+- B. Adding new behavior to an object by wrapping it, without changing its original class
+- C. Storing shared data in one place and reusing it across many objects
+- D. Notifying multiple objects whenever one object changes
+
+**Answer: B** — Decorator attaches new responsibilities to an object dynamically by wrapping it in another object implementing the same interface, leaving the original class untouched. (A describes Prototype, C describes Flyweight, D describes Observer.)
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q3)*
+
+**Q2.** Consider this code:
+```java
+Beverage order = new Espresso();        // cost = 80.0
+order = new Mocha(order);               // adds 20.0
+order = new Whip(order);                // adds 15.0
+System.out.println(order.cost());
+```
+What gets printed?
+- A. 80.0
+- B. 100.0
+- C. 115.0
+- D. Compile error
+
+**Answer: C** — Each decorator's `cost()` calls the wrapped object's `cost()` and adds its own charge: 80.0 + 20.0 + 15.0 = 115.0.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q4)*
+
+**Q3.** A student writes this Decorator code but it doesn't compile:
+```java
+class Mocha extends CondimentDecorator {
+    public double cost() {
+        return wrappedBeverage.cost() + 20.0;
+    }
+}
+```
+No constructor was written for `Mocha`. What's the most likely problem?
+- A. `CondimentDecorator` requires a constructor that passes the wrapped `Beverage`, and `Mocha` never provides one
+- B. `cost()` should not call `wrappedBeverage.cost()`
+- C. `Mocha` should implement `Beverage` directly, not extend `CondimentDecorator`
+- D. There is no problem, this code is correct
+
+**Answer: A** — `CondimentDecorator` needs to receive the wrapped `Beverage` instance via a constructor. Without `Mocha` writing one (typically calling `super(beverage)`), `wrappedBeverage` is never properly initialized.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q5)*
+
+**Q4.** You're building a coffee shop app. The business now wants a ""double mocha"" option — mocha added twice for extra flavor and cost. Which design lets you support this most naturally?
+- A. Add a `mochaCount` field to `Espresso`
+- B. Add an `if (isDouble)` check inside `Mocha.cost()`
+- C. Create a new class called `DoubleMocha` that copies all of `Espresso`'s fields
+- D. Wrap the order in `Mocha` twice: `new Mocha(new Mocha(order))`
+
+**Answer: D** — Decorators can be stacked arbitrarily. Wrapping a beverage in `Mocha` twice naturally doubles the mocha charge and behavior with zero new code.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q6)*
+
+**Q5.** In the Flyweight pattern, what does ""intrinsic state"" mean?
+- A. Data that changes every time, unique to one specific object
+- B. Data used only for logging and debugging
+- C. Data that is shared and identical across many objects
+- D. Data that is never stored in memory
+
+**Answer: C** — Intrinsic state is identical across many instances and can be shared from a single cached flyweight object, which is what makes the memory savings possible.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q7)*
+
+**Q6.** 
+```java
+BulletType t1 = BulletTypeFactory.getBulletType(""AKM"");
+BulletType t2 = BulletTypeFactory.getBulletType(""AKM"");
+System.out.println(t1 == t2);
+```
+Assuming `BulletTypeFactory` caches `BulletType` objects in a `HashMap`, what does this print?
+- A. true
+- B. false
+- C. Compile error
+- D. It depends on the bullet's position
+
+**Answer: A** — The factory returns the same cached instance both times for the same key, so `t1` and `t2` reference the identical object and `==` is `true`. Position is extrinsic and irrelevant here.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q8)*
+
+**Q7.** A student splits a `Character` class (used to render millions of characters in a text editor) like this:
+```java
+class CharacterIntrinsic {
+    int row;
+    int column;
+}
+class CharacterExtrinsic {
+    String font;
+    int size;
+    String color;
+}
+```
+What did they get backwards?
+- A. Nothing — this split is correct
+- B. `row` and `column` should be intrinsic; `font`, `size`, `color` should be extrinsic
+- C. `row` and `column` should be extrinsic; `font`, `size`, `color` should be intrinsic
+- D. All fields should be in the same class
+
+**Answer: C** — Font/size/color are typically shared across large runs of text (intrinsic, cacheable); each character's position is unique per occurrence (extrinsic, passed in at render time). The student inverted the split.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q9)*
+
+**Q8.** A team is building a food delivery app. Every order line item needs a `Category` (like ""Beverages"" or ""Desserts"") with a name, icon, and tax rate. There are only 30 categories, but millions of order line items per day. What's the best approach?
+- A. Create a new `Category` object for every line item, since each order is different
+- B. Store one shared `Category` object per category name in a factory/cache, and have every line item just reference it
+- C. Store all category data directly inside the `OrderLineItem` class as separate fields
+- D. Avoid using categories altogether to save memory
+
+**Answer: B** — Classic Flyweight factory: cache one `Category` object per name and have every line item hold a reference to the shared instance.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q10)*
+
+**Q9.** What is the key difference between Decorator and Flyweight?
+- A. Flyweight adds new behavior; Decorator saves memory
+- B. They are the same pattern with different names
+- C. Decorator is only used in games; Flyweight is only used in coffee shop examples
+- D. Decorator adds new behavior by wrapping objects; Flyweight saves memory by sharing common data across many objects
+
+**Answer: D** — Decorator's purpose is behavioral extension via wrapping; Flyweight's purpose is memory optimization via sharing intrinsic state.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q11)*
+
+**Q10.** An AI assistant was asked to add a ""combo discount"" to the coffee shop example. It gave back this code:
+```java
+class Espresso implements Beverage {
+    boolean hasMocha = false;
+    boolean hasWhip = false;
+    public double cost() {
+        double cost = 80.0;
+        if (hasMocha) cost += 20.0;
+        if (hasWhip) cost += 15.0;
+        if (hasMocha && hasWhip) cost *= 0.9;
+        return cost;
+    }
+}
+```
+What's wrong with this from a Decorator design point of view?
+- A. The discount math is calculated incorrectly
+- B. It puts add-on flags and combo logic back inside the base class, which is exactly the design the pattern was meant to avoid
+- C. Nothing is wrong, this is a valid Decorator
+- D. `Espresso` should not implement `Beverage`
+
+**Answer: B** — This reintroduces the exact tight coupling Decorator solves: every new add-on now requires editing `Espresso` itself.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q12)*
+
+**Q11.** What is the key differentiator between Adapter and Facade?
+- A. Adapter always uses more memory than Facade
+- B. Adapter solves incompatible interfaces (typically one adaptee); Facade solves complex, hard-to-use systems (typically multiple subsystems)
+- C. Facade is only for legacy code; Adapter is only for new code
+- D. They are interchangeable and the choice is purely stylistic
+
+**Answer: B** — The test is *why* the wrapper exists: translating between two shapes that don't fit (Adapter) versus hiding coordination across several complex subsystems behind one simple entry point (Facade).
+*(SOURCE_TYPE: FROM_MATERIAL — hackmd/29-rytL_zqBMe.md, ""Distinguishing Adapter from Facade"")*
+
+**Q12.** Why should a Facade receive its subsystem dependencies through its constructor instead of creating them internally with `new`?
+- A. It has no real benefit, it's just a style preference
+- B. It locks the facade to one concrete implementation, which is the goal
+- C. It keeps the facade testable with mocks and swappable to different implementations without modifying the facade itself
+- D. Constructors in Java cannot call `new` at all
+
+**Answer: C** — Constructing dependencies internally hardcodes the facade to specific implementations, making it untestable without real subsystems and unable to swap implementations later. Injecting them keeps the facade decoupled.
+*(SOURCE_TYPE: FROM_MATERIAL — hackmd/29-rytL_zqBMe.md, ""Dependency Injection"")*
+",
+            "17-behavioural-patterns-uml" => @"# Lesson 17 — Behavioural Patterns & UML Diagrams
+
+## Concepts Covered
+
+Behavioural patterns govern how objects communicate and distribute responsibility for an algorithm or a reaction to change — distinct from structural patterns (which govern how objects are wired together) and creational patterns (which govern how objects are made).
+
+**Strategy — Selecting an Algorithm, Not Branching Inside One:**
+Strategy extracts an algorithm into its own interface so the algorithm in use can be swapped without touching the class that uses it. The failure mode it replaces: one method full of `if (mode.equals(""car""))` / `else if (mode.equals(""bike""))` branches, where adding a new mode means editing and re-testing existing, already-working code — a direct violation of the Open-Closed Principle and Single Responsibility. Strategy's fix: each mode becomes its own class implementing a shared interface (e.g. `CarPathCalculator`, `BikePathCalculator`), and the class that needs the behavior (e.g. `PricingManager`, `VideoStreamingManager`) holds a reference to the interface, not to any concrete implementation, receiving it through its constructor. A concrete strategy class deliberately does **not** take a ""mode"" parameter in its methods — the class itself already represents one specific way of doing the task, so telling it what mode it is would be redundant and would reopen the door to the same branching the pattern exists to remove. Most concrete strategies are stateless (all their inputs arrive as method parameters, nothing is stored as instance state), which is exactly why a Strategy Factory can safely cache and return one shared instance per type instead of constructing a new object on every call. A `StrategyFactory`'s only job is selection: mapping some input (a mode string, an enum) to the correct concrete strategy object — it never executes the algorithm itself, and a common bug is a factory built on a lookup map that only covers some of the possible inputs, silently returning `null` for any input it wasn't given an entry for, which surfaces later as a `NullPointerException` far from the real mistake.
+
+**Strategy vs. Chain of Responsibility — Choosing One vs. Trying in Sequence:**
+It's a common misclassification to call a fallback/retry sequence a ""Strategy"" because multiple implementations share one interface. The test is behavioral: Strategy selects exactly one implementation up front and uses only that one. A payment flow that tries Razorpay, then falls back to Stripe on failure, then falls back to PayPal, is not Strategy — no single provider was chosen ahead of time, and control passes along a sequence until one succeeds. That ordered, try-until-handled shape is Chain of Responsibility, a related but distinct pattern.
+
+**Observer — Broadcasting a Change to Many Listeners:**
+Observer lets a subject (the publisher) notify an open-ended set of listeners (observers) whenever its state changes, without the publisher needing to know anything about who those listeners are or how many there will be. The publisher holds a list of a shared `Observer` interface, exposes `subscribe`/`unsubscribe` (or `register`/`addObserver`) to manage that list, and — critically — must actually iterate the list and invoke each observer inside every method that changes state. The single most common Observer bug is exactly that last step going missing: a `setTemperature(double temp)` method that updates the field but never loops through `observers` and calls their update method leaves every registered listener silently uninformed, even though registration itself worked perfectly. Unsubscribing removes an observer from the list going forward only — a `Publisher` that subscribes a `Logger`, publishes an event (which the logger receives), unsubscribes the logger, then publishes a second event, delivers only the first event to that logger, not the second. This is why adding an entirely new kind of subscriber (e.g. a `WhatsAppService` next to existing `AlertService`, `EmailService`, `SlackService` observers) requires zero changes to the publisher — it's simply one more object registering itself against the same interface.
+
+**Strategy vs. Observer — the Real Distinguishing Question:**
+Both patterns program against one interface implemented by multiple classes, which is why they're often confused. The distinguishing question is intent: does the caller pick exactly *one* implementation to delegate to (Strategy), or does the caller notify *every* registered implementation at once (Observer)? A `RoutingStrategy` selects one AI model to route a query to; a list of `Observer`s all receive the same order-placed event simultaneously. Neither pattern is ""better"" — they solve different problems that happen to share the same programming-to-an-interface mechanic.
+
+**UML — A Shared Notation for Communicating Design:**
+UML (Unified Modelling Language) is a standardized visual notation so any engineer reads the same diagram shapes the same way, independent of implementation language. It splits into **Structural UML** (Class, Object, Component diagrams — describing the frozen structure of a codebase) and **Behavioral UML** (Use Case, Sequence, Activity diagrams — describing behavior over time). A Class diagram box has three sections: name, then attributes (`- privateField: Type`, `+ publicField: Type`), then methods (`+ methodName(): ReturnType`), using `-`/`+`/`#` for private/public/protected. Static members are underlined regardless of access modifier. An abstract class's name and abstract methods are shown in italics; an interface carries a `<<interface>>` stereotype label; an enum carries `<<enumeration>>`. In Use Case diagrams, a solid **includes** arrow means the parent use case *always* triggers the child (e.g. ""Enroll in Course"" includes ""Make Payment""); a dashed **extends** arrow means the child is one *optional* variant of the parent (e.g. ""Pay by UPI"" and ""Pay by Card"" both extend ""Make Payment""). For HAS-A relationships, a hollow diamond denotes **aggregation** (both objects can exist independently — e.g. a reusable `Module` shared across multiple `Course`s), while a filled diamond denotes **composition** (the child cannot exist without the parent — e.g. a one-off `Module` that belongs to exactly one `Course`). There is deliberately no universal rule for which one applies to a given relationship — the same `Module`-to-`Course` relationship can be legitimately aggregation or composition depending on the actual product requirement, and this judgment call cannot be automated away by an ORM. A composite primary key is the alternative to a surrogate `id` column on a junction table: instead of adding a new auto-incrementing column, the combination of both foreign keys together (e.g. `student_id` + `course_id`) serves as the primary key, since that pair is already guaranteed unique. In Hibernate, a plain `@ManyToMany` is sufficient only when the relationship itself carries no extra data; the moment the relationship needs its own fields (e.g. an `enrolledAt` timestamp on an enrollment), it must be modeled as its own full `@Entity` with two `@ManyToOne` sides instead, because a plain many-to-many junction table has nowhere to store that extra column. The most reliable way to tell aggregation from composition is a lifecycle-dependency test, not intuition: if the contained object continues to exist and make sense after the container is deleted (a post surviving its author's account deletion, a song surviving its playlist's deletion), it's aggregation; if the contained object stops making sense the moment the container is gone (a notebook's pages, a car's engine and wheels, a GPS trip's route coordinates), it's composition — and a common implementation bug is a class that claims aggregation but actually constructs its dependency internally in its own constructor (e.g. `this.driver = new Driver();` inside `Car`'s constructor) rather than receiving an already-existing object from outside, which silently turns it into composition-like ownership regardless of what the diagram says.
+
+## Practical Backend Scenario
+
+A logistics platform's delivery-fee calculation started as one method with an `if/else` chain per vehicle type; every new vehicle type meant editing and re-testing that same method. Refactored with Strategy, each vehicle type is its own `DeliveryFeeStrategy` implementation, selected once by a `DeliveryFeeStrategyFactory` and injected into the `OrderPricingService` constructor — adding a new vehicle type is now a new class, with zero changes to existing, already-shipped fee logic. Separately, the platform's order-status system needs to trigger unrelated side effects on every state change: sending an SMS, updating a warehouse dashboard, and logging an audit trail. An `Order` publisher holds a list of `OrderObserver`s and loops through them inside `updateStatus()`; when the growth team later wants to add a loyalty-points side effect, they register a new `LoyaltyPointsObserver` without touching `Order` at all. A design review of the payment flow (Razorpay, then Stripe, then PayPal on failure) correctly identifies this as Chain of Responsibility, not Strategy, since the flow tries providers in sequence rather than committing to one upfront. Finally, before implementing any of this, the team sketches a UML class diagram for the `Order`/`OrderObserver` relationship and a schema diagram showing that `Order` and `Customer` need a foreign key on the ""many"" side, while `Order` and `Promotion` need a junction table since a promotion can apply to many orders and an order can carry many promotions.
+
+## Practice Loop
+
+1. Take a method with an `if/else` chain over 3+ modes and refactor it into a `Strategy` interface with one concrete class per mode, injected via constructor.
+2. Build a `StrategyFactory` backed by a lookup map; deliberately call it with an input the map doesn't cover and observe the `NullPointerException`, then fix it with an explicit `IllegalArgumentException` for unknown inputs instead of a silent `null`.
+3. Implement a publisher/`Observer` pair; write a test proving that unsubscribing an observer mid-flow means it receives events published before, but not after, the unsubscribe call.
+4. Deliberately write a publisher that updates its own field but forgets to loop through observers — confirm no observer fires — then fix it by adding the notification loop.
+5. Draw a UML class diagram (by hand or in a tool) for one of the systems built in this lesson, correctly using `-`/`+`/`#` prefixes, underlined statics, italicized abstract members, and a hollow or filled diamond for any HAS-A relationship, justifying your aggregation-versus-composition choice in one sentence.
+
+## Evidence of Understanding
+
+You can explain why a concrete strategy class should never take a mode parameter, and why most strategies are safely shareable as cached singletons. You can distinguish Strategy (picks one implementation) from Chain of Responsibility (tries several in sequence) from Observer (notifies all at once) using the same one-interface-many-classes shape. You can identify the single most common Observer bug (missing notification loop) on sight. You can read and produce a basic UML class diagram with correct visibility, static, and abstract notation, and justify an aggregation-versus-composition choice as a product judgment rather than a memorized rule.
+
+## Suggested Extension
+
+Combine Strategy and Observer in one system: build a trading alert engine where a `StrategyFactory` selects the correct `TradingIndicatorStrategy` (momentum, volatility) per instrument, and every computed alert is broadcast to a list of `AlertObserver`s (email, SMS, dashboard) — then draw the UML class diagram for the resulting design, including the aggregation/composition judgment call for the relationship between an `Instrument` and its list of `TradingIndicatorStrategy` results.
+
+## Self-Check (From Class Material)
+
+**Q1.** 
+```java
+Amazon amazon = new Amazon();
+amazon.register(o -> System.out.println(""Invoice generated for "" + o));
+amazon.register(o -> System.out.println(""Inventory updated for "" + o));
+amazon.orderPlaced(""ORD123"");
+```
+Assuming `register` adds to an `ArrayList` and `orderPlaced` loops through and calls each observer, what gets printed?
+- A. Only ""Invoice generated for ORD123""
+- B. Only ""Inventory updated for ORD123""
+- C. Both lines print, in the order they were registered
+- D. Nothing prints, this code has a compile error
+
+**Answer: C** — `orderPlaced` iterates subscribers in insertion order and invokes each, so both lambdas fire in registration order.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q4)*
+
+**Q2.** A `RouterFactory` is built like this:
+```java
+private static final Map<QueryComplexity, RoutingStrategy> STRATEGIES = Map.of(
+    QueryComplexity.SIMPLE, new SimpleQueryStrategy()
+);
+static RoutingStrategy getStrategy(QueryComplexity c) {
+    return STRATEGIES.get(c);
+}
+```
+When called with `QueryComplexity.COMPLEX`, what happens?
+- A. It automatically falls back to `SimpleQueryStrategy`
+- B. It throws a `ClassNotFoundException` immediately
+- C. It compiles but silently does nothing
+- D. It returns `null`, which will likely cause a `NullPointerException` later when a method is called on it
+
+**Answer: D** — `Map.get()` returns `null` for a missing key; there is no fallback, so the caller crashes with an NPE the moment it calls a method on the result.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q5)*
+
+**Q3.** A payment system tries Razorpay first, then Stripe, then PayPal, only moving to the next provider if the previous one fails. Which pattern best fits this situation?
+- A. Neither Strategy nor Observer — this is closer to Chain of Responsibility
+- B. Strategy, since each payment provider is a different way of paying
+- C. Observer, since all providers get notified together
+- D. Factory, since it creates payment objects
+
+**Answer: A** — Strategy picks one implementation up front; Observer notifies all subscribers at once. Sequential try-until-success is Chain of Responsibility.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q6)*
+
+**Q4.** Why does a concrete strategy class like `CarPathCalculator` NOT take a `mode` parameter in its methods?
+- A. Because Java doesn't allow extra parameters in overridden methods
+- B. Because the class itself already represents one specific way of doing the task, so it doesn't need to be told what ""mode"" it is
+- C. Because mode is only needed inside the Factory class
+- D. Because strategies are stateless and can't accept any parameters at all
+
+**Answer: B** — The class instance itself already IS the ""car mode"" implementation; passing a mode flag in would reintroduce the branching Strategy exists to remove.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q7)*
+
+**Q5.** 
+```java
+List<TradingIndicatorStrategy> strategies = List.of(new MomentumStrategy(), new VolatilityStrategy());
+for (TradingIndicatorStrategy s : strategies) {
+    if (s.supportsType(""VOLATILITY"")) {
+        System.out.println(s.calculate(50, 70));
+    }
+}
+```
+`VolatilityStrategy.calculate` returns `Math.abs(current - previous)`. What is printed?
+- A. -20.0
+- B. 0.0
+- C. 20.0
+- D. Nothing is printed
+
+**Answer: C** — Only `VolatilityStrategy` matches; `Math.abs(50 - 70) = 20.0`.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q8)*
+
+**Q6.** A `WeatherMonitoringApplication`'s `setTemperature(double temp)` updates its field but never notifies its registered observers. `TemperatureService` is registered correctly but never receives updates. What is missing?
+- A. The `Observer` interface needs a `getTemperature` method
+- B. `observers` should be a `Map` instead of a `List`
+- C. `setTemperature` needs to be declared `static`
+- D. A call to notify all observers (e.g., looping through observers and calling their update method) inside `setTemperature`
+
+**Answer: D** — Registration only adds to the list; the publisher must explicitly loop and invoke observers whenever state changes. Missing that loop is the most common Observer bug.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q9)*
+
+**Q7.** Your team's third-party analytics library only understands `trackEvent(XML data)`, but your codebase only works with `log(JSON data)`. Which pattern bridges them without changing either side?
+- A. Adapter
+- B. Strategy
+- C. Observer
+- D. Factory
+
+**Answer: A** — Two incompatible interface shapes needing translation without modifying either side is the textbook Adapter scenario.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q10)*
+
+**Q8.** Why is it usually fine for a Strategy Factory to reuse the same strategy object every time instead of creating a new one on each call?
+- A. Because Java does not allow creating multiple objects of the same class
+- B. Because most strategy classes have no changing internal state, so sharing one instance (like a Singleton) is safe and avoids unnecessary object creation
+- C. Because reusing objects makes the code violate Open-Closed Principle
+- D. Because Factory pattern requires objects to be reused
+
+**Answer: B** — Concrete strategies are typically stateless, so one shared instance behaves identically for every caller.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q11)*
+
+**Q9.** 
+```java
+Publisher publisher = new Publisher();
+Logger logger = new Logger();
+publisher.subscribe(logger);
+publisher.publish(""Order Placed"");
+publisher.unsubscribe(logger);
+publisher.publish(""Order Shipped"");
+```
+What is printed (assuming `Logger.update` prints ""LOG: "" + event)?
+- A. Both ""LOG: Order Placed"" and ""LOG: Order Shipped"" print
+- B. Only ""LOG: Order Shipped"" prints
+- C. Only ""LOG: Order Placed"" prints
+- D. Nothing is printed
+
+**Answer: C** — `logger` is subscribed for the first publish, then unsubscribed before the second — so only the first event reaches it.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q12)*
+
+**Q10.** What is the key difference in intent between Strategy and Observer, even though both rely on one interface with multiple implementing classes?
+- A. Strategy is only for payments; Observer is only for notifications
+- B. Strategy picks exactly one implementation to use; Observer notifies many implementations at once
+- C. Strategy requires a Factory; Observer never uses a Factory
+- D. There is no real difference between them
+
+**Answer: B** — Strategy delegates to a single chosen algorithm; Observer broadcasts to every registered listener simultaneously.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q3)*
+
+**Q11.** What is the main problem with writing one method that uses if-else blocks to handle different ""modes"" (like car, bike, walk) inside the same class?
+- A. It violates Open-Closed and Single Responsibility Principles, since adding a new mode means editing existing working code
+- B. The code runs slower than using classes
+- C. Java does not allow more than 3 if-else conditions
+- D. It cannot be tested using JUnit
+
+**Answer: A** — Every new mode requires reopening and modifying the same method, and one class now owns logic for every mode.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Assignment Q5)*
+
+**Q12.** In the Strategy pattern, what is the actual job of the Factory class (e.g., `PathCalculatorFactory`)?
+- A. To decide and return the correct strategy object based on some input
+- B. To execute the algorithm itself
+- C. To notify all subscribers when an event occurs
+- D. To translate one interface into another
+
+**Answer: A** — The Factory's only job is selection and construction; the chosen strategy itself executes the algorithm.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Assignment Q9)*
+
+**Q13.** What is the primary purpose of a PRIMARY KEY in a database table?
+- A. To uniquely identify each row in the table
+- B. To link one table to another
+- C. To make queries run faster automatically
+- D. To enforce a fixed number of columns
+
+**Answer: A** — A primary key's core job is guaranteeing every row is uniquely identifiable; foreign keys (not primary keys) are what link tables together.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q14.** In a Class Diagram, what does a dashed line with a hollow triangle arrowhead represent?
+- A. A class implementing an interface
+- B. A class extending another class
+- C. Aggregation between two classes
+- D. Composition between two classes
+
+**Answer: A** — A dashed line with a hollow triangle is realization (implements an interface). A solid line with a hollow triangle is generalization (extends a class).
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q15.** One instructor teaches many courses, but each course has only one instructor. Where should the foreign key go?
+- A. In the instructors table
+- B. In the courses table
+- C. In both tables at once
+- D. In a separate junction table
+
+**Answer: B** — The foreign key always lives on the ""many"" side of a one-to-many relationship, so `instructor_id` belongs in the `courses` table.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q16.** In a Use Case Diagram, ""Enroll in Course"" always triggers ""Make Payment"" — there's no scenario where enrollment happens without it. What relationship connects these two use cases?
+- A. Extends
+- B. Actor
+- C. System Boundary
+- D. Includes
+
+**Answer: D** — A solid **includes** arrow means the parent use case always triggers the child. **Extends** (dashed) would be for an optional variant, like ""Pay by UPI"" extending ""Make Payment"".
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q17.** 
+```sql
+CREATE TABLE enrollments (
+  id INT PRIMARY KEY, student_id INT, course_id INT,
+  FOREIGN KEY (student_id) REFERENCES students(id),
+  FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+```
+Current rows (id, student_id, course_id): (1, 1, 1), (2, 1, 2), (3, 2, 1). How many courses is the student with id = 1 enrolled in?
+- A. 3
+- B. 0
+- C. 2
+- D. 1
+
+**Answer: C** — Rows with `student_id = 1` are (1,1,1) and (2,1,2), referencing `course_id` 1 and 2 — two distinct courses.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q18.** What is the main purpose of normalization in database schema design?
+- A. To duplicate frequently-used data across tables for faster reads
+- B. To store each fact only once and reference it elsewhere with a foreign key, avoiding out-of-sync copies
+- C. To ensure every table has exactly the same number of columns
+- D. To turn every relationship into a many-to-many relationship
+
+**Answer: B** — Normalization's goal is eliminating duplicate, potentially-inconsistent copies of the same fact by storing it once and referencing it via foreign key.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q19.** A library system has `Book` and `Author`. One book can have multiple authors, one author can write multiple books, and the relationship needs no extra data (no dates, no royalty percentage). Which Hibernate approach fits best?
+- A. Manually create a `BookAuthor` entity class, similar to how `Enrollment` was modeled
+- B. Use a plain `@ManyToMany` annotation directly between `Book` and `Author`, since no extra data needs to be stored
+- C. Use `@OneToMany` on both sides
+- D. Store author names as a comma-separated column inside books
+
+**Answer: B** — A plain `@ManyToMany` is exactly right when the relationship itself carries no additional data — a full entity is only needed once the relationship needs its own fields.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q20.** Given a Hibernate `Enrollment` entity with `@ManyToOne` to both `Student` and `Course`, plus its own `enrolledAt` field, why was `Enrollment` modeled as its own full entity instead of a plain `@ManyToMany` between `Student` and `Course`?
+- A. `@ManyToMany` doesn't exist in Hibernate
+- B. `@ManyToOne` runs faster than `@ManyToMany` in every case
+- C. The relationship itself carries extra data (`enrolledAt`), which a plain `@ManyToMany` junction table can't hold — so it needs to be a real entity
+- D. Student and Course cannot have a many-to-many relationship
+
+**Answer: C** — The moment a many-to-many relationship needs to carry its own data, a plain `@ManyToMany` junction table (which only holds the two foreign keys) is insufficient — the relationship must be promoted to its own entity.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q21.** A junior developer wanted to model aggregation between `Car` and `Driver` (a driver should exist independently of any car):
+```java
+public class Car {
+  private final Driver driver;
+  public Car() {
+    this.driver = new Driver(); // Car creates its own Driver internally
+  }
+}
+```
+What's wrong, and what's the fix?
+- A. Nothing is wrong — this already models aggregation correctly
+- B. `Driver` should be marked `static`
+- C. `final` should be removed from the field
+- D. The `Car` constructor creates and owns the `Driver` internally, which is composition-like behavior — fix it by passing an existing `Driver` object into the constructor instead
+
+**Answer: D** — Constructing the dependency internally makes the `Car` own the `Driver`'s lifecycle (composition-like), which contradicts the stated goal of aggregation. Passing an already-existing `Driver` in via the constructor (dependency injection) is what actually models independent lifecycles.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q22.** A hospital has a `Department` class and a `Doctor` class. A doctor belongs to one department at a time, but if a department is dissolved, doctors continue to exist and can be reassigned elsewhere. Which pair correctly identifies the relationship type AND the foreign key placement?
+- A. Aggregation, with `department_id` placed inside the `doctors` table
+- B. Composition, with `department_id` placed inside the `doctors` table
+- C. Aggregation, with `doctor_id` placed inside the `departments` table
+- D. Composition, with `doctor_id` placed inside the `departments` table
+
+**Answer: A** — Doctors outliving their department's dissolution is the definition of aggregation (independent lifecycles). The foreign key still follows the standard one-to-many rule: it lives on the ""many"" side (`doctors`), pointing back to the one `department`.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q23.** A teammate wrote this schema for a blog, where one post can have many comments:
+```sql
+CREATE TABLE posts (
+  id INT PRIMARY KEY, title VARCHAR(255),
+  comment_1 VARCHAR(500), comment_2 VARCHAR(500), comment_3 VARCHAR(500)
+);
+```
+What is the main problem, and what's the correct fix?
+- A. A fixed number of comment columns caps the relationship — create a separate `comments` table with a `post_id` foreign key instead
+- B. `id` should not be declared as a primary key
+- C. `title` should be split into two columns
+- D. The comments should be merged into one column separated by commas
+
+**Answer: A** — Hardcoding a fixed number of columns for what is really a one-to-many relationship caps it artificially (a 4th comment has nowhere to go) and wastes space for posts with fewer comments. The fix is a proper `comments` table with a foreign key back to `posts`.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q24.** A teammate wrote this schema for an orders system, where a separate `customers` table already stores customer details:
+```sql
+CREATE TABLE orders (
+  id INT PRIMARY KEY, customer_name VARCHAR(255),
+  customer_email VARCHAR(255), product VARCHAR(255)
+);
+```
+What's wrong with this design, and what's the fix?
+- A. Nothing is wrong — storing the name and email directly avoids extra joins
+- B. `product` should be split into `product_name` and `product_price`
+- C. `id` should not be declared as a primary key since orders can repeat
+- D. `customer_name` and `customer_email` duplicate data that already lives in `customers` — replace both with a single `customer_id` foreign key instead
+
+**Answer: D** — This is a direct normalization violation: customer data is duplicated into every order row instead of referenced once via foreign key, risking the two copies going out of sync if a customer updates their email.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q25.** A ride-sharing app's `Trip` class has a `List<RouteCoordinate>` — the GPS points making up that specific trip's path. If the trip record is deleted, those exact coordinates have no meaning anywhere else in the system. Which combination correctly describes the relationship and its notation?
+- A. Association without ownership — plain line, no diamond
+- B. Inheritance — hollow triangle
+- C. Aggregation — hollow diamond
+- D. Composition — filled diamond
+
+**Answer: D** — The route coordinates cannot outlive the trip they belong to (they have no independent meaning), which is composition, notated with a filled diamond on the `Trip` end.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q26.** In a many-to-many junction table like `enrollments`, some teams skip a separate surrogate `id` column entirely and instead make the combination of both foreign keys (`student_id` + `course_id` together) the primary key. What is this called?
+- A. A composite primary key
+- B. A duplicate key
+- C. A foreign primary key
+- D. A static key
+
+**Answer: A** — A primary key made of more than one column is a composite primary key; it works here because the pairing of the two foreign keys is already guaranteed unique.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q27.** 
+```java
+@Entity
+public class Course {
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  private String title;
+  @ManyToOne
+  @JoinColumn(name = ""instructor_id"")
+  private Instructor instructor;
+}
+```
+When Hibernate generates the table for this class, what column represents the relationship with `Instructor`?
+- A. `instructor` (storing the full object)
+- B. `instructor_name`
+- C. `instructor_id`
+- D. No column — a junction table is created instead
+
+**Answer: C** — `@JoinColumn(name = ""instructor_id"")` tells Hibernate to store the relationship as a plain foreign-key column named `instructor_id` on the `Course` table, matching the standard one-to-many FK placement rule.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+
+**Q28.** A banking app allows joint accounts — one account can have multiple owners, and one person can be an owner on multiple accounts. How should this be modeled in the schema?
+- A. Add an `owner_id` column directly inside `accounts`
+- B. Create a separate junction table (e.g. `account_owners`) holding `account_id` and `owner_id`
+- C. Add an `account_id` column directly inside `owners`
+- D. Store all owner names as a comma-separated list inside `accounts`
+
+**Answer: B** — A many-to-many relationship (many accounts to many owners) requires a junction table holding both foreign keys; a single column on either side cannot represent a many-to-many link.
+*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+",
+            "24-machine-coding-hotel-management" => @"# Lesson 24 — Machine Coding: Hotel Management System
+
+## Concepts Covered
+
+This machine-coding exercise builds a Hotel Management System incrementally, across four stages, each adding one capability on top of a shared layered architecture: a **Controller** layer (accepting request DTOs and returning response DTOs), a **Service** layer (interface + implementation holding business logic), a **Repository** layer (interface + an in-memory implementation, so the domain logic stays independent of any real database), and plain **domain models** (`Room`, `User`, `Booking`, `Invoice`, `CustomerSession`) with their own enums (`RoomType`, `UserType`, `CustomerSessionStatus`) and typed exceptions (`UserNotFoundException`, `UnAuthorizedAccess`, `InvalidRoomException`). The four stages build on each other: **Add Rooms** (ADMIN-only capability to register new rooms into the system), **Get Rooms** (customers browse available rooms), **Book Rooms** (customers reserve a room, tracked through a `CustomerSession`), and **Generate Invoice** (producing a bill for a completed booking). Each stage's Controller and Service only add the one new capability the stage is named for, while reusing the Repository and domain models already established by earlier stages — this is the same incremental-milestone structure used in the OOP-4 Library Management System lab, but applied to a full request/response layered architecture instead of a single class hierarchy.
+
+## Practical Backend Scenario
+
+A hotel chain's booking backend separates ADMIN operations (adding rooms with a type and nightly rate) from CUSTOMER operations (browsing available rooms, filtering by type, and booking one for a date range). Every request enters through a Controller that translates an HTTP-shaped request DTO into a call on the Service layer; the Service layer enforces business rules (a `UserType` check before allowing a room to be added, a room-availability check before allowing a booking) and delegates persistence to a Repository interface, currently backed by an in-memory implementation so the whole system can be built and tested before a real database is wired in. A completed booking transitions a `CustomerSession` through its status lifecycle and becomes eligible for `Invoice` generation, which reads the booking's room rate and duration to compute the final bill.
+
+## Practice Loop
+
+1. Implement the **Add Rooms** stage: `RoomController`, `AddRoomRequestDto`/`AddRoomResponseDto`, `RoomService`/`RoomServiceImpl`, `RoomRepository`/`InMemoryRoomRepository`, enforcing that only an ADMIN `UserType` may add a room (throwing `UnAuthorizedAccess` otherwise).
+2. Implement the **Get Rooms** stage on top of the same `Room`/`RoomRepository`: a `GetRoomsRequestDto`/`GetRoomsResponseDto` pair letting a customer browse available rooms.
+3. Implement the **Book Rooms** stage: introduce `Booking`, `CustomerSession`, and `CustomerSessionStatus`; a `BookingController` accepting a `MakeBookingRequestDto` that validates the room exists (`InvalidRoomException` otherwise) and the user exists (`UserNotFoundException` otherwise) before creating a `Booking`.
+4. Implement the **Generate Invoice** stage: an `Invoice` domain object and a `GenerateInvoiceRequestDto`/`GenerateInvoiceResponseDto` pair that looks up a completed `CustomerSession` (throwing `CustomerSessionNotFoundException` if it can't be found) and computes a bill from its associated `Booking` and `Room` rate.
+5. Once all four stages are implemented against the same in-memory repositories, write one end-to-end test that adds a room as an ADMIN, browses it as a customer, books it, and generates its invoice — proving all four stages compose correctly through the shared Repository and domain layer.
+
+## Evidence of Understanding
+
+You can explain why splitting a machine-coding problem into Controller/DTO/Service/Repository layers, even for an in-memory-only implementation, keeps business logic independent of any specific persistence technology. You can justify why role-based checks (ADMIN vs. CUSTOMER) belong in the Service layer rather than the Controller. You can trace a booking's full lifecycle from `Room` creation through `CustomerSession` to `Invoice` generation, and name which typed exception fires for which specific failure case (missing room, missing user, missing session).
+
+## Suggested Extension
+
+Add a `CancelBooking` capability that transitions a `CustomerSession` back to an available state and updates `RoomRepository` accordingly, then extend `Invoice` generation to apply a cancellation-fee rule based on how close to the booking date the cancellation occurred.
 ",
             "14-spring-boot-core" => @"# Lesson 14 — Spring Boot Core: IoC & Dependency Injection
 
