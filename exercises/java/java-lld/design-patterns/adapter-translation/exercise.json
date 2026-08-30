@@ -1,0 +1,71 @@
+{
+  "id": "java-lld-adapter-translation",
+  "lessonSlug": "16-structural-patterns",
+  "title": "Adapter Pattern — Translation Provider Abstraction",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "translation-request",
+      "path": "src/main/java/com/assignment/question/TranslationRequest.java",
+      "displayName": "TranslationRequest.java",
+      "editable": false
+    },
+    {
+      "id": "translation-provider-adapter",
+      "path": "src/main/java/com/assignment/question/TranslationProviderAdapter.java",
+      "displayName": "TranslationProviderAdapter.java",
+      "editable": false
+    },
+    {
+      "id": "google-translation-adapter",
+      "path": "src/main/java/com/assignment/question/GoogleTranslationAdapter.java",
+      "displayName": "GoogleTranslationAdapter.java",
+      "editable": true
+    },
+    {
+      "id": "microsoft-translation-adapter",
+      "path": "src/main/java/com/assignment/question/MicrosoftTranslationAdapter.java",
+      "displayName": "MicrosoftTranslationAdapter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/TranslationAdapterTest.java",
+    "className": "TranslationAdapterTest"
+  },
+  "evidence": [
+    {
+      "id": "adapter-method-shape",
+      "label": "TranslationProviderAdapter declares a no-arg List<String> method and a single-arg String translate(TranslationRequest) method",
+      "testMethod": "testMethods"
+    },
+    {
+      "id": "adapter-implementations",
+      "label": "At least 2 classes implement TranslationProviderAdapter, each holding a field referencing the wrapped external API",
+      "testMethod": "testImplementations"
+    },
+    {
+      "id": "translation-request-shape",
+      "label": "TranslationRequest has exactly 4 fields: 3 String, 1 Double",
+      "testMethod": "testTranslationRequest"
+    },
+    {
+      "id": "adapter-get-supported-languages",
+      "label": "Each adapter's getSupportedLanguages() delegates to its wrapped API and returns the expected language list",
+      "testMethod": "testGetSupportedLanguages"
+    },
+    {
+      "id": "adapter-translate",
+      "label": "Each adapter's translate(...) delegates to its wrapped external API's translate/convert call",
+      "testMethod": "testTranslate"
+    }
+  ]
+}
