@@ -166,4 +166,19 @@
 - [x] **Sub-task 22.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
 - [x] **Sub-task 22.5**: Update task tracker and provide Docker Compose / SQL verification steps.
 
+## Phase 23: FDE Curriculum Pipeline — Module 4: Cloud, DevOps, Kubernetes & Infrastructure (Lessons 7-12 of 12 — MODULE 4 COMPLETE) (Completed)
+- [x] **Sub-task 23.1**: Ingest 6 Lesson chapter bodies for `cloud-devops-infrastructure` (Lessons 7-12) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 23.2**: Wire 12 Concept Checks (2 per lesson) and 39 Practice Questions across all 6 lessons into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 23.3**: Add architecture diagram for Lesson 8 (`08-ci-cd-pipelines-and-gitops-github-actions-argocd`) illustrating the CI push / ArgoCD pull reconciliation loop meeting at the manifests-repo commit boundary.
+- [x] **Sub-task 23.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 23.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+## Phase 24: FDE Curriculum Pipeline — Module 5: Enterprise Communication, Consulting & LLM Engineering (Lessons 1-6 of 12) (Completed)
+- [x] **Sub-task 24.1**: Ingest 6 Lesson chapter bodies for `enterprise-consulting-llm` (Lessons 1-6) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 24.2**: Wire 12 Concept Checks (2 per lesson) and 38 Practice Questions across all 6 lessons into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 24.3**: Confirm architecture diagrams are omitted for Lessons 1-6 (process/communication & linear flows).
+- [x] **Sub-task 24.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 24.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+
 

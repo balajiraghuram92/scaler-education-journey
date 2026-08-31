@@ -8783,6 +8783,1726 @@ const lessonInteractions = {
       }
     ]
   }
+,
+
+'fde-curriculum/cloud-devops-infrastructure/07-kubernetes-networking-security-and-gpu-workloads': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-07-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What does the lesson say is required before a `NetworkPolicy` object actually has any effect on traffic?',
+        options: [
+          { id: 'a', label: 'A', text: 'The cluster\'s CNI plugin must implement policy enforcement (like Calico or Cilium) — without one, a `NetworkPolicy` object is silently ignored even though it exists in the cluster' },
+          { id: 'b', label: 'B', text: 'Every Pod in the cluster must be manually labeled with a "policy-enabled" annotation before any NetworkPolicy applies' },
+          { id: 'c', label: 'C', text: 'NetworkPolicy objects are enforced automatically by every Kubernetes distribution with no dependency on the CNI' },
+          { id: 'd', label: 'D', text: 'NetworkPolicy only works for Pods running on GPU-tainted nodes' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a genuinely easy trap — a `NetworkPolicy` can exist, be well-written, and do nothing at all if the CNI doesn\'t enforce policies, which is why confirming enforcement explicitly matters before relying on one.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'NetworkPolicy requires a CNI plugin with an active policy engine like Calico or Cilium.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-07-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson say you can\'t infer a Pod\'s final effective NetworkPolicy rules by reading just one policy that selects it?',
+        options: [
+          { id: 'a', label: 'A', text: 'NetworkPolicy rules are additive across every policy that selects a Pod — the effective rule set is the union of all of them, unlike a first-match evaluation order' },
+          { id: 'b', label: 'B', text: 'Kubernetes always applies only the most recently created policy and ignores any older ones' },
+          { id: 'c', label: 'C', text: 'A Pod can only ever be selected by exactly one NetworkPolicy at a time' },
+          { id: 'd', label: 'D', text: 'NetworkPolicy rules are evaluated in alphabetical order by policy name, with the first match winning' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The additive/union behavior is exactly why a full review has to consider every policy selecting a Pod, not just the one you happen to be reading — a different mental model than a first-match rule list.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'NetworkPolicy rules are additive across all policies selecting a pod; effective rules are a union.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-07-mcq-03',
+        question:
+          'Why does the lesson call using a ClusterRole binding for a workload that only needs namespace-level access the RBAC equivalent of a wildcard IAM policy?',
+        options: [
+          { id: 'a', label: 'A', text: 'It grants a broader scope than the task requires — cluster-wide instead of namespace-scoped — the same unnecessary blast-radius expansion the AWS Core lesson warned against for wildcard IAM actions and resources' },
+          { id: 'b', label: 'B', text: 'ClusterRoles are technically deprecated and no longer function in current Kubernetes versions' },
+          { id: 'c', label: 'C', text: 'A Role and a ClusterRole always grant identical permissions regardless of scope' },
+          { id: 'd', label: 'D', text: 'RBAC has no meaningful concept of scope; all bindings are cluster-wide by default' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The parallel is deliberate — both cases are about granting more surface than the actual task needs, whether that surface is an AWS resource ARN or a Kubernetes API scope.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-07-mcq-04',
+        question:
+          'Why does the lesson treat a namespace\'s un-scoped `default` ServiceAccount as a live security risk, even if the Pods running under it appear to be working correctly?',
+        options: [
+          { id: 'a', label: 'A', text: 'If any Pod in that namespace is ever compromised, the attacker inherits whatever the ServiceAccount\'s RBAC bindings allow against the Kubernetes API — a risk that exists independent of whether the workload is currently functioning correctly' },
+          { id: 'b', label: 'B', text: 'The default ServiceAccount has no effect on security at all, since it can never be used to call the Kubernetes API' },
+          { id: 'c', label: 'C', text: 'This risk only applies to Pods that explicitly request `nvidia.com/gpu` resources' },
+          { id: 'd', label: 'D', text: 'Kubernetes automatically scopes every default ServiceAccount to read-only access with no configuration needed' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the same "what could go wrong if compromised" test the AWS Core lesson applied to IAM — a workload functioning correctly says nothing about whether it also carries far more API access than it needs.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-07-mcq-05',
+        question:
+          'How do Pod Security Standards\' `restricted` level relate to the Docker lesson\'s non-root, least-privilege thread?',
+        options: [
+          { id: 'a', label: 'A', text: 'They enforce the same non-root, least-privilege discipline, but at Pod admission time by the cluster, regardless of what the container image itself was built to allow — rather than relying on the image build alone' },
+          { id: 'b', label: 'B', text: 'Pod Security Standards replace the need for a non-root user in the Dockerfile entirely, making that earlier lesson\'s guidance obsolete' },
+          { id: 'c', label: 'C', text: 'They only apply to Pods that do not request any GPU resources' },
+          { id: 'd', label: 'D', text: '`restricted` is the least strict of the three levels, allowing privileged containers by default' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a deliberate cross-lesson echo — the same discipline reappears as a cluster-enforced admission control instead of an image-build convention, closing the gap left if an image itself wasn\'t built correctly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-07-mcq-06',
+        question:
+          'A Pod requesting `nvidia.com/gpu: 1` has a toleration matching the GPU node pool\'s taint, but no node affinity or node selector naming that pool. What does the lesson say this leaves unresolved?',
+        options: [
+          { id: 'a', label: 'A', text: 'The toleration only permits the Pod to be scheduled on the tainted GPU nodes — it doesn\'t attract the scheduler toward them, so placement is left to the scheduler\'s default heuristics for a decision that deserves an explicit choice' },
+          { id: 'b', label: 'B', text: 'The Pod is guaranteed to be rejected outright without a node selector, since a toleration alone is invalid configuration' },
+          { id: 'c', label: 'C', text: 'The toleration automatically implies node affinity for the matching taint\'s node pool' },
+          { id: 'd', label: 'D', text: 'Without a node selector, the Pod cannot request `nvidia.com/gpu` at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Tolerating a taint permits scheduling there; it doesn\'t direct the scheduler there — the lesson is explicit that GPU placement deserves the more deliberate node affinity/selector, not just a toleration.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-07-mcq-07',
+        question:
+          'In the scenario, the inference Pod is stuck `Pending` after the FDE forgets the GPU toleration. What does `kubectl describe pod` reveal, and why does that matter diagnostically?',
+        options: [
+          { id: 'a', label: 'A', text: 'A scheduling-failure event naming the untolerated taint as the specific reason — distinguishing "this Pod is correctly refusing to run somewhere it shouldn\'t" from a crash or generic error, which would otherwise send the FDE looking in the wrong place' },
+          { id: 'b', label: 'B', text: 'A CrashLoopBackOff error indicating the container failed to start due to a code exception' },
+          { id: 'c', label: 'C', text: 'Nothing — Pending Pods with a missing toleration produce no diagnostic event at all' },
+          { id: 'd', label: 'D', text: 'An OOMKilled event indicating the Pod exceeded its memory limit' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The specific, named scheduling-failure event is the concrete diagnostic signal — without reading it, a missing toleration looks like an unexplained stall rather than an identifiable, fixable cause.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-07-mcq-08',
+        question:
+          'In the scenario, `inference-sa`\'s Role grants only `get`/`list`/`watch` on ConfigMaps in its own namespace. Why exactly that set, and nothing more?',
+        options: [
+          { id: 'a', label: 'A', text: 'It matches the one genuine need — reading which model version is currently active — while denying everything else, including listing Secrets or reaching another namespace, so a compromise of this Pod has a small, bounded, explainable blast radius' },
+          { id: 'b', label: 'B', text: 'Kubernetes RBAC does not support granting write permissions to ServiceAccounts under any circumstances' },
+          { id: 'c', label: 'C', text: 'ConfigMap access is required for GPU scheduling to function at all' },
+          { id: 'd', label: 'D', text: 'This scoping has no security rationale; it was chosen arbitrarily as a minimal example' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is least privilege applied concretely — the grant matches the actual task (reading model version config) and nothing else, so the answer to "what could this Pod do if compromised" stays short and specific.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-07-mcq-09',
+        question:
+          'Why does the practice loop have you apply the default-deny NetworkPolicy first, confirming it breaks existing traffic, before adding the explicit allow rule?',
+        options: [
+          { id: 'a', label: 'A', text: 'It makes the isolation verifiable rather than assumed — confirming traffic actually breaks under default-deny proves the policy is enforced, so the later allow rule can be trusted to be the only path back in, not one of several unnoticed gaps' },
+          { id: 'b', label: 'B', text: 'Kubernetes requires NetworkPolicy objects to be applied in a specific numbered order or the API server rejects them' },
+          { id: 'c', label: 'C', text: 'There is no reason for this order; applying the allow rule first would produce an identical result' },
+          { id: 'd', label: 'D', text: 'Breaking traffic temporarily is required to reset the CNI plugin\'s internal state' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Confirming the deny actually takes effect is the diagnostic step that turns "I wrote a policy" into "I verified isolation" — an unverified default-deny could be silently unenforced, per Q1\'s CNI dependency.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/08-ci-cd-pipelines-and-gitops-github-actions-argocd': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-08-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'According to the lesson, what distinct question does CD answer that CI does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the built and tested artifact is actually running in the target environment — CI only answers whether the change is correct and produces a valid artifact' },
+          { id: 'b', label: 'B', text: 'CD and CI answer the identical question; the distinction is purely a naming convention' },
+          { id: 'c', label: 'C', text: 'CD answers whether the code compiles, which CI does not check' },
+          { id: 'd', label: 'D', text: 'CD is only relevant for GPU workloads, while CI applies to all other workload types' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Keeping these two questions distinct is what makes the rest of the GitOps design legible — CI validates the artifact, CD is a separate concern about that artifact\'s actual running state.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'CI answers whether code builds and passes tests; CD answers what is running in production and whether it matches desired state.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-08-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson say the GitHub Actions pipeline never needs a credential capable of writing to the production cluster under the GitOps pattern described?',
+        options: [
+          { id: 'a', label: 'A', text: 'Its last action is a Git commit to a separate manifests repo, requiring only a credential scoped to that repo — ArgoCD, running inside the cluster with its own credential, is the only component that ever calls the Kubernetes API to apply changes' },
+          { id: 'b', label: 'B', text: 'GitHub Actions is technically incapable of authenticating to any Kubernetes cluster under any configuration' },
+          { id: 'c', label: 'C', text: 'A cluster credential is still required in CI, just stored differently, so the security benefit described doesn\'t actually hold' },
+          { id: 'd', label: 'D', text: 'ArgoCD requires the CI pipeline to supply a cluster credential on every sync' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The pull-based design is exactly what eliminates the need — the CI pipeline\'s last write is to a Git repo it already has narrow access to, not to the cluster itself.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'In GitOps pull model, CI only updates manifests in Git; in-cluster ArgoCD pulls and applies them.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-cloud-devops-infrastructure-08-gitops-reconciliation-loop',
+      eyebrow: 'Push-Based CI Pipeline Meets Pull-Based GitOps Reconciliation Loop',
+      boundaryLabel: 'Manifests Repository Git Commit Boundary',
+      boundaryText:
+        'GitHub Actions CI tests, builds images, and pushes an updated image tag commit to the manifests repository. ArgoCD runs in-cluster, pulling desired state from Git and reconciling drift without CI holding cluster write credentials.',
+      nodes: [
+        {
+          id: 'dev-commit',
+          label: 'App Repo Git Commit & PR (Source Code)',
+          kind: 'input'
+        },
+        {
+          id: 'github-actions-ci',
+          label: 'GitHub Actions CI (Test, Build Image & Push to ECR)',
+          kind: 'service'
+        },
+        {
+          id: 'manifests-repo-commit',
+          label: 'GitOps Manifests Repo Commit (Image Tag Update)',
+          kind: 'boundary'
+        },
+        {
+          id: 'argocd-controller',
+          label: 'In-Cluster ArgoCD Pull Controller (Diff & Apply Engine)',
+          kind: 'adapter'
+        },
+        {
+          id: 'k8s-cluster-state',
+          label: 'EKS Cluster Desired State & Self-Healing Workloads',
+          kind: 'output'
+        }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-08-mcq-03',
+        question:
+          'In the scenario, why does ArgoCD revert the on-call engineer\'s manual `kubectl` replica-count change three minutes later?',
+        options: [
+          { id: 'a', label: 'A', text: 'Self-heal continuously re-applies the state declared in Git whenever the live cluster drifts from it — a manual change that wasn\'t made through Git is exactly the drift self-heal is designed to correct' },
+          { id: 'b', label: 'B', text: 'ArgoCD detected the change was made by an unauthorized user account and blocked it specifically for that reason' },
+          { id: 'c', label: 'C', text: 'Kubernetes itself, not ArgoCD, automatically reverts any manual kubectl edit after a fixed timeout' },
+          { id: 'd', label: 'D', text: 'The revert is a bug in ArgoCD\'s default configuration that most teams disable' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the concrete enforcement mechanism the lesson highlights — self-heal is what makes "Git is the source of truth" actually true rather than aspirational.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-08-mcq-04',
+        question:
+          'Given self-heal\'s behavior in the scenario, what is the correct way for the engineer to make the increased replica count actually persist?',
+        options: [
+          { id: 'a', label: 'A', text: 'Commit the new replica count to the manifests repo, so Git now agrees with the desired state — ArgoCD will then apply it and stop reverting it' },
+          { id: 'b', label: 'B', text: 'Disable ArgoCD self-heal permanently across the entire cluster so manual kubectl edits are never reverted again' },
+          { id: 'c', label: 'C', text: 'Repeat the manual kubectl edit more frequently than ArgoCD\'s reconciliation interval' },
+          { id: 'd', label: 'D', text: 'Edit the replica count directly in ArgoCD\'s own internal database rather than in Kubernetes or Git' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The fix works with the reconciliation loop rather than fighting it — once Git reflects the desired state, ArgoCD applies exactly that instead of reverting it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-08-mcq-05',
+        question:
+          'Why does the lesson treat the split between an application repo and a separate GitOps manifests repo as deliberate rather than incidental?',
+        options: [
+          { id: 'a', label: 'A', text: 'It keeps ArgoCD watching only deployment-relevant changes instead of triggering on every application-code commit, and lets the manifests repo carry its own review discipline distinct from the application code review' },
+          { id: 'b', label: 'B', text: 'Kubernetes technically requires manifests and application code to live in physically separate Git hosting providers' },
+          { id: 'c', label: 'C', text: 'A single combined repo would exceed GitHub\'s maximum file-count limit for any real application' },
+          { id: 'd', label: 'D', text: 'The split exists only to satisfy a naming convention with no functional benefit' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The separation is functional, not cosmetic — it scopes what ArgoCD reacts to and lets the manifests repo apply a review gate suited specifically to production deployment changes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-08-mcq-06',
+        question:
+          'Why does the lesson claim that under the GitOps pattern described, every change ArgoCD makes to the cluster traces back to a specific, reviewable Git commit rather than a CI run\'s transient log?',
+        options: [
+          { id: 'a', label: 'A', text: 'ArgoCD only ever applies what\'s declared in the manifests repo, and that repo\'s commit history is the durable record of every desired-state change — unlike CI logs, which can rotate out or be harder to correlate after the fact' },
+          { id: 'b', label: 'B', text: 'ArgoCD writes its own separate audit log that has nothing to do with Git commit history' },
+          { id: 'c', label: 'C', text: 'CI run logs are actually more durable and reliable than Git commit history for this purpose' },
+          { id: 'd', label: 'D', text: 'This traceability claim only holds if the cluster has CloudTrail data events enabled' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Because ArgoCD\'s only input is the manifests repo, the repo\'s commit history is inherently the durable, reviewable record of every change it ever applied.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-08-mcq-07',
+        question:
+          'How does the lesson describe what progressive delivery tooling (Argo Rollouts) adds compared to ArgoCD\'s default all-at-once rollout?',
+        options: [
+          { id: 'a', label: 'A', text: 'It incrementally shifts traffic to a new ReplicaSet based on live health signals, catching a bad release with a small fraction of real traffic before it reaches everyone' },
+          { id: 'b', label: 'B', text: 'It replaces ArgoCD\'s reconciliation loop with a completely different, unrelated deployment mechanism' },
+          { id: 'c', label: 'C', text: 'It removes the need for a manifests repo entirely' },
+          { id: 'd', label: 'D', text: 'It only applies to Lambda-based deployments, not Kubernetes Deployments' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Progressive delivery builds on the same reconciliation loop but adds gradual, health-signal-driven traffic shifting instead of switching every replica over at once.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-08-mcq-08',
+        question:
+          'How does the scenario\'s GitHub Actions test-suite stage connect to the FDE Foundations Git/GitHub lesson and the Backend Observability CI lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It reuses the same PR-gated, required-check discipline — the test suite must pass before an image is even built, the identical "CI gates the merge" pattern established in those earlier lessons, now feeding into a GitOps deployment instead of ending at merge' },
+          { id: 'b', label: 'B', text: 'There is no meaningful connection; the CI stage in this lesson is an entirely new mechanism unrelated to earlier lessons' },
+          { id: 'c', label: 'C', text: 'The connection only holds if the test suite specifically includes Hypothesis property-based tests' },
+          { id: 'd', label: 'D', text: 'The Git/GitHub lesson\'s discipline applies only to Python projects, not to a containerized service like order-management' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a deliberate cross-module echo — the same required-check gating discipline extends naturally into a pipeline that also handles deployment, not a new, unrelated practice.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/09-terraform-and-infrastructure-as-code': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-09-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What specific problem does state locking prevent, per the lesson\'s database-transaction analogy?',
+        options: [
+          { id: 'a', label: 'A', text: 'Two concurrent `terraform apply` runs racing each other and corrupting the shared state file — the same hazard as two database transactions writing the same row with no lock between them' },
+          { id: 'b', label: 'B', text: 'A single engineer accidentally running `terraform destroy` instead of `terraform apply`' },
+          { id: 'c', label: 'C', text: 'Terraform configuration files being edited by two people in the same Git branch' },
+          { id: 'd', label: 'D', text: 'An AWS resource being deleted manually through the console' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Locking\'s entire purpose is preventing two concurrent writers from racing against the same state file — the exact hazard the transaction-locking analogy is meant to make concrete.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'State locking prevents concurrent writers from corrupting state during simultaneous runs.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-09-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'In the scenario, how does the FDE first discover the customer engineer\'s manual security-group change?',
+        options: [
+          { id: 'a', label: 'A', text: 'The next `terraform plan` shows an unexpected diff — Terraform wants to remove a rule that doesn\'t exist in the module\'s configuration, surfacing the drift automatically' },
+          { id: 'b', label: 'B', text: 'The customer engineer immediately reports the change through a support ticket' },
+          { id: 'c', label: 'C', text: 'CloudTrail sends an automatic email notification listing every manual console change' },
+          { id: 'd', label: 'D', text: 'The RDS instance fails to start until the FDE investigates manually' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly how Terraform surfaces drift — an unexpected diff in `plan`, computed by comparing the state file against real, current AWS state.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Terraform plan refreshes state against live cloud APIs and surfaces differences as drift.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-09-mcq-01',
+        question:
+          'Why does the lesson call a hand-rolled provisioning script the imperative equivalent of the polymorphism lesson\'s pre-interface procedural code?',
+        options: [
+          { id: 'a', label: 'A', text: 'It works for the one path it was written for, but re-running it against an already-provisioned environment or reasoning about a partial failure requires the author to have manually encoded every case Terraform\'s plan/apply diff computes automatically' },
+          { id: 'b', label: 'B', text: 'Hand-rolled scripts are technically incapable of calling any AWS API' },
+          { id: 'c', label: 'C', text: 'There is no meaningful difference between a Terraform configuration and an equivalent bash script' },
+          { id: 'd', label: 'D', text: 'This comparison only applies to scripts that provision RDS instances specifically' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The comparison is precise — a hand-rolled script only handles the cases its author anticipated, while Terraform\'s diff-based reconciliation handles the general case of "what\'s the difference between desired and actual state" automatically.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-09-mcq-02',
+        question:
+          'Why does the lesson insist the state file is not an implementation detail to skip past?',
+        options: [
+          { id: 'a', label: 'A', text: 'It\'s the ground truth mapping every resource block in configuration to a specific real resource ID, and losing or corrupting it means Terraform can no longer tell what it already created — leading to duplicate resources or a plan that wants to destroy things still in use' },
+          { id: 'b', label: 'B', text: 'The state file only matters for cosmetic reasons, like formatting `terraform plan`\'s output' },
+          { id: 'c', label: 'C', text: 'Terraform can always regenerate a lost state file automatically from the AWS account with no data loss' },
+          { id: 'd', label: 'D', text: 'The state file exists purely for Terraform\'s internal logging and has no bearing on plan/apply behavior' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The state file is what lets Terraform reason about "what already exists" — without an accurate one, the plan/apply diff has nothing reliable to compare the configuration against.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-09-mcq-04',
+        question:
+          'Why does the lesson say the state file should be treated with the same least-privilege discipline as the AWS Core lesson\'s IAM policies?',
+        options: [
+          { id: 'a', label: 'A', text: 'The state file often contains sensitive values in plaintext — a database password set via a Terraform variable ends up in the state file unless the backend encrypts at rest and the value is marked sensitive — making it a secret-adjacent asset, not just a config artifact' },
+          { id: 'b', label: 'B', text: 'Terraform state files are technically stored as IAM policy documents themselves' },
+          { id: 'c', label: 'C', text: 'This concern only applies when the state file is stored locally rather than in a remote backend' },
+          { id: 'd', label: 'D', text: 'State files never contain any sensitive data by design, so this comparison is purely stylistic' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Treating the state file as "just config" misses that it can hold real secrets in plaintext — the same access-control discipline that scopes IAM policies applies here for the same reason.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-09-mcq-05',
+        question:
+          'Why does the lesson compare a Terraform module\'s input variables and output values to interface-first OOP thinking?',
+        options: [
+          { id: 'a', label: 'A', text: 'A consuming configuration passes inputs (like a CIDR block) and gets back outputs (like subnet IDs) without needing to know the module\'s internal resource count or naming — the same "depend on the contract, not the implementation" pattern' },
+          { id: 'b', label: 'B', text: 'Terraform modules are compiled using the same bytecode as Java interfaces' },
+          { id: 'c', label: 'C', text: 'A module\'s internal resource structure must always be visible to any configuration that consumes it' },
+          { id: 'd', label: 'D', text: 'Modules and interfaces share no meaningful conceptual similarity; the comparison is purely coincidental phrasing' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The module\'s variables/outputs are its contract — a consumer depends on that contract without needing to know how the module implements it internally, mirroring interface-based design.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-09-mcq-07',
+        question:
+          'In the scenario, why does the FDE add the manually-created rule into the module\'s configuration rather than simply running `apply` to revert it?',
+        options: [
+          { id: 'a', label: 'A', text: 'The manual rule fixed a genuine connectivity issue — reconciling it into configuration turns an undocumented emergency fix into a reviewed, permanent, declared part of the infrastructure instead of either silently reverting a needed fix or leaving an unreviewed change in production' },
+          { id: 'b', label: 'B', text: 'Terraform configuration cannot be edited once a resource has drifted, so reconciliation is the only technically possible option' },
+          { id: 'c', label: 'C', text: 'Reverting the rule would have caused the RDS instance itself to be destroyed' },
+          { id: 'd', label: 'D', text: 'The rule was already present in the module\'s configuration before the manual change, so no action was actually needed' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The deliberate choice matters here — a genuinely needed fix should become a reviewed, declared part of the configuration rather than being silently reverted or left as undocumented drift.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-09-mcq-08',
+        question:
+          'Why does the lesson recommend separate state files per environment (dev/prod) rather than one shared state distinguishing environments with `count` or `for_each`?',
+        options: [
+          { id: 'a', label: 'A', text: 'A mistaken `apply` against the wrong state file is a small, contained mistake, whereas one shared state file lets an error touch every environment at once — the same blast-radius reasoning as scoping an IAM policy to a specific resource ARN' },
+          { id: 'b', label: 'B', text: 'Terraform technically forbids using `count` or `for_each` for environment-based configuration' },
+          { id: 'c', label: 'C', text: 'Separate state files are required because Terraform cannot manage more than one AWS region from a single state file' },
+          { id: 'd', label: 'D', text: 'This separation has no bearing on risk; it is purely an organizational preference with no safety benefit' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the same least-reachability, contained-blast-radius reasoning from the AWS Core lesson, reapplied to how Terraform state itself is partitioned.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/10-serverless-and-event-driven-cloud-lambda-api-gateway-step-functions': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-10-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson describe cold starts as a first-class concern rather than an edge case for Lambda?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because execution environments are provisioned on demand and can be frozen, reused, or destroyed between invocations, a function receiving infrequent or bursty traffic regularly pays the full provisioning-and-initialization cost rather than reusing an already-warm environment' },
+          { id: 'b', label: 'B', text: 'Cold starts only occur once per AWS account, on the very first Lambda invocation ever made' },
+          { id: 'c', label: 'C', text: 'Cold starts are exclusively a concern for functions triggered by API Gateway, never for event-triggered functions' },
+          { id: 'd', label: 'D', text: 'AWS Lambda does not actually experience cold starts under any circumstances as of current runtime versions' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The on-demand provisioning model is exactly what makes cold starts recur for bursty or infrequent traffic — it\'s a direct structural consequence of the execution model, not an occasional glitch.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Cold starts are a direct structural property of on-demand container initialization upon incoming invocations.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-10-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'What does the lesson say a Step Functions state\'s `Retry` and `Catch` fields replace, compared to a hand-written orchestrator?',
+        options: [
+          { id: 'a', label: 'A', text: 'Scattered try/except blocks implementing retry-with-backoff and error-routing logic manually across application code — expressed instead as a declarative, per-state configuration' },
+          { id: 'b', label: 'B', text: 'The need for any Lambda function to handle errors internally at all' },
+          { id: 'c', label: 'C', text: 'API Gateway\'s own throttling configuration' },
+          { id: 'd', label: 'D', text: 'The entire need for a database to store workflow state' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the concrete win Step Functions offers — declarative, per-state retry/error-routing configuration instead of the same logic hand-written and scattered across application code.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Step Functions provides declarative, managed retry and error routing across state transitions.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-10-mcq-02',
+        question:
+          'Why does the lesson call Lambda\'s per-invocation billing model the "exact inverse" of the GPU inference Deployment\'s cost profile?',
+        options: [
+          { id: 'a', label: 'A', text: 'A function invoked briefly and infrequently has genuinely no idle cost, billed only for actual execution time, whereas the GPU Deployment is provisioned and paid for continuously regardless of whether it\'s actively serving a request' },
+          { id: 'b', label: 'B', text: 'Lambda functions are always cheaper than any container-based deployment under every workload pattern' },
+          { id: 'c', label: 'C', text: 'GPU Deployments are billed per invocation in the same way Lambda functions are' },
+          { id: 'd', label: 'D', text: 'This comparison only applies to functions triggered directly by API Gateway' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The two cost models are genuinely opposite — pay-per-millisecond-of-actual-work versus pay-for-continuous-provisioned-capacity — which is exactly why matching the model to the workload\'s actual traffic shape matters.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-10-mcq-03',
+        question:
+          'According to the lesson, what role does API Gateway play before a request ever reaches the Lambda handler?',
+        options: [
+          { id: 'a', label: 'A', text: 'Request/response transformation, authentication, throttling, and request validation — the same boundary-enforcement role a load balancer plus application middleware plays for a container-hosted service, but fully managed' },
+          { id: 'b', label: 'B', text: 'API Gateway executes the actual business logic itself, with Lambda only used for logging' },
+          { id: 'c', label: 'C', text: 'API Gateway is required only for Lambda functions triggered by SQS, not by direct HTTP requests' },
+          { id: 'd', label: 'D', text: 'API Gateway has no authentication capability and must always be paired with a separate authentication service' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'API Gateway\'s boundary role directly parallels what a load balancer and middleware already do for container-hosted services — just managed and configured declaratively.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-10-mcq-05',
+        question:
+          'Why does the scenario\'s `ChargePayment` state retry only specific transient Stripe error codes rather than retrying on any failure?',
+        options: [
+          { id: 'a', label: 'A', text: 'A permanently-declined charge (a card error) will never succeed no matter how many times it\'s retried — retrying only transient errors and routing permanent declines to a distinct failure state avoids wasted retries on an outcome that can\'t change' },
+          { id: 'b', label: 'B', text: 'Step Functions technically only supports retrying a single named error type per state' },
+          { id: 'c', label: 'C', text: 'Stripe\'s API rejects any request that includes retry logic of any kind' },
+          { id: 'd', label: 'D', text: 'Retrying on any failure would exceed Step Functions\' maximum state machine size limit' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The distinction matters because a permanent failure retried repeatedly wastes time and obscures the real outcome — routing it to `Catch` instead reflects that no retry will change a card decline.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-10-mcq-06',
+        question:
+          'Which specific constraint does the lesson name as ruling out rebuilding the GPU inference Deployment as a Lambda function?',
+        options: [
+          { id: 'a', label: 'A', text: 'GPU hardware access — Lambda does not expose GPU hardware at all, independent of the workload\'s throughput or warm-up characteristics' },
+          { id: 'b', label: 'B', text: 'Lambda functions cannot make outbound network calls to any AWS service' },
+          { id: 'c', label: 'C', text: 'Lambda has no way to process any request that originates from a Kubernetes cluster' },
+          { id: 'd', label: 'D', text: 'Lambda functions are limited to a maximum of one invocation per second' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The hardware constraint is absolute — Lambda doesn\'t expose GPU access at all, which alone rules it out regardless of the other throughput and warm-up considerations also mentioned.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-10-mcq-07',
+        question:
+          'In the practice loop, why can the FDE confirm exactly which state ran, with what input/output, without searching application logs?',
+        options: [
+          { id: 'a', label: 'A', text: 'Step Functions maintains a complete, inspectable execution history for each run — a debugging advantage a hand-written orchestrator\'s scattered application logs don\'t provide for free' },
+          { id: 'b', label: 'B', text: 'Application logs are technically disabled for any Lambda function invoked through Step Functions' },
+          { id: 'c', label: 'C', text: 'This is only possible if CloudTrail data events were separately enabled for the state machine' },
+          { id: 'd', label: 'D', text: 'Step Functions requires a third-party logging tool to produce any execution record at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The execution history is a built-in feature of Step Functions itself, giving a structured record of every state transition without needing separate log correlation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-10-mcq-08',
+        question:
+          'How does the lesson\'s serverless-versus-container framing connect to the "match complexity to genuine need" theme from the agent-vs-workflow and WebSockets-vs-SSE lessons?',
+        options: [
+          { id: 'a', label: 'A', text: 'In every case, the right choice is decided by naming the specific constraint the workload actually has — throughput shape, hardware need, or connection lifetime — not by defaulting to whichever option is more modern or more familiar' },
+          { id: 'b', label: 'B', text: 'These lessons share no meaningful connection; the comparison is coincidental' },
+          { id: 'c', label: 'C', text: 'This theme only applies to choices between two different AI agent architectures, not infrastructure choices' },
+          { id: 'd', label: 'D', text: 'The "match complexity to genuine need" theme argues that the newer technology should always be preferred by default' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a deliberate cross-module echo — the same discipline of naming the actual constraint before choosing a mechanism reappears here applied to compute, not agent design or real-time transport.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-10-mcq-09',
+        question:
+          'Why does the lesson cite the SQS-triggered notification handler from the earlier Compute, Storage & Managed Services lesson as a good serverless fit?',
+        options: [
+          { id: 'a', label: 'A', text: 'It runs for milliseconds only occasionally, and running it as an always-on container would waste continuous compute cost sitting idle most of the time — exactly the spiky, infrequent traffic pattern serverless is suited for' },
+          { id: 'b', label: 'B', text: 'SQS-triggered functions are required by AWS to run as Lambda functions and cannot be implemented any other way' },
+          { id: 'c', label: 'C', text: 'The notification handler needs GPU access, making it unsuitable for a container deployment' },
+          { id: 'd', label: 'D', text: 'This workload requires a long-running, stateful connection, which only Lambda can provide' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The notification handler\'s traffic shape — brief, infrequent invocations — is exactly the pattern where Lambda\'s per-invocation billing avoids paying for idle capacity a container would otherwise sit on.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/11-sre-and-reliability-engineering-for-fdes': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-11-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What is the difference between an SLI and an SLO, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'An SLI is a specific, measured signal of user-experienced behavior; an SLO commits to a target on that measured signal over a defined window' },
+          { id: 'b', label: 'B', text: 'An SLI and an SLO are two interchangeable names for the same concept' },
+          { id: 'c', label: 'C', text: 'An SLO is the measured signal, and an SLI is the target committed to over a window' },
+          { id: 'd', label: 'D', text: 'SLIs apply only to latency, while SLOs apply only to error rate' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The distinction is foundational to the rest of the lesson — the SLI is what you measure, the SLO is the target you commit to hitting on that measurement.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'SLI is the measured metric; SLO is the committed target threshold for that metric.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-11-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'What does the lesson say an error budget policy does when the budget is exhausted for its window?',
+        options: [
+          { id: 'a', label: 'A', text: 'It explicitly freezes non-critical releases and redirects the team\'s attention from features to reliability work, rather than merely logging the exhaustion on a dashboard' },
+          { id: 'b', label: 'B', text: 'It automatically increases the SLO target to make the budget easier to meet going forward' },
+          { id: 'c', label: 'C', text: 'It has no operational effect; the policy exists purely for reporting purposes' },
+          { id: 'd', label: 'D', text: 'It permanently disables the affected service until a full infrastructure rebuild' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The policy\'s teeth are the release freeze — this is what makes the error budget an actual release gate instead of a passive metric nobody acts on.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Error budget exhaustion triggers an automatic freeze on feature releases to prioritize reliability.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-11-mcq-02',
+        question:
+          'Why does the lesson say framing reliability as a "budget" rather than a "target" is the substantive move?',
+        options: [
+          { id: 'a', label: 'A', text: 'A target that\'s never allowed to be missed forces every release to be treated as equally risky, while a budget that\'s tracked and spent deliberately turns "how much risk can we take" into a concrete, decidable number' },
+          { id: 'b', label: 'B', text: 'A budget and a target produce identical engineering decisions; the wording difference is purely stylistic' },
+          { id: 'c', label: 'C', text: 'Budgets apply only to financial cost, not to reliability, making this framing a misnomer' },
+          { id: 'd', label: 'D', text: 'A budget framing means the SLO can be silently ignored whenever convenient' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The budget framing is what makes risk-taking a deliberate, quantified decision instead of an all-or-nothing target that treats every release as equally dangerous.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-11-mcq-04',
+        question:
+          'Why does the lesson say an FDE without an agreed SLO on a customer engagement is walking into an unstated conflict?',
+        options: [
+          { id: 'a', label: 'A', text: 'Without an agreed budget, "is this incident bad enough to stop and fix, or an acceptable cost of shipping fast" gets informally re-litigated every time, instead of being answered by a number both sides already agreed to' },
+          { id: 'b', label: 'B', text: 'Customers always refuse to engage with an FDE who has not first defined an SLO' },
+          { id: 'c', label: 'C', text: 'SLOs are a legal requirement for any AWS-hosted production workload' },
+          { id: 'd', label: 'D', text: 'Without an SLO, the OTel tracing instrumentation from Module 2 cannot function at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'An agreed SLO converts a recurring, informal argument about reliability-versus-velocity into a decision already made in advance by both sides.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-11-mcq-05',
+        question:
+          'What does a burn-rate alert indicate that a plain "an error occurred" alert does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'That the error budget is being consumed faster than the measurement window can sustain — a rate-based signal, not just the fact that a single error happened' },
+          { id: 'b', label: 'B', text: 'That the error budget has already reached exactly zero' },
+          { id: 'c', label: 'C', text: 'That the SLO target itself needs to be permanently lowered' },
+          { id: 'd', label: 'D', text: 'That a specific individual engineer is responsible for the ongoing errors' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Burn rate is a pace signal — it says whether the budget is being spent too fast for the window, which is a meaningfully different and more actionable signal than any single error.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-11-mcq-06',
+        question:
+          'In the scenario, why does the FDE use `EXPLAIN ANALYZE` on the regressed query rather than assuming the database is generically overloaded?',
+        options: [
+          { id: 'a', label: 'A', text: 'It follows the same evidence-first diagnostic discipline as the Postgres-internals lesson — checking the actual query plan reveals the specific missing index causing the regression, rather than guessing at a vague, unfalsifiable cause' },
+          { id: 'b', label: 'B', text: 'EXPLAIN ANALYZE is required by AWS before any RDS query can be executed in production' },
+          { id: 'c', label: 'C', text: 'This step is unnecessary in the scenario; the FDE could have found the same answer faster by restarting the RDS instance' },
+          { id: 'd', label: 'D', text: 'EXPLAIN ANALYZE only works for queries that already have an existing index' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a direct reuse of the Postgres-internals lesson\'s diagnostic discipline — evidence from the actual query plan, not an assumption about the database being generally slow.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-11-mcq-07',
+        question:
+          'Why does the lesson insist the postmortem\'s follow-up action targets the migration review process gap, not the engineer who wrote the migration?',
+        options: [
+          { id: 'a', label: 'A', text: 'Punishing the individual who triggered the incident teaches everyone else to hide near-misses instead of surfacing them, which produces a worse long-term reliability outcome than the original incident — the fix that actually prevents recurrence is closing the process gap' },
+          { id: 'b', label: 'B', text: 'The engineer who wrote the migration was not actually responsible for the missing index in any way' },
+          { id: 'c', label: 'C', text: 'Blameless postmortems are a purely legal requirement with no bearing on future incident rates' },
+          { id: 'd', label: 'D', text: 'Naming an individual in a postmortem is technically prohibited by every major cloud provider\'s terms of service' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The blameless framing is a deliberate choice about what actually reduces future incidents — a culture that surfaces near-misses openly catches more problems than one that punishes whoever happened to trigger the last one.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-11-mcq-08',
+        question:
+          'Why does the lesson single out toil (like manually restarting a stuck Pod repeatedly) as a specific risk to an SRE practice, even when the error budget is currently healthy?',
+        options: [
+          { id: 'a', label: 'A', text: 'If the slack a healthy error budget provides gets spent on repetitive manual work instead of the automation or architectural fix that would eliminate the underlying problem, the operational burden never actually decreases over time' },
+          { id: 'b', label: 'B', text: 'Toil is defined as any work performed by an on-call engineer, regardless of whether it\'s repetitive or one-time' },
+          { id: 'c', label: 'C', text: 'A healthy error budget automatically eliminates the need to address toil at all' },
+          { id: 'd', label: 'D', text: 'Toil only becomes a concern once the error budget has already been fully exhausted' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The point is about converting slack into durable improvement — spending it on repeated manual fixes instead of the actual fix means the burden never actually goes down.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-11-mcq-09',
+        question:
+          'Why does the suggested extension say the SQS-based notification pipeline\'s SLO needs a different SLI (queue lag) than the order-management API\'s SLO (request latency)?',
+        options: [
+          { id: 'a', label: 'A', text: 'The notification pipeline\'s user-experienced behavior is how long a message waits before being delivered, not how fast a single synchronous request completes — the SLI has to measure what the workload actually does, not be copied from an unrelated workload\'s SLI' },
+          { id: 'b', label: 'B', text: 'Queue-based systems are technically incapable of having any SLO defined for them' },
+          { id: 'c', label: 'C', text: 'Request latency and queue lag are actually the same measurement expressed in different units' },
+          { id: 'd', label: 'D', text: 'The notification pipeline cannot be measured using the OTel instrumentation from Module 2' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'An SLI has to reflect what the specific workload\'s users actually experience — copying an unrelated workload\'s SLI onto a queue-based pipeline would measure the wrong thing entirely.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/12-assessment-deploy-break-fix-on-cloud': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-12-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does Practice Loop step 3 have you write down each piece of evidence checked and what it ruled in or out, before touching anything?',
+        options: [
+          { id: 'a', label: 'A', text: 'It forces a genuinely evidence-based root cause instead of a guess that happens to fix the symptom — the rubric explicitly distinguishes the two, and an undocumented fix can\'t demonstrate which one actually happened' },
+          { id: 'b', label: 'B', text: 'This step exists purely to slow down the assessment and has no diagnostic value' },
+          { id: 'c', label: 'C', text: 'Kubernetes technically requires a written diagnosis log before any manifest can be edited' },
+          { id: 'd', label: 'D', text: 'Writing evidence down before fixing anything is only necessary when the failure involves NetworkPolicy specifically' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This directly enforces the "incident diagnosis" rubric category — the value is in demonstrating the reasoning that led to the fix, not just the fact that the symptom eventually disappeared.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Disciplined diagnosis requires recording observable evidence before attempting ad-hoc remediations.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-12-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does Practice Loop step 4 specify fixing infrastructure drift via Terraform and a NetworkPolicy or RBAC gap via a Kubernetes manifest change, rather than any fix that happens to work?',
+        options: [
+          { id: 'a', label: 'A', text: 'A fix applied at the wrong layer (a manual console edit for infrastructure, a one-off `kubectl` patch for a manifest gap) reintroduces exactly the kind of undeclared drift or bypassed-pipeline problem the rubric\'s other categories are checking for' },
+          { id: 'b', label: 'B', text: 'Terraform and Kubernetes manifests are interchangeable, so the specific layer named makes no real difference' },
+          { id: 'c', label: 'C', text: 'This requirement only applies to failures injected into the RDS instance specifically' },
+          { id: 'd', label: 'D', text: 'A one-off manual patch is always faster and therefore always preferable to a declared fix' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Fixing at the correct declared layer keeps the fix consistent with the infrastructure-correctness and GitOps-discipline rubric categories — a fix that bypasses them just reintroduces the problem those categories exist to catch.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Fixes must be committed at the declared IaC and GitOps layer to prevent recurring drift and preserve auditability.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-12-mcq-01',
+        question:
+          'What is the actual purpose of this assessment, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Confirming that Module 4\'s individual tools (infrastructure-as-code, secrets management, Kubernetes networking/RBAC, GitOps, SRE discipline) compose into one deployed, diagnosable system — not testing any single new mechanism' },
+          { id: 'b', label: 'B', text: 'Teaching an entirely new cloud provider not covered elsewhere in the module' },
+          { id: 'c', label: 'C', text: 'Testing typing speed under a strict time limit' },
+          { id: 'd', label: 'D', text: 'Determining whether the learner should use Kubernetes or a different orchestrator going forward' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This assessment is explicitly a composition check, not new content — its value is proving the module\'s separate lessons actually integrate, a distinct skill from executing each one in isolation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-12-mcq-02',
+        question:
+          'Per the challenge brief, why does the rubric\'s "infrastructure correctness" category specifically check that `terraform plan` shows zero unexpected drift?',
+        options: [
+          { id: 'a', label: 'A', text: 'It\'s a concrete, checkable way to confirm the infrastructure was actually provisioned declaratively through Terraform rather than by hand — any manual console change would surface as drift in the plan output' },
+          { id: 'b', label: 'B', text: 'Terraform plan output has no relationship to whether infrastructure was provisioned by console clicks or by Terraform itself' },
+          { id: 'c', label: 'C', text: 'This check only matters for the RDS instance, not for the VPC or EKS cluster' },
+          { id: 'd', label: 'D', text: 'Zero drift is impossible to achieve in practice, so this criterion is intentionally unattainable' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'A clean `terraform plan` is a direct, verifiable signal that the declared configuration and the real infrastructure agree — exactly the kind of falsifiable check the rubric is built around.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-12-mcq-03',
+        question:
+          'What does the rubric\'s "deployment & GitOps discipline" category evaluate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether every change that reached the cluster traces back to a Git commit in the manifests repo, or whether a manual `kubectl apply` bypassed the pipeline at any point' },
+          { id: 'b', label: 'B', text: 'How many total files exist in the application repository' },
+          { id: 'c', label: 'C', text: 'Whether the Docker image was built using a specific base image tag' },
+          { id: 'd', label: 'D', text: 'Whether the cluster is running on EKS specifically rather than another Kubernetes distribution' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This directly reuses the CI/CD lesson\'s core claim — a bypassed pipeline (a manual `kubectl apply`) breaks the audit-trail guarantee GitOps is meant to provide, which is exactly what this rubric category checks for.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-12-mcq-06',
+        question:
+          'Why does the final rubric category require the postmortem\'s follow-up action to name a process gap rather than the specific action that caused the injected failure?',
+        options: [
+          { id: 'a', label: 'A', text: 'This reuses the SRE lesson\'s blameless-postmortem discipline — naming the process gap targets what would actually prevent a recurrence, while naming the specific triggering action produces a fix that only prevents that one exact failure from happening the same way again' },
+          { id: 'b', label: 'B', text: 'The specific triggering action is always impossible to identify in an injected-failure exercise' },
+          { id: 'c', label: 'C', text: 'Process gaps and triggering actions are the same thing described in different words' },
+          { id: 'd', label: 'D', text: 'This requirement only applies if the injected failure involved a Terraform-managed resource' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a direct reuse of the SRE lesson\'s postmortem framing — a process-gap fix generalizes to prevent a class of failure, while naming only the specific action produces a much narrower, less durable fix.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-12-mcq-07',
+        question:
+          'Why does the lesson argue that skipping a rubric item — for example, hardcoding a secret instead of using Secrets Manager — produces a "noticeably worse, less defensible" result rather than merely a less polished one?',
+        options: [
+          { id: 'a', label: 'A', text: 'Each rubric item corresponds to a real capability the deployment loses without it — skipping Secrets Manager means losing rotation, access-controlled retrieval, and CloudTrail-visible access auditing, a functional loss, not a cosmetic one' },
+          { id: 'b', label: 'B', text: 'The rubric items are arbitrary stylistic preferences with no functional consequence' },
+          { id: 'c', label: 'C', text: 'Hardcoding a secret and using Secrets Manager produce functionally identical security outcomes' },
+          { id: 'd', label: 'D', text: 'This concern only applies to secrets that are rotated automatically' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The rubric items were chosen because each maps to a real, demonstrated capability from earlier lessons in the module — skipping one is a functional loss of that capability, not a stylistic shortfall.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-12-mcq-08',
+        question:
+          'Why does the suggested extension recommend having a peer inject a second, different failure a week later and comparing diagnosis speed against the first time?',
+        options: [
+          { id: 'a', label: 'A', text: 'It tests whether the observability and GitOps audit trail already in place genuinely made diagnosis faster and more evidence-based the second time, rather than the first success being a one-off — a concrete, comparable measurement instead of a subjective impression' },
+          { id: 'b', label: 'B', text: 'A second injected failure is required because the first one cannot actually be fixed' },
+          { id: 'c', label: 'C', text: 'This comparison has no diagnostic value; it exists only to extend the assessment\'s total time' },
+          { id: 'd', label: 'D', text: 'The second failure is guaranteed to be identical to the first, making the comparison trivial' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Comparing diagnosis speed across two genuinely separate incidents is a concrete way to check whether the observability and audit-trail investments actually paid off, not just whether the first fix happened to go smoothly.'
+      }
+    ]
+  },
+
+'fde-curriculum/enterprise-consulting-llm/01-customer-discovery-and-requirements-gathering': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-01-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the discovery call ask a stakeholder to narrate what happens today, step by step, rather than asking them to describe the solution they want?',
+        options: [
+          { id: 'a', label: 'A', text: 'People are far more accurate reporting a process they actually perform daily than specifying a solution they have never built' },
+          { id: 'b', label: 'B', text: 'Describing a desired solution is against company policy during discovery calls' },
+          { id: 'c', label: 'C', text: 'Current-state walkthroughs take less time than solution discussions' },
+          { id: 'd', label: 'D', text: 'Stakeholders are not permitted to discuss solutions until a contract is signed' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s core discovery-technique claim is that accurate reporting of a familiar process beats speculative solution design, because the stakeholder has direct, repeated experience with the former and none with the latter.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Stakeholders have direct experience with daily workflow friction, while speculative solution designs often anchor on buzzwords.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-01-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson warn against treating the requirement voiced by the economic buyer or champion as automatically the most important one?',
+        options: [
+          { id: 'a', label: 'A', text: 'Economic buyers and champions are statistically less honest than end users' },
+          { id: 'b', label: 'B', text: 'A solution built only against the champion\'s or buyer\'s framing risks shipping something the actual daily end users quietly route around, since their version of the pain may differ' },
+          { id: 'c', label: 'C', text: 'Economic buyers never have accurate information about the company\'s processes' },
+          { id: 'd', label: 'D', text: 'End users always have veto power over any proposed solution' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s concrete risk is adoption failure: end users experience the process directly and may frame the pain differently than the person who initiated the engagement, so their account has to be deliberately sought out, not assumed to match.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'The economic buyer holds budget authority, but end-users know the actual data realities and daily edge cases.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-01-mcq-02',
+        question:
+          'What does the pain-quantification pass of a discovery call add that a general complaint like "this process is frustrating" does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'A commitment from the customer to sign a contract' },
+          { id: 'b', label: 'B', text: 'A concrete number — frequency, duration, or cost — that later lets a proposed solution be checked against a real bar' },
+          { id: 'c', label: 'C', text: 'A guarantee that the stated pain is the true underlying need' },
+          { id: 'd', label: 'D', text: 'A list of every system the company currently uses' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the problem-discovery lesson\'s impact line — converting dissatisfaction into a measurable figure (frequency, cost, duration) is what makes a later solution\'s success checkable rather than a matter of opinion.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-01-mcq-03',
+        question:
+          'Why does the lesson insist that constraints (technical, budget, timeline, compliance) be asked explicitly during discovery rather than assumed?',
+        options: [
+          { id: 'a', label: 'A', text: 'Constraints are legally required to be documented for every engagement' },
+          { id: 'b', label: 'B', text: 'A constraint discovered after work has already been built around a wrong assumption is far more expensive to fix than one surfaced in the first conversation' },
+          { id: 'c', label: 'C', text: 'Customers are unaware they have any constraints until directly asked' },
+          { id: 'd', label: 'D', text: 'Constraints only matter for engagements involving regulated industries' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames this as a cost argument: an unstated assumption that turns out wrong compounds into wasted build effort, while surfacing the same constraint in the first conversation costs almost nothing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-01-mcq-04',
+        question:
+          'What distinguishes the "champion" from the "end users" in the lesson\'s stakeholder-mapping framework?',
+        options: [
+          { id: 'a', label: 'A', text: 'The champion always has less technical knowledge than the end users' },
+          { id: 'b', label: 'B', text: 'The champion advocates internally and pulled the FDE in, but may not personally use the result day to day, unlike the end users whose actual workflow the solution changes' },
+          { id: 'c', label: 'C', text: 'The champion is always the same person as the economic buyer' },
+          { id: 'd', label: 'D', text: 'End users always have final budget authority over the engagement' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly separates these roles because they rarely coincide: the champion\'s advocacy and the end users\' daily experience of the problem can diverge, which is exactly why both need to be heard separately.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-01-mcq-06',
+        question:
+          'In the scenario, the VP asked for "AI-powered inventory forecasting" while the planner\'s actual pain was a stale, manually-updated spreadsheet. What does this specifically illustrate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The VP was intentionally misleading the FDE' },
+          { id: 'b', label: 'B', text: 'A solution-shaped request from one stakeholder can obscure a different, more specific underlying need held by the stakeholder who actually experiences the process daily' },
+          { id: 'c', label: 'C', text: 'Forecasting models are never an appropriate solution for inventory problems' },
+          { id: 'd', label: 'D', text: 'The planner\'s account should be discarded in favor of the VP\'s, since the VP has budget authority' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the stakeholder-mapping risk made concrete: the VP\'s framing ("AI forecasting") named a solution category, while the planner — who lives the process daily — surfaced the real, narrower need (data staleness), exactly why both accounts had to be gathered separately.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-01-mcq-07',
+        question:
+          'Why does the FDE send the written discovery brief back to all three stakeholders and ask "is this an accurate summary?" before writing any code?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is a formality required for legal liability purposes only' },
+          { id: 'b', label: 'B', text: 'It gives the customer a chance to correct a misunderstanding while the cost of being wrong is still near zero, rather than after a prototype has already been built around it' },
+          { id: 'c', label: 'C', text: 'It replaces the need for any further communication during the engagement' },
+          { id: 'd', label: 'D', text: 'It shifts responsibility for the final solution\'s success entirely onto the customer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Confirming the brief before building is the cheapest possible point to catch a misunderstanding — a dispute caught here costs a re-read of one page, while the same dispute caught after a demo costs a rebuilt prototype.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-01-mcq-08',
+        question:
+          'A data privacy officer was never on the original discovery call but turns out to hold a hard constraint relevant to the engagement. What does the lesson\'s framework suggest as the best way to have avoided discovering this late?',
+        options: [
+          { id: 'a', label: 'A', text: 'Proceed with the build and address privacy concerns only if the officer objects after launch' },
+          { id: 'b', label: 'B', text: 'Explicitly ask, during the constraints pass, who else in the organization might hold relevant compliance or data constraints, rather than relying on the invited stakeholders to volunteer that information' },
+          { id: 'c', label: 'C', text: 'Assume compliance constraints are the economic buyer\'s sole responsibility to raise' },
+          { id: 'd', label: 'D', text: 'Skip the constraints pass entirely for engagements without an obvious regulatory angle' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The constraints pass is explicitly about surfacing what might otherwise stay unstated; asking who else might hold a relevant constraint is a direct extension of that discipline rather than waiting for someone uninvited to raise it after the fact.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/02-technical-scoping-and-solution-documentation-prd-lite-options-matrix-risk-register': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-02-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What specific dispute does an explicit non-goals section in a PRD-lite prevent that a scope-only description does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Disputes about which programming language will be used' },
+          { id: 'b', label: 'B', text: 'A stakeholder assuming a capability was included in this phase because it was never explicitly excluded' },
+          { id: 'c', label: 'C', text: 'Disputes about the engagement\'s total budget' },
+          { id: 'd', label: 'D', text: 'Disagreements about who owns the final code repository' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Leaving something unmentioned doesn\'t communicate exclusion — it leaves each stakeholder free to assume differently. Naming non-goals explicitly closes that gap before it becomes a demo-stage dispute.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Silence is ambiguous; explicit non-goals prevent stakeholders from making unaligned assumptions about unmentioned features.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-02-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Which of the following is the better risk register entry, according to the lesson\'s standard?',
+        options: [
+          { id: 'a', label: 'A', text: '"There could be issues with data quality"' },
+          { id: 'b', label: 'B', text: '"The ERP export sometimes contains a null SKU field, which would silently drop that row from the recommendation"' },
+          { id: 'c', label: 'C', text: '"Something might go wrong with the integration eventually"' },
+          { id: 'd', label: 'D', text: '"Risk: general system reliability"' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A falsifiable risk names a concrete, checkable failure mode — a specific field, a specific consequence — rather than a vague category, which is the difference the lesson draws between a usable risk register and a meaningless one.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'A useful risk entry identifies a specific, falsifiable failure mode and actionable mitigation rather than a broad generic category.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-02-mcq-02',
+        question:
+          'Why does the lesson argue that leaving non-goals implicit doesn\'t actually make a project\'s scope smaller?',
+        options: [
+          { id: 'a', label: 'A', text: 'It just moves the disagreement about what\'s in scope from the cheap discovery stage to the expensive demo stage, where it reads as a broken promise' },
+          { id: 'b', label: 'B', text: 'Scope is determined entirely by the engineering team\'s available time, regardless of documentation' },
+          { id: 'c', label: 'C', text: 'Non-goals sections are optional and have no measurable effect on outcomes' },
+          { id: 'd', label: 'D', text: 'Implicit non-goals always expand scope rather than leaving it ambiguous' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific claim is about timing and cost of the same disagreement — resolved during scoping it\'s cheap, discovered at a demo it looks like a failure to deliver.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-02-mcq-03',
+        question:
+          'Why does the lesson say an options matrix\'s comparison columns should come from the constraints surfaced during discovery rather than a generic template?',
+        options: [
+          { id: 'a', label: 'A', text: 'Generic templates are always factually incorrect' },
+          { id: 'b', label: 'B', text: 'A matrix scored against dimensions irrelevant to this customer\'s actual constraints doesn\'t help the customer make the decision that matters to them' },
+          { id: 'c', label: 'C', text: 'Templates take longer to fill out than custom matrices' },
+          { id: 'd', label: 'D', text: 'Matrices with generic columns cannot be shown to customers under any circumstances' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The matrix exists to make a real trade-off visible to this customer, which only works if the columns reflect constraints that actually matter to them (data residency, maintainability by their team), not a generic checklist.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-02-mcq-05',
+        question:
+          'Why does the lesson insist every risk register entry have a named owner, not just a mitigation?',
+        options: [
+          { id: 'a', label: 'A', text: 'Owners are required for legal compliance in every jurisdiction' },
+          { id: 'b', label: 'B', text: 'A risk with no assigned owner is a risk nobody is actually accountable for closing, regardless of how good the mitigation text sounds' },
+          { id: 'c', label: 'C', text: 'Naming an owner automatically reduces the risk\'s likelihood' },
+          { id: 'd', label: 'D', text: 'Only risks with a named owner are permitted to be included in a PRD-lite' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A mitigation without an owner is a plan nobody is responsible for executing. Naming a specific owner is what turns a documented intention into something that actually gets done.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-02-mcq-06',
+        question:
+          'Why did the hybrid (rule-based script plus LLM-assisted anomaly flagging) win over the pure time-series forecasting model in the scenario, despite scoring lower on raw forecast accuracy?',
+        options: [
+          { id: 'a', label: 'A', text: 'Time-series models cannot technically be deployed in a logistics context' },
+          { id: 'b', label: 'B', text: 'The matrix\'s columns reflected the discovery brief\'s actual constraints — fast time-to-value, operability by the customer\'s own team, and no direct ERP write access — and the hybrid scored better across those specific constraints even though it lost on accuracy alone' },
+          { id: 'c', label: 'C', text: 'LLM-based approaches always outscore time-series models regardless of the dimensions used' },
+          { id: 'd', label: 'D', text: 'The rule-based script was the cheapest option to build, which was the only column scored' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the trade-off the matrix was designed to surface: winning on one dimension (accuracy) doesn\'t automatically win overall — the matrix weighs it against the customer\'s actual constraints, several of which the hybrid satisfied better.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-02-mcq-07',
+        question:
+          'The risk register entry about accidental ERP write access is a direct technical response to which earlier artifact?',
+        options: [
+          { id: 'a', label: 'A', text: 'The demo storytelling structure covered in a later lesson' },
+          { id: 'b', label: 'B', text: 'The finance controller\'s constraint surfaced during discovery, that the system must never directly write to the ERP\'s inventory table' },
+          { id: 'c', label: 'C', text: 'A generic industry-standard security checklist unrelated to this engagement' },
+          { id: 'd', label: 'D', text: 'The PRD-lite\'s non-goals section alone, independent of discovery' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The risk register entry (read-only IAM policy, verified in a startup healthcheck) is a concrete technical safeguard built specifically to prevent the exact constraint violation the finance controller flagged during discovery from ever happening silently.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-02-mcq-08',
+        question:
+          'What is the shared purpose the lesson attributes to both the options matrix and the risk register, beyond documenting the FDE\'s own reasoning?',
+        options: [
+          { id: 'a', label: 'A', text: 'Making the scoping decision reviewable by someone who wasn\'t in the room — a customer\'s IT director or a second FDE picking up the engagement later — so they can see why the approach was chosen, not just that it was' },
+          { id: 'b', label: 'B', text: 'Satisfying a mandatory audit requirement present in every FDE engagement' },
+          { id: 'c', label: 'C', text: 'Replacing the need for the discovery brief entirely' },
+          { id: 'd', label: 'D', text: 'Guaranteeing that the chosen approach will succeed without further validation' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Both artifacts exist to externalize reasoning that would otherwise live only in the FDE\'s head, so someone without the original context can still follow and evaluate the decision.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/03-stakeholder-communication-and-written-artifacts': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-03-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson recommend surfacing blocked items early in a status update rather than at the end, after completed work?',
+        options: [
+          { id: 'a', label: 'A', text: 'Customers only read the first sentence of any status update' },
+          { id: 'b', label: 'B', text: 'A stakeholder skimming for bad news will find it either way; surfacing it early reads as transparency, while burying it reads as something the FDE hoped would go unnoticed' },
+          { id: 'c', label: 'C', text: 'Completed work is never relevant to a customer\'s decision-making' },
+          { id: 'd', label: 'D', text: 'Formatting rules require negative information to appear before positive information' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific claim is about perception, not visibility mechanics — the same information read early signals honesty, while the same information found after digging through completed-work items signals avoidance.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Leading with blockers demonstrates proactive honesty and control, whereas burying them looks like avoidance.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-03-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson say a blocker surfaced with concrete options is almost always faster to resolve than one surfaced with only an apology?',
+        options: [
+          { id: 'a', label: 'A', text: 'Apologies are considered unprofessional in all business writing' },
+          { id: 'b', label: 'B', text: 'Options convert the update into a decision the customer can make immediately, while an apology alone leaves the customer to independently figure out how to respond' },
+          { id: 'c', label: 'C', text: 'Customers are legally required to respond faster to updates containing options' },
+          { id: 'd', label: 'D', text: 'An apology always implies the FDE is personally at fault, which options avoid' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames this as an action-enabling difference — treating the stakeholder as a decision-maker who can act on named options resolves the blocker faster than leaving them with nothing but an apology to react to.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Providing evaluated options empowers the customer to choose a path forward immediately instead of starting a discovery cycle from scratch.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-03-mcq-02',
+        question:
+          'Why does the lesson hold customer-facing written status updates to a different standard of precision than an internal Slack message to another engineer?',
+        options: [
+          { id: 'a', label: 'A', text: 'Customers are contractually forbidden from asking follow-up questions' },
+          { id: 'b', label: 'B', text: 'An internal message is quickly correctable if imprecise, while a customer-facing update, written to a stakeholder not in the room daily, becomes in practice the record the customer holds the FDE to' },
+          { id: 'c', label: 'C', text: 'Slack messages cannot contain technical detail, unlike status updates' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference; the same precision standard applies to both' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The distinction is about correction cost and audience distance — internal imprecision gets caught and fixed quickly by a peer with full context; customer-facing imprecision persists as the stakeholder\'s understanding of reality.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-03-mcq-03',
+        question:
+          'Which of the following two status sentences does the lesson consider the better practice, and why?',
+        options: [
+          { id: 'a', label: 'A', text: '"It\'s basically working" — because it is shorter and easier for a customer to read' },
+          { id: 'b', label: 'B', text: '"Validated against 20 real emails, three edge cases still open" — because it tells the reader exactly what has been checked versus what remains unverified' },
+          { id: 'c', label: 'C', text: 'Both sentences are equally acceptable in any status update' },
+          { id: 'd', label: 'D', text: '"It\'s basically working" — because vague language avoids setting expectations the FDE might not meet' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s certainty-language discipline specifically favors sentences a stakeholder can act on correctly, which requires stating what evidence currently supports the claim rather than a vague overall impression.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-03-mcq-04',
+        question:
+          'According to the lesson, when does collapsing "done" and "prototyped, not yet validated" into casual language like "it\'s working" typically cost the most trust?',
+        options: [
+          { id: 'a', label: 'A', text: 'When the gap becomes visible at the worst possible time, usually during a demo or a go-live, rather than being caught earlier through precise status language' },
+          { id: 'b', label: 'B', text: 'The distinction never actually matters to a customer relationship' },
+          { id: 'c', label: 'C', text: 'Immediately, the moment the imprecise sentence is written, regardless of what happens afterward' },
+          { id: 'd', label: 'D', text: 'Only if the customer explicitly asks for a legal definition of "done"' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s claim is about timing of discovery — imprecise status language doesn\'t cost trust immediately, it costs trust later when the actual state of the work becomes visible at a high-stakes moment like a demo.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-03-mcq-06',
+        question:
+          'In the scenario, why did the FDE surface the cost-field redaction requirement in the status update rather than quietly building the fix and mentioning it only once resolved?',
+        options: [
+          { id: 'a', label: 'A', text: 'Company policy requires every technical decision to be pre-approved by the customer' },
+          { id: 'b', label: 'B', text: 'The redaction requirement was not covered by the original PRD-lite\'s non-goals, meaning it represents new scope requiring a customer decision (extra build time or a rollout restriction), not something the FDE could unilaterally resolve' },
+          { id: 'c', label: 'C', text: 'The FDE lacked the technical skill to build the redaction feature without customer input' },
+          { id: 'd', label: 'D', text: 'Warehouse staff had already discovered the cost field on their own' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because the requirement fell outside the originally scoped non-goals, it is a genuine scope decision — extra time versus a rollout restriction — that only the customer can make, which is exactly why it belongs in a status update with options, not a silent fix.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-03-mcq-07',
+        question:
+          'Why does the lesson argue that a PRD-lite\'s non-goals and a risk register\'s named risks "only stay useful" if status updates keep referring back to them honestly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Early scope and risk discipline can quietly erode into optimistic status reporting over time if status updates stop being checked against those original documents' },
+          { id: 'b', label: 'B', text: 'Risk registers automatically update themselves based on status update content' },
+          { id: 'c', label: 'C', text: 'Non-goals sections expire after the first status update is sent' },
+          { id: 'd', label: 'D', text: 'Status updates and risk registers serve entirely unrelated purposes with no meaningful connection' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The discipline established in scoping only holds if ongoing status reporting stays honestly anchored to it — otherwise, optimistic reporting can drift away from the documented scope and risks without anyone noticing until it matters.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-03-mcq-08',
+        question:
+          'If the redaction requirement had been discovered one day before a scheduled customer demo instead of during a routine weekly update, what should change about how it is communicated, per the lesson\'s principles?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing should change; the same weekly-cadence email is always sufficient regardless of timing' },
+          { id: 'b', label: 'B', text: 'The blocker should be surfaced immediately and directly, likely outside the normal weekly cadence, since the cost of the customer discovering it live during the demo is far higher than the cost of an early, direct heads-up' },
+          { id: 'c', label: 'C', text: 'The blocker should be omitted from the demo entirely and addressed only if a stakeholder happens to notice' },
+          { id: 'd', label: 'D', text: 'The demo should be presented as if the redaction feature is already complete to avoid disrupting the schedule' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s principle of surfacing bad news early and honestly applies with even more urgency close to a high-visibility moment like a demo — the cost of the customer discovering the gap live is much higher than an early, direct heads-up.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/04-demo-storytelling-and-handling-pushback': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-04-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson prefer a demo structured around the customer\'s own success metric over one that walks through features in build order?',
+        options: [
+          { id: 'a', label: 'A', text: 'Feature-order demos always take longer to present' },
+          { id: 'b', label: 'B', text: 'A feature tour teaches the audience the FDE\'s own process, leaving stakeholders to do the work of connecting each screen back to their own pain — most will not do this reliably in the room' },
+          { id: 'c', label: 'C', text: 'Success metrics are required by company policy to appear first in any demo' },
+          { id: 'd', label: 'D', text: 'Feature-order demos cannot include any real data' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s core claim is about who does the interpretive work — a metric-anchored demo does that connecting work for the audience, while a feature tour leaves it to them, and most stakeholders won\'t reliably do it themselves.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'A metric-anchored demo connects technical features directly to customer value, rather than forcing stakeholders to make that leap.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-04-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'When a stakeholder raises an edge case the demo didn\'t show, which response does the lesson recommend?',
+        options: [
+          { id: 'a', label: 'A', text: 'Deny that the edge case is realistic enough to matter' },
+          { id: 'b', label: 'B', text: 'Name it as a known, currently out-of-scope case, connecting it to the PRD-lite\'s non-goals if it\'s already documented there' },
+          { id: 'c', label: 'C', text: 'Claim it is already handled, to keep the demo\'s momentum' },
+          { id: 'd', label: 'D', text: 'Change the subject to a different, better-tested capability' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Naming an edge-case gap as known and out-of-scope, tied to already-documented non-goals, is the honest middle path between denying the gap and falsely claiming it\'s handled.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Acknowledge the gap honestly and anchor to documented non-goals rather than making unvalidated promises in the room.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-04-mcq-02',
+        question:
+          'What does the lesson say a demo generating zero questions from affected stakeholders is more likely a sign of?',
+        options: [
+          { id: 'a', label: 'A', text: 'The work is flawless and needs no further validation' },
+          { id: 'b', label: 'B', text: 'The stakeholders were not engaged enough to spot the gaps, rather than proof the work has none' },
+          { id: 'c', label: 'C', text: 'The demo was too short to cover meaningful content' },
+          { id: 'd', label: 'D', text: 'The audience already fully agreed with every decision before the demo began' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly reframes pushback as a sign of engagement, not failure — silence from people whose daily workflow the tool affects is a weaker signal of quality than genuine, specific questions.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-04-mcq-03',
+        question:
+          'Which two categories of pushback does the lesson say come up in nearly every technical demo?',
+        options: [
+          { id: 'a', label: 'A', text: 'Budget disputes and timeline disputes' },
+          { id: 'b', label: 'B', text: 'Accuracy skepticism and edge-case gaps' },
+          { id: 'c', label: 'C', text: 'Branding concerns and naming conventions' },
+          { id: 'd', label: 'D', text: 'Licensing questions and vendor comparisons' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names accuracy skepticism ("how do I know this is right?") and edge-case gaps ("what about this case?") as the two categories worth preparing for before nearly any demo.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-04-mcq-05',
+        question:
+          'Why does the lesson say responding "yes, it\'ll definitely handle that too" to an untested edge case creates a debt the FDE cannot pay?',
+        options: [
+          { id: 'a', label: 'A', text: 'The claim was never validated, yet the stakeholder will remember it as a commitment the FDE made, creating an obligation that outpaces what is actually known' },
+          { id: 'b', label: 'B', text: 'Stakeholders never remember specific claims made verbally during a demo' },
+          { id: 'c', label: 'C', text: 'Over-promising is only a problem if the untested case later succeeds' },
+          { id: 'd', label: 'D', text: 'This phrasing is technically a lie regardless of whether the case is eventually handled correctly' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The specific risk is that the stakeholder treats an unvalidated verbal claim as a real commitment, creating an expectation the FDE has no actual evidence to support meeting.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-04-mcq-06',
+        question:
+          'What are the three components of the lesson\'s recommended pattern for responding to live pushback?',
+        options: [
+          { id: 'a', label: 'A', text: 'Specific acknowledgment of what was asked, a statement of what current evidence shows and doesn\'t show, and a concrete, checkable follow-up' },
+          { id: 'b', label: 'B', text: 'An apology, a promise, and a change of subject' },
+          { id: 'c', label: 'C', text: 'A generic "good question," a restatement of the original demo, and a request to move on' },
+          { id: 'd', label: 'D', text: 'A technical explanation of the system architecture, a disclaimer, and a thank-you' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s explicit three-part pattern, illustrated directly in the new-SKU scenario response, and it holds up regardless of the eventual answer because it never claims more than was known at the time.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-04-mcq-07',
+        question:
+          'Why did the FDE\'s response to the warehouse planner\'s new-SKU question land well in the scenario, specifically?',
+        options: [
+          { id: 'a', label: 'A', text: 'The FDE promised the new-SKU case would be fixed by the following week' },
+          { id: 'b', label: 'B', text: 'The response matched what was already documented in the PRD-lite\'s non-goals that both the planner and VP had already reviewed, so it confirmed existing scope rather than surprising anyone with a new gap' },
+          { id: 'c', label: 'C', text: 'The FDE avoided answering the question directly and moved on to the next demo item' },
+          { id: 'd', label: 'D', text: 'The FDE claimed the system already handled new SKUs correctly' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because the gap was already named in a document the stakeholders had seen, the live answer reinforced consistency between what was scoped and what was demoed, rather than revealing a previously hidden limitation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-04-mcq-08',
+        question:
+          'Why does the lesson suggest sending a formal follow-up email scoping the new-SKU cold-start case as a named item, rather than leaving the demo-floor response as the final word?',
+        options: [
+          { id: 'a', label: 'A', text: 'Verbal commitments made during a demo are legally binding without written confirmation' },
+          { id: 'b', label: 'B', text: 'It converts a spoken, in-the-moment answer into the same kind of written, checkable artifact established in the stakeholder-communication lesson, giving both sides a durable record of the concrete follow-up promised' },
+          { id: 'c', label: 'C', text: 'Follow-up emails are required only when a stakeholder explicitly requests one' },
+          { id: 'd', label: 'D', text: 'It replaces the need for the original PRD-lite\'s non-goals section' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This ties the demo lesson\'s live-pushback pattern back to the stakeholder-communication lesson\'s written-artifact discipline — a concrete follow-up promised verbally becomes durable and checkable once it\'s also written down.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/05-llm-fundamentals-for-production': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-05-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does a feature that worked fine during a demo start returning 429 responses once it goes live with real customer traffic?',
+        options: [
+          { id: 'a', label: 'A', text: '429 responses only occur when a model is deprecated' },
+          { id: 'b', label: 'B', text: 'Hosted LLM APIs enforce per-minute and per-day request/token quotas, and demo-scale traffic rarely approaches those limits the way concurrent production traffic can' },
+          { id: 'c', label: 'C', text: 'The vendor disables the API automatically after a fixed number of total demo calls' },
+          { id: 'd', label: 'D', text: '429 responses indicate a bug in the prompt template, unrelated to traffic volume' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Rate limits are a real, provisioned ceiling on request or token throughput; low-volume demo testing simply doesn\'t generate enough concurrent calls to hit them, which is exactly why the failure mode only appears once real traffic multiplies concurrent calls.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Demo testing lacks the concurrency needed to hit vendor rate and token ceilings, which only bind under real production load.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-05-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'What is the operational risk of pinning a production feature to a rolling "latest" model alias instead of a specific, dated model identifier?',
+        options: [
+          { id: 'a', label: 'A', text: 'Rolling aliases are always more expensive per token than dated identifiers' },
+          { id: 'b', label: 'B', text: 'The vendor may repoint the alias to a newer underlying model version without any code change on the FDE\'s side, silently changing the feature\'s behavior out from under its existing evaluation evidence' },
+          { id: 'c', label: 'C', text: 'Rolling aliases cannot be used with retry and backoff logic' },
+          { id: 'd', label: 'D', text: 'Dated model identifiers are deprecated more frequently than rolling aliases' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A rolling alias\'s whole purpose is to always point at a current model, which means its behavior can change without a corresponding code change — exactly the drift risk the scenario\'s tone-and-length shift illustrates.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'A rolling alias can silently change underlying model behavior and output formatting without any code change in your repo.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-05-mcq-02',
+        question:
+          'Why does the lesson insist that fallback behavior for a failed or timed-out LLM call be decided during scoping rather than improvised the first time it happens in front of a customer?',
+        options: [
+          { id: 'a', label: 'A', text: 'A deliberately chosen fallback (cached response, honest degraded message, queued retry) can be validated and communicated in advance, while an improvised response under live pressure risks a worse outcome than any of the planned options' },
+          { id: 'b', label: 'B', text: 'LLM API failures are so rare that fallback behavior is rarely relevant in practice' },
+          { id: 'c', label: 'C', text: 'Customers never notice a failed LLM call if no fallback is defined' },
+          { id: 'd', label: 'D', text: 'Improvised fallback behavior is always technically superior to a planned one' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Planning the fallback in advance, as part of scoping, means the response to a real failure is a known, tested behavior rather than a decision made under pressure in front of the customer at the worst possible moment.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-05-mcq-04',
+        question:
+          'What is the correct process for handling a vendor\'s model deprecation notice on a production LLM feature, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Wait until the model is retired and switch to whatever replacement is default at that point' },
+          { id: 'b', label: 'B', text: 'Track the notice, re-run the feature\'s evaluation suite against the replacement model version, and schedule the cutover before the retirement date — the same discipline as dependency-upgrade management in ordinary software' },
+          { id: 'c', label: 'C', text: 'Ignore deprecation notices, since providers never actually retire models that are already in production use' },
+          { id: 'd', label: 'D', text: 'Immediately switch to the replacement model the day the notice is received, without re-running evaluation' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames deprecation handling as an ordinary dependency-upgrade process: validate the replacement before switching, and schedule the change deliberately before the hard retirement deadline rather than reacting to a sudden failure.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-05-mcq-05',
+        question:
+          'The lesson describes output drift that can occur "even without a version bump." What does this refer to?',
+        options: [
+          { id: 'a', label: 'A', text: 'A model\'s behavior on a given prompt can shift subtly over time due to a provider\'s continuous updates behind a stable-seeming interface, or ordinary sampling variance, without any code change on the FDE\'s side' },
+          { id: 'b', label: 'B', text: 'Drift only happens when a customer manually edits a prompt template' },
+          { id: 'c', label: 'C', text: 'This is a theoretical risk with no observed real-world cause' },
+          { id: 'd', label: 'D', text: 'Output drift is caused exclusively by network latency between the FDE\'s service and the model provider' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific claim is that a model\'s outputs can drift even when the FDE has changed nothing and the version identifier looks unchanged, which is exactly why passive monitoring, not just deployment discipline, is needed to catch it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-05-mcq-06',
+        question:
+          'Why does the lesson argue an LLM call should get the same structured logging and tracing discipline as any other service-to-service call, rather than a special exemption?',
+        options: [
+          { id: 'a', label: 'A', text: 'LLM providers require structured logging as a contractual condition of API access' },
+          { id: 'b', label: 'B', text: 'An LLM call is a backend dependency call like any other, and treating it as exempt from observability just recreates the same blind spots that structured logging and tracing exist to eliminate for every other dependency' },
+          { id: 'c', label: 'C', text: 'Structured logging is only useful for debugging network-layer issues, which don\'t apply to LLM calls' },
+          { id: 'd', label: 'D', text: 'LLM calls are inherently more reliable than database calls, so less monitoring is needed' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly connects this to the earlier observability module\'s discipline — an LLM call has the same failure modes (latency, errors, silent behavior change) as any dependency call, so exempting it from tracing just reintroduces the blind spot that discipline was built to close.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-05-mcq-07',
+        question:
+          'According to the lesson, what does the FDE-role lesson\'s "enable" step require for an LLM feature specifically, beyond a working demo?',
+        options: [
+          { id: 'a', label: 'A', text: 'The customer\'s own team needs visibility, in their own monitoring, into what a specific failed or degraded LLM call actually did — the same operational transparency expected of any other production dependency' },
+          { id: 'b', label: 'B', text: 'The customer\'s team only needs a document describing how the feature works in general terms' },
+          { id: 'c', label: 'C', text: 'Enabling an LLM feature is not meaningfully different from enabling any feature with no external dependency at all' },
+          { id: 'd', label: 'D', text: 'Enablement is complete once the feature passes its initial demo successfully' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson makes this concrete: without real observability into individual call outcomes, the customer\'s team cannot actually operate or troubleshoot the feature themselves, which is exactly what genuine enablement requires.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-05-mcq-08',
+        question:
+          'In the scenario, why did the summarization feature\'s Monday-morning failures go unnoticed until they became a customer complaint?',
+        options: [
+          { id: 'a', label: 'A', text: 'The vendor\'s API was completely down during that window, with no partial functionality' },
+          { id: 'b', label: 'B', text: 'The code swallowed 429 responses into an empty summary rather than surfacing them as a defined error, and there was no structured logging or dashboard signal that would have made the failures visible before a customer noticed' },
+          { id: 'c', label: 'C', text: 'The feature had never been tested against any real ticket data before go-live' },
+          { id: 'd', label: 'D', text: 'The customer\'s support lead was unaware the feature used an LLM at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The combination of silently swallowing the error and having no observability into LLM call outcomes meant the failure produced no internal signal — exactly the gap the lesson\'s structured-logging discipline is meant to close.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-05-mcq-09',
+        question:
+          'What is the key property a lightweight, automated drift-detection check needs in order to catch a shift like the scenario\'s tone-and-length change without relying on a customer to notice first?',
+        options: [
+          { id: 'a', label: 'A', text: 'It must run against a small, fixed set of representative prompts on a recurring schedule and compare outputs (e.g. by length or similarity) over time, rather than only being checked ad hoc when someone happens to look' },
+          { id: 'b', label: 'B', text: 'It must re-validate every possible customer input the feature could ever receive, exhaustively, before each release' },
+          { id: 'c', label: 'C', text: 'It only needs to run once, immediately after the feature first goes live' },
+          { id: 'd', label: 'D', text: 'It must rely entirely on the customer manually reporting perceived changes in tone' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'A useful drift check needs to run continuously against a stable, representative sample so a shift shows up as a measurable signal over time — a one-time check or reliance on manual customer reports both fail to catch a slow, ongoing drift automatically.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/06-prompt-engineering-for-production-systems': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-06-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson insist that even a small, one-line prompt wording change run against a golden test set before merging?',
+        options: [
+          { id: 'a', label: 'A', text: 'Prompt changes are billed separately from code changes and require separate approval' },
+          { id: 'b', label: 'B', text: 'A small change that fixes one case can silently break a different case the golden set would have caught, exactly the risk a code change\'s test suite is meant to catch before it ships' },
+          { id: 'c', label: 'C', text: 'Golden test sets are only relevant for prompts longer than a fixed token count' },
+          { id: 'd', label: 'D', text: 'Prompt changes never actually affect model behavior in practice, so testing is precautionary only' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s central claim is that "it\'s just text" is not a reason to skip testing — a wording change can shift behavior across many cases at once, which is exactly the risk a golden test set, run on every change, is designed to catch.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'A seemingly minor wording tweak can unintentionally degrade edge case accuracy or break safety guardrails across the dataset.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-06-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'In what specific sense does the lesson compare a golden-set eval gate to a CI pipeline gating a code pull request?',
+        options: [
+          { id: 'a', label: 'A', text: 'A failing run against the golden set blocks the prompt change from shipping, exactly as a failing test suite blocks a pull request from merging' },
+          { id: 'b', label: 'B', text: 'Both processes require the same programming language to be used for prompts and application code' },
+          { id: 'c', label: 'C', text: 'CI pipelines and eval gates serve entirely unrelated purposes and the comparison is only superficial' },
+          { id: 'd', label: 'D', text: 'An eval gate only warns about failures after the change has already shipped, unlike a CI pipeline' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s analogy is specifically about blocking behavior — a failing test suite prevents a merge, and a failing golden-set run should prevent a prompt from shipping, in both cases before the change reaches production.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Both act as non-negotiable automated blockers that prevent regressions from reaching production when tests fail.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-06-mcq-02',
+        question:
+          'What three categories of inputs does the lesson say a well-constructed golden test set should include?',
+        options: [
+          { id: 'a', label: 'A', text: 'Only representative, everyday inputs — edge cases and adversarial inputs are handled separately' },
+          { id: 'b', label: 'B', text: 'Representative core cases, known edge cases, and adversarial inputs' },
+          { id: 'c', label: 'C', text: 'Only adversarial inputs, since representative cases rarely reveal regressions' },
+          { id: 'd', label: 'D', text: 'A random sample of unlabeled production traffic with no expected-behavior criteria' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly names these three categories as covering the feature\'s core cases, its known edge cases, and adversarial inputs — a golden set missing any one of these leaves a real class of regression uncaught.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-06-mcq-03',
+        question:
+          'Why is the same golden test set useful for detecting a regression caused by a vendor upgrading the underlying model, not just for detecting regressions from your own prompt edits?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because you pin an exact, dated model identifier, a model-side change only reaches production at a deliberate version bump you control, and running the golden set against the candidate new version before switching reveals whether it still meets the same behavior bar' },
+          { id: 'b', label: 'B', text: 'Vendor-side model upgrades never actually change output behavior, so this scenario is purely theoretical' },
+          { id: 'c', label: 'C', text: 'The golden set automatically re-runs itself whenever the vendor updates any model, with no action needed from the FDE' },
+          { id: 'd', label: 'D', text: 'Golden test sets can only detect regressions caused by prompt edits, never vendor-side changes' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Pinning a dated identifier means model changes only happen at a moment the FDE chooses, which is exactly the moment the golden set can be run against the candidate version before it goes live — the same re-run discipline as the earlier deprecation-handling process.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-06-mcq-04',
+        question:
+          'How does this lesson\'s red-teaming practice differ from the injection-defense mechanism covered in the earlier advanced-prompting-and-safety lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'This lesson claims privilege separation and instruction hierarchy are no longer necessary once red-teaming is in place' },
+          { id: 'b', label: 'B', text: 'This lesson adds the FDE operational practice of writing a dedicated, concrete set of adversarial test inputs targeting a specific prompt\'s own actual attack surface (its real fields, its real tool access) before shipping it, rather than relying on the general defense mechanisms alone' },
+          { id: 'c', label: 'C', text: 'Red-teaming replaces the need for deterministic output validation entirely' },
+          { id: 'd', label: 'D', text: 'The earlier lesson and this one describe an identical practice with no meaningful difference' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The earlier lesson covered the general injection mechanism and layered defenses; this lesson is specifically about the operational discipline of testing a given shipping prompt against its own concrete attack surface before it reaches a customer, which two different prompts require differently even though the underlying risk mechanism is the same.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-06-mcq-06',
+        question:
+          'Why does the lesson describe a prompt padded with instructions or examples that don\'t measurably improve the golden set\'s pass rate as "pure waste multiplied across production request volume"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Extra prompt content is free at low volume but becomes expensive only above a fixed daily request threshold' },
+          { id: 'b', label: 'B', text: 'Every token in a prompt is billed and adds latency on every single call, so unnecessary content that adds no measurable benefit is a real, recurring cost that scales directly with request volume, unlike a one-time cost' },
+          { id: 'c', label: 'C', text: 'Longer prompts always produce lower-quality output regardless of content' },
+          { id: 'd', label: 'D', text: 'Token costs only apply to the model\'s output, not to the prompt itself' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because prompt tokens are billed and add latency on every call, not just once, unnecessary length is a recurring cost that compounds with request volume — the lesson\'s specific reason to favor the shortest prompt that still clears the golden set\'s bar.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-06-mcq-07',
+        question:
+          'In the scenario, why did the updated prompt fail the golden test set\'s adversarial case, specifically?',
+        options: [
+          { id: 'a', label: 'A', text: 'The updated prompt was too short to include the necessary recall-flagging instruction' },
+          { id: 'b', label: 'B', text: 'The new recall-flagging instruction\'s wording accidentally weakened the existing instruction-hierarchy language, allowing the injected "ignore prior instructions" case to succeed where it previously failed' },
+          { id: 'c', label: 'C', text: 'The golden test set had never included any adversarial cases before this change' },
+          { id: 'd', label: 'D', text: 'The model provider deprecated the pinned model version at the same time as the prompt change' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The regression was specifically caused by the new instruction\'s wording undermining the earlier instruction-hierarchy phrasing that had previously kept the injection attempt from succeeding — exactly the kind of small-edit-causes-hidden-break the golden set exists to catch.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-06-mcq-08',
+        question:
+          'Why was blocking the merge, rather than shipping the recall-flagging change and monitoring for issues afterward, the correct response in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The regression was a real, reproducible injection vulnerability caught in testing before any customer or attacker could exploit it in production — exactly the outcome an eval gate is designed to guarantee' },
+          { id: 'b', label: 'B', text: 'Blocking merges is always required by company policy regardless of what the golden set shows' },
+          { id: 'c', label: 'C', text: 'Shipping the change with monitoring would have been strictly faster with no meaningful downside' },
+          { id: 'd', label: 'D', text: 'The FDE had no way to fix the underlying wording issue, so blocking was the only option' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Catching a real injection regression in a controlled test run, before it reaches production traffic, is precisely the value an eval gate provides — shipping first and monitoring afterward would have left the vulnerability exploitable in the meantime.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-06-mcq-09',
+        question:
+          'Why does a second adversarial test case targeting system-prompt disclosure need to be a separately designed case, rather than assuming the "ignore prior instructions" case already covers it?',
+        options: [
+          { id: 'a', label: 'A', text: 'Different injection attempts target different parts of a prompt\'s attack surface (altering behavior versus extracting hidden instructions), so a test case that catches one doesn\'t necessarily catch the other — each concrete attack vector needs its own designed case' },
+          { id: 'b', label: 'B', text: 'System-prompt disclosure is not actually a real risk for customer-facing LLM features' },
+          { id: 'c', label: 'C', text: 'A single adversarial test case is always sufficient to cover every possible injection attempt against a given prompt' },
+          { id: 'd', label: 'D', text: 'This risk only applies to agents with tool-calling access, never to a plain summarization prompt' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Red-teaming a prompt\'s actual attack surface means considering distinct attack goals separately — an instruction-override attempt and a system-prompt-extraction attempt exploit the same architectural weakness differently, so each needs its own concrete test case to be reliably caught.'
+      }
+    ]
+  }
 };
 
 export function getLessonInteractions(courseSlug, moduleSlug, lessonSlug) {
