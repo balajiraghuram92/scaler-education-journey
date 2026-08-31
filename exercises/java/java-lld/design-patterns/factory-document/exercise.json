@@ -1,0 +1,73 @@
+{
+  "id": "java-lld-factory-document",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Factory Pattern — Document Processor Abstraction",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 40,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "document-type",
+      "path": "src/main/java/com/assignment/question/DocumentType.java",
+      "displayName": "DocumentType.java",
+      "editable": false
+    },
+    {
+      "id": "document-processor",
+      "path": "src/main/java/com/assignment/question/DocumentProcessor.java",
+      "displayName": "DocumentProcessor.java",
+      "editable": true
+    },
+    {
+      "id": "document-processor-factory",
+      "path": "src/main/java/com/assignment/question/DocumentProcessorFactory.java",
+      "displayName": "DocumentProcessorFactory.java",
+      "editable": true
+    },
+    {
+      "id": "text-document-processor",
+      "path": "src/main/java/com/assignment/question/TextDocumentProcessor.java",
+      "displayName": "TextDocumentProcessor.java",
+      "editable": true
+    },
+    {
+      "id": "presentation-document-processor",
+      "path": "src/main/java/com/assignment/question/PresentationDocumentProcessor.java",
+      "displayName": "PresentationDocumentProcessor.java",
+      "editable": true
+    },
+    {
+      "id": "spreadsheet-document-processor",
+      "path": "src/main/java/com/assignment/question/SpreadsheetDocumentProcessor.java",
+      "displayName": "SpreadsheetDocumentProcessor.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/DocumentProcessorTest.java",
+    "className": "DocumentProcessorTest"
+  },
+  "evidence": [
+    {
+      "id": "parent-class-shape",
+      "label": "Exactly 3 concrete DocumentProcessor subclasses exist; DocumentProcessor has a String field and abstract processDocument()/supportsType()",
+      "testMethod": "testParentClass"
+    },
+    {
+      "id": "factory-method-shape",
+      "label": "DocumentProcessorFactory has a static method taking DocumentType and String, returning DocumentProcessor",
+      "testMethod": "testDocumentProcessorFactory"
+    },
+    {
+      "id": "factory-method-invocation",
+      "label": "The factory method returns a processor whose supportsType() matches the requested DocumentType",
+      "testMethod": "testDocumentProcessorFactoryCreateMethodInvocation"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "id": "java-lld-facade-image-editing",
+  "lessonSlug": "16-structural-patterns",
+  "title": "Facade Pattern — Image Editing Pipeline",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 40,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "image-loader",
+      "path": "src/main/java/com/assignment/question/services/ImageLoader.java",
+      "displayName": "ImageLoader.java",
+      "editable": false
+    },
+    {
+      "id": "filter-service",
+      "path": "src/main/java/com/assignment/question/services/FilterService.java",
+      "displayName": "FilterService.java",
+      "editable": false
+    },
+    {
+      "id": "image-modifier",
+      "path": "src/main/java/com/assignment/question/services/ImageModifier.java",
+      "displayName": "ImageModifier.java",
+      "editable": false
+    },
+    {
+      "id": "image-writer",
+      "path": "src/main/java/com/assignment/question/services/ImageWriter.java",
+      "displayName": "ImageWriter.java",
+      "editable": false
+    },
+    {
+      "id": "analytics-service",
+      "path": "src/main/java/com/assignment/question/services/AnalyticsService.java",
+      "displayName": "AnalyticsService.java",
+      "editable": false
+    },
+    {
+      "id": "image-processor",
+      "path": "src/main/java/com/assignment/question/ImageProcessor.java",
+      "displayName": "ImageProcessor.java",
+      "editable": true
+    },
+    {
+      "id": "image-editing-manager",
+      "path": "src/main/java/com/assignment/question/ImageEditingManager.java",
+      "displayName": "ImageEditingManager.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/ImageEditingManagerTest.java",
+    "className": "ImageEditingManagerTest"
+  },
+  "evidence": [
+    {
+      "id": "facade-no-raw-dependencies",
+      "label": "ImageEditingManager holds no direct fields of the 5 underlying services — it delegates through ImageProcessor",
+      "testMethod": "testDependencies"
+    },
+    {
+      "id": "facade-orchestration",
+      "label": "editImage(...) correctly loads, filters, adjusts brightness, saves, and records analytics in order",
+      "testMethod": "testImageEditingProcess"
+    }
+  ]
+}

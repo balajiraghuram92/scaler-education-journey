@@ -1,0 +1,120 @@
+{
+  "id": "java-lld-abstract-factory-notifications",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Abstract Factory Pattern — Notification Delivery Families",
+  "language": "java",
+  "difficulty": "advanced",
+  "estimatedMinutes": 60,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "notification-type",
+      "path": "src/main/java/com/assignment/question/NotificationType.java",
+      "displayName": "NotificationType.java",
+      "editable": false
+    },
+    {
+      "id": "notification-factory",
+      "path": "src/main/java/com/assignment/question/NotificationFactory.java",
+      "displayName": "NotificationFactory.java",
+      "editable": false
+    },
+    {
+      "id": "notification",
+      "path": "src/main/java/com/assignment/question/notification/Notification.java",
+      "displayName": "Notification.java",
+      "editable": false
+    },
+    {
+      "id": "notification-sender",
+      "path": "src/main/java/com/assignment/question/sender/NotificationSender.java",
+      "displayName": "NotificationSender.java",
+      "editable": false
+    },
+    {
+      "id": "notification-template",
+      "path": "src/main/java/com/assignment/question/template/NotificationTemplate.java",
+      "displayName": "NotificationTemplate.java",
+      "editable": false
+    },
+    {
+      "id": "email-notification-factory",
+      "path": "src/main/java/com/assignment/question/EmailNotificationFactory.java",
+      "displayName": "EmailNotificationFactory.java",
+      "editable": true
+    },
+    {
+      "id": "push-notification-factory",
+      "path": "src/main/java/com/assignment/question/PushNotificationFactory.java",
+      "displayName": "PushNotificationFactory.java",
+      "editable": true
+    },
+    {
+      "id": "email-notification",
+      "path": "src/main/java/com/assignment/question/notification/EmailNotification.java",
+      "displayName": "EmailNotification.java",
+      "editable": true
+    },
+    {
+      "id": "push-notification",
+      "path": "src/main/java/com/assignment/question/notification/PushNotification.java",
+      "displayName": "PushNotification.java",
+      "editable": true
+    },
+    {
+      "id": "email-notification-sender",
+      "path": "src/main/java/com/assignment/question/sender/EmailNotificationSender.java",
+      "displayName": "EmailNotificationSender.java",
+      "editable": true
+    },
+    {
+      "id": "push-notification-sender",
+      "path": "src/main/java/com/assignment/question/sender/PushNotificationSender.java",
+      "displayName": "PushNotificationSender.java",
+      "editable": true
+    },
+    {
+      "id": "email-notification-template",
+      "path": "src/main/java/com/assignment/question/template/EmailNotificationTemplate.java",
+      "displayName": "EmailNotificationTemplate.java",
+      "editable": true
+    },
+    {
+      "id": "push-notification-template",
+      "path": "src/main/java/com/assignment/question/template/PushNotificationTemplate.java",
+      "displayName": "PushNotificationTemplate.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/NotificationFactoryTest.java",
+    "className": "NotificationFactoryTest"
+  },
+  "evidence": [
+    {
+      "id": "abstract-factory-shape",
+      "label": "Exactly 2 NotificationFactory subtypes exist; NotificationFactory declares the 4 required abstract methods",
+      "testMethod": "testAbstractFactoryClass"
+    },
+    {
+      "id": "notification-create-invocation",
+      "label": "createNotification(...) returns a Notification whose notificationType() matches the factory's family",
+      "testMethod": "testNotificationCreateMethodInvocation"
+    },
+    {
+      "id": "template-create-invocation",
+      "label": "createTemplate(...) returns a NotificationTemplate whose notificationType() matches the factory's family",
+      "testMethod": "testTemplateCreateMethodInvocation"
+    },
+    {
+      "id": "sender-create-invocation",
+      "label": "createSender(...) returns a NotificationSender whose notificationType() matches the factory's family",
+      "testMethod": "testSenderCreateMethodInvocation"
+    }
+  ]
+}

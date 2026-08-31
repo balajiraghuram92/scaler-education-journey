@@ -1,0 +1,90 @@
+{
+  "id": "java-lld-flyweight-chess-user",
+  "lessonSlug": "16-structural-patterns",
+  "title": "Flyweight Pattern — Chess Platform User Identity",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "chess-user",
+      "path": "src/main/java/com/assignment/question/ChessUser.java",
+      "displayName": "ChessUser.java",
+      "editable": false
+    },
+    {
+      "id": "colour",
+      "path": "src/main/java/com/assignment/question/Colour.java",
+      "displayName": "Colour.java",
+      "editable": false
+    },
+    {
+      "id": "intrinsic-state-annotation",
+      "path": "src/main/java/com/assignment/question/IntrinsicState.java",
+      "displayName": "IntrinsicState.java",
+      "editable": false
+    },
+    {
+      "id": "extrinsic-state-annotation",
+      "path": "src/main/java/com/assignment/question/ExtrinsicState.java",
+      "displayName": "ExtrinsicState.java",
+      "editable": false
+    },
+    {
+      "id": "flyweight-registry",
+      "path": "src/main/java/com/assignment/question/FlyweightRegistry.java",
+      "displayName": "FlyweightRegistry.java",
+      "editable": false
+    },
+    {
+      "id": "user-intrinsic-state",
+      "path": "src/main/java/com/assignment/question/UserIntrinsicState.java",
+      "displayName": "UserIntrinsicState.java",
+      "editable": true
+    },
+    {
+      "id": "user-extrinsic-state",
+      "path": "src/main/java/com/assignment/question/UserExtrinsicState.java",
+      "displayName": "UserExtrinsicState.java",
+      "editable": true
+    },
+    {
+      "id": "flyweight-registry-impl",
+      "path": "src/main/java/com/assignment/question/FlyweightRegistryImpl.java",
+      "displayName": "FlyweightRegistryImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/UserTest.java",
+    "className": "UserTest"
+  },
+  "evidence": [
+    {
+      "id": "intrinsic-state-fields",
+      "label": "Exactly one class is annotated @IntrinsicState, holding name/age/gender/email/phoneNumber/photo",
+      "testMethod": "testIntrinsicStateFields"
+    },
+    {
+      "id": "extrinsic-state-fields",
+      "label": "Exactly one class is annotated @ExtrinsicState, holding colour and currentGameStreak",
+      "testMethod": "testExtrinsicStateFields"
+    },
+    {
+      "id": "extrinsic-references-intrinsic",
+      "label": "The @ExtrinsicState class holds a field referencing the @IntrinsicState class",
+      "testMethod": "testIntrinsicReferenceField"
+    },
+    {
+      "id": "registry-uses-map",
+      "label": "The FlyweightRegistry implementation caches flyweights in a Map field",
+      "testMethod": "testRegistry"
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "id": "java-lld-abstract-factory-document-processing",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Abstract Factory Pattern — Document Parsing & Printing Families",
+  "language": "java",
+  "difficulty": "advanced",
+  "estimatedMinutes": 60,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "document-type",
+      "path": "src/main/java/com/assignment/question/DocumentType.java",
+      "displayName": "DocumentType.java",
+      "editable": false
+    },
+    {
+      "id": "document-factory",
+      "path": "src/main/java/com/assignment/question/DocumentFactory.java",
+      "displayName": "DocumentFactory.java",
+      "editable": false
+    },
+    {
+      "id": "document-parser",
+      "path": "src/main/java/com/assignment/question/parser/DocumentParser.java",
+      "displayName": "DocumentParser.java",
+      "editable": false
+    },
+    {
+      "id": "document-printer",
+      "path": "src/main/java/com/assignment/question/printer/DocumentPrinter.java",
+      "displayName": "DocumentPrinter.java",
+      "editable": false
+    },
+    {
+      "id": "document-processor",
+      "path": "src/main/java/com/assignment/question/processor/DocumentProcessor.java",
+      "displayName": "DocumentProcessor.java",
+      "editable": false
+    },
+    {
+      "id": "text-document-factory",
+      "path": "src/main/java/com/assignment/question/TextDocumentFactory.java",
+      "displayName": "TextDocumentFactory.java",
+      "editable": true
+    },
+    {
+      "id": "spreadsheet-document-factory",
+      "path": "src/main/java/com/assignment/question/SpreadsheetDocumentFactory.java",
+      "displayName": "SpreadsheetDocumentFactory.java",
+      "editable": true
+    },
+    {
+      "id": "text-document-parser",
+      "path": "src/main/java/com/assignment/question/parser/TextDocumentParser.java",
+      "displayName": "TextDocumentParser.java",
+      "editable": true
+    },
+    {
+      "id": "spreadsheet-document-parser",
+      "path": "src/main/java/com/assignment/question/parser/SpreadsheetDocumentParser.java",
+      "displayName": "SpreadsheetDocumentParser.java",
+      "editable": true
+    },
+    {
+      "id": "text-document-printer",
+      "path": "src/main/java/com/assignment/question/printer/TextDocumentPrinter.java",
+      "displayName": "TextDocumentPrinter.java",
+      "editable": true
+    },
+    {
+      "id": "spreadsheet-document-printer",
+      "path": "src/main/java/com/assignment/question/printer/SpreadsheetDocumentPrinter.java",
+      "displayName": "SpreadsheetDocumentPrinter.java",
+      "editable": true
+    },
+    {
+      "id": "text-document-processor",
+      "path": "src/main/java/com/assignment/question/processor/TextDocumentProcessor.java",
+      "displayName": "TextDocumentProcessor.java",
+      "editable": true
+    },
+    {
+      "id": "spreadsheet-document-processor",
+      "path": "src/main/java/com/assignment/question/processor/SpreadsheetDocumentProcessor.java",
+      "displayName": "SpreadsheetDocumentProcessor.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/DocumentFactoryTest.java",
+    "className": "DocumentFactoryTest"
+  },
+  "evidence": [
+    {
+      "id": "abstract-factory-shape",
+      "label": "Exactly 2 DocumentFactory subtypes exist; DocumentFactory declares the 4 required abstract methods",
+      "testMethod": "testAbstractFactoryClass"
+    },
+    {
+      "id": "processor-create-invocation",
+      "label": "createProcessor(...) returns a DocumentProcessor whose supportsType() matches the factory's family",
+      "testMethod": "testDocumentProcessorCreateMethodInvocation"
+    },
+    {
+      "id": "parser-create-invocation",
+      "label": "createParser(...) returns a DocumentParser whose supportsType() matches the factory's family",
+      "testMethod": "testDocumentParserCreateMethodInvocation"
+    },
+    {
+      "id": "printer-create-invocation",
+      "label": "createPrinter(...) returns a DocumentPrinter whose supportsType() matches the factory's family",
+      "testMethod": "testDocumentPrinterCreateMethodInvocation"
+    }
+  ]
+}

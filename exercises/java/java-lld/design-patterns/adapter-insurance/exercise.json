@@ -1,0 +1,66 @@
+{
+  "id": "java-lld-adapter-insurance",
+  "lessonSlug": "16-structural-patterns",
+  "title": "Adapter Pattern — Travel Insurance Claim Providers",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 40,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "claim-status",
+      "path": "src/main/java/com/assignment/question/ClaimStatus.java",
+      "displayName": "ClaimStatus.java",
+      "editable": false
+    },
+    {
+      "id": "travel-insurance-adapter",
+      "path": "src/main/java/com/assignment/question/TravelInsuranceAdapter.java",
+      "displayName": "TravelInsuranceAdapter.java",
+      "editable": false
+    },
+    {
+      "id": "auto-protect-adapter",
+      "path": "src/main/java/com/assignment/question/AutoProtectAdapter.java",
+      "displayName": "AutoProtectAdapter.java",
+      "editable": true
+    },
+    {
+      "id": "travel-guard-adapter",
+      "path": "src/main/java/com/assignment/question/TravelGuardAdapter.java",
+      "displayName": "TravelGuardAdapter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/TravelInsuranceAdapterTest.java",
+    "className": "TravelInsuranceAdapterTest"
+  },
+  "evidence": [
+    {
+      "id": "adapter-method-shape",
+      "label": "TravelInsuranceAdapter declares a 2-arg void add(String, Double) method and a 1-arg non-void get(String) method",
+      "testMethod": "testMethods"
+    },
+    {
+      "id": "adapter-implementations",
+      "label": "At least 2 classes implement TravelInsuranceAdapter, each holding a field referencing the wrapped external API",
+      "testMethod": "testImplementations"
+    },
+    {
+      "id": "adapter-add-claim",
+      "label": "Each adapter's add(...) delegates to its wrapped external API's claim-submission call",
+      "testMethod": "testAddClaim"
+    },
+    {
+      "id": "adapter-get-status",
+      "label": "Each adapter's get(...) delegates to its wrapped external API's status call",
+      "testMethod": "testGetStatus"
+    }
+  ]
+}

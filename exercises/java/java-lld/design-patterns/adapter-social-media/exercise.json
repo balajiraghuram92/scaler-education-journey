@@ -1,0 +1,71 @@
+{
+  "id": "java-lld-adapter-social-media",
+  "lessonSlug": "16-structural-patterns",
+  "title": "Adapter Pattern — Social Media Post Aggregator",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "social-media-adapter",
+      "path": "src/main/java/com/assignment/adapters/SocialMediaAdapter.java",
+      "displayName": "SocialMediaAdapter.java",
+      "editable": false
+    },
+    {
+      "id": "social-media-post",
+      "path": "src/main/java/com/assignment/models/SocialMediaPost.java",
+      "displayName": "SocialMediaPost.java",
+      "editable": false
+    },
+    {
+      "id": "facebook-adapter",
+      "path": "src/main/java/com/assignment/adapters/FacebookAdapter.java",
+      "displayName": "FacebookAdapter.java",
+      "editable": true
+    },
+    {
+      "id": "twitter-adapter",
+      "path": "src/main/java/com/assignment/adapters/TwitterAdapter.java",
+      "displayName": "TwitterAdapter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/SocialMediaAdapterTest.java",
+    "className": "SocialMediaAdapterTest"
+  },
+  "evidence": [
+    {
+      "id": "adapter-method-shape",
+      "label": "SocialMediaAdapter declares a (Long, Long) -> List method and a (Long, String) -> void method",
+      "testMethod": "testMethods"
+    },
+    {
+      "id": "adapter-implementations",
+      "label": "At least 2 classes implement SocialMediaAdapter, each holding a field referencing the wrapped external API",
+      "testMethod": "testImplementations"
+    },
+    {
+      "id": "common-post-shape",
+      "label": "SocialMediaPost has exactly 4 fields: 2 String, 2 Long",
+      "testMethod": "testCommonPostClass"
+    },
+    {
+      "id": "adapter-get-posts",
+      "label": "Each adapter's getPosts(...) delegates to its wrapped external API's fetch call",
+      "testMethod": "testGetPosts"
+    },
+    {
+      "id": "adapter-post",
+      "label": "Each adapter's post(...) delegates to its wrapped external API's post call",
+      "testMethod": "testPost"
+    }
+  ]
+}

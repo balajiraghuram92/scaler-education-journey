@@ -1287,88 +1287,6 @@ You can articulate the dual-perspective rule of polymorphism — reference type 
 ## Suggested Extension
 
 Add a `Rentable` capability interface with `rent(int hours)` and attach it to both `LuxuryCab` and an unrelated `OfficeSpace` class. Demonstrate that client code can process a `List<Rentable>` polymorphically across completely disjoint class hierarchies.
-
-## Self-Check (From Class Material)
-
-**Q1.** Consider the following statements:
-i. Calling of overloaded methods is decided at compile time
-ii. Calling of overridden methods is decided at runtime.
-Which of the following is correct?
-- A. Both are correct
-- B. Both are incorrect
-- C. i is correct, ii is incorrect
-- D. i is incorrect, ii is correct
-
-**Answer: A** — Overloaded method resolution is performed statically by the compiler based on parameter signatures, while overridden method invocation is dispatched dynamically by the JVM at runtime based on the actual object instance.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 5; answer determined from source material, not marked in original)*
-
-**Q2.** Which of the following does Java not support?
-- A. Method overriding
-- B. Method overloading
-- C. Operator overloading
-- D. Method hiding
-
-**Answer: C** — Java natively supports method overriding, method overloading, and static method hiding, but intentionally does not support programmer-defined operator overloading.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 7; answer determined from source material, not marked in original)*
-
-**Q3.** What is true about static methods?
-i. They can be overloaded
-ii. They can be overridden
-Which of the following is correct?
-- A. Both are correct
-- B. Both are incorrect
-- C. i is correct, ii is incorrect
-- D. i is incorrect, ii is correct
-
-**Answer: C** — Static methods belong to the class rather than an instance; they can be overloaded with different parameter signatures, but cannot be polymorphically overridden (redefining them in a subclass results in method hiding).
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 7; answer determined from source material, not marked in original)*
-
-**Q4.** Consider the following classes:
-```java
-public class P {
-  protected int d1 = 10;
-  protected int d = 100;
-
-  protected void fun1(){
-    System.out.println(""P's fun1"");
-  }
-  protected void fun(){
-    System.out.println(""P's fun"");
-  }
-  static protected void sfun(){
-    System.out.println(""P's sfun"");
-  }
-}
-
-public class C extends P {
-  protected int d2 = 20;
-  protected int d = 200;
-
-  protected void fun2(){
-    System.out.println(""C's fun2"");
-  }
-  protected void fun(){
-    System.out.println(""C's fun"");
-  }
-  static protected void sfun(){
-    System.out.println(""C's sfun"");
-  }
-}
-```
-If client code does `P obj = new C(); obj.display();` where `display()` prints `d1`, `d`,
-then calls `fun1()`, `fun()`, `sfun()` — what is the output?
-- A. Compile Time Error
-- B. 10 100 P's fun1 C's fun P's sfun
-- C. 100 100 P's fun1 C's fun P's sfun
-- D. 10 10 P's fun1 C's fun P's sfun
-
-**Answer: B** — Fields are never polymorphic in Java; `obj.d1` and `obj.d` resolve by the
-*reference type* (`P`), so both read `P`'s fields (10, 100) regardless of the actual object
-being a `C`. `fun1()` is not overridden in `C`, so it prints `P's fun1`. `fun()` **is**
-overridden, and instance methods dispatch dynamically on the *actual object type* (`C`), so
-it prints `C's fun`. `sfun()` is `static`, so it is hidden, not overridden — static calls
-resolve at compile time by reference type (`P`), printing `P's sfun`.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/56-66.md, MCQ 60; answer determined from source material, not marked in original)*
 ",
             "05-oop-4-lms-lab" => @"# Lesson 5 — OOP-4: Library Management System Lab
 
@@ -1475,41 +1393,6 @@ You can explain why `User` and `Book` are abstract classes, why copy constructor
 ## Suggested Extension
 
 Add a `FinePolicy` strategy interface (`calculateFine(int overdueDays)`) with `StandardFinePolicy` (\$1/day) and `PremiumMemberFinePolicy` (first 3 days free), injecting the appropriate policy into `Member` at registration time.
-
-## Self-Check (From Class Material)
-
-**Q1.** Consider the following about interface data-members:
-1. They are final
-2. They are static
-Which of the following is true?
-- A. Both are correct
-- B. Both are incorrect
-- C. i is correct, ii is incorrect
-- D. i is incorrect, ii is correct
-
-**Answer: A** — All fields declared in a Java interface are implicitly `public static final` constants.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 1; answer determined from source material, not marked in original)*
-
-**Q2.** Consider the following two statements:
-1. Abstract classes should necessarily have abstract methods
-2. Classes having abstract methods should be abstract
-Which of the following is true?
-- A. Both are correct
-- B. Both are incorrect
-- C. i is correct, ii is incorrect
-- D. i is incorrect, ii is correct
-
-**Answer: D** — An abstract class is not required to declare any abstract methods (it may contain only concrete methods to prevent instantiation), but any class that contains at least one abstract method must be declared abstract.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 9; answer determined from source material, not marked in original)*
-
-**Q3.** Which keyword is used to make a non-inheritable class in Java?
-- A. static
-- B. abstract
-- C. final
-- D. finally
-
-**Answer: C** — Applying the `final` keyword to a class declaration prevents any other class from extending it.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 9; answer determined from source material, not marked in original)*
 ",
             "06-concurrency-1-threads" => @"# Lesson 6 — Concurrency 1: Processes, Threads & Context Switching
 
@@ -1595,44 +1478,6 @@ You can map the office metaphor to processes, threads, CPU schedulers, and cores
 ## Suggested Extension
 
 Build a concurrent word frequency counter where a large text document is divided into 4 distinct text chunks, each processed by a separate `ChunkWordCounter` thread implementing `Runnable`, aggregating partial word counts into a shared reporting data structure.
-
-## Self-Check (From Class Material)
-
-**Q1.** Consider the following two statements:
-i. Runnable interface is implemented by class which will be invoked via a separate Thread
-ii. The name of the function to start a new Thread is run
-Which of the following is correct?
-- A. Both a and b are true
-- B. Only a is true
-- C. Only b is true
-- D. Both a and b are false
-
-**Answer: B** — Statement i is true; statement ii is false because the method to start a new concurrent thread is `start()`. Calling `run()` directly merely executes the method synchronously on the calling thread.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 11; answer determined from source material, not marked in original)*
-
-**Q2.** Consider the following two statements:
-1. Threads of same process can access each other's stack data
-2. Threads of same process can access each other's global data
-Which of the following is correct?
-- A. Both a and b are true
-- B. Only a is true
-- C. Only b is true
-- D. Both a and b are false
-
-**Answer: C** — Each thread has its own private call stack and local variable storage, while global, static, and heap data is shared across all threads within the same process.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 7; answer determined from source material, not marked in original)*
-
-**Q3.** Consider the following two statements:
-1. Parallel programming requires multiple program counters
-2. Concurrent programming requires time-bound CPU scheduling
-Which of the following is correct?
-- A. Both a and b are true
-- B. Only a is true
-- C. Only b is true
-- D. Both a and b are false
-
-**Answer: A** — Parallel execution requires multiple physical CPU cores executing instructions simultaneously (each with its own hardware Program Counter), whereas concurrency on a single core relies on time-sliced CPU scheduling and context switching.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 1; answer determined from source material, not marked in original)*
 ",
             "07-concurrency-2-executors" => @"# Lesson 7 — Concurrency 2: Executors, Thread Pools & Callable/Future
 
@@ -1718,72 +1563,6 @@ You can explain the TATA production line analogy for thread pools, distinguish `
 ## Suggested Extension
 
 Implement a parallel array sum task `ArraySumTask` implementing `Callable<Long>` that splits an array of 1,000,000 elements across $N$ threads using a shared `ExecutorService`, with a sequential threshold cutoff of 5,000 elements to eliminate thread overhead on small partitions.
-
-## Self-Check (From Class Material)
-
-**Q1.** Consider the following two statements:
-i. ExecutorService.submit returns a Future object
-ii. The method name to receive a value from Future object is get.
-Which of the following is correct?
-- A. Both a and b are true
-- B. Only a is true
-- C. Only b is true
-- D. Both a and b are false
-
-**Answer: A** — `ExecutorService.submit()` returns a `Future` instance representing the pending asynchronous computation, and `.get()` blocks the calling thread until the computed value is available.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 9; answer determined from source material, not marked in original)*
-
-**Q2.** Consider the following two statements:
-1. The responsibility of the Executor is to decide how to run different tasks on different threads
-2. The responsibility of class implementing Callable is to define a task to be done on a separate thread
-Which of the following is correct?
-- A. Both a and b are true
-- B. Only a is true
-- C. Only b is true
-- D. Both a and b are false
-
-**Answer: A** — `Executor` manages thread lifecycle, pooling, and task scheduling, while a `Callable` implementation encapsulates the specific computation and return value of the task itself.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 1; answer determined from source material, not marked in original)*
-
-**Q3.** Consider the following two statements:
-1. Executor manages the assignment of tasks to threads within the thread pool.
-2. Waiting Queue holds the tasks that couldn't be assigned to threads in the thread pool.
-Which of the following is correct?
-- A. Both a and b are true
-- B. Only a is true
-- C. Only b is true
-- D. Both a and b are false
-
-**Answer: A** — An Executor assigns queued tasks to available worker threads in the pool, while the internal waiting queue holds tasks when all pool threads are currently busy.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 2; answer determined from source material, not marked in original)*
-
-**Q4.** Consider the following two statements:
-1. Runnable interface is used to create classes that run on a separate thread and return values to the main thread.
-2. Callable interface is used to create classes that run on a separate thread and don't need to return values to the main thread.
-Which of the following is correct?
-- A. Both a and b are true
-- B. Only a is true
-- C. Only b is true
-- D. Both a and b are false
-
-**Answer: D** — Both statements have it backwards: `Runnable.run()` returns `void` and
-cannot return a value to the caller, while `Callable<V>.call()` is specifically designed to
-return a typed value `V`. Neither statement correctly describes its interface.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 8; answer determined from source material, not marked in original)*
-
-**Q5.** Consider the following two statements:
-1. A class implementing Callable<Integer> will have a call function that returns integer
-2. To get a value from a class implementing Callable<Integer>, we can use Future<Integer>
-Which of the following is correct?
-- A. Both a and b are true
-- B. Only a is true
-- C. Only b is true
-- D. Both are false
-
-**Answer: A** — `Callable<Integer>.call()` is declared to return `Integer`, and submitting
-that `Callable` to an `ExecutorService` returns a `Future<Integer>` whose `.get()` retrieves
-the computed value once ready.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 10; answer determined from source material, not marked in original)*
 ",
             "08-concurrency-3-synchronization" => @"# Lesson 8 — Concurrency 3: Synchronization, Race Conditions & Locks
 
@@ -1881,70 +1660,6 @@ You can explain the three discrete CPU steps of `count++` (read-modify-write), d
 ## Suggested Extension
 
 Implement a thread-safe banking `Account` class with `transfer(Account from, Account to, double amount)`. Enforce a strict lock-ordering protocol based on account IDs (`from.getId().compareTo(to.getId())`) to prevent circular wait deadlocks when two accounts transfer funds to each other simultaneously.
-
-## Self-Check (From Class Material)
-
-**Q1.** What is the name of the algorithm used by Atomic Data types for thread-safety?
-- A. Mark and Sweep
-- B. Binary Search
-- C. Compare and Swap
-- D. None of the above
-
-**Answer: C** — Atomic classes (such as `AtomicInteger`) achieve lock-free thread safety using the hardware-level Compare-And-Swap (CAS) instruction.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 1; answer determined from source material, not marked in original)*
-
-**Q2.** Which of the following statements about mutex locks in Java is true?
-- A. Mutex locks are used to achieve parallel execution of threads.
-- B. Mutex locks are synonymous with atomic data types in Java.
-- C. Mutex locks are used to protect critical sections of code from concurrent access.
-- D. Mutex locks are only applicable to single-threaded programs
-
-**Answer: C** — A mutex lock enforces mutual exclusion, ensuring that only one thread can execute within a protected critical section at any given time.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 3; answer determined from source material, not marked in original)*
-
-**Q3.** Which of the following statements is true about the synchronized keyword?
-- A. It can only be applied to instance methods
-- B. It can be applied to both instance methods and static methods
-- C. It can only be applied to static methods
-- D. It cannot be used in a multithreaded application
-
-**Answer: B** — The `synchronized` keyword can be applied to instance methods (locking the instance `this`), static methods (locking the `Class` object), and standalone synchronized blocks.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 6; answer determined from source material, not marked in original)*
-
-**Q4.** Which of the following is true regarding the differences between Hashtable and
-ConcurrentHashMap in Java?
-- A. Hashtable allows multiple threads to access different parts of the map at the same time, while ConcurrentHashMap does not.
-- B. ConcurrentHashMap is synchronized, while Hashtable is not.
-- C. Hashtable is synchronized, ConcurrentHashMap is not.
-- D. ConcurrentHashMap allows multiple threads to access different parts of the map at the same time, while Hashtable does not.
-
-**Answer: D** — `Hashtable` synchronizes on the entire map for every operation, allowing
-only one thread in at a time. `ConcurrentHashMap` uses finer-grained internal locking
-(segment/bucket-level), letting multiple threads operate on different parts of the map
-concurrently.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 5; answer determined from source material, not marked in original)*
-
-**Q5.** Consider the following class:
-```java
-public class A {
-  synchronized static void fun1(){}
-  synchronized void fun2(){}
-  void fun3(){}
-}
-```
-And client code creating `A obj1 = new A();` and `A obj2 = new A();`. Which pair of calls
-CANNOT execute concurrently?
-- A. obj1.fun1() and obj1.fun2()
-- B. obj1.fun1() and obj2.fun1()
-- C. obj2.fun2() and obj2.fun3()
-- D. obj1.fun2() and obj2.fun2()
-
-**Answer: B** — `fun1()` is `static synchronized`, so it locks the shared `Class` object
-(`A.class`), not any particular instance. Both `obj1.fun1()` and `obj2.fun1()` compete for
-that one class-level lock regardless of which instance calls it, so they cannot run
-concurrently. `fun2()` is an instance-level lock, so different instances (`obj1`/`obj2`)
-calling it are unaffected by each other.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 2; answer determined from source material, not marked in original)*
 ",
             "09-concurrency-4-semaphores" => @"# Lesson 9 — Concurrency 4: Semaphores & Bounded Buffer
 
@@ -2029,67 +1744,6 @@ You can define counting vs binary semaphores, explain why two semaphores are req
 ## Suggested Extension
 
 Implement a `DatabaseConnectionPool` managing 10 physical database connections using a `Semaphore(10)` and a thread-safe `ConcurrentLinkedQueue<Connection>`, with connection validation and timeout handling on `acquire()`.
-
-## Self-Check (From Class Material)
-
-**Q1.** Which of the following statements is true regarding mutex locks and semaphores?
-- A. Mutex Locks are used for synchronization while Semaphores is a syntax for creating threads
-- B. Mutex Locks allow only 1 thread in critical section while Semaphores can allow multiple threads in the critical section at same time
-- C. Lock and unlock are methods of semaphores
-- D. Acquire and release are methods of mutex locks
-
-**Answer: B** — A mutex restricts critical section access to at most one thread, whereas a counting semaphore maintains a permit count allowing multiple threads to enter simultaneously up to its capacity limit.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 4; answer determined from source material, not marked in original)*
-
-**Q2.** Which of the following methods in a Semaphore is a blocking method?
-- A. acquire
-- B. release
-- C. Both acquire and release
-- D. Neither acquire nor release
-
-**Answer: A** — `acquire()` blocks the calling thread if no permits are available (permit count is 0), whereas `release()` increments the permit count and never blocks.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 3; answer determined from source material, not marked in original)*
-
-**Q3.** Consider the following two statements:
-1. Release method of Semaphores increases the number of threads allowed in the critical section by 1.
-2. If the value of Semaphore is 0, Release method of Semaphores blocks the thread
-Which of the following is true?
-- A. Only 1 is true
-- B. Only 2 is true
-- C. Both 1 and 2 are true
-- D. Both 1 and 2 are false
-
-**Answer: A** — Statement 1 is true because `release()` increments the permit count; statement 2 is false because `release()` is a non-blocking operation that unblocks waiting threads rather than blocking itself.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 8; answer determined from source material, not marked in original)*
-
-**Q4.** Consider the following two statements:
-a. If the value of a Semaphore is greater than 0, `acquire()` reduces the permit count by 1 but allows the thread to enter the critical section.
-b. If the value of a Semaphore is 0, `acquire()` blocks the thread.
-Which of the following is true?
-- A. Only a is true
-- B. Only b is true
-- C. Both a and b are true
-- D. Both a and b are false
-
-**Answer: C** — Both statements correctly describe `acquire()`'s behavior: when permits
-remain, it decrements the count and lets the thread proceed immediately; when the permit
-count has reached zero, it blocks the calling thread until another thread calls
-`release()`.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 1; answer determined from source material, not marked in original)*
-
-**Q5.** Which of the following is true about the critical section of a correctly working
-producer-consumer problem using two semaphores (a producer semaphore tracking empty slots,
-a consumer semaphore tracking filled slots)?
-- A. Critical section of producer should begin with acquire on producer semaphore and end with release on consumer semaphore
-- B. Critical section of producer should begin with acquire on producer semaphore and end with release on producer semaphore
-- C. Critical section of consumer should begin with acquire on producer semaphore and end with release on consumer semaphore
-- D. Critical section of consumer should begin with acquire on consumer semaphore and end with release on consumer semaphore
-
-**Answer: A** — A producer must first `acquire()` an empty slot (the producer semaphore),
-then after producing, `release()` the consumer semaphore to signal that a new item is
-available. Signaling the *other* semaphore, not your own, is what lets the two sides
-coordinate.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 7; answer determined from source material, not marked in original)*
 ",
             "10-java-adv-1-generics" => @"# Lesson 10 — Java Advanced 1: Generics & Type Erasure
 
@@ -2191,65 +1845,6 @@ You can explain why `Object`-based containers fail type safety, define type para
 ## Suggested Extension
 
 Build a generic `InMemoryCache<K, V>` with TTL expiration, implementing `putAll(Map<? extends K, ? extends V> entries)` and `getAll(Collection<? extends K> keys)` following strict PECS conventions.
-
-## Self-Check (From Class Material)
-
-**Q1.** What does T denote in the following code:
-```java
-public class Box<T> {
-  // class implementation
-}
-```
-- A. Type parameter
-- B. Generic instance
-- C. Class name
-- D. Class type
-
-**Answer: A** — `T` is a formal type parameter that serves as a placeholder for the concrete type specified when the `Box` class is instantiated.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/56-66.md, MCQ 64; answer determined from source material, not marked in original)*
-
-**Q2.** What is the purpose of using bounded wildcards in Java generics?
-- A. To allow any type to be passed as an argument
-- B. To restrict the type of objects that can be used
-- C. To enforce type safety in generic classes
-- D. To simplify the syntax of generic declarations
-
-**Answer: B** — Bounded wildcards (like `? extends Number` or `? super Integer`) restrict the acceptable type arguments to a specific inheritance hierarchy for controlled reading or writing.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/56-66.md, MCQ 62; answer determined from source material, not marked in original)*
-
-**Q3.** When is it appropriate to use wildcards with an upper bound in Java generics?
-- A. To allow any type as a method parameter
-- B. When the method should work with specific subclasses
-- C. When the method should work with any object type
-- D. To specify a lower limit on the allowed types
-
-**Answer: B** — Upper-bounded wildcards (`? extends SuperType`) are used when a method needs to operate on a collection of elements belonging to any subclass of a given supertype (read-only producer operations).
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 10; answer determined from source material, not marked in original)*
-
-**Q4.** Suppose you are writing a generic method to return the first element of a list.
-What is the correct method declaration?
-- A. `public static <T> T getFirstElement(List<T> list)`
-- B. `public static T getFirstElement(List<T> list)`
-- C. `public static void getFirstElement(List<T> list)`
-- D. `public static <T> void getFirstElement(List<T> list)`
-
-**Answer: A** — A generic static method must declare its own type parameter `<T>`
-immediately before the return type, since static members have no access to a class-level
-type parameter. The return type must also be `T`, not `void`, since the method returns the
-first element.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 49; answer determined from source material, not marked in original)*
-
-**Q5.** What does the `extends` keyword signify in the context of Java generics (e.g.
-`<T extends Number>`)?
-- A. It specifies a lower bound for a type parameter.
-- B. It restricts the use of wildcard types.
-- C. It indicates inheritance for a generic class.
-- D. It denotes an upper bound for a type parameter.
-
-**Answer: D** — In a generic type-parameter declaration, `extends` denotes an upper bound:
-`T` must be that type or a subtype of it. This is distinct from wildcard usage but relies on
-the same ""extends = upper bound"" idea.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/56-66.md, MCQ 59; answer determined from source material, not marked in original)*
 ",
             "11-java-adv-2-collections-lab" => @"# Lesson 11 — Java Advanced 2: Collections Framework & Sorting Lab
 
@@ -2319,66 +1914,6 @@ You can justify collection choices based on access patterns ($O(1)$ vs $O(\log N
 ## Suggested Extension
 
 Implement an in-memory `LruCache<K, V>` by extending `LinkedHashMap<K, V>` with access-order enabled (`new LinkedHashMap<>(capacity, 0.75f, true)`) and overriding `removeEldestEntry()`, verifying $O(1)$ lookup and automated eviction of least-recently-used entries.
-
-## Self-Check (From Class Material)
-
-**Q1.** Consider the following two statements about Vector, ArrayList and LinkedList:
-1. Both vector and arraylist are dynamic arrays but the vector is thread-safe while arraylist is not
-2. Both arraylist and linkedlist can grow dynamically but memory in an arraylist is contiguous while not so in linkedlist
-Which of the following is correct?
-- A. Both 1 and 2 are true
-- B. Only 1 is true
-- C. Only 2 is true
-- D. Both 1 and 2 are false
-
-**Answer: A** — Statement 1 is true because `Vector` synchronizes its methods for thread safety while `ArrayList` is unsynchronized; statement 2 is true because `ArrayList` uses contiguous array memory while `LinkedList` allocates disconnected heap nodes linked by pointers.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 4; answer determined from source material, not marked in original)*
-
-**Q2.** Which of the following require the elements passed to implement Comparable interface?
-- A. HashSet
-- B. ArrayDeque
-- C. TreeSet
-- D. Stack
-
-**Answer: C** — `TreeSet` requires elements to implement `Comparable` (or have an explicit `Comparator` provided) to maintain its internal Red-Black tree sorted order.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 4; answer determined from source material, not marked in original)*
-
-**Q3.** What should go inside <> if you want to write a generic compare method?
-```java
-public static <____> int compareTo(T a, T b) {
-    return a.compareTo(b);
-}
-```
-- A. T
-- B. ?
-- C. T extends Comparable
-- D. T extends Comparator
-
-**Answer: C** — Declaring `<T extends Comparable<T>>` bounds the type parameter `T` to types that implement `Comparable`, enabling the method body to invoke `.compareTo()`.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/78-88.md, MCQ 3; answer determined from source material, not marked in original)*
-
-**Q4.** Which of the following is thread-safe?
-- A. ArrayList
-- B. HashMap
-- C. Hashtable
-- D. LinkedList
-
-**Answer: C** — `Hashtable` synchronizes every method internally, making it thread-safe
-(though coarse-grained and slower under contention). `ArrayList`, `HashMap`, and
-`LinkedList` are all unsynchronized by default.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 46; answer determined from source material, not marked in original)*
-
-**Q5.** Which of the following classes doesn't implement the `List` interface (directly or
-indirectly)?
-- A. Vector
-- B. Stack
-- C. ArrayList
-- D. PriorityQueue
-
-**Answer: D** — `Vector`, `Stack` (which extends `Vector`), and `ArrayList` all implement
-`List`. `PriorityQueue` implements the `Queue` interface instead — it is backed by a binary
-heap and does not offer indexed `List` access.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 5; answer determined from source material, not marked in original)*
 ",
             "12-java-adv-3-lambdas-streams" => @"# Lesson 12 — Java Advanced 3: Lambdas & Functional Streams
 
@@ -2458,83 +1993,6 @@ You can define functional interfaces (SAM), explain why lambda expressions are s
 ## Suggested Extension
 
 Build a customer analytics pipeline that processes a list of order records, calculates total revenue per customer tier using `mapToDouble()` and `sum()`, and filters the top 5 spenders into an immutable list.
-
-## Self-Check (From Class Material)
-
-**Q1.** Output of above code:
-```java
-public class LambdaExample {
-  public static void main(String[] args) {
-    IntFunction<Integer> square = x -> x * x;
-    System.out.println(square.apply(5));
-    
-    BinaryOperator<Integer> addition = (x, y) -> x + y;
-    System.out.println(addition.apply(10, 20));
-    
-    Function<Integer, Integer> increment = x -> x + 1;
-    System.out.println(increment.apply(7));
-  }
-}
-```
-- A. 25 30 8
-- B. 25 30 7
-- C. 5 30 7
-- D. Compile Error
-
-**Answer: A** — `square.apply(5)` computes $5 \times 5 = 25$, `addition.apply(10, 20)` computes $10 + 20 = 30$, and `increment.apply(7)` computes $7 + 1 = 8$.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 10; answer determined from source material, not marked in original)*
-
-**Q2.** Which of the following is a terminal function in streams api?
-- A. map
-- B. filter
-- C. foreach
-- D. none of the above
-
-**Answer: C** — `forEach` is a terminal operation that triggers pipeline execution; `map` and `filter` are lazy intermediate operations.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 6; answer determined from source material, not marked in original)*
-
-**Q3.** In the above code, Function, BinaryOperator, IntFunction are types of:
-```java
-IntFunction<Integer> square = x -> x * x;
-BinaryOperator<Integer> addition = (x, y) -> x + y;
-Function<Integer, Integer> increment = x -> x + 1;
-```
-- A. Lambda Expressions
-- B. Functional Interfaces
-- C. Functions
-- D. Classes
-
-**Answer: B** — `IntFunction`, `BinaryOperator`, and `Function` are standard functional interfaces provided in the `java.util.function` package.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 52; answer determined from source material, not marked in original)*
-
-**Q4.** What does the following code snippet do?
-```java
-Set<String> uniqueFruits = fruits.stream()
-  .collect(Collectors.toSet());
-System.out.println(""Result: "" + uniqueFruits);
-```
-- A. Removes duplicate fruits from the list.
-- B. Creates a set of all fruit names.
-- C. Concatenates all fruits into a single string.
-- D. Compile Error.
-
-**Answer: B** — `Collectors.toSet()` collects the stream elements into a `Set<String>`.
-Deduplication is a natural consequence of the `Set` contract, but the collector's direct
-action is building that set, not ""removing duplicates"" as a separate step.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 8; answer determined from source material, not marked in original)*
-
-**Q5.** Which of the following comparators will sort a list of strings in descending order
-according to length?
-- A. `Comparator<String> c = (s1, s2) -> Integer.compare(s2.length(), s1.length());`
-- B. `Comparator<String> c = (s1, s2) -> s2.length() - s1.length();`
-- C. `Comparator<String> c = Comparator.comparingInt(String::length).reversed();`
-- D. All of the above
-
-**Answer: D** — All three are valid, equivalent ways of expressing a descending-by-length
-comparator: two hand-written lambda forms (integer subtraction and `Integer.compare` for
-overflow safety) and one built from the fluent `Comparator.comparingInt(...).reversed()`
-API.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 8; answer determined from source material, not marked in original)*
 ",
             "13-java-adv-4-streams-exceptions" => @"# Lesson 13 — Java Advanced 4: Streams in Depth & Exception Architecture
 
@@ -2583,54 +2041,6 @@ You can implement multi-level grouping and partitioning with downstream collecto
 ## Suggested Extension
 
 Implement a resilient stream wrapper utility `CheckedFunction<T, R, E extends Exception>` that cleanly catches checked exceptions within stream mapping pipelines, rethrowing them as typed runtime domain exceptions with structured error context.
-
-## Self-Check (From Class Material)
-
-**Q1.** What does the following code snippet do?
-```java
-Map<Integer, List<String>> groupedByLength = fruits.stream()
-    .collect(Collectors.groupingBy(String::length));
-```
-- A. Creates a map where keys are fruit lengths and values are fruit names.
-- B. Creates a map where keys are fruit names and values are fruit length.
-- C. Counts the total number of fruits.
-- D. Compile Error.
-
-**Answer: A** — `Collectors.groupingBy(String::length)` classifies elements by their string length, returning a `Map<Integer, List<String>>` where each key is a word length and the value is the list of matching fruits.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 8; answer determined from source material, not marked in original)*
-
-**Q2.** Which of the following stream methods return a boolean?
-- A. findFirst
-- B. filter
-- C. allMatch
-- D. collect
-
-**Answer: C** — `allMatch` is a short-circuiting terminal operation that returns a `boolean` indicating whether all elements match the given predicate.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 10; answer determined from source material, not marked in original)*
-
-**Q3.** What does the following code snippet do?
-```java
-String result = fruits.stream()
-  .collect(Collectors.joining("", ""));
-```
-- A. Concatenates all fruits into a single string.
-- B. Creates a list of fruits.
-- C. Calculates the total length of all fruits.
-- D. Compilation Error.
-
-**Answer: A** — `Collectors.joining("", "")` is a terminal collector that concatenates the stream of fruit strings into a single delimited `String`.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 55; answer determined from source material, not marked in original)*
-
-**Q4.** Which of the following is NOT a way of creating a stream?
-- A. `Stream.of()`
-- B. `list.stream()`
-- C. `Stream.iterate()`
-- D. `stream.collect()`
-
-**Answer: D** — `Stream.of()`, `list.stream()`, and `Stream.iterate()` all *create* a
-stream. `collect()` is a terminal operation that *consumes* an existing stream and produces
-a result — it does not create a new stream.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 6; answer determined from source material, not marked in original)*
 ",
             "14-solid-principles" => @"# Lesson 14 — SOLID Principles for Extensible Systems
 
@@ -2673,107 +2083,6 @@ You can recognize an SRP violation as unrelated reasons to change, not merely le
 ## Suggested Extension
 
 Take the `FlyingBehaviour` interface this lesson arrives at (flying extracted out of `Bird` and supplied from outside) and predict, before the next lesson, what pattern this already is and why supplying it through a constructor rather than hard-coding it inside `Bird` is itself an application of DIP.
-
-## Self-Check (From Class Material)
-
-**Q1.** A class is responsible for generating reports in different formats such as PDF, HTML, and CSV using a switch case with one branch per format. Adding TXT support requires modifying the class. Which SOLID principle is violated?
-- A. Open/closed
-- B. Liskov substitution
-- C. Interface segregation
-- D. Dependency inversion
-
-**Answer: A** — Every new format requires editing the existing, already-tested switch statement instead of adding new code, the defining shape of an Open/Closed violation.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 6)*
-
-**Q2.** In a video game, a class handles different enemy types and their behaviors. As new enemies are introduced, the developer adds a new if-else block to the same class each time. Which SOLID principle is violated?
-- A. Open/closed
-- B. Liskov substitution
-- C. Interface segregation
-- D. Dependency inversion
-
-**Answer: A** — Same shape as the report-generator case: a new enemy type should be new code (a new class), not a new branch inside an existing method.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/67-77.md, MCQ 9)*
-
-**Q3.** In an inventory management system, one class handles inventory operations, generates sales reports, AND sends notifications to suppliers. Which SOLID principle is violated?
-- A. Single responsibility
-- B. Open/closed
-- C. Liskov substitution
-- D. Interface segregation
-
-**Answer: A** — Three unrelated reasons to change (inventory logic, reporting, notifications) are bundled into one class.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 7)*
-
-**Q4.** A class handles both user authentication (verifying credentials) and database interactions (querying, updating user records). Which SOLID principle is violated?
-- A. Single responsibility
-- B. Open/closed
-- C. Liskov substitution
-- D. Interface segregation
-
-**Answer: A** — Authentication logic and persistence logic are two unrelated reasons to change, bundled into one class.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/34-44.md, MCQ 3)*
-
-**Q5.** According to the Liskov Substitution Principle, if class B is a subclass of class A, what must be true when replacing an instance of A with an instance of B?
-- A. The program's execution speed must remain identical or increase
-- B. The program must continue to function correctly without violating the behavioral expectations established by class A
-- C. Class B must override every single public and private method defined in class A
-- D. The client code must explicitly cast class B back to class A before calling any inherited methods
-
-**Answer: B** — LSP is about behavioral substitutability: the caller must not need any special handling to safely use B wherever A was expected.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/12-22.md, MCQ 4)*
-
-**Q6.** Under LSP, how must a subclass handle the preconditions and postconditions established by its parent class?
-- A. It must make preconditions stricter and postconditions weaker
-- B. It cannot change preconditions, but it can safely remove all postconditions
-- C. It can make preconditions less strict (require less) and postconditions more strict (guarantee more)
-- D. It must ignore the parent class's conditions and define completely independent validation rules
-
-**Answer: C** — A subtype may only ask for less and promise at least as much as its parent — this is the precise technical definition behind ""a promise being kept.""
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 45)*
-
-**Q7.** Why is the Interface Segregation Principle highly relevant when designing object-oriented applications?
-- A. It requires all classes to implement a single, massive interface to guarantee consistency across the application
-- B. It prevents bloated interfaces from forcing subclasses to implement ""dummy"" or empty methods, which pollutes the API and misleads developers
-- C. It guarantees that an application will consume less memory at runtime
-- D. It dictates that interfaces should only contain private methods to secure implementation details
-
-**Answer: B** — This is exactly the ""Penguin problem"" transplanted to interfaces: a fat interface forces implementers into dummy or exception-throwing methods they cannot honestly support.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/45-55.md, MCQ 54)*
-
-**Q8.** How do ISP and DIP conceptually work together in a well-architected system?
-- A. DIP forces the creation of abstractions, and ISP ensures those abstractions are granular, focused, and client-specific
-- B. ISP restricts the total number of interfaces allowed, while DIP forces all classes to eventually merge into a single abstract base class
-- C. They inherently contradict each other; applying DIP requires violating ISP
-- D. ISP solely dictates the UI layer, while DIP solely manages the database layer
-
-**Answer: A** — DIP says depend on abstractions; ISP says make sure those abstractions are small and focused rather than fat — the two principles work at different levels of the same design decision.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 5)*
-
-**Q9.** The Dependency Inversion Principle consists of two core parts regarding high-level and low-level modules. Which statement perfectly captures the essence of DIP?
-- A. High-level modules should depend on low-level modules; both should depend on concrete details
-- B. Low-level modules should inherit directly from high-level modules to invert the control flow
-- C. High-level modules should not depend on low-level modules; both must depend on abstractions (like interfaces or abstract classes)
-- D. Dependencies should always be instantiated globally at the very top of a source file
-
-**Answer: C** — Both sides depend on a shared abstraction rather than one depending directly on the other's concrete implementation.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 2)*
-
-**Q10.** Why does DIP explicitly advocate for depending on abstractions rather than concretions?
-- A. Because abstract classes compile faster than concrete classes in modern languages
-- B. Because it eliminates the need for unit testing, as abstractions are inherently bug-free
-- C. Because concretions are volatile and change frequently, whereas abstractions represent stable business concepts
-- D. Because object-oriented languages physically do not allow high-level modules to directly instantiate concrete classes
-
-**Answer: C** — Concrete implementations (a specific database driver, a specific payment SDK) change far more often than the stable business-level contract they fulfill; depending on the stable abstraction insulates high-level code from that churn.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/23-33.md, MCQ 11)*
-
-**Q11.** When a system consistently violates LSP, ISP, and DIP simultaneously across a major codebase, what is the most likely structural consequence during a system redesign?
-- A. High Rigidity and Fragility: changing a low-level detail forces massive cascading rewrites across high-level business logic, and code reuse becomes nearly impossible
-- B. Memory Leaks: the garbage collector will consistently fail to clean up instances of classes that use inheritance
-- C. Syntax Errors: the compiler will refuse to process files containing deep inheritance hierarchies
-- D. Loss of Thread Safety: the application will automatically lose its ability to handle concurrent tasks
-
-**Answer: A** — These three principles all exist to keep high-level and low-level code loosely coupled; violating all three together produces exactly the rigid, fragile, hard-to-reuse codebase SOLID as a whole is meant to prevent.
-*(SOURCE_TYPE: FROM_MATERIAL — mcqs/01-11.md, MCQ 3)*
 ",
             "15-creational-patterns" => @"# Lesson 15 — Creational Design Patterns
 
@@ -2848,163 +2157,6 @@ You can state the three components of an Adapter and explain why editing third-p
 ## Suggested Extension
 
 Combine two of these patterns in one worked example: build a `PaymentGatewayFacade` that internally selects between `RazorpayAdapter` and `StripeAdapter` (Adapter used inside a Facade), and separately extend the coffee shop model with a `Decorator`-based loyalty-discount chain that a `Flyweight`-backed `DiscountRuleFactory` supplies shared, cached discount-rule objects to.
-
-## Self-Check (From Class Material)
-
-**Q1.** What is the main idea behind the Decorator pattern?
-- A. Copying an existing object to create a new one
-- B. Adding new behavior to an object by wrapping it, without changing its original class
-- C. Storing shared data in one place and reusing it across many objects
-- D. Notifying multiple objects whenever one object changes
-
-**Answer: B** — Decorator attaches new responsibilities to an object dynamically by wrapping it in another object implementing the same interface, leaving the original class untouched. (A describes Prototype, C describes Flyweight, D describes Observer.)
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q3)*
-
-**Q2.** Consider this code:
-```java
-Beverage order = new Espresso();        // cost = 80.0
-order = new Mocha(order);               // adds 20.0
-order = new Whip(order);                // adds 15.0
-System.out.println(order.cost());
-```
-What gets printed?
-- A. 80.0
-- B. 100.0
-- C. 115.0
-- D. Compile error
-
-**Answer: C** — Each decorator's `cost()` calls the wrapped object's `cost()` and adds its own charge: 80.0 + 20.0 + 15.0 = 115.0.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q4)*
-
-**Q3.** A student writes this Decorator code but it doesn't compile:
-```java
-class Mocha extends CondimentDecorator {
-    public double cost() {
-        return wrappedBeverage.cost() + 20.0;
-    }
-}
-```
-No constructor was written for `Mocha`. What's the most likely problem?
-- A. `CondimentDecorator` requires a constructor that passes the wrapped `Beverage`, and `Mocha` never provides one
-- B. `cost()` should not call `wrappedBeverage.cost()`
-- C. `Mocha` should implement `Beverage` directly, not extend `CondimentDecorator`
-- D. There is no problem, this code is correct
-
-**Answer: A** — `CondimentDecorator` needs to receive the wrapped `Beverage` instance via a constructor. Without `Mocha` writing one (typically calling `super(beverage)`), `wrappedBeverage` is never properly initialized.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q5)*
-
-**Q4.** You're building a coffee shop app. The business now wants a ""double mocha"" option — mocha added twice for extra flavor and cost. Which design lets you support this most naturally?
-- A. Add a `mochaCount` field to `Espresso`
-- B. Add an `if (isDouble)` check inside `Mocha.cost()`
-- C. Create a new class called `DoubleMocha` that copies all of `Espresso`'s fields
-- D. Wrap the order in `Mocha` twice: `new Mocha(new Mocha(order))`
-
-**Answer: D** — Decorators can be stacked arbitrarily. Wrapping a beverage in `Mocha` twice naturally doubles the mocha charge and behavior with zero new code.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q6)*
-
-**Q5.** In the Flyweight pattern, what does ""intrinsic state"" mean?
-- A. Data that changes every time, unique to one specific object
-- B. Data used only for logging and debugging
-- C. Data that is shared and identical across many objects
-- D. Data that is never stored in memory
-
-**Answer: C** — Intrinsic state is identical across many instances and can be shared from a single cached flyweight object, which is what makes the memory savings possible.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q7)*
-
-**Q6.** 
-```java
-BulletType t1 = BulletTypeFactory.getBulletType(""AKM"");
-BulletType t2 = BulletTypeFactory.getBulletType(""AKM"");
-System.out.println(t1 == t2);
-```
-Assuming `BulletTypeFactory` caches `BulletType` objects in a `HashMap`, what does this print?
-- A. true
-- B. false
-- C. Compile error
-- D. It depends on the bullet's position
-
-**Answer: A** — The factory returns the same cached instance both times for the same key, so `t1` and `t2` reference the identical object and `==` is `true`. Position is extrinsic and irrelevant here.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q8)*
-
-**Q7.** A student splits a `Character` class (used to render millions of characters in a text editor) like this:
-```java
-class CharacterIntrinsic {
-    int row;
-    int column;
-}
-class CharacterExtrinsic {
-    String font;
-    int size;
-    String color;
-}
-```
-What did they get backwards?
-- A. Nothing — this split is correct
-- B. `row` and `column` should be intrinsic; `font`, `size`, `color` should be extrinsic
-- C. `row` and `column` should be extrinsic; `font`, `size`, `color` should be intrinsic
-- D. All fields should be in the same class
-
-**Answer: C** — Font/size/color are typically shared across large runs of text (intrinsic, cacheable); each character's position is unique per occurrence (extrinsic, passed in at render time). The student inverted the split.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q9)*
-
-**Q8.** A team is building a food delivery app. Every order line item needs a `Category` (like ""Beverages"" or ""Desserts"") with a name, icon, and tax rate. There are only 30 categories, but millions of order line items per day. What's the best approach?
-- A. Create a new `Category` object for every line item, since each order is different
-- B. Store one shared `Category` object per category name in a factory/cache, and have every line item just reference it
-- C. Store all category data directly inside the `OrderLineItem` class as separate fields
-- D. Avoid using categories altogether to save memory
-
-**Answer: B** — Classic Flyweight factory: cache one `Category` object per name and have every line item hold a reference to the shared instance.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q10)*
-
-**Q9.** What is the key difference between Decorator and Flyweight?
-- A. Flyweight adds new behavior; Decorator saves memory
-- B. They are the same pattern with different names
-- C. Decorator is only used in games; Flyweight is only used in coffee shop examples
-- D. Decorator adds new behavior by wrapping objects; Flyweight saves memory by sharing common data across many objects
-
-**Answer: D** — Decorator's purpose is behavioral extension via wrapping; Flyweight's purpose is memory optimization via sharing intrinsic state.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q11)*
-
-**Q10.** An AI assistant was asked to add a ""combo discount"" to the coffee shop example. It gave back this code:
-```java
-class Espresso implements Beverage {
-    boolean hasMocha = false;
-    boolean hasWhip = false;
-    public double cost() {
-        double cost = 80.0;
-        if (hasMocha) cost += 20.0;
-        if (hasWhip) cost += 15.0;
-        if (hasMocha && hasWhip) cost *= 0.9;
-        return cost;
-    }
-}
-```
-What's wrong with this from a Decorator design point of view?
-- A. The discount math is calculated incorrectly
-- B. It puts add-on flags and combo logic back inside the base class, which is exactly the design the pattern was meant to avoid
-- C. Nothing is wrong, this is a valid Decorator
-- D. `Espresso` should not implement `Beverage`
-
-**Answer: B** — This reintroduces the exact tight coupling Decorator solves: every new add-on now requires editing `Espresso` itself.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 118, Q12)*
-
-**Q11.** What is the key differentiator between Adapter and Facade?
-- A. Adapter always uses more memory than Facade
-- B. Adapter solves incompatible interfaces (typically one adaptee); Facade solves complex, hard-to-use systems (typically multiple subsystems)
-- C. Facade is only for legacy code; Adapter is only for new code
-- D. They are interchangeable and the choice is purely stylistic
-
-**Answer: B** — The test is *why* the wrapper exists: translating between two shapes that don't fit (Adapter) versus hiding coordination across several complex subsystems behind one simple entry point (Facade).
-*(SOURCE_TYPE: FROM_MATERIAL — hackmd/29-rytL_zqBMe.md, ""Distinguishing Adapter from Facade"")*
-
-**Q12.** Why should a Facade receive its subsystem dependencies through its constructor instead of creating them internally with `new`?
-- A. It has no real benefit, it's just a style preference
-- B. It locks the facade to one concrete implementation, which is the goal
-- C. It keeps the facade testable with mocks and swappable to different implementations without modifying the facade itself
-- D. Constructors in Java cannot call `new` at all
-
-**Answer: C** — Constructing dependencies internally hardcodes the facade to specific implementations, making it untestable without real subsystems and unable to swap implementations later. Injecting them keeps the facade decoupled.
-*(SOURCE_TYPE: FROM_MATERIAL — hackmd/29-rytL_zqBMe.md, ""Dependency Injection"")*
 ",
             "17-behavioural-patterns-uml" => @"# Lesson 17 — Behavioural Patterns & UML Diagrams
 
@@ -3046,337 +2198,94 @@ You can explain why a concrete strategy class should never take a mode parameter
 ## Suggested Extension
 
 Combine Strategy and Observer in one system: build a trading alert engine where a `StrategyFactory` selects the correct `TradingIndicatorStrategy` (momentum, volatility) per instrument, and every computed alert is broadcast to a list of `AlertObserver`s (email, SMS, dashboard) — then draw the UML class diagram for the resulting design, including the aggregation/composition judgment call for the relationship between an `Instrument` and its list of `TradingIndicatorStrategy` results.
+",
+            "18-how-to-approach-design" => @"# Lesson 18 — How to Approach Design Problems
 
-## Self-Check (From Class Material)
+A repeatable framework for machine coding interviews and real-world system design: requirements gathering, entity identification, relationship mapping, and iterative refinement.
 
-**Q1.** 
-```java
-Amazon amazon = new Amazon();
-amazon.register(o -> System.out.println(""Invoice generated for "" + o));
-amazon.register(o -> System.out.println(""Inventory updated for "" + o));
-amazon.orderPlaced(""ORD123"");
-```
-Assuming `register` adds to an `ArrayList` and `orderPlaced` loops through and calls each observer, what gets printed?
-- A. Only ""Invoice generated for ORD123""
-- B. Only ""Inventory updated for ORD123""
-- C. Both lines print, in the order they were registered
-- D. Nothing prints, this code has a compile error
+## Concepts Covered
 
-**Answer: C** — `orderPlaced` iterates subscribers in insertion order and invokes each, so both lambdas fire in registration order.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q4)*
+Machine coding interviews fail most often not from lack of Java knowledge but from lack of sequencing discipline — jumping straight into classes before the requirements are pinned down. Scaler's 6-step framework exists to prevent that: Step 0 is alignment with the interviewer (or with yourself, in a solo problem) — confirm what you already know and explicitly name what you don't, rather than assuming. Two questions settle the shape of the whole exercise before any design starts: does this system need to persist data, or is an in-memory, single-run structure acceptable; and how will a user actually interact with it — a REST API, a CLI, or a hardcoded `main()` method exercising the classes directly. Getting these two answers wrong early costs far more time than getting them right.
 
-**Q2.** A `RouterFactory` is built like this:
-```java
-private static final Map<QueryComplexity, RoutingStrategy> STRATEGIES = Map.of(
-    QueryComplexity.SIMPLE, new SimpleQueryStrategy()
-);
-static RoutingStrategy getStrategy(QueryComplexity c) {
-    return STRATEGIES.get(c);
-}
-```
-When called with `QueryComplexity.COMPLEX`, what happens?
-- A. It automatically falls back to `SimpleQueryStrategy`
-- B. It throws a `ClassNotFoundException` immediately
-- C. It compiles but silently does nothing
-- D. It returns `null`, which will likely cause a `NullPointerException` later when a method is called on it
+Step 1 is requirement gathering, typically producing 5–10 explicit, numbered requirements (R1, R2, R3...) rather than a vague paragraph. Step 2 clarifies and resolves tradeoffs within those requirements — this is where multiple candidate approaches to a tricky requirement (like an undo feature, or a pluggable pricing strategy) get compared on time and space complexity before committing to one. Step 3 turns the clarified requirements into a class diagram: nouns from the requirements become candidate classes, verbs become candidate methods, and the diagram should be walkable as a user journey — a reader should be able to trace what happens, in order, class by class, when a user performs the core action.
 
-**Answer: D** — `Map.get()` returns `null` for a missing key; there is no fallback, so the caller crashes with an NPE the moment it calls a method on the result.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q5)*
+A phrase like ""this behavior needs to be swappable without rewriting the system"" is a Strategy pattern appearing in plain English — trained eyes catch it during requirement clarification, before any diagramming starts, rather than noticing only once the code has already ossified around a single hardcoded approach. Requirements that describe multiple interchangeable algorithms (fee calculation, spot assignment, bot difficulty, winning-condition checks) are the strongest signal.
 
-**Q3.** A payment system tries Razorpay first, then Stripe, then PayPal, only moving to the next provider if the previous one fails. Which pattern best fits this situation?
-- A. Neither Strategy nor Observer — this is closer to Chain of Responsibility
-- B. Strategy, since each payment provider is a different way of paying
-- C. Observer, since all providers get notified together
-- D. Factory, since it creates payment objects
+## Practical Backend Scenario
 
-**Answer: A** — Strategy picks one implementation up front; Observer notifies all subscribers at once. Sequential try-until-success is Chain of Responsibility.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q6)*
+A team is asked to design a vehicle management system: a `Vehicle` class family covering fuel, electric, and hybrid types, each supporting `refuel()`, `recharge()`, and `start()`/`stop()` operations where applicable. Before any class is written, Step 0 settles that this is an in-memory entity system exercised via a hardcoded `main()` — no database, no REST layer. Step 1 produces requirements: vehicles have name, brand, cost, and type; hybrid vehicles must support both refueling and recharging; transmission type (automatic or manual) needs a shared base representation. Step 2 clarifies the inheritance shape — an `IVehicle` interface at the top, with `IFuelable` and `IRechargeable` capability interfaces mixed in per vehicle type, so a `HybridVehicle` can implement both without a fragile single-inheritance chain forcing awkward compromises.
 
-**Q4.** Why does a concrete strategy class like `CarPathCalculator` NOT take a `mode` parameter in its methods?
-- A. Because Java doesn't allow extra parameters in overridden methods
-- B. Because the class itself already represents one specific way of doing the task, so it doesn't need to be told what ""mode"" it is
-- C. Because mode is only needed inside the Factory class
-- D. Because strategies are stateless and can't accept any parameters at all
+## Practice Loop
 
-**Answer: B** — The class instance itself already IS the ""car mode"" implementation; passing a mode flag in would reintroduce the branching Strategy exists to remove.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q7)*
+Apply the 6-step framework to a single new problem end to end: state Step 0's two answers explicitly (persistence? interaction mode?) before writing a single requirement. Write 6–8 numbered requirements for a vehicle rental system. Identify which requirement phrases signal a Strategy pattern before drawing anything. Produce a class diagram from those requirements, and verify it by walking through one full user journey (a user rents a vehicle, drives it, returns it) using only the diagram — if a step in the journey can't be traced to a class and method, the diagram is incomplete.
 
-**Q5.** 
-```java
-List<TradingIndicatorStrategy> strategies = List.of(new MomentumStrategy(), new VolatilityStrategy());
-for (TradingIndicatorStrategy s : strategies) {
-    if (s.supportsType(""VOLATILITY"")) {
-        System.out.println(s.calculate(50, 70));
-    }
-}
-```
-`VolatilityStrategy.calculate` returns `Math.abs(current - previous)`. What is printed?
-- A. -20.0
-- B. 0.0
-- C. 20.0
-- D. Nothing is printed
+## Evidence of Understanding
 
-**Answer: C** — Only `VolatilityStrategy` matches; `Math.abs(50 - 70) = 20.0`.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q8)*
+You can name Step 0's two settling questions from memory and explain why answering them first changes everything downstream. You can read a requirement and identify, before diagramming, whether it signals a Strategy pattern. You can produce a class diagram directly from a numbered requirements list and defend each class's existence by pointing to the requirement that justified it.
 
-**Q6.** A `WeatherMonitoringApplication`'s `setTemperature(double temp)` updates its field but never notifies its registered observers. `TemperatureService` is registered correctly but never receives updates. What is missing?
-- A. The `Observer` interface needs a `getTemperature` method
-- B. `observers` should be a `Map` instead of a `List`
-- C. `setTemperature` needs to be declared `static`
-- D. A call to notify all observers (e.g., looping through observers and calling their update method) inside `setTemperature`
+## Suggested Extension
 
-**Answer: D** — Registration only adds to the list; the publisher must explicitly loop and invoke observers whenever state changes. Missing that loop is the most common Observer bug.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q9)*
+Take a requirements list you've already turned into a class diagram for a past problem and audit it: for every class, can you name the exact requirement number that justified its existence? Any class that can't be justified this way is a sign the framework was skipped, not followed.
+",
+            "19-machine-coding-tictactoe" => @"# Lesson 19 — Machine Coding: TicTacToe
 
-**Q7.** Your team's third-party analytics library only understands `trackEvent(XML data)`, but your codebase only works with `log(JSON data)`. Which pattern bridges them without changing either side?
-- A. Adapter
-- B. Strategy
-- C. Observer
-- D. Factory
+Design and implement a clean, extensible TicTacToe engine: board abstraction, player management, win-condition strategy, and handling NxN generalization.
 
-**Answer: A** — Two incompatible interface shapes needing translation without modifying either side is the textbook Adapter scenario.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q10)*
+## Concepts Covered
 
-**Q8.** Why is it usually fine for a Strategy Factory to reuse the same strategy object every time instead of creating a new one on each call?
-- A. Because Java does not allow creating multiple objects of the same class
-- B. Because most strategy classes have no changing internal state, so sharing one instance (like a Singleton) is safe and avoids unnecessary object creation
-- C. Because reusing objects makes the code violate Open-Closed Principle
-- D. Because Factory pattern requires objects to be reused
+TicTacToe is Scaler's first full application of the 6-step framework to a complete, working system, and its value is in the seven requirements it generates: an N×N board (not fixed at 3×3), up to N−1 players, unique symbols chosen per player, support for bot players, bots with a difficulty curve (easy, medium, hard), configurable win-condition rules chosen before the game starts, and an undo feature. Each of these pushes the design toward extensibility rather than a special-cased 3×3, two-player script.
 
-**Answer: B** — Concrete strategies are typically stateless, so one shared instance behaves identically for every caller.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q11)*
+The undo feature is the requirement most worth slowing down on, because three genuinely different implementations exist with different tradeoffs. The first stores a stack of past moves and works for TicTacToe specifically, but breaks down for games with more complex state mutation per move (chess captures, for example) because undoing a move isn't always the exact inverse of applying it. The second replays all N−1 prior moves onto a freshly empty board — correct for any game, but O(N²) time and O(N·N·m) space for m stored move-lists, since every undo re-simulates from scratch. The third stores a full board snapshot after every move, making undo an O(N) lookup — trading memory for speed, which is the right trade for a bounded board size where snapshots stay small.
 
-**Q9.** 
-```java
-Publisher publisher = new Publisher();
-Logger logger = new Logger();
-publisher.subscribe(logger);
-publisher.publish(""Order Placed"");
-publisher.unsubscribe(logger);
-publisher.publish(""Order Shipped"");
-```
-What is printed (assuming `Logger.update` prints ""LOG: "" + event)?
-- A. Both ""LOG: Order Placed"" and ""LOG: Order Shipped"" print
-- B. Only ""LOG: Order Shipped"" prints
-- C. Only ""LOG: Order Placed"" prints
-- D. Nothing is printed
+Win-condition checking has its own optimization arc, moving through four solutions. The naive approach checks every player against the entire board (every row, column, and diagonal) after every move: O(N³). Since only the player who just moved could possibly have created a new winning line, checking only the current player already drops this to O(N²). Since a move at position (i, j) can only ever affect row i, column j, and — only when i == j or i + j == N−1 — one or both diagonals, checking only the touched lines drops this further to O(N). The final optimization replaces re-scanning entirely with running counters: a map per row, per column, and two fixed maps for the diagonals, incremented on every placed symbol and compared against N. This reaches O(1) time per move at the cost of O(N) additional space — for a bounded board size, accepting that space cost for constant-time checking is the correct trade, and it only works if the counters live as persistent fields on the class, not as local variables recreated on every call.
 
-**Answer: C** — `logger` is subscribed for the first publish, then unsubscribed before the second — so only the first event reaches it.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q12)*
+Three design patterns organize the resulting system. `Game` is constructed exclusively through a `GameBuilder`, whose validation (bot count capped at one per game, player count matching board dimension minus one, symbol uniqueness across all players) runs before any `Game` instance can exist — a private constructor makes bypassing this impossible. Player creation goes through a `PlayerFactory` returning the correct concrete type. Both winning-condition checks and bot move-selection are Strategy implementations: a `WinningStrategy` interface lets a new rule be added as one new class without touching `Game`'s core logic, and `BotPlayingStrategy` implementations (an easy strategy picking the first empty cell, a hard strategy using minimax with alpha-beta pruning) let a `Bot` delegate its move-selection entirely, keeping `Bot` itself thin.
 
-**Q10.** What is the key difference in intent between Strategy and Observer, even though both rely on one interface with multiple implementing classes?
-- A. Strategy is only for payments; Observer is only for notifications
-- B. Strategy picks exactly one implementation to use; Observer notifies many implementations at once
-- C. Strategy requires a Factory; Observer never uses a Factory
-- D. There is no real difference between them
+## Practical Backend Scenario
 
-**Answer: B** — Strategy delegates to a single chosen algorithm; Observer broadcasts to every registered listener simultaneously.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Q3)*
+A generalized N×N TicTacToe engine needs to support a variable board size chosen at game start, an arbitrary number of human and bot players up to N−1, and a pluggable win-condition so a ""diagonal-only"" or ""four-corners"" variant can be added later without modifying `Game`. The engine also needs O(1) win detection per move so that even a large board doesn't degrade turn latency, and an undo feature cheap enough to support repeatedly without rebuilding board state from scratch.
 
-**Q11.** What is the main problem with writing one method that uses if-else blocks to handle different ""modes"" (like car, bike, walk) inside the same class?
-- A. It violates Open-Closed and Single Responsibility Principles, since adding a new mode means editing existing working code
-- B. The code runs slower than using classes
-- C. Java does not allow more than 3 if-else conditions
-- D. It cannot be tested using JUnit
+## Practice Loop
 
-**Answer: A** — Every new mode requires reopening and modifying the same method, and one class now owns logic for every mode.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Assignment Q5)*
+Implement the core model — `Board`, `Cell`, `Symbol`, `Move`, an abstract `Player` — with `Game` buildable only through `GameBuilder`, enforcing the three validations (bot cap, player count, symbol uniqueness). Implement `RowWinningStrategy`, `ColWinningStrategy`, and `DiagonalWinningStrategy` using persistent running-count maps rather than rescans, and verify each fires in O(1) per move. Implement `EasyBotPlayingStrategy` (first empty cell) and, as a stretch, a `HardBotPlayingStrategy` using minimax. Implement one undo approach and justify, in a comment, why you chose it over the other two given this specific bounded board size.
 
-**Q12.** In the Strategy pattern, what is the actual job of the Factory class (e.g., `PathCalculatorFactory`)?
-- A. To decide and return the correct strategy object based on some input
-- B. To execute the algorithm itself
-- C. To notify all subscribers when an event occurs
-- D. To translate one interface into another
+## Evidence of Understanding
 
-**Answer: A** — The Factory's only job is selection and construction; the chosen strategy itself executes the algorithm.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 120, Assignment Q9)*
+You can explain all four stages of the win-checking optimization and why each one is strictly better than the last for this problem's bounds. You can compare the three undo approaches by time and space complexity and justify your choice for a bounded N. You can point to the exact three validations `GameBuilder` must enforce and explain why a private `Game` constructor is what makes them unbypassable. You can explain why `WinningStrategy` is a list rather than a single implementation.
 
-**Q13.** What is the primary purpose of a PRIMARY KEY in a database table?
-- A. To uniquely identify each row in the table
-- B. To link one table to another
-- C. To make queries run faster automatically
-- D. To enforce a fixed number of columns
+## Suggested Extension
 
-**Answer: A** — A primary key's core job is guaranteeing every row is uniquely identifiable; foreign keys (not primary keys) are what link tables together.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+Add a new winning condition (for example, four-in-a-row on any N×N board, not just the standard N-in-a-row) as a single new `WinningStrategy` implementation, and confirm `Game`'s core logic required zero changes to support it.
+",
+            "20-machine-coding-parking-lot" => @"# Lesson 20 — Machine Coding: Parking Lot
 
-**Q14.** In a Class Diagram, what does a dashed line with a hollow triangle arrowhead represent?
-- A. A class implementing an interface
-- B. A class extending another class
-- C. Aggregation between two classes
-- D. Composition between two classes
+Design and implement a multi-floor parking lot system: spot types, vehicle hierarchy, entry/exit ticketing, fee calculation strategy, and concurrent slot management.
 
-**Answer: A** — A dashed line with a hollow triangle is realization (implements an interface). A solid line with a hollow triangle is generalization (extends a class).
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+## Concepts Covered
 
-**Q15.** One instructor teaches many courses, but each course has only one instructor. Where should the foreign key go?
-- A. In the instructors table
-- B. In the courses table
-- C. In both tables at once
-- D. In a separate junction table
+Parking Lot moves the 6-step framework from a pure game (TicTacToe) to a system involving physical resources and financial transactions, and the eight requirements it generates read differently as a result: multiple floors per lot, vehicle-type-specific spots with exact-match allocation only (a truck can never occupy a car spot), a token created and a spot assigned simultaneously at entry, payment and spot-release happening together at exit, dynamically swappable fee-calculation algorithms, support for both cash and third-party online payment, multiple physically distinct entry and exit gates, and configurable spot assignment (auto-nearest-pick or user selection). Requirements 5 and 8 are the same Strategy-pattern signal from Lesson 18 appearing twice in one problem — two separate interfaces are needed, one for fee calculation and one for spot allotment.
 
-**Answer: B** — The foreign key always lives on the ""many"" side of a one-to-many relationship, so `instructor_id` belongs in the `courses` table.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+Walking through a driver's actual journey — arrive, receive a ticket, park, later present the ticket, pay, leave — yields nine classes: `ParkingLot`, `ParkingFloor`, `Gate`, `ParkingSpot`, `Vehicle`, `Operator`, `Ticket`, `Bill`, and `Payment`. Several of the modeling decisions here generalize well beyond parking lots. `Gate` is one class with a `GateType` enum (ENTRY or EXIT) rather than two separate `EntryGate`/`ExitGate` classes, because the two are identical except for that one field — creating a subclass distinction for a single enum value is needless duplication. `Ticket` captures its own `operator` field as a snapshot at the moment of issue, distinct from `Gate.operator`, which reflects whoever is *currently* staffing that gate — conflating the two would mean a ticket's audit trail silently changes when a shift changes, which is wrong: a ticket must record who was actually on duty when it was issued. `Bill` holds a `List<Payment>` rather than a single `Payment`, because real payment splitting (part cash, part card) needs to be representable, and each payment in the list can be independently refunded or audited. `ParkingSpot` stores its `floorId` directly rather than deriving it by walking up through the floor object on every lookup — a deliberate duplication justified by how frequently that lookup happens (printing every ticket), not applied blindly everywhere.
 
-**Q16.** In a Use Case Diagram, ""Enroll in Course"" always triggers ""Make Payment"" — there's no scenario where enrollment happens without it. What relationship connects these two use cases?
-- A. Extends
-- B. Actor
-- C. System Boundary
-- D. Includes
+Schema design here follows the same class-to-table algorithm from earlier lessons — every class becomes a table, every simple attribute becomes a column, and every attribute that is itself another class needs its cardinality checked before deciding where the foreign key goes. `ParkingLot`-to-`ParkingFloor` is one-to-many, so `parking_lot_id` lives on the `parking_floor` table, not the reverse — a single `floor_id` column on `parking_lot` could only ever reference one floor, which can't represent a lot having many floors. `Bill`-to-`Payment` is similarly one-to-many, so `bill_id` sits on the `payment` table. `Gate`-to-`Operator`, by contrast, is genuinely many-to-many across the shift history (many operators work many gates over time), which would need its own mapping table if that full history matters — a plain foreign key column would only capture the *current* operator, matching what `Gate.operator` is meant to store, but not the shift history.
 
-**Answer: D** — A solid **includes** arrow means the parent use case always triggers the child. **Extends** (dashed) would be for an optional variant, like ""Pay by UPI"" extending ""Make Payment"".
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+The design deliberately leaves one real gap unresolved after the class diagram is complete: nothing in the paper design prevents two entry gates from assigning the same empty spot to two different vehicles arriving at nearly the same moment. `AllotmentStrategy.assignSpot()` decides which spot to hand out, but no lock exists between the moment it reads ""this spot is free"" and the moment it commits that assignment — a genuine concurrency problem that only manifests when gates run concurrently, and one that a single-threaded paper design cannot surface or fix by itself.
 
-**Q17.** 
-```sql
-CREATE TABLE enrollments (
-  id INT PRIMARY KEY, student_id INT, course_id INT,
-  FOREIGN KEY (student_id) REFERENCES students(id),
-  FOREIGN KEY (course_id) REFERENCES courses(id)
-);
-```
-Current rows (id, student_id, course_id): (1, 1, 1), (2, 1, 2), (3, 2, 1). How many courses is the student with id = 1 enrolled in?
-- A. 3
-- B. 0
-- C. 2
-- D. 1
+## Practical Backend Scenario
 
-**Answer: C** — Rows with `student_id = 1` are (1,1,1) and (2,1,2), referencing `course_id` 1 and 2 — two distinct courses.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+A third-party facility-management company needs an in-memory, command-line parking system for airports and malls: multiple floors, vehicle-type-exact spot matching, tickets issued at entry with an assigned spot, bills generated at exit supporting split cash/card payment, and a fee-calculation algorithm that must be swappable per client contract without a code change to the core system.
 
-**Q18.** What is the main purpose of normalization in database schema design?
-- A. To duplicate frequently-used data across tables for faster reads
-- B. To store each fact only once and reference it elsewhere with a foreign key, avoiding out-of-sync copies
-- C. To ensure every table has exactly the same number of columns
-- D. To turn every relationship into a many-to-many relationship
+## Practice Loop
 
-**Answer: B** — Normalization's goal is eliminating duplicate, potentially-inconsistent copies of the same fact by storing it once and referencing it via foreign key.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+Design the nine core classes and both Strategy interfaces (`FeeCalculationStrategy`, `AllotmentStrategy`), building `ParkingLot` through a `ParkingLotBuilder` that validates floors, gates, and both strategies are set before the lot becomes usable. Implement entry (token creation plus spot assignment as one atomic step from the caller's perspective) and exit (bill generation, payment collection, spot release) as end-to-end flows through in-memory collections. Derive the schema from your class diagram using the class-to-table algorithm, and justify every foreign key placement by naming the cardinality that dictated it. Finally, without writing concurrent code, write down in one paragraph exactly where the two-entry-gates race condition would occur in your specific implementation.
 
-**Q19.** A library system has `Book` and `Author`. One book can have multiple authors, one author can write multiple books, and the relationship needs no extra data (no dates, no royalty percentage). Which Hibernate approach fits best?
-- A. Manually create a `BookAuthor` entity class, similar to how `Enrollment` was modeled
-- B. Use a plain `@ManyToMany` annotation directly between `Book` and `Author`, since no extra data needs to be stored
-- C. Use `@OneToMany` on both sides
-- D. Store author names as a comma-separated column inside books
+## Evidence of Understanding
 
-**Answer: B** — A plain `@ManyToMany` is exactly right when the relationship itself carries no additional data — a full entity is only needed once the relationship needs its own fields.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+You can justify why `Gate` is one class with an enum rather than two subclasses, and why `Ticket` needs its own `operator` snapshot separate from `Gate.operator`. You can explain why `Bill` holds a list of payments rather than one. You can derive correct foreign key placement for a one-to-many relationship from the cardinality alone, and explain why placing the key on the ""one"" side is representationally impossible. You can identify, without writing any threading code, exactly where a concurrent access race would occur in a spot-allotment flow.
 
-**Q20.** Given a Hibernate `Enrollment` entity with `@ManyToOne` to both `Student` and `Course`, plus its own `enrolledAt` field, why was `Enrollment` modeled as its own full entity instead of a plain `@ManyToMany` between `Student` and `Course`?
-- A. `@ManyToMany` doesn't exist in Hibernate
-- B. `@ManyToOne` runs faster than `@ManyToMany` in every case
-- C. The relationship itself carries extra data (`enrolledAt`), which a plain `@ManyToMany` junction table can't hold — so it needs to be a real entity
-- D. Student and Course cannot have a many-to-many relationship
+## Suggested Extension
 
-**Answer: C** — The moment a many-to-many relationship needs to carry its own data, a plain `@ManyToMany` junction table (which only holds the two foreign keys) is insufficient — the relationship must be promoted to its own entity.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
-
-**Q21.** A junior developer wanted to model aggregation between `Car` and `Driver` (a driver should exist independently of any car):
-```java
-public class Car {
-  private final Driver driver;
-  public Car() {
-    this.driver = new Driver(); // Car creates its own Driver internally
-  }
-}
-```
-What's wrong, and what's the fix?
-- A. Nothing is wrong — this already models aggregation correctly
-- B. `Driver` should be marked `static`
-- C. `final` should be removed from the field
-- D. The `Car` constructor creates and owns the `Driver` internally, which is composition-like behavior — fix it by passing an existing `Driver` object into the constructor instead
-
-**Answer: D** — Constructing the dependency internally makes the `Car` own the `Driver`'s lifecycle (composition-like), which contradicts the stated goal of aggregation. Passing an already-existing `Driver` in via the constructor (dependency injection) is what actually models independent lifecycles.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
-
-**Q22.** A hospital has a `Department` class and a `Doctor` class. A doctor belongs to one department at a time, but if a department is dissolved, doctors continue to exist and can be reassigned elsewhere. Which pair correctly identifies the relationship type AND the foreign key placement?
-- A. Aggregation, with `department_id` placed inside the `doctors` table
-- B. Composition, with `department_id` placed inside the `doctors` table
-- C. Aggregation, with `doctor_id` placed inside the `departments` table
-- D. Composition, with `doctor_id` placed inside the `departments` table
-
-**Answer: A** — Doctors outliving their department's dissolution is the definition of aggregation (independent lifecycles). The foreign key still follows the standard one-to-many rule: it lives on the ""many"" side (`doctors`), pointing back to the one `department`.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
-
-**Q23.** A teammate wrote this schema for a blog, where one post can have many comments:
-```sql
-CREATE TABLE posts (
-  id INT PRIMARY KEY, title VARCHAR(255),
-  comment_1 VARCHAR(500), comment_2 VARCHAR(500), comment_3 VARCHAR(500)
-);
-```
-What is the main problem, and what's the correct fix?
-- A. A fixed number of comment columns caps the relationship — create a separate `comments` table with a `post_id` foreign key instead
-- B. `id` should not be declared as a primary key
-- C. `title` should be split into two columns
-- D. The comments should be merged into one column separated by commas
-
-**Answer: A** — Hardcoding a fixed number of columns for what is really a one-to-many relationship caps it artificially (a 4th comment has nowhere to go) and wastes space for posts with fewer comments. The fix is a proper `comments` table with a foreign key back to `posts`.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
-
-**Q24.** A teammate wrote this schema for an orders system, where a separate `customers` table already stores customer details:
-```sql
-CREATE TABLE orders (
-  id INT PRIMARY KEY, customer_name VARCHAR(255),
-  customer_email VARCHAR(255), product VARCHAR(255)
-);
-```
-What's wrong with this design, and what's the fix?
-- A. Nothing is wrong — storing the name and email directly avoids extra joins
-- B. `product` should be split into `product_name` and `product_price`
-- C. `id` should not be declared as a primary key since orders can repeat
-- D. `customer_name` and `customer_email` duplicate data that already lives in `customers` — replace both with a single `customer_id` foreign key instead
-
-**Answer: D** — This is a direct normalization violation: customer data is duplicated into every order row instead of referenced once via foreign key, risking the two copies going out of sync if a customer updates their email.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
-
-**Q25.** A ride-sharing app's `Trip` class has a `List<RouteCoordinate>` — the GPS points making up that specific trip's path. If the trip record is deleted, those exact coordinates have no meaning anywhere else in the system. Which combination correctly describes the relationship and its notation?
-- A. Association without ownership — plain line, no diamond
-- B. Inheritance — hollow triangle
-- C. Aggregation — hollow diamond
-- D. Composition — filled diamond
-
-**Answer: D** — The route coordinates cannot outlive the trip they belong to (they have no independent meaning), which is composition, notated with a filled diamond on the `Trip` end.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
-
-**Q26.** In a many-to-many junction table like `enrollments`, some teams skip a separate surrogate `id` column entirely and instead make the combination of both foreign keys (`student_id` + `course_id` together) the primary key. What is this called?
-- A. A composite primary key
-- B. A duplicate key
-- C. A foreign primary key
-- D. A static key
-
-**Answer: A** — A primary key made of more than one column is a composite primary key; it works here because the pairing of the two foreign keys is already guaranteed unique.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
-
-**Q27.** 
-```java
-@Entity
-public class Course {
-  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-  private String title;
-  @ManyToOne
-  @JoinColumn(name = ""instructor_id"")
-  private Instructor instructor;
-}
-```
-When Hibernate generates the table for this class, what column represents the relationship with `Instructor`?
-- A. `instructor` (storing the full object)
-- B. `instructor_name`
-- C. `instructor_id`
-- D. No column — a junction table is created instead
-
-**Answer: C** — `@JoinColumn(name = ""instructor_id"")` tells Hibernate to store the relationship as a plain foreign-key column named `instructor_id` on the `Course` table, matching the standard one-to-many FK placement rule.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
-
-**Q28.** A banking app allows joint accounts — one account can have multiple owners, and one person can be an owner on multiple accounts. How should this be modeled in the schema?
-- A. Add an `owner_id` column directly inside `accounts`
-- B. Create a separate junction table (e.g. `account_owners`) holding `account_id` and `owner_id`
-- C. Add an `account_id` column directly inside `owners`
-- D. Store all owner names as a comma-separated list inside `accounts`
-
-**Answer: B** — A many-to-many relationship (many accounts to many owners) requires a junction table holding both foreign keys; a single column on either side cannot represent a many-to-many link.
-*(SOURCE_TYPE: FROM_MATERIAL — Scaler Additional Problems, Day 121, UML Diagrams)*
+Add a `ReservationStrategy` allowing spots to be pre-booked ahead of physical arrival, and work through how it interacts with `AllotmentStrategy` — does a reservation reduce the pool `AllotmentStrategy` chooses from, or bypass it entirely for that vehicle?
 ",
             "24-machine-coding-hotel-management" => @"# Lesson 24 — Machine Coding: Hotel Management System
 

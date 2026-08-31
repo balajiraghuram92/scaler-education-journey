@@ -1,0 +1,77 @@
+{
+  "id": "java-lld-decorator-file-storage",
+  "lessonSlug": "16-structural-patterns",
+  "title": "Decorator Pattern — File Storage Compression & Virus Scanning",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "file-storage",
+      "path": "src/main/java/contest/FileStorage.java",
+      "displayName": "FileStorage.java",
+      "editable": false
+    },
+    {
+      "id": "raw-file-storage",
+      "path": "src/main/java/contest/RawFileStorage.java",
+      "displayName": "RawFileStorage.java",
+      "editable": true
+    },
+    {
+      "id": "base-file-decorator",
+      "path": "src/main/java/contest/BaseFileDecorator.java",
+      "displayName": "BaseFileDecorator.java",
+      "editable": true
+    },
+    {
+      "id": "compression-decorator",
+      "path": "src/main/java/contest/CompressionDecorator.java",
+      "displayName": "CompressionDecorator.java",
+      "editable": true
+    },
+    {
+      "id": "virus-scanning-decorator",
+      "path": "src/main/java/contest/VirusScanningDecorator.java",
+      "displayName": "VirusScanningDecorator.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/contest/FileStorageTest.java",
+    "className": "FileStorageTest"
+  },
+  "evidence": [
+    {
+      "id": "file-storage-shape",
+      "label": "FileStorage declares storeFile(String, byte[]) and getFile(String) -> byte[]",
+      "testMethod": "testFileStorageInterfaceMethods"
+    },
+    {
+      "id": "raw-file-storage-implements",
+      "label": "RawFileStorage implements FileStorage",
+      "testMethod": "testRawFileStorageImplementation"
+    },
+    {
+      "id": "base-decorator-shape",
+      "label": "BaseFileDecorator implements FileStorage, holds a next-layer field, and has a FileStorage constructor",
+      "testMethod": "testBaseFileDecoratorImplementation"
+    },
+    {
+      "id": "compression-decorator-shape",
+      "label": "CompressionDecorator extends BaseFileDecorator with a FileStorage constructor",
+      "testMethod": "testCompressionDecoratorImplementation"
+    },
+    {
+      "id": "virus-scanning-decorator-shape",
+      "label": "VirusScanningDecorator extends BaseFileDecorator with a FileStorage constructor",
+      "testMethod": "testVirusScanningDecoratorImplementation"
+    }
+  ]
+}

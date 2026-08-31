@@ -1,0 +1,77 @@
+{
+  "id": "java-lld-decorator-image",
+  "lessonSlug": "16-structural-patterns",
+  "title": "Decorator Pattern — Image Editing Pipeline",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "image-editor",
+      "path": "src/main/java/decorator/ImageEditor.java",
+      "displayName": "ImageEditor.java",
+      "editable": false
+    },
+    {
+      "id": "raw-image-editor",
+      "path": "src/main/java/decorator/RawImageEditor.java",
+      "displayName": "RawImageEditor.java",
+      "editable": true
+    },
+    {
+      "id": "base-image-decorator",
+      "path": "src/main/java/decorator/BaseImageDecorator.java",
+      "displayName": "BaseImageDecorator.java",
+      "editable": true
+    },
+    {
+      "id": "blur-image-decorator",
+      "path": "src/main/java/decorator/BlurImageDecorator.java",
+      "displayName": "BlurImageDecorator.java",
+      "editable": true
+    },
+    {
+      "id": "grayscale-image-decorator",
+      "path": "src/main/java/decorator/GrayscaleImageDecorator.java",
+      "displayName": "GrayscaleImageDecorator.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/decorator/TestImageDecorator.java",
+    "className": "TestImageDecorator"
+  },
+  "evidence": [
+    {
+      "id": "image-editor-shape",
+      "label": "ImageEditor declares readImage(String) -> Image",
+      "testMethod": "testImageEditorInterfaceMethods"
+    },
+    {
+      "id": "raw-image-editor-implements",
+      "label": "RawImageEditor implements ImageEditor",
+      "testMethod": "testRawImageEditorImplementation"
+    },
+    {
+      "id": "base-decorator-shape",
+      "label": "BaseImageDecorator implements ImageEditor, holds a next-layer field, and has an ImageEditor constructor",
+      "testMethod": "testBaseImageDecoratorImplementation"
+    },
+    {
+      "id": "blur-decorator-shape",
+      "label": "BlurImageDecorator extends BaseImageDecorator with an ImageEditor constructor",
+      "testMethod": "testBlurImageDecoratorImplementation"
+    },
+    {
+      "id": "grayscale-decorator-shape",
+      "label": "GrayscaleImageDecorator extends BaseImageDecorator with an ImageEditor constructor",
+      "testMethod": "testGrayscaleImageDecoratorImplementation"
+    }
+  ]
+}

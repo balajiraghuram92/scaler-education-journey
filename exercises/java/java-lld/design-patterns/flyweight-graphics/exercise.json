@@ -1,0 +1,96 @@
+{
+  "id": "java-lld-flyweight-graphics",
+  "lessonSlug": "16-structural-patterns",
+  "title": "Flyweight Pattern — Graphics Editor Elements",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "image",
+      "path": "src/main/java/com/assignment/question/Image.java",
+      "displayName": "Image.java",
+      "editable": false
+    },
+    {
+      "id": "graphic-type",
+      "path": "src/main/java/com/assignment/question/GraphicType.java",
+      "displayName": "GraphicType.java",
+      "editable": false
+    },
+    {
+      "id": "graphic",
+      "path": "src/main/java/com/assignment/question/Graphic.java",
+      "displayName": "Graphic.java",
+      "editable": false
+    },
+    {
+      "id": "intrinsic-state-annotation",
+      "path": "src/main/java/com/assignment/question/IntrinsicState.java",
+      "displayName": "IntrinsicState.java",
+      "editable": false
+    },
+    {
+      "id": "extrinsic-state-annotation",
+      "path": "src/main/java/com/assignment/question/ExtrinsicState.java",
+      "displayName": "ExtrinsicState.java",
+      "editable": false
+    },
+    {
+      "id": "flyweight-registry",
+      "path": "src/main/java/com/assignment/question/FlyweightRegistry.java",
+      "displayName": "FlyweightRegistry.java",
+      "editable": false
+    },
+    {
+      "id": "graphic-intrinsic-state",
+      "path": "src/main/java/com/assignment/question/GraphicIntrinsicState.java",
+      "displayName": "GraphicIntrinsicState.java",
+      "editable": true
+    },
+    {
+      "id": "graphic-extrinsic-state",
+      "path": "src/main/java/com/assignment/question/GraphicExtrinsicState.java",
+      "displayName": "GraphicExtrinsicState.java",
+      "editable": true
+    },
+    {
+      "id": "flyweight-registry-impl",
+      "path": "src/main/java/com/assignment/question/FlyweightRegistryImpl.java",
+      "displayName": "FlyweightRegistryImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/GraphicTest.java",
+    "className": "GraphicTest"
+  },
+  "evidence": [
+    {
+      "id": "intrinsic-state-fields",
+      "label": "Exactly one class is annotated @IntrinsicState, holding image/width/height/color",
+      "testMethod": "testIntrinsicStateFields"
+    },
+    {
+      "id": "extrinsic-state-fields",
+      "label": "Exactly one class is annotated @ExtrinsicState, holding x and y",
+      "testMethod": "testExtrinsicStateFields"
+    },
+    {
+      "id": "extrinsic-references-intrinsic",
+      "label": "The @ExtrinsicState class holds a field referencing the @IntrinsicState class",
+      "testMethod": "testIntrinsicReferenceField"
+    },
+    {
+      "id": "registry-uses-map",
+      "label": "The FlyweightRegistry implementation caches flyweights in a Map field",
+      "testMethod": "testRegistry"
+    }
+  ]
+}

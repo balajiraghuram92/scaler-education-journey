@@ -1,0 +1,77 @@
+{
+  "id": "java-lld-decorator-api",
+  "lessonSlug": "16-structural-patterns",
+  "title": "Decorator Pattern — API Logging & Rate Limiting",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "api",
+      "path": "src/main/java/apidecorator/api/Api.java",
+      "displayName": "Api.java",
+      "editable": false
+    },
+    {
+      "id": "simple-ecommerce-api",
+      "path": "src/main/java/apidecorator/api/SimpleEcommerceAPI.java",
+      "displayName": "SimpleEcommerceAPI.java",
+      "editable": true
+    },
+    {
+      "id": "base-api-decorator",
+      "path": "src/main/java/apidecorator/BaseApiDecorator.java",
+      "displayName": "BaseApiDecorator.java",
+      "editable": true
+    },
+    {
+      "id": "logging-decorator",
+      "path": "src/main/java/apidecorator/LoggingDecorator.java",
+      "displayName": "LoggingDecorator.java",
+      "editable": true
+    },
+    {
+      "id": "rate-limiting-decorator",
+      "path": "src/main/java/apidecorator/RateLimitingDecorator.java",
+      "displayName": "RateLimitingDecorator.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/apidecorator/ApiDecoratorTest.java",
+    "className": "ApiDecoratorTest"
+  },
+  "evidence": [
+    {
+      "id": "api-shape",
+      "label": "Api declares executeRequest(String) -> String",
+      "testMethod": "testApiInterfaceMethods"
+    },
+    {
+      "id": "simple-api-implements",
+      "label": "SimpleEcommerceAPI implements Api",
+      "testMethod": "testSimpleEcommerceApiImplementation"
+    },
+    {
+      "id": "base-decorator-shape",
+      "label": "BaseApiDecorator implements Api, holds a next-layer field, and has an Api constructor",
+      "testMethod": "testBaseApiDecoratorImplementation"
+    },
+    {
+      "id": "logging-decorator-shape",
+      "label": "LoggingDecorator extends BaseApiDecorator with an Api constructor",
+      "testMethod": "testLoggingDecoratorImplementation"
+    },
+    {
+      "id": "rate-limiting-decorator-shape",
+      "label": "RateLimitingDecorator extends BaseApiDecorator with an Api constructor",
+      "testMethod": "testRateLimitingDecoratorImplementation"
+    }
+  ]
+}

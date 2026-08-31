@@ -1,0 +1,120 @@
+{
+  "id": "java-lld-abstract-factory-audio",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Abstract Factory Pattern — Audio Player Format Families",
+  "language": "java",
+  "difficulty": "advanced",
+  "estimatedMinutes": 60,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "media-format",
+      "path": "src/main/java/com/assignment/question/MediaFormat.java",
+      "displayName": "MediaFormat.java",
+      "editable": false
+    },
+    {
+      "id": "audio-factory",
+      "path": "src/main/java/com/assignment/question/AudioFactory.java",
+      "displayName": "AudioFactory.java",
+      "editable": false
+    },
+    {
+      "id": "audio-decoder",
+      "path": "src/main/java/com/assignment/question/decoder/AudioDecoder.java",
+      "displayName": "AudioDecoder.java",
+      "editable": false
+    },
+    {
+      "id": "audio-player",
+      "path": "src/main/java/com/assignment/question/player/AudioPlayer.java",
+      "displayName": "AudioPlayer.java",
+      "editable": false
+    },
+    {
+      "id": "audio-processor",
+      "path": "src/main/java/com/assignment/question/processor/AudioProcessor.java",
+      "displayName": "AudioProcessor.java",
+      "editable": false
+    },
+    {
+      "id": "mp3-audio-factory",
+      "path": "src/main/java/com/assignment/question/MP3AudioFactory.java",
+      "displayName": "MP3AudioFactory.java",
+      "editable": true
+    },
+    {
+      "id": "flac-audio-factory",
+      "path": "src/main/java/com/assignment/question/FLACAudioFactory.java",
+      "displayName": "FLACAudioFactory.java",
+      "editable": true
+    },
+    {
+      "id": "mp3-decoder",
+      "path": "src/main/java/com/assignment/question/decoder/MP3Decoder.java",
+      "displayName": "MP3Decoder.java",
+      "editable": true
+    },
+    {
+      "id": "flac-decoder",
+      "path": "src/main/java/com/assignment/question/decoder/FLACDecoder.java",
+      "displayName": "FLACDecoder.java",
+      "editable": true
+    },
+    {
+      "id": "mp3-player",
+      "path": "src/main/java/com/assignment/question/player/MP3Player.java",
+      "displayName": "MP3Player.java",
+      "editable": true
+    },
+    {
+      "id": "flac-player",
+      "path": "src/main/java/com/assignment/question/player/FLACPlayer.java",
+      "displayName": "FLACPlayer.java",
+      "editable": true
+    },
+    {
+      "id": "mp3-audio-processor",
+      "path": "src/main/java/com/assignment/question/processor/MP3AudioProcessor.java",
+      "displayName": "MP3AudioProcessor.java",
+      "editable": true
+    },
+    {
+      "id": "flac-audio-processor",
+      "path": "src/main/java/com/assignment/question/processor/FLACAudioProcessor.java",
+      "displayName": "FLACAudioProcessor.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/AudioFactoryTest.java",
+    "className": "AudioFactoryTest"
+  },
+  "evidence": [
+    {
+      "id": "abstract-factory-shape",
+      "label": "Exactly 2 AudioFactory subtypes exist; AudioFactory declares the 4 required abstract methods",
+      "testMethod": "testAbstractFactoryClass"
+    },
+    {
+      "id": "processor-create-invocation",
+      "label": "createAudioProcessor(...) returns an AudioProcessor whose supportsFormat() matches the factory's family",
+      "testMethod": "testAudioProcessorCreateMethodInvocation"
+    },
+    {
+      "id": "decoder-create-invocation",
+      "label": "createAudioDecoder(...) returns an AudioDecoder whose supportsFormat() matches the factory's family",
+      "testMethod": "testAudioDecoderCreateMethodInvocation"
+    },
+    {
+      "id": "player-create-invocation",
+      "label": "createAudioPlayer(...) returns an AudioPlayer whose supportsFormat() matches the factory's family",
+      "testMethod": "testAudioPlayerCreateMethodInvocation"
+    }
+  ]
+}
