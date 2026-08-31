@@ -1,0 +1,43 @@
+{
+  "id": "java-lld-big-factorial-thread",
+  "lessonSlug": "06-concurrency-1-threads",
+  "title": "Big Factorial on a Background Thread",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 15,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "big-factorial",
+      "path": "src/main/java/org/example/BigFactorial.java",
+      "displayName": "BigFactorial.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestBigFactorial.java",
+    "className": "TestBigFactorial"
+  },
+  "evidence": [
+    {
+      "id": "computes-factorial-on-thread",
+      "label": "run() computes n! and the thread reaches TERMINATED after join()",
+      "testMethod": "testComputeFactorial"
+    },
+    {
+      "id": "handles-zero-and-large-n",
+      "label": "Factorial of 0 is 1, and factorial of 1000 computes without overflow using BigInteger",
+      "testMethod": "testFactorialOfLargeNumber"
+    },
+    {
+      "id": "independent-instances",
+      "label": "Multiple BigFactorial instances compute independently when run concurrently",
+      "testMethod": "testMultipleInstances"
+    }
+  ]
+}

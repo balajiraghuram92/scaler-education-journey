@@ -1,0 +1,38 @@
+{
+  "id": "java-lld-image-painter-executors",
+  "lessonSlug": "07-concurrency-2-executors",
+  "title": "Image Painter — Parallel Quadrants with ExecutorService",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 25,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "image-painter",
+      "path": "src/main/java/org/example/ImagePainter.java",
+      "displayName": "ImagePainter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestImagePainter.java",
+    "className": "TestImagePainter"
+  },
+  "evidence": [
+    {
+      "id": "paints-four-quadrants",
+      "label": "paintImage(...) paints each quadrant with its own color derivative and completes before returning",
+      "testMethod": "testPaintImage_color1"
+    },
+    {
+      "id": "handles-larger-image",
+      "label": "paintImage(...) correctly paints a larger image with all-zero color",
+      "testMethod": "testPaintImage_color2"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "id": "java-lld-thread-basics-adder-subtractor",
+  "lessonSlug": "06-concurrency-1-threads",
+  "title": "Thread Basics — Runnable, Thread Subclassing",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 20,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "adder",
+      "path": "src/main/java/Adder.java",
+      "displayName": "Adder.java",
+      "editable": true
+    },
+    {
+      "id": "subtractor",
+      "path": "src/main/java/Subtractor.java",
+      "displayName": "Subtractor.java",
+      "editable": true
+    },
+    {
+      "id": "scaler-thread",
+      "path": "src/main/java/ScalerThread.java",
+      "displayName": "ScalerThread.java",
+      "editable": true
+    },
+    {
+      "id": "client",
+      "path": "src/main/java/Client.java",
+      "displayName": "Client.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/ClientTest.java",
+    "className": "ClientTest"
+  },
+  "evidence": [
+    {
+      "id": "adder-and-subtractor-are-runnable",
+      "label": "Adder and Subtractor implement Runnable and print their expected message",
+      "testMethod": "testAdderOutput"
+    },
+    {
+      "id": "client-has-main",
+      "label": "Client declares a main(String[]) method",
+      "testMethod": "testClientMainMethod"
+    },
+    {
+      "id": "runs-on-separate-threads",
+      "label": "Client.main() runs Adder and Subtractor on two distinct threads, neither of which is the calling thread",
+      "testMethod": "testAdderAndSubtractorThreads"
+    }
+  ]
+}

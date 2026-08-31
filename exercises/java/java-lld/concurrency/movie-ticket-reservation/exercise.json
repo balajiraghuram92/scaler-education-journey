@@ -1,0 +1,38 @@
+{
+  "id": "java-lld-movie-ticket-reservation",
+  "lessonSlug": "08-concurrency-3-synchronization",
+  "title": "Movie Ticket Reservation with ReentrantLock",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 20,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "movie-reservation-system",
+      "path": "src/main/java/org/example/MovieReservationSystem.java",
+      "displayName": "MovieReservationSystem.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestMovieReservationSystem.java",
+    "className": "TestMovieReservationSystem"
+  },
+  "evidence": [
+    {
+      "id": "reserves-and-rejects-correctly",
+      "label": "reserveSeats(...) deducts available seats on success and rejects a request that exceeds availability",
+      "testMethod": "testReserveSeats"
+    },
+    {
+      "id": "thread-safe-under-concurrency",
+      "label": "Concurrent reservations from two threads never over-book — the final seat count is exact",
+      "testMethod": "testReserveSeatsConcurrent"
+    }
+  ]
+}

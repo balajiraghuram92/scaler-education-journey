@@ -1,0 +1,38 @@
+{
+  "id": "java-lld-train-reservation-per-class-locks",
+  "lessonSlug": "08-concurrency-3-synchronization",
+  "title": "Train Reservation — Per-Seat-Class Locking",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 25,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "reservation-system",
+      "path": "src/main/java/org/example/ReservationSystem.java",
+      "displayName": "ReservationSystem.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestReservationSystem.java",
+    "className": "TestReservationSystem"
+  },
+  "evidence": [
+    {
+      "id": "reserves-per-seat-type",
+      "label": "reserveSeats(...) tracks availability independently per seat type, rejecting over-requests",
+      "testMethod": "testReserveSeats"
+    },
+    {
+      "id": "thread-safe-per-lock",
+      "label": "Concurrent reservations across seat types from two threads never over-book any seat type",
+      "testMethod": "testReserveSeatsConcurrent"
+    }
+  ]
+}
