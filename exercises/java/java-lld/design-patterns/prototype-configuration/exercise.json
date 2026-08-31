@@ -1,0 +1,72 @@
+{
+  "id": "java-lld-prototype-configuration",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Prototype Pattern — Configuration Cloning",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 30,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "clonable-object",
+      "path": "src/main/java/com/assignment/question/ClonableObject.java",
+      "displayName": "ClonableObject.java",
+      "editable": false
+    },
+    {
+      "id": "configuration-type",
+      "path": "src/main/java/com/assignment/question/ConfigurationType.java",
+      "displayName": "ConfigurationType.java",
+      "editable": false
+    },
+    {
+      "id": "configuration-prototype-registry",
+      "path": "src/main/java/com/assignment/question/ConfigurationPrototypeRegistry.java",
+      "displayName": "ConfigurationPrototypeRegistry.java",
+      "editable": false
+    },
+    {
+      "id": "configuration",
+      "path": "src/main/java/com/assignment/question/Configuration.java",
+      "displayName": "Configuration.java",
+      "editable": true
+    },
+    {
+      "id": "configuration-prototype-registry-impl",
+      "path": "src/main/java/com/assignment/question/ConfigurationPrototypeRegistryImpl.java",
+      "displayName": "ConfigurationPrototypeRegistryImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/ConfigurationTest.java",
+    "className": "ConfigurationTest"
+  },
+  "evidence": [
+    {
+      "id": "implements-clonable",
+      "label": "Configuration implements ClonableObject<Configuration>",
+      "testMethod": "testConfigurationImplementsClonableObject"
+    },
+    {
+      "id": "clone-is-distinct-with-same-values",
+      "label": "cloneObject() returns a distinct object carrying identical field values",
+      "testMethod": "testConfigurationCloneMethodCreatesDistinctObject"
+    },
+    {
+      "id": "registry-stores-and-returns-prototype",
+      "label": "The registry returns the exact prototype instance that was registered",
+      "testMethod": "testRegistry"
+    },
+    {
+      "id": "registry-clone-delegates",
+      "label": "registry.clone(type) returns a fresh clone of the registered prototype",
+      "testMethod": "testRegistryClone"
+    }
+  ]
+}

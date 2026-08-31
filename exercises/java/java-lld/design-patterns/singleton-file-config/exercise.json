@@ -1,0 +1,59 @@
+{
+  "id": "java-lld-singleton-file-config",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Singleton — File-Based Configuration Manager",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 35,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "file-based-configuration-manager",
+      "path": "src/main/java/com/assignment/question/FileBasedConfigurationManager.java",
+      "displayName": "FileBasedConfigurationManager.java",
+      "editable": false
+    },
+    {
+      "id": "file-based-configuration-manager-impl",
+      "path": "src/main/java/com/assignment/question/FileBasedConfigurationManagerImpl.java",
+      "displayName": "FileBasedConfigurationManagerImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/FileBasedConfigurationManagerTest.java",
+    "className": "FileBasedConfigurationManagerTest"
+  },
+  "evidence": [
+    {
+      "id": "no-public-constructor",
+      "label": "The implementation has no public constructor and exposes static getInstance()/resetInstance()",
+      "testMethod": "preTestConfigurationManagerImplementationFound"
+    },
+    {
+      "id": "singleton-returns-same-instance",
+      "label": "getInstance() always returns the same instance across repeated calls",
+      "testMethod": "testSingletonBehavior"
+    },
+    {
+      "id": "thread-safe-singleton",
+      "label": "getInstance() returns the same instance even when called concurrently from 10 threads",
+      "testMethod": "testSingletonThreadSafety"
+    },
+    {
+      "id": "reset-creates-new-instance",
+      "label": "resetInstance() forces the next getInstance() call to create a fresh instance",
+      "testMethod": "testResetInstanceMethod"
+    },
+    {
+      "id": "configuration-crud-works",
+      "label": "get/set/remove/clear configuration operations work correctly, including type conversion",
+      "testMethod": "testGetConfigurationWithTypeConversion"
+    }
+  ]
+}

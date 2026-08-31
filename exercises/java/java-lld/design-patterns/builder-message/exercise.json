@@ -1,0 +1,66 @@
+{
+  "id": "java-lld-builder-message",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Builder Pattern — Messaging Service",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 30,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "with-builder",
+      "path": "src/main/java/com/assignment/question/WithBuilder.java",
+      "displayName": "WithBuilder.java",
+      "editable": false
+    },
+    {
+      "id": "message-type",
+      "path": "src/main/java/com/assignment/question/MessageType.java",
+      "displayName": "MessageType.java",
+      "editable": false
+    },
+    {
+      "id": "message",
+      "path": "src/main/java/com/assignment/question/Message.java",
+      "displayName": "Message.java",
+      "editable": false
+    },
+    {
+      "id": "message-builder",
+      "path": "src/main/java/com/assignment/question/MessageBuilder.java",
+      "displayName": "MessageBuilder.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/MessageBuilderTest.java",
+    "className": "MessageBuilderTest"
+  },
+  "evidence": [
+    {
+      "id": "has-public-static-inner-builder",
+      "label": "MessageBuilder has a public static nested Builder class",
+      "testMethod": "testBuilderClassHasStaticClass"
+    },
+    {
+      "id": "builder-mirrors-fields",
+      "label": "The Builder either references the outer instance or duplicates all its fields",
+      "testMethod": "testInnerFields"
+    },
+    {
+      "id": "build-returns-outer-type",
+      "label": "build() is present and returns a MessageBuilder instance",
+      "testMethod": "testBuilderClassHasBuildMethod"
+    },
+    {
+      "id": "build-copies-accumulated-values",
+      "label": "build() copies every field set via the fluent messageType/content/sender/... chain into the returned instance",
+      "testMethod": "testBuildMethodCopiesValues"
+    }
+  ]
+}

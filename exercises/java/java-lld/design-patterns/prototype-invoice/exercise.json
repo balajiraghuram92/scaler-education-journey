@@ -1,0 +1,72 @@
+{
+  "id": "java-lld-prototype-invoice",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Prototype Pattern — Invoice Cloning",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 30,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "clonable-object",
+      "path": "src/main/java/com/assignment/question/ClonableObject.java",
+      "displayName": "ClonableObject.java",
+      "editable": false
+    },
+    {
+      "id": "invoice-type",
+      "path": "src/main/java/com/assignment/question/InvoiceType.java",
+      "displayName": "InvoiceType.java",
+      "editable": false
+    },
+    {
+      "id": "invoice-prototype-registry",
+      "path": "src/main/java/com/assignment/question/InvoicePrototypeRegistry.java",
+      "displayName": "InvoicePrototypeRegistry.java",
+      "editable": false
+    },
+    {
+      "id": "invoice",
+      "path": "src/main/java/com/assignment/question/Invoice.java",
+      "displayName": "Invoice.java",
+      "editable": true
+    },
+    {
+      "id": "invoice-registry-impl",
+      "path": "src/main/java/com/assignment/question/InvoiceRegistryImpl.java",
+      "displayName": "InvoiceRegistryImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/InvoiceTest.java",
+    "className": "InvoiceTest"
+  },
+  "evidence": [
+    {
+      "id": "implements-clonable",
+      "label": "Invoice implements ClonableObject<Invoice>",
+      "testMethod": "testInvoiceImplementsClonableObject"
+    },
+    {
+      "id": "clone-is-distinct-with-same-values",
+      "label": "cloneObject() returns a distinct object carrying identical field values",
+      "testMethod": "testInvoiceCloneMethodCreatesDistinctObject"
+    },
+    {
+      "id": "registry-stores-and-returns-prototype",
+      "label": "The registry returns the exact prototype instance that was registered",
+      "testMethod": "testRegistry"
+    },
+    {
+      "id": "registry-clone-delegates",
+      "label": "registry.clone(type) returns a fresh clone of the registered prototype",
+      "testMethod": "testRegistryClone"
+    }
+  ]
+}
