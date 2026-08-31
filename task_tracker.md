@@ -199,3 +199,11 @@
 - [x] **Sub-task 27.3**: Confirm architecture diagrams are omitted for Lessons 1-6 per §8a inclusion test criteria.
 - [x] **Sub-task 27.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
 - [x] **Sub-task 27.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+## Phase 28: FDE Curriculum Pipeline — Module 6: Agentic Systems & Enterprise Integrations (Lessons 7-11 of 11 — MODULE 6 COMPLETE) (Completed)
+- [x] **Sub-task 28.1**: Ingest 5 Lesson chapter bodies for `agentic-systems-integrations` (Lessons 7-11) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 28.2**: Wire 10 Concept Checks (2 per lesson) and 33 Practice Questions across all 5 lessons (43 total MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 28.3**: Add architecture diagram for Lesson 10 (`10-build-crm-to-ai-support-copilot`) highlighting the multi-actor webhook/orchestrator/MCP-worker/human-approval topology.
+- [x] **Sub-task 28.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 28.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+

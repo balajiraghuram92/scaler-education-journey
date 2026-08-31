@@ -13065,6 +13065,738 @@ const lessonInteractions = {
       }
     ]
   },
+  'fde-curriculum/agentic-systems-integrations/07-api-integration-patterns-and-connector-design': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-07-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson recommend cursor-based pagination over offset-based pagination for the Salesforce account-list sync running during business hours?',
+        options: [
+          { id: 'a', label: 'A', text: 'Offset-based pagination is technically unsupported by the Salesforce API' },
+          { id: 'b', label: 'B', text: 'Offset pagination\'s correctness depends on the underlying list being static during the fetch; because Salesforce data changes continuously during business hours, records can shift between pages and be silently skipped or duplicated, while cursor pagination\'s opaque token remains correct even as the list changes underneath it' },
+          { id: 'c', label: 'C', text: 'Cursor pagination is always faster than offset pagination regardless of data volatility' },
+          { id: 'd', label: 'D', text: 'Offset pagination requires OAuth while cursor pagination does not' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The failure mode is specific: offset pagination assumes a static list, and that assumption is false for an actively-changing Salesforce data set, which is exactly the condition cursor pagination is designed to tolerate.',
+        incorrectExplanation:
+          'Think about what happens to record offsets and window boundaries when records are added or deleted between paginated requests.',
+        hint:
+          'Cursor pagination uses an opaque pointer to the next record position, avoiding skips and duplicate reads caused by concurrent inserts or deletes.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-07-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the idempotency key for `update_account_note` need to include a hash of the note content, rather than being derived from the ticket ID alone?',
+        options: [
+          { id: 'a', label: 'A', text: 'Salesforce\'s bulk API cannot process idempotency keys shorter than a certain length' },
+          { id: 'b', label: 'B', text: 'Using the ticket ID alone would make two genuinely different notes posted about the same ticket collide under the same idempotency key, incorrectly deduplicating a second, legitimate note as if it were a retry of the first' },
+          { id: 'c', label: 'C', text: 'The ticket ID changes every time a note is posted, so it cannot be used as a stable key' },
+          { id: 'd', label: 'D', text: 'Note content hashes are required by Salesforce for all API writes, regardless of idempotency' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'An idempotency key needs to uniquely identify one specific write attempt\'s intended effect — keying only on the ticket ID would conflate two distinct, legitimate notes on the same ticket as if they were retries of each other.',
+        incorrectExplanation:
+          'Consider what happens if an agent legitimately posts two distinct notes to the same ticket over time when the idempotency key uses only ticket ID.',
+        hint:
+          'Keying only on the ticket ID causes false collisions, treating a distinct subsequent note as a duplicate retry of the previous one.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-07-mcq-01',
+        question:
+          'Why does the lesson say a connector that treats every 401 response as a hard failure will fail constantly under normal conditions, not just during an outage?',
+        options: [
+          { id: 'a', label: 'A', text: 'A 401 always indicates the third-party API itself is down' },
+          { id: 'b', label: 'B', text: 'Access tokens are short-lived by design, so a 401 from an expired token is an expected, routine event; a connector needs to refresh the token once and retry before treating the call as failed, the same one-retry discipline lesson 1 applied to a malformed tool call' },
+          { id: 'c', label: 'C', text: 'OAuth2 does not actually support token refresh for server-to-server integrations' },
+          { id: 'd', label: 'D', text: 'A hard failure on 401 is the correct behavior and should never be retried' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Token expiry is routine, not exceptional, so a connector needs a bounded refresh-and-retry step built in — the same "one bounded correction attempt, then a deterministic failure" shape lesson 1 used for schema errors, applied here to expired credentials.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-07-mcq-02',
+        question:
+          'Why does the lesson prefer a client-side token-bucket limiter over simply firing requests and backing off after receiving a 429?',
+        options: [
+          { id: 'a', label: 'A', text: 'Token-bucket limiters are required by the OAuth2 specification' },
+          { id: 'b', label: 'B', text: 'Firing requests at whatever rate the caller allows and only reacting to a 429 wastes a request, adds latency, and risks tripping a temporary block, whereas proactive throttling stays under the documented ceiling before ever triggering a rate-limit response' },
+          { id: 'c', label: 'C', text: 'A 429 response is never actually returned by a well-behaved API' },
+          { id: 'd', label: 'D', text: 'Reactive backoff cannot be implemented without a connector abstraction layer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Proactive throttling avoids the cost of ever hitting the limit in the first place — a wasted request and possible temporary block — while reactive backoff is only a recovery mechanism for when a limit has already been exceeded.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-07-mcq-03',
+        question:
+          'Per the lesson, what should actually determine whether a connector uses a webhook or polling to detect a change in a source system?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whichever pattern is more technically sophisticated should always be preferred' },
+          { id: 'b', label: 'B', text: 'The system\'s actual freshness requirement — the same question lesson 6\'s batch-versus-event-driven framework already taught how to ask, not a default preference for one pattern' },
+          { id: 'c', label: 'C', text: 'Polling should always be chosen because it requires no public endpoint' },
+          { id: 'd', label: 'D', text: 'Webhooks should always be chosen because they guarantee exactly-once delivery' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly reuses lesson 6\'s freshness-requirement framework rather than introducing a new decision rule — the right choice depends on how quickly a change actually needs to be seen, not on which pattern sounds more advanced.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-07-mcq-04',
+        question:
+          'Why does Fenwick\'s webhook receiving handler check each event\'s delivery ID against a dedup cache before processing it?',
+        options: [
+          { id: 'a', label: 'A', text: 'Zendesk\'s webhook delivery is guaranteed exactly-once, so this check is only a defensive precaution with no real basis' },
+          { id: 'b', label: 'B', text: 'Zendesk\'s webhook delivery guarantees at-least-once, meaning the same event can legitimately arrive twice; without a dedup check, a duplicate delivery would trigger the orchestrator a second time for a ticket that only actually changed once' },
+          { id: 'c', label: 'C', text: 'The dedup check exists to detect and reject malicious webhook payloads' },
+          { id: 'd', label: 'D', text: 'Dedup checks are only necessary for polling-based integrations, never webhooks' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'At-least-once delivery is a real, documented guarantee (not exactly-once), so a legitimate duplicate delivery is an expected event the handler must tolerate, not an anomaly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-07-mcq-05',
+        question:
+          'Why does the `update_account_note` tool generate an idempotency key from a hash of the ticket ID and note content, rather than relying on the caller to simply not retry a timed-out call?',
+        options: [
+          { id: 'a', label: 'A', text: 'Salesforce rejects any write that lacks an idempotency key, regardless of retry behavior' },
+          { id: 'b', label: 'B', text: 'A write can time out from the caller\'s perspective while having already succeeded on Salesforce\'s side; a naive retry without an idempotency key could post the same note twice, so the key lets Salesforce\'s bulk API deduplicate a retried write against the one that already landed' },
+          { id: 'c', label: 'C', text: 'Idempotency keys are only relevant for reads, never for writes' },
+          { id: 'd', label: 'D', text: 'The ticket ID alone is always sufficient to prevent any duplicate note' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly the ambiguity a timeout creates — the caller cannot distinguish "the write failed" from "the write succeeded but the response was lost," so idempotency is the only safe way to make a retry harmless.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-07-mcq-06',
+        question:
+          'What does the lesson say a connector abstraction layer (a shared `Connector` interface with system-specific implementations) accomplishes?',
+        options: [
+          { id: 'a', label: 'A', text: 'It replaces the need for OAuth authentication entirely' },
+          { id: 'b', label: 'B', text: 'It keeps system-specific plumbing — OAuth refresh, pagination, rate-limit backoff, idempotent writes — in exactly one place per system, instead of scattered across every tool handler and MCP server that happens to touch that system' },
+          { id: 'c', label: 'C', text: 'It eliminates the need for any rate-limit handling' },
+          { id: 'd', label: 'D', text: 'It is only useful once a system has more than one MCP server built for it' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The connector layer\'s value is centralizing genuinely system-specific mechanics in one place, so the tool and MCP-server layers built on top of it don\'t each need to reimplement the same auth, pagination, and retry logic.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-07-mcq-07',
+        question:
+          'How does the connector abstraction layer from this lesson relate to the MCP servers introduced in lesson 4?',
+        options: [
+          { id: 'a', label: 'A', text: 'The connector layer replaces the need for MCP servers entirely' },
+          { id: 'b', label: 'B', text: 'The connector layer sits underneath MCP servers — an MCP server\'s tool handler calls into a connector to actually talk to Salesforce or Zendesk, rather than reimplementing OAuth and pagination itself, extending lesson 4\'s separation-of-concerns argument one abstraction layer deeper' },
+          { id: 'c', label: 'C', text: 'MCP servers and connectors solve completely unrelated problems with no architectural relationship' },
+          { id: 'd', label: 'D', text: 'A connector must be rebuilt separately for every MCP server that uses it' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The two layers are complementary, not competing: the connector owns raw system-specific plumbing, while the MCP server built on top of it owns the resources/tools/prompts primitives and per-client access scoping lesson 4 introduced.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/08-integration-failure-modes-and-debugging': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-08-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson say duplicate-delivery dedup needs to apply at the workflow level, not just inside the webhook receiver that already checks delivery IDs?',
+        options: [
+          { id: 'a', label: 'A', text: 'Webhook receivers are technically incapable of performing any deduplication' },
+          { id: 'b', label: 'B', text: 'A duplicate delivery can slip past the receiver\'s dedup cache — for example if the cache is evicted or the receiver restarts and loses in-memory state — and still trigger a second, redundant run of everything the workflow does downstream, so workflow-level idempotency is a necessary second layer, not a redundant one' },
+          { id: 'c', label: 'C', text: 'Workflow-level dedup replaces the need for any dedup check at the receiver itself' },
+          { id: 'd', label: 'D', text: 'Duplicate deliveries are impossible once a receiver-level dedup cache is in place' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The receiver-level cache is a real but imperfect defense (it can be evicted or lost on restart), so the lesson argues for defense in depth — idempotency at the workflow level too, not reliance on a single dedup layer.',
+        incorrectExplanation:
+          'Think about what happens to receiver in-memory state or cache TTLs during restarts, evictions, or multi-step async dispatch.',
+        hint:
+          'A webhook receiver\'s cache can evict or restart; workflow-level idempotency provides defense-in-depth against downstream duplicate runs.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-08-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'What does the lesson recommend as the reliable fix for out-of-order event delivery, such as a "ticket closed" event arriving before a "ticket updated" event for the same ticket?',
+        options: [
+          { id: 'a', label: 'A', text: 'Assume events always arrive in the order they logically occurred, since this is true for the large majority of cases' },
+          { id: 'b', label: 'B', text: 'Do not trust event arrival order at all — check each event\'s own sequence or version number against the last-processed one and discard stale events, or fetch the record\'s current authoritative state from the source system rather than trusting the event payload\'s snapshot' },
+          { id: 'c', label: 'C', text: 'Discard every event that arrives more than one second after the previous event for the same ticket' },
+          { id: 'd', label: 'D', text: 'Reject any webhook provider that cannot guarantee ordered delivery' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that arrival order cannot be trusted at all — the fix is either a sequence/version check or fetching current state directly, not an assumption that out-of-order delivery is rare enough to ignore.',
+        incorrectExplanation:
+          'Consider why network latency differences make trusting arrival order hazardous for state updates.',
+        hint:
+          'Network delivery order is non-deterministic; check event sequence/version numbers or fetch authoritative source state directly.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-08-mcq-01',
+        question:
+          'Why can a partial failure (the Ledger write succeeding while the Salesforce case update times out) leave two systems permanently disagreeing, with no automatic rollback?',
+        options: [
+          { id: 'a', label: 'A', text: 'Ledger and Salesforce both automatically detect and correct any inconsistency between them' },
+          { id: 'b', label: 'B', text: 'There is no cross-system transaction spanning Ledger and Salesforce the way a database transaction spans tables in one database — when the second write fails, nothing automatically undoes the first, so the integration code itself has to notice and reconcile the resulting inconsistency' },
+          { id: 'c', label: 'C', text: 'Partial failures only occur when a connector\'s OAuth token has expired' },
+          { id: 'd', label: 'D', text: 'Salesforce writes are always processed before Ledger writes, so this scenario cannot occur' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The absence of a cross-system transaction is exactly why a partial failure needs deliberate reconciliation logic — nothing in either system\'s own guarantees will notice or fix the mismatch on its own.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-08-mcq-02',
+        question:
+          'Why does the lesson say schema drift can appear at any time with no deploy of Fenwick\'s own code to blame it on?',
+        options: [
+          { id: 'a', label: 'A', text: 'Schema drift is always caused by a bug in the connector\'s own retry logic' },
+          { id: 'b', label: 'B', text: 'A third-party API can silently add, rename, or change a field\'s semantics without a version bump, and because the third party — not Fenwick — controls that timeline, the connector\'s field-mapping code can break at any moment the third party changes its shape, independent of anything Fenwick deployed' },
+          { id: 'c', label: 'C', text: 'Schema drift can only occur immediately after Fenwick deploys a new version of its own connector' },
+          { id: 'd', label: 'D', text: 'Third-party APIs are contractually required to give 90 days\' notice before any schema change' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly what makes schema drift distinct from most production bugs — its root cause is entirely outside Fenwick\'s own deploy timeline, which is why an inbound validation layer, not just careful code review, is the practical defense.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-08-mcq-03',
+        question:
+          'What specific advantage does propagating one trace ID across the webhook-to-orchestrator-to-Salesforce-to-Ledger path give an FDE debugging one ticket\'s outcome, compared to separate per-system logs?',
+        options: [
+          { id: 'a', label: 'A', text: 'It eliminates the need for any logging inside the individual systems themselves' },
+          { id: 'b', label: 'B', text: 'It lets the FDE pull one connected timeline showing the webhook receipt, dispatch, and both downstream calls, instead of manually correlating separately-timestamped log entries across four different systems' },
+          { id: 'c', label: 'C', text: 'It automatically fixes any bug found during the investigation' },
+          { id: 'd', label: 'D', text: 'It only works for successful requests, never for failed ones' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The value is purely in visibility: a single trace ID turns four scattered, independently-timestamped log entries into one connected view of a single business event\'s full path.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-08-mcq-04',
+        question:
+          'Why does the lesson say routing a failed event to a dead-letter queue is strictly better than either silently dropping it or retrying it indefinitely?',
+        options: [
+          { id: 'a', label: 'A', text: 'A DLQ automatically resolves the underlying bug that caused the failure' },
+          { id: 'b', label: 'B', text: 'Silently dropping the event makes the failure invisible until a customer notices the missing effect, while retrying indefinitely can overwhelm a struggling downstream system — a DLQ preserves the payload and failure context for later inspection without either of those costs' },
+          { id: 'c', label: 'C', text: 'DLQs are only useful for events that have already succeeded' },
+          { id: 'd', label: 'D', text: 'A DLQ is functionally identical to simply logging the failure and moving on' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names two specific failure modes a DLQ avoids — invisible data loss and overwhelming a struggling system — while still preserving enough information to recover the event later.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-08-mcq-05',
+        question:
+          'In the scenario, what specifically caught the Zendesk schema-drift incident before it silently corrupted downstream state?',
+        options: [
+          { id: 'a', label: 'A', text: 'A human engineer happened to notice the change in Zendesk\'s API changelog before it took effect' },
+          { id: 'b', label: 'B', text: 'The connector\'s inbound schema-validation layer, extending lesson 1\'s tool-contract discipline to inbound webhook payloads, rejected the now-malformed payload and routed it to a DLQ instead of crashing the whole webhook processor or silently accepting bad data' },
+          { id: 'c', label: 'C', text: 'Zendesk\'s own systems automatically rolled back the schema change once Fenwick\'s integration failed' },
+          { id: 'd', label: 'D', text: 'The circuit breaker from lesson 2 tripped and stopped all Zendesk calls entirely' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct extension of lesson 1\'s schema-validation discipline to an inbound webhook payload rather than an outbound tool call — the same "validate the shape before trusting it" principle applied at a different boundary.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-08-mcq-06',
+        question:
+          'Why did the team replay the DLQ\'d events from the outage window through the corrected pipeline, rather than asking Zendesk to resend the missed webhooks?',
+        options: [
+          { id: 'a', label: 'A', text: 'Zendesk technically cannot resend a webhook once its original delivery attempt has failed' },
+          { id: 'b', label: 'B', text: 'The DLQ already preserved the full payload and failure context for every affected event, so replaying them through the fixed code path recovers the events without depending on the third-party system being able or willing to resend anything on demand' },
+          { id: 'c', label: 'C', text: 'Replaying events is always faster than any alternative regardless of whether a DLQ exists' },
+          { id: 'd', label: 'D', text: 'Zendesk requires a formal support ticket before any webhook can be resent' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the DLQ\'s specific payoff — because the failed events were preserved locally, recovery didn\'t depend on a third party\'s ability or willingness to resend data it may not keep readily available.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-08-mcq-07',
+        question:
+          'What did the propagated trace ID let the FDE see quickly when investigating the partial-failure incident in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The exact dollar cost of the refund that was issued' },
+          { id: 'b', label: 'B', text: 'The exact point of failure — the successful Ledger write followed by the timed-out Salesforce call — in one connected view, rather than manually correlating separate Ledger and Salesforce logs by approximate timestamp' },
+          { id: 'c', label: 'C', text: 'Which specific customer filed the original support ticket' },
+          { id: 'd', label: 'D', text: 'The complete source code of the `create_refund` tool handler' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the concrete debugging payoff of trace propagation described earlier in the lesson — a single connected view immediately localizing the exact failure point, rather than requiring manual cross-system log correlation.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/09-messy-customer-data-and-entity-resolution': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-09-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'According to the lesson, when is a most-recently-updated-wins conflict-resolution rule appropriate for a golden-record field, and when is it wrong?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is always the correct rule for every field, regardless of whether the field has an assigned source of record' },
+          { id: 'b', label: 'B', text: 'It is a reasonable tiebreaker only for fields with no independently assigned authority (like a preferred contact name); for a field lesson 6 already assigns to a specific system (like billing status belonging to Ledger), the source-of-record system must win regardless of which record was more recently touched' },
+          { id: 'c', label: 'C', text: 'It should never be used under any circumstances, since recency is never a meaningful signal' },
+          { id: 'd', label: 'D', text: 'It only applies to fields stored in Zendesk, never fields stored in Salesforce' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson draws this distinction explicitly: recency and authority are different properties that often coincide, which is exactly why defaulting to recency everywhere is wrong precisely on the fields where source-of-record precedence matters most.',
+        incorrectExplanation:
+          'Consider the difference between non-authoritative profile metadata and authoritative financial or billing state.',
+        hint:
+          'Recency is a tiebreaker only for fields lacking assigned authority; fields with an authoritative system of record must always defer to that system.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-09-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson insist `lookup_account` resolve customer identity through the pre-built crosswalk table rather than performing a fresh fuzzy match during a live support conversation?',
+        options: [
+          { id: 'a', label: 'A', text: 'Fuzzy matching is technically impossible to perform in real time under any circumstances' },
+          { id: 'b', label: 'B', text: 'Entity resolution needs to be a standing, reviewed process producing a stable mapping, not a disposable match performed under the time pressure of an active ticket where a wrong guess has immediate consequence' },
+          { id: 'c', label: 'C', text: 'The crosswalk table eliminates the need for any human review of a proposed merge' },
+          { id: 'd', label: 'D', text: 'Live fuzzy matching would violate the schema-validation rules from lesson 1' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s core architectural point: resolution has to happen ahead of time, reviewed and stable, precisely because a live, disposable match during an active ticket carries real consequence if it guesses wrong.',
+        incorrectExplanation:
+          'Think about the risks of probabilistic entity guessing under the runtime pressure of an active conversational ticket.',
+        hint:
+          'Entity resolution must be a standing upstream process that produces a vetted, deterministic mapping before live ticket routing occurs.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-09-mcq-01',
+        question:
+          'Why does the lesson describe exact-key matching (two records sharing a literal ID) as the easy but rare case for entity resolution across Salesforce and Zendesk?',
+        options: [
+          { id: 'a', label: 'A', text: 'Salesforce and Zendesk technically cannot store customer records with matching IDs under any configuration' },
+          { id: 'b', label: 'B', text: 'It only works when one system was seeded from the other, which is not how independently-built CRM and ticketing systems typically originate — Salesforce and Zendesk were never designed to agree on identity' },
+          { id: 'c', label: 'C', text: 'Exact-key matching is actually the most common case in enterprise systems, not the rarest' },
+          { id: 'd', label: 'D', text: 'Zendesk does not assign IDs to its Organization records' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is structural: two independently-built systems have no inherent reason to assign matching identifiers to the same real-world entity, which is exactly why fuzzy matching is the norm, not the exception.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-09-mcq-02',
+        question:
+          'Why does the lesson say name similarity alone is unreliable for entity resolution, in both directions?',
+        options: [
+          { id: 'a', label: 'A', text: 'String similarity algorithms are technically incapable of comparing company names' },
+          { id: 'b', label: 'B', text: 'Two genuinely different companies can have similar-sounding names (a false positive), while the same company can appear under wildly different name spellings across systems (a false negative) — name similarity alone cannot distinguish either case correctly' },
+          { id: 'c', label: 'C', text: 'Name similarity only produces false positives, never false negatives' },
+          { id: 'd', label: 'D', text: 'This is not actually true; name similarity alone is a fully reliable signal' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names both failure directions explicitly with concrete examples — a similar-sounding but distinct company, and the same company under very different spellings — which is exactly why corroborating signals are necessary.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-09-mcq-03',
+        question:
+          'Why does a domain-and-phone match agreeing despite a name mismatch count as stronger evidence than a name match alone, per the lesson\'s reasoning?',
+        options: [
+          { id: 'a', label: 'A', text: 'Domain and phone data are always more accurately recorded than company names in any CRM' },
+          { id: 'b', label: 'B', text: 'Any single signal can mislead on its own, but two or three independent signals agreeing makes a false match far less likely than relying on one signal — corroboration across independent sources is what makes the combined score reliable' },
+          { id: 'c', label: 'C', text: 'Phone numbers are technically immutable once entered into Salesforce, unlike company names' },
+          { id: 'd', label: 'D', text: 'A name match should always be weighted more heavily than any other single signal' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The reliability gain comes specifically from independence — multiple signals agreeing by coincidence is far less likely than a single signal producing a misleading result on its own.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-09-mcq-04',
+        question:
+          'How does an unresolved Salesforce Account duplicate connect to lesson 3\'s failure taxonomy, specifically the under-escalation category?',
+        options: [
+          { id: 'a', label: 'A', text: 'An unresolved duplicate can only ever cause an over-escalation, never an under-escalation' },
+          { id: 'b', label: 'B', text: 'If `lookup_account` resolves to the wrong duplicate record — one missing the real deal and order history — a refund decision made against that thin record\'s incomplete history can be wrong in a way that autonomously executes, which is exactly the direct, hard-to-reverse consequence lesson 3\'s under-escalation category describes, except the root cause here is upstream unresolved data rather than a hallucinated argument or a tool error' },
+          { id: 'c', label: 'C', text: 'Entity-resolution failures are unrelated to any category in lesson 3\'s failure taxonomy' },
+          { id: 'd', label: 'D', text: 'This scenario can only occur if the agent\'s schema validation from lesson 1 is disabled' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly draws this connection: the failure category is the same (an autonomous action with real consequence), but the root cause is different — unresolved upstream identity, not a hallucination or tool error at the agent layer itself.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-09-mcq-05',
+        question:
+          'Why did Fenwick\'s team route the flagged Salesforce duplicate pair to a human for review rather than merging it automatically once it cleared the combined-signal threshold?',
+        options: [
+          { id: 'a', label: 'A', text: 'Automatic merges are technically impossible to implement in Salesforce' },
+          { id: 'b', label: 'B', text: 'A genuinely wrong auto-merge is itself hard to reverse, which is the same hard-to-reverse-consequence criterion lesson 5 used to decide which worker needed a blocking human-approval gate — the team applies that same criterion to a merge decision here' },
+          { id: 'c', label: 'C', text: 'The combined-signal score can never be trusted regardless of how high it scores' },
+          { id: 'd', label: 'D', text: 'Human review is required by Salesforce\'s own platform policies for any account update' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly reuses lesson 5\'s gating criterion — a wrong merge is hard to reverse once records and history are combined, which is exactly the profile of decision that criterion says should be gated behind human review.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-09-mcq-06',
+        question:
+          'What does the crosswalk table built in the scenario map, once the duplicate Salesforce Accounts are merged?',
+        options: [
+          { id: 'a', label: 'A', text: 'Every historical name variant a customer has ever used across any system' },
+          { id: 'b', label: 'B', text: 'The golden (merged) Salesforce Account ID to the corresponding Zendesk Organization ID, so identity resolves consistently across both systems without a fresh fuzzy match every time' },
+          { id: 'c', label: 'C', text: 'A list of every Salesforce Account that was ever considered as a candidate duplicate, regardless of outcome' },
+          { id: 'd', label: 'D', text: 'The full deal history from both of the original duplicate Salesforce Accounts' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The crosswalk\'s specific job is mapping one golden identity across systems that were never designed to share identifiers, which is exactly what lets `lookup_account` resolve consistently without re-deriving the match live.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/10-build-crm-to-ai-support-copilot': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-10-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What distinguishes the entity-resolution crosswalk table (correct from the very first version) from the `lookup_account` stub (deliberately throwaway) in this build\'s sequencing?',
+        options: [
+          { id: 'a', label: 'A', text: 'There is no meaningful distinction; both should ideally be discarded once real connectors are wired in' },
+          { id: 'b', label: 'B', text: 'The stub exists only to unblock parallel development and is discarded once real connector wiring replaces it, while the crosswalk table is the actual mechanism lesson 9 argued must run ahead of any live resolution — getting it wrong from the start risks a wrong account match with real consequence, unlike the stub\'s fixed, harmless test data' },
+          { id: 'c', label: 'C', text: 'The crosswalk table should also be replaced once real connectors exist, exactly like the stub' },
+          { id: 'd', label: 'D', text: 'The stub and the crosswalk table serve identical purposes and are interchangeable in the build order' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the seam-versus-stub distinction from the module\'s earlier build pattern: one piece is cheap to discard once its purpose is served, the other is the real mechanism that must be correct from day one because a wrong version carries genuine risk.',
+        incorrectExplanation:
+          'Think about which component is a temporary development scaffold versus a critical, permanent safety seam.',
+        hint:
+          'Stubs temporarily unblock parallel development, whereas crosswalk resolution is a permanent correctness boundary that prevents bad account matching.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-10-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson insist the orchestrator must not silently proceed with a null account context when the crosswalk lookup finds no entry for an incoming ticket\'s organization?',
+        options: [
+          { id: 'a', label: 'A', text: 'A null account context would cause the Zendesk webhook receiver itself to crash' },
+          { id: 'b', label: 'B', text: 'Letting a downstream worker guess or hallucinate an account match under conversational pressure is exactly the failure mode lesson 9 argued entity resolution has to prevent by running ahead of time — proceeding on an unresolved identity reintroduces the live, disposable-guess risk lesson 9 specifically designed the crosswalk to avoid' },
+          { id: 'c', label: 'C', text: 'This scenario cannot actually occur once the crosswalk table has been built once' },
+          { id: 'd', label: 'D', text: 'Salesforce automatically creates a new Account record whenever a lookup fails' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct connection back to lesson 9\'s core argument — an unresolved identity passed downstream reintroduces exactly the live-guess risk the crosswalk exists to prevent.',
+        incorrectExplanation:
+          'Consider what happens when downstream workers receive incomplete identity context during an active customer support interaction.',
+        hint:
+          'Proceeding with unresolved identity forces downstream workers to guess under conversational pressure, risking autonomous mistakes.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-agentic-systems-integrations-10-crm-support-copilot',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — END-TO-END SUPPORT COPILOT TOPOLOGY',
+      boundaryLabel: 'MULTI-SYSTEM ORCHESTRATION & GATING BOUNDARY',
+      boundaryText:
+        'A Zendesk webhook triggers deduplication, crosswalk entity resolution, worker dispatch, MCP connector calls, a human-approval gate, and idempotent source writes along one unified distributed trace.',
+      nodes: [
+        { id: 'webhook', label: 'Zendesk Webhook (At-Least-Once)', kind: 'input' },
+        { id: 'receiver', label: 'Connector Dedup & Inbound Validation', kind: 'service' },
+        { id: 'crosswalk', label: 'Crosswalk Entity Resolution Gate', kind: 'boundary', highlighted: true },
+        { id: 'orchestrator', label: 'Support Lead Orchestrator', kind: 'service' },
+        { id: 'refund-worker', label: 'Refund Worker (Scoped MCP Client)', kind: 'adapter' },
+        { id: 'approval-gate', label: 'Human-in-the-Loop Approval Queue (SLA)', kind: 'boundary', highlighted: true },
+        { id: 'connectors', label: 'Ledger & Salesforce Connectors (Idempotent)', kind: 'adapter' },
+        { id: 'trace', label: 'End-to-End Distributed Trace', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-10-mcq-01',
+        question:
+          'Why does the orchestrator resolve the ticket\'s account identity through the crosswalk table before dispatching to either worker, rather than letting each worker resolve identity itself?',
+        options: [
+          { id: 'a', label: 'A', text: 'Resolving identity inside each worker would violate the MCP protocol\'s specification' },
+          { id: 'b', label: 'B', text: 'Both the `drafting-worker` and the `refund-worker` need a resolved account identity to call `lookup_account` or `lookup_order_history` against, so resolving it once at the orchestrator level, before routing, avoids duplicating the same resolution logic inside every worker that needs it' },
+          { id: 'c', label: 'C', text: 'Salesforce technically requires identity resolution to happen before any webhook can be received' },
+          { id: 'd', label: 'D', text: 'Workers are architecturally incapable of calling any MCP tool that depends on account identity' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Centralizing identity resolution at the orchestrator avoids duplicating the same dependency across every worker, and matches the general pattern of resolving a shared prerequisite once rather than per consumer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-10-mcq-02',
+        question:
+          'Why do the `drafting-worker` and `refund-worker` reach Salesforce and Ledger through `salesforce-mcp-server` and a Ledger-facing MCP server, rather than calling `SalesforceConnector` and `LedgerConnector` directly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Connectors are technically incapable of being called by an agent worker under any architecture' },
+          { id: 'b', label: 'B', text: 'The MCP servers, built atop the connector layer, provide the resources/tools/prompts primitive separation and per-client access scoping from lesson 4 — the support copilot client sees a narrower set than a future internal ops agent would — which a raw connector call would bypass entirely' },
+          { id: 'c', label: 'C', text: 'MCP servers are strictly faster than a direct connector call in every case' },
+          { id: 'd', label: 'D', text: 'Connectors can only be used for read operations, never for writes like `create_refund`' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly the layered architecture the lesson describes: the connector handles raw system plumbing, while the MCP server built on top of it provides the access-scoping and primitive separation lesson 4 established.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-10-mcq-03',
+        question:
+          'Why does the recommended build order put a stubbed `lookup_account` MCP tool before any real Salesforce OAuth setup exists?',
+        options: [
+          { id: 'a', label: 'A', text: 'Building a real Salesforce connector is technically impossible until the orchestrator\'s routing logic is finished' },
+          { id: 'b', label: 'B', text: 'The stub, returning fixed canned account data, lets the orchestrator\'s routing logic and the `drafting-worker`\'s response path be built and tested end to end against realistic-shaped data without waiting on real connector wiring to exist first' },
+          { id: 'c', label: 'C', text: 'Stubs are a permanent part of the final production system, never replaced' },
+          { id: 'd', label: 'D', text: 'OAuth setup cannot begin until entity resolution is fully complete' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The stub\'s purpose is unblocking orchestrator and worker development in parallel with connector work, exactly the same pattern the earlier ClauseReview-style build used for its own extraction stub.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-10-mcq-04',
+        question:
+          'Why does the build order add the `refund-worker`\'s human-approval gate and SLA escalation only after the read path (crosswalk resolution and `lookup_account`) already works end to end?',
+        options: [
+          { id: 'a', label: 'A', text: 'Human-approval gates are technically incompatible with a system still using a stub for any part of its read path' },
+          { id: 'b', label: 'B', text: 'Testing a gate meaningfully requires a real proposed action already flowing through the system to gate — building the gate before the read path exists would leave nothing genuine for it to validate against' },
+          { id: 'c', label: 'C', text: 'SLA escalation rules cannot be configured until the crosswalk table is fully populated' },
+          { id: 'd', label: 'D', text: 'The order is arbitrary and could equally well be reversed with no consequence' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the same evidenced-need sequencing logic used elsewhere in the module — a mechanism is built once there\'s something real for it to act on, not preemptively against nothing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-10-mcq-05',
+        question:
+          'How does the orchestrator\'s fallback for an unresolved account identity relate structurally to lesson 1\'s schema-validation gate and lesson 5\'s refund-approval gate?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is architecturally unrelated to either gate; identity resolution and tool-call gating solve different problems' },
+          { id: 'b', label: 'B', text: 'All three share the same "propose, then gate, then execute" shape — an action does not proceed until it clears a defined check — applied at three different layers: tool-call validity (lesson 1), human approval of a proposed action (lesson 5), and now identity resolution before any worker or tool call happens at all' },
+          { id: 'c', label: 'C', text: 'The identity-resolution gate replaces the need for both the lesson 1 and lesson 5 gates' },
+          { id: 'd', label: 'D', text: 'Only lesson 5\'s gate is structurally similar; lesson 1\'s gate has no relationship to this one' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly names this as the same gating shape applied one layer earlier — at identity resolution rather than at a tool call — showing the same disciplined pattern recurring across the module at different points in the pipeline.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-10-mcq-06',
+        question:
+          'Why did the orchestrator route the "charged twice" ticket to the `refund-worker` rather than the `drafting-worker`?',
+        options: [
+          { id: 'a', label: 'A', text: 'The `drafting-worker` was unavailable due to the circuit breaker having tripped' },
+          { id: 'b', label: 'B', text: 'A potential duplicate charge is exactly the hard-to-reverse, direct-consequence category lesson 5\'s gating criterion identifies as needing the `refund-worker`\'s path (and its blocking human-approval gate), unlike a case the low-stakes, reversible `drafting-worker` could handle' },
+          { id: 'c', label: 'C', text: 'The `drafting-worker` cannot call any Salesforce or Ledger tool under any circumstances' },
+          { id: 'd', label: 'D', text: 'Routing was determined entirely at random for load-balancing purposes' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a direct application of lesson 5\'s consequence-based routing criterion to a concrete ticket — money potentially moving is exactly the profile that needs the gated `refund-worker` path.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-10-mcq-07',
+        question:
+          'In the scenario\'s finished build, what does the single trace ID propagated from the original Zendesk webhook thread together?',
+        options: [
+          { id: 'a', label: 'A', text: 'Only the final `create_refund` call, since earlier steps are not part of the same business event' },
+          { id: 'b', label: 'B', text: 'The webhook receipt, the crosswalk resolution, both MCP tool calls, the human-approval gate, and the Ledger write — the entire path a single ticket\'s business event took through the system, as one connected trace' },
+          { id: 'c', label: 'C', text: 'Only the human-approval decision, since the tool calls generate their own separate traces' },
+          { id: 'd', label: 'D', text: 'A summary of every ticket the copilot has ever processed, not just this one' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is lesson 8\'s trace-propagation discipline applied to the full assembled build — the value is exactly that one trace ID spans every step of one business event\'s actual path through the whole system.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/11-assessments-agentic-system-build-and-red-team-integration-war-room': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-11-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What is the prompt-injection red-team case in this lesson actually testing, given that lesson 1\'s gates and lesson 5\'s human-approval gate already exist in the built system?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the agent\'s underlying language model can be swapped for a different provider' },
+          { id: 'b', label: 'B', text: 'Whether the existing schema-validation, business-rule, and human-approval gates actually catch an embedded override instruction in untrusted ticket content, confirming the gates work in practice rather than assuming they do because they were designed to' },
+          { id: 'c', label: 'C', text: 'Whether Zendesk itself can technically prevent a customer from typing certain words into a ticket' },
+          { id: 'd', label: 'D', text: 'Whether the copilot\'s response time increases when a ticket body is unusually long' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The point of red-teaming an already-designed gate is verification, not discovery of a new mechanism — the assessment checks whether the gates that exist on paper actually hold under a real adversarial attempt.',
+        incorrectExplanation:
+          'Think about why designing defensive gates on paper is insufficient without verifying their runtime resilience against real injection payloads.',
+        hint:
+          'Red-teaming verifies that designed gates actually enforce policy at runtime when exposed to hostile inputs.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-11-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'What does the tool-misuse red-team case specifically probe for, as described in the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the `create_refund` tool\'s JSON schema is missing any required field entirely' },
+          { id: 'b', label: 'B', text: 'Whether a refund amount or reason code can be chosen specifically to avoid triggering a business-rule check that a more truthful version of the same request would have triggered' },
+          { id: 'c', label: 'C', text: 'Whether the tool can be called by a client outside the support copilot\'s MCP scope' },
+          { id: 'd', label: 'D', text: 'Whether the tool\'s retry-with-backoff parameters are configured correctly' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Tool misuse here means gaming the existing checks rather than breaking them outright — finding a technically schema-valid call engineered to slip past a business-rule check that a straightforward version of the same request would have tripped.',
+        incorrectExplanation:
+          'Consider how an adversary might craft parameters to stay technically schema-valid while bypassing semantic business rules.',
+        hint:
+          'Tool misuse probes for parameter combinations that technically satisfy schemas but evade business-rule validations or thresholds.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-11-mcq-01',
+        question:
+          'Why does this assessment combine a red-team exercise against the built copilot with a separate integration war room, rather than testing each skill set in isolation?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two exercises test entirely unrelated skills with no relationship to the rest of the module' },
+          { id: 'b', label: 'B', text: 'A real FDE engagement never separates adversarial testing of a system\'s gates from diagnosing a real multi-system incident under time pressure — this assessment confirms the whole module\'s mechanisms hold up together, against a real system, the way eleven separately-graded exercises could not test' },
+          { id: 'c', label: 'C', text: 'Combining the two halves saves grading time and has no pedagogical purpose' },
+          { id: 'd', label: 'D', text: 'The integration war room does not depend on anything built in lesson 10' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The assessment\'s design mirrors this curriculum\'s other capstone assessments — testing whether mechanisms taught separately actually compose and hold up together against one real, built system.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-11-mcq-02',
+        question:
+          'What does the cross-tenant data-leakage red-team case specifically verify, relative to lesson 4\'s MCP access-scoping design?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the MCP server\'s access scoping is documented clearly in its own configuration' },
+          { id: 'b', label: 'B', text: 'Whether the per-client scoping is actually enforced in the running system when the support-copilot client explicitly attempts to read a resource or invoke a tool outside its documented scope — not merely whether the scoping is correctly designed on paper' },
+          { id: 'c', label: 'C', text: 'Whether two different customers can both use the support copilot at the same time' },
+          { id: 'd', label: 'D', text: 'Whether Zendesk and Salesforce share the same authentication provider' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The distinction the lesson draws is between designed scoping and enforced scoping — the red-team case specifically tests whether an explicit, deliberate attempt to exceed scope is actually refused at runtime.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-11-mcq-03',
+        question:
+          'Why does the integration war room withhold which specific failure category (partial failure, schema drift, duplicate delivery, out-of-order events) was injected, rather than telling you upfront?',
+        options: [
+          { id: 'a', label: 'A', text: 'The failure category is technically impossible to determine even after the fact' },
+          { id: 'b', label: 'B', text: 'The assessment tests whether you can correctly classify and root-cause a failure using only observable evidence — trace data and DLQ contents — the same standard a real production incident would demand, rather than testing whether you can apply a fix once already told the diagnosis' },
+          { id: 'c', label: 'C', text: 'Withholding the category is purely a grading convenience with no connection to real diagnostic practice' },
+          { id: 'd', label: 'D', text: 'All four failure categories always occur together, so disclosing one would reveal all of them' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the observable-evidence-only diagnosis standard used elsewhere in this curriculum\'s assessments — the skill being tested is root-causing from evidence, not applying a known fix.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-11-mcq-04',
+        question:
+          'What does the rubric\'s "remediation specificity" criterion require for a finding from either the red-team or the war-room exercise?',
+        options: [
+          { id: 'a', label: 'A', text: 'A general statement acknowledging that more validation would improve the system overall' },
+          { id: 'b', label: 'B', text: 'A concrete, specific fix — the exact check, field, or gate that would have caught the finding — rather than a vague call for "more validation" or "better security"' },
+          { id: 'c', label: 'C', text: 'A promise to revisit the finding in a future engagement' },
+          { id: 'd', label: 'D', text: 'A restatement of which red-team case or war-room scenario produced the finding, without any proposed fix' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The rubric explicitly distinguishes a specific, actionable fix from a generic acknowledgment — this is the same falsifiable-bar discipline this curriculum\'s other rubric-driven assessments apply to self-review.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-11-mcq-05',
+        question:
+          'If the embedded override instruction in the scenario\'s first sealed test case is successfully blocked, what does that specifically confirm about the built copilot?',
+        options: [
+          { id: 'a', label: 'A', text: 'That the copilot cannot process any ticket containing unusual or unexpected text' },
+          { id: 'b', label: 'B', text: 'That at least one of the schema-validation, business-rule, or human-approval layers correctly treated the ticket body as untrusted content rather than as a trusted instruction, and the refund did not execute without passing through the normal `refund-worker` proposal-and-gate path' },
+          { id: 'c', label: 'C', text: 'That the Zendesk webhook receiver rejected the ticket entirely before it reached the orchestrator' },
+          { id: 'd', label: 'D', text: 'That prompt injection is no longer possible against any future ticket, regardless of content' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A single successful block confirms the layered gates held for this one attempt — it demonstrates the defense worked here, not that the system is permanently immune to every future injection attempt.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-11-mcq-06',
+        question:
+          'What does successfully completing both parts of this assessment confirm, per the lesson\'s framing?',
+        options: [
+          { id: 'a', label: 'A', text: 'That the copilot built in lesson 10 requires no further hardening before a real customer deployment' },
+          { id: 'b', label: 'B', text: 'That the mechanisms taught across the module\'s eleven lessons — gating, access scoping, connector design, and failure diagnosis — genuinely compose into one system that holds up under deliberate adversarial pressure and a real, unlabeled multi-system incident, not just in isolated exercises' },
+          { id: 'c', label: 'C', text: 'That prompt injection, tool misuse, and cross-tenant leakage are no longer meaningful risks for any agentic system' },
+          { id: 'd', label: 'D', text: 'That the module\'s content should be considered complete without any assessment step' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Like the module\'s other capstone assessments in this curriculum, the point is confirming composition under real pressure, not certifying the system as finished or permanently secure.'
+      }
+    ]
+  },
 };
 
 export function getLessonInteractions(courseSlug, moduleSlug, lessonSlug) {

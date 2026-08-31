@@ -49,9 +49,10 @@ cd /home/rbalaji/scaler-education-journey
 git log --oneline -3
 sed -n '/GetAuthoredFdeLessonContent/,/^    };/p' api/Data/FdeCurriculumSeedData.cs | grep -oP '"\K[0-9]{2}-[a-z0-9-]+(?=")' | wc -l
 ```
-As of commit `19a8f9a`: **61 authored lesson cases** are live in
-`GetAuthoredFdeLessonContent`, and `app/src/data/lessonInteractions.js` has 22 `java-spring-lld`
-+ 61 `fde-curriculum` keys = 83 total.
+As of the (uncommitted, verified) working tree after Phases 12+13+14+15: **84 authored lesson
+cases** are in `GetAuthoredFdeLessonContent`, and `app/src/data/lessonInteractions.js` has 18
+`java-spring-lld` + 84 `fde-curriculum` keys = 102 total. **Commit this before continuing** —
+see the note at the top of this file.
 
 | # | Module | Slug | Lessons | Status |
 |---|---|---|---|---|
@@ -60,15 +61,14 @@ As of commit `19a8f9a`: **61 authored lesson cases** are live in
 | 2 | Backend Engineering, Observability & Data Systems | `backend-observability-data` | 15/15 | ✅ Done (Phases 5-7) |
 | 3 | Full-Stack FDE | `full-stack-ai-frontends` | 5/5 | ✅ Done (Phase 8) |
 | 4 | Cloud, DevOps, Kubernetes & Infrastructure | `cloud-devops-infrastructure` | 12/12 | ✅ Done (Phases 9-10) |
-| 5 | Enterprise Communication, Consulting & LLM Engineering | `enterprise-consulting-llm` | 6/12 | 🟡 Half done (Phase 11 = lessons 1-6) |
-| 6 | Agentic Systems & Enterprise Integrations | `agentic-systems-integrations` | 0/11 | ❌ Not started |
-| 7 | Application Engineering, Security & Reliability | `application-security-reliability` | 0/12 | ❌ Not started |
+| 5 | Enterprise Communication, Consulting & LLM Engineering | `enterprise-consulting-llm` | 12/12 | ✅ Done (Phases 11-12) |
+| 6 | Agentic Systems & Enterprise Integrations | `agentic-systems-integrations` | 11/11 | ✅ Done (Phases 13, 14 — MODULE COMPLETE) |
+| 7 | Application Engineering, Security & Reliability | `application-security-reliability` | 6/12 | 🟡 Half done (Phase 15 = lessons 1-6) |
 | 8 | System Design, Capstone & Hiring Readiness | `system-design-capstone` | 0/14 | ❌ Not started |
 | — | Elective: Containerization/K8s | `elective-containerization-orchestration` | 0/17 | ❌ Not started (out of scope unless user asks) |
 | — | Elective: AWS Multi-Region | `elective-aws-multi-region-cloud-deep-dive` | 0/31 | ❌ Not started (out of scope unless user asks) |
 
-**Total: 61 of ~104 core lessons done (≈59%). 43 core lessons remain (≈7-8 more phases). Plus
-48 elective lessons if those get put in scope later (≈8 more phases).**
+**Total: 84 of ~104 core lessons done (≈81%). 20 core lessons remain (~4 more phases: Phase 16 — Module 7 lessons 7-12; then ~3 phases for Module 8's 14 lessons). Plus 48 elective lessons if those get put in scope later (≈8 more phases).**
 
 ---
 
@@ -84,23 +84,22 @@ convention is 2 — flagged, not fixed (would need new authored content, out of 
 
 ## Next step
 
-**Phases 12, 13, and 15 are authored and waiting to be applied, in that order.** Each phase's
-content + prompt files are ready in `info/.notes/fde-lessons/` (see File index below). Hand each
-prompt to the local LLM **in this exact order — 12, then 13, then 15** — because each phase's
-prompt states an exact prerequisite case/key count that assumes the prior phases in this batch
-were already applied:
+**Phases 12, 13, 14, and 15 have all been applied by the local LLM and verified clean — 84 cases, 102 keys, all MCQ blocks with exactly 4 options, no duplicate slugs, node syntax check passes.** This is sitting UNCOMMITTED in the working tree (`api/Data/FdeCurriculumSeedData.cs`, `app/src/data/lessonInteractions.js`, `task_tracker.md`, `STATUS.md`).
 
-| Phase | Module | Lessons | Cases before → after | Keys before → after |
-|---|---|---|---|---|
-| 12 | 5 `enterprise-consulting-llm` | 7-12 (completes module, 12/12) | 61 → 67 | 83 → 89 |
-| 13 | 6 `agentic-systems-integrations` | 1-6 of 11 (first half) | 67 → 73 | 89 → 95 |
-| 15 | 7 `application-security-reliability` | 1-6 of 12 (first half) | 73 → 79 | 95 → 101 |
+| Phase | Module | Lessons | Cases before → after |
+|---|---|---|---|
+| 12 | 5 `enterprise-consulting-llm` | 7-12 (completes module, 12/12) | 61 → 67 |
+| 13 | 6 `agentic-systems-integrations` | 1-6 of 11 (first half) | 67 → 73 |
+| 14 | 6 `agentic-systems-integrations` | 7-11 of 11 (completes module, 11/11) | 73 → 78 (integrated: 84) |
+| 15 | 7 `application-security-reliability` | 1-6 of 12 (first half) | 78 → 84 |
 
 **Phase 14 (Module 6, lessons 7-11 — API Integration Patterns, Integration Failure Modes, Messy
-Customer Data & Entity Resolution, Build: CRM-to-AI Support Copilot, Assessments) is
-deliberately not yet authored** — skipped this batch specifically to avoid two agents authoring
-the same module concurrently. It's the natural next authoring task after this batch is applied
-and verified, and would complete Module 6 (11/11).
+Customer Data & Entity Resolution, Build: CRM-to-AI Support Copilot, Assessments) is now
+AUTHORED** — `phase-14-agentic-systems-integrations-content.md` / `-prompt.md` are ready in
+`info/.notes/fde-lessons/`, 5 lessons / 43 MCQs, verified (4-option check, answer-key
+consistency, hand-traced slugs). Completes Module 6 (11/11) once applied. Prerequisite case
+count for its prompt: 79 existing cases / 101 existing keys (Phases 1-13+15) → 84 cases / 106
+keys after. **Apply Phase 14 only after Phases 12/13/15 are committed and their SQL reset run.**
 
 After Phase 14, remaining work: Module 7 lessons 7-12 (a "Phase 16"), then Module 8 "System
 Design, Capstone & Hiring Readiness" (14 lessons, ~2-3 phases) — the final core module.
@@ -159,5 +158,6 @@ All phase files live in `info/.notes/fde-lessons/`:
 - `phase-1-agentic-ai-core-content.md` / `-prompt.md` through `phase-11-enterprise-consulting-llm-content.md` / `-prompt.md` — all applied
 - `phase-12-enterprise-consulting-llm-content.md` / `-prompt.md` — authored, not yet applied
 - `phase-13-agentic-systems-integrations-content.md` / `-prompt.md` — authored, not yet applied
-- `phase-15-application-security-reliability-content.md` / `-prompt.md` — authored, not yet applied (Phase 14 intentionally skipped this batch — see Next step)
+- `phase-15-application-security-reliability-content.md` / `-prompt.md` — applied (uncommitted), see note at top
+- `phase-14-agentic-systems-integrations-content.md` / `-prompt.md` — authored, not yet applied (apply after 12/13/15 are committed)
 - This file (`STATUS.md`) — always check here first in a new session
