@@ -5087,6 +5087,714 @@ const lessonInteractions = {
           'This echoes the "define success before building" discipline from the problem-discovery lesson — a rubric that produces consistent scores across independent evaluators is doing its job; disagreement is diagnostic of where the rubric (or the solution) was more ambiguous than assumed.'
       }
     ]
+  },
+  'fde-curriculum/backend-observability-data/01-introduction-to-backend-engineering-http-rest-and-api-design': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-01-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — HTTP METHOD SEMANTICS & RETRY SAFETY',
+        question:
+          'Why is blindly retrying a timed-out POST request more dangerous than retrying a timed-out PUT request?',
+        options: [
+          { id: 'a', label: 'A', text: 'POST requests are always slower than PUT requests, unrelated to idempotency' },
+          { id: 'b', label: 'B', text: 'POST is not idempotent by default, so retrying it can create a duplicate resource; PUT is idempotent, so repeating it produces the same end state without duplication' },
+          { id: 'c', label: 'C', text: 'PUT requests cannot be retried under any circumstances' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference between retrying the two' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly the semantic distinction the lesson establishes — idempotency determines whether "just retry" is safe advice, and POST\'s lack of idempotency is why naive retries risk duplicate resource creation.',
+        incorrectExplanation:
+          'Consider the definition of idempotency and the real-world side effects of executing non-idempotent operations multiple times.',
+        hint: 'POST is non-idempotent by default, risking duplicate resource creation, whereas PUT guarantees that repeating the request results in the exact same state.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-01-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — HTTP STATUS CODE CONTRACTS',
+        question:
+          'A client receives a 400 status code from an API. What should a well-behaved client do?',
+        options: [
+          { id: 'a', label: 'A', text: 'Retry the identical request immediately, since 4xx errors are usually transient' },
+          { id: 'b', label: 'B', text: 'Not retry the identical request — a 4xx means the client\'s request itself was wrong, and retrying the same request will fail the same way' },
+          { id: 'c', label: 'C', text: 'Retry with exponential backoff, treating it the same as a 5xx error' },
+          { id: 'd', label: 'D', text: 'Status codes carry no implication for retry behavior; the client should decide arbitrarily' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '4xx errors indicate a problem with the request itself, which won\'t be fixed by simply resending the same request — this is the core reason the 4xx/5xx distinction matters for client behavior, not just human debugging.',
+        incorrectExplanation:
+          'Distinguish between client-side errors (4xx) and transient server-side failures (5xx) when formulating retry policies.',
+        hint: '4xx indicates client error (invalid payload or syntax); repeating the same request will deterministically fail without payload correction.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-01-mcq-01',
+        question:
+          'What is the key difference between a REST-style endpoint (`POST /orders`) and an RPC-style endpoint (`POST /createOrder`) for the same operation?',
+        options: [
+          { id: 'a', label: 'A', text: 'RPC-style endpoints cannot use the POST method' },
+          { id: 'b', label: 'B', text: 'REST organizes the API around resources (nouns) manipulated via standard HTTP methods; RPC-style organizes it around actions (verbs) embedded directly in the URL' },
+          { id: 'c', label: 'C', text: 'REST-style endpoints are always faster to execute than RPC-style ones' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference; the two terms describe identical designs' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the defining stylistic distinction — REST\'s resource-and-method structure versus RPC\'s action-in-the-URL structure — independent of performance, which the lesson doesn\'t claim differs between the two.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-01-mcq-02',
+        question:
+          'What does the lesson say about most production APIs described as "REST" not being fully HATEOAS-compliant?',
+        options: [
+          { id: 'a', label: 'A', text: 'Any API that isn\'t fully HATEOAS-compliant is not actually usable in production' },
+          { id: 'b', label: 'B', text: 'That\'s a reasonable trade-off, since the actual goal — a predictable, consistent contract — is achievable with a pragmatic subset of REST conventions, not strict spec purity' },
+          { id: 'c', label: 'C', text: 'HATEOAS compliance is required by the HTTP specification for any resource-oriented API' },
+          { id: 'd', label: 'D', text: 'This is always a critical design flaw that must be fixed immediately' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly frames pragmatic, non-purist REST as fine — what matters is the practical outcome (a predictable, consistent contract), not adherence to the full REST specification.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-01-mcq-03',
+        question:
+          'Why did fixing the three inconsistent error shapes in the scenario become a breaking change instead of a simple correction?',
+        options: [
+          { id: 'a', label: 'A', text: 'Error response shapes cannot technically be changed once an API is deployed' },
+          { id: 'b', label: 'B', text: 'By the time the inconsistency was noticed, two customer-side integrations were already built against the existing inconsistent shapes, so changing them without warning would break those integrations' },
+          { id: 'c', label: 'C', text: 'The customer explicitly requested that the error shapes remain inconsistent' },
+          { id: 'd', label: 'D', text: 'JSON responses cannot be restructured after initial deployment for technical reasons' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The cost comes from real clients already depending on the existing (inconsistent) shape — this is exactly why the lesson argues these decisions are expensive to retrofit, not because of any technical limitation on changing JSON structure itself.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-01-mcq-04',
+        question:
+          'What does defining one consistent error-response shape across every endpoint let an API consumer do?',
+        options: [
+          { id: 'a', label: 'A', text: 'Skip handling errors entirely, since a consistent shape guarantees no errors will occur' },
+          { id: 'b', label: 'B', text: 'Write one generic error-handling code path instead of special-casing each endpoint\'s different error format' },
+          { id: 'c', label: 'C', text: 'Avoid needing to check HTTP status codes at all' },
+          { id: 'd', label: 'D', text: 'Automatically retry every failed request regardless of error type' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The whole point of a consistent error envelope is enabling one reusable error-handling path on the consumer side, rather than needing a special case for every endpoint\'s unique response shape.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-01-mcq-05',
+        question:
+          'DELETE is described as idempotent even though calling it a second time on an already-deleted resource might return a 404 instead of the original 200. Why is this still considered idempotent?',
+        options: [
+          { id: 'a', label: 'A', text: 'DELETE is not actually idempotent, and this is a misconception the lesson corrects' },
+          { id: 'b', label: 'B', text: 'Idempotency is about the resulting state, not the exact response returned — the resource ends up deleted either way, regardless of whether the specific status code differs between the first and second call' },
+          { id: 'c', label: 'C', text: 'A 404 response always indicates the operation was not idempotent' },
+          { id: 'd', label: 'D', text: 'Idempotency only applies to GET and PUT, never to DELETE' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Idempotency is defined by the end state being the same across repeated calls, not by every response being byte-identical — this is a subtlety worth understanding precisely rather than by rote memorization of "DELETE is idempotent."'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-01-mcq-06',
+        question:
+          'What is the purpose of deciding an API versioning strategy upfront, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Versioning strategies are purely cosmetic and have no functional impact on API consumers' },
+          { id: 'b', label: 'B', text: 'So a breaking change to the contract doesn\'t silently break every existing consumer — existing clients can keep using the old version while new clients adopt the updated one' },
+          { id: 'c', label: 'C', text: 'Versioning is only relevant for APIs with more than 100 endpoints' },
+          { id: 'd', label: 'D', text: 'A versioning strategy prevents any future changes to the API from ever being necessary' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Versioning exists specifically to let a breaking change coexist with the old contract for existing consumers, rather than forcing every consumer to update simultaneously or break silently.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/02-fastapi-intro-to-deep-dive': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-02-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — FASTAPI ASYNC DEF VS DEF EXECUTION MODEL',
+        question:
+          'What is the key operational difference between how FastAPI runs an `async def` handler versus a plain `def` handler?',
+        options: [
+          { id: 'a', label: 'A', text: '`async def` and `def` handlers are executed identically by FastAPI, with no operational difference' },
+          { id: 'b', label: 'B', text: '`def` handlers cannot access request data, only `async def` handlers can' },
+          { id: 'c', label: 'C', text: '' },
+          { id: 'd', label: 'D', text: '`async def` handlers always run faster regardless of what they contain' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the direct connection to the earlier concurrency lesson\'s blocking-call danger — FastAPI\'s automatic thread-pool offloading for plain `def` handlers is specifically what protects the event loop from a blocking call that an `async def` handler would expose it to.',
+        incorrectExplanation:
+          'Consider where FastAPI executes synchronous versus asynchronous handlers to avoid blocking the main event loop.',
+        hint: 'FastAPI runs `async def` handlers directly on the event loop thread, while plain `def` handlers are automatically dispatched to an external threadpool.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-02-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DEPENDENCY INJECTION BOUNDARIES',
+        question:
+          'Why is centralizing an authentication check in one `Depends`-based dependency function better than repeating the same check inline at the top of every route handler?',
+        options: [
+          { id: 'a', label: 'A', text: 'Dependency functions execute faster than inline code, purely as a performance matter' },
+          { id: 'b', label: 'B', text: 'Fixing a bug in the centralized dependency function fixes every route using it at once, instead of requiring the fix to be correctly copy-pasted into every handler that repeated the logic inline' },
+          { id: 'c', label: 'C', text: 'FastAPI technically does not allow authentication logic to be written inline in a handler' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference between the two approaches' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a maintainability argument, not a performance one — a single source of truth for shared logic means a fix propagates automatically to every consumer, unlike duplicated inline logic which risks an inconsistent, partial fix.',
+        incorrectExplanation:
+          'Think about code duplication, testability, and whether security rules should gate execution before or inside business logic.',
+        hint: '`Depends` executes before the handler runs, guarantees uniform enforcement, generates accurate OpenAPI security schemes, and simplifies unit testing.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-02-mcq-01',
+        question:
+          'What two things does a FastAPI route handler\'s type hints simultaneously drive?',
+        options: [
+          { id: 'a', label: 'A', text: 'Only request validation; OpenAPI docs must be maintained separately by hand' },
+          { id: 'b', label: 'B', text: 'Request/response validation at runtime and automatic, always-current OpenAPI schema/docs generation, both derived from the same declaration' },
+          { id: 'c', label: 'C', text: 'Only OpenAPI docs generation; request validation must be written manually in each handler' },
+          { id: 'd', label: 'D', text: 'Database schema migrations and authentication logic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The core value proposition is that both validation and documentation come from one source of truth (the type hints), which is exactly what prevents the docs from silently drifting out of sync with the actual code.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-02-mcq-02',
+        question:
+          'According to the lesson, when should a route handler be declared `async def`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Always, regardless of what I/O the handler performs, since `async def` is universally the more modern choice' },
+          { id: 'b', label: 'B', text: 'Only when the handler\'s actual I/O is genuinely async-compatible end to end; if any part makes a blocking, synchronous call with no async alternative, a plain `def` handler is the safer choice' },
+          { id: 'c', label: 'C', text: 'Never, since `def` handlers are always preferable in FastAPI' },
+          { id: 'd', label: 'D', text: 'Only for handlers that don\'t call any external service at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly rejects a blanket rule in either direction — the decision depends on whether the handler\'s actual I/O is genuinely async-compatible, not on `async def` being inherently more "correct" or modern.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-02-mcq-03',
+        question:
+          'Why did the inherited service\'s latency spikes affect completely unrelated endpoints, not just the one making the slow blocking database call?',
+        options: [
+          { id: 'a', label: 'A', text: 'The database itself was down, affecting all endpoints equally' },
+          { id: 'b', label: 'B', text: 'Because the blocking call was inside an `async def` handler, it stalled the entire event loop for the whole worker process, delaying every other concurrent request being handled by that same process regardless of which endpoint they belonged to' },
+          { id: 'c', label: 'C', text: 'FastAPI has a global rate limit that throttles all endpoints uniformly' },
+          { id: 'd', label: 'D', text: 'This behavior would occur regardless of whether the handler was `async def` or `def`' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific, damaging consequence of a blocking call inside `async def` — the stall isn\'t confined to the offending request, it blocks the entire event loop and therefore every concurrent request sharing it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-02-mcq-04',
+        question:
+          'Why did the FDE convert only the handlers with blocking calls to `def`, rather than converting every handler in the service to `def` for safety?',
+        options: [
+          { id: 'a', label: 'A', text: 'FastAPI technically requires at least one handler in a service to be `async def`' },
+          { id: 'b', label: 'B', text: 'Handlers whose I/O is genuinely async-compatible get real concurrency benefit from staying `async def`; converting them to `def` unnecessarily would trade away that benefit for no safety gain, since they had no blocking-call problem to begin with' },
+          { id: 'c', label: 'C', text: 'Converting all handlers to `def` would have been faster to implement, which was the only consideration' },
+          { id: 'd', label: 'D', text: 'There is no real trade-off; converting everything to `def` would have been strictly better' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The fix matches each handler\'s declaration to its actual I/O characteristics — blanket-converting everything to `def` would needlessly sacrifice real async concurrency benefits on the handlers that never had a blocking-call problem.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-02-mcq-05',
+        question:
+          'When a request doesn\'t match a route\'s declared Pydantic request-body shape, at what point does the automatic 422 rejection happen?',
+        options: [
+          { id: 'a', label: 'A', text: 'After the handler\'s code has already fully executed' },
+          { id: 'b', label: 'B', text: 'Before the handler\'s own code ever runs — validation happens at the boundary based on the type hints, and only a request matching the declared shape reaches the handler body' },
+          { id: 'c', label: 'C', text: 'Only if the handler explicitly calls a validation function itself' },
+          { id: 'd', label: 'D', text: 'FastAPI does not automatically validate request bodies; this must be implemented manually' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the "parse, don\'t validate" boundary from the Pydantic lesson — the validation boundary sits before the handler\'s own logic, so the handler can trust the shape of whatever it receives.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-02-mcq-06',
+        question:
+          'A new `require_role("admin")` dependency depends on the existing `get_current_user` dependency. What does this composition achieve?',
+        options: [
+          { id: 'a', label: 'A', text: '`require_role` replaces the need for `get_current_user` entirely, making the original dependency obsolete' },
+          { id: 'b', label: 'B', text: 'A more specific, reusable authorization check (role verification) is built on top of the existing identity-lookup logic without duplicating that logic — both dependencies stay independently correct and composable' },
+          { id: 'c', label: 'C', text: 'Dependencies in FastAPI cannot depend on other dependencies; this composition is not actually possible' },
+          { id: 'd', label: 'D', text: 'This composition requires rewriting `get_current_user` to be role-aware internally' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Dependency chains letting a more specific check build on a more general one without duplicating logic is exactly the compositional benefit `Depends` provides — each piece of logic stays in one place and gets reused rather than re-implemented.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/03-auth-oauth2-jwt-oidc-and-rbac': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-03-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — JWT INTEGRITY VS CONFIDENTIALITY',
+        question:
+          'Is a JWT\'s payload readable by anyone who has the token, or is it encrypted and hidden by default?',
+        options: [
+          { id: 'a', label: 'A', text: 'Fully encrypted and unreadable without the correct private key' },
+          { id: 'b', label: 'B', text: 'Readable by anyone holding the token — a JWT is signed, not encrypted by default, so its payload is just base64url-encoded plain text' },
+          { id: 'c', label: 'C', text: 'Readable only by the server that issued it, never by the client holding it' },
+          { id: 'd', label: 'D', text: 'JWTs do not have a payload at all, only a signature' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the single most commonly misunderstood JWT detail the lesson calls out directly — the signature proves integrity, not confidentiality, so nothing in the payload should be treated as hidden.',
+        incorrectExplanation:
+          'Distinguish between cryptographic signing (tamper-detection) and encryption (confidentiality).',
+        hint: 'Standard JWTs are Base64URL-encoded and cryptographically signed for integrity, but their payload claims are visible in plaintext to anyone holding the token.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-03-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — STATELESS TOKEN REVOCATION TRADE-OFFS',
+        question:
+          'Why are JWTs inherently hard to revoke before their stated expiry?',
+        options: [
+          { id: 'a', label: 'A', text: 'JWTs cannot technically have an expiry field at all' },
+          { id: 'b', label: 'B', text: 'JWTs are typically stateless and self-contained — a server verifying a JWT\'s signature doesn\'t need to check a central store, so there\'s no built-in mechanism to mark one invalid before its expiry without adding that lookup back in' },
+          { id: 'c', label: 'C', text: 'JWTs are always valid forever regardless of any expiry claim' },
+          { id: 'd', label: 'D', text: 'Revocation is trivial and requires no special handling for JWTs' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Statelessness is precisely what makes JWTs efficient (no database lookup needed to verify) and what makes revocation hard (there\'s no central state to update to invalidate one early) — a genuine trade-off, not an oversight.',
+        incorrectExplanation:
+          'Consider the architectural trade-off of stateless token verification: zero database lookups per request means no central revocation check.',
+        hint: 'Resource servers validate JWT signatures locally using public keys without querying a centralized database, so they cannot know if a token was revoked early.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-03-mcq-01',
+        question:
+          'What is the difference between authentication and authorization?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are two names for the exact same concept' },
+          { id: 'b', label: 'B', text: 'Authentication answers "who is this"; authorization answers "what is this identity allowed to do"' },
+          { id: 'c', label: 'C', text: 'Authentication concerns permissions; authorization concerns identity verification' },
+          { id: 'd', label: 'D', text: 'Authorization always happens before authentication in any system' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the foundational distinction the lesson establishes before layering OAuth2, OIDC, JWT, and RBAC on top of it — each of those mechanisms addresses one or the other, not both interchangeably.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-03-mcq-02',
+        question:
+          'What does a bare OAuth2 access token NOT reliably tell you, which is why OIDC exists?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the client has any access at all' },
+          { id: 'b', label: 'B', text: 'A verified identity claim about who the user actually is — OAuth2 proves a scoped grant exists, not a standardized answer to "who"' },
+          { id: 'c', label: 'C', text: 'What scope of access was granted' },
+          { id: 'd', label: 'D', text: 'OAuth2 access tokens provide identical information to OIDC ID tokens, making OIDC redundant' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the exact gap OIDC\'s ID token closes — OAuth2 is a delegation/authorization framework, and identity was never its core job, which is why conflating an access token with proof of identity is a real, consequential mistake.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-03-mcq-03',
+        question:
+          'What was the actual vulnerability in the scenario\'s early authorization middleware?',
+        options: [
+          { id: 'a', label: 'A', text: 'The middleware used OIDC instead of plain OAuth2, which was itself the vulnerability' },
+          { id: 'b', label: 'B', text: 'It decoded and trusted the JWT\'s `role` claim without first verifying the token\'s cryptographic signature against the identity provider\'s public key, so any editable JSON blob shaped like a JWT could claim `role: admin`' },
+          { id: 'c', label: 'C', text: 'The JWT\'s payload was encrypted, preventing the middleware from reading the role claim at all' },
+          { id: 'd', label: 'D', text: 'The vulnerability had nothing to do with signature verification and was purely a network configuration issue' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct, concrete consequence of the "signed, not encrypted" property combined with skipped verification — the fix is mandatory signature verification before any claim is trusted, which the scenario\'s remediation implements.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-03-mcq-04',
+        question:
+          'Why does the lesson recommend re-verifying a user\'s role against a source of truth for high-stakes actions, rather than trusting the role claim embedded in an already-signature-verified token?',
+        options: [
+          { id: 'a', label: 'A', text: 'Signature-verified tokens can never be trusted for any purpose whatsoever' },
+          { id: 'b', label: 'B', text: 'A user\'s role could change (e.g. be demoted from admin) after a token was issued but before it expires; trusting the token\'s claim alone means that change wouldn\'t take effect until the token naturally expires, which is an acceptable risk for low-stakes actions but not high-stakes ones' },
+          { id: 'c', label: 'C', text: 'Re-verifying against a source of truth is required for every single request regardless of stakes, with no exceptions' },
+          { id: 'd', label: 'D', text: 'This recommendation applies only to OAuth2 access tokens, never to OIDC ID tokens' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Even a properly signature-verified token can carry a claim that\'s gone stale since issuance — the lesson\'s judgment call is to bound that risk window for high-stakes actions specifically, not to distrust signature verification itself.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-03-mcq-05',
+        question:
+          'A backend service needs to authenticate directly to another backend service with no user involved at all. Which OAuth2 grant type fits this case?',
+        options: [
+          { id: 'a', label: 'A', text: 'Authorization code flow, since it\'s the correct grant type for every scenario' },
+          { id: 'b', label: 'B', text: 'Client credentials flow, since it\'s designed for service-to-service authentication with no user in the loop' },
+          { id: 'c', label: 'C', text: 'Neither flow supports service-to-service communication' },
+          { id: 'd', label: 'D', text: 'OIDC ID tokens are required for any service-to-service authentication' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Authorization code flow is specifically for user-facing applications where a real user approves access; client credentials flow is the fit when no user is involved, exactly this service-to-service case.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-03-mcq-06',
+        question:
+          'Why does the lesson describe short-lived access tokens paired with refresh tokens as a "practical mitigation" for the revocation problem rather than a full solution?',
+        options: [
+          { id: 'a', label: 'A', text: 'Short-lived tokens completely eliminate any risk of token compromise' },
+          { id: 'b', label: 'B', text: 'A compromised access token is still valid and usable for the remainder of its (short) lifetime — the mitigation bounds the exposure window rather than eliminating it, since there\'s still no real-time way to invalidate an already-issued access token early' },
+          { id: 'c', label: 'C', text: 'Refresh tokens are themselves encrypted, which solves the revocation problem entirely' },
+          { id: 'd', label: 'D', text: 'This is not actually a mitigation; short-lived tokens have no bearing on revocation risk' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The word "mitigation" is precise here — bounding the exposure window reduces the practical risk without providing a true real-time revocation mechanism for an already-issued token, which is the honest limitation the lesson wants understood, not glossed over.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-03-mcq-07',
+        question:
+          'What does refresh-token rotation (issuing a new refresh token and invalidating the old one on every use) specifically defend against that a long-lived, non-rotating refresh token would not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Rotation prevents access tokens from ever expiring' },
+          { id: 'b', label: 'B', text: 'If a refresh token is stolen and used by an attacker, rotation means the legitimate holder\'s next use of what they believe is still their valid refresh token will fail (since it was already rotated/invalidated), surfacing the compromise, rather than both the attacker and the legitimate user silently sharing the same long-lived token indefinitely' },
+          { id: 'c', label: 'C', text: 'Rotation eliminates the need for signature verification on access tokens' },
+          { id: 'd', label: 'D', text: 'Rotation has no defensive purpose and is purely a performance optimization' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Rotation creates a detectable signal on theft — reuse of an already-rotated (invalidated) refresh token is a clear compromise indicator, something a static, non-rotating refresh token provides no way to detect.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/04-building-an-order-management-module-and-its-api': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-04-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — FINITE STATE MACHINE INTEGRITY',
+        question:
+          'Why is a free-text or loosely-typed `status` field, relying on "the UI just doesn\'t offer that button," an insufficient guarantee against invalid state transitions?',
+        options: [
+          { id: 'a', label: 'A', text: 'Free-text fields are technically impossible to store in a database' },
+          { id: 'b', label: 'B', text: 'Any other client able to call the API directly — an admin tool, a script, a bug — bypasses whatever the UI happens to offer, so the guarantee has to be enforced in the API/logic itself, not merely in what buttons a UI presents' },
+          { id: 'c', label: 'C', text: 'UI-level restrictions are always sufficient and this concern doesn\'t apply in practice' },
+          { id: 'd', label: 'D', text: 'This concern only applies to publicly accessible APIs, never to internal tools' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Any real guarantee has to be enforced server-side, since a UI restriction is trivially bypassed by anything else that can call the same API — internal tools and bugs included.',
+        incorrectExplanation:
+          'Consider what happens when API requests bypass frontend forms and write arbitrary strings directly into database records.',
+        hint: 'Direct API callers or concurrent requests can bypass the UI, writing invalid state jumps (e.g. `cancelled` to `shipped`) and corrupting downstream workflows.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-04-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — EXPLICIT STATE TRANSITION ENDPOINTS',
+        question:
+          'Why does the fixed design use `PATCH /orders/{id}/status` with a `target_status` field, instead of a generic `PATCH /orders/{id}` that happens to accept a status field among others?',
+        options: [
+          { id: 'a', label: 'A', text: 'FastAPI technically does not support PATCH requests on a resource\'s root path' },
+          { id: 'b', label: 'B', text: 'The dedicated endpoint signals in the API surface itself that status changes are a distinct, specially-validated operation, rather than an arbitrary field update that might not receive the same transition validation as other fields' },
+          { id: 'c', label: 'C', text: 'There is no meaningful design difference between the two approaches' },
+          { id: 'd', label: 'D', text: 'The dedicated endpoint is required because HTTP forbids nested resource paths' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A dedicated endpoint for a specially-validated operation makes the contract self-documenting about which fields get transition-validation treatment, rather than burying that distinction inside a generic update handler.',
+        incorrectExplanation:
+          'Think about how finite state transitions require distinct authorization, validation, and side effects compared to updating a shipping address.',
+        hint: 'Dedicated transition endpoints enforce state machine business rules, audit log creation, and role-based transition permissions at the backend boundary.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-backend-observability-data-04-order-state-machine',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — ORDER MANAGEMENT STATE MACHINE',
+      boundaryLabel: 'ORDER FINITE STATE MACHINE BOUNDARY',
+      boundaryText:
+        'Orders transition through strict, validated state boundaries. Invalid jumps (e.g. CANCELLED -> SHIPPED) are rejected by the domain state validator.',
+      nodes: [
+        { id: 'created', label: 'Order Created', kind: 'input' },
+        { id: 'pending', label: 'PENDING', kind: 'service' },
+        { id: 'boundary', label: 'State Transition Validator', kind: 'boundary', highlighted: true },
+        { id: 'paid', label: 'PAID', kind: 'service' },
+        { id: 'shipped', label: 'SHIPPED', kind: 'service' },
+        { id: 'delivered', label: 'DELIVERED (Terminal)', kind: 'output' },
+        { id: 'cancelled', label: 'CANCELLED (Terminal)', kind: 'output' },
+        { id: 'refunded', label: 'REFUNDED (Terminal)', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-04-mcq-01',
+        question:
+          'Why does the order module define an `OrderRepository` port rather than having the business logic call the database directly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Ports are a FastAPI-specific requirement with no relation to earlier lessons in this course' },
+          { id: 'b', label: 'B', text: 'It reuses the hexagonal architecture pattern from the earlier SOLID lesson — business logic depends on the port\'s interface, letting the concrete storage adapter (Postgres, an in-memory store during development) be swapped without touching the logic' },
+          { id: 'c', label: 'C', text: 'Calling the database directly is technically impossible in Python' },
+          { id: 'd', label: 'D', text: 'The `OrderRepository` port exists purely to satisfy a naming convention with no functional purpose' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This module is explicitly framed as composing earlier lessons — the port/adapter structure is the same pattern from the hexagonal-architecture lesson, applied here to a real customer-facing module instead of the earlier illustrative example.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-04-mcq-02',
+        question:
+          'An order in the `completed` state receives a request to transition to `created`. According to the fixed design, what should happen?',
+        options: [
+          { id: 'a', label: 'A', text: 'The transition is silently applied since the API accepts any valid enum value for status' },
+          { id: 'b', label: 'B', text: 'The request is rejected with a specific, clear error explaining the invalid transition, following the same consistent error-envelope shape from the REST lesson — not silently accepted and not a generic, unhelpful error' },
+          { id: 'c', label: 'C', text: 'The server crashes with an unhandled exception' },
+          { id: 'd', label: 'D', text: 'The request succeeds but does nothing, with no indication to the caller that anything went wrong' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct fix described in the scenario — an explicit, specific rejection using the established error-envelope pattern, not a silent no-op, a crash, or a generic unhelpful message.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-04-mcq-03',
+        question:
+          'Why might a customer-facing user be allowed to cancel their own pending order, but only an internal role be allowed to mark an order as fulfilled?',
+        options: [
+          { id: 'a', label: 'A', text: 'FastAPI technically requires every endpoint to have identical role requirements' },
+          { id: 'b', label: 'B', text: 'Different transitions carry different stakes and different appropriate actors — cancelling your own order is a low-stakes, self-directed action, while marking fulfillment is an operational action that should reflect actual warehouse/shipping state, not a customer\'s self-report' },
+          { id: 'c', label: 'C', text: 'RBAC only applies to read operations, never to state-changing operations like transitions' },
+          { id: 'd', label: 'D', text: 'There is no legitimate reason to differentiate; every transition should be equally accessible to all authenticated users' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This connects directly to the RBAC lesson\'s judgment about matching authorization strictness to the stakes and appropriate actor for a given action, applied concretely to order-state transitions.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-04-mcq-04',
+        question:
+          'Why did the original unvalidated `PATCH /orders/{id}` endpoint corrupt downstream reporting specifically, beyond just being a data-integrity concern in the abstract?',
+        options: [
+          { id: 'a', label: 'A', text: 'The reporting system was entirely unrelated to the order module and this was a coincidence' },
+          { id: 'b', label: 'B', text: 'The downstream reporting logic assumed `completed` orders were immutable/terminal, and the unvalidated endpoint let a `completed` order be silently reverted to `created`, violating that assumption in a way the reporting code had no way to detect or guard against' },
+          { id: 'c', label: 'C', text: 'Reporting bugs are always caused by database performance issues, not data-integrity violations' },
+          { id: 'd', label: 'D', text: 'This consequence would have occurred regardless of whether transition validation existed' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This shows the real cost of a missing invariant — other parts of the system built on the (previously reasonable) assumption that `completed` is terminal, and violating that assumption silently, without any enforced guarantee, is what caused the downstream corruption.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-04-mcq-05',
+        question:
+          'Why does the practice loop specify testing at least one valid AND one invalid transition for every state, rather than just testing that a few example transitions work correctly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Testing invalid transitions is unnecessary; only valid-path tests provide any real value' },
+          { id: 'b', label: 'B', text: 'Testing only valid transitions would never actually verify that the rejection logic works at all — the invalid-transition tests are what confirm the allowed-transitions map genuinely blocks disallowed changes, not just that some transitions happen to succeed' },
+          { id: 'c', label: 'C', text: 'This requirement exists purely to increase the total test count for its own sake' },
+          { id: 'd', label: 'D', text: 'Invalid-transition tests are only useful for the `completed` state specifically, not other states' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Testing rejection behavior is what actually validates the guard exists and works — a test suite covering only the happy path would pass even if the rejection logic were completely missing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-04-mcq-06',
+        question:
+          'The suggested extension asks whether order-transition history should be a structured log event, a database table, or both. What consideration from the lesson should drive that choice?',
+        options: [
+          { id: 'a', label: 'A', text: 'Structured logs and database tables are functionally identical, so the choice doesn\'t matter' },
+          { id: 'b', label: 'B', text: 'Whether the history needs to be queried later as part of normal application functionality (favoring a database table, queryable by the app) versus being purely for audit/debugging purposes (favoring structured logs, per the earlier logging lesson) — the two aren\'t mutually exclusive if both needs exist' },
+          { id: 'c', label: 'C', text: 'Order history must always be stored exclusively as structured logs, never in a database table' },
+          { id: 'd', label: 'D', text: 'The choice should be based solely on which option requires writing less code' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This connects back to the structured-logging lesson\'s framing — logs and queryable application data serve different purposes, and the right choice (possibly both) depends on how the history will actually be used, not a default preference for one over the other.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/05-building-payments-and-notifications-stripe-celery': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-05-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — PAYMENT STATE ASYMMETRY',
+        question:
+          'Why is a frontend\'s claim that "payment succeeded" never treated as the source of truth for whether a payment actually happened?',
+        options: [
+          { id: 'a', label: 'A', text: 'Frontends are technically incapable of making HTTP requests to a backend' },
+          { id: 'b', label: 'B', text: 'A client can be wrong, manipulated, or simply lose connection right after a real charge succeeds — only Stripe\'s own signed webhook event reliably reflects the actual payment status' },
+          { id: 'c', label: 'C', text: 'Client claims are always intentionally malicious' },
+          { id: 'd', label: 'D', text: 'This is a stylistic preference with no real security or correctness implication' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The concern isn\'t necessarily malice — a client can simply be wrong or lose connectivity at the wrong moment — which is exactly why the authoritative source has to be the payment processor\'s own verified event, not anything the client reports.',
+        incorrectExplanation:
+          'Consider the security perimeter: client browsers are untrusted; only cryptographically signed provider webhooks confirm real funds capture.',
+        hint: 'Frontend code runs in an untrusted client environment where network calls can be intercepted, spoofed, or replayed; only server-side signed webhooks prove payment settlement.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-05-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — WEBHOOK AT-LEAST-ONCE DELIVERY',
+        question:
+          'Why must a webhook handler be idempotent, given that Stripe doesn\'t guarantee exactly-once delivery?',
+        options: [
+          { id: 'a', label: 'A', text: 'Idempotency has nothing to do with delivery guarantees; it\'s purely a performance concern' },
+          { id: 'b', label: 'B', text: 'The same event can be delivered more than once (due to network retries or a slow acknowledgment), so a non-idempotent handler risks double-executing side effects like fulfilling an order or sending a notification twice' },
+          { id: 'c', label: 'C', text: 'Stripe technically only ever sends each event exactly once, making this concern purely theoretical' },
+          { id: 'd', label: 'D', text: 'Idempotent handlers run faster than non-idempotent ones, which is the primary reason for the requirement' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The at-least-once delivery guarantee (not exactly-once) is exactly what makes idempotency a correctness requirement, not an optimization — without it, a legitimate retry looks identical to a duplicate processing risk.',
+        incorrectExplanation:
+          'Think about what happens when network timeouts cause Stripe to retry a payment_intent.succeeded event.',
+        hint: 'Payment providers like Stripe guarantee at-least-once delivery, frequently re-sending identical event payloads if network latency delays response acknowledgments.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-backend-observability-data-05-payments-celery-pipeline',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — ASYNC WEBHOOK & CELERY NOTIFICATION PIPELINE',
+      boundaryLabel: 'FAST WEBHOOK ACKNOWLEDGMENT BOUNDARY',
+      boundaryText:
+        'The webhook handler validates Stripe signatures and records idempotency state in < 10ms, enqueuing notification jobs to Celery workers to prevent Stripe retry storms.',
+      nodes: [
+        { id: 'stripe', label: 'Stripe Webhook Event', kind: 'input' },
+        { id: 'handler', label: 'FastAPI Webhook Handler', kind: 'service' },
+        { id: 'boundary', label: 'Signature & Idempotency Gate', kind: 'boundary', highlighted: true },
+        { id: 'db', label: 'Order DB (State: PAID)', kind: 'service' },
+        { id: 'redis', label: 'Redis / Celery Message Broker', kind: 'adapter' },
+        { id: 'worker', label: 'Celery Notification Worker', kind: 'adapter' },
+        { id: 'email', label: 'Customer Confirmation Email', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-05-mcq-01',
+        question:
+          'The lesson connects webhook signature verification to two earlier examples in the course. What is the shared underlying principle across all three?',
+        options: [
+          { id: 'a', label: 'A', text: 'All three examples are about database performance optimization' },
+          { id: 'b', label: 'B', text: 'Something claims to be authoritative (a prompt\'s embedded instructions, a JWT\'s claims, a webhook\'s payload), and only a verifiable signature or deterministic check — not the mere presence of the claim — actually proves it\'s legitimate' },
+          { id: 'c', label: 'C', text: 'The three examples are unrelated and the connection is coincidental' },
+          { id: 'd', label: 'D', text: 'The shared principle is that all external data should be encrypted, not verified' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the explicit cross-lesson thread the course draws — prompt injection defenses, JWT signature verification, and webhook verification are all instances of the same "verify before trusting a claim" discipline in different technical contexts.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-05-mcq-02',
+        question:
+          'What was the actual chain of events that caused the confirmation email to be sent twice in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The email provider itself sent duplicate emails due to an internal bug, unrelated to the webhook handler\'s design' },
+          { id: 'b', label: 'B', text: 'A slow email send inside the webhook handler caused a timeout, Stripe retried the webhook delivery believing it hadn\'t been acknowledged, and because the handler wasn\'t idempotent, it reprocessed the already-successful payment and sent a second email' },
+          { id: 'c', label: 'C', text: 'The customer accidentally submitted the payment form twice' },
+          { id: 'd', label: 'D', text: 'Stripe\'s webhook system has a known bug that always delivers every event exactly twice' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This traces the full causal chain — the slow synchronous email send was the trigger for the timeout, and the missing idempotency check was what let the resulting retry cause a real duplicate side effect.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-05-mcq-03',
+        question:
+          'What does moving notification-sending into a Celery task decouple from the payment-confirmation webhook handler\'s response time?',
+        options: [
+          { id: 'a', label: 'A', text: 'The Celery task decouples the webhook handler from Stripe\'s signature verification requirement' },
+          { id: 'b', label: 'B', text: 'The reliability and speed of a slow, external, occasionally-failing third-party service (the email provider) — the webhook handler no longer has to wait on it to return a response' },
+          { id: 'c', label: 'C', text: 'Celery removes the need for idempotent webhook handling entirely' },
+          { id: 'd', label: 'D', text: 'There is no meaningful decoupling; Celery only changes which process executes the code' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The core benefit is separating the payment-confirmation critical path (which should be fast and reliable) from an unrelated, slower, less reliable side effect — not eliminating any other concern like signature verification or idempotency, which remain necessary regardless.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-05-mcq-04',
+        question:
+          'Why did moving notification-sending into a Celery task also indirectly fix the webhook-handler timeout problem, not just the double-send problem?',
+        options: [
+          { id: 'a', label: 'A', text: 'Celery tasks are technically incapable of failing, unlike inline code' },
+          { id: 'b', label: 'B', text: 'With the slow email send removed from the webhook handler\'s critical path, the handler itself returns quickly regardless of the email provider\'s speed that day, which means it stops timing out and Stripe stops retrying it in the first place — removing the retry trigger removes the opportunity for a duplicate to occur at all' },
+          { id: 'c', label: 'C', text: 'The two problems were entirely unrelated, and fixing one had no effect on the other' },
+          { id: 'd', label: 'D', text: 'Idempotency alone would have been sufficient without also queuing the notification' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The two problems were causally linked — the slow inline email send was the root trigger for the timeout-and-retry cycle, so removing it from the critical path addresses the trigger itself, on top of idempotency handling any retries that do still occur for other reasons.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-05-mcq-05',
+        question:
+          'How does the lesson connect a Celery task\'s retry-with-backoff behavior to the earlier closures/decorators lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Celery tasks and Python decorators are unrelated technologies with no conceptual overlap' },
+          { id: 'b', label: 'B', text: 'It\'s conceptually the same idea as the `@retry` decorator from that lesson — automatically retrying a transient failure — just operating at the infrastructure level across process/worker boundaries instead of within a single in-process function call' },
+          { id: 'c', label: 'C', text: 'Celery tasks technically use the exact same `@retry` decorator code from the earlier lesson with no modification' },
+          { id: 'd', label: 'D', text: 'This connection only applies if the Celery task itself is decorated with `@retry` explicitly, which is required syntax' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson draws a conceptual parallel, not a literal code reuse — the same "automatically retry a transient failure" idea shows up at two different levels of the system, in-process versus across a distributed task queue.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-05-mcq-06',
+        question:
+          'The suggested extension asks what should happen if a `payment_succeeded` event arrives after a `payment_failed` event for the same order was already processed. Given the order-management lesson\'s state machine, what determines the correct behavior?',
+        options: [
+          { id: 'a', label: 'A', text: 'This situation is impossible and requires no handling of any kind' },
+          { id: 'b', label: 'B', text: 'Whether the allowed-transitions map permits a transition from `payment_failed` to `payment_succeeded`/`paid` — if it doesn\'t, the later event should be rejected by the same transition-validation logic already in place, exactly as any other invalid transition would be, rather than requiring new special-case code' },
+          { id: 'c', label: 'C', text: 'The most recently received event should always simply overwrite the current state with no validation' },
+          { id: 'd', label: 'D', text: 'This scenario has no connection to the order-management lesson\'s state machine' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the payoff of the earlier investment in explicit transition validation — an out-of-order or conflicting webhook event is just another attempted transition, and the existing allowed-transitions map already provides the mechanism to accept or reject it correctly without new bespoke logic.'
+      }
+    ]
   }
 };
 
