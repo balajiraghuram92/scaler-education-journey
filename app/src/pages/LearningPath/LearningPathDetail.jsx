@@ -66,18 +66,6 @@ export default function LearningPathDetail() {
               }}>
                 {path.pathType}
               </span>
-              {path.domains?.map((d) => (
-                <span key={d} style={{
-                  backgroundColor: '#EFF6FF',
-                  color: '#1D4ED8',
-                  padding: '0.2rem 0.6rem',
-                  borderRadius: '4px',
-                  fontSize: '0.75rem',
-                  fontWeight: '600'
-                }}>
-                  {d}
-                </span>
-              ))}
             </div>
             <h1 style={{
               fontFamily: 'var(--font-serif, "Newsreader", serif)',
