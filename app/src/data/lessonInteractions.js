@@ -2782,6 +2782,697 @@ const lessonInteractions = {
           'The AI Agent node classifies the lead first; a downstream IF/Switch node then branches execution based on that classification result — sales-qualified leads go to CRM write and Slack notification, everything else is logged.'
       }
     ]
+  },
+  'fde-curriculum/agentic-ai-core/07-what-is-an-ai-agent': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-07-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — WORKFLOW VS AGENT DECISION BOUNDARY',
+        question:
+          'What is the single question that best distinguishes a fixed workflow from a true agent?',
+        options: [
+          { id: 'a', label: 'A', text: 'Which programming language was used to build it' },
+          { id: 'b', label: 'B', text: 'Who decides the next step and when — a human/builder at design time (workflow) or the model itself at runtime (agent)' },
+          { id: 'c', label: 'C', text: 'Whether it uses an LLM at all' },
+          { id: 'd', label: 'D', text: 'How many total steps it has' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both a fixed workflow and an agent can use LLMs and have multiple steps. The defining difference is whether the sequence and branching are fixed by the builder in advance, or decided dynamically by the model as it runs.',
+        incorrectExplanation:
+          'Consider who decides the sequence of actions and whether that decision happens at build time or during execution.',
+        hint: 'Distinguish whether the execution path is decided by a builder at design time or by the LLM itself at runtime.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-07-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DISCOVERY-DRIVEN EXECUTION',
+        question:
+          'Why does the provisioning-assistant scenario specifically favor an agent loop over a fixed workflow, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Provisioning tasks always require more tools than triage tasks' },
+          { id: 'b', label: 'B', text: 'The number and order of needed steps genuinely depends on what earlier tool calls discover (e.g. whether a device record already exists), which a fixed workflow would need a combinatorially growing number of explicit branches to express' },
+          { id: 'c', label: 'C', text: 'Agents are required whenever more than two tools are involved' },
+          { id: 'd', label: 'D', text: 'Fixed workflows cannot call more than one tool' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the exact discovery-dependent shape that justifies an agent: what needs to happen next depends on what an earlier step revealed, which a workflow can only handle by enumerating every combination in advance — a genuinely different problem from lead triage\'s fixed shape.',
+        incorrectExplanation:
+          'Think about how variable prerequisite discovery and unexpected edge cases affect workflow branching.',
+        hint: 'Dynamic discovery of prerequisites at runtime makes fixed branching combinatorially unmanageable.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-07-mcq-01',
+        question:
+          'What is the correct order of steps in one iteration of the ReAct agent loop?',
+        options: [
+          { id: 'a', label: 'A', text: 'Action, then Thought, then Observation' },
+          { id: 'b', label: 'B', text: 'Thought, then Action, then Observation' },
+          { id: 'c', label: 'C', text: 'Observation, then Thought, then Action' },
+          { id: 'd', label: 'D', text: 'There is no fixed order; steps happen simultaneously' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'ReAct produces a Thought (reasoning about what to do), then an Action (a tool call), then receives an Observation (the tool\'s result), which feeds the next Thought — this cycle repeats until the model produces a Final Answer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-07-mcq-02',
+        question:
+          'Why does a five-iteration agent loop cost significantly more than a single LLM call?',
+        options: [
+          { id: 'a', label: 'A', text: 'Agent loops always use a larger, more expensive model than single calls' },
+          { id: 'b', label: 'B', text: 'Each iteration of the loop is a full separate LLM call, so a five-iteration loop is at minimum five LLM calls, not one' },
+          { id: 'c', label: 'C', text: 'Tool calls are billed at a higher rate than LLM calls' },
+          { id: 'd', label: 'D', text: 'There is no meaningful cost difference' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Each Thought/Action/Observation iteration requires the model to be called again with the updated transcript. The cost scales directly with iteration count, which is exactly why an unnecessary agent loop is wasteful compared to a workflow that needs only one or two calls.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-07-mcq-03',
+        question:
+          'Why should an agent loop have a hard iteration cap in addition to relying on the model to emit an explicit "finish" action?',
+        options: [
+          { id: 'a', label: 'A', text: 'Iteration caps make the agent run faster' },
+          { id: 'b', label: 'B', text: 'The model has no innate sense of "done" any more than it has an innate sense of "I don\'t know" — relying solely on it to self-terminate risks a runaway loop if it never emits finish' },
+          { id: 'c', label: 'C', text: 'The "finish" action is deprecated and no longer supported' },
+          { id: 'd', label: 'D', text: 'A hard cap is only needed for agents with more than one tool' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Just as a model doesn\'t reliably know when it doesn\'t know something, it doesn\'t reliably know when it\'s genuinely finished. A deterministic hard cap, independent of the model\'s own judgment, is a necessary safety net against an unbounded loop.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-07-mcq-04',
+        question:
+          'The previous lesson\'s lead-triage automation (classify, then branch to CRM/Slack or log) was correctly built as a fixed n8n workflow rather than an agent. Why?',
+        options: [
+          { id: 'a', label: 'A', text: 'n8n does not support building agents at all' },
+          { id: 'b', label: 'B', text: 'The number and order of steps was fully knowable in advance — classify, then branch — with no discovery-dependent variation in how many steps were needed' },
+          { id: 'c', label: 'C', text: 'Fixed workflows are always cheaper than agents regardless of task shape' },
+          { id: 'd', label: 'D', text: 'Lead triage cannot use an LLM under any circumstances' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The deciding factor is whether step count/order is knowable ahead of time. Lead triage always follows the same shape (one classification, one branch), so a fixed workflow is more predictable and cheaper with no capability loss.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-07-mcq-05',
+        question:
+          'What role does the running Thought/Action/Observation transcript play in an agent loop?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is purely a logging artifact with no effect on the model\'s next decision' },
+          { id: 'b', label: 'B', text: 'It functions as the loop\'s short-term memory, letting the model see what it already tried and learned so it doesn\'t repeat itself or ignore earlier findings' },
+          { id: 'c', label: 'C', text: 'It replaces the need for a system prompt' },
+          { id: 'd', label: 'D', text: 'It is only used after the loop finishes, for auditing' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The transcript is fed back into context on each subsequent call, which is precisely what lets the model "remember" its own prior steps within the loop — without it, each iteration would have no awareness of what already happened.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-07-mcq-06',
+        question:
+          'What does the lesson identify as the most common over-engineering mistake when choosing between a fixed workflow and an agent?',
+        options: [
+          { id: 'a', label: 'A', text: 'Using a fixed workflow for a task that genuinely needs discovery-dependent steps' },
+          { id: 'b', label: 'B', text: 'Reaching for an agent by default for tasks that are actually fixed-shape, adding cost, unpredictability, and testing difficulty for no corresponding benefit' },
+          { id: 'c', label: 'C', text: 'Using too few tools in an agent\'s tool set' },
+          { id: 'd', label: 'D', text: 'Setting an iteration cap that is too low' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly frames "agent by default" as the common mistake — not because agents are bad, but because applying the more flexible, more expensive, less predictable tool to a task that doesn\'t need that flexibility is pure waste.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-ai-core/08-building-agents-with-n8n': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-08-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — LLM WORKFLOW NODE VS AI AGENT NODE',
+        question:
+          'The lead-triage workflow from the earlier lesson uses an LLM classification step, yet the lesson still calls it a "fixed workflow," not an agent. Why?',
+        options: [
+          { id: 'a', label: 'A', text: 'n8n does not allow LLM nodes inside fixed workflows' },
+          { id: 'b', label: 'B', text: 'The branching after classification was decided by the builder at design time (an IF/Switch node), not discovered dynamically by the model deciding its own next step' },
+          { id: 'c', label: 'C', text: 'The workflow doesn\'t use any tools at all' },
+          { id: 'd', label: 'D', text: 'It processes fewer than 5 items per execution' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Containing an LLM call doesn\'t make something an agent — what matters is whether the *branching/next-step decision* is made by the model at runtime or fixed by the builder in advance. The lead-triage workflow\'s branching is fixed, so it remains a workflow despite using an LLM.',
+        incorrectExplanation:
+          'Distinguish between a single static prompt transformation and a node that can autonomously call tools in a loop.',
+        hint: 'A basic chain executes a single prompt in a fixed sequence; an AI Agent node runs an autonomous tool-calling loop.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-08-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — ENCAPSULATED TOOL ABSTRACTIONS',
+        question:
+          'What is the main benefit of building `check_ticket_status` as its own small sub-workflow and attaching it as a tool, rather than embedding that logic directly inside the AI Agent node\'s configuration?',
+        options: [
+          { id: 'a', label: 'A', text: 'Sub-workflows execute faster than inline logic' },
+          { id: 'b', label: 'B', text: 'The sub-workflow can be independently tested and reused as a tool by a completely different agent later, without rebuilding the lookup logic' },
+          { id: 'c', label: 'C', text: 'AI Agent nodes cannot call any tools unless they are sub-workflows' },
+          { id: 'd', label: 'D', text: 'This has no practical benefit over inline configuration' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The sub-workflow-as-tool pattern is a composability win — build a capability once, test it in isolation, and reuse it as a tool across multiple different agents, exactly as the scenario\'s lookup workflows are meant to be reused by a future "manager dashboard" agent.',
+        incorrectExplanation:
+          'Consider the complexity and reliability of exposing raw multi-step API mechanics directly to model prompt context.',
+        hint: 'Sub-workflows encapsulate multi-step validation and error handling behind a single clean tool interface.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-08-mcq-01',
+        question:
+          'What does n8n\'s AI Agent node do internally that a plain LLM-call node does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'It automatically writes the rest of the workflow\'s nodes' },
+          { id: 'b', label: 'B', text: 'It runs a self-contained ReAct-style loop, deciding which of its attached tools to call and when to stop, without the builder wiring that loop by hand' },
+          { id: 'c', label: 'C', text: 'It replaces the need for a system prompt entirely' },
+          { id: 'd', label: 'D', text: 'It only differs in having a larger context window' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The AI Agent node implements the Thought/Action/Observation loop from the previous lesson as a self-contained sub-graph, deciding tool use and termination internally — a plain LLM node just produces one response with no loop.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-08-mcq-02',
+        question:
+          'A customer expects their helpdesk bot to remember a detail a user mentioned in a conversation yesterday. Which memory configuration does this require?',
+        options: [
+          { id: 'a', label: 'A', text: 'Window buffer memory, since it\'s the default option' },
+          { id: 'b', label: 'B', text: 'Persistent memory backed by a database, since window buffer memory is forgotten once a single execution ends and cannot survive across separate executions' },
+          { id: 'c', label: 'C', text: 'Neither — n8n cannot support any form of memory' },
+          { id: 'd', label: 'D', text: 'This requires switching to a fixed workflow instead of an agent' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Window buffer memory only persists for the duration of one execution. Remembering something across separate conversations (yesterday vs. today) requires persistent memory that survives between executions.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-08-mcq-03',
+        question:
+          'What is the downside of configuring persistent memory for an agent that only ever handles one-shot, unrelated requests with no ongoing conversation?',
+        options: [
+          { id: 'a', label: 'A', text: 'Persistent memory makes the agent\'s tool calls fail' },
+          { id: 'b', label: 'B', text: 'It adds unnecessary infrastructure and latency for a continuity guarantee the use case never actually needs' },
+          { id: 'c', label: 'C', text: 'Persistent memory is strictly cheaper than window buffer memory, so there is no downside' },
+          { id: 'd', label: 'D', text: 'Persistent memory prevents the agent from using tools' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The trade-off runs both directions — persistent memory costs infrastructure and latency, so provisioning it for a use case that\'s genuinely one-shot is waste, the mirror image of the earlier example where window buffer memory was insufficient.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-08-mcq-04',
+        question:
+          'What specifically distinguishes the helpdesk scenario from the lead-triage workflow in a way that justifies an AI Agent node over a fixed IF/Switch branch?',
+        options: [
+          { id: 'a', label: 'A', text: 'The helpdesk bot uses more Slack integrations' },
+          { id: 'b', label: 'B', text: 'Some helpdesk requests require chaining an unpredictable number of tool calls together (discovering mid-conversation that a second lookup is needed), whereas lead triage only ever needed one classification call' },
+          { id: 'c', label: 'C', text: 'The helpdesk bot processes a higher volume of requests' },
+          { id: 'd', label: 'D', text: 'Fixed workflows cannot call more than one external system' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the same discovery-dependent-steps justification from the previous lesson, applied concretely: the helpdesk bot sometimes needs to chain tool calls based on what it learns mid-conversation, which a fixed branch can\'t express, while lead triage\'s shape never varies.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-08-mcq-05',
+        question:
+          'How does the sub-workflow-as-tool pattern relate to n8n\'s MCP client/server support covered in an earlier lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are mutually exclusive features; a workflow can use one or the other but never both' },
+          { id: 'b', label: 'B', text: 'They can combine — a sub-workflow tool built once inside n8n can also be exposed over MCP, making it callable by agents running entirely outside n8n, not just by other n8n AI Agent nodes' },
+          { id: 'c', label: 'C', text: 'MCP support replaces the need for sub-workflows entirely' },
+          { id: 'd', label: 'D', text: 'Sub-workflows can only be called by MCP clients, never by n8n\'s own AI Agent node' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Sub-workflow-as-tool is n8n\'s internal composition mechanism; MCP server support extends that same reusable capability to external agentic systems outside n8n entirely — the two combine rather than compete.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-08-mcq-06',
+        question:
+          'Why does the `escalate_to_human` tool specifically warrant a human-in-the-loop confirmation step, rather than executing automatically like the lookup tools?',
+        options: [
+          { id: 'a', label: 'A', text: 'Lookup tools never have real-world consequences worth gating' },
+          { id: 'b', label: 'B', text: 'Escalation has real consequences for response time and routing; a deliberate handoff step (e.g. Slack approval buttons) avoids the agent over- or under-escalating based on a misjudged situation, consistent with the human-in-the-loop principle for high-stakes actions' },
+          { id: 'c', label: 'C', text: 'n8n technically cannot execute a tool without human approval' },
+          { id: 'd', label: 'D', text: 'Escalation is the cheapest tool to call, so gating it saves the most cost' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Read-only lookups have low consequence if wrong; escalation changes what happens to a real support case and its response-time expectations, making it the highest-stakes action in this tool set and the one that most benefits from a deliberate human checkpoint.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-ai-core/09-openclaw-personal-24-7-ai-agent': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-09-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — PROACTIVE VS REACTIVE EXECUTION',
+        question:
+          'What is the defining difference between a proactive agent and a reactive agent, as this lesson uses the terms?',
+        options: [
+          { id: 'a', label: 'A', text: 'Proactive agents use larger models than reactive agents' },
+          { id: 'b', label: 'B', text: 'A proactive agent decides for itself that now is a moment to act, without a fresh external trigger initiating that specific decision; a reactive agent only acts because something triggered it' },
+          { id: 'c', label: 'C', text: 'Reactive agents cannot use tools, while proactive agents can' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference; the terms are interchangeable' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the new axis this lesson introduces: every agent covered earlier (ReAct loop, n8n AI Agent node) is reactive — it runs because a webhook, message, or manual trigger started it. Proactive means the system itself judges when to act.',
+        incorrectExplanation:
+          'Consider how the execution is initiated: waiting passively for a user turn versus waking up autonomously on a heartbeat.',
+        hint: 'Reactive agents only run when a user messages them; proactive agents wake up on heartbeats or events to inspect state and act.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-09-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — STATEFUL PROACTIVE MEMORY',
+        question:
+          'Why does persistent, cross-session memory matter more for a proactive agent than it does for a purely reactive, one-shot request-response agent?',
+        options: [
+          { id: 'a', label: 'A', text: 'Persistent memory is required by n8n for any agent to function' },
+          { id: 'b', label: 'B', text: 'A proactive agent needs to remember what it already checked or acted on across separate, self-initiated wake cycles (e.g. which tickets it already drafted for) to avoid repeating or missing actions, whereas a reactive agent\'s context is often fully contained within a single triggered exchange' },
+          { id: 'c', label: 'C', text: 'Reactive agents never need any form of memory' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference in memory needs between the two' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because a proactive agent\'s actions happen across many separate, self-initiated wake cycles rather than one bounded exchange, it needs durable memory of what it has already done to make sound decisions on the next cycle — this is architecture\'s default, not an optional add-on, for exactly this reason.',
+        incorrectExplanation:
+          'Think about what happens on subsequent heartbeats if the agent has no memory of what it observed and alerted on previously.',
+        hint: 'Without persistent memory of past heartbeats, the agent cannot detect state transitions or prevent spamming duplicate alerts.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-09-mcq-01',
+        question:
+          'What mechanism does OpenClaw use to run continuously and decide on its own when to act, rather than waiting for an incoming request?',
+        options: [
+          { id: 'a', label: 'A', text: 'A heartbeat daemon that wakes on a recurring cycle and evaluates whether anything warrants action' },
+          { id: 'b', label: 'B', text: 'A single webhook endpoint that must be called externally for anything to happen' },
+          { id: 'c', label: 'C', text: 'A fixed daily cron job with no other trigger types' },
+          { id: 'd', label: 'D', text: 'It only responds when a user opens a dedicated chat window' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The heartbeat daemon is what makes OpenClaw\'s architecture proactive rather than reactive — it wakes on its own recurring cycle and decides whether action is warranted, rather than only running because an external event triggered it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-09-mcq-02',
+        question:
+          'How does a heartbeat trigger differ from both a webhook trigger and a scheduled/cron trigger?',
+        options: [
+          { id: 'a', label: 'A', text: 'A heartbeat is just a webhook with a different name' },
+          { id: 'b', label: 'B', text: 'A webhook fires because something external happened, and a schedule fires because a fixed time arrived; a heartbeat wakes repeatedly and itself judges whether anything warrants action, rather than a fixed condition or fixed time determining the action' },
+          { id: 'c', label: 'C', text: 'A heartbeat only fires once per day, identical to a daily cron job' },
+          { id: 'd', label: 'D', text: 'There is no functional difference between the three trigger types' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Webhook and schedule triggers both fire based on an external, predetermined condition (an event or a fixed time). A heartbeat wakes on a cycle and then itself evaluates whether action is warranted — the judgment happens inside the heartbeat, not at the trigger level.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-09-mcq-03',
+        question:
+          'Why can no vendor-hosted SaaS agent platform offer the same data-ownership guarantee as a self-hosted architecture like OpenClaw\'s?',
+        options: [
+          { id: 'a', label: 'A', text: 'Vendor-hosted platforms are always less capable technically' },
+          { id: 'b', label: 'B', text: 'By definition, a hosted platform\'s infrastructure belongs to the vendor, not the customer, so any data processed there is not entirely within the customer\'s own control — a self-hosted architecture keeps infrastructure, keys, and data on the customer\'s own systems' },
+          { id: 'c', label: 'C', text: 'Vendor-hosted platforms cannot support messaging integrations' },
+          { id: 'd', label: 'D', text: 'This is not actually true; hosted and self-hosted platforms offer identical data guarantees' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Self-hosting is the direct mechanism for satisfying a hard data-ownership requirement — running on the user\'s own hardware with their own keys means nothing has to leave infrastructure they control, a guarantee a hosted vendor platform structurally cannot make.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-09-mcq-04',
+        question:
+          'Why does the scenario conclude the overnight ticket-monitoring requirement leans toward a proactive/ambient architecture rather than a scheduled workflow?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because it runs overnight, and scheduled workflows cannot run outside business hours' },
+          { id: 'b', label: 'B', text: 'Because the requirement implies ongoing judgment about which tickets are worth drafting for and when a draft is ready, not a single fixed-time batch action — the "deciding for itself" quality that distinguishes proactive from scheduled behavior' },
+          { id: 'c', label: 'C', text: 'Because scheduled workflows cannot call an LLM' },
+          { id: 'd', label: 'D', text: 'Because it involves messaging platforms, which only proactive agents can use' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The distinguishing test from this lesson is whether the system needs to decide, on an ongoing basis, whether now is the moment to act. "Monitor and draft responses" implies exactly that kind of continuous judgment, unlike a single fixed-time summary job.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-09-mcq-05',
+        question:
+          'What is the trade-off in choosing how often a heartbeat cycle should wake?',
+        options: [
+          { id: 'a', label: 'A', text: 'Heartbeat frequency has no effect on cost or responsiveness' },
+          { id: 'b', label: 'B', text: 'Too frequent wastes cost checking for changes that haven\'t happened yet; too infrequent risks missing timely action on something that needed a faster response' },
+          { id: 'c', label: 'C', text: 'A more frequent heartbeat always produces better outcomes with no downside' },
+          { id: 'd', label: 'D', text: 'Heartbeat frequency can only be set to once every 24 hours' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Each heartbeat wake is itself a cost (checking state, potentially calling an LLM to judge whether action is warranted), so the frequency has to be tuned against how time-sensitive the underlying task actually is — the same cost-versus-responsiveness trade-off that shows up throughout this module.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-09-mcq-06',
+        question:
+          'Why should the overnight-monitoring agent only draft responses and never send them without human review?',
+        options: [
+          { id: 'a', label: 'A', text: 'Drafting is technically impossible without a review step' },
+          { id: 'b', label: 'B', text: 'A proactive agent acting on its own judgment, without a fresh external trigger confirming the action is correct, is exactly the kind of high-stakes, hard-to-reverse customer-facing action that warrants a human-in-the-loop gate before it takes effect' },
+          { id: 'c', label: 'C', text: 'OpenClaw-style agents cannot send messages under any circumstances' },
+          { id: 'd', label: 'D', text: 'Human review is only needed for scheduled workflows, not proactive agents' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because the agent decided to act entirely on its own judgment (no human explicitly triggered this specific action), the case for a human checkpoint before anything customer-facing goes out is if anything stronger than for a reactive agent responding to a direct request.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-ai-core/10-multi-agent-systems': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-10-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — MULTI-AGENT TOPOLOGY PITFALLS',
+        question:
+          'Which multi-agent pattern category has struggled most once systems move past the demo/pilot stage into production?',
+        options: [
+          { id: 'a', label: 'A', text: 'Sequential pipeline' },
+          { id: 'b', label: 'B', text: 'Orchestrator-worker' },
+          { id: 'c', label: 'C', text: 'Free-form swarm/mesh peer negotiation with no single accountable decision-maker' },
+          { id: 'd', label: 'D', text: 'Hierarchical' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'Production systems that survived past a pilot almost always had phase gates, shared artifacts, or a final supervisor — pure free-form peer negotiation has mostly stayed confined to narrow, heavily instrumented niches rather than becoming a reliable general-purpose default.',
+        incorrectExplanation:
+          'Look at the pattern where agents chat freely with each other without a centralized coordinator enforcing termination and schemas.',
+        hint: 'Decentralized peer-to-peer agent meshes suffer from conversational loops, unbounded token spend, and lack of accountability.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-10-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — WORKER ISOLATION & ACCOUNTABILITY',
+        question:
+          'Why does the practice loop ask you to write a "done" definition for each worker\'s subtask in the redesigned system?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is only useful for documentation purposes with no bearing on debugging' },
+          { id: 'b', label: 'B', text: 'A clear "done" definition per worker is what creates the accountability boundary that lets a failure be traced to exactly one worker\'s output, rather than an ambiguous multi-way negotiation' },
+          { id: 'c', label: 'C', text: 'Workers cannot execute at all without an explicit "done" definition' },
+          { id: 'd', label: 'D', text: 'This step is unnecessary in an orchestrator-worker design' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The traceability benefit of orchestrator-worker over mesh specifically depends on each worker having a clearly scoped, checkable output — without that, you\'re back to an ambiguous system where a bad final result can\'t be attributed to any one stage.',
+        incorrectExplanation:
+          'Consider what prevents workers from colliding, duplicating work, or returning unverifiable open-ended results.',
+        hint: 'Workers must have disjoint write scopes, clear acceptance criteria, and bounded input/output contracts.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-agentic-ai-core-10-orchestrator-worker',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — ORCHESTRATOR-WORKER REFACTOR',
+      boundaryLabel: 'CENTRAL ORCHESTRATOR BOUNDARY',
+      boundaryText:
+        'The orchestrator delegates isolated tasks to specialized workers with strict schemas, preventing peer-to-peer negotiation loops.',
+      nodes: [
+        { id: 'request', label: 'User Request', kind: 'input' },
+        { id: 'orchestrator', label: 'Lead Orchestrator', kind: 'service' },
+        { id: 'boundary', label: 'Contract & Schema Gate', kind: 'boundary', highlighted: true },
+        { id: 'retriever', label: 'Document Retriever Worker', kind: 'adapter' },
+        { id: 'analyst', label: 'Financial Analyst Worker', kind: 'adapter' },
+        { id: 'writer', label: 'Report Writer Worker', kind: 'adapter' },
+        { id: 'output', label: 'Synthesized Report', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-10-mcq-01',
+        question:
+          'What defines the orchestrator-worker multi-agent pattern?',
+        options: [
+          { id: 'a', label: 'A', text: 'All agents negotiate as equal peers with no single decision-maker' },
+          { id: 'b', label: 'B', text: 'A single orchestrator decomposes a task into known subtasks and dispatches each to a specialized worker, with one accountability point responsible for aggregating results' },
+          { id: 'c', label: 'C', text: 'Every agent has access to every other agent\'s memory at all times' },
+          { id: 'd', label: 'D', text: 'There is exactly one agent total, performing all subtasks sequentially' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Orchestrator-worker\'s defining trait is the single accountable decomposition/aggregation point — this is what makes it the most disciplined and production-proven pattern compared to free-form peer negotiation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-10-mcq-02',
+        question:
+          'What did controlled research find when comparing a single agent to a multi-agent system given identical tools and context?',
+        options: [
+          { id: 'a', label: 'A', text: 'Multi-agent systems always significantly outperform a single agent' },
+          { id: 'b', label: 'B', text: 'The single agent matched or outperformed the multi-agent system on the large majority of benchmarked tasks, with multi-agent\'s accuracy edge, where present, coming at roughly double the cost' },
+          { id: 'c', label: 'C', text: 'Single agents cannot use tools, making the comparison invalid' },
+          { id: 'd', label: 'D', text: 'There was no measurable difference in cost between the two approaches' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the core finding that should temper reflexive multi-agent adoption: a single well-tooled agent is frequently as good or better, and multi-agent\'s modest accuracy gains where they exist come at a real, roughly doubled cost.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-10-mcq-03',
+        question:
+          'Why does multi-agent orchestration tend to consume dramatically more tokens than a single chat-style interaction?',
+        options: [
+          { id: 'a', label: 'A', text: 'Multi-agent systems always use larger context windows by requirement' },
+          { id: 'b', label: 'B', text: 'Every hand-off between agents typically re-summarizes or re-explains context, and each orchestrator decision is its own additional LLM call layered on top of the workers\' own calls' },
+          { id: 'c', label: 'C', text: 'Token cost is identical between single-agent and multi-agent systems' },
+          { id: 'd', label: 'D', text: 'Workers do not consume tokens, only the orchestrator does' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Each hand-off and each orchestrator decision is additional LLM-call overhead stacked on top of what the workers themselves need, which is why research-style multi-agent orchestration can burn an order of magnitude more tokens than a single interaction.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-10-mcq-04',
+        question:
+          'Why does the lesson describe the orchestrator as "both a bottleneck and a single point of failure"?',
+        options: [
+          { id: 'a', label: 'A', text: 'The orchestrator is the only component that costs money to run' },
+          { id: 'b', label: 'B', text: 'Every worker\'s result routes back through the orchestrator, so it becomes a throughput bottleneck, and a worker\'s bad output propagates into whatever the orchestrator does next, compounding the failure' },
+          { id: 'c', label: 'C', text: 'Orchestrators are always the slowest individual agent in the system' },
+          { id: 'd', label: 'D', text: 'This description only applies to swarm and mesh patterns, not orchestrator-worker' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The orchestrator\'s centralizing role is both its strength (clear accountability) and its risk (a single choke point whose downstream decisions inherit any upstream worker\'s mistake) — this is an inherent property of the pattern, not a flaw unique to a bad implementation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-10-mcq-05',
+        question:
+          'What specifically was wrong with the original five-agent mesh design for the research-and-report system, and how did the orchestrator-worker redesign fix it?',
+        options: [
+          { id: 'a', label: 'A', text: 'The mesh design had too few agents; the fix was adding more agents to improve coverage' },
+          { id: 'b', label: 'B', text: 'Free-form negotiation with no single accountable agent produced inconsistent output run-to-run and high token cost; collapsing to one orchestrator dispatching three well-scoped, sequential worker subtasks with a final review gate made failures traceable to a specific worker and reduced hand-offs' },
+          { id: 'c', label: 'C', text: 'The mesh design was fine; the redesign only changed which LLM model was used' },
+          { id: 'd', label: 'D', text: 'The fix was removing all agents and using a single fixed workflow with no LLM calls' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s core lesson is that the failure mode (inconsistency, high cost, opaque negotiation) came directly from the lack of a single accountable decision-maker — orchestrator-worker\'s defined subtasks and accountability boundary is what fixed it, not adding more agents or removing agentic structure entirely.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-10-mcq-06',
+        question:
+          'According to the lesson\'s framework, what is the honest question an FDE should answer before recommending a multi-agent design over a single well-tooled agent?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the customer specifically asked for the word "multi-agent"' },
+          { id: 'b', label: 'B', text: 'Whether the task genuinely decomposes into independent, parallelizable, or specialist-distinct subproblems — not whether multi-agent sounds more sophisticated' },
+          { id: 'c', label: 'C', text: 'Whether enough budget exists to run more LLM calls, regardless of task shape' },
+          { id: 'd', label: 'D', text: 'Whether the team has more than one available engineer to build it' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Given the accuracy and cost data, the lesson is explicit that multi-agent should be chosen because a task genuinely has that decomposable shape, not by default or because it seems like the more advanced choice.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-10-mcq-07',
+        question:
+          'In the redesigned orchestrator-worker research system, where does the final review/supervisor gate belong, and why?',
+        options: [
+          { id: 'a', label: 'A', text: 'Before the orchestrator decomposes the task, since earlier is always better' },
+          { id: 'b', label: 'B', text: 'After the writer worker produces the final report but before it\'s returned to the customer, since this is the last point where an inconsistency from any earlier worker would otherwise reach the customer undetected' },
+          { id: 'c', label: 'C', text: 'A review gate is unnecessary once orchestrator-worker replaces mesh' },
+          { id: 'd', label: 'D', text: 'The review gate should run after each individual worker\'s every intermediate token, not just at the end' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The gate\'s job is to catch anything that slipped through the pipeline before it reaches the customer — placing it at the very end, after the writer\'s output but before delivery, is the last checkpoint where that\'s still possible.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-ai-core/11-debugging-ai': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-11-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — STOCHASTIC EVALUATION VS RE-RUNS',
+        question:
+          'Why is "I ran the agent again with the same input and it worked correctly" not reliable evidence that a suspected bug is fixed?',
+        options: [
+          { id: 'a', label: 'A', text: 'Agents never produce the same output twice under any circumstances' },
+          { id: 'b', label: 'B', text: 'Because the agent\'s execution path depends on sampling at every generation step, the same input can take a different route through the loop on different runs, so a successful re-run doesn\'t rule out the original faulty path recurring' },
+          { id: 'c', label: 'C', text: 'Re-running an agent is always technically impossible' },
+          { id: 'd', label: 'D', text: 'This reasoning is actually valid and sufficient to confirm a fix' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Unlike deterministic code, an agent\'s non-deterministic sampling means the same input doesn\'t guarantee the same path, so a clean re-run doesn\'t prove the earlier failing path is gone — this is exactly why trace-level inspection of the actual failing run matters more than reproduction attempts.',
+        incorrectExplanation:
+          'Consider the probabilistic nature of LLM generation and how single-run confirmation leads to phantom fixes.',
+        hint: 'LLMs are non-deterministic; a single successful run can simply be statistical variance unless validated across a test suite.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-11-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — BACKWARD TRACE DIAGNOSTICS',
+        question:
+          'When walking a failing trace backward from the final wrong output, what question do you ask at each step to decide whether to keep going further back?',
+        options: [
+          { id: 'a', label: 'A', text: 'Was this step\'s output the same as the final output?' },
+          { id: 'b', label: 'B', text: 'Was this step\'s output correct given what it actually received as input? If yes, the fault is further upstream; if no, this step is a candidate for the actual fault' },
+          { id: 'c', label: 'C', text: 'How long did this step take to execute?' },
+          { id: 'd', label: 'D', text: 'Did this step use the largest available model?' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The technique isolates correctness relative to each step\'s own input, not relative to the final outcome — a step can be "correct" (reasonable given bad input) while still being downstream of the actual fault, which is exactly the helpdesk scenario\'s escalate decision.',
+        incorrectExplanation:
+          'Follow the causal chain in reverse: from the final flawed action back to the specific step that introduced invalid state.',
+        hint: 'Inspect the final bad output, then step backward through preceding tool calls, prompt context, and retrieval data to find the earliest corrupted step.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-11-mcq-01',
+        question:
+          'Why does the lesson describe "the final answer was wrong" as a symptom rather than a diagnosis?',
+        options: [
+          { id: 'a', label: 'A', text: 'Final answers are never actually wrong in practice' },
+          { id: 'b', label: 'B', text: 'The root cause of a wrong final output frequently sits several steps upstream, so knowing only that the final answer is wrong doesn\'t tell you which of potentially many earlier steps actually introduced the error' },
+          { id: 'c', label: 'C', text: 'Symptoms and diagnoses are the same thing in agent debugging' },
+          { id: 'd', label: 'D', text: 'Only the first step in a trace can ever be the actual fault' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A wrong final output tells you something is broken, but in a multi-step trace it doesn\'t identify where — the diagnosis requires isolating the specific upstream step whose output was itself incorrect, which is the whole point of trace-level observability.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-11-mcq-02',
+        question:
+          'In the helpdesk scenario, why was the agent\'s final "escalate" decision not actually the bug, even though escalating the low-priority ticket was the wrong outcome?',
+        options: [
+          { id: 'a', label: 'A', text: 'The agent\'s decision was actually correct, and the ticket genuinely was urgent' },
+          { id: 'b', label: 'B', text: 'The decision was reasonable given the (stale, incorrect) priority data the agent received from an upstream tool call — the agent reasoned correctly from bad information, so the fault was in the tool\'s caching behavior, not the agent\'s reasoning' },
+          { id: 'c', label: 'C', text: 'Escalation decisions are never considered bugs in agent systems' },
+          { id: 'd', label: 'D', text: 'The bug was in the system prompt\'s wording, unrelated to any tool call' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the scenario\'s central point: a step behaving correctly relative to its (bad) input is not the same as that step being the fault — the actual root cause was the stale-cache tool response two steps earlier, invisible without walking the trace back that far.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-11-mcq-03',
+        question:
+          'Why would rewriting the helpdesk agent\'s system prompt have failed to fix the escalation bug in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'System prompts cannot be edited once an agent is deployed' },
+          { id: 'b', label: 'B', text: 'The defect was a caching bug in the tool three steps upstream, not a reasoning flaw in the agent — no amount of system prompt rewriting changes what data the tool returns, so the same stale-data failure would recur' },
+          { id: 'c', label: 'C', text: 'Rewriting the system prompt would have fixed it, and the scenario is describing a successful fix' },
+          { id: 'd', label: 'D', text: 'The agent doesn\'t use a system prompt at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Misdiagnosing a tool bug as a reasoning bug leads to fixing the wrong layer entirely — this is exactly why root-causing via the backward trace, rather than guessing based on the symptom alone, matters: it points at the tool, not the prompt.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-11-mcq-04',
+        question:
+          'What does trace-level observability capture that plain input/output logging of an agent does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Only the total execution time of the run' },
+          { id: 'b', label: 'B', text: 'Every LLM call, every tool call and its raw result, and every intermediate reasoning step within a single execution — not just the initial input and the final output' },
+          { id: 'c', label: 'C', text: 'Only whether the run succeeded or failed, as a boolean' },
+          { id: 'd', label: 'D', text: 'Trace-level observability and input/output logging capture identical information' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Input/output logging alone would have shown "ticket, escalated" — enough to know something happened, but nothing about the intermediate tool calls that would reveal the stale-cache root cause. Trace-level capture of every intermediate step is what makes backward root-causing possible at all.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-11-mcq-05',
+        question:
+          'How does the backward-trace debugging technique in this lesson generalize the diagnostic approach from the earlier RAG lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two techniques are unrelated; RAG evaluation and agent debugging solve entirely different problems' },
+          { id: 'b', label: 'B', text: 'The RAG lesson isolated whether a wrong answer was a retrieval-stage or generation-stage failure using separate metrics; this lesson applies the same "isolate which specific stage introduced the error" principle to any number of steps in any agent, not just a two-stage pipeline' },
+          { id: 'c', label: 'C', text: 'RAGAS metrics are used directly to debug any agent, including non-RAG agents' },
+          { id: 'd', label: 'D', text: 'The RAG lesson\'s technique only applies to retrieval, and has no broader lesson for agent debugging' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both techniques share the same core discipline: don\'t judge the whole system by its final output alone — separately check each distinguishable stage (two stages in RAG, any number of steps in a general agent trace) to find exactly where the error was introduced.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-11-mcq-06',
+        question:
+          'After root-causing the helpdesk escalation bug to the stale-cache tool response, what should happen next according to the lesson\'s closing-the-loop principle?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing further is needed once the immediate ticket is manually corrected' },
+          { id: 'b', label: 'B', text: 'The specific failing trace should be turned into a permanent, automatically-run regression test or eval case (e.g. a mocked stale-cache tool response with an assertion that the agent no longer escalates), so the same failure mode is caught automatically in the future' },
+          { id: 'c', label: 'C', text: 'The agent should be replaced entirely with a fixed workflow' },
+          { id: 'd', label: 'D', text: 'The bug should be left undocumented since agent bugs cannot be reliably reproduced' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Closing the loop — converting a found failure into a permanent automated test — is what prevents the same failure mode from being silently rediscovered later; it\'s the same disciplined instinct as a regression test in traditional software, applied to a system that\'s otherwise harder to reproduce failures in on demand.'
+      }
+    ]
   }
 };
 
