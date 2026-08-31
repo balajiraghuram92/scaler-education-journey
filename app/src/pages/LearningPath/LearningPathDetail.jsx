@@ -118,73 +118,111 @@ export default function LearningPathDetail() {
         </div>
       </div>
 
-      {/* Modules & Lessons List */}
+      {/* Modules & Lessons Grid */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {path.modules?.map((module, idx) => (
-          <div key={module.id} style={{
-            backgroundColor: 'var(--color-parchment-card, #FFFFFF)',
-            border: '1px solid var(--color-border-subtle, #E2DDD5)',
-            borderRadius: '10px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              padding: '1.25rem 1.5rem',
-              backgroundColor: 'rgba(0,0,0,0.015)',
-              borderBottom: '1px solid var(--color-border-subtle, #E2DDD5)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--color-ink-muted, #6B7280)', textTransform: 'uppercase' }}>
-                  Module {idx + 1}
-                </span>
-                <h3 style={{ margin: '0.2rem 0 0 0', fontSize: '1.2rem', color: 'var(--color-ink, #1F2937)' }}>
-                  {module.title}
-                </h3>
-              </div>
-              <span style={{ fontSize: '0.85rem', color: 'var(--color-ink-muted, #6B7280)' }}>
-                {module.lessons?.length || 0} Lessons
-              </span>
-            </div>
+        {path.modules?.map((module, idx) => {
+          const totalCount = module.lessons?.length || 0;
+          const completedCount = module.lessons?.filter((lesson) => lesson.isCompleted).length || 0;
+          const nextLesson = module.lessons?.find((lesson) => !lesson.isCompleted) || null;
 
-            <div style={{ divideY: '1px solid var(--color-border-subtle, #E2DDD5)' }}>
-              {module.lessons?.map((lesson) => (
-                <div key={lesson.id} style={{
-                  padding: '1rem 1.5rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  borderBottom: '1px solid #F3F4F6'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '4px',
-                      border: lesson.isCompleted ? 'none' : '2px solid #D1D5DB',
-                      backgroundColor: lesson.isCompleted ? 'var(--color-sage, #2C5E55)' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#FFF',
-                      fontSize: '12px'
-                    }}>
-                      {lesson.isCompleted ? '✓' : ''}
-                    </div>
-                    <div>
-                      <Link
-                        to={`/chapter/${path.slug}/${module.slug}/${lesson.slug}`}
-                        style={{
-                          color: 'var(--color-ink, #1F2937)',
-                          fontWeight: '600',
-                          textDecoration: 'none',
-                          fontSize: '1rem'
-                        }}
-                      >
+          return (
+            <div key={module.id} style={{
+              backgroundColor: 'var(--color-parchment-card, #FFFFFF)',
+              border: '1px solid var(--color-border-subtle, #E2DDD5)',
+              borderRadius: '10px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                padding: '1.25rem 1.5rem',
+                backgroundColor: 'rgba(0,0,0,0.015)',
+                borderBottom: '1px solid var(--color-border-subtle, #E2DDD5)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--color-ink-muted, #6B7280)', textTransform: 'uppercase' }}>
+                    Module {idx + 1}
+                  </span>
+                  <h3 style={{ margin: '0.2rem 0 0 0', fontSize: '1.2rem', color: 'var(--color-ink, #1F2937)' }}>
+                    {module.title}
+                  </h3>
+                </div>
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-ink-muted, #6B7280)' }}>
+                  {completedCount} of {totalCount} lessons completed
+                </span>
+              </div>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: '1rem',
+                padding: '1.5rem'
+              }}>
+                {module.lessons?.map((lesson) => {
+                  const isNextUp = nextLesson !== null && lesson.id === nextLesson.id;
+
+                  return (
+                    <Link
+                      key={lesson.id}
+                      to={`/chapter/${path.slug}/${module.slug}/${lesson.slug}`}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        padding: '1rem',
+                        minHeight: '140px',
+                        borderRadius: '10px',
+                        border: isNextUp ? '2px solid var(--color-sage, #2C5E55)' : '1px solid var(--color-border-subtle, #E2DDD5)',
+                        backgroundColor: 'var(--color-parchment-card, #FFFFFF)',
+                        color: 'inherit',
+                        textDecoration: 'none'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '4px',
+                          border: lesson.isCompleted ? 'none' : '2px solid #D1D5DB',
+                          backgroundColor: lesson.isCompleted ? 'var(--color-sage, #2C5E55)' : 'transparent',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#FFF',
+                          fontSize: '12px',
+                          flexShrink: 0
+                        }}>
+                          {lesson.isCompleted ? '✓' : ''}
+                        </div>
+                        {isNextUp && (
+                          <span style={{
+                            fontSize: '0.65rem',
+                            fontWeight: '700',
+                            textTransform: 'uppercase',
+                            color: 'var(--color-sage, #2C5E55)',
+                            backgroundColor: 'rgba(44, 94, 85, 0.1)',
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '4px'
+                          }}>
+                            Continue
+                          </span>
+                        )}
+                      </div>
+
+                      <span style={{
+                        fontWeight: '600',
+                        fontSize: '0.95rem',
+                        color: 'var(--color-ink, #1F2937)',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
                         {lesson.title}
-                      </Link>
-                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', fontSize: '0.75rem', color: 'var(--color-ink-muted, #6B7280)' }}>
+                      </span>
+
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', fontSize: '0.7rem', color: 'var(--color-ink-muted, #6B7280)', marginTop: 'auto' }}>
                         <span>⏱ {lesson.estimatedMinutes} min</span>
                         <span>•</span>
                         <span>{lesson.difficulty}</span>
@@ -195,29 +233,13 @@ export default function LearningPathDetail() {
                           </>
                         )}
                       </div>
-                    </div>
-                  </div>
-
-                  <Link
-                    to={`/chapter/${path.slug}/${module.slug}/${lesson.slug}`}
-                    style={{
-                      padding: '0.4rem 0.9rem',
-                      borderRadius: '6px',
-                      backgroundColor: 'transparent',
-                      border: '1px solid var(--color-sage, #2C5E55)',
-                      color: 'var(--color-sage, #2C5E55)',
-                      fontWeight: '600',
-                      fontSize: '0.85rem',
-                      textDecoration: 'none'
-                    }}
-                  >
-                    Read
-                  </Link>
-                </div>
-              ))}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
