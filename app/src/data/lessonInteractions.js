@@ -5795,6 +5795,1387 @@ const lessonInteractions = {
           'This is the payoff of the earlier investment in explicit transition validation — an out-of-order or conflicting webhook event is just another attempted transition, and the existing allowed-transitions map already provides the mechanism to accept or reject it correctly without new bespoke logic.'
       }
     ]
+  },
+  'fde-curriculum/backend-observability-data/06-building-the-demo-frontend': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-06-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — REAL BACKEND WIRED PROTOTYPING',
+        question:
+          'Why does the lesson insist the demo frontend call the real API rather than a mocked or hand-simulated version of it?',
+        options: [
+          { id: 'a', label: 'A', text: 'Mocked APIs are technically incompatible with `fetch` calls' },
+          { id: 'b', label: 'B', text: 'A demo that fakes its responses to always show success isn\'t actually proving the backend does what it claims — it\'s the same "verify, don\'t trust presented data" discipline applied to the demo\'s own integrity' },
+          { id: 'c', label: 'C', text: 'Real APIs are always faster to call than mocked ones, which is the only consideration' },
+          { id: 'd', label: 'D', text: 'This distinction doesn\'t actually matter for a demo\'s effectiveness' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This connects the "verify, don\'t trust" theme from earlier lessons to the demo\'s own credibility — a mocked demo proves nothing about whether the real system actually works.',
+        incorrectExplanation:
+          'Consider the difference between demoing a UI skin versus validating end-to-end system integration.',
+        hint: 'Mocks disguise real API latency, authentication gaps, and payload shape mismatches; calling the live backend provides authentic validation.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-06-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DEMONSTRATING ERROR BOUNDARIES',
+        question:
+          'Why did the FDE in the scenario deliberately trigger an invalid order transition during the live demo, instead of only showing a smooth, sequential happy path?',
+        options: [
+          { id: 'a', label: 'A', text: 'Invalid transitions are technically required to occur during every demo by convention' },
+          { id: 'b', label: 'B', text: 'Showing a real failure handled gracefully is more persuasive evidence of production-readiness than a flawless run, because it demonstrates the system was built to handle the cases that matter, not just one rehearsed path' },
+          { id: 'c', label: 'C', text: 'This was a mistake that happened to work out, not a deliberate choice' },
+          { id: 'd', label: 'D', text: 'Showing error states has no effect on customer trust either way' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a deliberate credibility choice — proving the system handles failure correctly builds more trust than a curated success-only demo, which risks looking staged.',
+        incorrectExplanation:
+          'Think about how customer trust is built by demonstrating resilience and clear error handling rather than only showing happy paths.',
+        hint: 'Demonstrating graceful rejection of illegal actions proves that backend state machine guards and validation boundaries are functioning reliably.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-06-mcq-01',
+        question:
+          'What is the demo frontend\'s primary job, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Being visually indistinguishable from a finished production application' },
+          { id: 'b', label: 'B', text: 'Proving the real backend contract works end to end, in front of a customer, with real requests and responses — not being a polished, complete product UI' },
+          { id: 'c', label: 'C', text: 'Replacing the need for the actual backend API entirely' },
+          { id: 'd', label: 'D', text: 'Demonstrating the FDE\'s frontend framework expertise' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that polish is not the goal here — proving real backend behavior is, which is why a minimal HTML-plus-fetch client is a legitimate, deliberate choice rather than a shortcut.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-06-mcq-02',
+        question:
+          'Why does the lesson argue against building a polished, production-grade frontend before the backend contract has been validated with the customer?',
+        options: [
+          { id: 'a', label: 'A', text: 'Production-grade frontends are technically impossible to build before a backend exists' },
+          { id: 'b', label: 'B', text: 'The contract might still change based on what the customer actually needs, discovered only once they see it working — investing significant UI-polish time before that validation risks wasted effort if the contract shifts' },
+          { id: 'c', label: 'C', text: 'Customers never want to see a polished frontend under any circumstances' },
+          { id: 'd', label: 'D', text: 'This has no relationship to the discover-before-build principle from earlier lessons' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This connects directly to the discover-prototype-validate discipline from the FDE-role lesson — validating the contract cheaply before investing in polish avoids wasted work on a contract that might still need to change.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-06-mcq-03',
+        question:
+          'What is the specific risk of hardcoding a "success" response in the frontend to make a demo look smoother under time pressure?',
+        options: [
+          { id: 'a', label: 'A', text: 'Hardcoded responses are technically slower to render than real API responses' },
+          { id: 'b', label: 'B', text: 'A system that only ever shows success in its own demo erodes trust the moment reality diverges from the demo, which it eventually will — and it means the demo never actually proved the backend does what it claims' },
+          { id: 'c', label: 'C', text: 'There is no real risk; hardcoding a success response is an acceptable practice for any demo' },
+          { id: 'd', label: 'D', text: 'This risk only applies to payment-related demos, not other kinds of demos' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct consequence of skipping the "call the real API" principle — the demo becomes disconnected from reality, and that gap surfaces eventually, at a worse moment than during a controlled demo.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-06-mcq-04',
+        question:
+          'Where does this lesson say its scope ends, relative to the later Full-Stack FDE module?',
+        options: [
+          { id: 'a', label: 'A', text: 'This lesson fully covers everything the Full-Stack FDE module will teach, making that module redundant' },
+          { id: 'b', label: 'B', text: 'This lesson\'s scope stops at "prove the contract works" with a minimal client; the later module covers building an actual production-grade frontend (React, TypeScript, real UX), a materially larger undertaking' },
+          { id: 'c', label: 'C', text: 'There is no scope distinction between the two; they cover identical material' },
+          { id: 'd', label: 'D', text: 'This lesson\'s frontend work should be discarded entirely once the Full-Stack FDE module begins' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly draws this boundary — minimal contract-proving here, full production frontend work later — rather than conflating the two very different-scoped tasks.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-06-mcq-05',
+        question:
+          'Why should the transition buttons shown in the demo UI reflect the order\'s actual current state (from the real API response) rather than a fixed, always-identical set of buttons?',
+        options: [
+          { id: 'a', label: 'A', text: 'Fixed buttons are technically impossible to implement in plain HTML' },
+          { id: 'b', label: 'B', text: 'A fixed set of buttons regardless of state would misrepresent what the backend actually allows, undermining the demo\'s purpose of proving real contract behavior rather than a UI\'s own assumptions' },
+          { id: 'c', label: 'C', text: 'This has no bearing on demo credibility either way' },
+          { id: 'd', label: 'D', text: 'Buttons should always be hidden entirely to avoid any risk of an invalid click' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Consistent with the lesson\'s "prove real behavior, don\'t fake it" theme — the UI reflecting real state, not assumptions baked into the frontend, keeps the demo honest about what the backend actually enforces.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-06-mcq-06',
+        question:
+          'Before adding a live order-status display to the demo frontend, what question does the suggested extension say should be asked first?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the feature can be implemented within one hour, with no other consideration' },
+          { id: 'b', label: 'B', text: 'Whether this addition is proving something about the backend contract that matters to the customer, or whether it\'s polish that actually belongs in the later production-frontend module' },
+          { id: 'c', label: 'C', text: 'Whether the customer has explicitly requested real-time updates in writing' },
+          { id: 'd', label: 'D', text: 'No such question is necessary; any technically feasible addition should be built immediately' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This reinforces the lesson\'s core scope discipline — even a technically interesting addition should be checked against whether it\'s proving the contract or just adding polish outside this lesson\'s actual purpose.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/07-real-time-queues-and-caching-websockets-sse-redis': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-07-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — REAL-TIME PROTOCOL SELECTION',
+        question:
+          'What is the deciding question the lesson uses to choose between WebSockets and SSE?',
+        options: [
+          { id: 'a', label: 'A', text: 'Which technology has better browser support, considered in isolation from the actual use case' },
+          { id: 'b', label: 'B', text: 'Does the client need to send messages back over the same real-time channel, or does it only need to receive them?' },
+          { id: 'c', label: 'C', text: 'Which technology is newer' },
+          { id: 'd', label: 'D', text: 'Whether the feature involves any form of real-time behavior at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames this as the single deciding factor — bidirectional need favors WebSockets, one-directional push favors SSE\'s simplicity.',
+        incorrectExplanation:
+          'Distinguish between unidirectional server push vs bidirectional full-duplex communication requirements.',
+        hint: 'SSE is ideal for unidirectional server-to-client streaming over HTTP; WebSockets is required only when true bidirectional low-latency duplex messaging is necessary.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-07-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DISTRIBUTED PUB/SUB BROKERING',
+        question:
+          'Why does a single server process\'s in-memory event handling fail to deliver a real-time update to a client connected to a different server instance?',
+        options: [
+          { id: 'a', label: 'A', text: 'In-memory event handling is technically incapable of functioning under any circumstances' },
+          { id: 'b', label: 'B', text: 'Separate server processes don\'t share memory, so an in-memory event in one process has no mechanism to reach connections held open by a different process — Redis pub/sub bridges that gap by broadcasting across processes' },
+          { id: 'c', label: 'C', text: 'This problem only occurs with WebSockets, never with SSE' },
+          { id: 'd', label: 'D', text: 'A single server instance is always sufficient for any real-time system, making this scenario unrealistic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the exact multi-instance reality behind a load balancer — the memory-isolation between processes is precisely the gap Redis pub/sub is designed to bridge for real-time delivery.',
+        incorrectExplanation:
+          'Consider what happens when client WebSockets/SSE connections are distributed across multiple independent server processes.',
+        hint: 'When clients are connected across multiple load-balanced server nodes, an event processed on Node A cannot reach clients on Node B without a shared message broker like Redis.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-07-mcq-01',
+        question:
+          'Why does the lesson describe SSE as simpler to operate than WebSockets?',
+        options: [
+          { id: 'a', label: 'A', text: 'SSE connections use less bandwidth than WebSocket connections in every case' },
+          { id: 'b', label: 'B', text: 'SSE works through standard HTTP infrastructure (load balancers, proxies) without special handling, unlike WebSockets which often require specific proxy/load-balancer configuration' },
+          { id: 'c', label: 'C', text: 'SSE is a newer protocol than WebSockets and therefore inherently simpler' },
+          { id: 'd', label: 'D', text: 'There is no operational difference between the two; the lesson\'s claim is incorrect' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly why the scenario\'s FDE chose SSE — it avoided needing to request special WebSocket-proxying configuration from the customer\'s infrastructure team.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-07-mcq-02',
+        question:
+          'Why does the lesson describe cache invalidation as famously hard specifically, rather than just "somewhat tricky"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Redis technically cannot support any form of cache invalidation' },
+          { id: 'b', label: 'B', text: 'It\'s easy to forget one of the write paths that should invalidate a given cache entry, leaving a stale value silently served until its TTL happens to expire on its own, with no error to signal the mistake' },
+          { id: 'c', label: 'C', text: 'Cache invalidation requires rewriting the entire application from scratch' },
+          { id: 'd', label: 'D', text: 'This difficulty only applies to caches with a TTL longer than 24 hours' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The silent nature of the failure (no error, just stale data served until TTL expiry) is exactly what makes this class of bug hard to catch — it requires deliberate discipline at every write path, not a one-time setup.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-07-mcq-03',
+        question:
+          'Why did the FDE choose SSE over WebSockets for the demo frontend\'s live order-status updates?',
+        options: [
+          { id: 'a', label: 'A', text: 'WebSockets are technically incapable of transmitting order-status data' },
+          { id: 'b', label: 'B', text: 'The client only needs to receive status changes, never send anything back over that channel — exactly the one-directional case the lesson identifies as SSE\'s fit' },
+          { id: 'c', label: 'C', text: 'SSE is required by Stripe\'s API for any payment-related feature' },
+          { id: 'd', label: 'D', text: 'The choice was arbitrary and either technology would have been equally justified' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a direct application of the lesson\'s deciding question — the requirement was purely one-directional, matching SSE\'s fit exactly as described.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-07-mcq-04',
+        question:
+          'Why did an order status change processed by one server instance need to be published to Redis rather than delivered directly to the connected client?',
+        options: [
+          { id: 'a', label: 'A', text: 'Redis is technically required for any SSE connection to function at all, even with a single server instance' },
+          { id: 'b', label: 'B', text: 'The client\'s SSE connection might be held open by a different server instance than the one that processed the status change (a Stripe webhook could land on any instance behind the load balancer), and only Redis pub/sub, subscribed to by every instance, can bridge that gap' },
+          { id: 'c', label: 'C', text: 'Direct delivery would have been faster and equally correct; Redis was an unnecessary addition' },
+          { id: 'd', label: 'D', text: 'This routing decision was unrelated to the number of server instances involved' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the multi-instance reality driving the design — the webhook handler and the SSE connection for the same order can land on different instances, and pub/sub is what makes that not matter.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-07-mcq-05',
+        question:
+          'How does the lesson connect defaulting to WebSockets when SSE would suffice to a pattern from an earlier lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'There is no meaningful connection; the comparison is purely coincidental' },
+          { id: 'b', label: 'B', text: 'It\'s the same over-engineering pattern as reaching for an agent loop when a fixed workflow would suffice — choosing the more complex, more flexible tool for no corresponding benefit when the simpler one already covers the actual requirement' },
+          { id: 'c', label: 'C', text: 'WebSockets and agent loops are technically the same underlying mechanism' },
+          { id: 'd', label: 'D', text: 'This connection only applies to systems that also use AI agents' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is an explicit cross-lesson pattern the course draws — matching tool complexity to actual requirement complexity, whether the domain is agent architecture or real-time transport choice.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-07-mcq-06',
+        question:
+          'Adding a short TTL alongside explicit cache invalidation is suggested as a safety net. What does this TTL protect against, and what does it NOT protect against?',
+        options: [
+          { id: 'a', label: 'A', text: 'A TTL provides complete protection against every possible cache-invalidation bug, with no remaining gap' },
+          { id: 'b', label: 'B', text: 'It bounds the damage of a forgotten invalidation path (the stale value expires eventually, on its own), but it does not help if a client needs correctness within a shorter window than the TTL itself allows' },
+          { id: 'c', label: 'C', text: 'A TTL has no protective value whatsoever and is purely a performance optimization' },
+          { id: 'd', label: 'D', text: 'A TTL only matters for caches that never receive any writes' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A TTL is a bounded-damage safety net, not a substitute for correct invalidation logic — it limits how long a forgotten invalidation stays wrong, but a use case requiring tighter correctness than the TTL window still needs explicit invalidation to actually work.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/08-observability-and-distributed-tracing-opentelemetry-grafana': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-08-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — DISTRIBUTED TRACING VS ISOLATED LOGS',
+        question:
+          'Why can\'t a single service\'s logs alone reveal that its slowness was actually caused by a call to a different downstream service?',
+        options: [
+          { id: 'a', label: 'A', text: 'Logs are technically incapable of recording timestamps' },
+          { id: 'b', label: 'B', text: 'The downstream service\'s own internal behavior isn\'t captured in the calling service\'s logs at all — only a trace that follows the request across both services can show the causal relationship' },
+          { id: 'c', label: 'C', text: 'This is not actually true; a single service\'s logs are always sufficient regardless of how many services a request touches' },
+          { id: 'd', label: 'D', text: 'Structured logging (from the earlier lesson) makes this limitation irrelevant' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is precisely the gap traces are designed to close — a service\'s own logs are scoped to what happened inside it, not to what happened in whatever else it called.',
+        incorrectExplanation:
+          'Consider how disconnected log files fail to show causality and timing breakdowns across network and process boundaries.',
+        hint: 'Tracing correlates end-to-end request latency across multiple microservices and background queues, showing exact span breakdowns in a unified waterfall.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-08-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — TRACE CONTEXT PROPAGATION',
+        question:
+          'How does a trace ID generated at the start of a request end up associated with spans reported by a Celery task queued partway through that request\'s handling?',
+        options: [
+          { id: 'a', label: 'A', text: 'Celery automatically detects and reuses trace IDs with no explicit propagation needed' },
+          { id: 'b', label: 'B', text: 'The trace ID is embedded in the queued task\'s payload when it\'s queued, so the Celery worker processing that task can report its own spans under the same trace ID, even though it runs in a completely separate process' },
+          { id: 'c', label: 'C', text: 'Trace IDs cannot cross process boundaries under any circumstances, so this scenario is not actually possible' },
+          { id: 'd', label: 'D', text: 'The trace ID is regenerated fresh for every new process, intentionally disconnecting the task\'s spans from the original request' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Explicit propagation — carrying the trace ID forward into whatever crosses a process or service boundary, whether an HTTP header or a queued task\'s payload — is the actual mechanism; it doesn\'t happen automatically without this deliberate step.',
+        incorrectExplanation:
+          'Think about how downstream services receive the parent trace ID across network and queue hops without shared process memory.',
+        hint: 'By injecting standardized metadata headers (such as the W3C `traceparent` header containing trace ID and parent span ID) into outgoing HTTP requests and message payloads.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-backend-observability-data-08-distributed-trace-waterfall',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — OPENTELEMETRY DISTRIBUTED TRACE WATERFALL',
+      boundaryLabel: 'DISTRIBUTED CONTEXT PROPAGATION BOUNDARY',
+      boundaryText:
+        'Trace context (trace_id, span_id) flows across HTTP and message queue boundaries via W3C traceparent headers, pinpointing external API latency.',
+      nodes: [
+        { id: 'client', label: 'HTTP POST /checkout', kind: 'input' },
+        { id: 'api-span', label: 'FastAPI Span (Total: 1250ms)', kind: 'service' },
+        { id: 'boundary', label: 'W3C Context Propagation', kind: 'boundary', highlighted: true },
+        { id: 'db-span', label: 'Postgres Span (15ms)', kind: 'adapter' },
+        { id: 'stripe-span', label: 'Stripe API Span (1180ms - Bottleneck)', kind: 'adapter' },
+        { id: 'celery-span', label: 'Celery Enqueue Span (5ms)', kind: 'adapter' },
+        { id: 'collector', label: 'OpenTelemetry Collector / Jaeger', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-08-mcq-01',
+        question:
+          'What do metrics provide that makes them useful even though they can\'t pinpoint which specific request or downstream call caused a problem?',
+        options: [
+          { id: 'a', label: 'A', text: 'Metrics are functionally identical to traces and provide the same information' },
+          { id: 'b', label: 'B', text: 'Aggregated numeric signals over time (request rate, p99 latency, error rate) — good for spotting that something is wrong and roughly how bad, at a scale that inspecting individual traces one at a time wouldn\'t be efficient for' },
+          { id: 'c', label: 'C', text: 'Metrics can identify the exact root cause of any specific slow request' },
+          { id: 'd', label: 'D', text: 'Metrics are only useful for billing purposes, not diagnostics' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Metrics\' aggregated nature is their strength for spotting a trend or an anomaly at scale — the trade-off is they can\'t tell you which specific instance or downstream call to blame, which is where traces take over.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-08-mcq-02',
+        question:
+          'Why does the lesson emphasize instrumenting a system with tracing before an incident happens, rather than reactively adding it after a customer complaint?',
+        options: [
+          { id: 'a', label: 'A', text: 'Adding tracing after an incident is technically impossible for unrelated reasons' },
+          { id: 'b', label: 'B', text: 'By the time an incident is reported, the specific slow request that would have shown the actual cause has already happened and passed — tracing added afterward can\'t retroactively see into that already-completed request' },
+          { id: 'c', label: 'C', text: 'There is no real difference in value between instrumenting before versus after an incident' },
+          { id: 'd', label: 'D', text: 'Grafana specifically requires instrumentation to be added before any system is deployed' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Tracing only captures what happens after it\'s instrumented — the specific request that caused the reported problem is already gone by the time reactive instrumentation would be added, which is exactly why proactive instrumentation is the actual discipline being taught.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-08-mcq-03',
+        question:
+          'Why was the FDE able to immediately identify the Stripe API call as the slow span, rather than the order-service logic or the Celery task\'s own processing?',
+        options: [
+          { id: 'a', label: 'A', text: 'The FDE had to guess based on general knowledge that Stripe calls are usually slow' },
+          { id: 'b', label: 'B', text: 'With trace context propagated across all three systems, the trace waterfall laid out every span by duration and nesting, making the disproportionately long Stripe-call span visually obvious compared to the other spans, without needing to manually correlate separate log sources' },
+          { id: 'c', label: 'C', text: 'Metrics alone, without any tracing, were sufficient to identify the specific slow span' },
+          { id: 'd', label: 'D', text: 'The order service\'s logs alone contained enough detail to pinpoint the Stripe call as the bottleneck' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct payoff of the earlier tracing instrumentation — a visual waterfall making the disproportionate span obvious is precisely the diagnostic power distributed tracing adds over log correlation alone.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-08-mcq-04',
+        question:
+          'How does this lesson\'s trace-waterfall diagnostic technique relate to the "walk the trace backward" principle from the agent-debugging lesson earlier in the course?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two techniques are entirely unrelated and the comparison is coincidental' },
+          { id: 'b', label: 'B', text: 'Both apply the same underlying discipline — isolate which specific stage/step introduced a problem instead of judging the whole system by its final, aggregate outcome — generalized here from an AI agent\'s internal Thought/Action/Observation loop to a traditional multi-service backend request' },
+          { id: 'c', label: 'C', text: 'The agent-debugging lesson\'s technique only applies to AI systems and has no analog in traditional backend systems' },
+          { id: 'd', label: 'D', text: 'Distributed tracing replaces the need for the agent-debugging lesson\'s technique entirely' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is an explicit cross-module connection the course draws — the same "isolate the failing stage, don\'t guess from the aggregate symptom" discipline shows up in both AI-agent debugging and traditional distributed-systems tracing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-08-mcq-05',
+        question:
+          'What does a single span in a trace represent?',
+        options: [
+          { id: 'a', label: 'A', text: 'An entire trace covering every service a request touches' },
+          { id: 'b', label: 'B', text: 'One unit of work (an HTTP handler, a database call, an external API call), nested to show its causal relationship to the rest of the request' },
+          { id: 'c', label: 'C', text: 'A single log line with no relationship to timing or causality' },
+          { id: 'd', label: 'D', text: 'A metric aggregated over a fixed time window' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A trace is composed of many spans, each representing one unit of work, nested (parent/child) to reflect what called what — this is the structural building block that makes a trace waterfall\'s visualization possible.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-08-mcq-06',
+        question:
+          'In the suggested extension, how would a checkout-duration metric and a specific slow trace work together to diagnose a latency regression?',
+        options: [
+          { id: 'a', label: 'A', text: 'Metrics and traces provide identical information and using both is redundant' },
+          { id: 'b', label: 'B', text: 'The metric, aggregated over time, would first reveal that checkout latency has degraded overall — then a specific slow trace, pulled for an individual instance of that degradation, would reveal exactly which span within that request is responsible' },
+          { id: 'c', label: 'C', text: 'A metric alone, without any trace, is always sufficient to identify the exact cause of a regression' },
+          { id: 'd', label: 'D', text: 'Traces should always be checked before metrics, in every diagnostic scenario, with no exceptions' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This models the complementary roles established earlier in the lesson — metrics for noticing an aggregate trend, traces for finding the specific cause within an individual instance of that trend.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/09-postgres-advanced-jsonb-full-text-search-and-pgvector': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-09-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — POSTGRES JSONB USE CASES',
+        question:
+          'For which situation is JSONB genuinely the right modeling choice, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Well-structured data with a fixed, known set of fields, used purely to avoid writing a migration' },
+          { id: 'b', label: 'B', text: 'Any data at all, since JSONB is always the superior modeling choice regardless of structure' },
+          { id: 'c', label: 'C', text: '' },
+          { id: 'd', label: 'D', text: 'Only for data that will never be queried after being stored' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws a specific line — genuine variability justifies JSONB; well-structured data dumped into JSONB purely to skip a migration is the smell to avoid.',
+        incorrectExplanation:
+          'Consider the trade-off between strict relational columns (with constraints and types) versus semi-structured polymorphic attributes.',
+        hint: 'JSONB is ideal for semi-structured, polymorphic attributes (like custom tenant metadata or raw third-party webhook payloads) where schema shapes vary widely.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-09-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PGVECTOR VS DEDICATED VECTOR STORES',
+        question:
+          'What does the pgvector-versus-dedicated-vector-database trade-off actually weigh against each other?',
+        options: [
+          { id: 'a', label: 'A', text: 'pgvector and dedicated vector databases are functionally identical, making this a non-decision' },
+          { id: 'b', label: 'B', text: 'Operational simplicity (keeping embeddings in the same database as everything else, avoiding a new system to operate) versus specialized indexing and query performance that pulls further ahead as data volume and query load grow' },
+          { id: 'c', label: 'C', text: 'Cost is the only relevant factor in this decision, with performance being irrelevant' },
+          { id: 'd', label: 'D', text: 'pgvector is always the objectively superior choice regardless of scale' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the built-in-versus-custom-tool trade-off theme from earlier in the course — the decision genuinely depends on scale and operational appetite, not a universal winner.',
+        incorrectExplanation:
+          'Think about infrastructure overhead, dual-write synchronization hazards, and relational join capabilities.',
+        hint: '`pgvector` enables transactional consistency and relational joins alongside domain data with zero extra infrastructure; dedicated vector DBs are optimized for billion-scale vector indexing at the cost of dual-write operational complexity.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-09-mcq-01',
+        question:
+          'What does using JSONB for well-structured data, purely to avoid writing a migration, trade away?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing; JSONB provides identical guarantees to real columns in every respect' },
+          { id: 'b', label: 'B', text: 'Proper types, foreign key constraints, targeted indexes, and the query planner\'s ability to reason about the data — guarantees a real relational column provides that JSONB doesn\'t' },
+          { id: 'c', label: 'C', text: 'Only query speed, with no other meaningful trade-off' },
+          { id: 'd', label: 'D', text: 'The ability to store the data at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is specific about what\'s lost — type safety, constraints, targeted indexing, and planner reasoning — which is exactly why this trade should be made deliberately, not defaulted into.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-09-mcq-02',
+        question:
+          'According to the lesson, when does standing up a dedicated search engine (instead of Postgres\'s built-in full-text search) become the justified choice?',
+        options: [
+          { id: 'a', label: 'A', text: 'Immediately, for any project involving text search, regardless of actual requirements' },
+          { id: 'b', label: 'B', text: 'Once requirements grow past sophisticated relevance tuning, faceted search across many dimensions, or search volume/latency needs a dedicated engine\'s specialized indexing is built for — not as a default made because Postgres search "feels basic"' },
+          { id: 'c', label: 'C', text: 'Postgres\'s built-in full-text search is never sufficient for any real use case' },
+          { id: 'd', label: 'D', text: 'Only when the dataset contains fewer than 100 documents' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly frames Postgres\'s built-in search as genuinely sufficient for many needs, with a specific, requirement-driven threshold for when a dedicated engine becomes justified, not a reflexive default.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-09-mcq-03',
+        question:
+          'Why did the FDE choose pgvector over a dedicated vector database for the customer\'s RAG system in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'Dedicated vector databases are technically incompatible with RAG systems in general' },
+          { id: 'b', label: 'B', text: 'The customer\'s existing infrastructure was entirely Postgres, their document volume was a few thousand (not millions), and they had a strong preference against adding new infrastructure — pgvector fit all three factors specifically for this customer' },
+          { id: 'c', label: 'C', text: 'pgvector is always the objectively correct choice for every RAG system regardless of customer context' },
+          { id: 'd', label: 'D', text: 'The customer explicitly forbade the FDE from ever reconsidering this decision in the future' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The decision was context-specific — matched to this customer\'s actual scale and infrastructure preference, not a universal rule, and the FDE was explicit that it could be revisited if the customer\'s scale changed significantly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-09-mcq-04',
+        question:
+          'Why did the FDE explicitly tell the customer that pgvector was the right call "at their current volume" rather than presenting it as an unconditionally correct decision?',
+        options: [
+          { id: 'a', label: 'A', text: 'This transparency was unnecessary and added no value to the customer relationship' },
+          { id: 'b', label: 'B', text: 'Being explicit about the trade-off sets accurate expectations that the decision may need revisiting if the customer\'s scale changes significantly, rather than implying the choice is permanently settled regardless of future growth' },
+          { id: 'c', label: 'C', text: 'pgvector is only a temporary technology that will stop being supported soon' },
+          { id: 'd', label: 'D', text: 'The FDE was required by contract to disclose every technical decision in this level of detail' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This reflects a broader honesty-about-trade-offs discipline consistent with the FDE-role lesson\'s emphasis on evidence and clear communication, rather than presenting a scale-dependent choice as a permanent, unconditional answer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-09-mcq-05',
+        question:
+          'What does a GIN index on a JSONB column enable?',
+        options: [
+          { id: 'a', label: 'A', text: 'Automatic conversion of JSONB data into separate relational columns' },
+          { id: 'b', label: 'B', text: 'Efficient containment queries (e.g. `WHERE metadata @> \'{"color": "red"}\'`) without requiring a full table scan' },
+          { id: 'c', label: 'C', text: 'JSONB columns cannot be indexed under any circumstances' },
+          { id: 'd', label: 'D', text: 'Full-text search capability, unrelated to JSONB containment queries' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'GIN indexes are specifically what makes JSONB containment queries efficient — without one, the same query would require scanning every row.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-09-mcq-06',
+        question:
+          'Combining Postgres full-text search and pgvector similarity search in one hybrid query mirrors which earlier concept from the RAG lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The lost-in-the-middle generation failure mode' },
+          { id: 'b', label: 'B', text: 'Hybrid search combining dense vector similarity with sparse keyword/BM25 matching — the same principle, here implemented entirely inside Postgres using its full-text search as the sparse/keyword side and pgvector as the dense side' },
+          { id: 'c', label: 'C', text: 'RAGAS\'s four core evaluation metrics' },
+          { id: 'd', label: 'D', text: 'There is no meaningful connection between this and any concept from the RAG lesson' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a direct cross-lesson application — the RAG lesson\'s hybrid-search concept (dense plus sparse) implemented concretely using Postgres\'s two search capabilities together.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/10-postgres-internals-explain-analyze-indexing-and-mvcc': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-10-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — POSTGRES QUERY PLAN DIAGNOSTICS',
+        question:
+          'What is the key difference between `EXPLAIN` and `EXPLAIN ANALYZE`?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are functionally identical, differing only in output formatting' },
+          { id: 'b', label: 'B', text: '`EXPLAIN` shows the planner\'s estimated cost and chosen plan without running the query; `EXPLAIN ANALYZE` actually executes the query and reports real timing and row counts alongside the plan' },
+          { id: 'c', label: 'C', text: '`EXPLAIN ANALYZE` never actually runs the query, while `EXPLAIN` does' },
+          { id: 'd', label: 'D', text: '`EXPLAIN` is only available in newer Postgres versions, while `EXPLAIN ANALYZE` is deprecated' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This distinction is the lesson\'s central point — only `EXPLAIN ANALYZE` reveals real execution behavior, which is why a plan that looks fine under plain `EXPLAIN` can still turn out to be slow in reality.',
+        incorrectExplanation:
+          'Distinguish between static cost estimation versus live execution profiling.',
+        hint: '`EXPLAIN` outputs the planner\'s estimated cost without running the query; `EXPLAIN ANALYZE` actually executes the statement and captures real execution timings and row counts.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-10-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — MULTI-VERSION CONCURRENCY CONTROL (MVCC)',
+        question:
+          'What does MVCC (multi-version concurrency control) enable in Postgres?',
+        options: [
+          { id: 'a', label: 'A', text: 'MVCC prevents any two transactions from ever running concurrently' },
+          { id: 'b', label: 'B', text: 'Readers never block writers and writers never block readers, because multiple versions of a row can exist simultaneously instead of requiring readers to wait for a writer\'s lock to release' },
+          { id: 'c', label: 'C', text: 'MVCC eliminates the need for any locking whatsoever, including within a single transaction' },
+          { id: 'd', label: 'D', text: 'MVCC only applies to `SELECT` statements, never to writes' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Keeping multiple row versions is exactly what avoids the reader-blocks-writer / writer-blocks-reader problem — the direct benefit of MVCC, alongside its dead-tuple cost covered next.',
+        incorrectExplanation:
+          'Consider how PostgreSQL handles concurrent read and write operations without requiring table-level read locks.',
+        hint: 'By creating new row versions on mutation rather than in-place overwrites, readers never block writers and writers never block readers.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-10-mcq-01',
+        question:
+          'Why might a sequential scan actually be the correct, fastest choice for a query against a very small table, even with a relevant index available?',
+        options: [
+          { id: 'a', label: 'A', text: 'Postgres always malfunctions when an index exists on a small table' },
+          { id: 'b', label: 'B', text: 'On a small enough table, scanning every row directly can be faster than the overhead of using an index to look up a small number of rows — "index scan is always better" is not actually true, and the planner\'s choice reflects real cost trade-offs, not a mistake' },
+          { id: 'c', label: 'C', text: 'Indexes are technically unusable on tables below a fixed row-count threshold' },
+          { id: 'd', label: 'D', text: 'This situation never actually occurs in practice; sequential scans are always worse' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly counters the common misconception that index scans are unconditionally superior — at small table sizes, the overhead of index traversal can genuinely exceed the cost of just reading every row.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-10-mcq-02',
+        question:
+          'Why does adding an index to a table impose a real cost on writes, not just provide a free read-performance benefit?',
+        options: [
+          { id: 'a', label: 'A', text: 'Indexes have no effect whatsoever on write performance in Postgres' },
+          { id: 'b', label: 'B', text: 'Every insert, update, or delete has to maintain every index on the table alongside the actual row data, so a table with many indexes accepts writes more slowly' },
+          { id: 'c', label: 'C', text: 'This cost only applies to indexes on primary key columns, not other indexes' },
+          { id: 'd', label: 'D', text: 'Indexes only affect read performance, and any perceived write-cost effect is a myth' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the genuine trade-off the lesson emphasizes — indexes aren\'t a free performance upgrade, and their write-side cost has to be weighed against their read-side benefit for a given table\'s actual workload.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-10-mcq-03',
+        question:
+          'What happens to an old row version immediately after an `UPDATE` or `DELETE` in Postgres, under MVCC?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is immediately and permanently deleted from disk with no further processing needed' },
+          { id: 'b', label: 'B', text: 'It isn\'t immediately removed — it\'s marked as a dead tuple, and accumulates until Postgres\'s autovacuum process reclaims that space' },
+          { id: 'c', label: 'C', text: 'It is automatically converted into a new index entry' },
+          { id: 'd', label: 'D', text: 'MVCC has no concept of old row versions after an update or delete' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct operational consequence of MVCC\'s row-versioning approach — old versions linger as dead tuples until vacuumed, which is exactly why vacuuming matters for sustained performance.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-10-mcq-04',
+        question:
+          'What specifically did `EXPLAIN ANALYZE` reveal about the first slow order-history query in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The Stripe API call was the actual bottleneck for this specific query, unrelated to indexing' },
+          { id: 'b', label: 'B', text: 'A sequential scan across the entire orders table despite the FDE\'s assumption that an index on `customer_id` already existed — there wasn\'t one' },
+          { id: 'c', label: 'C', text: 'The table had too many indexes, degrading write performance' },
+          { id: 'd', label: 'D', text: 'The query itself contained a syntax error preventing execution' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct diagnostic finding that led to the straightforward fix — adding the missing index — verified afterward by re-running `EXPLAIN ANALYZE` and confirming the plan changed.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-10-mcq-05',
+        question:
+          'The second slow query in the scenario already had a correct index in place, yet was still slow. What did `EXPLAIN ANALYZE` reveal as the actual cause?',
+        options: [
+          { id: 'a', label: 'A', text: 'The index itself was corrupted and needed to be rebuilt from scratch' },
+          { id: 'b', label: 'B', text: 'A large gap between the planner\'s estimated row count and the actual row count returned — a specific signal of stale table statistics, traced back to a misconfigured autovacuum threshold that had left the table un-vacuumed and un-analyzed for months' },
+          { id: 'c', label: 'C', text: 'The query needed a second, additional index on the same column to resolve the slowness' },
+          { id: 'd', label: 'D', text: 'The table had too few rows for any query against it to perform well' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly the case the lesson uses to show that "add more indexes" isn\'t a universal fix — here, stale statistics from a vacuuming problem, not a missing index, was the actual root cause.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-10-mcq-06',
+        question:
+          'Why would simply adding more indexes have failed to fix the second slow query\'s actual problem?',
+        options: [
+          { id: 'a', label: 'A', text: 'Postgres technically has a hard limit on the number of indexes per table that had already been reached' },
+          { id: 'b', label: 'B', text: 'The problem was stale planner statistics causing a bad plan choice, not a missing index — an existing, correct index was already in place, so adding more indexes wouldn\'t address the root cause and would only add unnecessary write overhead' },
+          { id: 'c', label: 'C', text: 'Adding more indexes would have fixed this problem just as effectively as correcting the vacuum configuration' },
+          { id: 'd', label: 'D', text: 'This query had no relationship to indexing at all, making the question irrelevant' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This reinforces the lesson\'s "measure, don\'t guess" discipline — misdiagnosing a statistics/vacuum problem as an indexing problem would add cost (more write overhead) without addressing the actual cause.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-10-mcq-07',
+        question:
+          'What single detail in `EXPLAIN ANALYZE`\'s output is the specific signal that distinguishes "this query needs an index" from "this query needs a vacuum/analyze"?',
+        options: [
+          { id: 'a', label: 'A', text: 'The total number of columns in the table, unrelated to either query plan or row-count estimates' },
+          { id: 'b', label: 'B', text: 'The alphabetical order of column names in the SELECT clause' },
+          { id: 'c', label: 'C', text: '' },
+          { id: 'd', label: 'D', text: 'There is no way to distinguish the two causes from `EXPLAIN ANALYZE` output alone; only guessing can determine the cause' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The estimated-vs-actual row count gap is the specific diagnostic signal the scenario uses to point toward stale statistics rather than a missing index — a genuinely missing index instead shows up as a sequential scan with no relevant index available at all.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/11-nosql-document-dbs-and-vector-databases': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-11-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — NOSQL TAXONOMY & PARADIGMS',
+        question:
+          'Why does the lesson argue against treating "NoSQL" as one undifferentiated category with one set of trade-offs?',
+        options: [
+          { id: 'a', label: 'A', text: 'NoSQL databases are all functionally identical, making the distinction purely academic' },
+          { id: 'b', label: 'B', text: 'Document, key-value, and wide-column stores have genuinely different access-pattern fits and trade-offs, and conflating them skips the actual engineering question of which access pattern the data has and which trade-offs are acceptable to sacrifice' },
+          { id: 'c', label: 'C', text: 'Only document databases actually qualify as "real" NoSQL systems' },
+          { id: 'd', label: 'D', text: 'This distinction only matters for systems processing more than a million records' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Each NoSQL category is a genuinely different design point suited to a different access pattern — key-value for simple get/set, document for flexible nested entities, wide-column for high-throughput time-series-like data — and lumping them together obscures the actual decision that matters.',
+        incorrectExplanation:
+          'Distinguish between the specific storage paradigms under the NoSQL umbrella (key-value, document, graph, vector) rather than treating them as interchangeable.',
+        hint: 'NoSQL comprises fundamentally distinct data models—key-value, document, column-family, graph, and vector—each optimized for completely different access patterns.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-11-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DOCUMENT STORE TRADE-OFFS',
+        question:
+          'What does a document database typically sacrifice, relative to a relational database, in exchange for schema flexibility and easier horizontal write scaling?',
+        options: [
+          { id: 'a', label: 'A', text: 'The ability to store any data at all beyond simple key-value pairs' },
+          { id: 'b', label: 'B', text: 'Efficient cross-entity joins and strong relational consistency guarantees' },
+          { id: 'c', label: 'C', text: 'Compatibility with any programming language' },
+          { id: 'd', label: 'D', text: 'Document databases sacrifice nothing; the trade-off described in the lesson does not actually exist' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific, named trade-off the lesson establishes — not a vague "it\'s different," but a concrete loss of efficient joins and strong consistency in exchange for flexibility and scaling ease.',
+        incorrectExplanation:
+          'Consider what guarantees (relational integrity, declarative joins, schema enforcement) are given up when moving from relational tables to nested documents.',
+        hint: 'Document databases trade strict relational integrity, cross-table constraints, and declarative joins for flexible nested document schemas and horizontal scaling.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-11-mcq-01',
+        question:
+          'How does this lesson\'s reasoning about a genuinely relational system moved into a document store connect to the earlier JSONB lesson\'s "smell" concept?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two lessons describe entirely unrelated concepts with no meaningful connection' },
+          { id: 'b', label: 'B', text: 'Both describe the same underlying mistake — forcing genuinely relational, well-structured, frequently-joined data into a schema-flexible format (JSONB or a document store) doesn\'t change its actual relational nature, it just trades away the guarantees and efficient joins that format was suited for' },
+          { id: 'c', label: 'C', text: 'JSONB and document databases are functionally identical technologies' },
+          { id: 'd', label: 'D', text: 'This connection only applies if the system in question uses Postgres specifically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both lessons make the same point at different scales — schema-flexible storage doesn\'t change what the data actually is, and forcing genuinely structured, relational data into a flexible format sacrifices real guarantees for no corresponding benefit.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-11-mcq-02',
+        question:
+          'What did investigating the customer\'s "move to MongoDB for scale" request actually reveal as the root cause of their performance complaint?',
+        options: [
+          { id: 'a', label: 'A', text: 'Postgres genuinely could not handle the customer\'s actual write volume' },
+          { id: 'b', label: 'B', text: 'A single unindexed query on a specific report, not a genuine write-throughput ceiling the relational database couldn\'t handle — a cheap, targeted fix, not a database migration' },
+          { id: 'c', label: 'C', text: 'The order-management system had no performance problem at all, and the customer\'s complaint was baseless' },
+          { id: 'd', label: 'D', text: 'MongoDB was confirmed to be strictly faster for every query type in this system' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the payoff of applying the earlier `EXPLAIN ANALYZE` diagnostic discipline before accepting a costly architectural change at face value — the actual problem was narrow and cheap to fix, not evidence of a fundamental database-choice mismatch.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-11-mcq-03',
+        question:
+          'Why did the FDE investigate before agreeing to migrate the order-management system to MongoDB, rather than deferring to the customer\'s stated preference?',
+        options: [
+          { id: 'a', label: 'A', text: 'FDEs are contractually forbidden from ever agreeing to database migrations' },
+          { id: 'b', label: 'B', text: 'A migration to a database poorly suited to the system\'s actual, deeply relational access pattern (constant joins across orders, customers, products) would be costly and risky, and the customer\'s stated justification ("more scalable") hadn\'t been verified against the actual cause of the complaint' },
+          { id: 'c', label: 'C', text: 'MongoDB is technically incapable of storing order data' },
+          { id: 'd', label: 'D', text: 'The customer\'s request was not taken seriously for unrelated reasons' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This reflects the broader discipline from the problem-discovery lesson — investigating the actual underlying cause before committing to an expensive, potentially unnecessary solution the customer\'s stated request happened to suggest.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-11-mcq-04',
+        question:
+          'What does it mean, concretely, for a system to briefly serve inconsistent data across replicas after a write?',
+        options: [
+          { id: 'a', label: 'A', text: 'The write itself fails and no data is stored anywhere' },
+          { id: 'b', label: 'B', text: 'A write succeeds on one replica, but a read shortly after, served from a different replica that hasn\'t yet received that write, could return the old (stale) value instead of the newly written one' },
+          { id: 'c', label: 'C', text: 'All replicas are always perfectly synchronized at every instant, making this scenario impossible' },
+          { id: 'd', label: 'D', text: 'This only affects reads that happen more than 24 hours after the original write' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the concrete behavior behind the abstract term "eventual consistency" — a real, observable staleness window between a write completing on one replica and that write propagating to others.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-11-mcq-05',
+        question:
+          'For which scenario does the lesson consider a document database a reasonable fit?',
+        options: [
+          { id: 'a', label: 'A', text: 'An orders system joined constantly across customers, products, and line items for everyday business logic' },
+          { id: 'b', label: 'B', text: 'A product catalog entry with deeply nested, category-specific attributes that varies genuinely by category and is usually read and written as one coherent whole' },
+          { id: 'c', label: 'C', text: 'Simple session data accessed only by a single key with no need for nested structure' },
+          { id: 'd', label: 'D', text: 'A document database is never actually the right fit for any real-world scenario' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s own example of a genuine fit — variable, deeply nested, whole-document access is exactly the pattern document databases suit well, in contrast to the deeply relational orders scenario.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-11-mcq-06',
+        question:
+          'What principle should guide which pieces of an e-commerce system\'s data go into a relational store versus a document store or JSONB, per the suggested extension?',
+        options: [
+          { id: 'a', label: 'A', text: 'All data should always use exactly one storage technology for the sake of consistency, regardless of access pattern' },
+          { id: 'b', label: 'B', text: 'Each piece of data\'s actual access pattern — transactional, frequently-joined data stays relational; genuinely variable, whole-document-accessed data fits a document store or JSONB — rather than forcing the entire system into one uniform storage choice' },
+          { id: 'c', label: 'C', text: 'The choice should be based solely on which technology is newest' },
+          { id: 'd', label: 'D', text: 'Storage technology choice has no meaningful connection to a piece of data\'s access pattern' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s central takeaway applied practically — a hybrid approach matching each piece of data to its actual access pattern, rather than a single one-size-fits-all storage decision for an entire system.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/12-dimensional-modeling-dbt-and-modern-data-stack': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-12-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — DIMENSIONAL MODELING FUNDAMENTALS',
+        question:
+          'What is the difference between a fact table and a dimension table in a star schema?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are two names for the exact same kind of table' },
+          { id: 'b', label: 'B', text: 'A fact table holds one row per business event with numeric measures (e.g. quantity, amount); a dimension table holds descriptive context around those facts (e.g. customer, product, date)' },
+          { id: 'c', label: 'C', text: 'A dimension table holds numeric measures; a fact table holds descriptive context' },
+          { id: 'd', label: 'D', text: 'Fact tables are always smaller than dimension tables' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the core structural distinction of dimensional modeling — facts are the measured events, dimensions are the descriptive context surrounding them, and getting this direction right is what makes a star schema\'s shape meaningful.',
+        incorrectExplanation:
+          'Distinguish between quantitative event measurements (facts) and contextual descriptive attributes (dimensions).',
+        hint: 'Fact tables record quantitative event metrics (e.g. order amount, units sold); dimension tables hold descriptive context (e.g. customer info, product details, timestamps).'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-12-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — MODERN DATA STACK (ELT VS ETL)',
+        question:
+          'What is the key difference between the ELT pattern and the older ETL pattern?',
+        options: [
+          { id: 'a', label: 'A', text: 'ELT and ETL describe the exact same process with different names' },
+          { id: 'b', label: 'B', text: 'ELT loads raw data into the warehouse largely as-is and transforms it afterward, inside the warehouse; ETL transforms data before loading it, discarding the untransformed version' },
+          { id: 'c', label: 'C', text: 'ETL loads raw data first and transforms it afterward; ELT transforms before loading' },
+          { id: 'd', label: 'D', text: 'ELT is only usable for data smaller than 1 gigabyte' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The order of operations is the defining difference, and it\'s not arbitrary — ELT\'s "load raw first" order is what enables the retroactive-reprocessing benefit the lesson highlights.',
+        incorrectExplanation:
+          'Think about where and when data transformations occur relative to loading raw data into the analytical warehouse.',
+        hint: 'ELT loads raw data directly into the warehouse and executes transformations using warehouse SQL (e.g. via dbt), preserving raw history and leveraging warehouse compute.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-12-mcq-01',
+        question:
+          'Why does the normalized OLTP schema from the order-management lesson perform poorly for an analytical query like "total revenue by product category last quarter"?',
+        options: [
+          { id: 'a', label: 'A', text: 'OLTP schemas are technically incapable of storing revenue figures' },
+          { id: 'b', label: 'B', text: 'The normalized shape, optimized for fast individual reads/writes of one order at a time, requires many joins across many tables to answer an aggregation query that conceptually should be simple' },
+          { id: 'c', label: 'C', text: 'This performance difference is a myth; OLTP and analytical schemas perform identically for any query type' },
+          { id: 'd', label: 'D', text: 'Aggregation queries are impossible to write in SQL against a normalized schema' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The mismatch between the OLTP schema\'s design goal (fast individual transactional operations) and the analytical query\'s actual need (aggregating across many rows) is exactly why dimensional modeling exists as a separate discipline.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-12-mcq-02',
+        question:
+          'How does the lesson connect dbt\'s testing capability to the earlier testing/CI lesson from the FDE Foundations module?',
+        options: [
+          { id: 'a', label: 'A', text: 'dbt tests and application code tests are technically unrelated concepts that happen to share a name' },
+          { id: 'b', label: 'B', text: 'It\'s the same discipline — a failing test catching a problem before it reaches downstream consumers — applied here to data models instead of application code, earning the same "CI as automated reviewer" benefit' },
+          { id: 'c', label: 'C', text: 'dbt replaces the need for any application-code testing entirely' },
+          { id: 'd', label: 'D', text: 'This connection only applies to tests checking numeric data types' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is an explicit cross-module reuse of the same principle — automated tests as a safety net that doesn\'t depend on a human noticing a problem, applied to data transformations rather than application logic.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-12-mcq-03',
+        question:
+          'Why does keeping raw, untransformed data available specifically help when a bug is found in a transformation model months later?',
+        options: [
+          { id: 'a', label: 'A', text: 'Raw data is technically immune to ever containing bugs, unlike transformed data' },
+          { id: 'b', label: 'B', text: 'The fix can be re-run against the still-available raw data to correct the historical record; if the raw data had already been discarded during an upfront ETL transform, the same fix might be impossible without re-extracting from a source that may no longer be available in the same form' },
+          { id: 'c', label: 'C', text: 'This benefit only applies if the bug is found within 24 hours of the original transformation' },
+          { id: 'd', label: 'D', text: 'Keeping raw data has no bearing on the ability to fix a transformation bug retroactively' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the concrete operational payoff of ELT\'s raw-data-retention approach — a fixable historical record versus a potentially unrecoverable one, depending on whether the raw source is still available.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-12-mcq-04',
+        question:
+          'What did the referential-integrity dbt test catch in the scenario, and why did that matter?',
+        options: [
+          { id: 'a', label: 'A', text: 'A syntax error in the dbt model\'s SQL that would have prevented it from running at all' },
+          { id: 'b', label: 'B', text: 'A small number of fact rows referencing a customer ID that no longer existed in `dim_customer`, caught in CI before the broken model reached the reporting dashboard — preventing a silently undercounted revenue figure from reaching a customer stakeholder' },
+          { id: 'c', label: 'C', text: 'A performance regression in query execution time, unrelated to data correctness' },
+          { id: 'd', label: 'D', text: 'The test found nothing wrong, and the scenario describes a successful, uneventful run' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the concrete stakes of the test — without it, the broken model\'s output would have silently reached a dashboard a real stakeholder trusts, exactly the failure mode automated data-quality tests exist to prevent.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-12-mcq-05',
+        question:
+          'What made the shift from ETL toward ELT practical, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'ETL was fundamentally impossible to implement correctly, forcing a switch to ELT' },
+          { id: 'b', label: 'B', text: 'Warehouse compute becoming cheap enough that transforming data repeatedly inside the warehouse is no longer the bottleneck the older ETL pattern was designed to avoid' },
+          { id: 'c', label: 'C', text: 'Raw data storage became more expensive, making ELT the only economically viable option' },
+          { id: 'd', label: 'D', text: 'This shift has no relationship to compute or storage cost considerations' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The economic shift (cheap warehouse compute) is the specific enabling factor the lesson names — ETL\'s upfront-transform design existed to avoid a compute cost that\'s no longer the binding constraint it used to be.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-12-mcq-06',
+        question:
+          'Why does typical analytical reporting usually favor preserving a customer\'s historical region at the time of each order, rather than always showing their current region?',
+        options: [
+          { id: 'a', label: 'A', text: 'Customers never change region, making this consideration purely theoretical' },
+          { id: 'b', label: 'B', text: 'A report on "revenue by region last year" should reflect where the customer actually was when each order happened, not retroactively reassign old orders to wherever the customer has since moved — preserving historical accuracy is usually the point of analytical reporting' },
+          { id: 'c', label: 'C', text: 'Showing current region is always the objectively correct choice for every reporting need' },
+          { id: 'd', label: 'D', text: 'This decision has no impact on the accuracy of historical reports' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Analytical reporting typically needs to answer "what was true at the time," which is exactly what a slowly-changing-dimension design that preserves historical values is built to support — the simpler "always current" design silently rewrites history.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/13-workflow-orchestration-with-airflow-and-data-quality': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-13-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — WORKFLOW ORCHESTRATION WITH DAGS',
+        question:
+          'What does Airflow\'s DAG model of explicit task dependencies provide that a monolithic cron-scheduled script does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'DAGs eliminate the need for any scheduling at all' },
+          { id: 'b', label: 'B', text: 'Task B is explicitly declared to run only after task A actually succeeds, rather than the pipeline relying on timing happening to work out or on independently-scheduled scripts staying correctly offset from each other' },
+          { id: 'c', label: 'C', text: 'A monolithic cron script provides identical dependency guarantees to a DAG, making the distinction meaningless' },
+          { id: 'd', label: 'D', text: 'DAGs are only useful for pipelines with fewer than three total tasks' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Explicit, success-gated dependency declaration is the core structural advantage over timing-based coordination, which is fragile and doesn\'t actually guarantee anything about whether an upstream step truly succeeded.',
+        incorrectExplanation:
+          'Consider what happens when interdependent cron scripts fail partway through or require scheduled backfills.',
+        hint: 'Airflow DAGs explicitly manage inter-task dependencies, execution ordering, upstream failure cascading, retries, and programmatic backfilling.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-13-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DATA QUALITY GATES IN PIPELINES',
+        question:
+          'Why does the lesson insist data-quality checks be explicit, first-class DAG tasks rather than an assumption that upstream data is fine?',
+        options: [
+          { id: 'a', label: 'A', text: 'Data-quality checks are required by Airflow\'s own internal architecture to function at all' },
+          { id: 'b', label: 'B', text: 'Without explicit checks, bad data can silently flow downstream into whatever consumes it, with no one noticing until the bad output itself is eventually noticed, possibly much later and disconnected from its actual root cause' },
+          { id: 'c', label: 'C', text: 'Assuming upstream data is fine is always a safe assumption in a well-built pipeline' },
+          { id: 'd', label: 'D', text: 'This concern only applies to pipelines processing financial data specifically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The core risk being defended against is silent propagation of bad data — explicit checks are what surface the problem at its actual source instead of letting it drift downstream undetected.',
+        incorrectExplanation:
+          'Think about the consequences of allowing downstream reporting models to execute when an upstream extraction produces corrupt or zero-row data.',
+        hint: 'Gating checks halt DAG execution on validation anomalies, preventing bad, empty, or corrupted data from contaminating downstream marts and reports.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-13-mcq-01',
+        question:
+          'How does Airflow\'s DAG concept relate to the earlier n8n workflow lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Airflow and n8n are functionally identical tools with no meaningful difference' },
+          { id: 'b', label: 'B', text: 'It\'s the same underlying idea — a graph of dependent steps — reappearing in a new domain, with Airflow specialized specifically for data-pipeline orchestration (backfills, per-task retries, SLA monitoring) rather than n8n\'s broader general-purpose automation focus' },
+          { id: 'c', label: 'C', text: 'n8n and Airflow solve entirely unrelated problems with no conceptual overlap' },
+          { id: 'd', label: 'D', text: 'Airflow replaces the need for n8n in every context' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is an explicit cross-module connection — the same graph-of-dependent-steps concept, specialized differently for different domains (data pipelines versus general automation).'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-13-mcq-02',
+        question:
+          'Why does the lesson argue a pipeline stage that "succeeds" while producing wrong data is more dangerous than one that fails loudly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Loud failures are always more expensive to fix than silent ones' },
+          { id: 'b', label: 'B', text: 'Everything downstream treats the wrong output as valid, and the eventual symptom surfaces disconnected from its actual root cause, often much later than when the original problem occurred — whereas a loud failure is immediately actionable by someone who knows exactly what broke' },
+          { id: 'c', label: 'C', text: 'There is no real difference in danger between the two failure modes' },
+          { id: 'd', label: 'D', text: 'Silent failures are actually easier to diagnose because they produce no error noise' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s central risk argument — a silent failure\'s damage compounds by propagating downstream and surfacing later, disconnected from its cause, unlike a loud failure that\'s immediately traceable.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-13-mcq-03',
+        question:
+          'Why was a dashboard showing "zero orders today," caused by a silent source-system outage, particularly dangerous in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'Zero-row extracts always cause the entire warehouse to become permanently corrupted' },
+          { id: 'b', label: 'B', text: 'It looks like "no orders were placed" rather than "the pipeline failed to extract anything" — a materially different and far more alarming situation the customer would have no way to distinguish from the dashboard alone' },
+          { id: 'c', label: 'C', text: 'The dashboard would have displayed an explicit error message, making the problem obvious' },
+          { id: 'd', label: 'D', text: 'This scenario has no realistic risk since source-system outages never actually occur' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The danger is specifically the ambiguity — a plausible-looking but wrong result (zero orders) is indistinguishable from a genuinely quiet business day without an explicit check surfacing the real cause.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-13-mcq-04',
+        question:
+          'How did the row-count sanity check task change the outcome of the scenario\'s source-system outage?',
+        options: [
+          { id: 'a', label: 'A', text: 'It automatically fixed the source-system outage without any human involvement' },
+          { id: 'b', label: 'B', text: 'It compared today\'s extracted row count against a reasonable historical range, caught the anomalous zero-row extract, failed the DAG loudly, and alerted the FDE before the empty data ever reached the dashboard' },
+          { id: 'c', label: 'C', text: 'It silently corrected the zero-row extract by estimating what the data should have looked like' },
+          { id: 'd', label: 'D', text: 'It had no actual effect on the outcome described in the scenario' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct mechanism of the fix — turning a silent, misleading failure into a loud, immediately actionable one, exactly the transformation the lesson\'s concepts describe.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-13-mcq-05',
+        question:
+          'How does this lesson connect a symptom-appearing-downstream-of-its-cause problem to the earlier debugging-AI lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two lessons describe entirely unrelated failure modes with no shared principle' },
+          { id: 'b', label: 'B', text: 'Both describe the same structural risk — a symptom observed at the end of a chain (a wrong dashboard, a wrong final agent output) doesn\'t by itself reveal where the actual fault originated, which is why isolating the specific failing stage matters in both domains' },
+          { id: 'c', label: 'C', text: 'This connection only applies to pipelines that use AI agents internally' },
+          { id: 'd', label: 'D', text: 'The debugging-AI lesson\'s principle only applies to non-deterministic systems, never to data pipelines' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a deliberate cross-module echo — the same "isolate the actual failing stage instead of trusting the final symptom" discipline reappears here in a data-pipeline context, mirroring the agent-debugging lesson\'s trace-backward technique.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-13-mcq-06',
+        question:
+          'Why does the suggested extension\'s backfill scenario depend on the raw data for the affected dates still being available?',
+        options: [
+          { id: 'a', label: 'A', text: 'Backfills do not actually require any raw data at all; they regenerate historical records from nothing' },
+          { id: 'b', label: 'B', text: 'A backfill re-runs the DAG\'s transformation logic for historical dates, which requires the original raw data for those dates to still exist to transform correctly — exactly the ELT raw-data-retention benefit from the previous lesson' },
+          { id: 'c', label: 'C', text: 'Raw data retention has no relationship to Airflow\'s backfill capability' },
+          { id: 'd', label: 'D', text: 'Backfills only work if the raw data is less than one week old' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly reuses the previous lesson\'s ELT/raw-data-retention argument — backfilling to correct historical data is only possible because the raw source for those dates was deliberately kept around, not discarded after an upfront transform.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/14-event-driven-architecture-and-kafka-fundamentals': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-14-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — EVENT-DRIVEN PRODUCER-CONSUMER DECOUPLING',
+        question:
+          'What is the core decoupling event-driven architecture provides that a direct synchronous call does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Event-driven architecture eliminates the need for any consumer to exist at all' },
+          { id: 'b', label: 'B', text: 'A producer publishes an event without knowing or caring who, if anyone, is listening — consumers subscribe independently and can be added later with zero changes to the producer' },
+          { id: 'c', label: 'C', text: 'A direct synchronous call and an event-driven publish provide identical decoupling' },
+          { id: 'd', label: 'D', text: 'Event-driven architecture requires the producer to know every consumer\'s identity in advance' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The defining property is that the producer has no knowledge of or dependency on its consumers — this is what allows new consumers to be added later without touching the producer\'s code at all.',
+        incorrectExplanation:
+          'Distinguish between point-to-point command invocations and decoupled broadcast event publishing.',
+        hint: 'Producers publish facts ("OrderCreated") to a topic without coupling to downstream consumers, allowing new consumers to subscribe with zero producer changes.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-14-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — KAFKA PARTITION ORDERING GUARANTEES',
+        question:
+          'Two events for different order IDs are published close together. Does Kafka guarantee their processing order relative to each other?',
+        options: [
+          { id: 'a', label: 'A', text: 'Yes, Kafka guarantees global ordering across an entire topic regardless of key' },
+          { id: 'b', label: 'B', text: 'No — ordering is only guaranteed within a partition, for events sharing the same key; events with different keys landing on different partitions carry no ordering guarantee relative to one another' },
+          { id: 'c', label: 'C', text: 'Kafka provides no ordering guarantees whatsoever, even within a single partition' },
+          { id: 'd', label: 'D', text: 'Ordering guarantees only apply if the events are published by the same producer instance' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific, concrete detail the lesson flags as a common source of real bugs — assuming topic-wide ordering when Kafka only actually guarantees it within a partition, for matching keys.',
+        incorrectExplanation:
+          'Consider how Kafka distributes messages across topic partitions and what that means for ordering across different partition keys.',
+        hint: 'Kafka guarantees strict FIFO ordering within an individual partition, but does NOT guarantee global ordering across multiple partitions in a topic.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-backend-observability-data-14-event-driven-kafka-pipeline',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — EVENT-DRIVEN DECOUPLING VIA KAFKA',
+      boundaryLabel: 'EVENT STREAMING LOG BOUNDARY',
+      boundaryText:
+        'FastAPI producer publishes OrderEvents keyed by order_id to a partitioned Kafka topic; independent consumer groups process asynchronously.',
+      nodes: [
+        { id: 'api-producer', label: 'FastAPI Order Service (Producer)', kind: 'service' },
+        { id: 'kafka-topic', label: 'Kafka Topic: order-events (Partitioned by order_id)', kind: 'boundary', highlighted: true },
+        { id: 'consumer-payments', label: 'Payments Worker (Consumer Group A)', kind: 'adapter' },
+        { id: 'consumer-notifications', label: 'Notifications Worker (Consumer Group B)', kind: 'adapter' },
+        { id: 'consumer-analytics', label: 'Analytics / Data Lake Ingestion (Consumer Group C)', kind: 'adapter' },
+        { id: 'dlq', label: 'Dead-Letter Queue (DLQ)', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-14-mcq-01',
+        question:
+          'How does an event-driven publish differ from a Celery task queued earlier in this module, in terms of decoupling?',
+        options: [
+          { id: 'a', label: 'A', text: 'Celery tasks and event-driven publishing provide identical decoupling with no meaningful difference' },
+          { id: 'b', label: 'B', text: 'A queued Celery task still names its specific downstream work at the point it\'s queued; a published event doesn\'t know or need to know what, if anything, will consume it — a materially looser coupling' },
+          { id: 'c', label: 'C', text: 'Celery tasks are inherently incapable of being processed asynchronously, unlike events' },
+          { id: 'd', label: 'D', text: 'Event-driven publishing always requires fewer lines of code than a Celery task' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a precise distinction the lesson draws — Celery decouples timing (the work happens later, off the critical path) but still names its specific consumer; events decouple identity of consumer entirely.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-14-mcq-02',
+        question:
+          'What does Kafka\'s "durable log" framing enable that a simpler message queue typically does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Durable logs prevent any event from ever being consumed more than once, under any circumstances' },
+          { id: 'b', label: 'B', text: 'A consumer can replay from any earlier offset in the log, useful for reprocessing after fixing a downstream bug or for a new consumer catching up on historical events, not just future ones' },
+          { id: 'c', label: 'C', text: 'Durable logs are only relevant for events smaller than 1 kilobyte' },
+          { id: 'd', label: 'D', text: 'This framing has no practical difference from a simple queue' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Replayability is the specific capability the durable-log model adds — a consumer isn\'t limited to only future events, which matters directly for reprocessing and onboarding new consumers.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-14-mcq-03',
+        question:
+          'Why should events for the order-management system be keyed by order ID rather than a random ID?',
+        options: [
+          { id: 'a', label: 'A', text: 'Random keys are technically forbidden by Kafka\'s protocol' },
+          { id: 'b', label: 'B', text: 'Keying by order ID guarantees all events for the same order land on the same partition and are processed in order relative to each other — a random key would break this per-order ordering guarantee' },
+          { id: 'c', label: 'C', text: 'The choice of key has no bearing on ordering or partition assignment' },
+          { id: 'd', label: 'D', text: 'Order ID must be used as the key specifically because it improves consumer throughput, unrelated to ordering' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The key directly determines partition assignment and therefore ordering scope — choosing order ID as the key is what makes per-order event ordering an actual guarantee rather than incidental.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-14-mcq-04',
+        question:
+          'Why did the FDE consider the event-driven redesign justified for this specific system, rather than over-engineering?',
+        options: [
+          { id: 'a', label: 'A', text: 'Event-driven architecture should always be adopted regardless of demonstrated need, since it\'s inherently more scalable' },
+          { id: 'b', label: 'B', text: '"New independent consumers appearing over time" was a demonstrated, recurring pattern for this system (a second consumer request in as many months, with a third already anticipated), not a hypothetical flexibility being bought defensively against a need that might never materialize' },
+          { id: 'c', label: 'C', text: 'The redesign was justified purely because Kafka is a more modern technology than direct calls or Celery' },
+          { id: 'd', label: 'D', text: 'There was no real justification; this was an example of unjustified over-engineering the lesson criticizes' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The justification is explicitly evidence-based — a real, recurring pattern of new consumers, not an abstract appeal to scalability or modernity, which is exactly the distinction the lesson draws between justified and unjustified architectural complexity.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-14-mcq-05',
+        question:
+          'How does this lesson\'s judgment about event-driven architecture connect to the agent-versus-workflow and WebSockets-versus-SSE decisions from earlier lessons?',
+        options: [
+          { id: 'a', label: 'A', text: 'These three decisions are technically unrelated and any perceived similarity is coincidental' },
+          { id: 'b', label: 'B', text: 'All three are instances of the same discipline — match the architecture\'s complexity to a genuine, demonstrated need for that complexity\'s specific benefit, rather than reaching for the more flexible or more sophisticated-sounding option by default' },
+          { id: 'c', label: 'C', text: 'This connection only applies to systems that use both AI agents and Kafka simultaneously' },
+          { id: 'd', label: 'D', text: 'Event-driven architecture should always be preferred in the same way an agent should always be preferred over a fixed workflow' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is an explicit recurring pattern across the course — matching tool/architecture complexity to genuine need, not defaulting to the more sophisticated option, shown here for the third time in a different technical domain.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-14-mcq-06',
+        question:
+          'What do Kafka consumer groups enable?',
+        options: [
+          { id: 'a', label: 'A', text: 'Consumer groups let every consumer in the group process every event, duplicating all work across all members' },
+          { id: 'b', label: 'B', text: 'Multiple consumer instances splitting a topic\'s partitions among themselves for horizontal processing scale, with each partition consumed by exactly one group member at a time' },
+          { id: 'c', label: 'C', text: 'Consumer groups are only relevant for producers, not consumers' },
+          { id: 'd', label: 'D', text: 'Consumer groups eliminate the need for partitions entirely' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Consumer groups are the horizontal-scaling mechanism for consumption — splitting partitions among group members so processing throughput scales with the number of consumer instances, without duplicating work.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-14-mcq-07',
+        question:
+          'Why does the suggested extension warn against letting a repeatedly-failing event block its partition indefinitely?',
+        options: [
+          { id: 'a', label: 'A', text: 'Indefinite blocking is technically impossible in Kafka regardless of consumer behavior' },
+          { id: 'b', label: 'B', text: 'Because a partition is consumed in order, a stuck event blocking indefinitely would also block every other, unrelated event queued behind it on the same partition — a dead-letter-queue pattern (moving the failing event aside after bounded retries) lets those other events continue being processed' },
+          { id: 'c', label: 'C', text: 'This concern only applies to producers, not consumers' },
+          { id: 'd', label: 'D', text: 'Blocking indefinitely has no effect on any other event, since each event is processed in total isolation' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This connects directly to the partition-ordering concept from earlier in the lesson — because a partition processes events in order, a stuck event has a real blast radius on everything queued behind it, which is exactly why a dead-letter pattern matters.'
+      }
+    ]
+  },
+  'fde-curriculum/backend-observability-data/15-assessment-data-pipeline-build-and-debug': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-backend-observability-data-15-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — BLIND DIAGNOSTIC EVALUATION',
+        question:
+          'Why must the person diagnosing the injected failure not be told what was injected beforehand?',
+        options: [
+          { id: 'a', label: 'A', text: 'Undisclosed injection is a formality with no bearing on what the exercise actually tests' },
+          { id: 'b', label: 'B', text: 'Diagnosing with foreknowledge of the actual injected failure would just confirm they can recognize a known answer, not that the pipeline\'s instrumentation genuinely surfaces enough evidence to find an unknown root cause from scratch — the real-world diagnostic skill being tested' },
+          { id: 'c', label: 'C', text: 'This requirement exists purely to make the exercise take longer' },
+          { id: 'd', label: 'D', text: 'Disclosing the failure in advance would make the pipeline itself technically fail to run' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Undisclosed injection is what makes this a genuine test of the pipeline\'s diagnosability rather than the diagnoser\'s memory — mirroring the realistic situation of a genuinely unknown production failure.',
+        incorrectExplanation:
+          'Think about why diagnosing an unknown defect tests true observability and root-cause analysis skills.',
+        hint: 'A blind failure forces the engineer to rely on structured telemetry, backward tracing, and DAG logs rather than pre-rehearsed fixes.'
+      },
+      {
+        id: 'lesson-fde-backend-observability-data-15-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — RESILIENT PIPELINE FAILURE HANDLING',
+        question:
+          'What does the rubric\'s "failure handling" category specifically check?',
+        options: [
+          { id: 'a', label: 'A', text: 'How many total lines of code the pipeline contains' },
+          { id: 'b', label: 'B', text: 'Whether the injected failure actually gets caught by a data-quality check or dbt-style test, failing the pipeline loudly rather than silently propagating bad data through to the final output' },
+          { id: 'c', label: 'C', text: 'Whether the pipeline runs faster than a fixed time threshold' },
+          { id: 'd', label: 'D', text: 'Whether the pipeline uses a specific named orchestration tool rather than any equivalent' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly checks whether the earlier lesson\'s "silent failure is worse than loud failure" principle was actually implemented, not just discussed — a real, checkable behavior under the injected failure.',
+        incorrectExplanation:
+          'Consider what constitutes resilient data pipeline engineering when upstream sources deliver bad or empty data.',
+        hint: 'It evaluates whether pipeline quality gates catch invalid or missing records and fail loudly before bad data pollutes analytical models.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-15-mcq-01',
+        question:
+          'What is the distinguishing feature of this assessment compared to the earlier Python Engineering Challenge assessment?',
+        options: [
+          { id: 'a', label: 'A', text: 'This assessment does not require any code to be written at all, unlike the earlier one' },
+          { id: 'b', label: 'B', text: 'It includes a deliberately injected, undisclosed failure that must be diagnosed using only the pipeline\'s own instrumentation, directly testing diagnosability rather than only whether the system works under normal conditions' },
+          { id: 'c', label: 'C', text: 'This assessment has no rubric, unlike the earlier one' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference between the two assessments' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The undisclosed-failure diagnosis requirement is the specific new element here, testing the observability and diagnosability discipline this module built toward, beyond what the earlier assessment covered.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-15-mcq-02',
+        question:
+          'Why does the lesson describe "diagnosability" as the rubric category most lessons in this module were explicitly building toward?',
+        options: [
+          { id: 'a', label: 'A', text: 'Diagnosability is unrelated to any specific earlier lesson and was introduced for the first time in this assessment' },
+          { id: 'b', label: 'B', text: 'The observability lesson (traces/logs), the Postgres-internals lesson (EXPLAIN ANALYZE diagnosis), and the data-quality/Airflow lesson (catching problems loudly) all specifically taught diagnostic technique, and this category is where that accumulated skill actually gets tested against a real, unknown failure' },
+          { id: 'c', label: 'C', text: 'Diagnosability only reflects how fast the pipeline executes, unrelated to earlier lessons\' content' },
+          { id: 'd', label: 'D', text: 'This category was included arbitrarily with no connection to the module\'s actual content' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Multiple lessons across this module (tracing, EXPLAIN ANALYZE, data-quality checks) each taught a piece of diagnostic discipline — this assessment\'s diagnosability category is where all of that accumulated skill is actually exercised together against an unknown problem.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-15-mcq-03',
+        question:
+          'Why does the "modeling soundness" rubric category require the referential-integrity or null-check test to "genuinely catch a broken case," not merely exist?',
+        options: [
+          { id: 'a', label: 'A', text: 'The mere presence of any test file automatically satisfies this rubric category regardless of what it checks' },
+          { id: 'b', label: 'B', text: 'A test that\'s present but never actually fails on bad data (a decorative test that always passes) provides no real safety net — the rubric requires demonstrating the test would actually catch a genuine violation, not just that a test file exists' },
+          { id: 'c', label: 'C', text: 'This requirement only applies to referential-integrity tests, never to null checks' },
+          { id: 'd', label: 'D', text: 'Modeling soundness has no relationship to whether tests actually catch real problems' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This echoes the "test quality" rubric principle from the earlier Python assessment — a test that never actually fails on bad input isn\'t meaningfully testing anything, regardless of its mere presence in the codebase.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-15-mcq-04',
+        question:
+          'Why does the lesson say this assessment doesn\'t need a separate practical scenario, unlike most other lessons in this course?',
+        options: [
+          { id: 'a', label: 'A', text: 'Assessments are exempt from needing to demonstrate any real-world relevance' },
+          { id: 'b', label: 'B', text: 'The assessment itself, deliberately built so skipping any rubric item produces a materially worse (not just cosmetically worse) result, already demonstrates the module\'s real stakes directly, functioning as its own scenario' },
+          { id: 'c', label: 'C', text: 'This lesson genuinely has no connection to any real-world situation' },
+          { id: 'd', label: 'D', text: 'A separate scenario was omitted purely to save space, with no substantive justification' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the same reasoning from the earlier Python assessment lesson — the assessment\'s own structure (rubric items mapping to real capabilities) makes it self-demonstrating rather than needing an additional illustrative example.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-15-mcq-05',
+        question:
+          'Why does the practice loop suggest building the star schema and ELT ingestion before adding orchestration or quality checks?',
+        options: [
+          { id: 'a', label: 'A', text: 'Airflow technically cannot be installed until a star schema already exists' },
+          { id: 'b', label: 'B', text: 'Validating the core data-modeling logic first, before layering orchestration and quality checks on top, mirrors the earlier "build against a simple foundation first" pattern from the hexagonal-architecture and agent lessons — getting the fundamentals right before adding operational complexity' },
+          { id: 'c', label: 'C', text: 'This ordering has no particular rationale and any order would work identically' },
+          { id: 'd', label: 'D', text: 'Quality checks are only possible to write after the pipeline has already failed once in production' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a reasonable build-order heuristic consistent with earlier lessons\' "validate the core first, then add operational layers" pattern, even though the rubric doesn\'t strictly require this specific build order.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-backend-observability-data-15-mcq-06',
+        question:
+          'Why does the suggested extension say it\'s worth investigating if diagnosing a second, different injected failure isn\'t meaningfully faster than the first?',
+        options: [
+          { id: 'a', label: 'A', text: 'The second diagnosis should always take exactly the same amount of time as the first, regardless of instrumentation quality' },
+          { id: 'b', label: 'B', text: 'Familiarity with the pipeline\'s instrumentation from the first diagnosis should genuinely speed up the second one if the instrumentation is doing its job well — a lack of improvement is a signal the instrumentation itself may not be as diagnosable as the first success suggested, not just bad luck on the second failure' },
+          { id: 'c', label: 'C', text: 'This comparison has no diagnostic value about the pipeline\'s own instrumentation quality' },
+          { id: 'd', label: 'D', text: 'A slower second diagnosis always indicates the second injected failure was objectively harder, with no other possible explanation' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a self-diagnostic check on the instrumentation itself — genuinely good observability should compound in usefulness with familiarity, and a lack of improvement is worth investigating as a signal about the instrumentation\'s real quality.'
+      }
+    ]
   }
 };
 
