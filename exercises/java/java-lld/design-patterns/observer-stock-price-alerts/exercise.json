@@ -1,0 +1,105 @@
+{
+  "id": "java-lld-observer-stock-price-alerts",
+  "lessonSlug": "17-behavioural-patterns-uml",
+  "title": "Observer Pattern — Stock Price Alerts",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 40,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "observer",
+      "path": "src/main/java/com/assignment/question/Observer.java",
+      "displayName": "Observer.java",
+      "editable": false
+    },
+    {
+      "id": "observer-registry",
+      "path": "src/main/java/com/assignment/question/ObserverRegistry.java",
+      "displayName": "ObserverRegistry.java",
+      "editable": false
+    },
+    {
+      "id": "notification-utils",
+      "path": "src/main/java/com/assignment/question/utils/NotificationUtils.java",
+      "displayName": "utils/NotificationUtils.java",
+      "editable": false
+    },
+    {
+      "id": "publisher",
+      "path": "src/main/java/com/assignment/question/Publisher.java",
+      "displayName": "Publisher.java",
+      "editable": true
+    },
+    {
+      "id": "stock-trading-manager",
+      "path": "src/main/java/com/assignment/question/StockTradingManager.java",
+      "displayName": "StockTradingManager.java",
+      "editable": true
+    },
+    {
+      "id": "email-service",
+      "path": "src/main/java/com/assignment/question/services/EmailService.java",
+      "displayName": "services/EmailService.java",
+      "editable": true
+    },
+    {
+      "id": "sms-service",
+      "path": "src/main/java/com/assignment/question/services/SmsService.java",
+      "displayName": "services/SmsService.java",
+      "editable": true
+    },
+    {
+      "id": "app-service",
+      "path": "src/main/java/com/assignment/question/services/AppService.java",
+      "displayName": "services/AppService.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/StockTradingManagerTest.java",
+    "className": "StockTradingManagerTest"
+  },
+  "evidence": [
+    {
+      "id": "no-direct-dependencies",
+      "label": "StockTradingManager holds no direct field of any concrete notification service",
+      "testMethod": "testDependencies"
+    },
+    {
+      "id": "observer-method-shape",
+      "label": "Observer declares a method accepting (String stockName, double currentPrice)",
+      "testMethod": "testObserverInterfaceMethod"
+    },
+    {
+      "id": "publisher-add-remove",
+      "label": "Publisher exposes add/remove methods that accept an Observer",
+      "testMethod": "testAddAndRemoveObserverMethod"
+    },
+    {
+      "id": "constructor-shape",
+      "label": "StockTradingManager has a constructor accepting (stockName, initialPrice, notificationThreshold)",
+      "testMethod": "testConstructor"
+    },
+    {
+      "id": "extends-publisher",
+      "label": "StockTradingManager extends Publisher",
+      "testMethod": "testStockTradingManagerExtendsPublisher"
+    },
+    {
+      "id": "services-implement-observer",
+      "label": "EmailService, SmsService and AppService each implement Observer",
+      "testMethod": "testServicesImplementObserver"
+    },
+    {
+      "id": "threshold-triggered-notification",
+      "label": "A price crossing the notification threshold notifies every registered observer through its own channel with the correct message",
+      "testMethod": "testSendNotification"
+    }
+  ]
+}

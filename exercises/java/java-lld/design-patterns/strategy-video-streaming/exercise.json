@@ -1,0 +1,95 @@
+{
+  "id": "java-lld-strategy-video-streaming",
+  "lessonSlug": "17-behavioural-patterns-uml",
+  "title": "Strategy Pattern — Video Streaming Quality Adjustment",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 40,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "video",
+      "path": "src/main/java/com/assignment/question/Video.java",
+      "displayName": "Video.java",
+      "editable": false
+    },
+    {
+      "id": "video-quality",
+      "path": "src/main/java/com/assignment/question/VideoQuality.java",
+      "displayName": "VideoQuality.java",
+      "editable": false
+    },
+    {
+      "id": "video-codec",
+      "path": "src/main/java/com/assignment/question/VideoCodec.java",
+      "displayName": "VideoCodec.java",
+      "editable": false
+    },
+    {
+      "id": "quality-adjustment-strategy",
+      "path": "src/main/java/com/assignment/question/QualityAdjustmentStrategy.java",
+      "displayName": "QualityAdjustmentStrategy.java",
+      "editable": false
+    },
+    {
+      "id": "video-streaming-manager",
+      "path": "src/main/java/com/assignment/question/VideoStreamingManager.java",
+      "displayName": "VideoStreamingManager.java",
+      "editable": true
+    },
+    {
+      "id": "low-video-adjustment-strategy",
+      "path": "src/main/java/com/assignment/question/LowVideoAdjustmentStrategy.java",
+      "displayName": "LowVideoAdjustmentStrategy.java",
+      "editable": true
+    },
+    {
+      "id": "medium-video-adjustment-strategy",
+      "path": "src/main/java/com/assignment/question/MediumVideoAdjustmentStrategy.java",
+      "displayName": "MediumVideoAdjustmentStrategy.java",
+      "editable": true
+    },
+    {
+      "id": "high-video-adjustment-strategy",
+      "path": "src/main/java/com/assignment/question/HighVideoAdjustmentStrategy.java",
+      "displayName": "HighVideoAdjustmentStrategy.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/VideoStreamingManagerTest.java",
+    "className": "VideoStreamingManagerTest"
+  },
+  "evidence": [
+    {
+      "id": "concrete-strategies",
+      "label": "Exactly 3 concrete QualityAdjustmentStrategy implementations exist",
+      "testMethod": "testConcreteStrategies"
+    },
+    {
+      "id": "strategy-method-shape",
+      "label": "QualityAdjustmentStrategy declares adjust(Video) -> Video",
+      "testMethod": "testQualityAdjustmentStrategyMethod"
+    },
+    {
+      "id": "manager-field",
+      "label": "VideoStreamingManager has a private QualityAdjustmentStrategy field",
+      "testMethod": "testVideoStreamingManagerFields"
+    },
+    {
+      "id": "manager-constructor",
+      "label": "VideoStreamingManager has a constructor accepting a Video and a QualityAdjustmentStrategy",
+      "testMethod": "testVideoStreamingManagerConstructor"
+    },
+    {
+      "id": "strategy-adjustment-correctness",
+      "label": "Each strategy sets the correct codec and bitrate for its quality tier (low, medium, high)",
+      "testMethod": "testStreamingStrategy"
+    }
+  ]
+}
