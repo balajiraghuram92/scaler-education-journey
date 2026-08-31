@@ -7,7 +7,7 @@ describe('lesson exercise associations', () => {
       'java-spring-lld',
       'oop-foundations',
       '01-intro-to-lld'
-    )).toEqual({ exerciseId: 'java-lld-oop1-trip-state-management' });
+    )).toEqual({ exerciseIds: ['java-lld-oop1-trip-state-management'] });
   });
 
   it('associates the oop 1 lab lesson with the rider entity exercise', () => {
@@ -15,15 +15,21 @@ describe('lesson exercise associations', () => {
       'java-spring-lld',
       'oop-foundations',
       '02-oop-1-intro-lab'
-    )).toEqual({ exerciseId: 'java-lld-oop2-rider-entity' });
+    )).toEqual({ exerciseIds: ['java-lld-oop2-rider-entity'] });
   });
 
-  it('associates the polymorphism lesson with the canonical exercise', () => {
+  it('associates the polymorphism lesson with all three attached exercises', () => {
     expect(getLessonExerciseAssociation(
       'java-spring-lld',
       'oop-foundations',
       '04-oop-3-polymorphism-interfaces'
-    )).toEqual({ exerciseId: 'java-lld-oop3-point-threedpoint' });
+    )).toEqual({
+      exerciseIds: [
+        'java-lld-media-file-player',
+        'java-lld-oop3-point-threedpoint',
+        'java-lld-vehicle-renting'
+      ]
+    });
   });
 
   it('does not associate unrelated lessons', () => {

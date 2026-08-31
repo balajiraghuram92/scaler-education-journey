@@ -1,10 +1,8 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
-  const location = useLocation();
-
   return (
     <>
       <header className="editorial-navbar-wrapper">
@@ -14,44 +12,6 @@ export default function Navbar() {
             <Link to="/" className="navbar-brand-pill">
               <img src="/favicon.svg" alt="Neuralascent Logo" className="navbar-brand-logo" />
               <span className="brand-pill-text">Neuralascent</span>
-            </Link>
-          </div>
-
-          {/* Center: Navigation Links */}
-          <div className="navbar-section navbar-center">
-            <Link
-              to="/"
-              className={`navbar-nav-link ${location.pathname === '/' ? 'active' : ''}`}
-            >
-              Knowledge Atlas
-            </Link>
-            <span className="navbar-nav-divider">·</span>
-            <Link
-              to="/reading-map"
-              className={`navbar-nav-link ${location.pathname === '/reading-map' ? 'active' : ''}`}
-            >
-              Reading Map
-            </Link>
-            <span className="navbar-nav-divider">·</span>
-            <Link
-              to="/lab-projects"
-              className={`navbar-nav-link ${location.pathname === '/lab-projects' ? 'active' : ''}`}
-            >
-              Lab Projects
-            </Link>
-            <span className="navbar-nav-divider">·</span>
-            <Link
-              to="/curriculum-import"
-              className={`navbar-nav-link ${location.pathname === '/curriculum-import' ? 'active' : ''}`}
-            >
-              Importer
-            </Link>
-            <span className="navbar-nav-divider">·</span>
-            <Link
-              to="/chapters"
-              className={`navbar-nav-link ${location.pathname.startsWith('/chapters') || location.pathname.startsWith('/chapter') || location.pathname.startsWith('/learning-paths') ? 'active' : ''}`}
-            >
-              Chapters
             </Link>
           </div>
 

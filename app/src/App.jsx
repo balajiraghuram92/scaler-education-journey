@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
-import Home from './pages/Home';
 import Profile from './pages/Profile';
 import VerticalDetail from './pages/VerticalDetail';
 import LabProjects from './pages/LabProjects';
@@ -16,14 +15,10 @@ function App() {
     <BrowserRouter>
       <ErrorBoundary title="Application Route Error">
         <Routes>
-          {/* Home / Knowledge Atlas */}
+          {/* Root — redirects to Chapters */}
           <Route
             path="/"
-            element={
-              <Layout>
-                <Home />
-              </Layout>
-            }
+            element={<Navigate to="/chapters" replace />}
           />
 
           {/* Chapters / curriculum entry point */}

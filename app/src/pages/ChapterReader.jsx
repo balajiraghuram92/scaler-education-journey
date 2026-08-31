@@ -118,7 +118,7 @@ function buildContentSections(contentBody) {
   return sections.filter((section) => section.blocks.length > 0);
 }
 
-function ChapterMarkdown({ sections, interactions, exerciseId, isExerciseExpanded, onToggleExerciseExpanded }) {
+function ChapterMarkdown({ sections, interactions, exerciseIds, expandedExerciseIds, onToggleExerciseExpanded }) {
   const conceptChecks = interactions?.conceptChecks || [];
   const practiceQuestions = interactions?.practiceQuestions || [];
 
@@ -138,14 +138,14 @@ function ChapterMarkdown({ sections, interactions, exerciseId, isExerciseExpande
       </section>
 
       {section.id === 'concepts-covered' && conceptChecks.map((check) => <ConceptCheck key={check.id} {...check} />)}
-      {section.id === 'practice-loop' && exerciseId && (
+      {section.id === 'practice-loop' && exerciseIds?.map((exerciseId) => (
         <ImplementationExercise
           key={exerciseId}
           exerciseId={exerciseId}
-          isExpanded={isExerciseExpanded}
-          onToggleExpand={onToggleExerciseExpanded}
+          isExpanded={expandedExerciseIds.has(exerciseId)}
+          onToggleExpand={() => onToggleExerciseExpanded(exerciseId)}
         />
-      )}
+      ))}
       {section.id === 'practice-loop' && practiceQuestions?.length > 0 && (
         <PracticeQuestions questions={practiceQuestions} />
       )}
@@ -164,7 +164,7 @@ export default function ChapterReader() {
   const [personalNotesList, setPersonalNotesList] = useState([]);
   const [newNoteText, setNewNoteText] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
-  const [isExerciseExpanded, setIsExerciseExpanded] = useState(false);
+  const [expandedExerciseIds, setExpandedExerciseIds] = useState(() => new Set());
 
   // Resolved lookup slug
   const targetSlug = useMemo(() => {
@@ -182,7 +182,7 @@ export default function ChapterReader() {
     setLoading(true);
     setError(null);
     setIsDevFixture(false);
-    setIsExerciseExpanded(false);
+    setExpandedExerciseIds(new Set());
 
     try {
       let data = null;
@@ -299,7 +299,7 @@ export default function ChapterReader() {
   ];
 
   return (
-    <div className={`chapter-reader-page${isExerciseExpanded ? ' chapter-reader-page--exercise-expanded' : ''}`}>
+    <div className={`chapter-reader-page${expandedExerciseIds.size > 0 ? ' chapter-reader-page--exercise-expanded' : ''}`}>
       {isDevFixture && <DevFixturesBanner />}
       <div className="chapter-reader-top-strip">
         <div className="top-strip-inner">
@@ -390,9 +390,17 @@ export default function ChapterReader() {
           <ChapterMarkdown
             sections={contentSections}
             interactions={lessonInteractions}
-            exerciseId={lessonExercise?.exerciseId}
-            isExerciseExpanded={isExerciseExpanded}
-            onToggleExerciseExpanded={() => setIsExerciseExpanded((current) => !current)}
+            exerciseIds={lessonExercise?.exerciseIds}
+            expandedExerciseIds={expandedExerciseIds}
+            onToggleExerciseExpanded={(exerciseId) => setExpandedExerciseIds((current) => {
+              const next = new Set(current);
+              if (next.has(exerciseId)) {
+                next.delete(exerciseId);
+              } else {
+                next.add(exerciseId);
+              }
+              return next;
+            })}
           />
 
           {chapter.codeComparisons?.length > 0 && (
