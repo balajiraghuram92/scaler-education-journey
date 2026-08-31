@@ -1,0 +1,49 @@
+{
+  "id": "java-lld-student-sorter",
+  "lessonSlug": "12-java-adv-3-lambdas-streams",
+  "title": "Comparator Lambdas — Sort Students by Age",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 10,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "student",
+      "path": "src/main/java/org/example/Student.java",
+      "displayName": "Student.java",
+      "editable": false
+    },
+    {
+      "id": "student-sorter",
+      "path": "src/main/java/org/example/StudentSorter.java",
+      "displayName": "StudentSorter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestStudentSorter.java",
+    "className": "TestStudentSorter"
+  },
+  "evidence": [
+    {
+      "id": "sorts-by-age-descending",
+      "label": "sortStudentsByAgeDescending(...) sorts the list in place, oldest student first",
+      "testMethod": "testSortStudentsByAgeDescending"
+    },
+    {
+      "id": "handles-empty-and-single",
+      "label": "sortStudentsByAgeDescending(...) handles empty and single-element lists without error",
+      "testMethod": "testSortStudentsByAgeDescending_WithEmptyList"
+    },
+    {
+      "id": "handles-already-sorted",
+      "label": "sortStudentsByAgeDescending(...) leaves an already-descending list correctly ordered",
+      "testMethod": "testSortStudentsByAgeDescending_WithAlreadySorted"
+    }
+  ]
+}

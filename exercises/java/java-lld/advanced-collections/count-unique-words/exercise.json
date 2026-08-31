@@ -1,0 +1,43 @@
+{
+  "id": "java-lld-count-unique-words",
+  "lessonSlug": "12-java-adv-3-lambdas-streams",
+  "title": "Streams — Count Unique Words",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 20,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "word-counter",
+      "path": "src/main/java/org/example/WordCounter.java",
+      "displayName": "WordCounter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestWordCounter.java",
+    "className": "TestWordCounter"
+  },
+  "evidence": [
+    {
+      "id": "excludes-java-sentences",
+      "label": "countWords(...) drops sentences containing \"Java\" before counting words",
+      "testMethod": "testProcessSentences"
+    },
+    {
+      "id": "counts-distinct-words",
+      "label": "countWords(...) flattens remaining sentences into words and counts only distinct ones",
+      "testMethod": "testProcessSentences_NoJava"
+    },
+    {
+      "id": "empty-list-returns-zero",
+      "label": "countWords(...) returns 0 for an empty list instead of throwing",
+      "testMethod": "testProcessSentences_EmptyList"
+    }
+  ]
+}

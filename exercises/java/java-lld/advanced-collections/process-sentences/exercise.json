@@ -1,0 +1,43 @@
+{
+  "id": "java-lld-process-sentences",
+  "lessonSlug": "12-java-adv-3-lambdas-streams",
+  "title": "Streams — Average Length of Matching Sentences",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 15,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "sentence-processor",
+      "path": "src/main/java/org/example/SentenceProcessor.java",
+      "displayName": "SentenceProcessor.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestSentenceProcessor.java",
+    "className": "TestSentenceProcessor"
+  },
+  "evidence": [
+    {
+      "id": "averages-matching-sentences",
+      "label": "processSentences(...) filters to sentences containing \"Java\" and averages their lengths",
+      "testMethod": "testProcessSentences"
+    },
+    {
+      "id": "no-matches-returns-zero",
+      "label": "processSentences(...) returns 0 when no sentence contains \"Java\" (case-sensitive)",
+      "testMethod": "testProcessSentences_NoJava"
+    },
+    {
+      "id": "empty-list-returns-zero",
+      "label": "processSentences(...) returns 0 for an empty list instead of throwing",
+      "testMethod": "testProcessSentences_EmptyList"
+    }
+  ]
+}

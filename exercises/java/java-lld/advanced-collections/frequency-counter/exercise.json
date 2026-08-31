@@ -1,0 +1,38 @@
+{
+  "id": "java-lld-frequency-counter",
+  "lessonSlug": "11-java-adv-2-collections-lab",
+  "title": "Collections Lab — Frequency Counter",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 10,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "frequency-counter",
+      "path": "src/main/java/org/example/FrequencyCounter.java",
+      "displayName": "FrequencyCounter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestFrequencyCounter.java",
+    "className": "TestFrequencyCounter"
+  },
+  "evidence": [
+    {
+      "id": "counts-frequencies-correctly",
+      "label": "countFrequencies(...) maps each distinct value to its occurrence count",
+      "testMethod": "testCountFrequencies"
+    },
+    {
+      "id": "empty-array-returns-empty-map",
+      "label": "countFrequencies(...) returns an empty map for an empty array",
+      "testMethod": "empty_testCountFrequencies"
+    }
+  ]
+}

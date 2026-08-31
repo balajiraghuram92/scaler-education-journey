@@ -1,0 +1,48 @@
+{
+  "id": "java-lld-generic-linked-list",
+  "lessonSlug": "10-java-adv-1-generics",
+  "title": "Generic Singly Linked List",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 25,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "linked-list",
+      "path": "src/main/java/org/example/LinkedList.java",
+      "displayName": "LinkedList.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestLinkedList.java",
+    "className": "TestLinkedList"
+  },
+  "evidence": [
+    {
+      "id": "add-appends-nodes",
+      "label": "add(...) appends nodes and size() reflects the count",
+      "testMethod": "testAdd"
+    },
+    {
+      "id": "display-in-order",
+      "label": "display() prints elements space-separated in insertion order",
+      "testMethod": "testDisplay"
+    },
+    {
+      "id": "is-empty-tracks-state",
+      "label": "isEmpty() is true for a fresh list and false after adding an element",
+      "testMethod": "testIsEmpty"
+    },
+    {
+      "id": "handles-null-data",
+      "label": "add(...) accepts a null element without breaking size()",
+      "testMethod": "testAddNull"
+    }
+  ]
+}

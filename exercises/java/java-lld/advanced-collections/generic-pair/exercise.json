@@ -1,0 +1,48 @@
+{
+  "id": "java-lld-generic-pair",
+  "lessonSlug": "10-java-adv-1-generics",
+  "title": "Generic Pair Class",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 15,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "pair",
+      "path": "src/main/java/org/example/Pair.java",
+      "displayName": "Pair.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestPair.java",
+    "className": "TestPair"
+  },
+  "evidence": [
+    {
+      "id": "stores-mixed-types",
+      "label": "Pair<Integer, String> stores and returns both values correctly",
+      "testMethod": "testGetFirst_IntegerStringPair"
+    },
+    {
+      "id": "generic-across-types",
+      "label": "Pair works generically for Boolean, Double and other type combinations",
+      "testMethod": "testBooleanPair"
+    },
+    {
+      "id": "handles-nulls",
+      "label": "Pair accepts and returns null values for both slots",
+      "testMethod": "testWithNullValues"
+    },
+    {
+      "id": "boundary-values",
+      "label": "Pair correctly stores Integer boundary values (MIN_VALUE/MAX_VALUE)",
+      "testMethod": "testIntegerBoundaryValues"
+    }
+  ]
+}

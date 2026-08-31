@@ -1,0 +1,38 @@
+{
+  "id": "java-lld-distinct-numbers",
+  "lessonSlug": "12-java-adv-3-lambdas-streams",
+  "title": "Streams — Distinct Numbers",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 10,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "distinct-numbers",
+      "path": "src/main/java/org/example/DistinctNumbers.java",
+      "displayName": "DistinctNumbers.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestDistinctNumbers.java",
+    "className": "TestDistinctNumbers"
+  },
+  "evidence": [
+    {
+      "id": "removes-duplicates-preserving-order",
+      "label": "getDistinctNumbers(...) removes duplicates while preserving first-occurrence order",
+      "testMethod": "testGetDistinctNumbers"
+    },
+    {
+      "id": "empty-input-returns-empty",
+      "label": "getDistinctNumbers(...) returns an empty list for empty input",
+      "testMethod": "testGetDistinctNumbers_EmptyList"
+    }
+  ]
+}

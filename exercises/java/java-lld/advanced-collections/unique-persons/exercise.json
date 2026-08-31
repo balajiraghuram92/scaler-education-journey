@@ -1,0 +1,49 @@
+{
+  "id": "java-lld-unique-persons",
+  "lessonSlug": "11-java-adv-2-collections-lab",
+  "title": "Collections Lab — De-duplicate Persons by Name",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 15,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "person",
+      "path": "src/main/java/org/example/Person.java",
+      "displayName": "Person.java",
+      "editable": false
+    },
+    {
+      "id": "person-manager",
+      "path": "src/main/java/org/example/PersonManager.java",
+      "displayName": "PersonManager.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestPersonManager.java",
+    "className": "TestPersonManager"
+  },
+  "evidence": [
+    {
+      "id": "keeps-first-occurrence-per-name",
+      "label": "removeDuplicatePersons(...) keeps only the first Person seen for each distinct name",
+      "testMethod": "testRemoveDuplicatePersons"
+    },
+    {
+      "id": "empty-list-returns-empty",
+      "label": "removeDuplicatePersons(...) returns an empty list for empty input",
+      "testMethod": "testRemoveDuplicatePersons_WithEmptyList"
+    },
+    {
+      "id": "no-duplicates-unchanged",
+      "label": "removeDuplicatePersons(...) leaves a list with no duplicate names unchanged",
+      "testMethod": "noDuplicates"
+    }
+  ]
+}

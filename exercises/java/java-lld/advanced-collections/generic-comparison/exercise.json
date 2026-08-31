@@ -1,0 +1,48 @@
+{
+  "id": "java-lld-generic-comparison",
+  "lessonSlug": "10-java-adv-1-generics",
+  "title": "Generic Comparison Method",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 15,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "generic-comparison",
+      "path": "src/main/java/org/example/GenericComparison.java",
+      "displayName": "GenericComparison.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestGenericComparison.java",
+    "className": "TestGenericComparison"
+  },
+  "evidence": [
+    {
+      "id": "compares-integers",
+      "label": "compare(...) orders Integer values correctly",
+      "testMethod": "testCompareIntegers1"
+    },
+    {
+      "id": "compares-equal-integers",
+      "label": "compare(...) returns 0 for equal Integer values",
+      "testMethod": "testCompareIntegers2"
+    },
+    {
+      "id": "compares-strings",
+      "label": "compare(...) orders String values correctly using natural ordering",
+      "testMethod": "testCompareStrings1"
+    },
+    {
+      "id": "compares-doubles",
+      "label": "compare(...) works generically for Double and Character too",
+      "testMethod": "testCompareDoubles"
+    }
+  ]
+}

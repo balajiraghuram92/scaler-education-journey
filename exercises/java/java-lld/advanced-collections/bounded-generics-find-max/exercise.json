@@ -1,0 +1,48 @@
+{
+  "id": "java-lld-bounded-generics-find-max",
+  "lessonSlug": "10-java-adv-1-generics",
+  "title": "Bounded Generics — Maximum Element Finder",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 20,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "find-max-element",
+      "path": "src/main/java/org/example/FindMaxElement.java",
+      "displayName": "FindMaxElement.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestFindMaxElement.java",
+    "className": "TestFindMaxElement"
+  },
+  "evidence": [
+    {
+      "id": "finds-max-integer",
+      "label": "findMax(...) returns the largest Integer in the array",
+      "testMethod": "testFindMax_Integer"
+    },
+    {
+      "id": "generic-across-types",
+      "label": "findMax(...) works generically for Double, String, Character and Float arrays",
+      "testMethod": "testFindMax_String"
+    },
+    {
+      "id": "handles-negative-numbers",
+      "label": "findMax(...) correctly finds the max among all-negative values",
+      "testMethod": "testFindMax_NegativeNumbers"
+    },
+    {
+      "id": "handles-null-and-empty",
+      "label": "findMax(...) returns null for a null or empty array instead of throwing",
+      "testMethod": "testFindMax_NullArray"
+    }
+  ]
+}

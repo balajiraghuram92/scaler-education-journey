@@ -1,0 +1,48 @@
+{
+  "id": "java-lld-group-anagrams",
+  "lessonSlug": "11-java-adv-2-collections-lab",
+  "title": "Collections Lab — Group Anagrams",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 20,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "anagram-grouper",
+      "path": "src/main/java/org/example/AnagramGrouper.java",
+      "displayName": "AnagramGrouper.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestAnagramGrouper.java",
+    "className": "TestAnagramGrouper"
+  },
+  "evidence": [
+    {
+      "id": "groups-anagrams-together",
+      "label": "groupAnagrams(...) groups all anagrams of each other into the same inner list",
+      "testMethod": "testGroupAnagrams_WithMultipleAnagrams"
+    },
+    {
+      "id": "no-anagrams-singleton-groups",
+      "label": "groupAnagrams(...) puts each string in its own group when nothing matches",
+      "testMethod": "testGroupAnagrams_WithNoAnagrams"
+    },
+    {
+      "id": "preserves-group-and-member-order",
+      "label": "groupAnagrams(...) preserves first-occurrence order for both groups and members within a group",
+      "testMethod": "testGroupAnagrams_WithSomeAnagrams"
+    },
+    {
+      "id": "handles-null-and-empty",
+      "label": "groupAnagrams(...) returns an empty list for null or empty input",
+      "testMethod": "emptyAndNullStrings"
+    }
+  ]
+}

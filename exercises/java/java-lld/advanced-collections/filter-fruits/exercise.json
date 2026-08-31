@@ -1,0 +1,43 @@
+{
+  "id": "java-lld-filter-fruits",
+  "lessonSlug": "12-java-adv-3-lambdas-streams",
+  "title": "Streams — Filter Fruits by Prefix",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 10,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "fruit-filter",
+      "path": "src/main/java/org/example/FruitFilter.java",
+      "displayName": "FruitFilter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestFruitFilter.java",
+    "className": "TestFruitFilter"
+  },
+  "evidence": [
+    {
+      "id": "filters-a-prefixed-fruits",
+      "label": "filterFruitsStartingWithA(...) keeps only fruit names starting with \"A\", in order",
+      "testMethod": "testFilterFruitsStartingWithA"
+    },
+    {
+      "id": "no-matches-returns-empty",
+      "label": "filterFruitsStartingWithA(...) returns an empty list when nothing matches",
+      "testMethod": "testFilterFruitsStartingWithA_NoMatchingFruits"
+    },
+    {
+      "id": "empty-input-returns-empty",
+      "label": "filterFruitsStartingWithA(...) returns an empty list for empty input",
+      "testMethod": "testFilterFruitsStartingWithA_EmptyList"
+    }
+  ]
+}

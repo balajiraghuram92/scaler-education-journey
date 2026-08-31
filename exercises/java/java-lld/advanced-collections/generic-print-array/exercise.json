@@ -1,0 +1,48 @@
+{
+  "id": "java-lld-generic-print-array",
+  "lessonSlug": "10-java-adv-1-generics",
+  "title": "Generic Array Printing",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 15,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "print-array-elements",
+      "path": "src/main/java/org/example/PrintArrayElements.java",
+      "displayName": "PrintArrayElements.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestPrintArrayElements.java",
+    "className": "TestPrintArrayElements"
+  },
+  "evidence": [
+    {
+      "id": "prints-integers",
+      "label": "printArray(...) prints Integer elements space-separated with a trailing space",
+      "testMethod": "testPrintArray_Integer"
+    },
+    {
+      "id": "prints-empty-array",
+      "label": "printArray(...) prints nothing for an empty array",
+      "testMethod": "testPrintArray_Empty"
+    },
+    {
+      "id": "generic-across-types",
+      "label": "printArray(...) works generically for String, Double and Character arrays",
+      "testMethod": "testPrintArray_Double"
+    },
+    {
+      "id": "handles-null-elements",
+      "label": "printArray(...) prints the literal text \"null\" for a null element",
+      "testMethod": "testPrintArray_NullElements"
+    }
+  ]
+}

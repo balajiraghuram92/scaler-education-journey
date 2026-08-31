@@ -1,0 +1,38 @@
+{
+  "id": "java-lld-sort-animals-by-length",
+  "lessonSlug": "12-java-adv-3-lambdas-streams",
+  "title": "Streams — Sort Animals by Name Length",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 10,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "animal-sorter",
+      "path": "src/main/java/org/example/AnimalSorter.java",
+      "displayName": "AnimalSorter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestAnimalSorter.java",
+    "className": "TestAnimalSorter"
+  },
+  "evidence": [
+    {
+      "id": "sorts-by-length-descending",
+      "label": "sortAnimalsByLengthDescending(...) orders names longest-first",
+      "testMethod": "testSortAnimalsByLengthDescending"
+    },
+    {
+      "id": "empty-input-returns-empty",
+      "label": "sortAnimalsByLengthDescending(...) returns an empty list for empty input",
+      "testMethod": "testSortAnimalsByLengthDescending_EmptyList"
+    }
+  ]
+}
