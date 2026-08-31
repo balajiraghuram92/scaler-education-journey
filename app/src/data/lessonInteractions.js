@@ -7176,6 +7176,726 @@ const lessonInteractions = {
           'This is a self-diagnostic check on the instrumentation itself — genuinely good observability should compound in usefulness with familiarity, and a lack of improvement is worth investigating as a signal about the instrumentation\'s real quality.'
       }
     ]
+  },
+  'fde-curriculum/full-stack-ai-frontends/01-typescript-fundamentals-for-python-engineers': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-01-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — STRUCTURAL VS. NOMINAL TYPING',
+        question:
+          'How does TypeScript\'s structural typing differ from the nominal, class-based checking `mypy` performs on Python type hints?',
+        options: [
+          { id: 'a', label: 'A', text: 'TypeScript and mypy use identical typing models with no meaningful difference' },
+          { id: 'b', label: 'B', text: 'A value satisfies a TypeScript interface if it has the right shape, regardless of whether it was ever declared to implement it, whereas `mypy` generally wants a value that actually is the declared class or a subclass' },
+          { id: 'c', label: 'C', text: 'TypeScript requires every object to explicitly declare which interfaces it implements, like a Python class declaring inheritance' },
+          { id: 'd', label: 'D', text: 'Structural typing means TypeScript never checks types at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Structural typing checks shape, not declared identity — an object literal can satisfy an interface with zero explicit relationship to it, which is closer to Python\'s runtime duck-typing instinct than to mypy\'s nominal class checking.',
+        incorrectExplanation:
+          'Recall the distinction between nominal typing (matching declared class hierarchy) and structural typing (matching field shapes).',
+        hint: 'TypeScript checks whether the shape matches, regardless of explicit inheritance or class declarations.'
+      },
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-01-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — UNKNOWN VS. ANY & TYPE NARROWING',
+        question:
+          'Why does the lesson recommend `unknown` over `any` for a value whose shape genuinely isn\'t known yet, like a raw API response body?',
+        options: [
+          { id: 'a', label: 'A', text: '`unknown` and `any` behave identically at compile time but `unknown` runs faster' },
+          { id: 'b', label: 'B', text: '`unknown` forces a narrowing check (a type guard or validation) before the value can be used for anything, whereas `any` lets code compile and run against the value with no verification at all' },
+          { id: 'c', label: 'C', text: '`unknown` is only usable for numeric values, never for objects' },
+          { id: 'd', label: 'D', text: '`any` requires more lines of code to use correctly than `unknown` does' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`unknown`\'s defining property is that you cannot use it without first narrowing it, which matches "verify before trusting this data" — exactly the discipline the parseOrder example demonstrates.',
+        incorrectExplanation:
+          'Consider what the compiler forces you to do before accessing properties on an unknown value versus an any value.',
+        hint: '`unknown` requires explicit narrowing or runtime type guards before properties can be accessed, whereas `any` completely disables type checking.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-01-mcq-01',
+        question:
+          'Per the lesson\'s practical default, when should you reach for `type` rather than `interface`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Always — `interface` is deprecated and should never be used' },
+          { id: 'b', label: 'B', text: 'For unions, intersections, and anything that isn\'t a plain object shape, since `type` is strictly more general than `interface`' },
+          { id: 'c', label: 'C', text: 'Only when describing the shape of a class you plan to extend later' },
+          { id: 'd', label: 'D', text: '`type` and `interface` are functionally identical in every case, so the choice never matters' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`type` can alias unions and other non-object type expressions that `interface` cannot express, while `interface` reads more naturally for object shapes and supports declaration merging.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-01-mcq-02',
+        question:
+          'What does typing a value `any` specifically disable, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing — `any` is purely cosmetic and has no effect on compile-time checking' },
+          { id: 'b', label: 'B', text: 'All compile-time checking on that value — it can be assigned, called, or have any property accessed with zero verification, deferring the error TypeScript would have caught to runtime instead' },
+          { id: 'c', label: 'C', text: 'Only the ability to call methods on the value, while property access remains checked' },
+          { id: 'd', label: 'D', text: '`any` only affects values returned from third-party libraries, never your own code' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`any` is a total escape hatch from the type system for that value, not a partial one — every operation on it compiles regardless of correctness, which is exactly why it\'s compared to a blanket `# type: ignore`.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-01-mcq-03',
+        question:
+          'Why does the scenario\'s `parseOrder` function perform explicit runtime checks instead of casting the raw response directly to `Order` with `as Order`?',
+        options: [
+          { id: 'a', label: 'A', text: '`as Order` is a syntax error in TypeScript and would never compile' },
+          { id: 'b', label: 'B', text: 'A cast with `as` compiles cleanly and silently trusts the shape is correct — a malformed response would flow into the UI as if valid, deferring the real failure to some unrelated line deep in a component instead of catching it at the parse boundary' },
+          { id: 'c', label: 'C', text: 'Runtime checks are required by the TypeScript compiler for every cast, with no way to opt out' },
+          { id: 'd', label: 'D', text: 'Casting with `as` is functionally identical to a runtime check, so the choice makes no practical difference' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`as` is a compile-time-only assertion with no runtime effect — it silences the type checker without verifying anything, which is exactly the risk `parseOrder`\'s explicit checks are designed to catch at the boundary instead.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-01-mcq-04',
+        question:
+          'Why does the `Order` interface type `status` as `"created" | "paid" | "shipped" | "cancelled"` rather than a plain `string`?',
+        options: [
+          { id: 'a', label: 'A', text: 'TypeScript does not allow plain `string` as a field type under any circumstances' },
+          { id: 'b', label: 'B', text: 'A plain `string` would let any arbitrary text compile as a valid status, while the literal union lets the compiler catch a typo or an invalid status value at compile time' },
+          { id: 'c', label: 'C', text: 'A literal union is only a documentation comment with no actual compile-time effect' },
+          { id: 'd', label: 'D', text: 'This choice has no bearing on what values the compiler will accept' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A string-literal union narrows the accepted values to exactly the known set, catching an invalid or misspelled status at compile time instead of allowing any string through unchecked.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-01-mcq-05',
+        question:
+          'How does the lesson connect treating `any` usage as "a deliberate, justified exception, not a default" to a habit from the Python toolchain lessons?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two concepts are unrelated; the comparison is purely coincidental phrasing' },
+          { id: 'b', label: 'B', text: 'It\'s the same discipline as reviewing an unreviewed `# noqa` lint suppression — both silence a safety tool, and both should require an explicit, reviewed justification rather than being reached for by default under pressure' },
+          { id: 'c', label: 'C', text: '`# noqa` and `any` are the exact same language feature shared between Python and TypeScript' },
+          { id: 'd', label: 'D', text: 'This comparison implies TypeScript should never be used unless mypy is also present in the same project' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both `any` and an unreviewed lint suppression silence a safety mechanism the tooling exists to enforce, and both should be treated as an explicit, justified exception rather than a convenient default.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-01-mcq-06',
+        question:
+          'Why is a discriminated union (`{ status: "success"; transactionId }` vs. `{ status: "failed"; reason }`) safer than one `PaymentResult` interface with both fields marked optional?',
+        options: [
+          { id: 'a', label: 'A', text: 'Discriminated unions are purely a stylistic choice with no effect on what the compiler can verify' },
+          { id: 'b', label: 'B', text: 'With a discriminated union, switching on `status` lets TypeScript narrow the type automatically inside each branch, guaranteeing `transactionId` exists only in the success branch — an all-optional interface would compile even if both or neither field were present, with no such guarantee' },
+          { id: 'c', label: 'C', text: 'An all-optional interface is strictly safer because it allows more possible shapes' },
+          { id: 'd', label: 'D', text: 'TypeScript cannot narrow types inside a switch statement under any circumstances' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The discriminant field lets the compiler prove which fields are guaranteed present in each branch, closing off the invalid states (both fields present, or neither) that an all-optional interface would silently allow.'
+      }
+    ]
+  },
+  'fde-curriculum/full-stack-ai-frontends/02-react-essentials-for-ai-apps': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-02-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — USESTATE MECHANICS & RE-RENDER SCHEDULING',
+        question:
+          'What actually happens when you call a `useState` setter function?',
+        options: [
+          { id: 'a', label: 'A', text: 'The state variable is mutated directly in memory, and the DOM updates automatically as a side effect of that mutation' },
+          { id: 'b', label: 'B', text: 'React schedules the component function to re-run with the new value, producing a new UI tree that React diffs against the previous one and updates in the browser — it does not mutate anything in place' },
+          { id: 'c', label: 'C', text: 'Nothing happens until the component\'s next scheduled render occurs on a fixed timer' },
+          { id: 'd', label: 'D', text: 'The setter immediately re-renders every component in the application, not just the one that called it' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The setter\'s job is to schedule a re-render, not to mutate — the component function re-runs, produces new UI, and React reconciles that against what\'s currently on screen.',
+        incorrectExplanation:
+          'React uses a declarative state model rather than direct in-memory mutation or polling timers.',
+        hint: 'Calling the setter schedules React to re-run the component function with updated state and diff the resulting UI tree.'
+      },
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-02-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — USEEFFECT DEPENDENCY ARRAY CONTRACT',
+        question:
+          'What does the lesson say the `useEffect` dependency array actually represents?',
+        options: [
+          { id: 'a', label: 'A', text: 'An optional performance hint that has no bearing on program correctness' },
+          { id: 'b', label: 'B', text: 'A correctness contract stating exactly which values from the surrounding scope the effect depends on — getting it wrong produces real bugs, not just wasted re-renders' },
+          { id: 'c', label: 'C', text: 'A list of every state variable in the entire component, regardless of whether the effect uses them' },
+          { id: 'd', label: 'D', text: 'A required field that must always be an empty array for the effect to run at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The dependency array tells React exactly when the effect needs to re-run relative to changing values — an incorrect array (like an empty one on an effect that reads a changing prop) produces stale-data bugs, not merely a performance difference.',
+        incorrectExplanation:
+          'An empty or missing dependency array when referencing external props or state causes stale closure bugs.',
+        hint: 'The dependency array is a correctness contract specifying all captured reactive values the effect synchronizes with.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-02-mcq-01',
+        question:
+          'Why did `OrderStatus`\'s displayed status stay frozen on the first order even after a different row was selected, in the scenario\'s initial buggy version?',
+        options: [
+          { id: 'a', label: 'A', text: 'The order-management API itself was broken and always returned the same order regardless of the ID requested' },
+          { id: 'b', label: 'B', text: 'The effect had an empty `[]` dependency array, so it only ran once on initial mount and never re-ran to fetch data for the new `orderId`, even though the prop itself had changed' },
+          { id: 'c', label: 'C', text: 'React does not support re-rendering a component when its props change' },
+          { id: 'd', label: 'D', text: 'The component was never actually re-rendered at all after the initial mount, for any reason' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'An empty dependency array means "run once, on mount" regardless of later prop changes — the effect simply never re-runs to notice the new `orderId`, which is the exact mechanism behind the frozen display.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-02-mcq-02',
+        question:
+          'What specific problem does the `AbortController` cleanup function in `useEffect` solve in the `OrderStatus` example?',
+        options: [
+          { id: 'a', label: 'A', text: 'It permanently disables the fetch effect from ever running again for the rest of the component\'s lifetime' },
+          { id: 'b', label: 'B', text: 'It cancels an in-flight fetch when `orderId` changes or the component unmounts, preventing a slow response for a previously selected (now abandoned) order from overwriting the state of whatever is currently selected' },
+          { id: 'c', label: 'C', text: 'It makes the fetch request complete faster by reducing network latency' },
+          { id: 'd', label: 'D', text: 'Cleanup functions in useEffect have no functional purpose and exist only for code readability' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Without cancellation, a slow response tied to a stale `orderId` can resolve after the user has already moved on, silently overwriting the currently displayed order with outdated data — the cleanup function prevents exactly that race condition.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-02-mcq-03',
+        question:
+          'How does the lesson connect `useEffect`\'s cleanup function to a principle from the earlier async Python lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two concepts share no meaningful relationship beyond both involving asynchronous code' },
+          { id: 'b', label: 'B', text: 'Both describe the same discipline — not leaving dangling work you can\'t cancel — applied to cancelling an in-flight fetch in React versus cancelling a stalled coroutine in Python' },
+          { id: 'c', label: 'C', text: 'React\'s cleanup function and Python\'s `asyncio` cancellation are literally the same API shared across languages' },
+          { id: 'd', label: 'D', text: 'This connection only applies when the fetch request specifically targets a Python backend' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both mechanisms exist to prevent stale, uncancellable work from corrupting state after it\'s no longer relevant — the specific APIs differ, but the underlying discipline is identical.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-02-mcq-04',
+        question:
+          'Per the lesson, when should a value NOT be stored with `useState`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Never — every value used anywhere in a component must always be stored in useState' },
+          { id: 'b', label: 'B', text: 'When it never needs to trigger a re-render — for example, a value only read inside an event handler — putting it in `useState` just adds unnecessary re-renders with no benefit' },
+          { id: 'c', label: 'C', text: 'Only when the value is a string, since useState is reserved for numeric and boolean values' },
+          { id: 'd', label: 'D', text: '`useState` should be avoided entirely in favor of plain variables in all cases' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`useState` exists specifically to trigger re-renders when a value changes — a value that never needs to be reflected in the rendered UI doesn\'t benefit from that mechanism and shouldn\'t pay its cost.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-02-mcq-05',
+        question:
+          'What motivates extracting fetch-and-parse logic into a custom hook like `useOrder`, per the lesson\'s comparison to the Python decorators lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Custom hooks are a purely cosmetic renaming convention with no functional benefit over copy-pasting the same code' },
+          { id: 'b', label: 'B', text: 'The same motivation as factoring shared logic into a decorator in Python — avoiding duplicating the same stateful logic across multiple call sites, even though the underlying mechanism (a hook versus a decorator) is different' },
+          { id: 'c', label: 'C', text: 'React requires all `useEffect` calls to be wrapped in a custom hook before the application will compile' },
+          { id: 'd', label: 'D', text: 'Extracting a custom hook changes the underlying re-render behavior of the components that use it' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both custom hooks and decorators solve the same underlying problem — stopping duplicated logic from being copy-pasted across call sites — just through mechanisms specific to their respective languages.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-02-mcq-06',
+        question:
+          'Why does the suggested extension add explicit loading and error states to `useOrder`, rather than only returning the fetched `order` value?',
+        options: [
+          { id: 'a', label: 'A', text: 'Loading and error states are required by TypeScript\'s type checker for any function using useState' },
+          { id: 'b', label: 'B', text: 'Without them, consuming components have no way to distinguish "still fetching," "fetch failed," and "no order exists" from each other, and can only render a blank screen instead of a spinner or a meaningful error message' },
+          { id: 'c', label: 'C', text: 'This addition has no effect on what a consuming component is able to render' },
+          { id: 'd', label: 'D', text: 'A hook returning only the happy-path value is strictly better because it\'s simpler for every possible consumer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A hook that only exposes the successful result gives consuming components no signal to distinguish "in progress," "failed," and "genuinely empty," collapsing all three into the same blank rendering.'
+      }
+    ]
+  },
+  'fde-curriculum/full-stack-ai-frontends/03-next-js-for-full-stack-ai-apps': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-03-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — SERVER COMPONENTS BY DEFAULT',
+        question:
+          'What is the default component model in the Next.js App Router, before any `"use client"` directive is added?',
+        options: [
+          { id: 'a', label: 'A', text: 'Every component runs in the browser by default, identical to plain React, unless marked otherwise' },
+          { id: 'b', label: 'B', text: 'Every component is a Server Component by default — it runs only on the server, renders to HTML there, and ships zero of its own JavaScript to the browser' },
+          { id: 'c', label: 'C', text: 'Components alternate between server and client rendering automatically based on their file size' },
+          { id: 'd', label: 'D', text: 'The App Router has no meaningful distinction between server and client execution' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Server Components are the App Router\'s default — this is the core shift from plain React, where a component marked `"use client"` opts back into the browser-executed model from the previous lesson.',
+        incorrectExplanation:
+          'In the Next.js App Router, components default to server execution unless explicitly opted into client rendering.',
+        hint: 'Server Components run exclusively on the server and ship zero client-side JavaScript by default.'
+      },
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-03-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — ROUTE HANDLER AS A BFF TRUST BOUNDARY',
+        question:
+          'Why does the FDE build a Next.js route handler in front of the FastAPI order-management API rather than having the browser call FastAPI directly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Browsers are technically incapable of making HTTP requests to any API other than the one that served the page' },
+          { id: 'b', label: 'B', text: 'The route handler runs server-side and can hold the FastAPI service\'s internal URL and credentials without exposing them to the browser, and can shape or aggregate the response into exactly what the client needs rather than forwarding it verbatim' },
+          { id: 'c', label: 'C', text: 'A route handler is required by Next.js and cannot be omitted under any architecture' },
+          { id: 'd', label: 'D', text: 'This choice has no effect on what credentials or data are exposed to the browser' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The BFF pattern\'s value is specifically holding a trust boundary — internal credentials and endpoints stay server-side, and the response can be reshaped to expose only what the client is authorized to see.',
+        incorrectExplanation:
+          'Consider the security implications of exposing backend service URLs, bearer tokens, and raw unshaped database payloads to the client browser.',
+        hint: 'A backend-for-frontend (BFF) keeps service secrets server-side and reshapes responses to avoid leaking internal fields.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-03-mcq-01',
+        question:
+          'Per the lesson\'s discipline, when should a component be marked `"use client"`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Every component should be marked "use client" as a safe default to avoid server-rendering bugs' },
+          { id: 'b', label: 'B', text: 'Only when it genuinely needs interactivity, browser APIs, or React state — not by habit, and not applied to a whole page just because one button inside it needs a click handler' },
+          { id: 'c', label: 'C', text: 'Only components that fetch data should ever be marked "use client"' },
+          { id: 'd', label: 'D', text: '"use client" should be applied at the top-level layout file and never on individual leaf components' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Pushing the boundary down to the smallest leaf component that genuinely needs it keeps the rest of the tree as zero-JavaScript Server Components — a real reduction in what ships to the browser, not a style preference.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-03-mcq-02',
+        question:
+          'How does the lesson connect the Server/Client Component split to a principle from the earlier auth lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two concepts describe entirely unrelated engineering decisions with no shared principle' },
+          { id: 'b', label: 'B', text: 'Both are about deciding what should genuinely run or be exposed to a client the FDE doesn\'t fully trust — keeping secrets and trusted computation server-side is the frontend equivalent of never trusting client-submitted data at face value' },
+          { id: 'c', label: 'C', text: 'This connection only applies when the client-submitted data happens to be a JWT specifically' },
+          { id: 'd', label: 'D', text: 'Server Components and the auth lesson\'s verification principle are literally the same code, reused verbatim' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both principles are about where trust boundaries should sit — the auth lesson\'s "verify server-side, don\'t trust the client" instinct reappears here as "run and hold secrets server-side, don\'t expose them to a client that could inspect or tamper with them."'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-03-mcq-03',
+        question:
+          'In the scenario, why does the checkout route handler\'s response to the browser differ from the FastAPI payments endpoint\'s raw response?',
+        options: [
+          { id: 'a', label: 'A', text: 'The route handler adds entirely fabricated data to the response that the FastAPI backend never provided' },
+          { id: 'b', label: 'B', text: 'The FastAPI response includes an internal-only field (a customer risk score) that has no business reaching the browser, and the route handler strips it before forwarding the rest to the client' },
+          { id: 'c', label: 'C', text: 'The route handler and the FastAPI response are always byte-for-byte identical by design, with no reshaping' },
+          { id: 'd', label: 'D', text: 'The difference exists only because of a bug, not a deliberate design choice' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the concrete payoff of the BFF pattern — the route handler deliberately reshapes the backend\'s response to expose only what the client needs, keeping an internal field out of the browser entirely.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-03-mcq-04',
+        question:
+          'What does the practice loop\'s step 5 (marking the entire order-detail page `"use client"` and comparing bundle sizes) demonstrate?',
+        options: [
+          { id: 'a', label: 'A', text: 'That "use client" placement has no measurable effect on anything observable in the browser' },
+          { id: 'b', label: 'B', text: 'A concrete, measurable increase in client-side JavaScript bundle size when the "use client" boundary is applied too broadly, versus scoping it only to the component that genuinely needs it' },
+          { id: 'c', label: 'C', text: 'That marking a whole page "use client" always makes the page render faster' },
+          { id: 'd', label: 'D', text: 'That bundle size is unrelated to how many components are marked "use client"' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This step exists to make the abstract "push the boundary down" guidance concrete and measurable — an unnecessarily broad client boundary has a real, quantifiable JavaScript cost.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-03-mcq-05',
+        question:
+          'In the order-detail page example, why does the Server Component fetch directly using an internal service URL and bearer token, rather than the pattern from the previous lesson\'s `useEffect`-based fetch?',
+        options: [
+          { id: 'a', label: 'A', text: 'Server Components are technically incapable of ever fetching data, so this distinction does not actually apply' },
+          { id: 'b', label: 'B', text: 'Because the fetch happens entirely server-side during rendering, the internal URL and token are never sent to or visible from the browser — a `useEffect` fetch, by contrast, would run in the browser and expose whatever URL and credentials it used' },
+          { id: 'c', label: 'C', text: 'There is no meaningful difference in what\'s exposed to the browser between the two approaches' },
+          { id: 'd', label: 'D', text: '`useEffect`-based fetching is strictly forbidden anywhere in a Next.js application' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The defining advantage of a Server Component fetch here is exactly what stays hidden from the browser — credentials and internal URLs used during server-side rendering never appear in client-visible network traffic, unlike a client-side `useEffect` fetch.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-03-mcq-06',
+        question:
+          'Per the suggested extension, what is the trade-off between a Server Action tied to one form and a route handler used for checkout?',
+        options: [
+          { id: 'a', label: 'A', text: 'Server Actions and route handlers are functionally identical with no trade-off between them' },
+          { id: 'b', label: 'B', text: 'A Server Action is more tightly coupled to the one form calling it, which is acceptable for a simple, single-purpose action; a route handler requires more explicit wiring but is reusable across multiple callers, which matters for something like checkout that may need to be called from more than one place' },
+          { id: 'c', label: 'C', text: 'Route handlers can only be called from Server Components, while Server Actions can only be called from Client Components' },
+          { id: 'd', label: 'D', text: 'A Server Action always requires more code than an equivalent route handler' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a genuine reusability-versus-simplicity trade-off — a Server Action\'s tight coupling to a single form is fine for a narrow case, while a route handler\'s more explicit interface pays off when multiple callers need the same endpoint.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-03-mcq-07',
+        question:
+          'Why is it insufficient to assume a component is a Server Component just because it lives under the `app/` directory with no other information?',
+        options: [
+          { id: 'a', label: 'A', text: 'Files under `app/` are always Client Components regardless of any directive present' },
+          { id: 'b', label: 'B', text: 'Any file under `app/` can still opt into being a Client Component with an explicit `"use client"` directive at the top — the directory alone doesn\'t determine which model a given file uses' },
+          { id: 'c', label: 'C', text: 'The `app/` directory has no relationship to the Server/Client Component distinction at all' },
+          { id: 'd', label: 'D', text: 'Only files named `page.tsx` can ever be Server Components; all others default to client' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The Server Component default applies per-file, and any specific file can override it with `"use client"` — the directory location alone is not sufficient information to know which model a given component actually uses.'
+      }
+    ]
+  },
+  'fde-curriculum/full-stack-ai-frontends/04-vercel-ai-sdk-and-streaming-uis': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-04-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — LLM STREAMING AS ONE-DIRECTIONAL PUSH',
+        question:
+          'Why does the lesson describe streaming an LLM response as "conceptually the exact same pattern" as the SSE mechanism from the earlier real-time lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Streaming and SSE are literally the same network protocol with no conceptual distinction being made' },
+          { id: 'b', label: 'B', text: 'Both are a one-directional, server-to-client push where the client only receives updates and never needs to send anything back over the same channel mid-stream — the payload differs (tokens vs. an order-status change), but the shape of the problem is identical' },
+          { id: 'c', label: 'C', text: 'This comparison is inaccurate; LLM streaming actually requires bidirectional communication like WebSockets' },
+          { id: 'd', label: 'D', text: 'The comparison only holds if the LLM provider happens to be the same company that built SSE' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The pattern match is specifically about directionality and need — both are cases where the client is purely a receiver of incremental updates, which is exactly the condition the earlier lesson identified as SSE\'s genuine fit.',
+        incorrectExplanation:
+          'Compare the communication flow requirements: does the client need to send data back upstream during generation, or only receive incoming chunks?',
+        hint: 'Both LLM token streaming and SSE represent unidirectional server-to-client data delivery.'
+      },
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-04-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — API KEY ISOLATION & BOUNDARY DISCIPLINE',
+        question:
+          'Why must the model provider\'s API key live in the `streamText` route handler rather than in the `useChat` client component?',
+        options: [
+          { id: 'a', label: 'A', text: '`useChat` technically cannot make any network requests at all, regardless of where the key lives' },
+          { id: 'b', label: 'B', text: '`streamText` is exclusively a server-side concept, and the route handler is the only place the key stays hidden from the browser — putting it in the client component would expose it to anyone inspecting the browser\'s network requests or bundled code' },
+          { id: 'c', label: 'C', text: 'There is no actual difference in exposure risk between the two locations' },
+          { id: 'd', label: 'D', text: 'API keys are only sensitive when used with GPT-4-class models, not smaller ones' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the same BFF discipline from the Next.js lesson applied to a provider API key — anything the browser can inspect is exposed, so the key must stay entirely within server-side code the browser never receives.',
+        incorrectExplanation:
+          'Any secret included in client-side code or browser requests is fully inspectable by the user.',
+        hint: 'Client bundles and browser network traffic are publicly visible; provider secrets must remain strictly server-side.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-full-stack-ai-frontends-04-streaming-ui-lifecycle',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — VERCEL AI SDK STREAMING ARCHITECTURE',
+      boundaryLabel: 'SERVER-SIDE SECRETS & STREAMING BOUNDARY',
+      boundaryText:
+        'The route handler isolates the LLM provider API key and injects grounded order data server-side, pushing token chunks over an SSE stream to useChat for incremental UI rendering.',
+      nodes: [
+        { id: 'client-input', label: 'User Message (useChat UI)', kind: 'input' },
+        { id: 'route-handler', label: 'Next.js BFF Route Handler (/api/support-chat)', kind: 'service' },
+        { id: 'order-api', label: 'FastAPI Backend (Order Data Grounding)', kind: 'adapter' },
+        { id: 'llm-provider', label: 'streamText & OpenAI/Anthropic API Key', kind: 'adapter' },
+        { id: 'stream-pipe', label: 'toUIMessageStreamResponse (SSE Stream)', kind: 'boundary', highlighted: true },
+        { id: 'client-render', label: 'Incremental Token Render & Interruption Recovery', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-04-mcq-01',
+        question:
+          'Why does streaming a response with `streamText` improve perceived latency, even though the total time to the last token is roughly the same as waiting for the full response?',
+        options: [
+          { id: 'a', label: 'A', text: 'Streaming makes the model itself generate tokens measurably faster than it would for a non-streamed request' },
+          { id: 'b', label: 'B', text: 'The user sees the first words of the response within a second or two instead of staring at a blank UI for the full generation time, even though the actual total generation duration is unchanged' },
+          { id: 'c', label: 'C', text: 'Streaming has no effect on what the user perceives; the lesson\'s claim is inaccurate' },
+          { id: 'd', label: 'D', text: 'Streaming only improves latency for responses shorter than a single sentence' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The benefit is specifically about perceived latency, not actual total generation time — visible progress starting immediately changes the user\'s experience of waiting, even when the underlying total duration is unchanged.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-04-mcq-02',
+        question:
+          'Why does the lesson argue a chat UI needs to distinguish a failure before any tokens arrive from a failure partway through a streamed response?',
+        options: [
+          { id: 'a', label: 'A', text: 'There is no meaningful difference between the two failure types, and both should be handled identically' },
+          { id: 'b', label: 'B', text: 'A mid-stream failure has already produced real, partial content the user can see value in, and the UI should preserve and mark it as interrupted with a retry option — silently discarding it or hanging indefinitely are both worse outcomes than a clean pre-stream failure with no content to lose' },
+          { id: 'c', label: 'C', text: 'A mid-stream failure is always the user\'s fault, unlike a pre-stream failure' },
+          { id: 'd', label: 'D', text: 'Mid-stream failures are impossible to detect programmatically, so no distinct handling can be built' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The key distinction is that a mid-stream failure has already produced something worth preserving — treating it the same as a clean failure with nothing generated yet either wastes that partial content or leaves the UI in a confusing, unresolved state.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-04-mcq-03',
+        question:
+          'Why does the scenario\'s route handler inject the customer\'s actual order status into the system prompt before calling `streamText`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Injecting order data into the prompt is required by the Vercel AI SDK\'s API and has no bearing on answer quality' },
+          { id: 'b', label: 'B', text: 'Grounding the assistant\'s answers in real order data, rather than letting the model guess or hallucinate, is the entire point of embedding it in this specific product rather than pointing the customer at a generic chatbot' },
+          { id: 'c', label: 'C', text: 'This step is optional polish with no meaningful effect on whether the assistant\'s answers are accurate' },
+          { id: 'd', label: 'D', text: 'The model would refuse to respond at all without order data present in the prompt' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario is explicit that grounding in real, injected order data (rather than a generic response) is what makes this assistant valuable specifically because it\'s embedded in the product with access to real account data.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-04-mcq-04',
+        question:
+          'What does the `useChat` hook manage on the client side?',
+        options: [
+          { id: 'a', label: 'A', text: 'The model provider\'s API key and the actual LLM inference itself' },
+          { id: 'b', label: 'B', text: 'The chat\'s message history in state, sending new messages to the configured route handler, and incrementally updating the UI as tokens of the streamed response arrive' },
+          { id: 'c', label: 'C', text: 'Database queries against the order-management backend, bypassing the route handler entirely' },
+          { id: 'd', label: 'D', text: 'Nothing related to state — it is a purely presentational, stateless function' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`useChat` is exclusively a client-side state and lifecycle manager — message history, sending, and incremental rendering — while inference and provider credentials stay entirely server-side.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-04-mcq-05',
+        question:
+          'How does the lesson connect handling a mid-stream failure gracefully to a principle from the earlier Building the Demo Frontend lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two lessons describe entirely unrelated concerns with no shared principle' },
+          { id: 'b', label: 'B', text: 'Both describe the same trust-building principle — showing a real, handled failure state is more credible than either always showing a flawless happy path or failing in a way that looks like the whole application broke' },
+          { id: 'c', label: 'C', text: 'This connection only applies if the demo frontend and the chat assistant use the exact same underlying API' },
+          { id: 'd', label: 'D', text: 'The demo frontend lesson explicitly forbids ever showing an error state in a production application' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both lessons make the same point at different layers — a system that only ever shows success (or that fails in a confusing way) is less credible than one that demonstrably handles a real failure gracefully and visibly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-04-mcq-06',
+        question:
+          'What is the role of a method like `toUIMessageStreamResponse()` on the `streamText` result, called inside the route handler?',
+        options: [
+          { id: 'a', label: 'A', text: 'It stores the entire conversation permanently in a database on every call' },
+          { id: 'b', label: 'B', text: 'It converts the SDK\'s internal stream representation into an HTTP response using a protocol the client-side `useChat` hook understands, shaping what the client actually receives' },
+          { id: 'c', label: 'C', text: 'It synchronously blocks the route handler until the full response has finished generating' },
+          { id: 'd', label: 'D', text: 'It has no functional purpose and exists purely for TypeScript type inference' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This method is the boundary-shaping step — converting the server-side stream into the exact wire format the client hook expects, mirroring the previous lesson\'s route-handler-as-boundary pattern.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-04-mcq-07',
+        question:
+          'Why does the suggested extension propose visually distinguishing a message grounded in injected order data from one the model answered without needing any?',
+        options: [
+          { id: 'a', label: 'A', text: 'This distinction is purely a visual preference with no bearing on how much a customer should trust a given answer' },
+          { id: 'b', label: 'B', text: 'So the customer can see when the assistant\'s answer is backed by their actual account data versus general knowledge, which is a transparency signal about how much to trust that specific answer' },
+          { id: 'c', label: 'C', text: 'The Vercel AI SDK requires this visual distinction as part of its API contract' },
+          { id: 'd', label: 'D', text: 'Answers without injected order data are always factually wrong and should be hidden from the user' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a transparency signal, not a stylistic flourish — it lets the customer calibrate trust in a specific answer based on whether it\'s grounded in their real data or general model knowledge, previewing the next lesson\'s deeper coverage of this concern.'
+      }
+    ]
+  },
+  'fde-curriculum/full-stack-ai-frontends/05-ai-product-ux-and-customer-facing-polish': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-05-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — AI OUTPUT UNCERTAINTY & TRUST POSTURE',
+        question:
+          'Why does the lesson argue "the response loaded successfully" and "the response is trustworthy" are two different things a production AI feature needs to communicate separately?',
+        options: [
+          { id: 'a', label: 'A', text: 'These two properties are always identical for any API response, AI-generated or not, making the distinction meaningless' },
+          { id: 'b', label: 'B', text: 'An LLM response can be confidently wrong while looking exactly as polished as a correct one, unlike a typical CRUD response that\'s either correct or visibly errored — so a UI that only signals "it loaded" gives the user no way to gauge whether to trust the content itself' },
+          { id: 'c', label: 'C', text: 'LLM responses are never wrong once they have successfully streamed to completion' },
+          { id: 'd', label: 'D', text: 'This distinction only matters for responses longer than a few sentences' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The specific risk named is a confidently wrong but fluent-looking answer — since it\'s indistinguishable in polish from a correct one, "it rendered" carries no information about whether it should be trusted.',
+        incorrectExplanation:
+          'Unlike deterministic database errors that fail with status codes, LLM hallucinations appear syntactically and visually identical to correct responses.',
+        hint: 'LLMs can generate fluent, grammatical, yet factually incorrect output with high confidence.'
+      },
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-05-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — REVERSIBILITY & HUMAN-IN-THE-LOOP CONTROL',
+        question:
+          'Why does the fixed `DraftReply` design require an explicit agent click to send, rather than sending the model\'s draft automatically once streaming completes?',
+        options: [
+          { id: 'a', label: 'A', text: 'Auto-sending is technically impossible to implement with the Vercel AI SDK' },
+          { id: 'b', label: 'B', text: 'An AI-suggested action is competing with the ground truth the user actually has, not an authoritative instruction — collapsing "the model suggested this" and "this is now sent" removes the human review step that caught the scenario\'s stale-order-reference error before it reached a customer' },
+          { id: 'c', label: 'C', text: 'Requiring a manual click has no relationship to catching errors in the assistant\'s output' },
+          { id: 'd', label: 'D', text: 'The compose box exists purely as a stylistic choice with no bearing on the incident described in the scenario' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s incident happened specifically because auto-send removed the review step — the fix restores a deliberate human confirmation boundary between the model\'s suggestion and the action actually taken.',
+        incorrectExplanation:
+          'Review the scenario where an assistant referenced a stale order number and why an automated send caused a customer incident.',
+        hint: 'AI suggestions are drafts that require human review and confirmation before initiating irreversible real-world actions.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-05-mcq-01',
+        question:
+          'How does this lesson connect to the scope boundary explicitly drawn in the earlier Building the Demo Frontend lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The demo frontend lesson and this lesson describe entirely unrelated, non-overlapping concerns' },
+          { id: 'b', label: 'B', text: 'That lesson deliberately deferred "an actual production-grade frontend (React, TypeScript, real UX)" to this later module, and this lesson is specifically where that deferred production-UX work happens, applied to AI-assisted features' },
+          { id: 'c', label: 'C', text: 'The demo frontend lesson said a production frontend would never be necessary for this course' },
+          { id: 'd', label: 'D', text: 'This lesson replaces the demo frontend with an identical plain-HTML client, just restyled' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This lesson explicitly picks up the deferred scope the demo-frontend lesson named — a real production frontend with genuine UX — and applies it specifically to the module\'s AI-assisted features.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-05-mcq-02',
+        question:
+          'How does the lesson connect the "system suggested" versus "system did" UI boundary to the earlier rate-limiting lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two lessons describe identical technical mechanisms with no conceptual distinction' },
+          { id: 'b', label: 'B', text: 'Both are about maintaining explicit, visible boundaries around automated behavior — rate limiting bounds request volume explicitly rather than letting it run unchecked, and this lesson bounds an AI action\'s actual effect (sending, applying) behind an explicit confirmation rather than letting generation alone trigger it' },
+          { id: 'c', label: 'C', text: 'Rate limiting and AI action review solve the exact same problem using the same code' },
+          { id: 'd', label: 'D', text: 'This connection only applies to systems that use both an AI assistant and a rate limiter simultaneously' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both principles are about explicit, visible boundaries on automated behavior\'s blast radius — applied to request volume in one case and to an AI suggestion\'s real-world effect in the other.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-05-mcq-03',
+        question:
+          'Why does the lesson say the previous lesson\'s token-by-token streaming display is itself part of the AI UX solution, not just a technical implementation detail?',
+        options: [
+          { id: 'a', label: 'A', text: 'Streaming display has no relationship to user experience; it exists purely for backend performance reasons' },
+          { id: 'b', label: 'B', text: 'Showing partial, growing text as it arrives is both an accurate representation of what\'s actually happening and a materially better experience than a blank screen followed by a sudden wall of text — a generic spinner undersells what\'s really occurring during generation' },
+          { id: 'c', label: 'C', text: 'A blank loading spinner is always a strictly better experience than showing partial content' },
+          { id: 'd', label: 'D', text: 'Streaming display is only relevant for responses under one sentence in length' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames the streaming display as doing real UX work — accurately representing in-progress generation — rather than treating it as an incidental side effect of the streaming architecture from the previous lesson.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-05-mcq-04',
+        question:
+          'Why does the lesson recommend a "polite" ARIA live region setting for streaming text, rather than a setting that interrupts on every token?',
+        options: [
+          { id: 'a', label: 'A', text: 'ARIA live regions have no effect on how screen readers announce dynamically updating content' },
+          { id: 'b', label: 'B', text: 'Announcing every individual token as it streams in would make the experience unusable rather than merely unpolished for a screen-reader user, so a "polite" setting queues updates sensibly instead of interrupting continuously' },
+          { id: 'c', label: 'C', text: 'The "polite" setting is required by the Vercel AI SDK\'s API and cannot be configured differently' },
+          { id: 'd', label: 'D', text: 'Accessibility settings for streamed text are a cosmetic nicety with no functional consequence for real users' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The concrete, checkable requirement here is choosing an announcement mode that doesn\'t overwhelm a screen-reader user with rapid, per-token interruptions — "polite" is the setting that avoids that specific failure mode.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-05-mcq-05',
+        question:
+          'Why is showing "based on your order #4821, placed March 3rd" alongside an assistant\'s answer described as a better trust posture than showing the answer alone?',
+        options: [
+          { id: 'a', label: 'A', text: 'This detail has no effect on how much a user trusts the answer; it is purely decorative' },
+          { id: 'b', label: 'B', text: 'It lets the user cross-check the claim against something concrete, rather than asking them to take the assistant\'s word for it with no way to verify the answer against the underlying data' },
+          { id: 'c', label: 'C', text: 'Source attribution is only meaningful when the underlying order data is itself incorrect' },
+          { id: 'd', label: 'D', text: 'Adding this detail makes the assistant\'s answer generate measurably faster' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Attribution gives the user a concrete, checkable anchor for the claim, converting "trust the assistant" into "verify against something specific" — a materially stronger trust posture.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-05-mcq-06',
+        question:
+          'Per the practice loop\'s final review step, what distinguishes genuine production-readiness work in the finished console from mere polish?',
+        options: [
+          { id: 'a', label: 'A', text: 'Any visual change to the UI counts equally as production-readiness work, regardless of what problem it solves' },
+          { id: 'b', label: 'B', text: 'Additions like typed data, componentized UI, streaming AI assistance, and explicit review boundaries around AI actions are each specifically tied to correctness, trust, or safety concerns the demo frontend never needed to address — not cosmetic changes that could have waited' },
+          { id: 'c', label: 'C', text: 'Production-readiness is determined solely by how much code a given change adds to the project' },
+          { id: 'd', label: 'D', text: 'There is no meaningful distinction between polish and production-readiness work; the terms are interchangeable' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The review step asks specifically whether each addition addresses a real correctness, trust, or safety gap the demo frontend didn\'t need to solve — that\'s the test for genuine production-readiness versus cosmetic polish.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-full-stack-ai-frontends-05-mcq-07',
+        question:
+          'What is the purpose of the suggested extension\'s thumbs up/down feedback control on each AI-drafted reply?',
+        options: [
+          { id: 'a', label: 'A', text: 'To automatically retrain the underlying model in real time based on each individual click' },
+          { id: 'b', label: 'B', text: 'To log enough context (order reference, draft text, any agent edit) to later audit which kinds of drafts the assistant tends to get wrong, informing future improvements to the grounding logic from the previous lesson' },
+          { id: 'c', label: 'C', text: 'The feedback control has no downstream use; it exists only to make agents feel heard' },
+          { id: 'd', label: 'D', text: 'To immediately block the assistant from generating any further drafts after a single negative rating' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The extension frames the feedback as an auditable data source for future improvement, not an immediate automated action — it\'s meant to surface patterns in what the assistant tends to get wrong.'
+      }
+    ]
   }
 };
 

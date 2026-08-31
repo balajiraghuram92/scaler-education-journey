@@ -531,7 +531,6 @@ How does the sub-workflow-as-tool pattern relate to n8n's MCP client/server supp
 - [ ] A: They are mutually exclusive features; a workflow can use one or the other but never both
 - [ ] C: MCP support replaces the need for sub-workflows entirely
 - [ ] D: Sub-workflows can only be called by MCP clients, never by n8n's own AI Agent node
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -814,7 +813,6 @@ Why does persistent, cross-session memory matter more for a proactive agent than
 - [ ] A: Persistent memory is required by n8n for any agent to function
 - [ ] C: Reactive agents never need any form of memory
 - [ ] D: There is no meaningful difference in memory needs between the two
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1149,7 +1147,6 @@ In the redesigned orchestrator-worker research system, where does the final revi
 - [ ] A: Before the orchestrator decomposes the task, since earlier is always better
 - [ ] C: A review gate is unnecessary once orchestrator-worker replaces mesh
 - [ ] D: The review gate should run after each individual worker's every intermediate token, not just at the end
-- [ ] Only one answer should be selected.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0

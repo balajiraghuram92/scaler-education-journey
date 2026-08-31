@@ -175,7 +175,6 @@ Why does the lesson argue against building a polished, production-grade frontend
 - [ ] A: Production-grade frontends are technically impossible to build before a backend exists
 - [ ] C: Customers never want to see a polished frontend under any circumstances
 - [ ] D: This has no relationship to the discover-before-build principle from earlier lessons
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -562,7 +561,6 @@ Adding a short TTL alongside explicit cache invalidation is suggested as a safet
 - [ ] A: A TTL provides complete protection against every possible cache-invalidation bug, with no remaining gap
 - [ ] C: A TTL has no protective value whatsoever and is purely a performance optimization
 - [ ] D: A TTL only matters for caches that never receive any writes
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -715,7 +713,6 @@ How does a trace ID generated at the start of a request end up associated with s
 - [ ] A: Celery automatically detects and reuses trace IDs with no explicit propagation needed
 - [ ] C: Trace IDs cannot cross process boundaries under any circumstances, so this scenario is not actually possible
 - [ ] D: The trace ID is regenerated fresh for every new process, intentionally disconnecting the task's spans from the original request
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -768,7 +765,6 @@ Why was the FDE able to immediately identify the Stripe API call as the slow spa
 - [ ] A: The FDE had to guess based on general knowledge that Stripe calls are usually slow
 - [ ] C: Metrics alone, without any tracing, were sufficient to identify the specific slow span
 - [ ] D: The order service's logs alone contained enough detail to pinpoint the Stripe call as the bottleneck
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -847,7 +843,6 @@ In the suggested extension, how would a checkout-duration metric and a specific 
 - [ ] A: Metrics and traces provide identical information and using both is redundant
 - [ ] C: A metric alone, without any trace, is always sufficient to identify the exact cause of a regression
 - [ ] D: Traces should always be checked before metrics, in every diagnostic scenario, with no exceptions
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1026,7 +1021,6 @@ What does the pgvector-versus-dedicated-vector-database trade-off actually weigh
 - [ ] A: pgvector and dedicated vector databases are functionally identical, making this a non-decision
 - [ ] C: Cost is the only relevant factor in this decision, with performance being irrelevant
 - [ ] D: pgvector is always the objectively superior choice regardless of scale
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1079,7 +1073,6 @@ Why did the FDE explicitly tell the customer that pgvector was the right call "a
 - [ ] A: This transparency was unnecessary and added no value to the customer relationship
 - [ ] C: pgvector is only a temporary technology that will stop being supported soon
 - [ ] D: The FDE was required by contract to disclose every technical decision in this level of detail
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1362,7 +1355,6 @@ What specifically did `EXPLAIN ANALYZE` reveal about the first slow order-histor
 - [ ] A: The Stripe API call was the actual bottleneck for this specific query, unrelated to indexing
 - [ ] C: The table had too many indexes, degrading write performance
 - [ ] D: The query itself contained a syntax error preventing execution
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0

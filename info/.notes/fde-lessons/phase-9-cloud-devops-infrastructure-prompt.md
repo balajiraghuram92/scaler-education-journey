@@ -89,7 +89,7 @@ Same selection priority as before — pick the two points in each lesson most li
 misapplied or conflated (e.g. Lesson 1's trust-policy vs. permission-boundary distinction, Lesson
 5's readiness vs. liveness probes). `id` pattern:
 `lesson-fde-cloud-devops-infrastructure-{lesson-number:00}-concept-check-{01|02}` (lesson-number
-is 01-06 for this phase). Map source `CORRECT_ANSWER_KEY` (A/B/C/D/E) to lowercase
+is 01-06 for this phase). Map source `CORRECT_ANSWER_KEY` (A/B/C/D) to lowercase
 `correctOptionId`. Never add `initialSelectedOption` or `initialSubmitted`.
 
 ### 3b. architecture (optional — apply the inclusion test)

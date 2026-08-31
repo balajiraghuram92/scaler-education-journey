@@ -427,7 +427,6 @@ A prompt asks for "a JSON object with the order details" and, across ten calls, 
 - [x] B: The prompt never specified the field's type, so the model resolves that ambiguity differently each call
 - [ ] C: JSON output is inherently non-deterministic and cannot be fixed
 - [ ] D: The email inputs must have been inconsistent, not the prompt
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
@@ -1018,7 +1017,6 @@ For which situation is a computer-use / GUI agent tool most specifically justifi
 - [x] B: The target system is a legacy internal tool or third-party vendor portal with no API to integrate against
 - [ ] C: The task only requires reading structured data from a database
 - [ ] D: The task requires the lowest possible latency
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1

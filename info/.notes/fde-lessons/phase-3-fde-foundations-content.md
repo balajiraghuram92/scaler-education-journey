@@ -787,7 +787,6 @@ Why does the lesson say deleting and recreating the environment from the lockfil
 - [ ] A: Deleting the environment is required by uv's license terms
 - [ ] C: This step has no diagnostic value beyond what simply running the project already shows
 - [ ] D: Lockfiles cannot be trusted under any circumstances without manual verification of every line
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1122,7 +1121,6 @@ Adding a running count of filtered-out rows to the lazy CSV pipeline, without br
 - [ ] A: Converting the entire pipeline back into list comprehensions so the filtered rows can be counted with `len()`
 - [ ] C: This cannot be done without breaking the pipeline's lazy property
 - [ ] D: Running the pipeline twice, once for the data and once for the count
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0

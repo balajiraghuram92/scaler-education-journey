@@ -151,3 +151,11 @@
 - [x] **Sub-task 20.2**: Wire Lesson 3 concept checks (2 gated MCQs) and practice questions (8 MCQs) into `app/src/data/lessonInteractions.js`.
 - [x] **Sub-task 20.3**: Associate Lesson 3 coding exercise with `app/src/data/lessonExerciseAssociations.js`.
 - [x] **Sub-task 20.4**: Update task tracking and provide Docker verification commands.
+
+## Phase 21: FDE Curriculum Pipeline — Module 3: Full-Stack FDE (Lessons 1-5 of 5) (Completed)
+- [x] **Sub-task 21.1**: Ingest 5 Lesson chapter bodies for `full-stack-ai-frontends` into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 21.2**: Wire 10 Concept Checks (2 per lesson) and 33 Practice Questions across all 5 lessons into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 21.3**: Add architecture diagram for Lesson 4 (`04-vercel-ai-sdk-and-streaming-uis`) highlighting the server-side secrets and streaming lifecycle boundary.
+- [x] **Sub-task 21.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 21.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+

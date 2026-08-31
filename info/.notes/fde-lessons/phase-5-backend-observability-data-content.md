@@ -249,7 +249,6 @@ DELETE is described as idempotent even though calling it a second time on an alr
 - [ ] A: DELETE is not actually idempotent, and this is a misconception the lesson corrects
 - [ ] C: A 404 response always indicates the operation was not idempotent
 - [ ] D: Idempotency only applies to GET and PUT, never to DELETE
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -402,7 +401,6 @@ Why is centralizing an authentication check in one `Depends`-based dependency fu
 - [ ] A: Dependency functions execute faster than inline code, purely as a performance matter
 - [ ] C: FastAPI technically does not allow authentication logic to be written inline in a handler
 - [ ] D: There is no meaningful difference between the two approaches
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -559,7 +557,6 @@ A new `require_role("admin")` dependency depends on the existing `get_current_us
 - [ ] A: `require_role` replaces the need for `get_current_user` entirely, making the original dependency obsolete
 - [ ] C: Dependencies in FastAPI cannot depend on other dependencies; this composition is not actually possible
 - [ ] D: This composition requires rewriting `get_current_user` to be role-aware internally
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -870,7 +867,6 @@ What does refresh-token rotation (issuing a new refresh token and invalidating t
 - [ ] A: Rotation prevents access tokens from ever expiring
 - [ ] C: Rotation eliminates the need for signature verification on access tokens
 - [ ] D: Rotation has no defensive purpose and is purely a performance optimization
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1153,7 +1149,6 @@ The suggested extension asks whether order-transition history should be a struct
 - [ ] A: Structured logs and database tables are functionally identical, so the choice doesn't matter
 - [ ] C: Order history must always be stored exclusively as structured logs, never in a database table
 - [ ] D: The choice should be based solely on which option requires writing less code
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1384,7 +1379,6 @@ Why did moving notification-sending into a Celery task also indirectly fix the w
 - [ ] A: Celery tasks are technically incapable of failing, unlike inline code
 - [ ] C: The two problems were entirely unrelated, and fixing one had no effect on the other
 - [ ] D: Idempotency alone would have been sufficient without also queuing the notification
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1411,7 +1405,6 @@ How does the lesson connect a Celery task's retry-with-backoff behavior to the e
 - [ ] A: Celery tasks and Python decorators are unrelated technologies with no conceptual overlap
 - [ ] C: Celery tasks technically use the exact same `@retry` decorator code from the earlier lesson with no modification
 - [ ] D: This connection only applies if the Celery task itself is decorated with `@retry` explicitly, which is required syntax
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0

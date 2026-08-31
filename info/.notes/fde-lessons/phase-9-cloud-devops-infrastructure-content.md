@@ -122,7 +122,6 @@ Why is an IAM role assumed by a workload preferred over a long-lived IAM user ac
 - [ ] B: IAM roles are technically incapable of being over-permissioned, unlike IAM user keys
 - [ ] C: There is no meaningful security difference; the choice is purely about which is more convenient to configure
 - [ ] D: Long-lived access keys are required for any workload that needs to call more than one AWS service
-- [ ] E: Roles are only relevant for Lambda functions and do not apply to EC2 or ECS
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -175,7 +174,6 @@ A role is created with a permission boundary attached, and later a permission po
 - [ ] B: Full AdministratorAccess, since the most recently attached policy always takes precedence over the boundary
 - [ ] C: The union of the permission policy and the boundary, granting the combined total of both
 - [ ] D: No permissions at all, since attaching AdministratorAccess to a bounded role always results in an error
-- [ ] E: The boundary is disabled automatically whenever a broader permission policy is attached
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -306,7 +304,6 @@ Why does the scenario end on the question "what could this service actually do i
 - [ ] B: These two questions are functionally identical and always produce the same answer for any IAM design
 - [ ] C: The compromise question only matters for services that handle payment data specifically
 - [ ] D: A service having sufficient access to function is sufficient proof that its permissions are properly scoped
-- [ ] E: This question is only relevant during an actual security incident, not during initial design
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -433,7 +430,6 @@ According to the lesson, when does self-managed Postgres on EC2 become the right
 - [ ] B: Self-managed Postgres should always be the default for any customer engagement, regardless of requirements
 - [ ] C: RDS is technically incapable of running PostgreSQL, only MySQL-compatible engines
 - [ ] D: Self-managed Postgres is preferable whenever the customer wants to reduce their AWS bill by any amount
-- [ ] E: This choice should be made solely based on which option the FDE personally has more experience with
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -564,7 +560,6 @@ In the scenario, what specific problem did the dead-letter queue surface, and wh
 - [ ] B: The DLQ automatically repaired the malformed order ID and reprocessed the message successfully
 - [ ] C: The DLQ prevented the malformed message from ever being sent in the first place
 - [ ] D: The scenario describes a queue with no actual problem; the DLQ was configured but never used
-- [ ] E: The DLQ only logs an error without moving the message anywhere
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -717,7 +712,6 @@ An IAM role's permission policy grants `kms:Decrypt` on a specific key, but the 
 - [ ] B: KMS keys never actually check IAM policies at all, only key policies matter
 - [ ] C: This situation is impossible; an IAM policy grant is always sufficient on its own
 - [ ] D: The role's credentials must have expired, since key policies cannot block an otherwise-valid IAM grant
-- [ ] E: KMS requires a separate MFA prompt for every decrypt call regardless of policy configuration
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -770,7 +764,6 @@ Why can't Secrets Manager's native, out-of-the-box automatic rotation Lambda han
 - [ ] B: Secrets Manager technically cannot store any value that isn't an AWS-native database credential
 - [ ] C: Stripe secrets do not require rotation under any circumstances, unlike RDS passwords
 - [ ] D: There is no actual difference; the native RDS rotation Lambda works identically for any third-party API key
-- [ ] E: Rotation is only possible for secrets stored in the us-east-1 region
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -823,7 +816,6 @@ How does the lesson connect enabling CloudTrail data events in advance to the Op
 - [ ] B: CloudTrail and OpenTelemetry are unrelated tools serving entirely different purposes with no shared principle
 - [ ] C: This connection only holds for secrets specifically, not for any other CloudTrail data event type
 - [ ] D: OpenTelemetry traces are automatically retained by CloudTrail without any separate configuration
-- [ ] E: This is purely a coincidental naming similarity between the two systems
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -876,7 +868,6 @@ Why does the scenario describe enabling data events on one specific secret's ARN
 - [ ] B: AWS technically limits every account to logging exactly one data event source at a time
 - [ ] C: Logging more data events always costs strictly less than logging fewer, so the distinction is irrelevant to cost
 - [ ] D: Blanket logging and narrow logging produce identical investigative value; the distinction is stylistic only
-- [ ] E: This distinction only matters for accounts operating in multiple AWS regions simultaneously
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -1081,7 +1072,6 @@ Why does the lesson distinguish a health check that verifies real readiness (e.g
 - [ ] B: These two types of health check are functionally identical in every practical scenario
 - [ ] C: A process-alive check is always sufficient because a crashed dependency always crashes the whole process too
 - [ ] D: Health checks that verify dependencies are technically not supported by any container orchestrator
-- [ ] E: This distinction only matters for containers running a database directly, not an application server
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -1108,7 +1098,6 @@ How does an application ignoring SIGTERM during a container stop connect to the 
 - [ ] B: SIGTERM and webhook retries are unrelated failure modes with no shared consequence
 - [ ] C: This connection only applies if the worker is specifically processing a Stripe webhook at the moment SIGTERM arrives
 - [ ] D: A container that ignores SIGTERM is guaranteed to lose the in-flight task entirely, never to duplicate it
-- [ ] E: Handling SIGTERM prevents the container from ever needing to restart in the first place
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -1187,7 +1176,6 @@ The scenario applies four distinct fixes to the original Dockerfile and worker. 
 - [ ] B: All four fixes address the exact same underlying problem and are functionally interchangeable
 - [ ] C: The SIGTERM handler is what reduces the final image size, not the multi-stage build
 - [ ] D: The non-root USER directive is what restores the CI build cache, not the instruction reordering
-- [ ] E: Instruction reordering is what prevents the container from running as root
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -1418,7 +1406,6 @@ In the scenario, why were the three Pods stuck in `Pending` after the Deployment
 - [ ] B: The Deployment manifest itself contained a YAML syntax error that the API server should have rejected
 - [ ] C: The container image referenced by the Deployment did not exist in any accessible registry
 - [ ] D: The cluster's Service object was misconfigured, which is unrelated to Pod scheduling
-- [ ] E: This is impossible; a Deployment accepted by the API server always results in Running Pods immediately
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -1445,7 +1432,6 @@ Why did the Service report zero available endpoints even after all three Pods re
 - [ ] B: The Pods were still technically Pending, contradicting the premise that they had reached Running
 - [ ] C: A liveness probe failure was restarting the Pods in an infinite loop, preventing any of them from staying up
 - [ ] D: The Service object itself had not yet been created, so no endpoint list could exist
-- [ ] E: This second failure was actually a continuation of the same scheduling problem from before
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -1780,7 +1766,6 @@ How does IRSA/Pod Identity connect to the least-privilege reasoning established 
 - [ ] B: IRSA and the IAM lesson's least-privilege reasoning are unrelated; IRSA is purely a networking feature
 - [ ] C: This connection only holds if the pod in question is running on a self-managed EC2 node rather than inside EKS
 - [ ] D: IRSA replaces the need for any IAM least-privilege reasoning at the account level entirely
-- [ ] E: The connection is coincidental naming overlap with no shared underlying principle
 
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0

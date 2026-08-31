@@ -197,7 +197,6 @@ Why did the FDE investigate before agreeing to migrate the order-management syst
 - [ ] A: FDEs are contractually forbidden from ever agreeing to database migrations
 - [ ] C: MongoDB is technically incapable of storing order data
 - [ ] D: The customer's request was not taken seriously for unrelated reasons
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -506,7 +505,6 @@ What did the referential-integrity dbt test catch in the scenario, and why did t
 - [ ] A: A syntax error in the dbt model's SQL that would have prevented it from running at all
 - [ ] C: A performance regression in query execution time, unrelated to data correctness
 - [ ] D: The test found nothing wrong, and the scenario describes a successful, uneventful run
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -533,7 +531,6 @@ What made the shift from ETL toward ELT practical, according to the lesson?
 - [ ] A: ETL was fundamentally impossible to implement correctly, forcing a switch to ELT
 - [ ] C: Raw data storage became more expensive, making ELT the only economically viable option
 - [ ] D: This shift has no relationship to compute or storage cost considerations
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -738,7 +735,6 @@ Why does the lesson argue a pipeline stage that "succeeds" while producing wrong
 - [ ] A: Loud failures are always more expensive to fix than silent ones
 - [ ] C: There is no real difference in danger between the two failure modes
 - [ ] D: Silent failures are actually easier to diagnose because they produce no error noise
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -817,7 +813,6 @@ How does this lesson connect a symptom-appearing-downstream-of-its-cause problem
 - [ ] A: The two lessons describe entirely unrelated failure modes with no shared principle
 - [ ] C: This connection only applies to pipelines that use AI agents internally
 - [ ] D: The debugging-AI lesson's principle only applies to non-deterministic systems, never to data pipelines
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -844,7 +839,6 @@ Why does the suggested extension's backfill scenario depend on the raw data for 
 - [ ] A: Backfills do not actually require any raw data at all; they regenerate historical records from nothing
 - [ ] C: Raw data retention has no relationship to Airflow's backfill capability
 - [ ] D: Backfills only work if the raw data is less than one week old
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1049,7 +1043,6 @@ Why should events for the order-management system be keyed by order ID rather th
 - [ ] A: Random keys are technically forbidden by Kafka's protocol
 - [ ] C: The choice of key has no bearing on ordering or partition assignment
 - [ ] D: Order ID must be used as the key specifically because it improves consumer throughput, unrelated to ordering
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1154,7 +1147,6 @@ Why does the suggested extension warn against letting a repeatedly-failing event
 - [ ] A: Indefinite blocking is technically impossible in Kafka regardless of consumer behavior
 - [ ] C: This concern only applies to producers, not consumers
 - [ ] D: Blocking indefinitely has no effect on any other event, since each event is processed in total isolation
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1333,7 +1325,6 @@ Why does the lesson describe "diagnosability" as the rubric category most lesson
 - [ ] A: Diagnosability is unrelated to any specific earlier lesson and was introduced for the first time in this assessment
 - [ ] C: Diagnosability only reflects how fast the pipeline executes, unrelated to earlier lessons' content
 - [ ] D: This category was included arbitrarily with no connection to the module's actual content
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1438,7 +1429,6 @@ Why does the suggested extension say it's worth investigating if diagnosing a se
 - [ ] A: The second diagnosis should always take exactly the same amount of time as the first, regardless of instrumentation quality
 - [ ] C: This comparison has no diagnostic value about the pipeline's own instrumentation quality
 - [ ] D: A slower second diagnosis always indicates the second injected failure was objectively harder, with no other possible explanation
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0

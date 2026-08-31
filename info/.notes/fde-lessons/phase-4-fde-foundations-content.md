@@ -275,7 +275,6 @@ Why did the FDE only request a scoped profiling run after narrowing the problem 
 - [ ] A: Profiling an entire job is technically impossible
 - [ ] C: Logs and profiling data are mutually exclusive and cannot be used together
 - [ ] D: There was no particular reason; either order would have worked identically
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -814,7 +813,6 @@ Based on the lesson's framing, for which kind of FDE code is property-based test
 - [ ] A: A fixed configuration constant that never changes
 - [ ] C: Code with no external inputs of any kind
 - [ ] D: Property-based testing provides equal value for every kind of code, with no meaningful difference in worthwhileness
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1019,7 +1017,6 @@ What would have gone wrong in week three if the provisioning logic had called SQ
 - [ ] A: Nothing different would happen; the outcome would be identical either way
 - [ ] C: The customer's real API would automatically become compatible with the SQLite calls
 - [ ] D: The provisioning tool would stop working entirely with no possible fix
-- [ ] Only one of the above should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1406,7 +1403,6 @@ Why does the suggested extension connect adding logging to the restart script ba
 - [ ] A: Logging has no relationship to enablement; the connection is incorrect
 - [ ] C: Scripts without logging cannot technically be executed by anyone other than their original author
 - [ ] D: This connection only applies if the script fails
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
@@ -1666,7 +1662,6 @@ Why does the lesson argue that skipping a rubric item (e.g. coding directly agai
 - [ ] A: The rubric items are arbitrary stylistic preferences with no functional consequence
 - [ ] C: "Less polished" and "less defensible" mean exactly the same thing in this context
 - [ ] D: Skipping any rubric item makes the code fail to run entirely
-- [ ] Only one option should be marked correct.
 
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 0
