@@ -1,0 +1,43 @@
+{
+  "id": "java-lld-synchronized-counter",
+  "lessonSlug": "08-concurrency-3-synchronization",
+  "title": "Thread-Safe Counter with synchronized",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 15,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "counter",
+      "path": "src/main/java/Counter.java",
+      "displayName": "Counter.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/CounterTest.java",
+    "className": "CounterTest"
+  },
+  "evidence": [
+    {
+      "id": "constructor-sets-count",
+      "label": "The constructor sets the initial value of the private count field",
+      "testMethod": "testConstructorWorks"
+    },
+    {
+      "id": "methods-are-synchronized",
+      "label": "incValue, decValue and getValue are all declared synchronized",
+      "testMethod": "testIncValueMethodSignatureAndModifiers"
+    },
+    {
+      "id": "inc-dec-get-work-together",
+      "label": "incValue and decValue correctly mutate count, and getValue reflects it",
+      "testMethod": "testFunctionality"
+    }
+  ]
+}

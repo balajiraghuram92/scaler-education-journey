@@ -1,0 +1,65 @@
+{
+  "id": "java-lld-vehicle-renting",
+  "lessonSlug": "04-oop-3-polymorphism-interfaces",
+  "title": "Vehicle Renting — Common Interface",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 15,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "rentable",
+      "path": "src/main/java/org/example/Rentable.java",
+      "displayName": "Rentable.java",
+      "editable": false
+    },
+    {
+      "id": "car",
+      "path": "src/main/java/org/example/Car.java",
+      "displayName": "Car.java",
+      "editable": true
+    },
+    {
+      "id": "bicycle",
+      "path": "src/main/java/org/example/Bicycle.java",
+      "displayName": "Bicycle.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestVehicleRenting.java",
+    "className": "TestVehicleRenting"
+  },
+  "evidence": [
+    {
+      "id": "rent-marks-rented",
+      "label": "rent() marks a Car/Bicycle as rented",
+      "testMethod": "testRentCar"
+    },
+    {
+      "id": "return-marks-not-rented",
+      "label": "returnItem() marks a Car/Bicycle as not rented",
+      "testMethod": "testReturnCar"
+    },
+    {
+      "id": "double-rent-is-noop",
+      "label": "Renting an already-rented car leaves its state unchanged",
+      "testMethod": "testAttemptToRentAlreadyRentedCar"
+    },
+    {
+      "id": "return-without-rent-is-noop",
+      "label": "Returning a car that was never rented leaves it not-rented",
+      "testMethod": "testAttemptToReturnNonRentedCar"
+    },
+    {
+      "id": "instances-independent",
+      "label": "Rental state is tracked independently per Car instance",
+      "testMethod": "testRentAndReturnDifferentInstances"
+    }
+  ]
+}

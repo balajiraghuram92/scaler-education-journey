@@ -1,0 +1,60 @@
+{
+  "id": "java-lld-scaler-learning-platform-users",
+  "lessonSlug": "05-oop-4-lms-lab",
+  "title": "Scaler Learning Platform — User Hierarchy",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 20,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "user",
+      "path": "src/main/java/org/example/User.java",
+      "displayName": "User.java",
+      "editable": false
+    },
+    {
+      "id": "student",
+      "path": "src/main/java/org/example/Student.java",
+      "displayName": "Student.java",
+      "editable": true
+    },
+    {
+      "id": "employee",
+      "path": "src/main/java/org/example/Employee.java",
+      "displayName": "Employee.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestUser.java",
+    "className": "TestUser"
+  },
+  "evidence": [
+    {
+      "id": "student-extends-user",
+      "label": "Student extends User and exposes studentId and course",
+      "testMethod": "testStudent"
+    },
+    {
+      "id": "employee-extends-user",
+      "label": "Employee extends User and exposes employeeId and department",
+      "testMethod": "testEmployee"
+    },
+    {
+      "id": "student-display-chains-super",
+      "label": "Student.displayInfo() calls super.displayInfo() then prints its own fields",
+      "testMethod": "testDisplayStudentInfo"
+    },
+    {
+      "id": "employee-display-chains-super",
+      "label": "Employee.displayInfo() calls super.displayInfo() then prints its own fields",
+      "testMethod": "testDisplayEmployeeInfo"
+    }
+  ]
+}

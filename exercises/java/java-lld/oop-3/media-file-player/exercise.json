@@ -1,0 +1,56 @@
+{
+  "id": "java-lld-media-file-player",
+  "lessonSlug": "04-oop-3-polymorphism-interfaces",
+  "title": "Media File Player — Runtime Polymorphism",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 15,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "media-file",
+      "path": "src/main/java/org/example/MediaFile.java",
+      "displayName": "MediaFile.java",
+      "editable": false
+    },
+    {
+      "id": "audio-file",
+      "path": "src/main/java/org/example/AudioFile.java",
+      "displayName": "AudioFile.java",
+      "editable": false
+    },
+    {
+      "id": "video-file",
+      "path": "src/main/java/org/example/VideoFile.java",
+      "displayName": "VideoFile.java",
+      "editable": false
+    },
+    {
+      "id": "media-file-player",
+      "path": "src/main/java/org/example/MediaFilePlayer.java",
+      "displayName": "MediaFilePlayer.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestMediaFilePlayer.java",
+    "className": "TestMediaFilePlayer"
+  },
+  "evidence": [
+    {
+      "id": "plays-audio-via-base-reference",
+      "label": "playMedia(...) prints an AudioFile's details then plays it, dispatched at runtime",
+      "testMethod": "testPlayMediaWithAudioFile"
+    },
+    {
+      "id": "plays-video-via-base-reference",
+      "label": "playMedia(...) prints a VideoFile's details then plays it, dispatched at runtime",
+      "testMethod": "testPlayMediaWithVideoFile"
+    }
+  ]
+}

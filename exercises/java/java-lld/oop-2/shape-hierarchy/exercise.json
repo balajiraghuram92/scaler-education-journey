@@ -1,0 +1,61 @@
+{
+  "id": "java-lld-shape-hierarchy",
+  "lessonSlug": "03-oop-2-access-modifiers-encapsulation",
+  "title": "Shape Hierarchy — Area and Perimeter",
+  "language": "java",
+  "difficulty": "introductory",
+  "estimatedMinutes": 25,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "shape",
+      "path": "src/main/java/org/example/Shape.java",
+      "displayName": "Shape.java",
+      "editable": true
+    },
+    {
+      "id": "rectangle",
+      "path": "src/main/java/org/example/Rectangle.java",
+      "displayName": "Rectangle.java",
+      "editable": true
+    },
+    {
+      "id": "circle",
+      "path": "src/main/java/org/example/Circle.java",
+      "displayName": "Circle.java",
+      "editable": true
+    },
+    {
+      "id": "triangle",
+      "path": "src/main/java/org/example/Triangle.java",
+      "displayName": "Triangle.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/org/example/main/controllers/TestShape.java",
+    "className": "TestShape"
+  },
+  "evidence": [
+    {
+      "id": "rectangle-area-perimeter",
+      "label": "Rectangle computes area (width * height) and perimeter (2 * (width + height)) correctly, including the zero-size case",
+      "testMethod": "testRectangle"
+    },
+    {
+      "id": "circle-area-perimeter",
+      "label": "Circle computes area (pi * r^2) and perimeter (2 * pi * r) correctly, including the zero-radius case",
+      "testMethod": "testCircle"
+    },
+    {
+      "id": "triangle-area-perimeter",
+      "label": "Triangle computes area via Heron's formula and perimeter as the side sum, including the degenerate zero-length case",
+      "testMethod": "testTriangle"
+    }
+  ]
+}
