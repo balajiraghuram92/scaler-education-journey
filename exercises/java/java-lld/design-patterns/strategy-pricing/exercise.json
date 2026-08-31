@@ -1,0 +1,89 @@
+{
+  "id": "java-lld-strategy-pricing",
+  "lessonSlug": "17-behavioural-patterns-uml",
+  "title": "Strategy Pattern — Ride Pricing Calculation",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "ride-details",
+      "path": "src/main/java/com/assignment/question/RideDetails.java",
+      "displayName": "RideDetails.java",
+      "editable": false
+    },
+    {
+      "id": "pricing-type",
+      "path": "src/main/java/com/assignment/question/PricingType.java",
+      "displayName": "PricingType.java",
+      "editable": false
+    },
+    {
+      "id": "pricing-strategy",
+      "path": "src/main/java/com/assignment/question/PricingStrategy.java",
+      "displayName": "PricingStrategy.java",
+      "editable": false
+    },
+    {
+      "id": "pricing-manager",
+      "path": "src/main/java/com/assignment/question/PricingManager.java",
+      "displayName": "PricingManager.java",
+      "editable": true
+    },
+    {
+      "id": "distance-based-pricing-strategy",
+      "path": "src/main/java/com/assignment/question/DistanceBasedPricingStrategy.java",
+      "displayName": "DistanceBasedPricingStrategy.java",
+      "editable": true
+    },
+    {
+      "id": "time-based-pricing-strategy",
+      "path": "src/main/java/com/assignment/question/TimeBasedPricingStrategy.java",
+      "displayName": "TimeBasedPricingStrategy.java",
+      "editable": true
+    },
+    {
+      "id": "surge-pricing-strategy",
+      "path": "src/main/java/com/assignment/question/SurgePricingStrategy.java",
+      "displayName": "SurgePricingStrategy.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/PricingManagerTest.java",
+    "className": "PricingManagerTest"
+  },
+  "evidence": [
+    {
+      "id": "concrete-strategies",
+      "label": "Exactly 3 concrete PricingStrategy implementations exist",
+      "testMethod": "testConcreteStrategies"
+    },
+    {
+      "id": "strategy-method-shape",
+      "label": "PricingStrategy declares calculatePrice(RideDetails) -> Double",
+      "testMethod": "testCalculatePriceStrategyMethod"
+    },
+    {
+      "id": "manager-field",
+      "label": "PricingManager has a private PricingStrategy field",
+      "testMethod": "testPricingManagerFields"
+    },
+    {
+      "id": "manager-constructor",
+      "label": "PricingManager has a constructor accepting PricingType and PricingStrategy",
+      "testMethod": "testPricingManagerConstructor"
+    },
+    {
+      "id": "strategy-calculation-correctness",
+      "label": "Each strategy computes the correct fare for its type (distance, time, surge)",
+      "testMethod": "testPricingStrategy"
+    }
+  ]
+}

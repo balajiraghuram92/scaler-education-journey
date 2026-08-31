@@ -1,0 +1,89 @@
+{
+  "id": "java-lld-strategy-stock-trading",
+  "lessonSlug": "17-behavioural-patterns-uml",
+  "title": "Strategy Pattern — Stock Trading Indicators",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "stock",
+      "path": "src/main/java/com/assignment/question/Stock.java",
+      "displayName": "Stock.java",
+      "editable": false
+    },
+    {
+      "id": "trading-strategy-type",
+      "path": "src/main/java/com/assignment/question/TradingStrategyType.java",
+      "displayName": "TradingStrategyType.java",
+      "editable": false
+    },
+    {
+      "id": "trading-indicator-strategy",
+      "path": "src/main/java/com/assignment/question/TradingIndicatorStrategy.java",
+      "displayName": "TradingIndicatorStrategy.java",
+      "editable": false
+    },
+    {
+      "id": "stock-trading-manager",
+      "path": "src/main/java/com/assignment/question/StockTradingManager.java",
+      "displayName": "StockTradingManager.java",
+      "editable": true
+    },
+    {
+      "id": "moving-averages-strategy",
+      "path": "src/main/java/com/assignment/question/MovingAveragesStrategy.java",
+      "displayName": "MovingAveragesStrategy.java",
+      "editable": true
+    },
+    {
+      "id": "momentum-strategy",
+      "path": "src/main/java/com/assignment/question/MomentumStrategy.java",
+      "displayName": "MomentumStrategy.java",
+      "editable": true
+    },
+    {
+      "id": "volatility-strategy",
+      "path": "src/main/java/com/assignment/question/VolatilityStrategy.java",
+      "displayName": "VolatilityStrategy.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/assignment/question/StockManagerTest.java",
+    "className": "StockManagerTest"
+  },
+  "evidence": [
+    {
+      "id": "concrete-strategies",
+      "label": "Exactly 3 concrete TradingIndicatorStrategy implementations exist",
+      "testMethod": "testConcreteStrategies"
+    },
+    {
+      "id": "strategy-method-shape",
+      "label": "TradingIndicatorStrategy declares calculateIndicator(Stock) -> Double",
+      "testMethod": "testCalculateIndicatorStrategyMethod"
+    },
+    {
+      "id": "manager-field",
+      "label": "StockTradingManager has a private TradingIndicatorStrategy field",
+      "testMethod": "testPricingManagerFields"
+    },
+    {
+      "id": "manager-constructor",
+      "label": "StockTradingManager has a constructor accepting a TradingIndicatorStrategy",
+      "testMethod": "testPricingManagerConstructor"
+    },
+    {
+      "id": "strategy-calculation-correctness",
+      "label": "Each strategy computes the correct indicator value for its type (moving average, momentum, volatility)",
+      "testMethod": "testPricingStrategy"
+    }
+  ]
+}
