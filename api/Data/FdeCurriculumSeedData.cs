@@ -300,7 +300,7 @@ public static class FdeCurriculumSeedData
                 lessonIndex++;
                 var lessonSlug = $"{lessonIndex:00}-{Slugify(task.Title)}";
                 var lesson = existingLessons.SingleOrDefault(l => l.ModuleId == module.Id && l.Slug == lessonSlug);
-                var content = BuildLessonContent(task.Title, guide);
+                var content = GetAuthoredFdeLessonContent(lessonSlug) ?? BuildLessonContent(task.Title, guide);
 
                 if (lesson == null)
                 {
@@ -391,7 +391,7 @@ public static class FdeCurriculumSeedData
                 var lessonSlug = $"{lessonIndex + 1:00}-{Slugify(lessonDefinition.Title)}";
                 var lesson = existingLessons.SingleOrDefault(candidate =>
                     candidate.ModuleId == module.Id && candidate.Slug == lessonSlug);
-                var content = BuildSupplementalLessonContent(lessonDefinition, definition);
+                var content = GetAuthoredFdeLessonContent(lessonSlug) ?? BuildSupplementalLessonContent(lessonDefinition, definition);
 
                 if (lesson == null)
                 {
@@ -553,6 +553,17 @@ public static class FdeCurriculumSeedData
             });
         }
     }
+
+    /// <summary>
+    /// Hand-authored, high-quality content for specific FDE lesson slugs, checked before the
+    /// generic template fallback (BuildLessonContent / BuildSupplementalLessonContent). Mirrors
+    /// GetAuthoredLessonContent in JavaVerticalSeedData.cs. Add one case per authored lesson;
+    /// leave every other lesson on the generic fallback until it is authored.
+    /// </summary>
+    private static string? GetAuthoredFdeLessonContent(string slug) => slug switch
+    {
+        _ => null
+    };
 
     private static string BuildLessonDescription(string title, ModuleGuide guide)
     {
