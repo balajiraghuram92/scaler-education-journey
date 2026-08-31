@@ -1960,6 +1960,828 @@ const lessonInteractions = {
         explanation: 'A many-to-many relationship (many accounts to many owners) requires a junction table holding both foreign keys; a single column on either side cannot represent a many-to-many link.'
       }
     ]
+  },
+  'fde-curriculum/agentic-ai-core/01-genai-world-and-llm-landscape': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-01-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — TRAINING STAGES & BEHAVIOR',
+        question:
+          'Two models have near-identical pretraining corpora and knowledge cutoffs, but one follows multi-step instructions reliably and the other frequently ignores part of a compound instruction. Which stage most likely explains the difference?',
+        options: [
+          { id: 'a', label: 'A', text: 'Pretraining — one model must have seen more text' },
+          { id: 'b', label: 'B', text: 'Supervised fine-tuning — instruction-following quality is primarily learned during SFT on instruction-response pairs' },
+          { id: 'c', label: 'C', text: 'Tokenization — one model must use a larger vocabulary' },
+          { id: 'd', label: 'D', text: 'Context window size' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Pretraining teaches broad language and world statistics; it does not teach the model to follow a chat/instruction format or track multiple sub-instructions. That behavior is trained during SFT on curated instruction-response data, which is why two models with similar pretraining can diverge sharply in instruction-following.',
+        incorrectExplanation:
+          'Consider which training stage is responsible for teaching a model to adopt a chat role and follow complex instructions versus just predicting text statistics.',
+        hint: 'Pretraining learns general world statistics; supervised fine-tuning (SFT) on curated instruction pairs teaches instruction following.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-01-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — BENCHMARK PARITY & CALIBRATION',
+        question:
+          'Two models score nearly identically on a public benchmark, but in a specific customer workflow one is noticeably more prone to overconfident wrong answers than the other. What does the lesson\'s framework suggest is the most likely source of this difference?',
+        options: [
+          { id: 'a', label: 'A', text: 'Their tokenizers must differ' },
+          { id: 'b', label: 'B', text: 'One model must have a smaller context window' },
+          { id: 'c', label: 'C', text: 'The difference likely lives in preference optimization (RLHF/DPO) calibration — how strongly the model was rewarded for assertive-sounding answers versus appropriately hedged ones — not in raw pretraining knowledge' },
+          { id: 'd', label: 'D', text: 'Benchmark scores always predict production calibration directly' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'Benchmark parity mostly reflects pretraining-era capability and broad instruction-following. Calibration — how appropriately a model signals uncertainty versus sounding confident — is shaped by the preference-optimization stage, which benchmarks often under-measure. Two similarly-scoring models can diverge exactly here.',
+        incorrectExplanation:
+          'Look beyond raw pretraining knowledge to how model tone and confidence calibration are trained during preference optimization.',
+        hint: 'Calibration and hedging behavior are shaped during preference optimization (RLHF/DPO), which standard benchmark scores often fail to capture.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-01-mcq-01',
+        question:
+          'A decoder-only LLM confidently states an incorrect fact in response to a question about a niche, rarely-discussed topic. What is the most accurate explanation for this behavior?',
+        options: [
+          { id: 'a', label: 'A', text: 'The model has a database lookup that failed silently' },
+          { id: 'b', label: 'B', text: 'The model is predicting the statistically most likely next tokens given its training distribution, which didn\'t densely cover this topic — this is expected behavior, not a malfunction' },
+          { id: 'c', label: 'C', text: 'The model\'s context window overflowed and corrupted the output' },
+          { id: 'd', label: 'D', text: 'The model intentionally lies when it doesn\'t know an answer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'LLMs have no built-in fact database and no explicit "I don\'t know" state unless trained in. Confident wrong answers on sparse topics are next-token prediction behaving normally on thin training signal, which is why grounding and verification steps are architectural necessities, not optional polish.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-01-mcq-02',
+        question:
+          'An FDE is building a feature that classifies incoming support tickets into one of five fixed categories using a short, well-defined prompt. What is the strongest reason to prefer a small, fast model over the frontier "reasoning" tier for this task?',
+        options: [
+          { id: 'a', label: 'A', text: 'Small models are always more accurate than large models' },
+          { id: 'b', label: 'B', text: 'Frontier models cannot be used for classification tasks' },
+          { id: 'c', label: 'C', text: 'Fixed-category classification rarely benefits from deeper reasoning, so a smaller model likely clears the accuracy bar at a fraction of the latency and cost' },
+          { id: 'd', label: 'D', text: 'Small models have larger context windows' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The right model tier is the smallest one that reliably clears the task\'s accuracy bar. Fixed-category classification is a shallow task where a small model\'s capability is usually sufficient, so paying frontier-tier latency and cost for it is waste, not safety margin.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-01-mcq-03',
+        question:
+          'A customer in a regulated industry wants no customer data leaving their own infrastructure, even to a vendor API. What does this constraint most directly push the FDE toward?',
+        options: [
+          { id: 'a', label: 'A', text: 'Using the largest frontier model available, regardless of hosting' },
+          { id: 'b', label: 'B', text: 'An open-weight model self-hosted inside the customer\'s infrastructure, trading operational burden for data control' },
+          { id: 'c', label: 'C', text: 'A hosted model with a longer context window' },
+          { id: 'd', label: 'D', text: 'This constraint has no effect on model choice' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Open-weight models are the option that lets an organization keep inference entirely inside its own infrastructure. It costs more in operational effort (hosting, scaling, updating the model) but directly satisfies a hard data-residency constraint that no hosted API can.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-01-mcq-04',
+        question:
+          'What happens to information from earlier in a conversation once it falls outside the model\'s context window?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is no longer visible to the model at all for that call — there is no persistent memory beyond the context window unless the application re-supplies it' },
+          { id: 'b', label: 'B', text: 'The model retrieves it automatically from a hidden memory store' },
+          { id: 'c', label: 'C', text: 'It is compressed and summarized automatically by the model' },
+          { id: 'd', label: 'D', text: 'It is stored permanently in the model\'s weights' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The model has no memory beyond what\'s in its context window for that specific call. Anything the application wants remembered across turns must be re-supplied (verbatim, summarized, or retrieved) by the calling system — this is exactly the gap RAG and conversation-memory systems exist to fill.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-01-mcq-05',
+        question:
+          'In the support-copilot scenario, what is the most defensible first signal to use for routing a question to a cheap model versus the frontier model?',
+        options: [
+          { id: 'a', label: 'A', text: 'The time of day the question was asked' },
+          { id: 'b', label: 'B', text: 'A cheap, fast complexity signal (e.g. question length, presence of multiple sub-questions, or a lightweight classifier) computed before the expensive model call' },
+          { id: 'c', label: 'C', text: 'Always route to the frontier model first and downgrade later' },
+          { id: 'd', label: 'D', text: 'The user\'s job title' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Routing only pays off if the classification step itself is cheap relative to the savings — a lightweight heuristic or small classifier call, evaluated before any expensive model call, is what makes the routing economically worthwhile. Routing "after" the frontier call defeats the purpose.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-01-mcq-06',
+        question:
+          'A three-tier routing system sends a query to the small model, which returns a low-confidence or malformed response. What is the correct next step in a well-designed routing system?',
+        options: [
+          { id: 'a', label: 'A', text: 'Return the weak answer to the user regardless' },
+          { id: 'b', label: 'B', text: 'Silently drop the query' },
+          { id: 'c', label: 'C', text: 'Escalate the same query to the next model tier up, since the small model\'s own output signaled it likely couldn\'t handle this case' },
+          { id: 'd', label: 'D', text: 'Retry the identical call on the same small model' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'A routing system is only safe to ship if it has an escalation path for cases the cheap tier can\'t handle. Detecting a low-confidence or invalid response and escalating to the next tier preserves the cost savings on the easy majority of traffic without sacrificing quality on the hard minority.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-ai-core/02-prompt-engineering-basics': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-02-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — PROMPT AS SPECIFICATION',
+        question:
+          'A prompt asks for "a JSON object with the order details" and, across ten calls, the model sometimes returns `quantity` as a number and sometimes as a word like "two". What is the root cause?',
+        options: [
+          { id: 'a', label: 'A', text: 'The model is malfunctioning and needs a different provider' },
+          { id: 'b', label: 'B', text: 'The prompt never specified the field\'s type, so the model resolves that ambiguity differently each call' },
+          { id: 'c', label: 'C', text: 'JSON output is inherently non-deterministic and cannot be fixed' },
+          { id: 'd', label: 'D', text: 'The email inputs must have been inconsistent, not the prompt' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Every unspecified detail in a prompt is a degree of freedom the model resolves arbitrarily. An explicit schema (`quantity: integer`) removes that ambiguity and is the direct fix, not a different model or provider.',
+        incorrectExplanation:
+          'Consider whether the prompt provided an unambiguous schema contract specifying types, or left degrees of freedom for the model to resolve.',
+        hint: 'Every unspecified property or data type in a prompt becomes an arbitrary degree of freedom resolved inconsistently across calls.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-02-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — FEW-SHOT ANCHORING RISKS',
+        question:
+          'An FDE adds four few-shot examples to fix an extraction task\'s format, but the model starts defaulting to one specific example\'s quantity value even for unrelated emails. What does this indicate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The model needs even more examples to correct this' },
+          { id: 'b', label: 'B', text: 'The model is anchoring on a superficial pattern from the examples (e.g. always echoing a specific value) rather than the intended format rule, and the example set needs to be reduced or diversified' },
+          { id: 'c', label: 'C', text: 'This is expected and requires no fix, since few-shot prompting always causes this' },
+          { id: 'd', label: 'D', text: 'The prompt\'s system message must be too short' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Adding examples without checking what pattern the model is actually anchoring on can backfire — a single well-chosen example isolating the real format decision often beats several loosely related ones that introduce spurious patterns.',
+        incorrectExplanation:
+          'Examine whether the added examples introduced unintended superficial patterns that the model is anchoring on instead of the general format rule.',
+        hint: 'Too many or poorly isolated few-shot examples can cause the model to latch onto specific values rather than the structural format.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-02-mcq-01',
+        question:
+          'Why is task-specific data (like a customer email to be processed) usually a poor fit for the system message, even though the system message is technically capable of holding any text?',
+        options: [
+          { id: 'a', label: 'A', text: 'System messages have a hard length limit smaller than user messages' },
+          { id: 'b', label: 'B', text: 'The system message is meant to carry persistent, reusable behavior rules; mixing in per-request data makes the prompt harder to reuse and harder to defend against injection' },
+          { id: 'c', label: 'C', text: 'Models ignore data placed in the system message' },
+          { id: 'd', label: 'D', text: 'System messages are only visible to the model, never logged' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The system/user/assistant split exists to separate persistent behavior from per-request data. Dumping task data into the system prompt defeats that separation of concerns and, as later lessons cover, widens the injection attack surface.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-02-mcq-02',
+        question:
+          'A summarization task performs consistently well with a plain instruction and no examples. An unusual internal ticket-tagging format performs inconsistently the same way. What does this contrast suggest about when few-shot prompting earns its keep?',
+        options: [
+          { id: 'a', label: 'A', text: 'Few-shot prompting should always be used regardless of task' },
+          { id: 'b', label: 'B', text: 'Few-shot examples help most when the output format is unusual or domain-specific and the model\'s training distribution doesn\'t already encode the expected shape' },
+          { id: 'c', label: 'C', text: 'Summarization always requires more examples than tagging' },
+          { id: 'd', label: 'D', text: 'Few-shot prompting is only useful for translation tasks' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Zero-shot works when the task is common enough that the model already "knows" the expected output shape. Few-shot earns its cost when the format is unusual or inconsistent under zero-shot — exactly the ticket-tagging case, not the summarization case.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-02-mcq-03',
+        question:
+          'An extraction prompt\'s schema doesn\'t specify what to do when `delivery_date` isn\'t mentioned in the source email. What is the most likely observable consequence?',
+        options: [
+          { id: 'a', label: 'A', text: 'The model will handle the missing field inconsistently across calls — sometimes omitting the key, sometimes using an empty string, sometimes guessing a date' },
+          { id: 'b', label: 'B', text: 'The model will always omit the field consistently' },
+          { id: 'c', label: 'C', text: 'The API call will fail with a validation error' },
+          { id: 'd', label: 'D', text: 'The model will always insert today\'s date' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Just like field typing, missing-field handling is a specification gap the model resolves arbitrarily and inconsistently unless the prompt states the rule explicitly (e.g. "use null if not mentioned in the email").'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-02-mcq-04',
+        question:
+          'Why wrap the customer email being processed in a labeled fenced block like `<EMAIL>...</EMAIL>` instead of pasting it directly after the instructions?',
+        options: [
+          { id: 'a', label: 'A', text: 'It reduces the token count of the prompt' },
+          { id: 'b', label: 'B', text: 'It clearly separates instructions from the data being processed, which improves output quality and is a first line of defense against the data itself being interpreted as instructions' },
+          { id: 'c', label: 'C', text: 'It is required by every LLM API\'s syntax' },
+          { id: 'd', label: 'D', text: 'It has no real effect, it\'s purely stylistic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A clear delimiter helps the model distinguish "text to process" from "instructions to follow" — both a quality improvement (less confusion about what to act on) and the first defensive layer against prompt injection, covered in depth next lesson.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-02-mcq-05',
+        question:
+          'After rewriting the extraction prompt with an explicit schema, what is the correct way to confirm the fix actually worked before shipping it?',
+        options: [
+          { id: 'a', label: 'A', text: 'Read the three outputs and judge by eye whether they look reasonable' },
+          { id: 'b', label: 'B', text: 'Programmatically validate each output against the schema (types, required/optional fields) across a representative test set, not just eyeball it' },
+          { id: 'c', label: 'C', text: 'Assume the schema in the prompt guarantees the output matches it' },
+          { id: 'd', label: 'D', text: 'Only test with the exact email used to originally write the prompt' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A schema in the prompt is a strong instruction, not a guarantee — the model can still drift. Programmatic validation against the schema, across a representative set of inputs (including edge cases), is what would actually catch drift before it reaches production.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-02-mcq-06',
+        question:
+          'Compared to a transcription field like `item_name` (copied near-verbatim from the email), why does a judgment field like `urgency: "low" | "medium" | "high"` typically need more careful few-shot examples?',
+        options: [
+          { id: 'a', label: 'A', text: 'Judgment fields are always shorter, so they need less context' },
+          { id: 'b', label: 'B', text: 'A judgment field requires the model to infer a category from tone and content rather than copy text, so the model has more freedom to interpret the rule differently without concrete examples anchoring the boundary' },
+          { id: 'c', label: 'C', text: 'Transcription fields are technically impossible without few-shot examples' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference between the two field types' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Transcription is close to copying, which zero-shot instructions handle well. A judgment field asks the model to apply a rule it has to infer, and examples that show where the category boundary falls (e.g. what makes an email "high" vs "medium" urgency) reduce that ambiguity far more than for a transcription field.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-ai-core/03-advanced-prompting-and-ai-safety-basics': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-03-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — STRUCTURAL NATURE OF PROMPT INJECTION',
+        question:
+          'What makes prompt injection a structural risk of LLM architecture rather than a bug fixable purely with better prompt wording?',
+        options: [
+          { id: 'a', label: 'A', text: 'LLM APIs have no way to send a system message at all' },
+          { id: 'b', label: 'B', text: 'The model cannot structurally distinguish developer instructions from instructions that happen to appear inside data it\'s processing — both arrive as tokens in the same context window' },
+          { id: 'c', label: 'C', text: 'Injection only affects models with very small context windows' },
+          { id: 'd', label: 'D', text: 'It only happens when the model is run at high temperature' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because system instructions and untrusted data both become part of the same token sequence, there\'s no hard architectural boundary preventing data from being interpreted as instructions — better wording reduces the risk but cannot eliminate it, which is why layered defenses (not prompt wording alone) are required.',
+        incorrectExplanation:
+          'Think about how developer instructions and retrieved data are processed together as tokens in the same context window.',
+        hint: 'Both developer instructions and untrusted input data enter the model as an indistinguishable sequence of tokens in the same context window.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-03-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DETERMINISTIC OUTPUT VALIDATION',
+        question:
+          'Why does the lesson describe deterministic output validation (checking a tool call\'s parameters against independently-computed values before execution) as the defense layer that "actually holds," compared to instruction-hierarchy wording alone?',
+        options: [
+          { id: 'a', label: 'A', text: 'Instruction-hierarchy wording has no effect at all and should be skipped' },
+          { id: 'b', label: 'B', text: 'Instruction-hierarchy wording reduces but cannot eliminate the risk, since the model is still just predicting tokens; a deterministic check outside the model\'s control blocks an unauthorized action regardless of what the model was manipulated into deciding' },
+          { id: 'c', label: 'C', text: 'Deterministic validation replaces the need for privilege separation' },
+          { id: 'd', label: 'D', text: 'Output validation is only needed for read-only tool calls' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Prompt-level defenses (instruction hierarchy, delimiters) reduce the probability of a successful injection but remain probabilistic, since they operate inside the same token-prediction process being attacked. A deterministic, non-model check on the actual side-effecting call is the layer that provides a hard guarantee.',
+        incorrectExplanation:
+          'Compare probabilistic token prediction inside the model context with deterministic code execution checks outside the model.',
+        hint: 'Prompt instructions are probabilistic; deterministic code validation outside the LLM context is the only layer that enforces hard security guarantees.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-03-mcq-01',
+        question:
+          'For which of the following tasks is chain-of-thought prompting most likely to meaningfully improve accuracy?',
+        options: [
+          { id: 'a', label: 'A', text: 'Naming the capital city of a well-known country' },
+          { id: 'b', label: 'B', text: 'Deciding whether a multi-line expense report complies with three separate reimbursement policy rules' },
+          { id: 'c', label: 'C', text: 'Translating a single short sentence' },
+          { id: 'd', label: 'D', text: 'Returning a fixed greeting message' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'CoT helps most on genuine multi-step logic where committing to intermediate reasoning steps as tokens improves the final answer. Single-step lookups or fixed responses gain nothing from it and only add latency and cost.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-03-mcq-02',
+        question:
+          'Why is decomposing a large ambiguous request into an explicit sequence of smaller prompts generally more reliable than one prompt doing everything at once?',
+        options: [
+          { id: 'a', label: 'A', text: 'Smaller prompts always run faster regardless of task' },
+          { id: 'b', label: 'B', text: 'Each intermediate output can be validated before it feeds the next step, catching errors early — the same reasoning that favors small, testable functions over one large one' },
+          { id: 'c', label: 'C', text: 'Models cannot process large prompts at all' },
+          { id: 'd', label: 'D', text: 'Decomposition eliminates the need for any validation' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The reliability gain comes from being able to check each step\'s output before it becomes input to the next, not from raw speed. This mirrors why composing small, testable functions is more reliable than one large opaque one in traditional software.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-03-mcq-03',
+        question:
+          'A malicious instruction hidden inside a support ticket\'s body text, intended to manipulate a downstream tool-calling agent, is an example of which kind of prompt injection?',
+        options: [
+          { id: 'a', label: 'A', text: 'Direct injection' },
+          { id: 'b', label: 'B', text: 'Indirect injection' },
+          { id: 'c', label: 'C', text: 'Neither — this is a data validation bug unrelated to injection' },
+          { id: 'd', label: 'D', text: 'A model hallucination' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Indirect injection is instructions hidden inside data the system retrieves and feeds to the model — a ticket body, a fetched webpage, a document — as opposed to a user typing an override directly into the chat (direct injection). It\'s the more dangerous case in FDE-style integrations because the injected content arrives through a "trusted" data pipeline.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-03-mcq-04',
+        question:
+          'What does "privilege separation" mean in the context of a support-ticket triage agent that has an `issue_refund` tool available?',
+        options: [
+          { id: 'a', label: 'A', text: 'The agent should have unrestricted access to all tools to maximize flexibility' },
+          { id: 'b', label: 'B', text: 'The agent\'s tool-calling permissions should be scoped to the minimum required for its task — e.g. a hard cap far below any large refund amount, with anything above requiring separate human-reviewed approval' },
+          { id: 'c', label: 'C', text: 'Every tool call must be logged, regardless of what permissions it has' },
+          { id: 'd', label: 'D', text: 'The agent should never be allowed to call any tool' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Privilege separation limits the blast radius of a successful injection: even if the model is manipulated into deciding to issue a large refund, a hard-capped tool permission prevents that decision from executing as a large unauthorized action.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-03-mcq-05',
+        question:
+          'What is the appropriate default for actions where a false positive is expensive (e.g. issuing a large refund), according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Fully automate the action from day one to reduce latency' },
+          { id: 'b', label: 'B', text: 'Require explicit human confirmation by default, and only relax it once the system has enough measured accuracy and audit trail to justify doing so — even then, degrading to sampled review rather than removing the gate entirely' },
+          { id: 'c', label: 'C', text: 'Never automate any part of the workflow' },
+          { id: 'd', label: 'D', text: 'Automate the action but disable logging to reduce noise' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Human-in-the-loop is the safe default for high-stakes, hard-to-reverse actions. Relaxing it should be earned with measured accuracy and audit trail, and even then a degrade-to-sampling approach preserves some oversight rather than full removal.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-03-mcq-06',
+        question:
+          'In the scenario\'s fix, the refund amount from the model\'s tool call is checked against a value looked up independently from the customer\'s order database. Why is this specifically effective against the injection example given?',
+        options: [
+          { id: 'a', label: 'A', text: 'It prevents the model from ever calling the refund tool' },
+          { id: 'b', label: 'B', text: 'The injected instruction ("$9,999... pre-approved") only exists inside the model\'s context; an independently computed order value from a separate system is unaffected by anything in the ticket text, so a mismatch reliably surfaces the manipulation' },
+          { id: 'c', label: 'C', text: 'It removes the need for a refund cap' },
+          { id: 'd', label: 'D', text: 'It only works if the ticket is in a specific language' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The defense works because the validation source is entirely outside the model\'s influence — no amount of injected text in the ticket can change what the order database independently reports, so a mismatch between the model\'s proposed amount and the ground-truth value is a reliable signal.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-03-mcq-07',
+        question:
+          'A triage agent is given a tool that can not only issue refunds but also permanently delete customer accounts, even though deletion is never part of its actual task. Which OWASP-style LLM risk does this best illustrate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Sensitive information disclosure' },
+          { id: 'b', label: 'B', text: 'Excessive agency — the agent holds more capability than its task requires, widening the blast radius of any manipulation' },
+          { id: 'c', label: 'C', text: 'Training data poisoning' },
+          { id: 'd', label: 'D', text: 'Model denial of service' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Excessive agency is granting an LLM-driven system more permissions or capability than the task genuinely needs. Here, account deletion capability has nothing to do with refund triage, so its mere presence is a risk independent of whether injection ever succeeds — directly reinforcing the privilege-separation principle from this lesson.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-ai-core/04-llm-built-in-power-tools': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-04-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — FUNCTION CALLING MECHANISM',
+        question:
+          'When a model "calls" a described function during a chat completion, what actually happens?',
+        options: [
+          { id: 'a', label: 'A', text: 'The model directly executes the function on the vendor\'s servers' },
+          { id: 'b', label: 'B', text: 'The model returns a structured proposal (function name and arguments) for your own code to decide whether and how to execute' },
+          { id: 'c', label: 'C', text: 'The function runs automatically inside the model\'s context window' },
+          { id: 'd', label: 'D', text: 'The model modifies its own weights to include the function\'s logic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Function/tool calling is the model proposing a structured call; your application code decides whether to actually execute it and feeds the result back. This seam is exactly where output validation and privilege-separation defenses attach.',
+        incorrectExplanation:
+          'Distinguish between the model proposing structured arguments and your host application actually executing code.',
+        hint: 'The LLM never directly executes tools; it generates a structured proposal for your application runtime to validate and execute.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-04-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — TOOL PROPOSAL VALIDATION SEAM',
+        question:
+          'Why does the fact that function calling only ever produces a proposed call (not an executed action) matter for the injection defenses covered in the previous lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It means injection defenses are unnecessary since the model never executes anything' },
+          { id: 'b', label: 'B', text: 'It means the deterministic output-validation and privilege-separation checks have a concrete point to attach to — your own code, not the model, makes the final decision to execute, so those defenses can actually intercept a manipulated call before it runs' },
+          { id: 'c', label: 'C', text: 'It means every function call is automatically safe' },
+          { id: 'd', label: 'D', text: 'It has no relationship to injection defenses' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The gap between "model proposes a call" and "your code executes it" is exactly the seam where validation and privilege separation are enforced. If the model executed actions directly, there would be no interception point at all.',
+        incorrectExplanation:
+          'Consider where deterministic security checks, parameter validation, and privilege bounds can intercept side-effecting operations.',
+        hint: 'The interception point between the proposed function call and host execution is where deterministic validation and privilege caps attach.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-04-mcq-01',
+        question:
+          'How does schema-constrained "structured output" differ from simply asking the model in the prompt to "return JSON matching this schema"?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are functionally identical, structured output is just a marketing term' },
+          { id: 'b', label: 'B', text: 'Structured output constrains the model\'s token generation itself to match the schema, a stronger guarantee than an instruction the model could still deviate from' },
+          { id: 'c', label: 'C', text: 'Structured output only works for numeric fields' },
+          { id: 'd', label: 'D', text: 'Prompt-only JSON requests are always more reliable' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Prompt-level formatting instructions are still just instructions the model can drift from. Schema-constrained decoding restricts what tokens can even be generated at each step, providing a materially stronger structural guarantee.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-04-mcq-02',
+        question:
+          'For which situation is a computer-use / GUI agent tool most specifically justified over building an API integration?',
+        options: [
+          { id: 'a', label: 'A', text: 'The target system has a well-documented, stable REST API' },
+          { id: 'b', label: 'B', text: 'The target system is a legacy internal tool or third-party vendor portal with no API to integrate against' },
+          { id: 'c', label: 'C', text: 'The task only requires reading structured data from a database' },
+          { id: 'd', label: 'D', text: 'The task requires the lowest possible latency' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Computer-use tooling is valuable precisely when there\'s no API to integrate against and building one isn\'t an option — operating existing software the way a human would. When a real API exists, a direct integration is more reliable and lower-latency.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-04-mcq-03',
+        question:
+          'Why did the scenario\'s FDE build a custom retrieval tool for the internal market-research documents instead of using the vendor\'s hosted equivalent?',
+        options: [
+          { id: 'a', label: 'A', text: 'The vendor\'s hosted tool doesn\'t technically support document retrieval' },
+          { id: 'b', label: 'B', text: 'The documents are covered by NDA data-residency clauses, and a custom tool run inside the customer\'s own infrastructure keeps proprietary content from leaving their boundary, unlike a vendor-hosted tool' },
+          { id: 'c', label: 'C', text: 'Custom tools are always faster than hosted equivalents' },
+          { id: 'd', label: 'D', text: 'Custom tools are cheaper to build than to operate a hosted tool' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Data control and compliance was the deciding factor here, not speed or cost — a hosted tool sends data to the vendor\'s infrastructure, which conflicts directly with a data-residency requirement, so the custom-tool cost was justified specifically by that constraint.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-04-mcq-04',
+        question:
+          'Why is a code-execution sandbox tool useful for a task like "calculate the average of these 40 numbers," even though the model could attempt the arithmetic directly in text?',
+        options: [
+          { id: 'a', label: 'A', text: 'Code execution is always faster than text generation' },
+          { id: 'b', label: 'B', text: 'Models are unreliable at multi-step arithmetic performed purely through token generation; delegating the calculation to actually-executed code produces a correct, verifiable result' },
+          { id: 'c', label: 'C', text: 'Models cannot generate numeric tokens at all' },
+          { id: 'd', label: 'D', text: 'This is not a valid use case for code execution tools' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '"Reasoning" arithmetic in text is prone to error at scale, since the model is predicting plausible-looking tokens, not running deterministic computation. A code-execution tool actually runs real code, giving a verifiably correct result instead of a plausible-sounding one.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-04-mcq-05',
+        question:
+          'What is the specific fidelity limitation of a vendor\'s built-in web-search tool compared to a custom retrieval tool the FDE builds themselves?',
+        options: [
+          { id: 'a', label: 'A', text: 'Built-in web-search tools cannot return any results at all for niche queries' },
+          { id: 'b', label: 'B', text: 'The FDE has no control over the vendor\'s source prioritization or citation format when using a built-in web-search tool, whereas a custom retrieval tool gives full control over what\'s indexed and how results are ranked' },
+          { id: 'c', label: 'C', text: 'Built-in web-search tools are always slower than custom retrieval' },
+          { id: 'd', label: 'D', text: 'There is no fidelity difference between the two' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Speed to ship favors the built-in tool, but you inherit whatever the vendor\'s search index and ranking decide, with no control over source prioritization — that control is exactly what a custom retrieval/RAG tool buys you, at the cost of building and maintaining it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-04-mcq-06',
+        question:
+          'What does the lesson\'s framework suggest is typical of a mature FDE engagement\'s tool selection?',
+        options: [
+          { id: 'a', label: 'A', text: 'Always choosing built-in tools exclusively for consistency' },
+          { id: 'b', label: 'B', text: 'Always building every tool from scratch to maximize control' },
+          { id: 'c', label: 'C', text: 'Mixing both — built-in tools where speed and low compliance risk make sense (e.g. public web search), custom tools where proprietary data or full control is required (e.g. internal document retrieval)' },
+          { id: 'd', label: 'D', text: 'Avoiding tool use entirely in favor of longer prompts' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'None of the three factors (speed, data control, fidelity/cost) dominates categorically — the right choice is scenario-specific, and real engagements typically mix built-in and custom tools based on which factor matters most for each individual piece of the system.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-ai-core/05-rag-retrieval-augmented-generation': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-05-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — DIAGNOSING RAG FAILURE MODES',
+        question:
+          'A RAG system gives a wrong answer. Inspection shows the correct chunk was retrieved and included in the prompt, but placed 7th out of 10 chunks with no reordering by relevance. What kind of failure is this?',
+        options: [
+          { id: 'a', label: 'A', text: 'A retrieval miss — the correct chunk was never found' },
+          { id: 'b', label: 'B', text: 'A lost-in-the-middle generation failure — the chunk was retrieved correctly, but its position deep in a long, unordered context made the model less likely to use it' },
+          { id: 'c', label: 'C', text: 'An embedding model failure requiring retraining' },
+          { id: 'd', label: 'D', text: 'A chunking failure requiring smaller chunks' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Since the correct chunk was retrieved (context recall was fine), the fault lies in generation, not retrieval — models are measurably less likely to use information buried mid-context, which is exactly why reordering retrieved chunks by relevance before assembly matters.',
+        incorrectExplanation:
+          'Check if the retrieval stage succeeded in finding the chunk, and where the degradation occurred during generation.',
+        hint: 'When the correct document chunk is retrieved but placed deep in a long context window, generation quality degrades due to the lost-in-the-middle effect.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-05-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — CONTEXT PRECISION VS RECALL',
+        question:
+          'A RAG system retrieves 10 chunks for a query; 2 of them are actually relevant, and those 2 represent all of the relevant material that existed in the index. What does this tell you about context precision and context recall?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both context precision and context recall are high' },
+          { id: 'b', label: 'B', text: 'Context recall is high (all relevant material available was found), but context precision is low (only 2 of 10 retrieved chunks were actually relevant)' },
+          { id: 'c', label: 'C', text: 'Both context precision and context recall are low' },
+          { id: 'd', label: 'D', text: 'Context precision is high, context recall is low' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Context recall asks "of the relevant material that exists, how much did we find" — here, all of it (2 of 2). Context precision asks "of what we retrieved, how much was relevant" — here, only 2 of 10, so precision is poor even though recall is perfect.',
+        incorrectExplanation:
+          'Recall measures the proportion of available relevant chunks retrieved; precision measures the proportion of retrieved chunks that are actually relevant.',
+        hint: 'Recall is high when all available relevant chunks are found; precision is low when irrelevant chunks dilute the retrieved set.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-05-mcq-01',
+        question:
+          'Which three stages make up a standard RAG pipeline, in order?',
+        options: [
+          { id: 'a', label: 'A', text: 'Ingestion (chunk and embed source documents), retrieval (find relevant chunks for a query), generation (produce an answer grounded in retrieved context)' },
+          { id: 'b', label: 'B', text: 'Training, fine-tuning, deployment' },
+          { id: 'c', label: 'C', text: 'Tokenization, embedding, classification' },
+          { id: 'd', label: 'D', text: 'Prompting, sampling, evaluation' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'RAG\'s three stages are ingestion (prepare and index source content), retrieval (find the relevant pieces for a given query), and generation (produce a grounded answer using what was retrieved). A weak link in any one degrades the whole system.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-05-mcq-02',
+        question:
+          'Why does a chunk covering five unrelated topics tend to retrieve poorly for queries about any one of those topics?',
+        options: [
+          { id: 'a', label: 'A', text: 'Large chunks are always rejected by vector databases' },
+          { id: 'b', label: 'B', text: 'The chunk\'s embedding becomes a blurry average across all five topics, making it a worse match for any single specific query than a focused chunk would be' },
+          { id: 'c', label: 'C', text: 'Large chunks cannot be embedded at all' },
+          { id: 'd', label: 'D', text: 'This only happens with keyword search, not vector search' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'An embedding is a single vector summarizing the chunk\'s content; mixing unrelated topics dilutes that vector\'s specificity, so it matches a targeted query less precisely than a smaller, focused chunk would.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-05-mcq-03',
+        question:
+          'A fixed-size chunker splits documents every 500 characters regardless of sentence boundaries. What is the most likely quality problem this introduces?',
+        options: [
+          { id: 'a', label: 'A', text: 'Fixed-size chunking always produces faster retrieval' },
+          { id: 'b', label: 'B', text: 'A chunk can be cut off mid-sentence, destroying its meaning as a coherent, independently retrievable unit' },
+          { id: 'c', label: 'C', text: 'Fixed-size chunking prevents any embedding from being generated' },
+          { id: 'd', label: 'D', text: 'This has no meaningful effect on retrieval quality' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A chunk that\'s cut mid-sentence no longer represents a complete, coherent idea, which damages both its embedding quality and its usefulness once retrieved — this is why recursive/semantic chunking that respects natural boundaries is the practical default.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-05-mcq-04',
+        question:
+          'A query looking for an exact product SKU or error code often retrieves poorly with dense vector search alone. Why does hybrid search address this?',
+        options: [
+          { id: 'a', label: 'A', text: 'Hybrid search removes the need for an embedding model entirely' },
+          { id: 'b', label: 'B', text: 'It combines dense vector similarity with sparse keyword/BM25 matching, and exact-match needs like SKUs or error codes are handled well by keyword matching even when semantic similarity alone misses them' },
+          { id: 'c', label: 'C', text: 'Hybrid search only works for very short documents' },
+          { id: 'd', label: 'D', text: 'Dense vector search always outperforms keyword search on exact terms' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Dense embeddings capture semantic similarity, not exact string matching, so specific identifiers can be under-weighted. Sparse keyword search is precisely strong where dense search is weak, which is why combining both consistently outperforms either alone on real-world query mixes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-05-mcq-05',
+        question:
+          'What does the RAGAS "faithfulness" metric specifically measure?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the retrieved chunks are relevant to the query' },
+          { id: 'b', label: 'B', text: 'Whether the generated answer\'s claims actually follow from the retrieved context, or whether the model added unsupported claims' },
+          { id: 'c', label: 'C', text: 'How many chunks were retrieved in total' },
+          { id: 'd', label: 'D', text: 'How fast the answer was generated' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Faithfulness evaluates the generation stage specifically — whether the model\'s output stays grounded in what was actually retrieved, rather than introducing claims not supported by the context. Relevancy of retrieved chunks is a separate metric (context precision).'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-05-mcq-06',
+        question:
+          'Why does the lesson recommend scoring RAGAS\'s four metrics separately rather than just judging whether the final answer was right or wrong?',
+        options: [
+          { id: 'a', label: 'A', text: 'RAGAS metrics are only meaningful in aggregate, never individually' },
+          { id: 'b', label: 'B', text: 'A wrong final answer alone doesn\'t reveal whether the problem is in retrieval (precision/recall) or generation (faithfulness/relevancy), and fixing the wrong stage wastes effort — separate scoring points directly at what to fix' },
+          { id: 'c', label: 'C', text: 'The final answer is never a reliable signal of anything' },
+          { id: 'd', label: 'D', text: 'Separate scoring is only useful for very large document sets' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly the diagnostic value demonstrated in the practical scenario: separating retrieval-stage metrics (precision, recall) from generation-stage metrics (faithfulness, relevancy) let the FDE conclude the fault was lost-in-the-middle generation, not a retrieval problem, and fix the right thing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-05-mcq-07',
+        question:
+          'What does a reranking step (cross-encoder model) add to a RAG pipeline that initial embedding-similarity retrieval alone doesn\'t provide?',
+        options: [
+          { id: 'a', label: 'A', text: 'It replaces the need for chunking entirely' },
+          { id: 'b', label: 'B', text: 'It re-scores the top candidates from initial retrieval against the actual query more expensively but more accurately than embedding similarity, typically applied once basic retrieval and hybrid search stop being the main bottleneck' },
+          { id: 'c', label: 'C', text: 'It eliminates the need for an evaluation framework like RAGAS' },
+          { id: 'd', label: 'D', text: 'It reduces the total number of documents that can be indexed' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Reranking is a more expensive, more accurate second pass over a smaller candidate set already narrowed by initial retrieval — it\'s the next lever reached for once chunking and hybrid search improvements stop moving the needle.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-ai-core/06-n8n-automation-workflow': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-ai-core-06-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — N8N ITEMS-ARRAY EXECUTION MODEL',
+        question:
+          'A node in an n8n workflow receives 5 records from a previous step. By default, how many times does the next node in the chain execute?',
+        options: [
+          { id: 'a', label: 'A', text: 'Exactly once, receiving all 5 records as a single combined input' },
+          { id: 'b', label: 'B', text: 'Once per item — the node runs independently for each of the 5 records unless they\'re explicitly aggregated first' },
+          { id: 'c', label: 'C', text: 'Zero times, since n8n requires manual iteration to be configured' },
+          { id: 'd', label: 'D', text: 'A random number of times depending on server load' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'n8n\'s item-array data model means most nodes operate on every item independently by default — this is the detail that trips up newcomers most, since it\'s easy to assume a node runs once total rather than once per item.',
+        incorrectExplanation:
+          'Remember that in n8n data flows as an array of items and nodes iterate over items individually unless explicit aggregation is used.',
+        hint: 'n8n nodes process each incoming item in the array independently by default, executing once per item.'
+      },
+      {
+        id: 'lesson-fde-agentic-ai-core-06-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — HUMAN-IN-THE-LOOP BRANCH SELECTION',
+        question:
+          'Of the lead-triage workflow\'s three branches (sales-qualified, needs-more-info, spam), which most benefits from a human-in-the-loop approval gate before any automated reply is sent, and why?',
+        options: [
+          { id: 'a', label: 'A', text: 'Spam — because spam messages are the most numerous' },
+          { id: 'b', label: 'B', text: 'Needs-more-info — it\'s the branch where an automated reply requires judgment about what specific follow-up question to ask, making an incorrect auto-response more likely and more costly to the lead relationship than a straightforward CRM write or a discarded spam message' },
+          { id: 'c', label: 'C', text: 'Sales-qualified — because it\'s the highest-value branch' },
+          { id: 'd', label: 'D', text: 'None of the branches benefit from a human-in-the-loop gate' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Sales-qualified just writes to CRM and notifies a human sales rep (who reviews before acting further), and spam is simply logged — neither sends an automated customer-facing reply. Needs-more-info is the branch most likely to involve an automated response requiring judgment, making it the one where a wrong auto-reply is most costly, which is exactly why it\'s the best candidate for a human gate per the human-in-the-loop principle from the safety lesson.',
+        incorrectExplanation:
+          'Consider which branch involves sending an outward-facing automated reply that requires contextual judgment and carries relationship risk.',
+        hint: 'Human-in-the-loop gates are most vital where automated customer-facing responses require nuanced judgment and carry relationship risk.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-06-mcq-01',
+        question:
+          'What makes n8n more than "a rigid if-this-then-that tool," according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It has more triggers than competing tools' },
+          { id: 'b', label: 'B', text: 'It lets you write actual JavaScript or Python in a Code node when a visual node can\'t express a needed transformation, mixing no-code speed with full-code flexibility in the same workflow' },
+          { id: 'c', label: 'C', text: 'It only supports webhook triggers, which simplifies its model' },
+          { id: 'd', label: 'D', text: 'It requires all logic to be written in code, with no visual nodes at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The Code node is the escape hatch that keeps n8n from being limited to whatever its built-in visual nodes can express, letting you drop into real code for a specific transformation without abandoning the rest of the visual workflow.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-06-mcq-02',
+        question:
+          'How does n8n\'s AI Agent node relate to the function/tool-calling pattern covered in an earlier lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is unrelated; the AI Agent node cannot call any external tools' },
+          { id: 'b', label: 'B', text: 'It\'s the same pattern expressed visually — you attach other nodes as callable tools the model can invoke mid-execution, instead of describing functions in application code' },
+          { id: 'c', label: 'C', text: 'It replaces the need for function calling entirely with a different mechanism' },
+          { id: 'd', label: 'D', text: 'It only works with models that don\'t support function calling' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The AI Agent node wraps an LLM call with tool-calling support and lets you attach other nodes as tools — conceptually identical to the function-calling mechanism from lesson 4, just expressed as a visual graph instead of code.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-06-mcq-03',
+        question:
+          'What does n8n\'s native MCP client and server support specifically enable?',
+        options: [
+          { id: 'a', label: 'A', text: 'n8n workflows can only ever consume external tools, never be exposed as one' },
+          { id: 'b', label: 'B', text: 'An AI Agent node can call external MCP-compliant tool servers (client mode), and any n8n workflow can itself be exposed as a callable tool for an external agent (server mode) — letting a workflow built once be reused across different agentic systems' },
+          { id: 'c', label: 'C', text: 'MCP support removes the need for webhook triggers' },
+          { id: 'd', label: 'D', text: 'MCP is unrelated to n8n\'s tool-calling capabilities' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Bidirectional MCP support means n8n workflows aren\'t locked into being either only a tool-consumer or only a tool-provider — a workflow can be reused as a tool by a separate agentic system without rebuilding the integration from scratch.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-06-mcq-04',
+        question:
+          'Why did the lead-triage scenario favor building the automation in n8n over a hand-written Python service, at least initially?',
+        options: [
+          { id: 'a', label: 'A', text: 'n8n workflows always run faster than hand-written services' },
+          { id: 'b', label: 'B', text: 'It shipped faster in week one of the engagement, and a non-engineer on the customer\'s team could see and understand the workflow graph, which matters early when requirements are still shifting' },
+          { id: 'c', label: 'C', text: 'Python cannot make HTTP requests to a CRM API' },
+          { id: 'd', label: 'D', text: 'n8n is required by law for lead-triage automations' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The trade-off in the scenario was speed-to-ship and customer visibility/modifiability early in an engagement, not raw technical capability — both n8n and a hand-written service could implement the same logic, but n8n won on those specific factors for this stage of the engagement.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-06-mcq-05',
+        question:
+          'According to the lesson, what should trigger porting a workflow from n8n into a hand-written service?',
+        options: [
+          { id: 'a', label: 'A', text: 'As soon as the workflow uses an AI Agent node' },
+          { id: 'b', label: 'B', text: 'Once the logic needs version-controlled testing, complex branching that\'s genuinely clearer as code, or a scale/latency profile n8n\'s execution model isn\'t built for' },
+          { id: 'c', label: 'C', text: 'n8n workflows should never be ported to a hand-written service under any circumstances' },
+          { id: 'd', label: 'D', text: 'As soon as more than one external API is involved' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames n8n as often a fast prototyping and glue-integration layer, not necessarily the final production home for every workflow — the port-out signal is specific (testing rigor, branching complexity, or scale/latency needs), not a fixed rule like "as soon as an LLM is involved."'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-ai-core-06-mcq-06',
+        question:
+          'In the lead-triage scenario\'s node graph, what determines which of the three downstream paths (CRM write, log-only, or otherwise) a given lead follows?',
+        options: [
+          { id: 'a', label: 'A', text: 'The order in which leads arrive' },
+          { id: 'b', label: 'B', text: 'The classification output from the AI Agent node, evaluated by a conditional (IF/Switch) node downstream of it' },
+          { id: 'c', label: 'C', text: 'A fixed round-robin assignment' },
+          { id: 'd', label: 'D', text: 'The Slack node decides the routing before classification happens' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The AI Agent node classifies the lead first; a downstream IF/Switch node then branches execution based on that classification result — sales-qualified leads go to CRM write and Slack notification, everything else is logged.'
+      }
+    ]
   }
 };
 
