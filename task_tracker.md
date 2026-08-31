@@ -179,6 +179,23 @@
 - [x] **Sub-task 24.3**: Confirm architecture diagrams are omitted for Lessons 1-6 (process/communication & linear flows).
 - [x] **Sub-task 24.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
 - [x] **Sub-task 24.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+## Phase 25: FDE Curriculum Pipeline — Module 5: Enterprise Communication, Consulting & LLM Engineering (Lessons 7-12 of 12 — MODULE 5 COMPLETE) (Completed)
+- [x] **Sub-task 25.1**: Ingest 6 Lesson chapter bodies for `enterprise-consulting-llm` (Lessons 7-12) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 25.2**: Wire 12 Concept Checks (2 per lesson) and 41 Practice Questions across all 6 lessons (53 total MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 25.3**: Confirm architecture diagrams are omitted for Lessons 7-12 per §8a inclusion test criteria.
+- [x] **Sub-task 25.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 25.5**: Update task tracker and provide Docker Compose / SQL verification steps.
 
+## Phase 26: FDE Curriculum Pipeline — Module 6: Agentic Systems & Enterprise Integrations (Lessons 1-6 of 11) (Completed)
+- [x] **Sub-task 26.1**: Ingest 6 Lesson chapter bodies for `agentic-systems-integrations` (Lessons 1-6) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 26.2**: Wire 12 Concept Checks (2 per lesson) and 38 Practice Questions across all 6 lessons (50 total MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 26.3**: Confirm architecture diagrams are omitted for Lessons 1-6 per §8a inclusion test criteria.
+- [x] **Sub-task 26.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 26.5**: Update task tracker and provide Docker Compose / SQL verification steps.
 
-
+## Phase 27: FDE Curriculum Pipeline — Module 7: Application Engineering, Security & Reliability (Lessons 1-6 of 12) (Completed)
+- [x] **Sub-task 27.1**: Ingest 6 Lesson chapter bodies for `application-security-reliability` (Lessons 1-6) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 27.2**: Wire 12 Concept Checks (2 per lesson) and 39 Practice Questions across all 6 lessons (51 total MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 27.3**: Confirm architecture diagrams are omitted for Lessons 1-6 per §8a inclusion test criteria.
+- [x] **Sub-task 27.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 27.5**: Update task tracker and provide Docker Compose / SQL verification steps.

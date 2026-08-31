@@ -10502,7 +10502,2569 @@ const lessonInteractions = {
           'Red-teaming a prompt\'s actual attack surface means considering distinct attack goals separately — an instruction-override attempt and a system-prompt-extraction attempt exploit the same architectural weakness differently, so each needs its own concrete test case to be reliably caught.'
       }
     ]
-  }
+  },
+  'fde-curriculum/enterprise-consulting-llm/07-rag-architecture-ingestion-and-retrieval': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-07-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson say the first architectural decision for a real customer document set is parsing strategy per format, not chunking strategy?',
+        options: [
+          { id: 'a', label: 'A', text: 'Chunking strategy is irrelevant once documents are ingested' },
+          { id: 'b', label: 'B', text: 'A chunker only ever sees what the parser produced, so a parser that silently drops a table or garbles a scanned page produces chunks that look fine but retrieve badly, regardless of how good the chunking strategy is' },
+          { id: 'c', label: 'C', text: 'Parsing and chunking always happen in the same step and cannot be separated' },
+          { id: 'd', label: 'D', text: 'Chunking strategy only matters for plain text files' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The chunker operates on whatever text the parser extracted; if the parser lost information (a flattened table, a garbled scan), no chunking strategy downstream can recover it, which is why parsing quality per format is the earlier, higher-leverage decision.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'A chunker can only process text that the parser successfully extracted; damaged or missing structures cannot be recovered downstream.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-07-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson insist access-control metadata be attached to chunks at ingestion time rather than filtered in afterward at query time?',
+        options: [
+          { id: 'a', label: 'A', text: 'Access control can always be enforced equally well regardless of when it\'s implemented' },
+          { id: 'b', label: 'B', text: 'Retrieval-time filtering needs metadata to filter on; if ingestion never captured which documents or chunks a user is entitled to see, there is nothing for a later filtering step to check against' },
+          { id: 'c', label: 'C', text: 'Query-time filtering is technically impossible in any vector database' },
+          { id: 'd', label: 'D', text: 'Ingestion-time tagging removes the need for any retrieval-time enforcement at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Retrieval-time enforcement (the next lesson\'s topic) is only as good as the metadata it can filter on; without ingestion-time capture of real source-system permissions, the choice narrows to over-restricting or under-restricting, both of which are worse than correct filtering.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Without chunk-level permission metadata attached during ingestion, retrieval cannot filter unauthorized documents before returning results.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-07-mcq-02',
+        question:
+          'Why does a production ingestion pipeline need a confidence signal from its OCR step, rather than always ingesting whatever text OCR produced?',
+        options: [
+          { id: 'a', label: 'A', text: 'OCR always fails completely or succeeds completely, so a confidence signal is unnecessary' },
+          { id: 'b', label: 'B', text: 'OCR quality on real customer scans varies, and silently ingesting low-confidence, garbled text produces chunks that appear normal but embed and retrieve incorrectly, so low-confidence pages should be flagged for review instead' },
+          { id: 'c', label: 'C', text: 'Confidence signals are only useful for detecting duplicate documents' },
+          { id: 'd', label: 'D', text: 'OCR confidence has no relationship to retrieval quality' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Garbled OCR text still gets embedded and indexed like any other chunk, but its content is wrong, which is a silent failure mode; a confidence threshold routes suspect pages to human review instead of ingesting them as if they were clean.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-07-mcq-03',
+        question:
+          'A naive parser flattens a table into one run of plain text. Why does this specifically damage a query asking for "the Q3 number for the EMEA region"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Flattened tables cannot be embedded by any embedding model' },
+          { id: 'b', label: 'B', text: 'Flattening destroys the row/column structure that connects "Q3" and "EMEA" to their specific intersecting value, so the information the query needs is no longer recoverable from the chunk' },
+          { id: 'c', label: 'C', text: 'This only affects keyword search, not vector search' },
+          { id: 'd', label: 'D', text: 'Flattened tables are always split into a separate chunk automatically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A table\'s meaning depends on which row and column a value belongs to; collapsing that structure into undifferentiated text loses exactly the relationship a structured query depends on, which is why table-aware parsing (e.g. preserving markdown table structure) matters.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-07-mcq-04',
+        question:
+          'Why does the lesson say a pipeline that only supports a full reindex becomes operationally unusable at real document counts?',
+        options: [
+          { id: 'a', label: 'A', text: 'Vector databases have a hard limit on the total number of reindex operations they can ever perform' },
+          { id: 'b', label: 'B', text: 'A full reindex re-parses, re-chunks, and re-embeds every document from scratch every time, which is slow, costs a billed embedding call per document regardless of whether it changed, and creates a window reflecting neither the old nor new state cleanly' },
+          { id: 'c', label: 'C', text: 'Full reindexing is only a problem for documents under 1,000 words' },
+          { id: 'd', label: 'D', text: 'Incremental and full reindexing produce identical index states, so the distinction doesn\'t matter operationally' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The cost is compounding: every document, changed or not, gets re-embedded on every full reindex, which is wasteful at scale and creates an inconsistent window during the rebuild — the exact problems incremental re-ingestion is designed to avoid.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-07-mcq-05',
+        question:
+          'Why does the lesson describe a RAG system confidently citing a superseded, uncorrected document version as worse than having no RAG system at all?',
+        options: [
+          { id: 'a', label: 'A', text: 'A missing RAG system always produces more accurate answers than any RAG system' },
+          { id: 'b', label: 'B', text: 'The stale citation looks authoritative and confident while being factually wrong, which is more damaging than an obvious absence of an answer, since the user has no signal to distrust it' },
+          { id: 'c', label: 'C', text: 'Stale citations only occur when the embedding model itself is outdated' },
+          { id: 'd', label: 'D', text: 'This problem cannot occur if chunking is done correctly' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The specific harm is epistemic: a wrong answer delivered with the same confident tone as a correct one gives the user no reason to question it, whereas no system at all at least doesn\'t create false confidence in stale information.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-07-mcq-07',
+        question:
+          'In the manufacturing customer scenario, why does the pipeline pull the `role:hr` tag directly from SharePoint\'s own permission API rather than hardcoding it per document?',
+        options: [
+          { id: 'a', label: 'A', text: 'SharePoint\'s permission API is required by law for all RAG systems' },
+          { id: 'b', label: 'B', text: 'A hardcoded tag drifts out of sync the moment the source system\'s actual permissions change, while pulling from the real permission system keeps the tag accurate to the document\'s true current access rules' },
+          { id: 'c', label: 'C', text: 'Hardcoding tags is technically impossible in a production ingestion pipeline' },
+          { id: 'd', label: 'D', text: 'The tag only needs to be accurate at the moment of the very first ingestion' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Sourcing the tag from the actual permission system, rather than a hardcoded guess, means it stays correct as the source system\'s real access rules change over time, avoiding silent drift between the index\'s metadata and the truth.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-07-mcq-08',
+        question:
+          'What role does a per-document change signal (a last-modified timestamp, content hash, or webhook) play in the ingestion pipeline described in this lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It determines which embedding model to use for a given document' },
+          { id: 'b', label: 'B', text: 'It lets incremental re-ingestion identify exactly which documents actually changed, so only those are re-parsed, re-chunked, and re-embedded instead of the entire corpus' },
+          { id: 'c', label: 'C', text: 'It is only used to generate the access-control tag' },
+          { id: 'd', label: 'D', text: 'It replaces the need for OCR confidence checking' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The change signal is the mechanism that makes incremental sync possible at all — without a reliable way to detect which documents changed, the pipeline has no basis for skipping unchanged documents during a sync.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-07-mcq-09',
+        question:
+          'A source document is deleted from the customer\'s system entirely. What should a correctly designed incremental ingestion pipeline do?',
+        options: [
+          { id: 'a', label: 'A', text: 'Leave the document\'s existing chunks in the index indefinitely, since deletion is rare' },
+          { id: 'b', label: 'B', text: 'Detect the deletion and remove the document\'s chunks from the index, so they cannot still be retrieved and cited after the source no longer exists' },
+          { id: 'c', label: 'C', text: 'Mark the document\'s chunks as low-priority but keep them retrievable' },
+          { id: 'd', label: 'D', text: 'Wait until the next scheduled full reindex to remove the chunks' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'An orphaned chunk from a deleted source is a direct analog to the stale-citation problem — it can still surface in retrieval and be presented as current, so deletion needs to propagate into the index promptly, not wait for a full reindex cycle.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/08-rag-over-customer-documents-and-hybrid-search': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-08-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson insist access control be applied as a pre-filter (narrowing candidates before similarity ranking) rather than a post-filter (discarding restricted results after ranking)?',
+        options: [
+          { id: 'a', label: 'A', text: 'Pre-filtering and post-filtering always produce identical result sets, so the choice is only a performance concern' },
+          { id: 'b', label: 'B', text: 'A post-filter can silently return fewer than the intended number of results (or none) whenever the best matches happen to be restricted, and if any downstream step already exposed the restricted chunk to the model before discarding it, the access boundary was never actually enforced' },
+          { id: 'c', label: 'C', text: 'Post-filtering is faster than pre-filtering in every vector database implementation' },
+          { id: 'd', label: 'D', text: 'Pre-filtering is only possible when using keyword search, not vector search' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Pre-filtering narrows the authorized candidate set before ranking, so the top-k results are drawn only from what the user can see; post-filtering risks both degraded results and, if the model already saw the restricted content before discard, a genuine access-control failure rather than a display-layer inconvenience.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Post-filtering risks returning zero results if all top-k vector matches belong to restricted documents that get filtered out after retrieval.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-08-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson recommend reciprocal rank fusion (combining rank position) over naively averaging the raw similarity and BM25 scores when merging hybrid search results?',
+        options: [
+          { id: 'a', label: 'A', text: 'Rank position is always a more accurate signal of relevance than a similarity score in isolation' },
+          { id: 'b', label: 'B', text: 'Dense-similarity scores and BM25 scores live on different, non-comparable scales, so averaging raw scores produces a merge dominated by whichever scoring system happens to produce larger numbers rather than whichever result is actually more relevant' },
+          { id: 'c', label: 'C', text: 'Reciprocal rank fusion eliminates the need for any access-control filtering' },
+          { id: 'd', label: 'D', text: 'BM25 scores and vector similarity scores are always on an identical numeric scale' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because the two scoring systems aren\'t on a comparable scale, blending by rank position rather than raw value avoids letting one system\'s arbitrary numeric range silently dominate the merged ranking.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Dense cosine similarities and sparse keyword scores operate on fundamentally different, uncalibrated score distributions that cannot be averaged directly.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-08-mcq-02',
+        question:
+          'A system retrieves a restricted chunk, includes it in the prompt sent to the model, but only hides it from the citation list shown to the unauthorized user in the UI. Why does the lesson say this does not actually enforce access control?',
+        options: [
+          { id: 'a', label: 'A', text: 'Citation UIs are always displayed to every user regardless of permissions' },
+          { id: 'b', label: 'B', text: 'The model already read the restricted chunk\'s content when generating its answer, so the restricted information can leak into the response text itself even if the citation UI hides the source — the boundary was never enforced upstream' },
+          { id: 'c', label: 'C', text: 'This approach is equivalent in effect to a correctly implemented pre-filter' },
+          { id: 'd', label: 'D', text: 'Hiding a citation always prevents the underlying information from influencing the answer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Enforcement has to happen before the model sees the content, not after, at display time — once a restricted chunk is in the prompt, the model can reflect its content in the answer regardless of what the citation UI later chooses to show or hide.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-08-mcq-03',
+        question:
+          'According to the lesson, when should an FDE prefer a dual-system hybrid search approach (two separate systems merged in application code) over a single system with native dense-plus-keyword support?',
+        options: [
+          { id: 'a', label: 'A', text: 'Always — dual-system approaches are strictly superior in every deployment' },
+          { id: 'b', label: 'B', text: 'When the customer\'s existing infrastructure already has a strong preference, such as an existing investment in a search system that can be extended, rather than defaulting to a second, separate vector store' },
+          { id: 'c', label: 'C', text: 'Never — dual-system hybrid search is never a valid production choice' },
+          { id: 'd', label: 'D', text: 'Only when the customer\'s document set is smaller than 100 documents' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames native combination as operationally simpler and the default, with the customer\'s existing infrastructure being the concrete reason to deviate — for example, extending an already-running Elasticsearch deployment rather than adding an entirely separate system.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-08-mcq-05',
+        question:
+          'A query uses the abbreviation "L4," but source documents spell out "Level 4 Individual Contributor" and never use "L4." Why does the lesson say hybrid search alone does not reliably fix this?',
+        options: [
+          { id: 'a', label: 'A', text: 'Hybrid search only functions correctly on numeric queries' },
+          { id: 'b', label: 'B', text: 'Neither the dense embedding nor the keyword/BM25 component can match "L4" against "Level 4 Individual Contributor" without an explicit mapping, since the exact term doesn\'t appear in both forms in both places — the gap is a vocabulary mismatch, not a retrieval-method limitation' },
+          { id: 'c', label: 'C', text: 'BM25 always outperforms dense retrieval on abbreviations by default' },
+          { id: 'd', label: 'D', text: 'This problem only occurs with single-word queries' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Hybrid search combines two retrieval methods, but both still depend on some form of lexical or semantic overlap between query and document; an undocumented internal abbreviation defeats both unless something (query rewriting) bridges the vocabulary gap first.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-08-mcq-06',
+        question:
+          'The lesson connects building an accurate query-rewriting glossary back to a skill from earlier in this module. Which skill, and why does it matter for the glossary\'s accuracy?',
+        options: [
+          { id: 'a', label: 'A', text: 'Demo storytelling skills, because the glossary is presented to the customer as part of the final demo' },
+          { id: 'b', label: 'B', text: 'Discovery-call skills — the glossary\'s term mappings need to be accurate to the customer\'s real internal vocabulary, and that vocabulary surfaces through the same structured discovery conversations used to gather requirements, not through guessing' },
+          { id: 'c', label: 'C', text: 'Status-update writing skills, because the glossary is documented in a weekly status email' },
+          { id: 'd', label: 'D', text: 'Risk register skills, because each glossary term is treated as a named risk' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'An accurate glossary depends on correctly capturing how the customer\'s own staff actually talk about their work — exactly the kind of vocabulary that surfaces during a well-run discovery conversation, not something an FDE can accurately guess from outside.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-08-mcq-07',
+        question:
+          'In the scenario, the engineer\'s compound question about torque spec and HR travel policy was answered correctly for one part and appropriately declined for the other. What specifically made this possible?',
+        options: [
+          { id: 'a', label: 'A', text: 'The model was trained specifically on this customer\'s HR policies' },
+          { id: 'b', label: 'B', text: 'The access-control pre-filter excluded the HR-restricted chunk from the candidate set before the model ever saw it, so the model could only draw on the unrestricted engineering chunk for its answer' },
+          { id: 'c', label: 'C', text: 'The query-rewriting step detected the question was compound and split it automatically' },
+          { id: 'd', label: 'D', text: 'Hybrid search naturally excludes any HR-related content from all queries' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because the pre-filter removed the HR chunk from the candidate set before ranking, the model had no restricted content in its context at all, which is why it could answer the engineering part correctly and correctly decline the HR part rather than fabricating from content it never received.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-08-mcq-08',
+        question:
+          'In the scenario, plant-floor staff use "twelve-mil" as shorthand for "M12," which the embedding model doesn\'t reliably associate with the documented term. What fixes this without re-writing the source documents or the embedding model?',
+        options: [
+          { id: 'a', label: 'A', text: 'Re-embedding every document with a larger embedding model' },
+          { id: 'b', label: 'B', text: 'A query-rewriting step that expands "twelve-mil" to "M12" using a glossary built from real plant-floor vocabulary, applied before the query reaches retrieval' },
+          { id: 'c', label: 'C', text: 'Switching from hybrid search to dense-only search' },
+          { id: 'd', label: 'D', text: 'Increasing the number of chunks retrieved per query' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Query rewriting closes the vocabulary gap at query time, which is cheaper and more targeted than re-embedding an entire document set, and it fixes the specific term mismatch rather than a general retrieval-quality lever like model size or chunk count.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-08-mcq-09',
+        question:
+          'Why might document-level access-control tagging be insufficient for a single document that mixes a restricted section (e.g. a salary table) with unrestricted general content?',
+        options: [
+          { id: 'a', label: 'A', text: 'Document-level tagging always correctly protects every section of a mixed document' },
+          { id: 'b', label: 'B', text: 'Tagging the whole document as restricted excludes unrestricted content unnecessarily, while tagging it as unrestricted exposes the restricted section — only chunk-level tagging (applied per section during ingestion) allows the unrestricted parts to remain retrievable while the restricted section stays protected' },
+          { id: 'c', label: 'C', text: 'Chunk-level tagging is never necessary once hybrid search is in place' },
+          { id: 'd', label: 'D', text: 'This problem is specific to scanned PDFs and doesn\'t apply to other formats' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A single access-control tag applied to an entire mixed document forces an all-or-nothing choice that either over-restricts or under-restricts; chunk-level tagging at ingestion (the previous lesson\'s mechanism) is what makes fine-grained enforcement possible.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/09-rag-evaluation-and-iteration-ragas': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-09-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson recommend an agreed threshold per individual RAGAS metric, rather than a single blended overall pass/fail score?',
+        options: [
+          { id: 'a', label: 'A', text: 'RAGAS technically cannot compute a blended overall score under any circumstances' },
+          { id: 'b', label: 'B', text: 'A single blended score can mask a serious regression in one metric (e.g. context recall dropping sharply) if the other three metrics stay strong enough to keep the average acceptable, hiding exactly the kind of stage-specific problem RAGAS is meant to surface' },
+          { id: 'c', label: 'C', text: 'Per-metric thresholds are only relevant for very large document sets' },
+          { id: 'd', label: 'D', text: 'A blended score is always identical to the lowest of the four individual metrics' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Per-metric thresholds preserve exactly the diagnostic value that motivated scoring the four metrics separately in the first place — a blended average can hide a real regression in one dimension behind strength in the others.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'An aggregated single score can mask a catastrophic collapse in one stage (like retrieval recall) if another stage remains artificially high.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-09-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson say a held-out, static eval set that proved good scores at launch cannot be relied on to detect drift months later?',
+        options: [
+          { id: 'a', label: 'A', text: 'Static eval sets automatically expire after 90 days' },
+          { id: 'b', label: 'B', text: 'A static eval set never changes, so it cannot reveal degradation caused by a growing document set, shifting customer vocabulary, or a vendor-side model update — all of which affect real production traffic without ever being reflected in the unchanging eval set\'s scores' },
+          { id: 'c', label: 'C', text: 'RAGAS cannot be run more than once against the same eval set' },
+          { id: 'd', label: 'D', text: 'A static eval set always produces a perfect score by definition' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The eval set is fixed, but the production system\'s real inputs are not — document growth, vocabulary shift, and model updates all change real-world performance in ways a set of unchanging test questions was never positioned to catch.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Production knowledge bases and user queries evolve continuously, introducing domain shifts that fixed test datasets never encounter.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-09-mcq-01',
+        question:
+          'Why does the lesson say an eval dataset an FDE writes entirely alone, without customer SME input, tends to be a weaker signal of real-world quality?',
+        options: [
+          { id: 'a', label: 'A', text: 'RAGAS cannot score any dataset the FDE writes without customer sign-off' },
+          { id: 'b', label: 'B', text: 'It tends to be easier and more evenly distributed across topics than real usage, which clusters around high-frequency intents and phrasing an FDE would not think to write' },
+          { id: 'c', label: 'C', text: 'FDE-written questions are always factually incorrect' },
+          { id: 'd', label: 'D', text: 'Eval datasets must contain at least 1,000 questions to be valid' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The specific risk is representativeness, not validity — an FDE alone tends to write questions that don\'t reflect the actual distribution and phrasing of real user queries, which real SME input or real usage logs correct for.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-09-mcq-02',
+        question:
+          'Why does the lesson say a moving (unversioned, frequently-changed) eval dataset makes month-over-month RAGAS score comparison meaningless?',
+        options: [
+          { id: 'a', label: 'A', text: 'RAGAS scores are only valid for exactly 30 days after computation' },
+          { id: 'b', label: 'B', text: 'If the questions being scored change between two measurements, you cannot tell whether a score difference came from a real system change or simply from scoring a different set of questions' },
+          { id: 'c', label: 'C', text: 'Versioned datasets always produce higher scores than unversioned ones' },
+          { id: 'd', label: 'D', text: 'RAGAS requires a minimum dataset size that only versioned datasets can guarantee' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A stable yardstick is what makes a score comparison meaningful — if the eval set itself changes, a score movement could reflect the new question mix rather than any real change in system quality.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-09-mcq-03',
+        question:
+          'Which changes does the lesson say should trigger a full RAGAS eval-gate run before merging?',
+        options: [
+          { id: 'a', label: 'A', text: 'Only changes to the customer-facing UI, since backend changes cannot affect RAGAS scores' },
+          { id: 'b', label: 'B', text: 'Any change that can affect retrieval or generation quality — chunking strategy, prompt edits, reranking model swaps, or embedding model upgrades' },
+          { id: 'c', label: 'C', text: 'Only changes explicitly labeled "RAG update" in the commit message' },
+          { id: 'd', label: 'D', text: 'Changes are never gated; RAGAS is run only once, before initial launch' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names a broad set of change types spanning both retrieval and generation layers as gate triggers — the common thread is anything that could plausibly move a RAGAS metric, not a narrow or manually-flagged subset.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-09-mcq-06',
+        question:
+          'Why does the lesson recommend a smaller, automated LLM-as-judge for continuously scoring sampled production traffic, rather than full human review of every live query?',
+        options: [
+          { id: 'a', label: 'A', text: 'LLM-as-judge scoring is always more accurate than human review' },
+          { id: 'b', label: 'B', text: 'Full human review of every live query does not scale, so an automated judge scoring a representative sample is the practical way to maintain an ongoing signal without reviewing every single production query by hand' },
+          { id: 'c', label: 'C', text: 'Human review is prohibited by RAGAS\'s methodology' },
+          { id: 'd', label: 'D', text: 'Automated judges are required to also perform the ingestion pipeline\'s OCR confidence checks' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The practical constraint is scale — continuous, ongoing scoring of a meaningful sample of production traffic is only sustainable with automation, since human review of every query is not operationally viable at real volume.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-09-mcq-07',
+        question:
+          'In the scenario, context recall dropped from 0.89 to 0.71 while faithfulness and answer relevancy stayed unchanged. What does this specifically tell the FDE about where to look for a fix?',
+        options: [
+          { id: 'a', label: 'A', text: 'The fault is in the generation stage, so the prompt needs revision' },
+          { id: 'b', label: 'B', text: 'The fault is in the retrieval stage, since context recall is a retrieval-stage metric and the unchanged generation-stage metrics (faithfulness, relevancy) rule out a generation-side cause' },
+          { id: 'c', label: 'C', text: 'The eval dataset itself must be corrupted, since a single metric moving alone is not possible' },
+          { id: 'd', label: 'D', text: 'The fix must be a full model version upgrade, regardless of what changed in retrieval' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a direct application of the prerequisite lesson\'s stage attribution: context recall belongs to retrieval, and its isolated movement (with generation-stage metrics stable) narrows the investigation to retrieval-side causes like chunking or index composition.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-09-mcq-08',
+        question:
+          'Why did the manufacturing customer\'s chunking configuration, which performed well at launch, degrade retrieval quality after the document set nearly doubled?',
+        options: [
+          { id: 'a', label: 'A', text: 'RAGAS scores always decline naturally over time regardless of any system change' },
+          { id: 'b', label: 'B', text: 'A chunking configuration tuned against a smaller, less topically diverse document set can retrieve less precisely once the index grows larger and more varied, since chunking is not a one-time launch decision but a parameter that document-set changes can invalidate over time' },
+          { id: 'c', label: 'C', text: 'Adding new documents to an index always corrupts existing chunks' },
+          { id: 'd', label: 'D', text: 'The embedding model automatically degrades as index size increases' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames chunking as something that can be silently invalidated by real-world change (document-set growth) rather than a decision made once and forgotten — this is precisely the kind of drift the continuous evaluation practice is designed to catch.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-09-mcq-09',
+        question:
+          'Why does the lesson\'s Suggested Extension propose an automated alerting rule (e.g. a recall drop past a threshold within a rolling window) rather than relying on a customer to report that "answers feel less reliable"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Customer reports are always more precise than any automated metric' },
+          { id: 'b', label: 'B', text: 'A vague customer report gives no specific signal of what changed or when, while an automated threshold on a tracked metric surfaces the exact regression proactively, before it accumulates into a customer-visible trust problem' },
+          { id: 'c', label: 'C', text: 'Automated alerting removes the need for a versioned eval dataset' },
+          { id: 'd', label: 'D', text: 'Customers are contractually prohibited from reporting quality issues directly' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The whole value of continuous RAGAS monitoring is catching a specific, measurable regression before it becomes a vague, hard-to-diagnose customer complaint — an alerting rule operationalizes that early-detection goal.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/10-llm-safety-guardrails-and-security': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-10-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'How does a production guardrail pipeline differ in purpose and timing from the per-prompt red-teaming practice covered earlier in this module?',
+        options: [
+          { id: 'a', label: 'A', text: 'A guardrail pipeline replaces red-teaming entirely, making the earlier practice unnecessary' },
+          { id: 'b', label: 'B', text: 'Red-teaming is a build-time test against attacks the FDE anticipated for one specific prompt; a guardrail pipeline runs continuously against live traffic, catching attacks the red-team set didn\'t anticipate and shifts in real usage over time' },
+          { id: 'c', label: 'C', text: 'Guardrail pipelines only run once, at deployment time, identical to red-teaming\'s timing' },
+          { id: 'd', label: 'D', text: 'Red-teaming and guardrail pipelines both operate exclusively on model output, never on input' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Red-teaming is a build-time, prompt-specific gate; a guardrail pipeline is a continuously running production layer, which is why the two are complementary rather than redundant — one catches what you anticipated, the other catches what you didn\'t.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Red-teaming is an offline build-time evaluation gate, whereas a guardrail pipeline is an online runtime defense mechanism.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-10-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson say pre-call and post-call guardrails are both needed, rather than either one alone being sufficient?',
+        options: [
+          { id: 'a', label: 'A', text: 'Pre-call and post-call guardrails always catch exactly the same set of problems, so using both is only redundancy for safety margin' },
+          { id: 'b', label: 'B', text: 'Pre-call guardrails can\'t catch a response that goes wrong for reasons unrelated to the input (e.g. a hallucinated policy), and post-call guardrails alone let a clearly malicious input reach the model before anything is checked' },
+          { id: 'c', label: 'C', text: 'Post-call guardrails are always sufficient on their own, and pre-call guardrails exist only for legacy compatibility' },
+          { id: 'd', label: 'D', text: 'Pre-call guardrails are sufficient on their own once red-teaming has been done for a prompt' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The two layers catch different failure classes — input-side risks a pre-call check can screen for, and output-side risks (including ones with no problematic input at all) only a post-call check can catch — so both are needed to cover the full risk surface.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Harmful outputs like hallucinations or PII leakage can occur even on benign inputs, which input-only filters cannot detect.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-10-mcq-03',
+        question:
+          'How does this lesson\'s post-call tool-call validation relate to the deterministic output-validation layer from the advanced-prompting-and-safety lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It replaces the earlier output-validation layer entirely, making it obsolete' },
+          { id: 'b', label: 'B', text: 'It directly extends that same deterministic validation layer — checking a tool call\'s parameters against policy before execution — now framed as one component of a broader, continuously-running guardrail pipeline rather than a single standalone check' },
+          { id: 'c', label: 'C', text: 'It applies only to text responses and has no relationship to tool-call validation' },
+          { id: 'd', label: 'D', text: 'It is unrelated to the earlier lesson\'s output-validation concept' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly frames post-call guardrails as extending, not duplicating or replacing, the earlier deterministic output-validation mechanism — placing that same check inside a broader, continuously operating pipeline.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-10-mcq-04',
+        question:
+          'Beyond added latency, what is the more significant concern the lesson names for routing guardrail checks through a managed third-party content-moderation or PII-detection API?',
+        options: [
+          { id: 'a', label: 'A', text: 'Managed services are always less accurate than self-hosted classifiers' },
+          { id: 'b', label: 'B', text: 'Customer data leaves the customer\'s own infrastructure boundary to reach the third-party classifier, which can directly violate a data-residency or compliance constraint surfaced during discovery' },
+          { id: 'c', label: 'C', text: 'Managed services cannot be integrated with any existing observability stack' },
+          { id: 'd', label: 'D', text: 'Managed services require the customer to migrate their entire infrastructure to the vendor\'s cloud' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'For many enterprise customers, the data-boundary crossing itself — not just latency — is the disqualifying concern, since it can conflict with a compliance or data-residency constraint already captured during discovery.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-10-mcq-05',
+        question:
+          'According to the lesson, what should actually determine whether an FDE chooses a managed guardrail service or a self-hosted classifier for a given customer?',
+        options: [
+          { id: 'a', label: 'A', text: 'A fixed company-wide default that applies identically to every customer engagement' },
+          { id: 'b', label: 'B', text: 'The customer\'s actual data-residency, latency, and maintenance-capacity constraints as surfaced during discovery, not a default preference for either approach' },
+          { id: 'c', label: 'C', text: 'Whichever option the FDE personally has more experience implementing' },
+          { id: 'd', label: 'D', text: 'Whichever option is cheaper per API call in isolation, regardless of other constraints' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly frames this as the same discovery-driven judgment call taught earlier in the module — real customer constraints, not a default preference, should decide.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-10-mcq-06',
+        question:
+          'Why does the lesson say a guardrail that silently blocks a violating request, with no visible trail, fails to actually "enable" a customer\'s team to operate the safety layer after handoff?',
+        options: [
+          { id: 'a', label: 'A', text: 'Silent blocking is always technically impossible to implement correctly' },
+          { id: 'b', label: 'B', text: 'With no structured, auditable record of what was blocked, why, and by which layer, the customer\'s own security or compliance team has nothing to investigate, report on for a compliance review, or use to tune the guardrail\'s false-positive rate' },
+          { id: 'c', label: 'C', text: 'Silent guardrails always have a 100% false-positive rate by design' },
+          { id: 'd', label: 'D', text: 'Guardrail triggers are legally required to be shown to the end user in real time' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The enable step requires giving the customer\'s own team something operable — a structured audit trail is what turns a guardrail from a black box the FDE understood into a system the customer\'s team can genuinely investigate and maintain.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-10-mcq-07',
+        question:
+          'In the scenario, why did the FDE choose a self-hosted regex-and-classifier pre-call layer over a managed PII-detection API, despite the added maintenance burden?',
+        options: [
+          { id: 'a', label: 'A', text: 'Self-hosted layers are always faster than managed APIs regardless of infrastructure' },
+          { id: 'b', label: 'B', text: 'The customer\'s compliance constraint, surfaced during discovery, prohibited any patient data leaving their infrastructure boundary — a managed API would violate that constraint by design' },
+          { id: 'c', label: 'C', text: 'Managed PII-detection APIs do not exist for healthcare-adjacent use cases' },
+          { id: 'd', label: 'D', text: 'The FDE\'s team had no prior experience with managed APIs' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a direct application of the discovery-driven build-versus-buy principle: the customer\'s actual data-residency constraint, not a general preference, made the self-hosted option the only compliant choice.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-10-mcq-08',
+        question:
+          'Why did the FDE write every guardrail trigger into the customer\'s existing SIEM system rather than a separate log only the FDE\'s own team could see?',
+        options: [
+          { id: 'a', label: 'A', text: 'SIEM systems are the only tool capable of storing timestamped log entries' },
+          { id: 'b', label: 'B', text: 'So the compliance team can pull a monthly report of every blocked attempt themselves, without depending on the FDE to run a query for them — the same enable-after-handoff principle applied to the guardrail layer specifically' },
+          { id: 'c', label: 'C', text: 'A separate log system would have been technically incompatible with the guardrail classifier' },
+          { id: 'd', label: 'D', text: 'SIEM systems automatically fix false-positive guardrail triggers without human review' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Routing the audit trail into a system the customer\'s own team already uses is what makes the guardrail layer genuinely operable by them after handoff, rather than a capability that quietly depends on the FDE staying involved.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-10-mcq-09',
+        question:
+          'What does the Suggested Extension\'s monthly false-positive review process close the loop on?',
+        options: [
+          { id: 'a', label: 'A', text: 'It closes the loop between red-teaming and the golden test set from the prompt-engineering lesson' },
+          { id: 'b', label: 'B', text: 'It closes the loop between the audit log\'s recorded triggers and the guardrail\'s own accuracy, letting the customer\'s compliance team\'s review feed back into tuning the guardrail\'s threshold over time' },
+          { id: 'c', label: 'C', text: 'It replaces the need for any structured audit logging going forward' },
+          { id: 'd', label: 'D', text: 'It determines whether to switch from a self-hosted to a managed guardrail service' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Without a feedback loop, an audit log is just a record; the review process is what turns that record into an input for actually improving the guardrail\'s accuracy over time, owned by the customer\'s own team.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/11-cost-latency-and-model-routing': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-11-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson say conflating prompt caching and semantic caching, or assuming one subsumes the other, causes real savings to be missed?',
+        options: [
+          { id: 'a', label: 'A', text: 'Prompt caching and semantic caching are actually the same mechanism under different names' },
+          { id: 'b', label: 'B', text: 'They eliminate genuinely different classes of repeated cost — prompt caching helps any call sharing a long static prefix regardless of query repetition, while semantic caching only helps when the query itself is a near-repeat — so relying on only one misses savings the other would have captured' },
+          { id: 'c', label: 'C', text: 'Semantic caching always produces a strict superset of prompt caching\'s savings' },
+          { id: 'd', label: 'D', text: 'Using both caching mechanisms together is technically impossible in the same system' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The two mechanisms target different sources of repeated cost — a shared static prefix versus a repeated whole-query pattern — so a workload can have savings available from one that the other would never touch, which is why distinguishing them matters.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Prompt caching reuses repeated prefix tokens across different queries, whereas semantic caching short-circuits identical query intents.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-11-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson say a pure cost-minimizing routing decision can be the wrong choice for a synchronous, user-facing chat call, even when it correctly identifies the cheapest tier that clears the accuracy bar?',
+        options: [
+          { id: 'a', label: 'A', text: 'Cost-minimizing routing decisions are always correct regardless of the use case' },
+          { id: 'b', label: 'B', text: 'A real-time UX has a genuine latency budget, and if the cheapest tier\'s added latency crosses that threshold, a faster but more expensive tier can be the right choice once latency is weighed in explicitly, not just cost and accuracy' },
+          { id: 'c', label: 'C', text: 'Latency is never a real consideration for any user-facing feature' },
+          { id: 'd', label: 'D', text: 'The cheapest tier is always the fastest tier by definition' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Cost and latency are separate constraints; a routing decision optimized purely for cost can violate a real UX latency requirement, which is why the lesson treats latency budget as its own explicit lever alongside cost and accuracy.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Cost and response time are distinct constraints; the cheapest model tier might be too slow to satisfy real-time interactive user SLAs.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-11-mcq-01',
+        question:
+          'Why does the lesson recommend a shared routing gateway rather than letting each feature independently implement its own tier-selection logic?',
+        options: [
+          { id: 'a', label: 'A', text: 'Individual features cannot technically call more than one model tier without a gateway' },
+          { id: 'b', label: 'B', text: 'A shared gateway means a tier-selection improvement (a better classifier, a new fallback rule) benefits every feature routing through it at once, instead of needing separate re-implementation in each feature\'s own code' },
+          { id: 'c', label: 'C', text: 'Gateways eliminate the need for any per-customer cost tracking' },
+          { id: 'd', label: 'D', text: 'Routing gateways are required by every LLM provider\'s terms of service' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Centralizing routing logic means an improvement made once propagates to every feature using the gateway, rather than needing to be duplicated across each feature\'s independent implementation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-11-mcq-02',
+        question:
+          'Why does the lesson say per-customer cost budgets and quota policy belong in the routing gateway rather than scattered across individual feature code?',
+        options: [
+          { id: 'a', label: 'A', text: 'Feature code is technically incapable of tracking cumulative cost' },
+          { id: 'b', label: 'B', text: 'Tracking cumulative spend against a contracted budget and applying a policy as it\'s approached is a distinct, cross-cutting concern from any single routing decision, and centralizing it avoids duplicating (and inconsistently implementing) that logic in every feature' },
+          { id: 'c', label: 'C', text: 'Budgets only matter for customers on the cheapest model tier' },
+          { id: 'd', label: 'D', text: 'Gateways cannot apply any policy other than a hard stop' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Budget tracking spans every request a customer makes across every feature, which is exactly the kind of cross-cutting concern that belongs in shared infrastructure rather than duplicated, and potentially inconsistently implemented, in each feature separately.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-11-mcq-03',
+        question:
+          'What specific class of repeated cost does prompt caching eliminate, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The cost of a genuinely new, never-before-seen query' },
+          { id: 'b', label: 'B', text: 'The cost of re-processing the same static, unchanging prefix of a prompt (system instructions, a large retrieved document) on every call that reuses it, regardless of whether the query itself repeats' },
+          { id: 'c', label: 'C', text: 'The cost of running the model\'s output through a post-call guardrail' },
+          { id: 'd', label: 'D', text: 'The cost of ingesting new documents into a RAG index' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Prompt caching targets the static prefix specifically — it helps on every call sharing that prefix regardless of what the variable part of the query is, which is a different mechanism from caching based on query similarity.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-11-mcq-05',
+        question:
+          'The prompt-engineering-for-production-systems lesson flagged prompt length as a cost concern but deferred the full trade-off to this lesson. How does prompt caching change that earlier lesson\'s cost calculus?',
+        options: [
+          { id: 'a', label: 'A', text: 'It means prompt length no longer has any cost implications at all' },
+          { id: 'b', label: 'B', text: 'A long but cacheable system prompt (a static prefix reused across calls) is billed at a fraction of its raw token cost after the first call, so its true production cost is much lower than its raw token count alone would suggest — without eliminating the value of trimming genuinely unnecessary content' },
+          { id: 'c', label: 'C', text: 'It means every prompt should be made as long as possible to maximize caching benefit' },
+          { id: 'd', label: 'D', text: 'It replaces the need for a golden test set when evaluating a prompt change' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Prompt caching doesn\'t make prompt length irrelevant — favoring the shortest prompt that clears the golden set\'s bar is still sound — but it changes the actual cost of a long, genuinely necessary static prefix, which is the specific resolution this lesson provides to the earlier lesson\'s deferred trade-off.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-11-mcq-07',
+        question:
+          'Why can a nightly batch summarization job route to the cheapest available tier and use discounted batch-processing APIs, in a way a synchronous chat feature cannot?',
+        options: [
+          { id: 'a', label: 'A', text: 'Batch jobs are always exempt from accuracy requirements' },
+          { id: 'b', label: 'B', text: 'A batch job has no real-time UX constraint, so there is no latency cost to weigh against the cost savings — unlike a synchronous chat call where a user is actively waiting' },
+          { id: 'c', label: 'C', text: 'Batch-processing APIs are only compatible with the largest, most expensive model tier' },
+          { id: 'd', label: 'D', text: 'Chat features are technically incapable of using discounted APIs of any kind' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The absence of a real-time constraint is exactly what frees a background job to optimize purely for cost — the latency trade-off that matters for a synchronous chat call simply doesn\'t apply.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-11-mcq-08',
+        question:
+          'In the scenario, the FDE applies prompt caching to the shared system-instructions-and-policy-document prefix, and separately adds semantic caching for one customer\'s near-identical questions. Why are these treated as two distinct additions rather than one mechanism?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are actually the same caching mechanism, described twice for emphasis' },
+          { id: 'b', label: 'B', text: 'Prompt caching addresses the shared static prefix reused across every call for a customer, while semantic caching addresses different callers asking functionally the same question in different words — two distinct sources of repeated cost that neither mechanism alone would fully capture' },
+          { id: 'c', label: 'C', text: 'Semantic caching was only added because prompt caching failed to reduce any cost' },
+          { id: 'd', label: 'D', text: 'Prompt caching only applies to batch jobs, never to the support-copilot\'s live traffic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario deliberately illustrates both caching types working on different parts of the same feature\'s cost profile — the shared prefix and the repeated-question pattern are genuinely separate sources of redundant cost.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-11-mcq-09',
+        question:
+          'Why does the lesson connect the gateway\'s before-and-after cost and cache-hit-rate numbers to the demo-storytelling lesson\'s evidence-based discipline?',
+        options: [
+          { id: 'a', label: 'A', text: 'Cost numbers are only useful for internal engineering review, never for a customer-facing conversation' },
+          { id: 'b', label: 'B', text: 'Concrete before-and-after numbers let the FDE justify the caching improvement to the account team the same way a demo ties evidence directly to a customer\'s success metric, rather than making a vague, unsubstantiated claim that "caching helped"' },
+          { id: 'c', label: 'C', text: 'The account team requires a live product demo before accepting any cost claim' },
+          { id: 'd', label: 'D', text: 'Observability dashboards replace the need for a written status update' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This connects back to the module\'s earlier communication discipline: a claim backed by real measured numbers is checkable and persuasive in exactly the way the demo-storytelling lesson taught, versus an unsubstantiated general claim.'
+      }
+    ]
+  },
+  'fde-curriculum/enterprise-consulting-llm/12-assessment-discovery-call-plus-rag-poc-build': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-12-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does this assessment combine a mock discovery call with a RAG PoC build into one connected exercise rather than testing each skill set separately?',
+        options: [
+          { id: 'a', label: 'A', text: 'Discovery and technical build skills are unrelated and combining them is only a time-saving measure' },
+          { id: 'b', label: 'B', text: 'A real FDE engagement never separates consulting skills from the technical build — this assessment tests whether a constraint surfaced during discovery actually shapes the resulting build, not just whether each skill can be performed in isolation' },
+          { id: 'c', label: 'C', text: 'Separate assessments would require twice as much grading effort' },
+          { id: 'd', label: 'D', text: 'The RAG PoC build does not depend on any information gathered during discovery' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The assessment\'s design specifically tests the connection between the two halves — a discovery brief\'s constraints have to visibly influence build decisions — which is the real-world integration point the module\'s individual lessons couldn\'t test in isolation.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'The core FDE capability being evaluated is translating non-technical discovery constraints directly into engineering architecture.'
+      },
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-12-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson require the PoC\'s technical decisions to visibly reflect the constraints surfaced during the discovery call, even in simplified form?',
+        options: [
+          { id: 'a', label: 'A', text: 'A PoC is only graded on whether it retrieves accurate answers, regardless of any discovery-surfaced constraint' },
+          { id: 'b', label: 'B', text: 'If constraints are surfaced during discovery but never actually shape the build, discovery was performed as a formality rather than genuinely informing the engagement — the traceable line from constraint to decision is what proves the connection' },
+          { id: 'c', label: 'C', text: 'Constraints only need to be reflected in the final written report, not in the PoC itself' },
+          { id: 'd', label: 'D', text: 'Technical constraints and business constraints are always identical and interchangeable' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The whole point of combining the two assessment parts is to test this connection directly — a constraint that never surfaces in the technical decisions means discovery didn\'t actually inform anything real.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Discovery that does not demonstrably shape downstream technical design decisions is merely a superficial formality.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-12-mcq-02',
+        question:
+          'According to the lesson, what does the discovery brief specifically need to contain to demonstrate discovery was genuinely done, not performed as a formality?',
+        options: [
+          { id: 'a', label: 'A', text: 'A list of every possible feature the PoC could theoretically include' },
+          { id: 'b', label: 'B', text: 'A concrete, measurable success metric and at least one real constraint that will directly shape what gets built in part two' },
+          { id: 'c', label: 'C', text: 'A guarantee that the PoC will meet the customer\'s expectations perfectly' },
+          { id: 'd', label: 'D', text: 'A cost estimate for a full production rollout' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names these two elements specifically as the test of genuine discovery — a vague goal or a brief with no build-shaping constraint reads as a formality performed on the way to a predetermined solution, not real discovery.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-12-mcq-04',
+        question:
+          'The assessment\'s small hand-verified eval set is scored against at least which two RAGAS metrics, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Faithfulness and answer relevancy, the two generation-stage metrics' },
+          { id: 'b', label: 'B', text: 'Context precision and context recall, the two retrieval-stage metrics' },
+          { id: 'c', label: 'C', text: 'A single blended overall score combining all four metrics' },
+          { id: 'd', label: 'D', text: 'Latency and cost per query, treated as RAGAS metrics' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson specifically names context precision and context recall — the retrieval-stage metrics from the prerequisite RAG lesson — as the minimum scoring requirement for the scaled-down assessment PoC.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-12-mcq-05',
+        question:
+          'Why does the lesson treat the self-evaluation\'s list of named production gaps as part of what\'s being assessed, rather than an admission that the assignment is unfinished?',
+        options: [
+          { id: 'a', label: 'A', text: 'Every PoC is expected to be fully production-ready regardless of the assessment\'s time box' },
+          { id: 'b', label: 'B', text: 'Presenting a scoped-down PoC as more complete than it is repeats the overstated-certainty failure mode the stakeholder-communication lesson warned against; explicitly and specifically naming what\'s missing demonstrates the honest-status-reporting skill the module built throughout' },
+          { id: 'c', label: 'C', text: 'Naming gaps is only useful for the grader\'s convenience and has no connection to any earlier lesson' },
+          { id: 'd', label: 'D', text: 'A complete self-evaluation should claim the PoC has no remaining gaps' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This ties the assessment directly back to the module\'s earliest communication lessons — precise, honest status language that distinguishes what\'s actually done from what isn\'t is exactly what\'s being tested here, applied to your own work.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-12-mcq-06',
+        question:
+          'In the scenario, the "investigation-hold" constraint on certain safety-policy documents was surfaced only during the stakeholder-mapping pass, by the safety-compliance officer rather than the dispatch manager who initiated the request. Why does this specifically illustrate the value of the stakeholder-mapping pass?',
+        options: [
+          { id: 'a', label: 'A', text: 'The dispatch manager and safety-compliance officer always have identical requirements in any engagement' },
+          { id: 'b', label: 'B', text: 'The loudest or first stakeholder (the dispatch manager) did not know about or mention this constraint; only by deliberately reconciling accounts across multiple stakeholders, including one not present at the initial request, did the FDE surface a requirement that materially changed the technical build' },
+          { id: 'c', label: 'C', text: 'Stakeholder mapping is only relevant for pricing and budget discussions' },
+          { id: 'd', label: 'D', text: 'The investigation-hold constraint would have been discovered regardless of which stakeholders were consulted' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a direct illustration of the module\'s earlier point that a requirement voiced by the loudest stakeholder isn\'t automatically the requirement that matters most — the safety-compliance officer\'s constraint would have been missed entirely without deliberately reconciling multiple stakeholders\' accounts.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-12-mcq-07',
+        question:
+          'How did the PoC in the scenario technically implement the investigation-hold constraint from the discovery brief?',
+        options: [
+          { id: 'a', label: 'A', text: 'By deleting all safety-policy documents from the index entirely' },
+          { id: 'b', label: 'B', text: 'By tagging safety-policy documents with an "investigation-hold" flag at ingestion, filtered out at retrieval time regardless of how well a chunk would otherwise match a query' },
+          { id: 'c', label: 'C', text: 'By training a custom embedding model specifically for safety-policy content' },
+          { id: 'd', label: 'D', text: 'By adding a disclaimer to every response mentioning the possibility of an open investigation' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the access-control tagging-at-ingestion and pre-filtering-at-retrieval mechanism taught in lessons 7 and 8 of this module, applied here to a compliance-driven content restriction rather than a role-based one.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-enterprise-consulting-llm-12-mcq-08',
+        question:
+          'What does the Suggested Extension ask you to do with the most important gap named in your self-evaluation?',
+        options: [
+          { id: 'a', label: 'A', text: 'Immediately build a full production implementation of it before the assessment is considered complete' },
+          { id: 'b', label: 'B', text: 'Turn it into a one-paragraph scoping item — problem, proposed approach, and rough effort estimate — written to the same discipline as the technical-scoping lesson\'s options-matrix and risk-register work, as if proposing it as the engagement\'s next phase' },
+          { id: 'c', label: 'C', text: 'Remove it from the self-evaluation entirely, since naming it once was sufficient' },
+          { id: 'd', label: 'D', text: 'Escalate it directly to the safety-compliance officer without further scoping' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This connects the assessment\'s closing step back to the module\'s technical-scoping lesson, treating the most important named gap as a real, presentable scoping item rather than leaving it as an unstructured note.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/01-tool-calling-function-calling-and-structured-output': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-01-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'A `create_refund` call has a correctly-typed `amount` field, present and required per the schema, but the amount exceeds the order\'s actual total. What does this illustrate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The JSON schema was written incorrectly and needs an additional required field' },
+          { id: 'b', label: 'B', text: 'A call can be fully schema-valid while still violating a business rule the schema has no way to express, since the schema cannot reference live order data' },
+          { id: 'c', label: 'C', text: 'Structured output mode would have caught this automatically' },
+          { id: 'd', label: 'D', text: 'This is not possible; schema validation always catches value-level errors too' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Schema validation only checks shape (types, required fields, enums) — it has no access to the live order total, so a business-rule gate against real application state is always a separate, necessary check.',
+        incorrectExplanation:
+          'Consider whether a static JSON schema can inspect runtime state in a database like Ledger.',
+        hint:
+          'A schema enforces structural types and required fields, but only a database check can know the live order balance.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-01-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why did the FDE team ship `create_refund_v2` instead of adding the required `approver_note` field directly to the existing `create_refund` schema?',
+        options: [
+          { id: 'a', label: 'A', text: 'JSON schemas cannot be modified once deployed under any circumstances' },
+          { id: 'b', label: 'B', text: 'Adding a new required field to an existing tool is a breaking change — in-flight sessions and cached prompt examples could still emit the old shape, so mutating the contract in place would silently break those callers' },
+          { id: 'c', label: 'C', text: 'Fenwick Analytics\'s finance team required a new tool name for unrelated branding reasons' },
+          { id: 'd', label: 'D', text: 'Optional fields are not supported by JSON schema at all' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A newly required field makes previously valid calls invalid, which is exactly the definition of a breaking change — the safe pattern is a new tool version run in parallel during a deprecation window, not an in-place mutation.',
+        incorrectExplanation:
+          'Think about what happens to in-flight agent sessions or cached prompts when a required parameter is added to an existing tool.',
+        hint:
+          'Adding a required field breaks callers that only supply the original arguments, necessitating a deprecation window.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-01-mcq-01',
+        question:
+          'What does setting `additionalProperties: false` on a tool\'s JSON schema accomplish?',
+        options: [
+          { id: 'a', label: 'A', text: 'It makes every field in the schema optional' },
+          { id: 'b', label: 'B', text: 'It prevents the model from including any field the schema didn\'t explicitly describe' },
+          { id: 'c', label: 'C', text: 'It forces the model to use structured output mode' },
+          { id: 'd', label: 'D', text: 'It automatically retries a failed call' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`additionalProperties: false` narrows the space of a malformed call by rejecting any field beyond the schema\'s explicit set, closing off a class of hallucinated-field errors before they reach the handler.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-01-mcq-02',
+        question:
+          'Why does the lesson treat a 2% tool-call schema-failure rate as a real production concern rather than a rounding error?',
+        options: [
+          { id: 'a', label: 'A', text: 'A 2% failure rate is always a sign the model itself is broken' },
+          { id: 'b', label: 'B', text: 'At real call volume (ten thousand daily calls), 2% translates into two hundred actual failures a day, a number that stops being negligible even though the per-call rate looks small' },
+          { id: 'c', label: 'C', text: 'Schema failures are more expensive than any other kind of production failure' },
+          { id: 'd', label: 'D', text: 'A 2% rate indicates the JSON schema was written without required fields' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is about scale multiplying a seemingly small rate into a real absolute number of daily failures, which is why production tool-calling systems need a deliberate failure-handling strategy rather than treating malformed calls as rare edge cases.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-01-mcq-03',
+        question:
+          'When a tool call fails schema validation, what should the retry\'s Observation contain, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'A generic "invalid request" message with no further detail' },
+          { id: 'b', label: 'B', text: 'The specific validation error (e.g., which field was missing or wrong type), so the model has concrete information to correct on its one retry attempt' },
+          { id: 'c', label: 'C', text: 'The full original tool schema repeated verbatim with no other content' },
+          { id: 'd', label: 'D', text: 'An instruction to abandon the tool call entirely and answer without it' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A generic failure message gives the model nothing to act on; feeding back the exact validation error (which field, what was wrong) is what lets the model\'s retry actually have a chance of correcting the specific mistake.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-01-mcq-04',
+        question:
+          'How does the tool-call retry budget in this lesson differ from the agent loop\'s overall iteration cap covered in the prerequisite "What Is an AI Agent?" lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are the same mechanism described with different names' },
+          { id: 'b', label: 'B', text: 'The retry budget is a local, per-call correction allowance (one retry, specific to a single malformed call), while the iteration cap is a global limit on the total number of Thought/Action/Observation cycles across the whole run' },
+          { id: 'c', label: 'C', text: 'The iteration cap only applies to tool calls that fail schema validation' },
+          { id: 'd', label: 'D', text: 'The retry budget replaces the need for any global iteration cap' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'These are two independent, complementary safeguards: one bounds how many times a single malformed call can be retried, the other bounds how many total loop iterations the whole run is allowed, regardless of whether any individual call needed a retry.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-01-mcq-05',
+        question:
+          'Why does the lesson say schema-constrained decoding (structured output mode) does not remove the need for a business-rule validation gate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Structured output mode does not actually improve schema compliance at all' },
+          { id: 'b', label: 'B', text: 'Constrained decoding only enforces that the output\'s shape matches the schema — it has no access to live application state, so it cannot enforce a rule like "amount must not exceed this order\'s actual total"' },
+          { id: 'c', label: 'C', text: 'Business-rule checks are only needed when structured output mode is unavailable' },
+          { id: 'd', label: 'D', text: 'Structured output mode is strictly worse than prompt-only JSON requests' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Structured output strengthens the shape guarantee compared to a prompt-only request, but shape and business-rule validity are different concerns — only a handler with access to live data can enforce the latter.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-01-mcq-06',
+        question:
+          'Why can a model keep emitting an old tool-call shape even after the server-side handler has already moved on to a new contract?',
+        options: [
+          { id: 'a', label: 'A', text: 'Models cache tool schemas permanently and never receive updates' },
+          { id: 'b', label: 'B', text: 'A tool\'s description can be reinforced by few-shot examples baked into a system prompt authored earlier, or held in an in-flight session\'s context, so the model\'s learned expectation of the shape can lag behind the handler\'s actual current contract' },
+          { id: 'c', label: 'C', text: 'This scenario is impossible; models always use the latest schema immediately' },
+          { id: 'd', label: 'D', text: 'Old callers only persist if the handler itself has a bug' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because the model\'s expectation of a tool\'s shape can be reinforced by cached prompt examples or held within an already-running session\'s context, a live handler change does not instantly and universally update every caller — this lag is exactly why breaking changes need a parallel-run deprecation window.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/02-agentic-patterns-and-production-concerns': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-02-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson say a circuit breaker handles a case that retry-with-backoff cannot?',
+        options: [
+          { id: 'a', label: 'A', text: 'Circuit breakers are strictly faster than retries in every situation' },
+          { id: 'b', label: 'B', text: 'Retry-with-backoff is for transient failures likely to clear on their own; when a tool has failed enough times in a short window that another attempt is very unlikely to succeed, the breaker trips and stops calling it entirely rather than continuing to retry a call that was never going to succeed' },
+          { id: 'c', label: 'C', text: 'Retry-with-backoff only works for tool calls, never for LLM calls' },
+          { id: 'd', label: 'D', text: 'A circuit breaker and a retry mechanism accomplish the exact same thing' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Retries assume the failure is transient; the circuit breaker\'s job starts exactly where that assumption breaks down — once failures cluster densely enough to indicate a sustained outage, retrying further just wastes time and tokens on calls very unlikely to succeed.',
+        incorrectExplanation:
+          'Consider how repeated retry attempts impact a downstream service that is already overwhelmed or failing.',
+        hint:
+          'A circuit breaker trips after repeated failures to stop outgoing requests and fail fast locally.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-02-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson insist a cost budget is not interchangeable with the agent loop\'s iteration cap?',
+        options: [
+          { id: 'a', label: 'A', text: 'Cost budgets and iteration caps are actually the same mechanism under different names' },
+          { id: 'b', label: 'B', text: 'A run can stay well under its iteration cap while still burning an outsized token bill, for example if each Observation carries a large tool result back into context — the two bound genuinely different resources' },
+          { id: 'c', label: 'C', text: 'Iteration caps are only relevant for multi-agent systems, never single-agent loops' },
+          { id: 'd', label: 'D', text: 'Cost budgets are always a fixed multiple of the iteration cap' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Iteration count and token spend can diverge — a run with few iterations but large tool-result payloads returned into context can still spend heavily, which is exactly why cost needs its own independently-tracked ceiling.',
+        incorrectExplanation:
+          'Examine the relationship between the volume of data injected into context per tool step and the token billing per turn.',
+        hint:
+          'A low iteration count can still consume massive tokens if tool outputs dump huge unpaginated payloads into context.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-02-mcq-01',
+        question:
+          'What specific failure does a timeout on each tool call inside an agent loop guard against?',
+        options: [
+          { id: 'a', label: 'A', text: 'The model hallucinating a tool call with the wrong arguments' },
+          { id: 'b', label: 'B', text: 'A single hung downstream call stalling the entire agent run indefinitely, leaving the customer with no indication anything is still happening' },
+          { id: 'c', label: 'C', text: 'A tool call exceeding its cost budget' },
+          { id: 'd', label: 'D', text: 'The agent exceeding its overall iteration cap' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Without a bounded timeout, a hung network call to a downstream tool has no natural end, and the whole run stalls behind it — the timeout is specifically a latency bound, distinct from schema, cost, or iteration concerns.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-02-mcq-02',
+        question:
+          'What problem does adding jitter to a retry\'s exponential backoff delay address?',
+        options: [
+          { id: 'a', label: 'A', text: 'Without jitter, many callers retrying on the exact same fixed schedule can hit a recovering service simultaneously, effectively hammering it right as it comes back' },
+          { id: 'b', label: 'B', text: 'Jitter makes each individual retry attempt succeed with certainty' },
+          { id: 'c', label: 'C', text: 'Jitter removes the need for a maximum retry count' },
+          { id: 'd', label: 'D', text: 'Jitter is only relevant for LLM calls, not tool calls' },
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Randomizing the delay slightly spreads out retry attempts across time instead of letting them cluster in lockstep, which is exactly the scenario a recovering downstream service is most vulnerable to.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-02-mcq-03',
+        question:
+          'In a multi-tenant SaaS deployment like Fenwick Analytics\'s, why does the lesson recommend enforcing the cost budget per tenant as well as per session?',
+        options: [
+          { id: 'a', label: 'A', text: 'Per-session budgets are technically impossible to implement' },
+          { id: 'b', label: 'B', text: 'Without a per-tenant ceiling, one customer\'s unusually chatty conversation could silently inflate cost on infrastructure shared across other customers, not just their own session' },
+          { id: 'c', label: 'C', text: 'Per-tenant enforcement replaces the need for any per-session tracking' },
+          { id: 'd', label: 'D', text: 'Tenants are billed identically regardless of their actual usage' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A per-session ceiling alone doesn\'t protect against one tenant running many sessions and collectively driving up shared infrastructure cost — the per-tenant layer is what prevents that cross-customer impact.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-02-mcq-04',
+        question:
+          'According to the lesson, what should an agent do when its cost budget is exhausted in the middle of a run?',
+        options: [
+          { id: 'a', label: 'A', text: 'Silently truncate its current reasoning and return whatever partial answer it has, without informing anyone' },
+          { id: 'b', label: 'B', text: 'Trigger a deterministic fallback — such as handing off to a human with its partial reasoning attached — rather than either silently truncating or continuing to spend past the ceiling' },
+          { id: 'c', label: 'C', text: 'Continue running until the iteration cap is also reached, regardless of cost' },
+          { id: 'd', label: 'D', text: 'Restart the entire run from the beginning with a fresh budget' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly parallels this to the circuit breaker\'s deterministic fallback — a budget-exhausted run should hand off cleanly rather than silently degrading or ignoring the ceiling it was supposed to respect.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-02-mcq-05',
+        question:
+          'How does the observability layer this lesson introduces differ from the trace-based debugging covered in the prerequisite "Debugging AI" lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'They describe exactly the same technique using different terminology' },
+          { id: 'b', label: 'B', text: 'The prerequisite lesson\'s trace-walking is reactive, applied to one specific failure after it\'s reported; this lesson\'s aggregate dashboards (cost per resolved case, iteration-count distribution, tool failure rate) are proactive, built across every run to catch systemic drift before individual failures accumulate' },
+          { id: 'c', label: 'C', text: 'Aggregate observability only applies to multi-agent systems, not single-agent loops' },
+          { id: 'd', label: 'D', text: 'Trace-based debugging is obsolete once aggregate dashboards are in place' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both layers matter and serve different purposes: single-trace inspection root-causes one already-reported failure, while cross-run aggregate metrics surface a trend before it produces enough individual failures to get reported at all.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-02-mcq-06',
+        question:
+          'In the scenario, why did the `lookup_account` failure-rate dashboard surface the Salesforce maintenance window before any customer complaint arrived?',
+        options: [
+          { id: 'a', label: 'A', text: 'Customers are contractually required to report issues only after 24 hours' },
+          { id: 'b', label: 'B', text: 'The failure-rate metric is broken out by tool name and aggregated across every run in near real time, so a spike in one tool\'s failures becomes visible on the graph as soon as enough runs hit it — well before the volume of individually-reported complaints would reach anyone\'s attention' },
+          { id: 'c', label: 'C', text: 'Salesforce automatically notifies Fenwick Analytics of its own maintenance windows' },
+          { id: 'd', label: 'D', text: 'The circuit breaker prevents any customer-visible symptom from ever occurring' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the proactive-versus-reactive point made concrete: the aggregate, per-tool metric surfaces a systemic pattern from the data itself, without waiting for that pattern to first accumulate into a noticeable stack of individual complaints.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/03-agent-debugging-failure-analysis-and-evaluation': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-03-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'The prerequisite lesson\'s backward-trace-walking technique root-causes one failing run. What does building a failure taxonomy across many root-caused incidents add that a single trace analysis does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'It replaces the need to ever walk a trace backward again' },
+          { id: 'b', label: 'B', text: 'It reveals which category of failure recurs most often across incidents, telling an FDE team where engineering effort is actually worth spending, rather than treating each incident as an isolated one-off' },
+          { id: 'c', label: 'C', text: 'It automatically fixes the underlying bug without further engineering work' },
+          { id: 'd', label: 'D', text: 'It only applies to multi-agent systems, not single-agent loops' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Root-causing one trace tells you what went wrong in that run; tagging many root-caused incidents by category is what turns individual fixes into a pattern that points toward the highest-leverage engineering fix.',
+        incorrectExplanation:
+          'Reflect on how an engineering team prioritizes fixes across hundreds of production incidents.',
+        hint:
+          'A taxonomy groups individual failure instances into measurable categories to guide high-leverage fixes.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-03-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'How does the offline eval harness differ from both live monitoring (previous lesson) and single-trace debugging (prerequisite lesson)?',
+        options: [
+          { id: 'a', label: 'A', text: 'All three techniques test the exact same thing at the exact same point in the deployment process' },
+          { id: 'b', label: 'B', text: 'The eval harness runs a fixed, curated set of golden cases before a change is exposed to any real customer; live monitoring watches real production traffic after it happens; single-trace debugging root-causes one already-reported failure after the fact — all three are reactive to a different point in time except the eval harness, which is proactive' },
+          { id: 'c', label: 'C', text: 'Live monitoring and the eval harness are the same mechanism under different names' },
+          { id: 'd', label: 'D', text: 'Single-trace debugging replaces the need for an eval harness once enough traces have been analyzed' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The distinguishing axis is timing relative to real customer exposure: the eval harness runs before a change ships at all, while both live monitoring and single-trace debugging only observe what already happened in production.',
+        incorrectExplanation:
+          'Consider when in the software lifecycle pre-deploy benchmark testing occurs versus post-deploy telemetry.',
+        hint:
+          'An offline eval harness runs deterministically before deployment, whereas live monitoring observes production traffic in real time.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-03-mcq-01',
+        question:
+          'Why does the lesson describe under-escalation as often the most costly failure category, compared to over-escalation?',
+        options: [
+          { id: 'a', label: 'A', text: 'An under-escalation means the agent resolved a case autonomously that it should have handed off, so a wrong autonomous action carries direct customer or financial impact, unlike an over-escalation which merely wastes a human\'s time on a case the agent could have handled' },
+          { id: 'b', label: 'B', text: 'Over-escalation is always more expensive because it involves a human agent\'s salary' },
+          { id: 'c', label: 'C', text: 'Under-escalation and over-escalation cost the same amount in every case' },
+          { id: 'd', label: 'D', text: 'Under-escalation never actually occurs in a well-designed agent' },
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The asymmetry is about consequence: over-escalation costs a human\'s attention on something they didn\'t strictly need to review, while under-escalation lets a wrong action actually execute, which is why the scenario\'s wrongly-issued refund is called the costliest incident.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-03-mcq-02',
+        question:
+          'Why does the lesson insist a golden-dataset entry specify the correct action taken, not just the correct final answer text?',
+        options: [
+          { id: 'a', label: 'A', text: 'Final answer text is never relevant to evaluating an agent' },
+          { id: 'b', label: 'B', text: 'For an agent that can take real actions (like triggering `create_refund`), whether it took the right action is a separate and often more important thing to test than whether its final text reads correctly' },
+          { id: 'c', label: 'C', text: 'Testing actions is technically impossible with an LLM-as-judge grader' },
+          { id: 'd', label: 'D', text: 'Golden datasets are only used for agents that never take any actions' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'An agent\'s correctness includes whether it did the right thing, not only whether it said the right thing — a golden case that only checks final text would miss a case where the agent said something reasonable but took the wrong (or no) action.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-03-mcq-03',
+        question:
+          'Why does the lesson favor an LLM-as-judge grader for the eval harness despite it being imperfect compared to human judgment on any single case?',
+        options: [
+          { id: 'a', label: 'A', text: 'LLM-as-judge graders are always more accurate than any human reviewer' },
+          { id: 'b', label: 'B', text: 'It is consistent and cheap enough to run against hundreds of golden cases on every candidate change, at a cadence no human review process could sustain' },
+          { id: 'c', label: 'C', text: 'Human review is technically incapable of evaluating agent behavior' },
+          { id: 'd', label: 'D', text: 'LLM-as-judge grading eliminates the need for a golden dataset entirely' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The trade-off the lesson names explicitly is per-case accuracy versus scale: an LLM-as-judge grader is not as sharp as a human on any one case, but it can run the full golden dataset against every candidate change, which is what makes systematic gating practical.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-03-mcq-04',
+        question:
+          'How does the prerequisite lesson\'s practice of converting a failing trace into a regression-test case connect to this lesson\'s eval harness?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two practices are unrelated; regression tests and golden datasets serve entirely different purposes' },
+          { id: 'b', label: 'B', text: 'Turning a root-caused failure into a regression case is exactly how new entries get added to the golden dataset over time, so the eval harness becomes more comprehensive with every incident it absorbs, and a change that would reintroduce a past bug fails the gate automatically' },
+          { id: 'c', label: 'C', text: 'Golden datasets are built entirely independently of any production incident' },
+          { id: 'd', label: 'D', text: 'Regression-test cases expire after one deployment cycle and cannot be reused' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct link the lesson draws: the prerequisite module\'s discipline of writing a regression test for a fixed bug is precisely the mechanism that grows the golden dataset, making every hard-won incident a lasting defense rather than a one-time fire drill.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-03-mcq-05',
+        question:
+          'In the scenario, what did running the full 40-case golden dataset against the order-ID grounding fix reveal before it shipped?',
+        options: [
+          { id: 'a', label: 'A', text: 'The fix introduced no regressions of any kind' },
+          { id: 'b', label: 'B', text: 'The new grounding instruction had accidentally made the agent under-confident on a legitimately simple refund case, a regression the gate caught precisely because it tested against accumulated cases beyond just the three hallucinated-order-ID incidents that motivated the fix' },
+          { id: 'c', label: 'C', text: 'The fix caused every one of the 40 golden cases to fail' },
+          { id: 'd', label: 'D', text: 'Salesforce\'s maintenance window caused the eval run to fail' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly why gating against the full accumulated dataset matters, not just the cases that motivated the fix — a fix targeted at one category of failure can introduce a regression in a different, previously-passing case, which only a broad golden dataset run would catch.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-03-mcq-06',
+        question:
+          'What is the purpose of requiring a candidate prompt or model change to clear a minimum pass rate against the golden dataset before shipping?',
+        options: [
+          { id: 'a', label: 'A', text: 'It guarantees the change will have zero production incidents once deployed' },
+          { id: 'b', label: 'B', text: 'It blocks a change from reaching production automatically if it would reintroduce a previously root-caused failure or regress on an existing golden case, turning the eval harness into an enforced deployment gate rather than an optional check' },
+          { id: 'c', label: 'C', text: 'It is required only for changes to the tool schemas, never to prompts' },
+          { id: 'd', label: 'D', text: 'It replaces the need for live monitoring after the change ships' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The gate\'s enforcement value is that it is automatic and blocking — a change cannot reach production while failing the pass-rate threshold, which is what makes the golden dataset a real defense rather than a reference document nobody consults.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/04-mcp-model-context-protocol-and-enterprise-tooling': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-04-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What specific problem does standardizing on MCP solve when an FDE builds multiple agents against multiple enterprise systems?',
+        options: [
+          { id: 'a', label: 'A', text: 'It eliminates the need for schema validation on any tool call' },
+          { id: 'b', label: 'B', text: 'Without a shared protocol, connecting N agents to M systems requires roughly N-times-M bespoke integrations; MCP collapses this into N servers (one per system) plus M clients (one per agent), since any MCP-compatible client can use any MCP server' },
+          { id: 'c', label: 'C', text: 'It guarantees every tool call will succeed without a business-rule gate' },
+          { id: 'd', label: 'D', text: 'It removes the need for any access control between agents and systems' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The core integration-cost claim is the collapse from a multiplicative N-times-M relationship to an additive N-plus-M one, which is exactly why each additional agent connecting to an already-served system costs far less than the first.',
+        incorrectExplanation:
+          'Think about how standard protocols (like USB or HTTP) reduce point-to-point integration complexity.',
+        hint:
+          'MCP establishes a standard host-server protocol that turns combinatorial N × M connector logic into linear N + M.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-04-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'An MCP server exposes a specific Salesforce account record for a client to read. Which MCP primitive is this?',
+        options: [
+          { id: 'a', label: 'A', text: 'A prompt' },
+          { id: 'b', label: 'B', text: 'A resource' },
+          { id: 'c', label: 'C', text: 'A tool' },
+          { id: 'd', label: 'D', text: 'None of these; MCP has no primitive for read-only data' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Resources are structured, addressable data a client can read, closer to a REST GET than to an action — distinct from tools (callable, potentially side-effecting operations) and prompts (reusable templates).',
+        incorrectExplanation:
+          'Distinguish between passive read-only contextual data retrieval and active execution with potential side effects.',
+        hint:
+          'Resources are read-only data attachments; tools execute callable functions that can cause state mutations.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-04-mcq-01',
+        question:
+          'Why does the lesson say conflating MCP\'s resources, tools, and prompts is a common early design mistake?',
+        options: [
+          { id: 'a', label: 'A', text: 'MCP technically forbids a server from exposing more than one primitive type' },
+          { id: 'b', label: 'B', text: 'Keeping them separate keeps a server\'s responsibilities clear — a resource handler only ever reads, a tool handler is where schema-validation and business-rule gates belong, and a prompt is versioned data, not executable logic; conflating them blurs where each kind of logic should live' },
+          { id: 'c', label: 'C', text: 'Prompts are always more expensive to serve than resources or tools' },
+          { id: 'd', label: 'D', text: 'Tools cannot be versioned unless they are implemented as resources' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Each primitive carries a distinct responsibility and risk profile; treating a side-effecting tool the same as a read-only resource, for instance, would strip away the schema and business-rule discipline a tool handler specifically needs.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-04-mcq-02',
+        question:
+          'Why does the lesson describe an MCP server as a natural enforcement point for access control and audit logging, rather than just a data pipe?',
+        options: [
+          { id: 'a', label: 'A', text: 'MCP servers are incapable of transmitting data without enforcing access control' },
+          { id: 'b', label: 'B', text: 'Because every resource read and tool call any client makes against that system passes through the server, access scoping and audit logging can live there once, instead of being separately re-implemented inside every individual agent that calls the system' },
+          { id: 'c', label: 'C', text: 'Access control is only possible when a system is wrapped in an MCP server' },
+          { id: 'd', label: 'D', text: 'Audit logging is a built-in, non-configurable feature of the MCP protocol itself' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The server\'s position on every path between any client and the system it wraps is exactly what makes centralizing access control and audit logging there stronger than scattering the same logic across each agent\'s own integration code.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-04-mcq-03',
+        question:
+          'In the scenario, why does the support copilot client connect to the same `salesforce-mcp-server` as the sales ops assistant but see a narrower set of tools?',
+        options: [
+          { id: 'a', label: 'A', text: 'The support copilot uses a technically different version of the MCP protocol' },
+          { id: 'b', label: 'B', text: 'The MCP server scopes which resources and tools each connecting client is permitted to see, so the support copilot is scoped to read-only account lookup while the sales ops assistant\'s broader role justifies also exposing deal-stage and call-note tools' },
+          { id: 'c', label: 'C', text: 'Zendesk and Salesforce cannot be accessed by the same server under any configuration' },
+          { id: 'd', label: 'D', text: 'The support copilot\'s tools were never registered with the MCP server at all' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The same underlying server can expose different scopes to different clients — this per-client scoping is exactly the access-control enforcement point the lesson attributes to the MCP server\'s central position.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-04-mcq-04',
+        question:
+          'Why could Fenwick\'s security team get a complete audit of every AI-driven write to Salesforce from the MCP server\'s own call log, rather than needing to inspect each agent separately?',
+        options: [
+          { id: 'a', label: 'A', text: 'Salesforce itself provided the complete audit trail independent of any MCP server' },
+          { id: 'b', label: 'B', text: 'Because both agents\' writes to Salesforce necessarily pass through the single `salesforce-mcp-server`, its call log captures every write regardless of which client (support copilot or sales ops assistant) initiated it, unlike two separately-built agents each maintaining their own incomplete logging' },
+          { id: 'c', label: 'C', text: 'Only one of the two agents was actually capable of writing to Salesforce' },
+          { id: 'd', label: 'D', text: 'The audit was only possible because the two agents shared the exact same source code' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the concrete payoff of centralizing the integration at one server: a single call log at the enforcement point covers every client using that server, instead of requiring the audit to separately trust each agent\'s own logging implementation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-04-mcq-05',
+        question:
+          'For a system only one agent will ever need to call, what does this lesson\'s framework suggest about building a dedicated MCP server versus a one-off custom tool?',
+        options: [
+          { id: 'a', label: 'A', text: 'An MCP server is always required regardless of how many agents will use a system' },
+          { id: 'b', label: 'B', text: 'The integration-cost benefit of MCP comes specifically from amortizing one server\'s build cost across multiple clients; when only one agent will ever call a system, that amortization never materializes, so a one-off custom tool may be the more proportionate choice' },
+          { id: 'c', label: 'C', text: 'A one-off custom tool is technically incapable of enforcing access control' },
+          { id: 'd', label: 'D', text: 'MCP servers cannot be built for systems used by only one client' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s integration-cost argument for MCP depends on multiple clients sharing one server\'s build cost — when that sharing will never happen, the same argument doesn\'t apply, and a simpler one-off integration can be the proportionate choice.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-04-mcq-06',
+        question:
+          'Where does the lesson say the schema-validation and business-rule-gate discipline from lesson 1 belongs inside an MCP server\'s design?',
+        options: [
+          { id: 'a', label: 'A', text: 'Inside the resource handler, since resources are read most frequently' },
+          { id: 'b', label: 'B', text: 'Inside the tool handler, since tools are the callable, potentially side-effecting operations — the same category of operation lesson 1\'s `create_refund` schema and business-rule gates were designed for' },
+          { id: 'c', label: 'C', text: 'Inside the prompt template, since prompts are the only versioned primitive' },
+          { id: 'd', label: 'D', text: 'Nowhere; MCP servers handle validation automatically without any server-side logic' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Tools are exactly the primitive category lesson 1\'s schema-and-business-rule discipline was built for — a resource handler only reads, so that discipline naturally attaches to the tool handler, not the resource or prompt primitives.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/05-multi-agent-patterns-and-human-in-the-loop': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-05-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What is the defining difference between human-in-the-loop and human-on-the-loop, as this lesson uses the terms?',
+        options: [
+          { id: 'a', label: 'A', text: 'Human-on-the-loop requires more reviewers than human-in-the-loop' },
+          { id: 'b', label: 'B', text: 'Human-in-the-loop physically pauses the workflow at a defined point until a human approves or rejects; human-on-the-loop lets a human monitor and intervene, but the system proceeds by default unless someone actively stops it' },
+          { id: 'c', label: 'C', text: 'The two terms describe exactly the same safety posture' },
+          { id: 'd', label: 'D', text: 'Human-in-the-loop only applies to multi-agent systems, never a single agent' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The distinguishing feature is whether the action can execute without human approval at all — human-in-the-loop physically blocks until approval, while human-on-the-loop proceeds by default with a human able to intervene.',
+        incorrectExplanation:
+          'Focus on whether the execution pipeline synchronously blocks before taking action or operates autonomously with post-hoc oversight.',
+        hint:
+          'Human-in-the-loop blocks execution before the action occurs; human-on-the-loop monitors autonomous execution asynchronously.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-05-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'What criterion does the lesson give for deciding which specific worker in an orchestrator-worker system needs a blocking human-approval gate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Gate whichever worker has the most complex prompt' },
+          { id: 'b', label: 'B', text: 'Gate the worker whose wrong output has direct, hard-to-reverse consequence (money moving, a customer-facing commitment, data being deleted); let workers whose output is easily reviewable or reversible proceed without blocking' },
+          { id: 'c', label: 'C', text: 'Gate every worker that calls more than one tool' },
+          { id: 'd', label: 'D', text: 'Gate whichever worker was built most recently' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly ties the gating decision to consequence and reversibility, not to a worker\'s complexity or recency — this is what makes the `refund-worker`, not the `drafting-worker`, the one that needs blocking approval.',
+        incorrectExplanation:
+          'Evaluate the reversibility and blast radius of each worker action.',
+        hint:
+          'Synchronous gates belong on high-blast-radius, irreversible actions rather than low-risk reads or drafts.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-05-mcq-01',
+        question:
+          'How does the refund-worker\'s human-approval gate parallel the schema-validation and business-rule gates from lesson 1?',
+        options: [
+          { id: 'a', label: 'A', text: 'It doesn\'t; human approval gates and automated validation gates serve entirely unrelated purposes' },
+          { id: 'b', label: 'B', text: 'Both follow the same "propose, then gate, then execute" shape — a call is proposed but not dispatched until it clears a gate — with a human occupying the gate here instead of an automated validator function' },
+          { id: 'c', label: 'C', text: 'The human-approval gate replaces the need for schema validation on the same tool call' },
+          { id: 'd', label: 'D', text: 'Human-approval gates only apply to tools that have no JSON schema at all' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The structural pattern is identical across both lessons: a proposed action does not execute until it passes a gate, whether that gate is an automated schema/business-rule check or a human reviewer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-05-mcq-02',
+        question:
+          'Why does the lesson warn against adding a blocking human-approval gate to every worker in an orchestrator-worker system?',
+        options: [
+          { id: 'a', label: 'A', text: 'Gating every worker, including ones with easily reviewable or reversible output, makes the system slower than a human doing the whole task alone, defeating the point of building it' },
+          { id: 'b', label: 'B', text: 'Human reviewers are technically incapable of reviewing more than one gate' },
+          { id: 'c', label: 'C', text: 'Gating multiple workers is against the MCP protocol\'s specification' },
+          { id: 'd', label: 'D', text: 'A system with more than one gate cannot produce an audit trail' },
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson frames this as a real cost trade-off: over-gating erases the automation benefit entirely, which is exactly why the hard-to-reverse-consequence criterion exists to decide which specific worker actually needs the blocking gate.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-05-mcq-03',
+        question:
+          'Why does the lesson describe a gate that waits indefinitely for a human as itself a failure mode?',
+        options: [
+          { id: 'a', label: 'A', text: 'Indefinite waits are only a problem if the human reviewer is on vacation' },
+          { id: 'b', label: 'B', text: 'A human reviewer can be away, backlogged, or slow, so an unbounded wait can silently stall a time-sensitive decision (like a customer\'s refund) for hours with no automatic recourse, which is its own kind of production failure even though the gate is technically "working as designed"' },
+          { id: 'c', label: 'C', text: 'Human reviewers are always faster than automated validation, so this scenario cannot occur' },
+          { id: 'd', label: 'D', text: 'A gate without a time bound is not technically possible to implement' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is that a gate functioning exactly as designed can still produce a bad outcome if nothing bounds how long it can wait — this is precisely the gap an SLA-based escalation rule closes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-05-mcq-04',
+        question:
+          'What does an SLA-based escalation rule do to a gated decision that has not been approved or rejected within its defined time window?',
+        options: [
+          { id: 'a', label: 'A', text: 'It automatically approves the decision without any further human review' },
+          { id: 'b', label: 'B', text: 'It routes the decision to a different reviewer, a supervisor, or a broader on-call queue, converting an open-ended wait into a bounded one' },
+          { id: 'c', label: 'C', text: 'It permanently deletes the pending request from the queue' },
+          { id: 'd', label: 'D', text: 'It restarts the entire orchestrator-worker run from the beginning' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The rule\'s purpose is specifically to bound the wait, not to bypass human review entirely — escalating to a different reviewer keeps the human-in-the-loop guarantee intact while preventing an indefinite stall.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-05-mcq-05',
+        question:
+          'Why does the lesson insist the payload a human reviews at an approval gate must be the exact structured tool-call arguments that will execute on approval, not a paraphrased summary?',
+        options: [
+          { id: 'a', label: 'A', text: 'Paraphrased summaries are always more accurate than raw structured data' },
+          { id: 'b', label: 'B', text: 'If a human approves a paraphrased summary rather than the literal arguments, there could be a gap between what was reviewed and what actually executes, undermining the entire purpose of the gate and making the audit trail unable to prove what was genuinely reviewed' },
+          { id: 'c', label: 'C', text: 'JSON schemas cannot be displayed to a human reviewer in any readable format' },
+          { id: 'd', label: 'D', text: 'Paraphrasing is technically forbidden by the MCP protocol' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The gate\'s whole value depends on the human genuinely reviewing what will execute; a paraphrase reintroduces exactly the kind of gap the gate exists to close, and it would leave the audit trail unable to prove informed approval.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-05-mcq-06',
+        question:
+          'What specifically prompted Fenwick Analytics\'s FDE team to add the 30-minute SLA-escalation rule?',
+        options: [
+          { id: 'a', label: 'A', text: 'A refund was approved incorrectly by a reviewer who misread the payload' },
+          { id: 'b', label: 'B', text: 'A gated refund request sat unreviewed for eleven hours, and the customer escalated a complaint before any human had even seen the original request, revealing that the queue had no time bound at all' },
+          { id: 'c', label: 'C', text: 'The `refund-worker` proposed a schema-invalid tool call' },
+          { id: 'd', label: 'D', text: 'The audit log failed to record who approved a refund' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The eleven-hour unbounded wait, not a review error or a schema failure, is what exposed the missing time bound — this is exactly the unbounded-wait failure mode the lesson\'s concepts section describes in the abstract.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-05-mcq-07',
+        question:
+          'Using this lesson\'s consequence-based gating criterion, what should generally determine whether a hypothetical `account-deletion-worker`\'s SLA-escalation window should be shorter or longer than the `refund-worker`\'s?',
+        options: [
+          { id: 'a', label: 'A', text: 'The window should always be identical across every gated worker regardless of the action\'s consequence' },
+          { id: 'b', label: 'B', text: 'How hard-to-reverse the action is once executed — an account deletion is typically far harder to reverse than a refund, which argues for at least as careful a review process, though the specific window length is a business decision informed by that irreversibility, not a fixed rule' },
+          { id: 'c', label: 'C', text: 'The window should be set to zero, since account deletion should never require human review' },
+          { id: 'd', label: 'D', text: 'The window is determined solely by how many tools the worker calls' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s criterion is consequence and reversibility, not a fixed universal number — a harder-to-reverse action like account deletion warrants weighing that irreversibility explicitly when setting the escalation window, rather than copying the refund worker\'s window by default.'
+      }
+    ]
+  },
+  'fde-curriculum/agentic-systems-integrations/06-enterprise-systems-landscape-and-integration-topology': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-agentic-systems-integrations-06-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson call it a mistake for an agent to treat a cached CRM copy of a customer\'s balance as authoritative instead of querying the ERP/billing system directly?',
+        options: [
+          { id: 'a', label: 'A', text: 'CRMs are technically incapable of storing any financial data' },
+          { id: 'b', label: 'B', text: 'The ERP/billing system, not the CRM, is the actual source of record for financial and operational transactions, so a cached copy elsewhere can be stale or wrong, and acting on it risks a decision based on incorrect data' },
+          { id: 'c', label: 'C', text: 'Caching is always forbidden in enterprise integration architecture' },
+          { id: 'd', label: 'D', text: 'This is not actually a mistake; either source is equally authoritative' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Respecting source-of-record boundaries means querying the system that actually owns a given fact, not a downstream cached copy that may have drifted out of sync with reality.',
+        incorrectExplanation:
+          'Consider why enterprise systems designate a single authoritative source of record for each business entity.',
+        hint:
+          'CRM stores customer relationship data; the billing/ERP system is the authoritative source of record for financial balances.'
+      },
+      {
+        id: 'lesson-fde-agentic-systems-integrations-06-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson treat sync-versus-async and batch-versus-event-driven as two largely independent dimensions rather than one combined choice?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two dimensions always move together; a synchronous call is always paired with batch delivery' },
+          { id: 'b', label: 'B', text: 'Sync/async is about whether the caller blocks waiting for a response on one specific call; batch/event-driven is about when underlying data moves or refreshes at all — a system can be queried synchronously while the data behind it is refreshed by either a nightly batch job or a real-time event stream' },
+          { id: 'c', label: 'C', text: 'Batch and event-driven only apply to asynchronous integrations, never synchronous ones' },
+          { id: 'd', label: 'D', text: 'These are actually the same dimension described with different terminology' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario makes this concrete: `lookup_account` is a synchronous call, but the underlying Salesforce data behind it could in principle be kept fresh by either a batch or event-driven feed — the two axes are genuinely separate design choices.',
+        incorrectExplanation:
+          'Distinguish between call-flow blocking semantics and data transmission cadence.',
+        hint:
+          'Sync/async describes whether the caller waits for a response; batch/event-driven describes the scheduling and trigger model of data transport.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-06-mcq-01',
+        question:
+          'Which enterprise system category is the authoritative source of record for support interactions and their resolution state?',
+        options: [
+          { id: 'a', label: 'A', text: 'CRM' },
+          { id: 'b', label: 'B', text: 'ERP' },
+          { id: 'c', label: 'C', text: 'Ticketing / ITSM' },
+          { id: 'd', label: 'D', text: 'None of these systems track resolution state' },
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'A ticketing/ITSM system like Zendesk or ServiceNow is specifically the source of record for support interactions and their state, distinct from a CRM\'s account-relationship data or an ERP\'s financial and operational transaction data.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-06-mcq-02',
+        question:
+          'Why does point-to-point integration topology become unmanageable as more systems are added, compared to a hub-based topology?',
+        options: [
+          { id: 'a', label: 'A', text: 'Point-to-point connections are always slower than hub-based ones' },
+          { id: 'b', label: 'B', text: 'Point-to-point connections grow combinatorially (roughly N-squared) as systems are added, each with its own duplicated auth, retry, and error-handling logic, while a hub-based topology grows linearly since each system connects only once to the shared hub' },
+          { id: 'c', label: 'C', text: 'Hub-based topologies cannot support more than a fixed number of systems' },
+          { id: 'd', label: 'D', text: 'Point-to-point connections require no authentication, unlike hub-based ones' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The combinatorial-versus-linear growth is the specific mathematical claim the lesson makes, and it is the exact same shape as the N-times-M tool-integration problem MCP solved in lesson 4.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-06-mcq-03',
+        question:
+          'How does the point-to-point-versus-hub integration topology problem in this lesson relate to the N-agents-times-M-systems problem MCP solved in lesson 4?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are unrelated problems that happen to share similar-sounding names' },
+          { id: 'b', label: 'B', text: 'They are structurally the same combinatorial-growth problem applied at different layers — lesson 4\'s problem was agents needing bespoke integrations per system, while this lesson\'s is enterprise systems needing bespoke integrations with each other; a shared intermediary (an MCP server, or a hub/event bus) collapses combinatorial growth into linear growth in both cases' },
+          { id: 'c', label: 'C', text: 'MCP is only relevant to agent-tool integration and has no bearing on system-to-system topology at all' },
+          { id: 'd', label: 'D', text: 'The hub-based topology in this lesson is a replacement for MCP, not an analogous pattern' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both problems are the same underlying shape — combinatorial connection growth avoided by routing through one shared intermediary — just applied to two different sets of things needing to connect (agents-to-systems in lesson 4, systems-to-systems here).'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-06-mcq-04',
+        question:
+          'Why does the lesson say an FDE\'s agentic tooling should generally fit into a customer\'s existing hub-based integration platform rather than bolt on a new point-to-point connection?',
+        options: [
+          { id: 'a', label: 'A', text: 'A customer\'s integration team, if one exists, has likely already invested in a hub-based platform for good reason; adding a new point-to-point connection the team didn\'t ask for reintroduces the exact combinatorial-growth problem the hub was built to avoid, and creates a second, independent write path that can disagree with the first' },
+          { id: 'b', label: 'B', text: 'Point-to-point connections are technically incompatible with any agentic system' },
+          { id: 'c', label: 'C', text: 'Existing integration teams never have any hub-based infrastructure already in place' },
+          { id: 'd', label: 'D', text: 'MCP servers cannot be connected to a hub-based platform under any configuration' },
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly the scenario\'s `create_refund` risk: bypassing an existing hub with a direct point-to-point call creates a second write path that can silently diverge from what the hub-routed reconciliation process believes happened.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-06-mcq-05',
+        question:
+          'Why does the lesson conclude that Fenwick\'s support copilot needs its Zendesk knowledge-base index refreshed via a near-real-time event stream rather than the nightly batch export the marketing team already uses?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nightly batch exports are technically incompatible with Zendesk as a data source' },
+          { id: 'b', label: 'B', text: 'A newly-published KB article needs to be searchable within minutes for the support copilot to be useful, and a nightly batch feed would mean up to 24 hours of staleness — the freshness requirement, not any inherent superiority of event-driven feeds, is what rules batch out here' },
+          { id: 'c', label: 'C', text: 'Event-driven feeds are always the correct choice for every integration regardless of requirements' },
+          { id: 'd', label: 'D', text: 'The marketing team\'s batch job is broken and needs to be fixed first' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that the choice should be driven by the specific freshness requirement, not by which pattern sounds more sophisticated — batch remains the right choice for the marketing dashboard\'s own needs even while being wrong for the copilot\'s.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-06-mcq-06',
+        question:
+          'In the scenario, what specific risk does the `create_refund` tool\'s direct call to Ledger (bypassing Fenwick\'s existing Salesforce-Ledger event bus) create?',
+        options: [
+          { id: 'a', label: 'A', text: 'The tool call would fail schema validation as defined in lesson 1' },
+          { id: 'b', label: 'B', text: 'The support copilot\'s writes and the existing reconciliation job\'s view of account state now flow through two independent paths that could disagree about "what actually happened," rather than sharing one consistent system of record' },
+          { id: 'c', label: 'C', text: 'Ledger cannot technically be called directly by any external system' },
+          { id: 'd', label: 'D', text: 'The refund amount would automatically double due to the missing event bus' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the concrete consequence of bypassing an existing hub: a second, independent write path is created, and nothing guarantees the two paths\' views of reality stay consistent with each other.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-agentic-systems-integrations-06-mcq-07',
+        question:
+          'Per this lesson\'s framework, what should mainly determine whether Fenwick\'s marketing platform joins the existing hub versus getting a new point-to-point connection?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whichever option is cheaper to build in the first week, regardless of how many systems the marketing platform will eventually need to reach' },
+          { id: 'b', label: 'B', text: 'Whether the marketing platform will need to exchange data with more than one existing system over time — a single, narrow, unlikely-to-grow connection may not justify hub integration overhead, but any broader or growing need reintroduces the combinatorial-growth risk a hub is meant to avoid' },
+          { id: 'c', label: 'C', text: 'The marketing platform should always use a point-to-point connection, since it is not a customer-facing system' },
+          { id: 'd', label: 'D', text: 'This decision is entirely outside the scope of an FDE\'s responsibilities' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the lesson\'s core topology argument applied prospectively: the number of systems a new integration will eventually need to reach, not just its first connection, is what determines whether point-to-point or hub-based is the sound long-term choice.'
+      }
+    ]
+  },
+  'fde-curriculum/application-security-reliability/01-product-thinking-and-architecture-for-fde-apps': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-01-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — VERTICAL SLICE ARCHITECTURE',
+        question:
+          'What does the lesson mean by building a "vertical slice" for an FDE app\'s MVP?',
+        options: [
+          { id: 'a', label: 'A', text: 'A full, working path through every layer — request, logic, storage, UI — for the single narrowest real use case, built end to end before any one layer is broadened or polished' },
+          { id: 'b', label: 'B', text: 'Building the database schema completely before writing any API or UI code' },
+          { id: 'c', label: 'C', text: 'A UI mockup that demonstrates the intended user flow without any working backend' },
+          { id: 'd', label: 'D', text: 'A generic ingestion pipeline built to handle every future use case before the first real one is implemented' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson explicitly defines a vertical slice as cutting through every layer for the narrowest real case, in direct contrast to layer-first building, which builds one layer generically before any other layer exists.',
+        incorrectExplanation:
+          'A vertical slice must span all architectural tiers (UI to storage) for a single narrow workflow rather than perfecting a single horizontal layer in isolation.',
+        hint:
+          'Think about delivering a functional end-to-end user path across all layers for the narrowest use case first.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-01-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — ARCHITECTURAL SEAMS VS SPECULATIVE GENERALITY',
+        question:
+          'Per the lesson\'s framework, why does an `org_id` column on every table belong in the MVP from day one, while a multi-provider LLM plugin architecture does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Columns are always cheaper to add than any other kind of code, regardless of timing' },
+          { id: 'b', label: 'B', text: 'The column costs one migration today but retrofitting it after real tenant data exists risks a missed query leaking data across tenants, while the plugin architecture adds real complexity now against a requirement (a second LLM provider) that has never actually been requested' },
+          { id: 'c', label: 'C', text: 'Plugin architectures are never appropriate for any FDE engagement under any circumstances' },
+          { id: 'd', label: 'D', text: 'Meridian\'s product lead explicitly forbade building the plugin architecture in the discovery call' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s central distinction stated as a concrete cost comparison: retrofit cost and leak risk justify the seam now, while the plugin adds complexity against a hypothetical, not an evidenced, need.',
+        incorrectExplanation:
+          'Consider the migration cost and security leak risk of adding tenant scoping late versus building speculative provider abstractions before any requirement exists.',
+        hint:
+          'Evaluate the asymmetric cost of retrofitting multi-tenant boundaries later versus adding unrequested extensibility layers now.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-01-mcq-01',
+        question:
+          'Why does the lesson argue that layer-first building (a generic ingestion pipeline, then a generic processing layer, then a generic UI) tends to misjudge what actually matters?',
+        options: [
+          { id: 'a', label: 'A', text: 'Layer-first building always takes longer in absolute engineering hours than a vertical slice' },
+          { id: 'b', label: 'B', text: 'There is no working system to react to until all layers are "done," so judgment about what actually matters — which only comes from watching a real user hit a real gap — has nothing to inform it until far too late' },
+          { id: 'c', label: 'C', text: 'Generic layers are inherently more bug-prone than layers built for one specific use case' },
+          { id: 'd', label: 'D', text: 'Customers refuse to review any architecture that isn\'t built as a vertical slice' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific claim is about the source of judgment, not raw speed or bug rates — a working system generates real feedback a purely anticipated one cannot.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-01-mcq-02',
+        question:
+          'What does the lesson recommend as the default architecture spine for a new FDE app, before any evidence suggests otherwise?',
+        options: [
+          { id: 'a', label: 'A', text: 'One relational store, one API process, one background worker, with synchronous request handling by default' },
+          { id: 'b', label: 'B', text: 'A microservices architecture with one service per business capability from the first commit' },
+          { id: 'c', label: 'C', text: 'An event bus connecting every component, so future consumers can be added without code changes' },
+          { id: 'd', label: 'D', text: 'A NoSQL document store chosen for its flexibility with an unknown future schema' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s stated default is deliberately unremarkable — one store, one API, one worker, synchronous unless a specific evidenced step requires otherwise.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-01-mcq-03',
+        question:
+          'Why did the FDE move contract extraction, specifically, off the synchronous request path, while leaving the upload, review-queue listing, and export endpoints synchronous?',
+        options: [
+          { id: 'a', label: 'A', text: 'Extraction is inherently more important than the other endpoints, so it deserves special infrastructure regardless of latency' },
+          { id: 'b', label: 'B', text: 'Extraction was measured to take 30-90 seconds, long enough to time out or feel broken over a synchronous HTTP request, while none of the other endpoints showed any latency problem that would justify the added complexity of an async boundary' },
+          { id: 'c', label: 'C', text: 'Background workers are always the correct default for every endpoint in a production system' },
+          { id: 'd', label: 'D', text: 'The upload, listing, and export endpoints do not touch the database, unlike extraction' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The async boundary is justified by a measured figure (30-90 seconds), not a blanket rule — the other endpoints stay synchronous precisely because no evidence justifies the added complexity for them.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-01-mcq-04',
+        question:
+          'The lesson connects deferring the multi-provider plugin architecture to which earlier discipline from the discovery-and-scoping module?',
+        options: [
+          { id: 'a', label: 'A', text: 'The four-pass discovery call structure (current-state walkthrough, pain quantification, stakeholder mapping, constraints)' },
+          { id: 'b', label: 'B', text: 'The PRD-lite\'s non-goals section — stating explicitly what will not be built yet, so a later request can be checked against it, now applied to code structure instead of a written document' },
+          { id: 'c', label: 'C', text: 'The risk register\'s requirement that every risk have a named owner' },
+          { id: 'd', label: 'D', text: 'The certainty-language discipline from status update writing' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly draws this parallel: architecture generality deferred today is the non-goals discipline applied to code rather than a scoping document.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-01-mcq-05',
+        question:
+          'What does Practice Loop step 3 (counting migrations needed if `org_id` were added after Acme\'s data already existed, versus added on day one) actually demonstrate?',
+        options: [
+          { id: 'a', label: 'A', text: 'That databases should never be migrated once real customer data exists, under any circumstances' },
+          { id: 'b', label: 'B', text: 'A concrete, countable quantification of the seam-versus-generality distinction, rather than asserting the retrofit cost is high without evidence' },
+          { id: 'c', label: 'C', text: 'That Acme\'s data model was designed incorrectly from the start' },
+          { id: 'd', label: 'D', text: 'How many rows exist in the contracts table at the time of the pilot' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The step exists specifically to make the abstract cost argument concrete and countable, matching the lesson\'s broader insistence on diagnostic, measurable steps over conceptual reflection.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-01-mcq-06',
+        question:
+          'When Globex onboards as ClauseReview\'s second tenant, why does the multi-provider LLM plugin architecture correctly remain deferred, per the Suggested Extension?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because Globex is a smaller company than Acme and has fewer requirements overall' },
+          { id: 'b', label: 'B', text: 'Because Globex still uses the same single LLM provider Acme does — a second tenant existing is not the same evidence as a second LLM provider being an actual requirement' },
+          { id: 'c', label: 'C', text: 'Because plugin architectures are technically impossible to add once a second tenant exists' },
+          { id: 'd', label: 'D', text: 'Because Meridian\'s product lead has permanently withdrawn the original request' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is precise about what counts as evidence: a second tenant is not the same trigger as a second LLM provider requirement — the `org_id` seam pays off with Globex, but the plugin architecture still has no real justification.'
+      }
+    ]
+  },
+  'fde-curriculum/application-security-reliability/02-frontend-essentials-for-fdes-react-plus-typescript': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-02-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — DISCRIMINATED UNIONS & ASYNC STATE',
+        question:
+          'What does modeling `ExtractionResult` as a discriminated union with an exhaustive `switch` catch that a runtime `if (data)` guess would not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Network timeouts during the actual fetch request' },
+          { id: 'b', label: 'B', text: 'A missing UI case (like forgetting to handle the `failed` state) becomes a compile error the developer catches while building, instead of a blank cell a reviewer discovers live' },
+          { id: 'c', label: 'C', text: 'Incorrect values returned by the backend API' },
+          { id: 'd', label: 'D', text: 'Slow database queries on the server extracting the clause data' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s exhaustiveness claim is specifically about UI-state coverage — a missing branch fails to compile rather than silently rendering nothing at runtime.',
+        incorrectExplanation:
+          'Think about what happens when state flags diverge or get out of sync, and how TypeScript can enforce mutually exclusive runtime states.',
+        hint:
+          'Multiple boolean flags create 2^N state combinations, allowing contradictory states that discriminated unions prevent at compile time.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-02-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — SHARED SCHEMAS & CONTRACT DRIFT',
+        question:
+          'Why does deriving both the form\'s validation and the TypeScript type from one Zod schema (via `z.infer`) prevent a problem that a hand-maintained interface plus a separate validation function does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Zod schemas run faster at runtime than hand-written validation functions' },
+          { id: 'b', label: 'B', text: 'A single source of truth means the form\'s validation and the type can never silently disagree, unlike two independently maintained artifacts that can drift apart when one is edited without the other' },
+          { id: 'c', label: 'C', text: 'TypeScript cannot infer types from any source other than a Zod schema' },
+          { id: 'd', label: 'D', text: 'Zod schemas are required by the backend framework to accept any request' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The drift the lesson describes happens specifically when two hand-maintained artifacts are edited independently — deriving both from one schema removes that possibility structurally.',
+        incorrectExplanation:
+          'Consider the risk of maintaining runtime validation logic and static TypeScript interfaces in two separate definitions.',
+        hint:
+          'A single schema provides both compile-time type inference and runtime validation, preventing schema divergence.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-02-mcq-01',
+        question:
+          'Why does the lesson argue that a server-state library like TanStack Query is more than just "less code" compared to hand-rolled `useEffect` fetching for an FDE app with many data-driven components?',
+        options: [
+          { id: 'a', label: 'A', text: 'It collapses loading, error, staleness, cancellation, and optimistic-update logic into one declarative call, reducing the number of places the same stale-closure class of bug can be reintroduced by each new component' },
+          { id: 'b', label: 'B', text: 'It removes the need for TypeScript entirely in any component that fetches data' },
+          { id: 'c', label: 'C', text: 'It eliminates all network requests by caching data permanently regardless of changes on the server' },
+          { id: 'd', label: 'D', text: 'It is required by React itself for any component that fetches data from an API' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific claim is about bug surface area, not raw code volume — fewer hand-written fetch effects means fewer places to reintroduce the exact stale-closure bug Module 3 demonstrated.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-02-mcq-02',
+        question:
+          'In the scenario, what happens when a reviewer edits a clause\'s `liabilityCapUsd` value and the resulting PATCH request fails?',
+        options: [
+          { id: 'a', label: 'A', text: 'The row silently keeps displaying the new value even though the change was never saved' },
+          { id: 'b', label: 'B', text: 'The optimistic update, which showed the new value immediately, rolls back automatically to the previous value once the mutation reports failure' },
+          { id: 'c', label: 'C', text: 'The entire review queue becomes unresponsive until the page is manually refreshed' },
+          { id: 'd', label: 'D', text: 'The extraction status for the clause is permanently set to `failed`' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific behavior the `useMutation` optimistic-update pattern provides: an immediate UI update paired with an automatic rollback if the underlying request does not succeed.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-02-mcq-03',
+        question:
+          'In the scenario, a teammate later adds a fourth state, `needs_review`, to `ExtractionResult`. What is the concrete effect on `ClauseCell`\'s existing `switch` statement?',
+        options: [
+          { id: 'a', label: 'A', text: 'The switch continues to compile and silently renders nothing for the new state until someone notices in production' },
+          { id: 'b', label: 'B', text: 'The switch fails to compile until the new `needs_review` case is explicitly handled, catching the gap before it reaches a reviewer' },
+          { id: 'c', label: 'C', text: 'React automatically generates a default UI for any unhandled discriminated union case' },
+          { id: 'd', label: 'D', text: 'The application crashes at runtime the first time a `needs_review` result is fetched, with no compile-time warning' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the exhaustiveness guarantee made concrete: adding a new union member surfaces every switch that needs updating as a compile error, not a silent runtime gap.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-02-mcq-04',
+        question:
+          'Why does `useQuery([\'clauses\', orgId, contractId], fetchClauses)` avoid re-fetching when a reviewer switches back to a contract they viewed a moment ago?',
+        options: [
+          { id: 'a', label: 'A', text: 'TanStack Query permanently disables re-fetching after the very first request for any query key' },
+          { id: 'b', label: 'B', text: 'The cache key (`orgId`, `contractId`) lets already-fetched data for that exact key be reused directly from cache instead of triggering a duplicate request' },
+          { id: 'c', label: 'C', text: 'The browser\'s own HTTP cache is solely responsible for this behavior, unrelated to the query key' },
+          { id: 'd', label: 'D', text: 'Switching contracts never actually changes which data needs to be displayed' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The cache key is what makes deduplication and reuse possible — identical keys reuse cached data, distinct keys trigger a fresh fetch.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-02-mcq-05',
+        question:
+          'In the scenario, why does a reviewer entering a negative liability cap get rejected the same way whether they use the edit form or a request is sent directly to the mutation?',
+        options: [
+          { id: 'a', label: 'A', text: 'React automatically blocks all negative numeric inputs across every form by default' },
+          { id: 'b', label: 'B', text: 'Both the form\'s validation and the mutation\'s expected type derive from the same Zod schema, so the same validation rule applies regardless of entry point instead of living in two independently maintained places' },
+          { id: 'c', label: 'C', text: 'Negative numbers are rejected by the browser before any JavaScript runs' },
+          { id: 'd', label: 'D', text: 'The backend API silently converts negative values to zero rather than rejecting them' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the practical payoff of a single shared schema — one rule enforced consistently, rather than two separately maintained checks that could disagree.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-02-mcq-06',
+        question:
+          'Per the Suggested Extension, when adding pagination or list virtualization for a contract with thousands of extracted clauses, what does the lesson imply is reused unchanged versus what needs genuinely new code?',
+        options: [
+          { id: 'a', label: 'A', text: '`useQuery`\'s caching, deduplication, and staleness behavior is reused as-is; the genuinely new work is rendering only the visible subset of rows and requesting data in pages rather than all at once' },
+          { id: 'b', label: 'B', text: 'Every part of the existing data-fetching layer must be rewritten from scratch for virtualization to work at all' },
+          { id: 'c', label: 'C', text: 'TypeScript\'s discriminated union types stop functioning correctly once virtualization is introduced' },
+          { id: 'd', label: 'D', text: 'Virtualization eliminates the need for a cache key entirely, since only visible rows are ever fetched' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The question tests whether the learner understands the actual scope of the change — the caching layer\'s behavior does not need to change, only how much and which data is requested and rendered at once.'
+      }
+    ]
+  },
+  'fde-curriculum/application-security-reliability/03-multi-tenant-design-and-background-workflows-postgres-rls-celery': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-03-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — POSTGRES RLS VS APPLICATION FILTERING',
+        question:
+          'Why does the lesson argue that Postgres RLS enforcement closes a class of data leak that application-level `WHERE org_id = ...` filtering does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'RLS makes the database itself refuse to return out-of-tenant rows regardless of what a given query looks like, so a missed WHERE clause in a new endpoint, a raw debugging query, or a background job all inherit the same enforcement automatically' },
+          { id: 'b', label: 'B', text: 'WHERE-clause filtering is slower to execute than RLS policies at query time' },
+          { id: 'c', label: 'C', text: 'RLS eliminates the need for a tenant identifier column on any table entirely' },
+          { id: 'd', label: 'D', text: 'WHERE-clause filtering only works for SELECT statements, never for INSERT or UPDATE' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s core claim is about enforcement location — a WHERE clause is remembered per call site, while an RLS policy is enforced once, at the database, regardless of the calling code.',
+        incorrectExplanation:
+          'Consider the human error risk of relying on developers to remember WHERE clauses across hundreds of queries versus engine-level enforcement.',
+        hint:
+          'Database-level Row-Level Security automatically applies isolation rules to all queries, eliminating the risk of a forgotten WHERE clause.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-03-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — TRANSACTION-SCOPED SESSION CONTEXT',
+        question:
+          'Why must the tenant context be set with `SET LOCAL app.current_org_id = ...` inside a transaction, rather than a connection-wide `SET`, on a pooled database connection?',
+        options: [
+          { id: 'a', label: 'A', text: '`SET LOCAL` executes faster than `SET` regardless of connection pooling' },
+          { id: 'b', label: 'B', text: '`SET LOCAL` scopes the value to the current transaction and clears automatically when it ends, while a connection-wide `SET` would leave a previous tenant\'s context leaking into the next request that reuses the same pooled connection' },
+          { id: 'c', label: 'C', text: '`SET` is not valid syntax for session variables in Postgres under any circumstances' },
+          { id: 'd', label: 'D', text: '`SET LOCAL` is required by Celery specifically, but not by any other background job framework' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The specific risk is connection reuse across tenants — `SET LOCAL`\'s transaction scoping is exactly what prevents one tenant\'s session context from bleeding into the next request on the same physical connection.',
+        incorrectExplanation:
+          'Think about how connection poolers (like PgBouncer or EF Core pool) reuse physical TCP connections across different tenant requests.',
+        hint:
+          'Connection pools reuse database connections; SET LOCAL guarantees the tenant context is wiped as soon as the transaction ends.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-03-mcq-01',
+        question:
+          'Why does the lesson insist the `BYPASSRLS` attribute be reserved for a separate, narrowly-scoped role, never the application\'s own runtime role?',
+        options: [
+          { id: 'a', label: 'A', text: '`BYPASSRLS` is a deprecated Postgres feature no longer supported in current versions' },
+          { id: 'b', label: 'B', text: 'Granting `BYPASSRLS` to the application\'s runtime role undoes the entire point of database-layer enforcement — any connection using that role could return cross-tenant data regardless of the policy' },
+          { id: 'c', label: 'C', text: '`BYPASSRLS` only affects INSERT statements, so it is irrelevant to read-path tenant isolation' },
+          { id: 'd', label: 'D', text: 'Postgres requires every migration tool to use a role with `BYPASSRLS`, making it unavoidable in practice' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames this as a single point of failure — one misconfigured connection carrying `BYPASSRLS` defeats database-layer enforcement entirely, which is why it must stay isolated to genuine admin/migration use.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-03-mcq-02',
+        question:
+          'What specific defect does the lesson describe when a worker sets `app.current_org_id` once at worker startup rather than per job?',
+        options: [
+          { id: 'a', label: 'A', text: 'The worker crashes immediately on startup and cannot process any jobs' },
+          { id: 'b', label: 'B', text: 'If the connection is reused across jobs for different tenants without re-issuing `SET LOCAL`, a job for one tenant can silently run its queries under a previous job\'s stale tenant context' },
+          { id: 'c', label: 'C', text: 'Extraction jobs run correctly, but noticeably slower than if the context were set per job' },
+          { id: 'd', label: 'D', text: 'RLS policies stop being enforced entirely once a worker process has been running for more than one job' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the exact pooled-connection defect class the lesson names — stale session context from a previous job silently applies to the next job\'s queries if not explicitly re-set.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-03-mcq-03',
+        question:
+          'Why does the lesson recommend per-tenant queue routing over a single shared FIFO queue for a multi-tenant background worker pool?',
+        options: [
+          { id: 'a', label: 'A', text: 'A single shared queue is technically incapable of processing more than one job at a time' },
+          { id: 'b', label: 'B', text: 'One tenant\'s malformed input triggering repeated retries can occupy worker capacity and queue position, starving every other tenant\'s quick, legitimate jobs behind it' },
+          { id: 'c', label: 'C', text: 'Celery does not support a single shared queue under any configuration' },
+          { id: 'd', label: 'D', text: 'Per-tenant queues eliminate the need for idempotency keys entirely' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The noisy-neighbor risk is specifically about shared capacity and ordering — a stuck tenant\'s retries occupy the queue position and worker time that unrelated tenants\' quick jobs would otherwise use.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-03-mcq-04',
+        question:
+          'Why is an idempotency key built only from an event ID insufficient in a multi-tenant background job system?',
+        options: [
+          { id: 'a', label: 'A', text: 'Event IDs are always too short to be useful as a database key' },
+          { id: 'b', label: 'B', text: 'Two different tenants\' independent systems can plausibly generate the same raw identifier, so an event-ID-only key risks one tenant\'s job silently colliding with, and being dropped or overwritten by, another tenant\'s job' },
+          { id: 'c', label: 'C', text: 'Idempotency keys are unnecessary once RLS is correctly enforced' },
+          { id: 'd', label: 'D', text: 'Event IDs change every time a job is retried, making them unusable for idempotency in any system' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The specific risk is a cross-tenant identifier collision, which is exactly why the key must be scoped `(org_id, event_id)` rather than the event ID alone.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-03-mcq-05',
+        question:
+          'In the scenario, why did Acme\'s simple, well-formed uploads end up waiting 40 minutes behind Globex\'s malformed PDF?',
+        options: [
+          { id: 'a', label: 'A', text: 'Acme\'s own contracts were themselves malformed in a similar way' },
+          { id: 'b', label: 'B', text: 'Both tenants\' extraction jobs shared a single Celery queue, so Globex\'s job retrying repeatedly occupied queue position and worker capacity that Acme\'s quick jobs needed, with no per-tenant isolation to prevent it' },
+          { id: 'c', label: 'C', text: 'RLS policies blocked Acme\'s jobs from running until Globex\'s issue was resolved' },
+          { id: 'd', label: 'D', text: 'Acme\'s worker process had crashed independently of Globex\'s issue' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the noisy-neighbor mechanism made concrete — shared queue capacity, not any per-tenant technical block, is what caused Acme\'s unrelated jobs to wait.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-03-mcq-06',
+        question:
+          'What specific defect did the code review catch in the scenario, separate from the noisy-neighbor issue?',
+        options: [
+          { id: 'a', label: 'A', text: 'The worker was missing an RLS policy on the `contracts` table entirely' },
+          { id: 'b', label: 'B', text: 'The worker set `app.current_org_id` once at process startup instead of per job, meaning a Globex job processed right after an Acme job on a reused connection could silently query Acme\'s data under Globex\'s tenant context if `SET LOCAL` weren\'t re-issued' },
+          { id: 'c', label: 'C', text: 'The Celery queue name was misspelled in the routing configuration' },
+          { id: 'd', label: 'D', text: 'The idempotency key was missing the event ID component entirely' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the per-job session-context defect from Concepts Covered, made concrete in the scenario as a real code-review catch rather than a hypothetical.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-03-mcq-07',
+        question:
+          'Per the Suggested Extension, why might per-tenant queue routing alone still be insufficient once a third, unusually high-volume tenant joins?',
+        options: [
+          { id: 'a', label: 'A', text: 'Per-tenant queues stop working correctly once more than two tenants exist' },
+          { id: 'b', label: 'B', text: 'A single large tenant\'s own dedicated queue could still monopolize overall worker capacity across the pool, so a per-tenant concurrency limit is needed on top of queue routing to keep that tenant\'s volume from crowding out others' },
+          { id: 'c', label: 'C', text: 'Per-tenant queues are only compatible with exactly two tenants by design' },
+          { id: 'd', label: 'D', text: 'Idempotency keys need to be redesigned for a third tenant to function' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Per-tenant queues solve isolation of ordering, but not overall capacity fairness — a large tenant\'s own queue can still consume a disproportionate share of shared worker capacity without an added concurrency limit.'
+      }
+    ]
+  },
+  'fde-curriculum/application-security-reliability/04-document-processing-and-ai-extraction-workflows': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-04-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — EXTRACTION PIPELINE CRITERIA',
+        question:
+          'How does the lesson say a document-extraction pipeline\'s output should be judged, in contrast to a freeform chat response?',
+        options: [
+          { id: 'a', label: 'A', text: 'On precision and recall against a known, fixed set of fields, with every value carrying a traceable citation back to the source, rather than on being generally helpful' },
+          { id: 'b', label: 'B', text: 'On response speed alone, since accuracy is assumed to be equivalent across both use cases' },
+          { id: 'c', label: 'C', text: 'On the total length of the generated response, since longer answers are considered more thorough' },
+          { id: 'd', label: 'D', text: 'Extraction pipelines and freeform chat should be judged by identical standards with no meaningful difference' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s central distinction is that extraction targets a fixed, known field set that can be precisely checked, unlike open-ended chat, and every value must be independently verifiable via citation.',
+        incorrectExplanation:
+          'Extraction pipelines require objective, auditable validation against source documents rather than subjective fluency or tone.',
+        hint:
+          'Think about enterprise legal audits: every extracted field must be schema-validated and backed by verifiable source citations.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-04-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — SOURCE GROUNDING & VERIFICATION',
+        question:
+          'What does the grounding check specifically verify about an extracted field\'s `evidence_quote`?',
+        options: [
+          { id: 'a', label: 'A', text: 'That the quote is grammatically correct English' },
+          { id: 'b', label: 'B', text: 'That the quote appears as a literal (or near-literal) substring of the actual OCR\'d source page text, not merely that the extracted value seems plausible' },
+          { id: 'c', label: 'C', text: 'That the quote is shorter than a fixed maximum character length' },
+          { id: 'd', label: 'D', text: 'That the quote matches a pre-written list of expected clause phrases' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The grounding check\'s entire purpose is checking the claimed evidence against the actual source text, which is what catches a hallucinated value that has no real basis in the document.',
+        incorrectExplanation:
+          'The grounding verification step checks whether cited evidence quotes actually appear verbatim in the underlying OCR document page.',
+        hint:
+          'The grounding check verifies that the model\'s cited quote is genuinely present in the source page text.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-04-mcq-01',
+        question:
+          'Why does the lesson insist OCR error and LLM hallucination need distinct mitigations rather than one generic response?',
+        options: [
+          { id: 'a', label: 'A', text: 'OCR error and hallucination are actually the same underlying problem described with two different names' },
+          { id: 'b', label: 'B', text: 'OCR error is mitigated by routing low-confidence pages to human-first review before extraction even runs, while hallucination is mitigated by a grounding check on the extraction\'s own output — treating them as one problem would leave one of the two failure modes unaddressed' },
+          { id: 'c', label: 'C', text: 'OCR error only affects scanned documents, so it can be ignored entirely for any text-native PDF pipeline' },
+          { id: 'd', label: 'D', text: 'Hallucination cannot occur in an extraction pipeline that uses structured JSON output' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Each failure mode has a distinct point of intervention — OCR confidence gating happens before extraction, while grounding checks happen after — so conflating them into one fix leaves a gap.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-04-mcq-02',
+        question:
+          'Why does the lesson validate the LLM\'s extraction output against the shared schema on the server, rather than letting a malformed extraction reach the review-queue frontend?',
+        options: [
+          { id: 'a', label: 'A', text: 'Server-side validation is always faster to execute than client-side validation' },
+          { id: 'b', label: 'B', text: 'A malformed extraction should fail loudly at the point it\'s produced instead of reaching the frontend as an unexpected shape that crashes a component built for a rigid, fixed contract' },
+          { id: 'c', label: 'C', text: 'The frontend has no ability to display any error state under any circumstances' },
+          { id: 'd', label: 'D', text: 'Schema validation is only possible on a server, never in a browser' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is about where a failure surfaces, not raw execution speed — catching a shape mismatch server-side prevents it from becoming a frontend crash discovered live.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-04-mcq-03',
+        question:
+          'In the scenario, why was the `$500,000` liability-cap extraction flagged as ungrounded instead of entering Acme\'s review queue as a high-confidence value?',
+        options: [
+          { id: 'a', label: 'A', text: 'The LLM itself reported low confidence in the value, which triggered the flag automatically' },
+          { id: 'b', label: 'B', text: 'The grounding check found no literal match for "$500,000" anywhere on page 23\'s actual OCR\'d text, since the real source text was digit-garbled and did not contain that exact figure' },
+          { id: 'c', label: 'C', text: 'Acme\'s contract review policy requires every liability-cap value to be manually flagged regardless of extraction quality' },
+          { id: 'd', label: 'D', text: 'The extraction pipeline does not support dollar-figure fields at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario is a direct illustration of the grounding check working as designed — the claimed value had no literal basis in the actual source text, so it was rejected rather than trusted.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-04-mcq-04',
+        question:
+          'What does the scenario\'s flagged extraction actually route to, and what does the reviewer receive to resolve it?',
+        options: [
+          { id: 'a', label: 'A', text: 'The extraction is silently discarded with no notification to any reviewer' },
+          { id: 'b', label: 'B', text: 'It routes to a mandatory human review lane, with the low-confidence OCR page and the original scanned image attached, so the reviewer can resolve the ambiguity by looking directly at the scan' },
+          { id: 'c', label: 'C', text: 'The system automatically substitutes a default liability-cap value of zero' },
+          { id: 'd', label: 'D', text: 'The extraction is re-run automatically with a different LLM model until it passes the grounding check' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The design specifically gives the reviewer the source material (OCR text and the actual scan) rather than asking them to trust the pipeline\'s own uncertain output.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-04-mcq-05',
+        question:
+          'What does Practice Loop step 3 — counting how many of ten scanned pages fail versus pass the grounding check — actually establish?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the extraction prompt is syntactically valid JSON' },
+          { id: 'b', label: 'B', text: 'The pipeline\'s actual OCR error rate against real scanned pages, which the pipeline\'s design needs to be built around, rather than an assumed or guessed rate' },
+          { id: 'c', label: 'C', text: 'Whether the ten pages belong to the same tenant or different tenants' },
+          { id: 'd', label: 'D', text: 'The total dollar value of all liability caps extracted across the ten pages' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a diagnostic step in the lesson\'s established pattern: it converts an assumed error rate into a measured one, which is what actually informs whether the human-review lane\'s capacity is sized correctly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-04-mcq-06',
+        question:
+          'Why does Practice Loop step 5 ask the learner to confirm grounding-check failures are real issues, not false positives from an overly strict literal-match check?',
+        options: [
+          { id: 'a', label: 'A', text: 'A grounding check that is too strict (rejecting minor whitespace or punctuation differences as non-matches) would route genuinely correct extractions into human review unnecessarily, undermining the pipeline\'s usefulness even though it is technically safe' },
+          { id: 'b', label: 'B', text: 'False positives are impossible once a grounding check has been implemented correctly' },
+          { id: 'c', label: 'C', text: 'This step exists only to satisfy a compliance requirement unrelated to the pipeline\'s actual accuracy' },
+          { id: 'd', label: 'D', text: 'The grounding check cannot produce false positives, only false negatives' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'An overly strict match tolerance trades one failure mode (missed hallucinations) for another (unnecessary human review load on correct extractions) — step 5 exists to catch that trade-off going too far in the strict direction.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-04-mcq-07',
+        question:
+          'Per the Suggested Extension, what needs to change about the `evidence_quote`/`source_page` design for a liability clause that spans pages 23 and 24?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing — the existing single-page citation design already handles multi-page clauses correctly' },
+          { id: 'b', label: 'B', text: 'The citation needs to reference a page range rather than a single page number, since the grounding check\'s literal-match comparison must now search across both pages\' OCR\'d text instead of just one' },
+          { id: 'c', label: 'C', text: 'Multi-page clauses should be excluded from extraction entirely, since they cannot be verified' },
+          { id: 'd', label: 'D', text: 'The evidence_quote field should be removed entirely for any clause spanning more than one page' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The single-page assumption baked into the original design breaks for a clause split across pages — the citation and the grounding check both need to extend to a page range for the same verification logic to still hold.'
+      }
+    ]
+  },
+  'fde-curriculum/application-security-reliability/05-build-enterprise-document-review-app': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-05-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — REAL-TIME UPDATES VS PILOT POLLING',
+        question:
+          'Why does the review queue use a fixed polling interval with `useQuery` instead of a live WebSocket connection for extraction status updates?',
+        options: [
+          { id: 'a', label: 'A', text: 'Polling every few seconds is boring, correct, and entirely sufficient at pilot scale, matching the earlier architecture lesson\'s default-to-boring principle applied to a real implementation choice' },
+          { id: 'b', label: 'B', text: 'WebSocket connections are technically incompatible with React applications' },
+          { id: 'c', label: 'C', text: 'Polling is always faster than a WebSocket connection under any load' },
+          { id: 'd', label: 'D', text: 'RLS policies cannot be enforced over a WebSocket connection' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a direct callback to lesson 1\'s architecture-spine argument, now used as a real implementation decision rather than an abstract principle — the simpler mechanism is chosen because nothing yet justifies the added complexity.',
+        incorrectExplanation:
+          'Consider the operational simplicity of stateless HTTP polling versus stateful connection management during early pilot phases.',
+        hint:
+          'Polling provides a simple, stateless solution with zero custom socket infrastructure while fully meeting pilot UX needs.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-05-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — MULTI-PROCESS RLS ENFORCEMENT',
+        question:
+          'Why does the lesson insist the RLS session-context pattern be applied consistently at all three of the upload handler, the extraction worker, and the export endpoint, rather than just the one built or tested first?',
+        options: [
+          { id: 'a', label: 'A', text: 'Postgres requires the pattern to be repeated exactly three times in any application, regardless of the actual number of entry points' },
+          { id: 'b', label: 'B', text: 'A single contract\'s lifecycle spans all three as genuinely separate processes, and a gap at just one of them — even if the other two are correct — is a real cross-tenant leak that produces no visible symptom until a second tenant\'s data exists' },
+          { id: 'c', label: 'C', text: 'The pattern only actually needs to exist at one entry point; the other two are redundant safety measures' },
+          { id: 'd', label: 'D', text: 'Export endpoints are exempt from RLS enforcement by design, since they only read already-approved data' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific claim is that correctness at two of three entry points provides no protection at the third — each process boundary is an independent place the pattern can be forgotten.',
+        incorrectExplanation:
+          'Remember that API handlers, background task workers, and polling queries operate over separate database connections and must each establish tenant context.',
+        hint:
+          'Every independent process connects to the database separately; RLS context must be established on each individual connection and transaction.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-05-mcq-01',
+        question:
+          'Why does the lesson\'s recommended build order put a hardcoded extraction stub before the real OCR-and-grounded-extraction pipeline?',
+        options: [
+          { id: 'a', label: 'A', text: 'The real extraction pipeline is technically impossible to build without a stub existing first' },
+          { id: 'b', label: 'B', text: 'The stub unblocks the review-queue frontend from being built and tested against realistic-shaped data without waiting on the real extraction pipeline, which takes longer to build correctly' },
+          { id: 'c', label: 'C', text: 'Stubs are required by the discovery module\'s non-goals discipline for every FDE engagement' },
+          { id: 'd', label: 'D', text: 'The real extraction pipeline cannot produce data in the same shape the stub does' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The stub\'s purpose is unblocking parallel frontend work against realistic data, which is why it is deliberately throwaway rather than kept — unlike the RLS seam, which is kept from day one.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-05-mcq-02',
+        question:
+          'What distinguishes the extraction stub (deliberately throwaway) from the `org_id` column and RLS policy (kept from the first migration), per the lesson\'s use of the earlier architecture lesson\'s framework?',
+        options: [
+          { id: 'a', label: 'A', text: 'There is no meaningful distinction; both should ideally be discarded once the real pipeline exists' },
+          { id: 'b', label: 'B', text: 'The stub exists only to unblock parallel work and is cheap to discard once its purpose is served, while the `org_id` column is the cheap-now, expensive-to-retrofit-later seam that must be kept from day one to avoid a costly migration and leak risk' },
+          { id: 'c', label: 'C', text: 'The `org_id` column should also be discarded once a second tenant onboards, since it was only needed for the pilot' },
+          { id: 'd', label: 'D', text: 'The stub and the `org_id` column serve identical purposes and are interchangeable in the build sequence' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This connects lesson 1\'s seam-versus-generality distinction directly to this build\'s real sequencing choices — one decision is cheap to discard, the other is expensive to add later, and the build order treats them accordingly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-05-mcq-03',
+        question:
+          'Why does the build order defer per-tenant Celery queue routing until Globex actually onboards, rather than building it alongside the first version of the extraction worker?',
+        options: [
+          { id: 'a', label: 'A', text: 'Per-tenant queue routing is technically impossible to implement before a second tenant\'s data exists in the database' },
+          { id: 'b', label: 'B', text: 'Building queue routing against a single tenant has nothing real to validate it against — the noisy-neighbor problem it solves only becomes real, and testable, once a second tenant\'s jobs actually share worker capacity' },
+          { id: 'c', label: 'C', text: 'Celery does not support queue routing under any circumstances' },
+          { id: 'd', label: 'D', text: 'Acme explicitly requested that queue routing be delayed as part of the pilot contract' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the lesson\'s build-order logic — deferring a feature until there is a real, evidenced need to validate it against, not because it\'s technically infeasible earlier.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-05-mcq-04',
+        question:
+          'What specific gap did the pre-launch review of all three RLS entry points catch in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The upload handler was missing the `org_id` column on the `contracts` table entirely' },
+          { id: 'b', label: 'B', text: 'The Celery extraction task, copied from an earlier single-tenant prototype, never had the `SET LOCAL app.current_org_id` line added, unlike the upload handler and export endpoint, which both correctly set it' },
+          { id: 'c', label: 'C', text: 'The React review queue was displaying clauses from the wrong tenant on every page load' },
+          { id: 'd', label: 'D', text: 'The export endpoint was exporting clauses before they had been approved by a reviewer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the exact gap the "three entry points" claim in Concepts Covered predicts — two boundaries correct, one silently missed, inherited from code that predates the multi-tenant requirement.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-05-mcq-05',
+        question:
+          'Why did the missing `SET LOCAL` line in the Celery extraction task produce no visible symptom before the pre-launch review caught it?',
+        options: [
+          { id: 'b', label: 'B', text: 'With only Acme\'s data in the system, there was no second tenant\'s data for a missing tenant-context enforcement to leak into or from, so the gap was invisible until a real cross-tenant scenario existed to expose it' },
+          { id: 'a', label: 'A', text: 'The gap was cosmetic and never actually affected query results, regardless of how many tenants existed' },
+          { id: 'c', label: 'C', text: 'Postgres automatically prevents any query from running without a session variable set, masking the bug' },
+          { id: 'd', label: 'D', text: 'The review queue\'s polling interval was too slow to display the resulting incorrect data' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly why the audit had to be deliberate rather than incidental — a single-tenant system cannot organically surface a cross-tenant enforcement gap through normal use.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-05-mcq-06',
+        question:
+          'What does Practice Loop step 5 (measuring true end-to-end latency and comparing it to the polling interval) actually establish?',
+        options: [
+          { id: 'a', label: 'A', text: 'The exact dollar cost of running the extraction pipeline per contract' },
+          { id: 'b', label: 'B', text: 'Whether the five-second polling interval is still an acceptable user experience given the real, measured latency of the full pipeline, rather than an assumption that polling is fine without ever checking against real numbers' },
+          { id: 'c', label: 'C', text: 'Whether the RLS policy on the `contracts` table is correctly configured' },
+          { id: 'd', label: 'D', text: 'How many concurrent reviewers the system can support at once' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This step converts the "polling is fine at pilot scale" claim from an assumption into something checked against a real measured number, consistent with the lesson\'s broader insistence on diagnostic steps over assertions.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-05-mcq-07',
+        question:
+          'Per the Suggested Extension, what kind of evidence would justify replacing polling with a WebSocket push notification, rather than building it preemptively?',
+        options: [
+          { id: 'a', label: 'A', text: 'A stakeholder\'s general preference for more modern-sounding technology' },
+          { id: 'b', label: 'B', text: 'A concrete load or customer-feedback threshold, such as multiple concurrent reviewers actively waiting on the same in-flight extraction, where polling\'s latency becomes a genuinely felt problem' },
+          { id: 'c', label: 'C', text: 'WebSockets should always replace polling as soon as the codebase is stable enough to support the change' },
+          { id: 'd', label: 'D', text: 'The five-second polling interval being technically possible to reduce further' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the same evidenced-need discipline the lesson applies throughout — the upgrade is justified by a real, demonstrated pain point, not by the technology sounding more sophisticated.'
+      }
+    ]
+  },
+  'fde-curriculum/application-security-reliability/06-developer-experience-and-api-documentation': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-06-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — OPENAPI AS SOURCE OF TRUTH',
+        question:
+          'Why does the lesson prefer an OpenAPI spec that generates documentation, over a hand-written markdown page describing the endpoint after the fact?',
+        options: [
+          { id: 'a', label: 'A', text: 'A spec-generated doc and the endpoint\'s actual behavior cannot silently drift apart the way a hand-maintained prose description eventually does once the endpoint changes and nobody remembers to update the description' },
+          { id: 'b', label: 'B', text: 'OpenAPI specs are required by law for any externally-facing API' },
+          { id: 'c', label: 'C', text: 'Hand-written documentation is always less detailed than a generated one, regardless of maintenance' },
+          { id: 'd', label: 'D', text: 'Generated documentation loads faster in a browser than hand-written documentation' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The drift argument is the lesson\'s specific claim — a single source of truth cannot silently disagree with itself the way two independently maintained artifacts (the code and a separate description of it) can.',
+        incorrectExplanation:
+          'Think about how hand-maintained documentation drifts from code over time, and what machine-readable schemas enable.',
+        hint:
+          'A machine-readable OpenAPI schema powers automated validation, SDK generation, and synced interactive docs.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-06-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — ACTIONABLE ERROR CONTRACTS',
+        question:
+          'What does a structured error response like `{ error: { code: \'RATE_LIMITED\', message: \'...\', retryable: true } }` let an integrator\'s calling code do that a bare HTTP status and prose message does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Branch programmatically on `code` and `retryable` — retrying a rate-limited request with backoff, but failing fast and alerting a human on a permanently malformed request, without a human reading and interpreting a prose message first' },
+          { id: 'b', label: 'B', text: 'Automatically fix the underlying cause of the error without any code changes required' },
+          { id: 'c', label: 'C', text: 'Guarantee the request will always eventually succeed if retried enough times' },
+          { id: 'd', label: 'D', text: 'Bypass the need for any authentication on subsequent retry attempts' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The structured shape\'s entire value is programmatic branching — retryable versus not — without requiring a human to read and interpret an unstructured message first.',
+        incorrectExplanation:
+          'Consider how calling code handles failures: structured error codes allow programmatic branching and retry logic.',
+        hint:
+          'Machine-readable error codes and retry flags enable deterministic programmatic error handling by client applications.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-06-mcq-01',
+        question:
+          'How does the lesson connect the OpenAPI spec discipline to the earlier frontend lesson\'s shared Zod schema?',
+        options: [
+          { id: 'a', label: 'A', text: 'OpenAPI specs and Zod schemas are literally the same technology used interchangeably' },
+          { id: 'b', label: 'B', text: 'Both apply the same underlying discipline — a single source of truth that generates both the type/validation and the documentation/client, so the two can never silently disagree — just applied to an external API contract here instead of an internal frontend/backend one' },
+          { id: 'c', label: 'C', text: 'The connection is purely coincidental and carries no shared underlying principle' },
+          { id: 'd', label: 'D', text: 'Zod schemas are only usable for external APIs, never for internal frontend forms' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly draws this parallel: single-source-of-truth discipline against drift, applied at a different boundary (external API) than lesson 2\'s internal form/type boundary.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-06-mcq-02',
+        question:
+          'Why does the lesson say versioning and a deprecation window matter specifically for an external-facing API, in a way that matters less for a purely internal one?',
+        options: [
+          { id: 'a', label: 'A', text: 'External APIs are technically incapable of being versioned using the same mechanisms as internal ones' },
+          { id: 'b', label: 'B', text: 'An external integrator cannot redeploy their own code on the FDE\'s schedule, so a breaking change with no warning becomes a production incident on a system the FDE doesn\'t control and may not even find out about until a support ticket arrives' },
+          { id: 'c', label: 'C', text: 'Internal APIs never change once they are first deployed, unlike external ones' },
+          { id: 'd', label: 'D', text: 'Deprecation windows are a purely cosmetic convention with no practical effect on integrators' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific claim is about coordination — an internal team can coordinate a deploy directly, while an external integrator has no such coordination channel and needs advance warning instead.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-06-mcq-03',
+        question:
+          'Why did Acme\'s integration engineer\'s retry logic hammer the export endpoint for six hours in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The integration engineer\'s code had a bug entirely unrelated to the API\'s error responses' },
+          { id: 'b', label: 'B', text: 'The endpoint returned a bare HTTP 500 with a generic message for both a transient, safely-retryable database hiccup and a permanently malformed request, so the integrator\'s blanket retry-on-500 logic could not distinguish the two and kept retrying a request that would never succeed' },
+          { id: 'c', label: 'C', text: 'Meridian\'s servers were experiencing an unrelated outage during that six-hour window' },
+          { id: 'd', label: 'D', text: 'The `/v1/` version prefix had not yet been added to the endpoint at the time' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The root cause is the undifferentiated 500 response, exactly the problem structured, machine-parseable error codes are designed to fix.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-06-mcq-04',
+        question:
+          'What did the FDE\'s fix specifically give Acme\'s integration engineer, whom the FDE may never speak with directly again after the incident?',
+        options: [
+          { id: 'a', label: 'A', text: 'A promise that the export endpoint would never return an error response again' },
+          { id: 'b', label: 'B', text: 'An OpenAPI spec, a structured retryable-vs-not error shape, and a documented deprecation policy — everything needed to build correct, self-correcting integration code without another support call or incident' },
+          { id: 'c', label: 'C', text: 'Direct, ongoing access to the FDE\'s personal contact information for future troubleshooting' },
+          { id: 'd', label: 'D', text: 'A completely different API endpoint replacing the original export functionality' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The fix is specifically about self-service — giving the integrator everything needed to build correct code independently, since ongoing direct FDE involvement doesn\'t scale.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-06-mcq-05',
+        question:
+          'Why does Practice Loop step 3 ask the learner to count every genuinely distinct error condition the endpoint can return, rather than stopping once the two conditions from the incident are covered?',
+        options: [
+          { id: 'a', label: 'A', text: 'A structured error shape that only covers the specific conditions from one past incident, rather than the endpoint\'s full range of possible failures, would leave other real error conditions still undifferentiated and vulnerable to the same class of problem' },
+          { id: 'b', label: 'B', text: 'OpenAPI specifications technically require documenting an exact fixed number of error conditions' },
+          { id: 'c', label: 'C', text: 'This step is purely a documentation exercise with no bearing on the integrator\'s actual retry behavior' },
+          { id: 'd', label: 'D', text: 'Every API must have exactly as many error codes as it has endpoints' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The diagnostic guards against fixing only the specific incident that happened rather than the general class of problem — a narrow fix leaves other undifferentiated error conditions still capable of causing the same kind of incident.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-06-mcq-06',
+        question:
+          'Why does the Suggested Extension add a sandbox or test-mode API key with realistic sample data, rather than having Acme\'s engineer integrate directly against real tenant data from the start?',
+        options: [
+          { id: 'a', label: 'A', text: 'Real tenant data is technically incompatible with the export API\'s response format' },
+          { id: 'b', label: 'B', text: 'It lets the integrator build and test their integration independently before being granted access to real, sensitive tenant data — extending the same self-serve, don\'t-require-a-live-conversation principle the rest of the lesson establishes' },
+          { id: 'c', label: 'C', text: 'Sandbox keys are a regulatory requirement for every enterprise API regardless of data sensitivity' },
+          { id: 'd', label: 'D', text: 'A sandbox key removes the need for the OpenAPI spec entirely' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The sandbox key extends the same self-serve philosophy — letting the integrator work independently and safely before real data or a live conversation with the FDE is required.'
+      }
+    ]
+  },
 };
 
 export function getLessonInteractions(courseSlug, moduleSlug, lessonSlug) {
