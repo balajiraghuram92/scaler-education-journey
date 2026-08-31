@@ -207,3 +207,32 @@
 - [x] **Sub-task 28.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
 - [x] **Sub-task 28.5**: Update task tracker and provide Docker Compose / SQL verification steps.
 
+## Phase 29: FDE Curriculum Pipeline — Module 7: Application Engineering, Security & Reliability (Lessons 7-12 of 12 — MODULE 7 COMPLETE) (Completed)
+- [x] **Sub-task 29.1**: Ingest 6 Lesson chapter bodies for `application-security-reliability` (Lessons 7-12) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 29.2**: Wire 12 Concept Checks (2 per lesson) and 36 Practice Questions across all 6 lessons (48 total MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 29.3**: Confirm architecture diagrams are omitted for Lessons 7-12 per §8a inclusion test criteria.
+- [x] **Sub-task 29.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 29.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+## Phase 30: FDE Curriculum Pipeline — Module 8: System Design, Capstone & Hiring Readiness (Lessons 1-5 of 14) (Completed)
+- [x] **Sub-task 30.1**: Ingest 5 Lesson chapter bodies for `system-design-capstone` (Lessons 1-5) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 30.2**: Wire 10 Concept Checks (2 per lesson) and 35 Practice Questions across all 5 lessons (45 total MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 30.3**: Add architecture diagrams for Lessons 2, 3, 4, and 5 illustrating tiered vector index retrieval, agent platform isolation topology, multi-tier SaaS isolation, and enterprise integration hub respectively.
+- [x] **Sub-task 30.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 30.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+## Phase 31: FDE Curriculum Pipeline — Module 8: System Design, Capstone & Hiring Readiness (Lessons 6-10 of 14) (Completed)
+- [x] **Sub-task 31.1**: Ingest 5 Lesson chapter bodies for `system-design-capstone` (Lessons 6-10) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 31.2**: Wire 10 Concept Checks (2 per lesson) and 32 Practice Questions across all 5 lessons (42 total MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 31.3**: Add architecture diagram for Lesson 8 (`08-capstone-sprint-2-core-build-and-integration-layer`) illustrating the orchestrator-worker recommendation flow with highlighted human-approval gate.
+- [x] **Sub-task 31.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 31.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+## Phase 32: FDE Curriculum Pipeline — Module 8: System Design, Capstone & Hiring Readiness (Lessons 11-14 of 14 — MODULE 8 & ENTIRE FDE CORE CURRICULUM COMPLETE) (Completed)
+- [x] **Sub-task 32.1**: Ingest 4 Lesson chapter bodies for `system-design-capstone` (Lessons 11-14) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 32.2**: Wire 8 Concept Checks (2 per lesson) and 24 Practice Questions across all 4 lessons (32 total MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 32.3**: Confirm architecture diagrams are omitted for Lessons 11-14 per §8a inclusion test criteria.
+- [x] **Sub-task 32.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 32.5**: Update task tracker and provide final Docker Compose / SQL verification steps across all 104 lessons.
+
+

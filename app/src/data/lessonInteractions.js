@@ -13797,6 +13797,2768 @@ const lessonInteractions = {
       }
     ]
   },
+  'fde-curriculum/application-security-reliability/07-enterprise-security-for-fde-systems-pii-soc2-gdpr': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-07-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — TELEMETRY REDACTION AT GENERATION',
+        question:
+          'Why does the lesson enforce data classification through a redaction middleware at the point a telemetry span is created, rather than relying on developers to remember not to log Confidential fields?',
+        options: [
+          { id: 'a', label: 'A', text: 'An OpenTelemetry span captures full request/response bodies by default for debugging, so a Confidential field like `evidence_quote` ships to a third-party tracing backend unless redaction is enforced automatically at export, not left to be remembered under deadline pressure' },
+          { id: 'b', label: 'B', text: 'Manual discipline is technically impossible to implement in any observability system' },
+          { id: 'c', label: 'C', text: 'Redaction middleware is required by OpenTelemetry\'s own specification for every span' },
+          { id: 'd', label: 'D', text: 'Confidential fields never need to appear in any trace for any reason, so redaction is purely precautionary' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific concern is that observability instrumentation captures everything by default, making automated enforcement at the export boundary the only reliable defense against exactly the leak a trusted-discipline approach would eventually miss.',
+        incorrectExplanation:
+          'Consider how OpenTelemetry spans capture payloads by default and why relying on developer memory under deadline pressure fails security compliance.',
+        hint:
+          'Automated middleware at the telemetry export boundary prevents accidental leakage of Confidential data to third-party tracing tools.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-07-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PRESERVING OBSERVABILITY METADATA',
+        question:
+          'What does the lesson\'s redaction middleware preserve in an exported span even after stripping Confidential attributes like `evidence_quote`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing — the entire span is discarded once any Confidential attribute is detected' },
+          { id: 'b', label: 'B', text: 'The trace ID, which lets an engineer correlate the redacted span back to the full record in the primary, access-controlled database, so debugging capability survives the redaction' },
+          { id: 'c', label: 'C', text: 'A hashed copy of the full contract text, stored in the same exported span' },
+          { id: 'd', label: 'D', text: 'The signatory\'s name, since names alone are not considered Confidential' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The design specifically preserves a correlation handle (the trace ID) rather than the sensitive content itself, which is what lets debugging continue without the Confidential data ever leaving the primary access-controlled database.',
+        incorrectExplanation:
+          'Think about what telemetry needs to remain diagnostically useful (tenant, latency, status codes) while still protecting confidential text.',
+        hint:
+          'The goal of redaction is to strip sensitive text while retaining tenant and operational metadata needed for debugging.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-07-mcq-01',
+        question:
+          'Per the lesson, what is the actual difference between "we implemented RLS" and evidence that satisfies a SOC2 auditor?',
+        options: [
+          { id: 'a', label: 'A', text: 'There is no meaningful difference; stating a control was implemented is itself sufficient evidence' },
+          { id: 'b', label: 'B', text: 'The auditor wants proof the control operated consistently over the audit period — for example, 90 days of query logs proving no cross-tenant read ever bypassed the policy — not just a statement that the control exists' },
+          { id: 'c', label: 'C', text: 'SOC2 auditors only evaluate written policy documents, never technical logs' },
+          { id: 'd', label: 'D', text: 'RLS itself is irrelevant to any SOC2 trust-service criterion' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s central distinction — an auditor is verifying sustained operation over a period, which requires an actual evidence artifact, not a claim that a control was built at some point.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-07-mcq-02',
+        question:
+          'Which SOC2 trust-service criterion does the RLS policy and `SET LOCAL app.current_org_id` session-context pattern serve as evidence for, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'CC7.2, monitoring for unauthorized access' },
+          { id: 'b', label: 'B', text: 'CC6.1, logical access control — restricting access to data by its owner' },
+          { id: 'c', label: 'C', text: 'A criterion that applies only to physical, not logical, security controls' },
+          { id: 'd', label: 'D', text: 'SOC2 does not map to database-level access controls under any criterion' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly names CC6.1 as the criterion the RLS/`SET LOCAL` mechanism evidences, distinct from CC7.2, which the lesson separately maps to CloudTrail data-event monitoring.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-07-mcq-03',
+        question:
+          'Why can\'t a GDPR erasure request in ClauseReview be satisfied by a single tenant-scoped delete query?',
+        options: [
+          { id: 'a', label: 'A', text: 'Tenant-scoped delete queries are technically impossible to write against an RLS-protected table' },
+          { id: 'b', label: 'B', text: 'An erasure request identifies a data subject, not a tenant, so it requires locating every row across every table where that individual\'s data appears — a tenant-scoped delete would remove an entire tenant\'s data indiscriminately rather than one individual\'s' },
+          { id: 'c', label: 'C', text: 'GDPR erasure requests apply only to entire organizations, never to individuals' },
+          { id: 'd', label: 'D', text: 'A tenant-scoped delete is the correct and sufficient response to any GDPR erasure request' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scope mismatch is the lesson\'s key point — erasure targets an identity across tables, which is a fundamentally different (and narrower, but more distributed) operation than deleting a tenant\'s data wholesale.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-07-mcq-04',
+        question:
+          'In the scenario, why did Meridian\'s erasure handler flag rather than delete the three contracts under active legal hold?',
+        options: [
+          { id: 'a', label: 'A', text: 'Legal holds have no bearing on GDPR erasure obligations and were flagged only out of caution' },
+          { id: 'b', label: 'B', text: 'Nothing about a document under an active litigation hold — including any personal data within it — can be deleted or modified until the hold lifts, so the handler records the erasure as pending with the hold\'s expected end date rather than either ignoring the request or violating the hold' },
+          { id: 'c', label: 'C', text: 'The handler was unable to technically locate the signatory\'s data in the held contracts' },
+          { id: 'd', label: 'D', text: 'Acme\'s retention policy requires all twelve contracts, held or not, to be preserved unaltered regardless of the erasure request' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific conflict-resolution the scenario illustrates — a real legal hold takes precedence over an erasure request for the held records specifically, handled by deferring with a stated reason rather than either extreme.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-07-mcq-05',
+        question:
+          'In the scenario, why did the erasure handler treat the nine non-held contracts differently from the three held ones?',
+        options: [
+          { id: 'a', label: 'A', text: 'Only the three held contracts had an active legal-hold constraint blocking modification; the nine without a hold could have the signatory\'s name and contact details redacted immediately and logged for the audit trail' },
+          { id: 'b', label: 'B', text: 'The nine contracts belonged to a different tenant than the three held ones' },
+          { id: 'c', label: 'C', text: 'The distinction was arbitrary and unrelated to any legal constraint' },
+          { id: 'd', label: 'D', text: 'The nine contracts did not actually contain the signatory\'s personal data' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The handler\'s logic is driven entirely by which specific records carry a real legal-hold constraint — the presence or absence of a hold, not any other factor, determines immediate redaction versus deferral.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-07-mcq-06',
+        question:
+          'What does Practice Loop step 3 — querying 90 days of RLS-scoped access logs for queries missing `SET LOCAL app.current_org_id` — actually produce?',
+        options: [
+          { id: 'a', label: 'A', text: 'A list of every GDPR erasure request submitted in the last 90 days' },
+          { id: 'b', label: 'B', text: 'The concrete evidence artifact a SOC2 auditor would actually ask for, proving the access-control policy operated consistently, rather than an unverified assertion that it exists' },
+          { id: 'c', label: 'C', text: 'A count of how many tenants are currently active in the system' },
+          { id: 'd', label: 'D', text: 'A performance benchmark unrelated to compliance' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This step exists specifically to turn the lesson\'s abstract "evidence, not policy language" claim into a concrete, produceable audit artifact.'
+      }
+    ]
+  },
+
+  'fde-curriculum/application-security-reliability/08-secrets-encryption-and-deployment-topologies': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-08-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — CROSS-ACCOUNT KMS GRANTS & BYOK',
+        question:
+          'What does a cross-account KMS grant give a customer beyond the encryption Meridian\'s own account-managed keys already provide?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because the customer\'s key lives in their own account and Meridian only holds a scoped ability to call it, the customer can unilaterally revoke or disable the key at any time, instantly making their ciphertext unrecoverable to Meridian' },
+          { id: 'b', label: 'B', text: 'It makes encryption itself faster than a single-account KMS key would' },
+          { id: 'c', label: 'C', text: 'It eliminates the need for envelope encryption entirely' },
+          { id: 'd', label: 'D', text: 'It gives Meridian direct possession of the customer\'s raw key material for backup purposes' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific claim is about who controls revocation — the customer\'s unilateral, instant ability to cut off access is the actual new property a cross-account grant provides, not any change to the encryption mechanism itself.',
+        incorrectExplanation:
+          'Consider who controls the root key: BYOK lets the customer unilaterally revoke access to their data at the KMS level.',
+        hint:
+          'With customer-managed KMS keys, the tenant can revoke decryption permissions at any time without vendor involvement.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-08-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — CRYPTO-SHREDDING VS SOFTWARE DELETION',
+        question:
+          'Why does the lesson describe crypto-shredding as a stronger, more directly verifiable guarantee than a contractual promise that Meridian will delete a customer\'s data on request?',
+        options: [
+          { id: 'a', label: 'A', text: 'Crypto-shredding and a contractual promise are functionally identical from the customer\'s perspective' },
+          { id: 'b', label: 'B', text: 'The customer can revoke the key unilaterally, at any time, without needing to trust that Meridian actually executed a deletion — the data becomes unrecoverable as a direct, independently verifiable consequence of an action the customer alone controls' },
+          { id: 'c', label: 'C', text: 'Contractual promises are legally unenforceable in every jurisdiction' },
+          { id: 'd', label: 'D', text: 'Crypto-shredding only works for data that has never been encrypted' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is about trust and verification — a contractual promise requires trusting the vendor\'s execution, while crypto-shredding via key revocation is an action the customer performs and controls directly.',
+        incorrectExplanation:
+          'Think about database snapshots and cold backups: software DELETE does not purge existing point-in-time snapshots, whereas key destruction renders them undecryptable.',
+        hint:
+          'Destroying the wrapping key immediately renders all existing ciphertext—including snapshots and replicas—permanently undecryptable.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-08-mcq-01',
+        question:
+          'What does a single-tenant-per-customer deployment topology cost Meridian, per the lesson, in exchange for giving a customer physical data isolation?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing — single-tenant deployments have no operational cost once initially set up' },
+          { id: 'b', label: 'B', text: 'Meridian must now operate, patch, and monitor N separate application and database stacks instead of one, rather than shipping a single fix or feature to every tenant simultaneously' },
+          { id: 'c', label: 'C', text: 'Single-tenant deployment makes RLS unnecessary, reducing overall system complexity' },
+          { id: 'd', label: 'D', text: 'It requires abandoning the shared codebase and maintaining a separate codebase per customer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s trade-off is specifically operational multiplication — N stacks to run and maintain instead of one shared deployment pipeline — not a change to the underlying codebase or a reduced need for other controls.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-08-mcq-02',
+        question:
+          'Why did the FDE decline Globex\'s question about a fully single-tenant deployment, per the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'Single-tenant deployments are technically incompatible with the ClauseReview codebase' },
+          { id: 'b', label: 'B', text: 'Globex\'s actual written security requirements named encryption key control and audit-log access specifically, not physical infrastructure isolation — both of which BYOK plus existing CloudTrail logging already satisfied, making a dedicated stack an unrequested cost' },
+          { id: 'c', label: 'C', text: 'Globex withdrew the request before the FDE could respond' },
+          { id: 'd', label: 'D', text: 'Meridian\'s contract with Globex explicitly prohibits single-tenant deployments' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the seam-versus-generality judgment applied to a real negotiation — the decision rests on what was actually named as a requirement, not a general preference for more isolation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-08-mcq-03',
+        question:
+          'In the scenario, why did implementing BYOK for Globex require zero change to Acme\'s existing configuration?',
+        options: [
+          { id: 'a', label: 'A', text: 'Acme and Globex share the same KMS key by design, so no per-tenant logic was needed' },
+          { id: 'b', label: 'B', text: 'The data-key-wrapping logic was modified to select which KMS key to wrap under per `org_id`, so Globex\'s records wrap under Globex\'s own key while Acme\'s continue wrapping under Meridian\'s existing account-managed key unchanged' },
+          { id: 'c', label: 'C', text: 'Acme\'s data was migrated to a separate database entirely, isolated from Globex\'s BYOK setup' },
+          { id: 'd', label: 'D', text: 'BYOK only applies to newly created tenants, never to tenants already using the system' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The per-`org_id` key-selection design is exactly what makes BYOK addable for one tenant without touching another\'s setup — each tenant\'s wrapping key is chosen independently at the same code path.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-08-mcq-04',
+        question:
+          'Why does the lesson specify that Globex\'s cross-account KMS grant should be limited to `Encrypt`/`Decrypt` operations, not key administration?',
+        options: [
+          { id: 'a', label: 'A', text: 'KMS technically prevents granting administration rights across AWS accounts under any circumstances' },
+          { id: 'b', label: 'B', text: 'Limiting the grant to the operations Meridian\'s application actually needs keeps the customer\'s key genuinely under the customer\'s own control — administration rights would give Meridian a level of control over the key that undermines the entire point of the customer holding it' },
+          { id: 'c', label: 'C', text: 'Encrypt/Decrypt-only grants are required for the key to remain eligible for envelope encryption' },
+          { id: 'd', label: 'D', text: 'Administration rights are automatically included in any cross-account grant regardless of scope' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The minimal-scope grant is what preserves the customer\'s actual control over the key — granting more than the application operationally needs would undercut the BYOK guarantee itself.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-08-mcq-05',
+        question:
+          'What does Practice Loop step 3 — simulating Globex revoking the cross-account grant — actually establish?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether Meridian\'s application can still bill Globex correctly after revocation' },
+          { id: 'b', label: 'B', text: 'A concrete, tested confirmation that every one of Globex\'s ciphertexts genuinely becomes unrecoverable to Meridian immediately, proving the crypto-shredding property rather than assuming it works' },
+          { id: 'c', label: 'C', text: 'The total dollar cost of running Globex\'s dedicated KMS key' },
+          { id: 'd', label: 'D', text: 'Whether Acme\'s data is also affected by Globex revoking its own key' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This diagnostic step converts the crypto-shredding claim into a tested, verified property rather than an assumed one — consistent with the module\'s broader insistence on evidence over assertion.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-08-mcq-06',
+        question:
+          'Per the Suggested Extension, why is moving the KMS key to a specific non-US region insufficient on its own to satisfy a full data-residency requirement?',
+        options: [
+          { id: 'a', label: 'A', text: 'KMS keys cannot be created in any non-US AWS region' },
+          { id: 'b', label: 'B', text: 'A genuine residency requirement also constrains where the database itself, the background workers, and any LLM API calls the extraction pipeline makes actually run and send data — the key\'s location alone doesn\'t guarantee the underlying data or its processing stays within the required region' },
+          { id: 'c', label: 'C', text: 'Data residency requirements apply only to encryption keys and nothing else' },
+          { id: 'd', label: 'D', text: 'Moving the KMS key automatically moves the database to the same region' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The extension pushes the learner to recognize that residency is a property of where data lives and is processed end to end, not just where the encryption key happens to be provisioned.'
+      }
+    ]
+  },
+
+  'fde-curriculum/application-security-reliability/09-load-testing-capacity-planning-and-performance-k6': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-09-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — MACHINE-ENFORCEABLE LOAD THRESHOLDS',
+        question:
+          'What is the purpose of defining explicit `thresholds` (like `p(95)<500`) directly in a k6 script, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Thresholds only affect how the results are visually displayed in k6\'s dashboard' },
+          { id: 'b', label: 'B', text: 'They make the test\'s result a binary, numeric pass or fail that a CI pipeline can gate on automatically, rather than a chart a human has to interpret generously after the fact' },
+          { id: 'c', label: 'C', text: 'Thresholds are required by k6 syntax but have no functional effect on the test outcome' },
+          { id: 'd', label: 'D', text: 'Thresholds determine how many virtual users the test simulates' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is that thresholds move the test\'s verdict out of subjective interpretation and into an automatable, CI-gatable pass/fail check.',
+        incorrectExplanation:
+          'Think about continuous integration: embedded thresholds allow CI/CD to deterministically pass or fail without human review.',
+        hint:
+          'Explicit thresholds allow load testing tools to return non-zero exit codes in CI when latency SLAs are breached.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-09-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — REALISTIC WORKLOAD TRAFFIC MIX',
+        question:
+          'Why does the lesson insist a k6 test\'s default function reproduce ClauseReview\'s actual seventy/twenty/ten traffic mix, rather than just hammering the `GET /clauses` endpoint at high concurrency?',
+        options: [
+          { id: 'a', label: 'A', text: 'k6 technically cannot simulate more than one endpoint in a single test run' },
+          { id: 'b', label: 'B', text: 'A write-heavy PATCH and a poll-heavy GET compete for entirely different resources under the hood, so a single-endpoint test produces a throughput number that has nothing to do with how the system behaves under its actual mixed load' },
+          { id: 'c', label: 'C', text: 'The GET endpoint is technically incapable of being load-tested at all' },
+          { id: 'd', label: 'D', text: 'Testing a realistic mix is only a stylistic preference with no effect on the test\'s usefulness' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific concern is resource contention differing by request type — an unrepresentative mix produces a number that doesn\'t predict real production behavior.',
+        incorrectExplanation:
+          'Consider how real-world concurrency creates contention across database pools and lock queues when mixed endpoints execute simultaneously.',
+        hint:
+          'Simulating production endpoint ratios uncovers cross-resource bottlenecks that isolated benchmarks fail to trigger.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-09-mcq-01',
+        question:
+          'Why does the lesson recommend setting an autoscaling trigger at roughly seventy percent of the measured maximum throughput, rather than at the ceiling itself?',
+        options: [
+          { id: 'a', label: 'A', text: 'Autoscaling triggers are only permitted to be set below fifty percent by cloud provider policy' },
+          { id: 'b', label: 'B', text: 'Provisioning new capacity takes real time (a few minutes for a container to start and pass its health check), so a trigger set at the ceiling guarantees a window of active saturation and degraded latency before new capacity actually absorbs load' },
+          { id: 'c', label: 'C', text: 'A seventy-percent trigger uses less CPU to evaluate than a trigger set closer to the ceiling' },
+          { id: 'd', label: 'D', text: 'The measured ceiling itself is always inaccurate, so triggering earlier compensates for that inaccuracy' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The trigger threshold exists specifically to leave room for real provisioning lag — triggering at the ceiling itself leaves no buffer for the time new capacity takes to come online.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-09-mcq-02',
+        question:
+          'Why does the RLS `SET LOCAL app.current_org_id` pattern reduce how many requests a fixed-size connection pool can serve per second compared to a naive per-query connection model?',
+        options: [
+          { id: 'a', label: 'A', text: '`SET LOCAL` must run inside the same transaction as the query it scopes, holding a pooled connection open for the duration of that transaction rather than releasing it the instant a query returns, which shrinks effective pool throughput under concurrent load' },
+          { id: 'b', label: 'B', text: 'RLS policies themselves require significantly more CPU to evaluate than an equivalent WHERE clause' },
+          { id: 'c', label: 'C', text: '`SET LOCAL` permanently disables connection reuse for the rest of that connection\'s lifetime' },
+          { id: 'd', label: 'D', text: 'The connection pool must be resized to zero every time `SET LOCAL` runs' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The mechanism is specifically about transaction-scoped connection holding, not RLS evaluation cost — this is the direct link between the multi-tenant lesson\'s correctness pattern and this lesson\'s performance concern.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-09-mcq-03',
+        question:
+          'In the scenario, what specific evidence told the FDE the bottleneck past 150 VUs was the connection pool rather than CPU or application compute?',
+        options: [
+          { id: 'a', label: 'A', text: 'CPU and memory on the API pods were both above ninety percent utilization at the time of failure' },
+          { id: 'b', label: 'B', text: 'CPU and memory stayed comfortably under fifty percent, but the failing requests were specifically connection timeouts rather than slow-but-successful responses — a failure-mode signature that points at the pool, not compute' },
+          { id: 'c', label: 'C', text: 'The FDE assumed it was the connection pool without checking any specific evidence' },
+          { id: 'd', label: 'D', text: 'The k6 test itself reported "connection pool" directly as the failure cause in its summary output' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario makes the diagnostic concrete — low CPU/memory combined with connection-timeout-specific failures is the exact signature the lesson describes as pointing at pool exhaustion.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-09-mcq-04',
+        question:
+          'How did the FDE verify the connection-pool fix (resizing plus adding PgBouncer transaction pooling) actually worked, per the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'By reviewing the code change alone, without running any further test' },
+          { id: 'b', label: 'B', text: 'By re-running the identical k6 script at the same 150-VU mark and confirming the connection-timeout failures were eliminated, with the new measured ceiling closer to 400 VUs' },
+          { id: 'c', label: 'C', text: 'By asking Globex to confirm the fix felt faster during their own manual testing' },
+          { id: 'd', label: 'D', text: 'By measuring only CPU utilization, since that was the original suspected bottleneck' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The verification is a repeat of the exact same measured test — confirming the specific failure mode is gone and establishing a new, higher measured ceiling, not an assumption that the fix worked.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-09-mcq-05',
+        question:
+          'What does Practice Loop step 3 — classifying every failing request as a connection timeout, a slow-but-successful response, or an application error — actually accomplish?',
+        options: [
+          { id: 'a', label: 'A', text: 'It calculates the total dollar cost of running the load test itself' },
+          { id: 'b', label: 'B', text: 'It is what actually distinguishes a connection-pool ceiling from a CPU or application-logic ceiling, rather than guessing the cause from a single aggregate failure rate' },
+          { id: 'c', label: 'C', text: 'It determines how many virtual users the next test run should simulate' },
+          { id: 'd', label: 'D', text: 'It verifies that the k6 script\'s syntax is valid before running it' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This diagnostic step is what converts a vague "something failed" result into a specific, actionable bottleneck classification.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-09-mcq-06',
+        question:
+          'Per the Suggested Extension, why would a bottleneck shifting to the extraction pipeline\'s LLM API rate limit require a different mitigation than the connection-pool fix?',
+        options: [
+          { id: 'a', label: 'A', text: 'An LLM API rate limit and a connection-pool exhaustion are actually the same underlying problem, so the same fix (resizing) applies to both' },
+          { id: 'b', label: 'B', text: 'A rate limit is an external constraint imposed by the LLM provider, not a resource Meridian\'s own infrastructure controls, so it requires request queuing and backoff rather than resizing a pool Meridian actually owns' },
+          { id: 'c', label: 'C', text: 'LLM API rate limits cannot be detected by a k6 load test under any circumstances' },
+          { id: 'd', label: 'D', text: 'Connection pool resizing would also fix an LLM API rate-limit bottleneck automatically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The extension tests whether the learner recognizes that not every ceiling is the same kind of resource — an external rate limit needs a fundamentally different mitigation strategy than an internally-owned connection pool.'
+      }
+    ]
+  },
+
+  'fde-curriculum/application-security-reliability/10-incident-response-and-customer-facing-rca': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-10-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — INTERNAL POSTMORTEM VS CUSTOMER RCA',
+        question:
+          'Why does the lesson treat the internal blameless postmortem and the customer-facing RCA as genuinely different documents rather than the same content presented twice?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two documents cover entirely unrelated incidents by design' },
+          { id: 'b', label: 'B', text: 'They serve different audiences with different stakes — the postmortem\'s readers can use maximal technical candor productively, while every sentence in the RCA becomes something the customer can hold the vendor to, so it must be precise and honest without volunteering internal detail that doesn\'t serve the customer\'s actual need to know' },
+          { id: 'c', label: 'C', text: 'The customer RCA is always written first, and the internal postmortem is a simplified summary of it' },
+          { id: 'd', label: 'D', text: 'Internal postmortems are optional, while customer RCAs are the only document actually required' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s core claim is about audience and stakes — the same incident is written up differently because the two readerships need and can safely use different levels of detail.',
+        incorrectExplanation:
+          'Remember the audiences: engineers need technical depth and blameless analysis, while executive stakeholders need clarity on business impact and preventive measures.',
+        hint:
+          'Internal postmortems address technical root causes and team execution, while customer RCAs focus on business impact and remediation commitments.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-10-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PLAIN-LANGUAGE ROOT CAUSE COMMUNICATION',
+        question:
+          'Why does the lesson prefer "the database ran out of available connections under peak load" over the fully technical description involving `SET LOCAL` and RLS transactions, for a customer-facing RCA?',
+        options: [
+          { id: 'a', label: 'A', text: 'The technical description is factually inaccurate, so it cannot be used in any document' },
+          { id: 'b', label: 'B', text: 'Both descriptions are accurate, but the plain-language version is legible to a non-technical stakeholder, while the fully technical version serves no one outside the engineering team in a customer-facing context' },
+          { id: 'c', label: 'C', text: 'Customers are contractually forbidden from receiving any technical detail about an incident' },
+          { id: 'd', label: 'D', text: 'The plain-language version omits the fact that connections were exhausted at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both versions are accurate — the lesson\'s point is about who the language actually serves, not about hiding or distorting the underlying fact.',
+        incorrectExplanation:
+          'Think about the customer executive reading the report: they need clear operational clarity, not internal framework mechanics.',
+        hint:
+          'Plain-language summaries convey the core physical bottleneck without inviting distraction over implementation minutiae.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-10-mcq-01',
+        question:
+          'Why does the lesson insist the incident communication cadence (time to first notification, RCA delivery SLA) be agreed in advance, rather than decided during the incident itself?',
+        options: [
+          { id: 'a', label: 'A', text: 'Having the cadence agreed beforehand means the FDE executes a known process during a stressful moment, rather than negotiating customer expectations for the first time while the customer is already anxious' },
+          { id: 'b', label: 'B', text: 'Predefined cadences are a legal requirement in every enterprise software contract' },
+          { id: 'c', label: 'C', text: 'An improvised cadence is always faster than a predefined one' },
+          { id: 'd', label: 'D', text: 'Customers never notice the difference between a predefined and an improvised communication cadence' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s argument is specifically about reducing improvisation under pressure — a pre-agreed cadence removes one more thing that has to be negotiated live during an already-stressful incident.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-10-mcq-02',
+        question:
+          'What four components does the lesson specify for a customer-facing RCA?',
+        options: [
+          { id: 'a', label: 'A', text: 'Timeline, engineer names, internal architecture diagram, apology' },
+          { id: 'b', label: 'B', text: 'What happened, customer impact, root cause, and remediation with actual dates' },
+          { id: 'c', label: 'C', text: 'Severity level, error budget status, burn rate, SLI definition' },
+          { id: 'd', label: 'D', text: 'Legal disclaimer, cost estimate, contract clause reference, executive summary' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s explicitly named fixed structure — each of the four parts serves a specific purpose for the customer reading it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-10-mcq-03',
+        question:
+          'Why does the lesson argue that an overclaimed "this cannot happen again" guarantee, later contradicted by a related incident, damages the customer relationship more than the original outage did?',
+        options: [
+          { id: 'a', label: 'A', text: 'Customers never actually read the remediation section of an RCA closely enough to notice a broken promise' },
+          { id: 'b', label: 'B', text: 'An unqualified guarantee that turns out to be false undermines trust in every future claim the vendor makes, whereas a precisely scoped remediation claim that holds up, even if narrower, preserves credibility' },
+          { id: 'c', label: 'C', text: 'A second incident is always technically worse than the first, regardless of what was promised' },
+          { id: 'd', label: 'D', text: 'Overclaiming has no measurable effect on customer trust compared to precise language' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is about credibility compounding — a broken guarantee costs more trust than an honestly scoped one, even when the second incident is itself minor.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-10-mcq-04',
+        question:
+          'Why did the twenty-two-minute outage happen in the scenario, given that the connection-pool fix had already been identified and merged?',
+        options: [
+          { id: 'a', label: 'A', text: 'The fix itself was incorrect and did not actually address the connection-pool issue' },
+          { id: 'b', label: 'B', text: 'The fix existed as a merged but unshipped change, and Globex\'s real peak traffic hit the same threshold the load test had found three days before the fix was scheduled to deploy — a sequencing gap between identifying a known risk and closing it' },
+          { id: 'c', label: 'C', text: 'Globex\'s traffic pattern was completely different from what the load test had modeled' },
+          { id: 'd', label: 'D', text: 'The load test had actually failed to identify the connection-pool bottleneck at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the scenario\'s central teaching point — the failure was one of timing and process sequencing, not a failure to identify or correctly diagnose the risk.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-10-mcq-05',
+        question:
+          'What did the customer-facing RCA sent to Globex deliberately omit, per the scenario, while still being fully accurate about what happened?',
+        options: [
+          { id: 'a', label: 'A', text: 'The fact that any contracts were affected at all during the outage' },
+          { id: 'b', label: 'B', text: 'An individual\'s name, the specific technology (PgBouncer) used in the fix, and the internal `SET LOCAL`/RLS mechanism detail — none of which the customer needed to evaluate what happened or trust the remediation' },
+          { id: 'c', label: 'C', text: 'The actual duration of the outage' },
+          { id: 'd', label: 'D', text: 'Whether the remediation had already shipped or was still pending' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The RCA stayed accurate on every customer-relevant fact while omitting internal implementation detail that wouldn\'t change the customer\'s ability to evaluate the incident or trust the fix.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-10-mcq-06',
+        question:
+          'Per the Suggested Extension, what\'s different about the communication Meridian should send Acme, who wasn\'t actually affected by the outage but asks whether the same issue could hit them?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing — it should be an identical copy of the RCA sent to Globex, since the underlying incident is the same' },
+          { id: 'b', label: 'B', text: 'It isn\'t a customer impact report (Acme had no impact to report), so it should instead directly answer Acme\'s actual question — whether Acme\'s own traffic profile puts them at similar risk and what remediation already protects them — rather than reusing a structure built for a customer who experienced real, measurable impact' },
+          { id: 'c', label: 'C', text: 'Meridian has no obligation to respond to a customer who wasn\'t actually affected' },
+          { id: 'd', label: 'D', text: 'The response to Acme should include more technical detail than the Globex RCA, since Acme raised the question unprompted' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The extension pushes the learner to recognize that the RCA\'s four-part structure is built around a customer\'s own measured impact — a customer with no impact needs a different, question-answering document, not a reused template.'
+      }
+    ]
+  },
+
+  'fde-curriculum/application-security-reliability/11-enterprise-readiness-checklist-and-go-live': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-11-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — EVIDENCE-BACKED GO-LIVE READINESS',
+        question:
+          'Per the lesson, what makes a go-live checklist genuinely useful rather than a boilerplate document?',
+        options: [
+          { id: 'a', label: 'A', text: 'Every item traces back to a specific decision or artifact from earlier in this engagement — a tenant-isolation seam, an RLS audit script, a k6 result — rather than being copied from a generic production-readiness template nobody can connect to a real event' },
+          { id: 'b', label: 'B', text: 'It contains as many items as possible, regardless of whether each one is specific to this engagement' },
+          { id: 'c', label: 'C', text: 'It is written entirely by the customer\'s own team with no FDE involvement' },
+          { id: 'd', label: 'D', text: 'It uses the exact same template for every customer engagement, ensuring consistency' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific claim is about traceability to real, engagement-specific decisions — a generic template fails this test even if it happens to be thorough.',
+        incorrectExplanation:
+          'A checklist without citable, verifiable artifacts degenerates into rubber-stamping; true readiness demands concrete evidence for each item.',
+        hint:
+          'Readiness requires verifiable proof (e.g. test reports, runbooks, logs) rather than informal verbal assurances.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-11-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — THE FOUR ENTERPRISE READINESS CATEGORIES',
+        question:
+          'What four categories does the lesson organize the go-live checklist into?',
+        options: [
+          { id: 'a', label: 'A', text: 'Cost, timeline, staffing, and marketing' },
+          { id: 'b', label: 'B', text: 'Security, reliability, performance, and operational handoff' },
+          { id: 'c', label: 'C', text: 'Frontend, backend, database, and infrastructure' },
+          { id: 'd', label: 'D', text: 'Discovery, design, build, and test' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'These are the four categories the lesson explicitly names, each pulling together specific mechanisms from earlier in the module.',
+        incorrectExplanation:
+          'Review the four pillar categories: Security & Compliance, Scalability & Performance, Observability & Incident Readiness, and Data Integrity & Recovery.',
+        hint:
+          'The four categories cover security/compliance, scale/performance, monitoring/incident response, and data resilience/recovery.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-11-mcq-01',
+        question:
+          'Per the lesson\'s evidence-over-assertion discipline, what does it actually take for the checklist item "RLS coverage audited" to be marked complete?',
+        options: [
+          { id: 'a', label: 'A', text: 'A team member\'s belief, stated in the checklist, that RLS coverage is probably fine based on the original design' },
+          { id: 'b', label: 'B', text: 'The audit script from the multi-tenant lesson\'s practice loop must actually be re-run against the production database, with its output (such as zero unscoped queries found) attached as the verification artifact' },
+          { id: 'c', label: 'C', text: 'A sign-off from Meridian\'s legal team confirming RLS was discussed during the original engagement' },
+          { id: 'd', label: 'D', text: 'A reference to the fact that RLS was correctly implemented and tested months earlier during development' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson insists on a real, re-run artifact against current production data — not a belief, a past test result, or an unrelated sign-off — as what actually justifies marking the item complete.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-11-mcq-02',
+        question:
+          'Why does the lesson insist the go-live sign-off meeting is a real event rather than a formality?',
+        options: [
+          { id: 'a', label: 'A', text: 'The meeting exists primarily to satisfy a contractual requirement with no other function' },
+          { id: 'b', label: 'B', text: 'It\'s where the customer\'s own stakeholders actually confirm each category against attached evidence, which is what genuinely transfers operational accountability to the customer\'s own team rather than leaving an implicit assumption that the FDE will keep operating the system indefinitely' },
+          { id: 'c', label: 'C', text: 'The meeting only matters for scheduling the customer\'s next contract renewal' },
+          { id: 'd', label: 'D', text: 'Sign-off meetings are optional and rarely actually held in practice' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The meeting\'s actual function is accountability transfer, evidenced by who does the confirming — not a rubber-stamp step in a document workflow.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-11-mcq-03',
+        question:
+          'Why did the scenario\'s security category require Globex\'s own security team, not just Meridian\'s, to confirm the BYOK cross-account grant functions as designed?',
+        options: [
+          { id: 'a', label: 'A', text: 'Independent verification by the party the control is meant to protect is stronger evidence than the vendor\'s own self-report, consistent with the checklist\'s evidence-over-assertion discipline' },
+          { id: 'b', label: 'B', text: 'Meridian\'s own team is technically incapable of testing a cross-account KMS grant' },
+          { id: 'c', label: 'C', text: 'This requirement applies only to Globex, and Acme\'s BYOK setup does not require any verification at all' },
+          { id: 'd', label: 'D', text: 'Globex\'s security team is contractually required to perform all verification work for every checklist item' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario reinforces the lesson\'s broader point that self-certification is weaker evidence than independent confirmation by the party the control actually protects.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-11-mcq-04',
+        question:
+          'What does the scenario\'s specific runbook entry ("connection pool exhaustion under peak load — see incident RCA-2026-08...") actually give Meridian\'s platform team?',
+        options: [
+          { id: 'a', label: 'A', text: 'A generic reminder to monitor database performance, unrelated to any specific past incident' },
+          { id: 'b', label: 'B', text: 'A directly actionable, citable precedent — the next time a similar symptom appears, the platform team has a specific diagnostic starting point instead of starting the investigation over from nothing' },
+          { id: 'c', label: 'C', text: 'A guarantee that connection-pool exhaustion can never happen again under any circumstances' },
+          { id: 'd', label: 'D', text: 'A requirement to contact the original FDE any time this symptom recurs' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The runbook entry\'s value is specifically its citability — a concrete precedent the platform team can reference, not a generic reminder or an overclaimed guarantee.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-11-mcq-05',
+        question:
+          'What does Practice Loop step 3 — counting how many checklist items have a real attached artifact versus how many are self-certified — actually accomplish?',
+        options: [
+          { id: 'a', label: 'A', text: 'It calculates the total cost of running the go-live sign-off meeting' },
+          { id: 'b', label: 'B', text: 'It is what actually distinguishes a trustworthy checklist from a boilerplate one, rather than relying on an impression that most items are probably backed by evidence' },
+          { id: 'c', label: 'C', text: 'It determines how many customer stakeholders need to attend the sign-off meeting' },
+          { id: 'd', label: 'D', text: 'It measures how long the go-live process took from start to finish' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This diagnostic step converts the module\'s evidence-over-assertion principle into a countable, checkable audit of the checklist itself.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-11-mcq-06',
+        question:
+          'Per the Suggested Extension, why would onboarding a fourth tenant still likely need the original FDE\'s involvement for at least one checklist category, even though Meridian\'s own platform team now owns ongoing operations?',
+        options: [
+          { id: 'a', label: 'A', text: 'The platform team is contractually forbidden from performing any part of the go-live process independently' },
+          { id: 'b', label: 'B', text: 'A category like security, when it involves a customer-specific negotiation such as a BYOK cross-account grant or a deployment-topology decision, depends on judgment calls specific to that customer\'s actual requirements — not a repeatable operational step the platform team can execute unchanged' },
+          { id: 'c', label: 'C', text: 'Performance and operational handoff always require the FDE regardless of the tenant' },
+          { id: 'd', label: 'D', text: 'Every category requires the FDE indefinitely, since the platform team cannot independently run any part of go-live' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The extension distinguishes repeatable operational verification (which the platform team can run unchanged) from genuinely customer-specific negotiation (which still needs the judgment the FDE role was built around).'
+      }
+    ]
+  },
+
+  'fde-curriculum/application-security-reliability/12-assessment-secure-deploy-plus-incident-simulation': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-application-security-reliability-12-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — COUPLING SECURITY & INCIDENT SIMULATION',
+        question:
+          'Why does this assessment combine a secure-deploy design exercise with an incident simulation into one connected assessment, rather than testing each skill set in isolation?',
+        options: [
+          { id: 'a', label: 'A', text: 'A real FDE engagement never separates the two — a deployment decision made under a security review directly shapes what an incident response later has to communicate, and this assessment tests that connection, not just each skill performed independently' },
+          { id: 'b', label: 'B', text: 'Security and reliability skills are unrelated and combining them only saves grading time' },
+          { id: 'c', label: 'C', text: 'Incident response never actually depends on any prior deployment or security decision' },
+          { id: 'd', label: 'D', text: 'This is purely a formatting convenience with no bearing on what the assessment tests' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The assessment mirrors the real-world integration point between security/deployment judgment and reliability/communication skills, which is what a two-part combined exercise can test that isolated exercises cannot.',
+        incorrectExplanation:
+          'Think about the enterprise FDE lifecycle: architectural decisions made during deployment directly determine incident failure modes and remediation complexity under customer scrutiny.',
+        hint:
+          'Security architecture and operational resilience are two halves of production enterprise engineering.'
+      },
+      {
+        id: 'lesson-fde-application-security-reliability-12-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — IDENTIFYING LOAD-BEARING CONSTRAINTS',
+        question:
+          'In the scenario, why does the sentence about patient-eligibility data needing to "remain under the customer\'s own encryption control" matter more than the brief\'s general statement about "wanting the most secure option available"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both statements carry identical weight and should be treated as equally load-bearing' },
+          { id: 'b', label: 'B', text: 'The encryption-control sentence is a specific, named, testable requirement that determines a concrete technical decision (BYOK), while "wanting the most secure option" is a soft preference that doesn\'t specify any particular design on its own' },
+          { id: 'c', label: 'C', text: 'The general statement about security should always be treated as the more important one, since it\'s broader' },
+          { id: 'd', label: 'D', text: 'Neither statement should actually influence the deployment design chosen' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the assessment\'s core diagnostic test — distinguishing a specific, decision-shaping requirement from a vague preference that could justify almost any design.',
+        incorrectExplanation:
+          'Consider the architectural implication of "customer cryptographic control": it requires cross-account KMS envelope encryption (BYOK).',
+        hint:
+          'Mandating customer control over encryption keys necessitates a BYOK cross-account KMS architecture.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-12-mcq-01',
+        question:
+          'Why is BYOK via a cross-account KMS grant the correct response to the healthcare customer\'s brief, rather than a full single-tenant deployment?',
+        options: [
+          { id: 'a', label: 'A', text: 'Single-tenant deployments are technically incompatible with healthcare data under any circumstances' },
+          { id: 'b', label: 'B', text: 'The brief\'s named requirement is key control specifically, not physical infrastructure isolation — BYOK satisfies the actual stated constraint without the added operational cost of a dedicated stack the brief never asked for' },
+          { id: 'c', label: 'C', text: 'BYOK is always the cheaper option regardless of what the brief actually specifies' },
+          { id: 'd', label: 'D', text: 'A single-tenant deployment does not support encryption at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the deployment-topologies lesson\'s Globex example directly — matching the response to the specifically named requirement, not defaulting toward maximal isolation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-12-mcq-02',
+        question:
+          'In part two of the assessment, what specific evidence should lead you to diagnose connection-pool exhaustion rather than a raw compute limit as the bottleneck?',
+        options: [
+          { id: 'a', label: 'A', text: 'The incident narrative directly states "connection pool" as the cause, with no other evidence needed' },
+          { id: 'b', label: 'B', text: 'Failures cluster as timeouts at a fixed concurrency threshold while CPU stays well under capacity — the specific failure-mode signature that points at the pool, not compute, consistent with the load-testing lesson\'s diagnostic method' },
+          { id: 'c', label: 'C', text: 'The application\'s error logs report a generic "internal server error" with no further detail' },
+          { id: 'd', label: 'D', text: 'The k6 test\'s total request count was lower than expected' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The assessment applies the same diagnostic signature (timeouts with low CPU) taught in the load-testing lesson, now to an unfamiliar scenario rather than the familiar Meridian narrative.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-12-mcq-03',
+        question:
+          'What is the assessment asking you to demonstrate by requiring both an internal blameless postmortem and a customer-facing RCA for the same incident?',
+        options: [
+          { id: 'a', label: 'A', text: 'That the two documents should be identical, just formatted differently' },
+          { id: 'b', label: 'B', text: 'That you can correctly differentiate what each document should and shouldn\'t carry — the postmortem\'s full technical candor and process-gap focus versus the RCA\'s plain-language, non-attributing, customer-appropriate content' },
+          { id: 'c', label: 'C', text: 'That only the RCA needs to be accurate; the postmortem can be approximate' },
+          { id: 'd', label: 'D', text: 'That the postmortem should be written first and then simply translated word-for-word into the RCA' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly tests the incident-response lesson\'s core distinction — the assessment wants to see the learner apply that differentiation, not just produce two similar documents.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-12-mcq-04',
+        question:
+          'What sequencing gap does the assessment\'s part-two incident narrative reproduce, per the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The fix for the connection-pool issue was never actually identified before the incident occurred' },
+          { id: 'b', label: 'B', text: 'The fix was tested but not yet deployed when a real customer traffic spike hit the same threshold the load test had already found, three days before the fix was scheduled to ship' },
+          { id: 'c', label: 'C', text: 'The incident had no relationship to any previously identified risk' },
+          { id: 'd', label: 'D', text: 'The customer\'s traffic spike was entirely unpredictable and unrelated to any known threshold' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the same sequencing-gap pattern from the incident-response lesson\'s Globex scenario, applied here to an unfamiliar customer to test whether the learner recognizes the pattern rather than just recalling the original example.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-12-mcq-05',
+        question:
+          'Why does the assessment require you to name at least three specific gaps between your work and genuine production readiness, rather than treating a complete, well-written assessment as evidence the design is production-ready?',
+        options: [
+          { id: 'a', label: 'A', text: 'Every assessment submission is expected to be fully production-ready regardless of its scaled-down scope' },
+          { id: 'b', label: 'B', text: 'Presenting a scoped-down exercise as production-complete would itself be a failure of the honest-status-reporting discipline the module has built throughout — naming real, specific gaps is part of what demonstrates competence, not an admission the work is unfinished' },
+          { id: 'c', label: 'C', text: 'Naming gaps is only a formality with no bearing on how the assessment is evaluated' },
+          { id: 'd', label: 'D', text: 'A complete self-evaluation should state that no gaps exist' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the same self-evaluation discipline established elsewhere in the FDE curriculum\'s assessment lessons — honest, specific gap identification is itself the skill being tested.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-application-security-reliability-12-mcq-06',
+        question:
+          'Per the Suggested Extension, what should the go-live checklist item you write for your single most important self-evaluation gap actually include?',
+        options: [
+          { id: 'a', label: 'A', text: 'A general statement that the gap will be addressed at some point before launch' },
+          { id: 'b', label: 'B', text: 'A real, attached verification artifact requirement, per the go-live lesson\'s evidence-over-assertion discipline — not a self-certified assertion that the gap has been closed' },
+          { id: 'c', label: 'C', text: 'A reference to the original Meridian ClauseReview engagement, since this assessment\'s mock customer is the same as ClauseReview\'s' },
+          { id: 'd', label: 'D', text: 'A cost estimate for closing the gap, with no mention of how it would be verified' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The extension asks the learner to apply the previous lesson\'s checklist discipline directly — a checklist item is only meaningful with a real, attached verification artifact, not a vague future intent.'
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/01-distributed-systems-fundamentals-cap-pacelc-raft-saga': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-01-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — CAP THEOREM & DATA PATH GRANULARITY',
+        question:
+          'Why does the lesson argue that labeling an entire system "CP" or "AP" is often a mistake?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because CAP theorem only applies to systems with exactly two nodes' },
+          { id: 'b', label: 'B', text: 'Because the actual C-vs-A choice happens per data path — a single deployment can have a CP write path (synchronous replica quorum) and an AP read path (asynchronous replica) at the same time' },
+          { id: 'c', label: 'C', text: 'Because partition tolerance is optional and most systems choose not to have it' },
+          { id: 'd', label: 'D', text: 'Because CAP theorem was superseded by PACELC and no longer applies to any modern system' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific correction is about granularity: CAP\'s C-vs-A choice is made per data path (what a node does during a partition on that path), not once for an entire deployment.',
+        incorrectExplanation:
+          'Consider whether CAP guarantees are evaluated as a blanket stamp across an entire infrastructure or whether distinct read and write paths make independent partition trade-offs.',
+        hint: 'A system can maintain synchronous quorum on writes (CP) while allowing stale reads from asynchronous replicas (AP).'
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-01-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — RAFT CONSENSUS & CLUSTER SIZING',
+        question:
+          'Why does the lesson argue a 4-node Raft cluster gets no real benefit over a 3-node cluster?',
+        options: [
+          { id: 'a', label: 'A', text: 'Raft does not support clusters with an even number of nodes at all' },
+          { id: 'b', label: 'B', text: 'A 4-node cluster still only tolerates 1 node failure before losing majority — the same fault tolerance as 3 nodes — while paying the replication cost of a 4th node for no additional benefit' },
+          { id: 'c', label: 'C', text: 'A 4-node cluster elects leaders twice as often as a 3-node cluster' },
+          { id: 'd', label: 'D', text: 'Even-numbered clusters cannot use randomized election timeouts' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Majority of 4 is 3, same as majority of 5 minus 2 failures being tolerated by 5 but not 4 — the specific comparison the lesson draws is 3 vs. 4: both tolerate exactly 1 failure, so the 4th node adds cost without adding tolerance.',
+        incorrectExplanation:
+          'Evaluate how many node failures a majority quorum (N/2 + 1) tolerates for an odd cluster size versus an even cluster size.',
+        hint: 'A 4-node cluster requires a quorum of 3, tolerating only 1 failure — exactly the same fault tolerance as a 3-node cluster with higher overhead.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-01-mcq-01',
+        question:
+          'What does PACELC\'s "Else" (E) branch force a system designer to reason about that CAP theorem alone is silent on?',
+        options: [
+          { id: 'a', label: 'A', text: 'What happens when a system has zero nodes remaining after a failure' },
+          { id: 'b', label: 'B', text: 'The latency-versus-consistency trade-off a system pays in the common case, when no partition is happening at all' },
+          { id: 'c', label: 'C', text: 'Whether a system should use SQL or NoSQL for its primary datastore' },
+          { id: 'd', label: 'D', text: 'How many replicas a system needs to survive a single disk failure' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'CAP is entirely about partition behavior; PACELC\'s "Else" branch is specifically the non-partition case, where a system still pays a latency-vs-consistency cost on every request.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-01-mcq-02',
+        question:
+          'Per the lesson\'s multi-region SaaS framing, what is the real cost being traded off between a single-writer-region design and a multi-writer active-active design?',
+        options: [
+          { id: 'a', label: 'A', text: 'Single-writer designs are always cheaper to host regardless of traffic patterns' },
+          { id: 'b', label: 'B', text: 'Single-writer pays cross-region write latency on every distant write but stays simple to reason about; active-active gives every region local write latency but requires an explicit conflict-resolution strategy for concurrent writes to the same record' },
+          { id: 'c', label: 'C', text: 'Active-active designs never need a conflict-resolution strategy because Postgres handles it automatically' },
+          { id: 'd', label: 'D', text: 'Single-writer designs cannot serve read traffic from any region other than the primary' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s concrete PACELC application — the cost isn\'t abstract, it\'s a specific choice between paying latency on every distant write versus taking on real conflict-resolution complexity.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-01-mcq-03',
+        question:
+          'What specific failure does Raft\'s monotonically increasing term number prevent?',
+        options: [
+          { id: 'a', label: 'A', text: 'A follower node running out of disk space during log replication' },
+          { id: 'b', label: 'B', text: 'Split-brain — two nodes both believing they are the current leader and both accepting writes, typically after a partition heals; a node encountering a higher term steps down immediately' },
+          { id: 'c', label: 'C', text: 'A client sending a malformed write request to the cluster' },
+          { id: 'd', label: 'D', text: 'The cluster losing all its data if the network is ever partitioned' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Term numbers are Raft\'s concrete mechanism against split-brain: any node seeing a higher term recognizes its own leadership claim as stale and steps down, which is what CAP\'s abstract "choose C" framing doesn\'t actually implement on its own.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-01-mcq-04',
+        question:
+          'What is the core trade-off between an orchestration-based saga and a choreography-based saga, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Orchestration-based sagas cannot use compensating actions, only choreography-based ones can' },
+          { id: 'b', label: 'B', text: 'Orchestration centralizes workflow logic and visibility in one coordinator at the cost of that component owning real complexity; choreography has no single point of workflow logic but scatters the failure path across services with no one place to read it' },
+          { id: 'c', label: 'C', text: 'Choreography-based sagas are always faster because they have no coordinator to call' },
+          { id: 'd', label: 'D', text: 'Orchestration-based sagas require a distributed two-phase commit across all systems involved' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s exact trade-off statement — centralized visibility and complexity versus no single point of logic but a scattered failure path.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-01-mcq-05',
+        question:
+          'In the `ContractApprovalSaga` scenario, why does the CLM-creation step\'s retry, carrying an `(org_id, event_id)` idempotency key, not create a second CLM record even though the original request actually succeeded before the orchestrator\'s timeout?',
+        options: [
+          { id: 'a', label: 'A', text: 'CLM systems automatically reject any request made more than once, regardless of its contents' },
+          { id: 'b', label: 'B', text: 'The idempotency key lets the retried request be recognized as a duplicate of a request that already completed, so the same effect is not applied twice' },
+          { id: 'c', label: 'C', text: 'The orchestrator waits indefinitely for the first request instead of ever retrying' },
+          { id: 'd', label: 'D', text: 'Compensating actions are only ever needed for the first step of a saga, never a retry of it' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific mechanism: an idempotency key lets a retried call be recognized as a duplicate of an already-applied effect, which is exactly why a compensation or a forward step is safe to replay with one.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-01-mcq-06',
+        question:
+          'Why does the `ContractApprovalSaga`\'s compensation for a failed e-signature step mark the already-created CLM record `cancelled` rather than delete it?',
+        options: [
+          { id: 'a', label: 'A', text: 'Deleting records is technically impossible in most CLM systems' },
+          { id: 'b', label: 'B', text: 'A human may have already seen the record; clearly labeling it void is a more accurate and auditable compensation than making it disappear as though it never existed' },
+          { id: 'c', label: 'C', text: 'Marking a record cancelled is always faster to execute than deleting it' },
+          { id: 'd', label: 'D', text: 'CLM systems require every record to remain in the system permanently by law' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific point is about what a compensation should semantically communicate — a visible, correctly-labeled void state, not an erasure that could confuse anyone who already saw the record.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-01-mcq-07',
+        question:
+          'Per the Suggested Extension, what specifically becomes harder once the `ContractApprovalSaga` is redesigned as choreography instead of orchestration?',
+        options: [
+          { id: 'a', label: 'A', text: 'Each individual system\'s own local transaction becomes impossible to complete' },
+          { id: 'b', label: 'B', text: 'Answering "what is the current state of approval X across all three systems, right now" — trivial to read from an orchestrator\'s own state, and genuinely harder to reconstruct once no single component tracks the whole workflow' },
+          { id: 'c', label: 'C', text: 'Compensating actions can no longer be defined for any step in the workflow' },
+          { id: 'd', label: 'D', text: 'Idempotency keys stop working once there is no central coordinator' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s named cost of choreography: centralized state visibility, which an orchestrator gives essentially for free, has to be reconstructed some other way (e.g., a read-side projection) once no component is coordinating in one place.'
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/02-system-design-rag-system-at-scale': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-02-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — TIERED VECTOR INDEX TOPOLOGY',
+        question:
+          'Why does the lesson choose a tiered vector-index topology (dedicated shards for large tenants, a shared partitioned index for the long tail) over either a fully shared index or a fully per-tenant index?',
+        options: [
+          { id: 'a', label: 'A', text: 'A tiered topology is always the correct default for any multi-tenant system regardless of tenant size distribution' },
+          { id: 'b', label: 'B', text: 'Tenant size in this scenario is heavily skewed — a fully shared index risks noisy-neighbor effects from the largest tenants, while a fully per-tenant index (500 separate indexes) doesn\'t pay for itself for tenants with only a few thousand documents' },
+          { id: 'c', label: 'C', text: 'Per-tenant indexes are technically impossible to build with current vector database technology' },
+          { id: 'd', label: 'D', text: 'A shared index cannot support hybrid search under any configuration' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The tiering decision is justified specifically by the skewed scale profile in this scenario\'s requirements, not as a universal default — the lesson is explicit that this is a judgment call driven by the actual tenant-size distribution.',
+        incorrectExplanation:
+          'Look at how tenant document distribution is skewed between enterprise whales and long-tail accounts.',
+        hint: 'Dedicated shards isolate heavy enterprise tenants from noisy-neighbor effects, while a partitioned shared index economically serves hundreds of small tenants.'
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-02-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PACELC CONSISTENCY & VECTOR RETRIEVAL',
+        question:
+          'Why does the lesson treat the vector index\'s replicas as AP but the tenant-to-shard routing metadata as CP, within the same system?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because the routing metadata is stored on a different physical machine than the vector index' },
+          { id: 'b', label: 'B', text: 'Because a newly-ingested document being searchable a couple of minutes late is an acceptable cost (AP), while routing a query to the wrong shard entirely is a real failure the system cannot tolerate (CP) — different data paths within one system can have different consistency requirements' },
+          { id: 'c', label: 'C', text: 'Because CAP theorem requires every subsystem within a larger system to make the same C-vs-A choice' },
+          { id: 'd', label: 'D', text: 'Because routing metadata never changes after the system is first deployed' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly applies Lesson 1\'s data-path-granularity correction to a concrete system: two data paths within one RAG deployment can and should make different C-vs-A choices based on what staleness or misrouting would actually cost.',
+        incorrectExplanation:
+          'Compare the consistency requirements of vector search results (where slight eventual consistency is acceptable) versus the tenant routing table (where stale routing causes cross-tenant leaks).',
+        hint: 'Vector indices trade strict consistency for retrieval latency (PA/EL), whereas tenant routing tables require strict consistency (PC/EC) to avoid security violations.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-system-design-capstone-02-tiered-vector-index-retrieval',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — TIERED VECTOR-INDEX RETRIEVAL TOPOLOGY',
+      boundaryLabel: 'TIERED ISOLATION & QUERY ROUTING BOUNDARY',
+      boundaryText:
+        'The index router directs query execution between dedicated tenant shards and the partitioned shared HNSW index based on tenant tier, enforcing vector isolation and bounding p99 retrieval latency.',
+      nodes: [
+        { id: 'query', label: 'User / Tenant Query (Hybrid Intent)', kind: 'input' },
+        { id: 'retrieval-service', label: 'Retrieval Service (Dense + Sparse)', kind: 'service' },
+        { id: 'index-router', label: 'Tiered Vector-Index Router (Tenant Sized)', kind: 'boundary', highlighted: true },
+        { id: 'dedicated-shard', label: 'Dedicated Vector Shards (Enterprise Whale Tenants)', kind: 'adapter' },
+        { id: 'shared-index', label: 'Partitioned Shared HNSW Index (Long-Tail Tenants)', kind: 'adapter' },
+        { id: 'reranker', label: 'Conditional Cross-Encoder Reranker (Top-K Filter)', kind: 'adapter' },
+        { id: 'grounded-response', label: 'Grounded Streaming Answer + Source Citations', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-02-mcq-01',
+        question:
+          'What does the lesson mean by a capacity estimate needing to be "load-bearing" rather than merely precise?',
+        options: [
+          { id: 'a', label: 'A', text: 'The estimate must be calculated to the exact byte and query, with no rounding permitted' },
+          { id: 'b', label: 'B', text: 'Every later design decision should be able to point back to a specific number in the estimate and explain why that number, not a different one, drove the choice' },
+          { id: 'c', label: 'C', text: 'The estimate should only ever be produced by a senior engineer, never a junior one' },
+          { id: 'd', label: 'D', text: 'The estimate must be verified against production traffic before any design work can begin' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific claim is about the estimate\'s role in justifying design choices, not about numerical precision — a rough but load-bearing number beats a precise one nobody\'s decision actually depends on.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-02-mcq-02',
+        question:
+          'Per the lesson, what becomes a genuinely new design question at this scale that a single-tenant or small-scale RAG deployment never has to answer?',
+        options: [
+          { id: 'a', label: 'A', text: 'Where in the physical index a tenant\'s vectors actually live, and how that partitioning scheme affects noisy-neighbor risk and staleness handling' },
+          { id: 'b', label: 'B', text: 'Whether retrieval should be pre-filtered or post-filtered by tenant, since post-filtering is only unsafe at large scale' },
+          { id: 'c', label: 'C', text: 'Whether hybrid search should combine dense and sparse retrieval, since that only matters above a certain document count' },
+          { id: 'd', label: 'D', text: 'Whether RAGAS scoring is necessary, since evaluation is only needed once a system serves multiple tenants' },
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Pre-filtering (not post-filtering) is always correct regardless of scale — Phase 12 already established this. What\'s new at this scale is a physical partitioning decision: where a tenant\'s vectors actually live in the index topology.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-02-mcq-03',
+        question:
+          'Per the lesson\'s capacity estimate, why does the 2-second p99 latency budget leave enough headroom to afford both a reranking pass and a semantic-cache check?',
+        options: [
+          { id: 'a', label: 'A', text: 'Reranking and caching cost no additional latency under any circumstances' },
+          { id: 'b', label: 'B', text: 'The itemized budget (embedding ~50-100ms, retrieval ~50-150ms, reranking ~100-150ms, generation ~500-1000ms streamed) sums to well under 2 seconds, leaving real room for these additions' },
+          { id: 'c', label: 'C', text: 'The 2-second budget only applies to the embedding and retrieval stages, not to generation' },
+          { id: 'd', label: 'D', text: 'Semantic caching eliminates the need for a latency budget entirely' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s itemized stage-by-stage budget is what makes the "affordable" claim concrete rather than asserted — summing the stages shows genuine headroom under 2 seconds.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-02-mcq-04',
+        question:
+          'Why does the lesson recommend routing only some queries through the reranking pass, rather than running it unconditionally on every query?',
+        options: [
+          { id: 'a', label: 'A', text: 'Reranking is deprecated and should never be used in a production RAG system' },
+          { id: 'b', label: 'B', text: 'A simple factoid query that hybrid retrieval already answers correctly gains no accuracy from reranking, so running it unconditionally wastes 100-150ms of the latency budget for no benefit on that class of query' },
+          { id: 'c', label: 'C', text: 'Reranking cannot run on queries shorter than a certain length' },
+          { id: 'd', label: 'D', text: 'Running reranking on every query would exceed the storage budget, not the latency budget' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific argument is about wasted latency on queries that don\'t benefit — a complexity-based routing check decides per-query whether reranking is worth its cost, mirroring the model-tier routing discipline from Phase 12.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-02-mcq-05',
+        question:
+          'What should happen to a query\'s retrieval path when the embedding service is unavailable, per the lesson\'s failure-mode design?',
+        options: [
+          { id: 'a', label: 'A', text: 'The entire request should fail immediately with an error, since retrieval cannot function without embeddings' },
+          { id: 'b', label: 'B', text: 'The query should degrade to keyword-only (BM25) search rather than fail outright, since a worse answer beats no answer and this is exactly what hybrid search\'s keyword component was designed to survive' },
+          { id: 'c', label: 'C', text: 'The request should be silently dropped with no response returned to the caller' },
+          { id: 'd', label: 'D', text: 'The system should wait indefinitely for the embedding service to recover before responding' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific design is graceful degradation, not failure — hybrid search\'s dual (dense + sparse) design is exactly what makes a keyword-only fallback available.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-02-mcq-06',
+        question:
+          'Why does a single tenant\'s bulk upload of 50,000 documents overnight not delay another tenant\'s ingestion, per the lesson\'s design?',
+        options: [
+          { id: 'a', label: 'A', text: 'Bulk uploads are processed at a lower priority than all other traffic system-wide, regardless of tenant' },
+          { id: 'b', label: 'B', text: 'The ingestion pipeline is partitioned per tenant with per-tenant rate limits, preventing one tenant\'s volume from consuming capacity that another tenant\'s ingestion needs' },
+          { id: 'c', label: 'C', text: 'Only one tenant is permitted to upload documents at any given time across the entire platform' },
+          { id: 'd', label: 'D', text: 'Document ingestion has no capacity limits at all in this design' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Per-tenant partitioning and rate limits in the ingestion pipeline are the specific mechanism the lesson names to prevent this from becoming a platform-wide incident.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-02-mcq-07',
+        question:
+          'Per the Suggested Extension, what kind of metric should trigger migrating a tenant from the shared long-tail index to a dedicated shard?',
+        options: [
+          { id: 'a', label: 'A', text: 'The tenant\'s billing tier alone, regardless of any measured technical impact' },
+          { id: 'b', label: 'B', text: 'A metric tied to actual scale or impact — document count, query volume, or measured latency impact on shard-mates — so the migration happens based on evidence rather than being noticed only after it becomes a problem' },
+          { id: 'c', label: 'C', text: 'A fixed calendar schedule migrating one tenant per quarter regardless of size' },
+          { id: 'd', label: 'D', text: 'Whichever tenant complains first, regardless of whether their usage has actually grown' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the lesson\'s broader insistence on evidence-driven decisions — the migration trigger should be a measured signal, not an arbitrary schedule or a reactive response to a complaint.'
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/03-system-design-agentic-platform-at-scale': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-03-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — AGENT WORKER POOL CAPACITY SIZING',
+        question:
+          'Why does the lesson argue that sizing a worker pool for "200 concurrent workflows needs 200 worker threads" is the wrong conclusion?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because 200 concurrent workflows is an unrealistic number for any production agentic platform' },
+          { id: 'b', label: 'B', text: 'Because a workflow spends most of its wall-clock time waiting on I/O (LLM completions, tool-call round-trips), not consuming CPU, so an async event loop can hold many workflows\' waiting state per worker process — the real constraint is memory and upstream rate limits, not thread count' },
+          { id: 'c', label: 'C', text: 'Because worker threads are always slower than async event loops regardless of workload' },
+          { id: 'd', label: 'D', text: 'Because LLM providers refuse to serve more than one request per worker process' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific correction is about I/O-bound versus CPU-bound concurrency — waiting time dominates a workflow\'s duration, which is exactly what makes async concurrency on far fewer processes the right sizing model.',
+        incorrectExplanation:
+          'Determine whether agent execution is CPU-bound or dominated by network I/O wait times during LLM inferences and external tool calls.',
+        hint: 'Because agent workers spend over 90% of execution time waiting on remote network calls, async I/O coroutines or lightweight worker pools can handle vastly more concurrent workflows per core than CPU-bound tasks.'
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-03-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — STRUCTURAL MCP TOOL ISOLATION',
+        question:
+          'Why does the lesson insist that a workflow running for Tenant A must be structurally unable to reach Tenant B\'s credentials, rather than merely prevented by the orchestrator\'s routing logic being written correctly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because orchestrator routing logic is always faster when it doesn\'t need to check tenant identity' },
+          { id: 'b', label: 'B', text: 'Because a structural boundary (separate credentials per tenant\'s MCP server instance) cannot be bypassed by a routing bug, while a policy that depends on every code path remembering to check tenant identity correctly can be — the same reasoning that made database-layer RLS preferred over WHERE-clause discipline alone' },
+          { id: 'c', label: 'C', text: 'Because MCP servers cannot technically support more than one tenant\'s credentials in the same platform' },
+          { id: 'd', label: 'D', text: 'Because human-in-the-loop gates are only effective when tenants are structurally isolated' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s explicit parallel to the RLS-over-WHERE-clause argument from Phase 15 — a structural boundary survives a routing bug; a policy relying on every call site remembering to check does not.',
+        incorrectExplanation:
+          'Consider why logical filtering (e.g. WHERE clauses or prompt instructions) is vulnerable to implementation bugs and prompt injection compared to physical network routing.',
+        hint: 'Structural scoping ensures a tenant\'s worker process is physically restricted to its own isolated MCP server instance, making cross-tenant tool invocation impossible at the transport layer.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-system-design-capstone-03-agent-platform-topology',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — MULTI-TENANT AGENT PLATFORM TOPOLOGY',
+      boundaryLabel: 'STRUCTURAL MCP ISOLATION & EXECUTION BOUNDARY',
+      boundaryText:
+        'Workflows execute via a centralized fair-share orchestrator but are structurally constrained to communicate only with tenant-specific MCP server instances, guaranteeing strict zero-bleed tool isolation.',
+      nodes: [
+        { id: 'workflow-req', label: 'Tenant Workflow Trigger / Webhook', kind: 'input' },
+        { id: 'orchestrator', label: 'Fair-Share Workflow Orchestrator (CP State)', kind: 'service' },
+        { id: 'mcp-scope-gate', label: 'Structural Per-Tenant MCP Router & Tool Gate', kind: 'boundary', highlighted: true },
+        { id: 'tenant-mcp-server', label: 'Isolated Tenant MCP Server (Scoped Auth & Tools)', kind: 'adapter' },
+        { id: 'model-gateway', label: 'Model-Routing Gateway (Circuit Breaker & Fallback)', kind: 'adapter' },
+        { id: 'approval-queue', label: 'Human-in-the-Loop Approval Queue (Sensitive Actions)', kind: 'adapter' },
+        { id: 'durable-result', label: 'Durable Step State & Resilient Workflow Output', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-03-mcq-01',
+        question:
+          'What additional governance dimension does a 50-tenant agentic platform need beyond the per-client resource/tool scoping Phase 13\'s MCP lesson already designed for a single customer?',
+        options: [
+          { id: 'a', label: 'A', text: 'MCP servers must be rewritten to support a completely different protocol at platform scale' },
+          { id: 'b', label: 'B', text: 'Which tenant\'s traffic is allowed to reach which tenant\'s own MCP server instance at all — a single shared server per system type with one shared access-control list would risk exactly the cross-tenant leak Phase 15\'s RLS lesson closed at the database layer' },
+          { id: 'c', label: 'C', text: 'Whether resources, tools, and prompts should be merged into a single MCP primitive at scale' },
+          { id: 'd', label: 'D', text: 'Whether MCP servers need to support synchronous calls, since they only supported asynchronous ones for a single customer' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson draws a direct parallel to Phase 15\'s RLS argument — tenant scoping at the tool-integration layer needs the same structural rigor as tenant scoping at the database layer, not a shared ACL that happens to include everyone.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-03-mcq-02',
+        question:
+          'Why does the lesson choose a shared worker pool with per-tenant fair-share scheduling over a fully dedicated pool per tenant, for the 50-tenant platform?',
+        options: [
+          { id: 'a', label: 'A', text: 'Dedicated pools are technically impossible to implement for an agentic workflow platform' },
+          { id: 'b', label: 'B', text: 'A shared pool is dramatically more compute-efficient given the uneven, mostly-waiting workload profile, and per-tenant concurrency caps bound the noisy-neighbor risk without the operational overhead of 50 fully separate pools' },
+          { id: 'c', label: 'C', text: 'Fair-share scheduling eliminates the need for per-tenant MCP server scoping entirely' },
+          { id: 'd', label: 'D', text: 'Dedicated pools would violate the platform\'s human-in-the-loop requirements' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s explicit trade-off is compute efficiency (shared pool) against operational overhead (50 dedicated pools) — fair-share scheduling is what lets the platform get the efficiency without the noisy-neighbor risk.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-03-mcq-03',
+        question:
+          'Why does the lesson design workflow-state coordination (which orchestrator instance owns a given workflow\'s next step) as CP rather than AP?',
+        options: [
+          { id: 'a', label: 'A', text: 'CP is always the correct default for any data path in a distributed system' },
+          { id: 'b', label: 'B', text: 'Two orchestrator instances both believing they own the same workflow\'s next step would double-execute a tool call — an outcome the system cannot tolerate, unlike the vector index\'s staleness in Lesson 2, which was an acceptable AP trade' },
+          { id: 'c', label: 'C', text: 'Workflow state changes so rarely that consistency has no real cost either way' },
+          { id: 'd', label: 'D', text: 'AP designs are incompatible with human-in-the-loop approval gates' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s explicit contrast with Lesson 2\'s RAG index — the correct consistency model is a property of what a specific failure would cost (double-executing a tool call here versus stale search results there), not a platform-wide default.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-03-mcq-04',
+        question:
+          'What should the model-routing gateway do when the primary LLM provider becomes unavailable, per the lesson\'s failure-mode design?',
+        options: [
+          { id: 'a', label: 'A', text: 'Stall every in-flight workflow waiting on that provider until it recovers, with no fallback' },
+          { id: 'b', label: 'B', text: 'Trip a circuit breaker and fail over to an alternate provider tier, rather than let every dependent workflow stall indefinitely' },
+          { id: 'c', label: 'C', text: 'Immediately terminate every in-flight workflow across all 50 tenants' },
+          { id: 'd', label: 'D', text: 'Silently drop the failing requests with no retry or fallback of any kind' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s design is a circuit breaker with failover, consistent with the model-routing gateway\'s reliability discipline from Phase 12, not a stall or a silent drop.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-03-mcq-05',
+        question:
+          'Why does a workflow retrying a failing tool call need a bounded retry count and a dead-letter state, rather than retrying indefinitely?',
+        options: [
+          { id: 'a', label: 'A', text: 'Bounded retries are required by every LLM provider\'s terms of service' },
+          { id: 'b', label: 'B', text: 'An indefinitely retrying workflow consumes its tenant\'s fair-share concurrency budget forever, degrading that tenant\'s own other workflows without ever surfacing the problem to a human' },
+          { id: 'c', label: 'C', text: 'Tool calls can only be retried a maximum of three times by protocol design' },
+          { id: 'd', label: 'D', text: 'Dead-letter states are only relevant for workflows involving a human-in-the-loop gate' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson connects this directly to the fair-share scheduling design — an unbounded retry loop is exactly the noisy-neighbor failure mode the per-tenant concurrency cap is meant to prevent, and a dead-letter state is what makes the problem visible instead of silently ongoing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-03-mcq-06',
+        question:
+          'Why must a tool call that times out from the orchestrator\'s perspective but actually succeeded downstream be protected by an idempotency key?',
+        options: [
+          { id: 'a', label: 'A', text: 'Idempotency keys are required by MCP\'s protocol specification for every call' },
+          { id: 'b', label: 'B', text: 'Without one, a retry of the timed-out call would execute the side-effecting action (a refund, a deal-stage update) a second time, since the orchestrator has no way to know the first attempt already succeeded' },
+          { id: 'c', label: 'C', text: 'Idempotency keys make tool calls execute faster on retry' },
+          { id: 'd', label: 'D', text: 'This scenario cannot actually occur once workflow state is stored in a CP data path' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the same idempotency discipline from Phase 13\'s tool-contract lesson, applied here to the specific timeout-vs-actual-success ambiguity a retry has no other way to resolve safely.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-03-mcq-07',
+        question:
+          'Per the Suggested Extension, when one tenant requires physically isolated compute for compliance reasons, which piece of the platform\'s design actually has to change?',
+        options: [
+          { id: 'a', label: 'A', text: 'The workflow-state consistency model must switch from CP to AP for every tenant, not just this one' },
+          { id: 'b', label: 'B', text: 'Only the worker-pool routing for this one tenant\'s workflows needs to change (to a dedicated pool); the per-tenant MCP server scoping and workflow-state CP design were already tenant-isolated by construction and need no change' },
+          { id: 'c', label: 'C', text: 'MCP server scoping must be rebuilt from scratch, since it was never actually tenant-isolated before' },
+          { id: 'd', label: 'D', text: 'Every other tenant must also move to dedicated compute for the platform to remain consistent' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because MCP scoping and workflow-state ownership were already designed per-tenant, only the physical compute-routing layer needs to change for this one tenant — the lesson\'s point is that good tenant-isolation design at the right layers means a compliance requirement like this is a narrow, contained change, not a platform-wide rearchitecture.'
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/04-system-design-multi-tenant-saas-platform': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-04-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — MULTI-TENANT STORAGE ISOLATION TIERS',
+        question:
+          'Why does the lesson argue that a real multi-tenant SaaS platform usually needs more than one isolation strategy running simultaneously, rather than picking one for the whole platform?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because Postgres technically does not support running RLS and schema-per-tenant in the same database cluster' },
+          { id: 'b', label: 'B', text: 'Because the three strategies trade off cost, operational overhead, and blast radius differently, and a real tenant population\'s skewed size distribution means no single point on that trade-off curve serves both a tiny free-tier tenant and a multi-terabyte enterprise tenant well' },
+          { id: 'c', label: 'C', text: 'Because schema-per-tenant is strictly better than RLS in every way and should always be preferred once a platform can afford it' },
+          { id: 'd', label: 'D', text: 'Because database-per-tenant is required by law for any platform serving more than 1,000 tenants' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s core argument is about matching the isolation strategy\'s trade-off profile to the actual, skewed tenant distribution, not asserting one strategy is universally superior.',
+        incorrectExplanation:
+          'Think about whether small self-serve tenants have the same economics, compliance, and noisy-neighbor impact as enterprise whale accounts.',
+        hint: 'A tiered architecture (Shared RLS, Schema-per-tenant, Dedicated DB) balances hardware cost efficiency for small tenants against strict isolation and SLAs for enterprise accounts.'
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-04-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — POSTGRES RLS OWNER-BYPASS FAILURE MODE',
+        question:
+          'Why does the lesson single out the RLS owner-bypass gotcha (a table missing `FORCE ROW LEVEL SECURITY`, or a connection running as the table owner) as the single most dangerous failure mode in the shared tier?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because it only affects tenants in the schema-per-tenant tier, not the shared-RLS tier' },
+          { id: 'b', label: 'B', text: 'Because it can pass every test written from a non-owner role, making it invisible until an audit specifically tests the negative case — that a wrong tenant\'s rows are genuinely absent, not merely that the right tenant\'s rows are present' },
+          { id: 'c', label: 'C', text: 'Because it is the only failure mode that requires a database restart to fix' },
+          { id: 'd', label: 'D', text: 'Because it can only occur once a tenant crosses the 1GB data-volume threshold' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific danger the lesson names, directly inherited from Phase 15\'s RLS lesson — a test suite that only checks the positive case (right tenant\'s data present) can pass while a leak of another tenant\'s data goes completely unnoticed.',
+        incorrectExplanation:
+          'Recall how PostgreSQL handles Row Level Security when queries are executed by the table owner or superuser role.',
+        hint: 'By default, the table owner role bypasses RLS policies completely; without FORCE ROW LEVEL SECURITY, developer migrations and test fixtures can pass while leaving cross-tenant leaks open in production.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-system-design-capstone-04-multi-tenant-isolation',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — THREE-TIER MULTI-TENANT ISOLATION TOPOLOGY',
+      boundaryLabel: 'MULTI-TIER TENANT ISOLATION BOUNDARY',
+      boundaryText:
+        'Requests are dispatched across Shared-RLS, Schema-per-Tenant, and Dedicated-Database tiers via a central pooling and routing boundary, isolating noisy neighbors while matching cost to tenant SLA.',
+      nodes: [
+        { id: 'tenant-request', label: 'Authenticated Tenant Application Request', kind: 'input' },
+        { id: 'tenant-router', label: 'Tenant Context & Dynamic Routing Middleware', kind: 'service' },
+        { id: 'isolation-gateway', label: 'Three-Tier Storage Isolation & Proxy Gateway', kind: 'boundary', highlighted: true },
+        { id: 'shared-rls', label: 'Shared DB with Postgres RLS (4,900 Small Tenants)', kind: 'adapter' },
+        { id: 'schema-per-tenant', label: 'Schema-per-Tenant Isolated DB (90 Mid-Market)', kind: 'adapter' },
+        { id: 'dedicated-db', label: 'Dedicated DB via Connection Pooler (10 Enterprise Whales)', kind: 'adapter' },
+        { id: 'isolated-response', label: 'Strictly Isolated Per-Tenant Transaction & Response', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-04-mcq-01',
+        question:
+          'Per the lesson, what is the actual constraint that breaks a naive database-per-tenant design well before a few hundred tenants?',
+        options: [
+          { id: 'a', label: 'A', text: 'Postgres cannot technically run more than 100 separate databases on one cluster' },
+          { id: 'b', label: 'B', text: 'Connection pool exhaustion — a one-reserved-pool-per-database model runs into a hard connection ceiling long before compute becomes the bottleneck, requiring a connection-pooling proxy that multiplexes tenant connections' },
+          { id: 'c', label: 'C', text: 'Query performance inherently degrades once more than 100 databases exist on a single server' },
+          { id: 'd', label: 'D', text: 'Database-per-tenant designs cannot support point-in-time restore at any scale' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific claim is about connection pooling, not compute or query performance — a pooling proxy that multiplexes logical tenant connections is what actually makes DB-per-tenant viable at real scale.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-04-mcq-02',
+        question:
+          'Why does the lesson use the 4,900/90/10 tenant-size breakdown to justify the three-tier isolation design, rather than choosing a tier count arbitrarily?',
+        options: [
+          { id: 'a', label: 'A', text: 'Three tiers is simply the industry-standard number regardless of any specific platform\'s tenant distribution' },
+          { id: 'b', label: 'B', text: 'The breakdown shows the actual skew — a handful of enterprise tenants hold data volume and SLA requirements dramatically different from the long tail, which is the concrete evidence that treating all tenants uniformly would either over-provision for the small tenants or under-serve the large ones' },
+          { id: 'c', label: 'C', text: 'The breakdown is used only to calculate the platform\'s total hosting bill, not to justify the isolation design' },
+          { id: 'd', label: 'D', text: 'Three tiers were chosen because Postgres only supports three distinct isolation mechanisms' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The capacity estimate is the load-bearing evidence for the tiering decision — the lesson explicitly ties the tier boundaries to the measured skew in tenant size, not to an arbitrary or universal tier count.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-04-mcq-03',
+        question:
+          'What specific noisy-neighbor scenario does a per-tenant-role `statement_timeout` in the shared-RLS tier prevent?',
+        options: [
+          { id: 'a', label: 'A', text: 'A tenant exceeding their contracted total storage quota' },
+          { id: 'b', label: 'B', text: 'One tenant\'s accidentally unindexed, full-table-scanning query holding a connection and CPU indefinitely, degrading every other tenant sharing the same infrastructure' },
+          { id: 'c', label: 'C', text: 'A tenant attempting to read another tenant\'s rows without an RLS policy in place' },
+          { id: 'd', label: 'D', text: 'Two tenants signing up with the same email domain' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific mechanism-to-failure mapping the lesson requires — a statement timeout bounds how long one runaway query can hold shared resources, distinct from RLS (which is about row-level access, not resource consumption).'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-04-mcq-04',
+        question:
+          'Why does the lesson insist a tenant\'s move from shared-RLS to schema-per-tenant should be driven by an evidenced trigger metric, rather than decided once at signup?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because Postgres technically prevents migrating a tenant between isolation tiers after signup' },
+          { id: 'b', label: 'B', text: 'Because a sales conversation\'s guess about eventual tenant size at signup is unreliable, while data volume, sustained load against the shared tier\'s guardrails, or an actual contractual requirement are measurable signals the platform can act on when they actually occur' },
+          { id: 'c', label: 'C', text: 'Because every tenant eventually needs to migrate to the most isolated tier regardless of actual size' },
+          { id: 'd', label: 'D', text: 'Because tier migration is only possible once a tenant reaches the enterprise size class' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific argument is evidence-over-guesswork — a signup-time guess is unreliable, while a measured signal (volume, load, contract) is something the platform can actually act on correctly and at the right time.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-04-mcq-05',
+        question:
+          'Why does a single enterprise-scale tenant landing in the shared-RLS tier by an onboarding mistake risk a platform-wide outage?',
+        options: [
+          { id: 'a', label: 'A', text: 'Enterprise tenants are technically incompatible with the RLS mechanism and cause immediate query errors' },
+          { id: 'b', label: 'B', text: 'The shared tier\'s guardrails (statement timeouts, connection caps, read-replica routing) are sized for the long tail\'s typical usage, and a whale-scale tenant\'s usage spike can exceed them in ways that degrade every other tenant sharing that infrastructure' },
+          { id: 'c', label: 'C', text: 'Whale tenants always have more support tickets than small tenants, overwhelming the support team' },
+          { id: 'd', label: 'D', text: 'A whale tenant in the shared tier automatically triggers a schema migration for every other tenant' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is capacity mismatch — the shared tier\'s guardrails are calibrated for the long tail, and an enterprise-scale tenant\'s usage can exceed what those guardrails were sized to absorb, directly threatening every tenant sharing that infrastructure.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-04-mcq-06',
+        question:
+          'Why does the lesson say schema-per-tenant makes a point-in-time restore of one specific tenant\'s data tractable in a way shared-schema RLS fundamentally doesn\'t?',
+        options: [
+          { id: 'a', label: 'A', text: 'Schema-per-tenant databases are backed up more frequently than shared-schema databases by default' },
+          { id: 'b', label: 'B', text: 'Each tenant\'s data lives in its own schema, so restoring that schema restores exactly and only that tenant\'s data; a shared-schema restore would restore every tenant\'s data at once, since they all live in the same tables' },
+          { id: 'c', label: 'C', text: 'RLS makes point-in-time restore technically impossible for any tenant under any circumstances' },
+          { id: 'd', label: 'D', text: 'Schema-per-tenant tenants are not permitted to request a restore at all' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The mechanism is structural: a schema boundary aligns exactly with a tenant boundary, so a restore operation scoped to a schema naturally scopes to one tenant — something a shared-table restore cannot do without restoring every tenant\'s rows in that table.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-04-mcq-07',
+        question:
+          'Per the Suggested Extension, what specific risk does building a combined cross-tenant reporting view (for an acquiring company\'s two tenants) reintroduce that the rest of this lesson\'s design was built to avoid?',
+        options: [
+          { id: 'a', label: 'A', text: 'The risk that connection pooling becomes unnecessary once cross-tenant queries are allowed' },
+          { id: 'b', label: 'B', text: 'The exact cross-tenant data-leak risk RLS and schema isolation were built to prevent — a feature that deliberately reads across tenant boundaries needs its own carefully scoped, explicit exception rather than weakening the underlying isolation guarantee for either tenant more broadly' },
+          { id: 'c', label: 'C', text: 'The risk that the acquiring company\'s dedicated database will run out of storage' },
+          { id: 'd', label: 'D', text: 'The risk that schema-per-tenant migrations will fail for unrelated tenants' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the tension the extension is designed to surface — a legitimate cross-tenant feature has to be built as a narrow, explicit exception, not by loosening the isolation guarantees this entire lesson was built to establish.'
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/05-system-design-enterprise-integration-hub': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-05-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — HUB TOPOLOGY VS. POINT-TO-POINT COMPLEXITY',
+        question:
+          'Why does the lesson argue that the point-to-point-versus-hub topology decision "stops being a rule of thumb and becomes an unambiguous number" once an enterprise has 20+ source systems?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because point-to-point integration becomes technically impossible to implement above 20 systems' },
+          { id: 'b', label: 'B', text: 'Because the point-to-point connection count (up to 190 pairwise connections for 20 systems) versus the hub\'s linear connector count (20) makes the operational cost gap concrete and decisive, not a matter of preference' },
+          { id: 'c', label: 'C', text: 'Because hub-based topologies only became available as a pattern once systems reached this scale' },
+          { id: 'd', label: 'D', text: 'Because 20 systems is the maximum number any event bus can technically support' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific claim is about the concrete number (190 vs. 20) making the decision unambiguous, not about any technical impossibility of point-to-point at this scale.',
+        incorrectExplanation:
+          'Calculate the combinatorial connection count N*(N-1)/2 for 20 systems versus the N connections required by a centralized hub.',
+        hint: 'Connecting 20 systems point-to-point requires 190 bespoke integrations; a hub reduces this to 20 connector adapters interacting via a common event bus.'
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-05-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — ENTERPRISE INTEGRATION HUB CENTRAL TENSION',
+        question:
+          'What does the lesson identify as the hub topology\'s central design tension at 20+-system scale?',
+        options: [
+          { id: 'a', label: 'A', text: 'Hub-based topologies cannot support both synchronous and asynchronous connectors at the same time' },
+          { id: 'b', label: 'B', text: 'Centralizing all systems\' traffic through one intermediary is exactly what makes entity resolution, sagas, and audit logging buildable once — but it also means the hub itself must never become a single point of failure that one connector\'s misbehavior degrades for every other system' },
+          { id: 'c', label: 'C', text: 'Entity resolution is impossible to build correctly once more than 10 systems are involved' },
+          { id: 'd', label: 'D', text: 'A hub-based topology requires every source system to use the same authentication protocol' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s stated central tension — the hub\'s centralization is simultaneously its biggest benefit (build-once shared services) and its biggest risk (a potential single point of failure), and resolving that tension is the real design work.',
+        incorrectExplanation:
+          'Analyze the trade-off between standardizing cross-system coordination in a single hub versus making that hub a single point of failure and bottleneck.',
+        hint: 'The central hub eliminates integration sprawl and unifies audit/entity resolution, but demands rigorous fault isolation, circuit breaking, and horizontal scaling to avoid becoming an enterprise-wide bottleneck.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-system-design-capstone-05-enterprise-integration-hub',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — ENTERPRISE INTEGRATION HUB TOPOLOGY',
+      boundaryLabel: 'CENTRAL HUB & EVENT BROKER BOUNDARY',
+      boundaryText:
+        'The central event bus decouples N point-to-point integrations down to N hub connectors, routing canonical events through entity resolution and saga coordination with isolated failure domains.',
+      nodes: [
+        { id: 'inbound-event', label: 'Source System Event / Webhook (20+ Sources)', kind: 'input' },
+        { id: 'event-bus', label: 'Central Resilient Event Bus (At-Least-Once)', kind: 'service' },
+        { id: 'hub-gateway', label: 'Canonical Event Broker & Crosswalk Router', kind: 'boundary', highlighted: true },
+        { id: 'entity-resolution', label: 'Entity Resolution & Golden-Record Crosswalk', kind: 'adapter' },
+        { id: 'saga-coordinator', label: 'Saga Orchestration Engine (Compensating Steps)', kind: 'adapter' },
+        { id: 'system-connectors', label: 'Connector Abstraction Layer (Backpressure & Circuit Breakers)', kind: 'adapter' },
+        { id: 'synced-systems', label: 'Audited Multi-System Sync & Consistent State', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-05-mcq-01',
+        question:
+          'Why does the lesson choose at-least-once delivery with idempotent consumers over building exactly-once delivery into the hub\'s event bus?',
+        options: [
+          { id: 'a', label: 'A', text: 'Exactly-once delivery is theoretically impossible in any distributed messaging system' },
+          { id: 'b', label: 'B', text: 'Exactly-once delivery is real infrastructure to build and operate correctly at 20+-system scale, while at-least-once paired with idempotency keys (already required for connector writes) achieves the same practical safety with far less operational complexity' },
+          { id: 'c', label: 'C', text: 'At-least-once delivery is always faster than exactly-once delivery under any load' },
+          { id: 'd', label: 'D', text: 'Idempotent consumers are only needed for batch connectors, not event-driven ones' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s argument is pragmatic, not theoretical impossibility — at-least-once plus idempotency achieves the needed safety without the operational cost of building genuine exactly-once semantics.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-05-mcq-02',
+        question:
+          'Why does the lesson insist each of the 20+ connectors be decided individually as webhook-driven or batch, rather than forcing all connectors onto one uniform topology?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because the event bus technically cannot support more than one delivery pattern at a time' },
+          { id: 'b', label: 'B', text: 'Because each system\'s actual downstream freshness requirement differs — forcing a uniform topology would impose a wrong trade-off on whichever category of system doesn\'t fit it (e.g., forcing batch on a support system needing near-real-time state)' },
+          { id: 'c', label: 'C', text: 'Because webhook-driven connectors are always superior and batch should only be used when webhooks are technically unavailable' },
+          { id: 'd', label: 'D', text: 'Because HR and finance systems are incapable of supporting webhook delivery under any circumstances' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is a per-system freshness-requirement decision (Phase 13\'s axis), not a preference for one pattern — a uniform default would force a wrong trade-off onto systems whose actual requirement doesn\'t match it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-05-mcq-03',
+        question:
+          'Why does running entity resolution as one standing hub service, rather than per point-to-point pair, matter more at 20+ systems than it would for just two or three?',
+        options: [
+          { id: 'a', label: 'A', text: 'Entity resolution is only technically possible once a hub-based topology is in place' },
+          { id: 'b', label: 'B', text: 'A point-to-point design would require reimplementing resolution logic redundantly at up to 190 pairs; centralizing it means it is built once and correctly serves every consumer, the same "build once, serve all" argument the hub makes for connectivity itself' },
+          { id: 'c', label: 'C', text: 'Entity resolution becomes unnecessary once more than 10 systems share the same hub' },
+          { id: 'd', label: 'D', text: 'Centralized entity resolution eliminates the need for any human review of ambiguous matches' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly extends the hub\'s core "build once" argument from raw connectivity to identity resolution specifically — the payoff scales with the number of systems that would otherwise each need their own resolution logic.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-05-mcq-04',
+        question:
+          'What specifically prevents one connector\'s outage from halting the bus for every other one of the 20+ systems?',
+        options: [
+          { id: 'a', label: 'A', text: 'The event bus automatically restarts every connector simultaneously whenever one fails' },
+          { id: 'b', label: 'B', text: 'Each connector runs behind its own circuit breaker with its own dead-letter queue, so a failed connector\'s errors are isolated to that connector rather than blocking the bus\'s shared infrastructure' },
+          { id: 'c', label: 'C', text: 'Only one connector is permitted to be active on the bus at any given time' },
+          { id: 'd', label: 'D', text: 'Connectors do not communicate with the bus directly, so their failures cannot affect it' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific failure-isolation mechanism the lesson names — per-connector circuit breaking and dead-lettering, not a shared fate across all connectors.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-05-mcq-05',
+        question:
+          'Why does the lesson design a slow downstream consumer (e.g., the entity-resolution service falling behind) to apply backpressure rather than buffer unboundedly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Backpressure makes the slow consumer process events faster automatically' },
+          { id: 'b', label: 'B', text: 'Unbounded buffering would let the backlog silently grow until the hub itself runs out of memory or disk, while a bounded queue with lag alerting surfaces the problem before it becomes a hub-wide incident' },
+          { id: 'c', label: 'C', text: 'Backpressure is only relevant for batch connectors, never for event-driven ones' },
+          { id: 'd', label: 'D', text: 'Buffering is technically unsupported by any event bus implementation' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific concern is bounding the failure — an unbounded backlog is a slow-motion hub-wide incident, while bounded backpressure with alerting surfaces the problem while it\'s still contained.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-05-mcq-06',
+        question:
+          'In the Practice Loop\'s deal-closing saga, if the ERP invoice step succeeds but the ITSM onboarding-ticket step then fails, what should the saga do?',
+        options: [
+          { id: 'a', label: 'A', text: 'Leave the ERP invoice in place with no record of the ITSM failure, since the invoice itself succeeded' },
+          { id: 'b', label: 'B', text: 'Run the ERP step\'s compensating action (reverse or flag the invoice for reconciliation) per the saga pattern, rather than leave the two systems\' states silently disagreeing with no record of the discrepancy' },
+          { id: 'c', label: 'C', text: 'Immediately retry the entire saga from the beginning an unlimited number of times until it succeeds' },
+          { id: 'd', label: 'D', text: 'Delete the CRM deal record entirely so the workflow never appears to have started' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is Lesson 1\'s saga-compensation discipline applied directly — a failed later step triggers the compensating action for the already-succeeded earlier step, never a silent, unreconciled state mismatch.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-05-mcq-07',
+        question:
+          'Per the Suggested Extension, when a newly-acquired subsidiary\'s CRM joins the hub with no shared ID structure against the existing 20 systems, what specifically has to change?',
+        options: [
+          { id: 'a', label: 'A', text: 'The event bus\'s core architecture must be rebuilt to support a 21st system, since it was hard-coded for exactly 20' },
+          { id: 'b', label: 'B', text: 'The entity-resolution service needs new corroborating signals to match the subsidiary\'s records against the existing crosswalk (since exact-key matching won\'t work); the bus, connector abstraction layer, and saga orchestrator need no structural change to onboard the new connector' },
+          { id: 'c', label: 'C', text: 'Every existing connector must be rewritten to support the subsidiary\'s authentication protocol' },
+          { id: 'd', label: 'D', text: 'The saga orchestrator must switch from orchestration to choreography once a 21st system is added' },
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because the hub\'s core components (bus, connector abstraction, saga orchestrator) are already system-agnostic by design, onboarding a new system is a contained change — the real new work is specific to entity resolution, which needs new matching signals for records with no shared ID structure.'
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/06-system-design-interview-framework-and-practice': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-06-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — CAPACITY ESTIMATION & ASYNC FANOUT',
+        question: 'In the notification-fanout scenario, what specifically made the candidate rule out synchronously writing to every subscriber\'s inbox on the request path?',
+        options: [
+          { id: 'a', label: 'A', text: 'The interviewer explicitly forbade synchronous writes at the start of the prompt' },
+          { id: 'b', label: 'B', text: 'The capacity estimate showed roughly two million delivery attempts per second at peak, a volume the candidate used to argue for an asynchronous fanout worker instead' },
+          { id: 'c', label: 'C', text: 'WebSocket gateways are incompatible with synchronous writes by definition' },
+          { id: 'd', label: 'D', text: 'At-least-once delivery cannot be implemented with a synchronous write path under any circumstances' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the capacity-estimate-drives-a-decision pattern made concrete: the computed delivery-attempt volume, not a stated rule, is what justified moving to an asynchronous design.',
+        incorrectExplanation: 'Look at how back-of-envelope calculations actively eliminate synchronous request-path writes. The calculated peak rate of two million delivery attempts per second rules out direct synchronous writes regardless of arbitrary formatting rules.',
+        hint: 'Consider how the computed peak delivery-attempt rate (10,000 events/sec * 200 subscribers/event) directly informs the architectural boundary between synchronous ingestion and asynchronous worker fanout.',
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-06-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — WRITE-TIME VS. READ-TIME FANOUT TRADE-OFF',
+        question: 'What is the specific trade-off the scenario draws between write-time fanout and read-time fanout for the fifty-thousand-member channel deep-dive?',
+        options: [
+          { id: 'a', label: 'A', text: 'Write-time fanout is strictly worse on every dimension and should never be used' },
+          { id: 'b', label: 'B', text: 'Write-time fanout costs more at write time and in storage but gives flat, predictable per-subscriber read latency; read-time fanout is cheap at write time but needs its own scaling story for read fan-out on very large channels' },
+          { id: 'c', label: 'C', text: 'Read-time fanout guarantees exactly-once delivery while write-time fanout does not' },
+          { id: 'd', label: 'D', text: 'The two approaches are functionally identical and differ only in naming convention' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'The scenario\'s trade-off is specifically about where the cost lands (write time and storage versus read-side scaling), which is exactly the kind of dimension-naming the trade-off-articulation stage requires.',
+        incorrectExplanation: 'Architectural choices are not universally superior or inferior; they balance write-time computational and storage overhead against read-side fanout scaling and latency predictability.',
+        hint: 'Evaluate where the computational and storage burden lands in each approach when handling high write frequencies versus massive subscriber counts.',
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-06-mcq-01',
+        question: 'Why does the framework insist on requirements clarification before any diagram is drawn, rather than starting with a high-level design and adjusting it as requirements surface?',
+        options: [
+          { id: 'a', label: 'A', text: 'Interviewers penalize any candidate who does not ask at least three questions, regardless of relevance' },
+          { id: 'b', label: 'B', text: 'A design built against an assumed requirement is one wrong assumption away from a live redesign under time pressure, while clarifying first avoids that cost entirely' },
+          { id: 'c', label: 'C', text: 'Diagrams are not permitted until the interviewer explicitly requests one' },
+          { id: 'd', label: 'D', text: 'Capacity estimation cannot be performed correctly unless a diagram already exists' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'The lesson\'s specific claim is about the cost of a wrong assumption discovered mid-diagram — clarifying first is cheaper than redesigning live once the interviewer reveals a requirement the candidate assumed incorrectly.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-06-mcq-02',
+        question: 'According to the lesson, what distinguishes a capacity estimate that demonstrates seniority from one that reads as a memorized ritual?',
+        options: [
+          { id: 'a', label: 'A', text: 'Using more decimal places of precision in the final calculated number' },
+          { id: 'b', label: 'B', text: 'The estimate is used to change a specific subsequent design decision, rather than being computed and then never referenced again' },
+          { id: 'c', label: 'C', text: 'Performing the estimate as quickly as possible to save interview time' },
+          { id: 'd', label: 'D', text: 'Citing an industry-standard benchmark number instead of deriving one from the prompt\'s stated inputs' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'The lesson explicitly frames the estimate\'s value as its downstream effect on a real decision (partitioning, caching) — a number computed and discarded signals rote practice, not judgment.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-06-mcq-03',
+        question: 'Why does the lesson argue that most candidates over-invest time in the high-level design (box-diagram) stage relative to its actual interview weight?',
+        options: [
+          { id: 'a', label: 'A', text: 'Interviewers do not read the diagram at all and only evaluate verbal answers' },
+          { id: 'b', label: 'B', text: 'The diagram exists mainly to establish shared vocabulary for the deep-dive that follows, and the deep-dive — not the diagram — is where the interview is actually won or lost' },
+          { id: 'c', label: 'C', text: 'A diagram with more than four boxes is considered a failing answer' },
+          { id: 'd', label: 'D', text: 'High-level design is only relevant for distributed-systems-specific prompts, not general ones' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'The lesson\'s claim is about where interview signal actually concentrates — the deep-dive reveals whether a candidate can reason about a specific hard problem, which the box diagram alone cannot show.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-06-mcq-04',
+        question: 'Why does the lesson say a candidate who presents only one approach to a deep-dive component, framed as the only reasonable one, signals inexperience — even if that approach happens to be correct?',
+        options: [
+          { id: 'a', label: 'A', text: 'Interviewers always prefer the second approach a candidate mentions over the first' },
+          { id: 'b', label: 'B', text: 'Production systems almost never have exactly one viable design, and an engineer who cannot see the alternatives cannot be trusted to have picked correctly among them' },
+          { id: 'c', label: 'C', text: 'A single approach takes less time to explain, which interviewers penalize' },
+          { id: 'd', label: 'D', text: 'Presenting one approach violates a formal rule of the interview format' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'The lesson\'s reasoning is about what the omission reveals, not about the correctness of the single answer given — being right by luck or memorization is indistinguishable from being right by judgment unless alternatives are shown and weighed.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-06-mcq-05',
+        question: 'What does counting how many deep-dive follow-up questions a high-level design would survive without a redesign actually reveal, per the Practice Loop\'s diagnostic step?',
+        options: [
+          { id: 'a', label: 'A', text: 'How aesthetically clean the diagram looks compared to a typical candidate\'s' },
+          { id: 'b', label: 'B', text: 'Which parts of the design are load-bearing and which are decoration that would not hold up once the interviewer steers into a specific hard problem' },
+          { id: 'c', label: 'C', text: 'The exact number of boxes the diagram should contain' },
+          { id: 'd', label: 'D', text: 'Whether the candidate should have asked more clarifying questions at the very start' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This diagnostic step is a visceral, measurable check on design robustness — it distinguishes a diagram that only looks complete from one that would actually survive the interviewer\'s real scrutiny.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-06-mcq-06',
+        question: 'The Suggested Extension asks you to predict a likely deep-dive question for one of the module\'s earlier System Design scenario lessons (RAG at Scale, Agentic Platform at Scale, Multi-Tenant SaaS, Enterprise Integration Hub). What should that prediction be based on, according to the lesson\'s own framework?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whichever component happens to appear first in that lesson\'s high-level design diagram' },
+          { id: 'b', label: 'B', text: 'What that lesson\'s worked example already identified as the hardest, most consequential part of the design — the same signal an interviewer\'s steering question is meant to surface' },
+          { id: 'c', label: 'C', text: 'A randomly chosen component, since deep-dive questions cannot be predicted in advance' },
+          { id: 'd', label: 'D', text: 'The component requiring the fewest lines of code to implement' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'A deep-dive question targets the genuinely hard trade-off in a design, not an arbitrary component — predicting it means identifying which part of the prior lesson\'s design actually carried that difficulty.',
+      }
+    ]
+  },
+
+  'fde-curriculum/system-design-capstone/07-capstone-sprint-1-discovery-and-solution-design': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-07-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — CONSTRAINT SATISFACTION BY CONSTRUCTION',
+        question: 'Why did the human-gated hybrid win over the fully custom LLM pipeline in the options matrix, given that both use the same extraction-and-retrieval approach?',
+        options: [
+          { id: 'a', label: 'A', text: 'The hybrid is cheaper to build than the fully custom pipeline' },
+          { id: 'b', label: 'B', text: 'The hybrid satisfies the no-auto-bind constraint by construction — the recommendation always terminates in a mandatory human gate — rather than relying on policy discipline layered on top of an architecture that could otherwise auto-act' },
+          { id: 'c', label: 'C', text: 'The fully custom pipeline cannot technically support retrieval-augmented guideline lookup' },
+          { id: 'd', label: 'D', text: 'General counsel explicitly forbade using any LLM-based extraction in the engagement' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'The scenario\'s trade-off is architectural, not cost-based: a design that satisfies the constraint by construction is more durable than one that depends on nobody ever relaxing a policy layered on top of a capable-of-auto-acting system.',
+        incorrectExplanation: 'A system whose structural architecture prevents automated binding is far more resilient than an autonomous-capable architecture that relies purely on procedural discipline or organizational policy.',
+        hint: 'Think about the difference between structural architectural enforcement and procedural policy discipline when satisfying non-negotiable legal constraints.',
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-07-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DAY-ONE DATABASE TENANT ISOLATION SEAM',
+        question: 'Why does the third risk register entry specify that tenant isolation must be "enforced at the database layer from the very first migration, not retrofitted later"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Database migrations cannot be modified after a project\'s first release under any circumstances' },
+          { id: 'b', label: 'B', text: 'Once real tenant data exists across two customers, retrofitting isolation is far more expensive and risk-laden than building the isolation seam in from the start, before any cross-tenant data exists to leak' },
+          { id: 'c', label: 'C', text: 'Coastal Underwriters explicitly requires isolation to be implemented before Meridian\'s own data model is finalized' },
+          { id: 'd', label: 'D', text: 'Retrofitting isolation is technically impossible in a relational database' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the same seam-versus-generality argument later sprints build on: a cheap-now, expensive-later seam should be built in from the first migration, before real cross-tenant data makes a retrofit both harder and riskier.',
+        incorrectExplanation: 'Adding an isolation seam before multi-tenant data exists costs almost nothing, whereas retrofitting row-level security onto populated production tables carries severe operational risk and complexity.',
+        hint: 'Compare the cost and blast radius of introducing an isolation column and policy on day one versus altering active production tables containing co-mingled live tenant records.',
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-07-mcq-01',
+        question: 'Derek Nomura opens the discovery call with "we want AI to speed up underwriting." Why does the FDE run the current-state walkthrough instead of scoping directly against that sentence?',
+        options: [
+          { id: 'a', label: 'A', text: 'Derek\'s request was considered dishonest and needed independent verification' },
+          { id: 'b', label: 'B', text: 'A solution-shaped request from a champion can obscure the more specific underlying pain, which only surfaces by asking the people who actually perform the process daily' },
+          { id: 'c', label: 'C', text: 'AI-based solutions are never appropriate for underwriting workflows' },
+          { id: 'd', label: 'D', text: 'Current-state walkthroughs are a mandatory legal step for any AI engagement' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This mirrors the discovery-call lesson\'s core claim: a stakeholder\'s solution-shaped framing can differ from the process-level pain only the people living the process daily can accurately report.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-07-mcq-02',
+        question: 'What requirement did the underwriters themselves surface that neither Sandra\'s nor Derek\'s framing captured?',
+        options: [
+          { id: 'a', label: 'A', text: 'A demand for a higher salary tied to the new system\'s rollout' },
+          { id: 'b', label: 'B', text: 'The need to be able to check the underlying evidence behind a recommendation before staking their own name on a bind decision, distinct from turnaround time or adoption metrics' },
+          { id: 'c', label: 'C', text: 'A request that the system be built entirely in-house rather than by an external FDE' },
+          { id: 'd', label: 'D', text: 'A preference for a slower rollout timeline than Sandra proposed' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the stakeholder-mapping payoff made concrete: the end users\' real concern (verifiable evidence before staking professional judgment) differs from both the economic buyer\'s and the champion\'s framing, and only surfaces because they were asked directly.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-07-mcq-03',
+        question: 'The lesson explicitly distinguishes general counsel\'s no-auto-bind requirement from a phase-one simplification that might be relaxed later. Why does this distinction matter for scoping?',
+        options: [
+          { id: 'a', label: 'A', text: 'Phase-one simplifications are always compliance-driven by definition' },
+          { id: 'b', label: 'B', text: 'It is a hard, non-negotiable compliance constraint that must shape the chosen architecture itself, not a convenience choice that could be revisited once the system proves accurate' },
+          { id: 'c', label: 'C', text: 'The constraint only applies until Coastal Underwriters onboards as a second tenant' },
+          { id: 'd', label: 'D', text: 'General counsel\'s constraints are advisory and can be overridden by Sandra as the economic buyer' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'The lesson is explicit that this constraint is permanent and non-negotiable, which is exactly why it drives the architecture choice (the hybrid) rather than being treated as a target to relax once the model looks accurate in a demo.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-07-mcq-04',
+        question: 'What makes the risk register\'s first entry ("the grounded-extraction pipeline hallucinates a schedule-of-values total") a well-formed risk entry per this lesson\'s standard?',
+        options: [
+          { id: 'a', label: 'A', text: 'It states a vague possibility of "data quality issues" without further detail' },
+          { id: 'b', label: 'B', text: 'It names a concrete, falsifiable failure mode with a likelihood, impact, specific mitigation (evidence quote and source page checked before reaching a reviewer), and a named owner' },
+          { id: 'c', label: 'C', text: 'It assigns blame to Meridian\'s underwriting team rather than the FDE' },
+          { id: 'd', label: 'D', text: 'It avoids naming any mitigation, leaving that decision for Sprint 2' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This mirrors the risk-register discipline from Module 5: a falsifiable, concrete entry with likelihood, impact, mitigation, and owner is what makes a risk actually trackable and closeable.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-07-mcq-05',
+        question: 'Why does the FDE send the discovery brief and PRD-lite back to Sandra, Derek, and the underwriting team before Sprint 2\'s build work begins?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is a purely ceremonial step with no bearing on the engagement\'s outcome' },
+          { id: 'b', label: 'B', text: 'Confirming the documents before building is the cheapest point to catch a misunderstanding — a dispute caught here costs a re-read, while the same dispute caught after a working prototype costs rebuilt work' },
+          { id: 'c', label: 'C', text: 'It transfers full legal liability for the project\'s outcome to Meridian' },
+          { id: 'd', label: 'D', text: 'It is required only because Coastal Underwriters is involved in the engagement' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This directly extends the discovery-brief-confirmation discipline from Module 5: the earliest possible point to catch a scope misunderstanding is also the cheapest.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-07-mcq-06',
+        question: 'The PRD-lite\'s non-goals section explicitly excludes personal-lines support and direct Atlas write access. What specific dispute does stating these exclusions explicitly prevent, compared to leaving them unstated?',
+        options: [
+          { id: 'a', label: 'A', text: 'A dispute about which programming language the extraction pipeline is built in' },
+          { id: 'b', label: 'B', text: 'A stakeholder later assuming one of those capabilities was included in phase one because it was never explicitly excluded, discovered only once the system is demoed' },
+          { id: 'c', label: 'C', text: 'A dispute about Coastal Underwriters\' contractual payment terms' },
+          { id: 'd', label: 'D', text: 'A disagreement over who owns the final source code repository' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the same non-goals discipline from Module 5\'s scoping lesson: leaving something unmentioned does not communicate exclusion, it leaves the reader free to assume it was included.',
+      }
+    ]
+  },
+
+  'fde-curriculum/system-design-capstone/08-capstone-sprint-2-core-build-and-integration-layer': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-08-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — SEAM-BEFORE-STUB BUILD SEQUENCING',
+        question: 'Why does Sprint 2\'s build order put the `org_id` column and RLS policy in the very first migration, even though Coastal Underwriters has not onboarded yet and only Meridian\'s data exists?',
+        options: [
+          { id: 'a', label: 'A', text: 'Postgres requires RLS policies to be defined before any table can be queried at all' },
+          { id: 'b', label: 'B', text: 'The isolation seam is cheap to add now and expensive to retrofit once real cross-tenant data exists, the same sequencing argument the enterprise-document-review-app build used' },
+          { id: 'c', label: 'C', text: 'Meridian\'s contract legally requires RLS to be enabled before any code is written' },
+          { id: 'd', label: 'D', text: 'The extraction stub cannot function without an existing RLS policy in place' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This directly reuses the seam-versus-generality sequencing argument: build the cheap-now, expensive-later seam first, regardless of whether a second tenant exists yet.',
+        incorrectExplanation: 'Seams that are trivial to include initially become high-friction, error-prone migrations once downstream workflows and multiple tenants populate the database.',
+        hint: 'Recall the architectural sequencing principle: introduce foundational multi-tenancy seams in schema definitions before layering on application scaffolding.',
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-08-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — SCHEMA VS. BUSINESS-RULE ENFORCEMENT',
+        question: 'In the scenario, why couldn\'t the schema for `appetite_check` alone catch the roofing contractor\'s cross-policy concentration-limit violation?',
+        options: [
+          { id: 'a', label: 'A', text: 'The schema was written incorrectly and needed to be fixed before the violation could be caught' },
+          { id: 'b', label: 'B', text: 'The concentration limit depends on the named insured\'s existing exposure across other policies, a runtime fact that lives in Atlas\'s data and that no schema, however well written, can express' },
+          { id: 'c', label: 'C', text: 'Concentration limits are not a real underwriting concern for general liability policies' },
+          { id: 'd', label: 'D', text: 'The class code itself was outside Meridian\'s acceptable range, which the schema should have caught directly' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This mirrors the tool-calling curriculum\'s schema-versus-business-rule distinction precisely: a fact that depends on live application state can never be expressed by a schema alone, however well constructed.',
+        incorrectExplanation: 'Static JSON schema contracts can validate types, formats, and enums, but they cannot evaluate runtime, cross-record aggregated state stored in external operational systems.',
+        hint: 'Ask whether static schema syntax can query live database records across historical and external policy records in Atlas.',
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-system-design-capstone-08-submissioniq-orchestrator-topology',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — PROPOSAL VS. GATED EXECUTION TOPOLOGY',
+      boundaryLabel: 'ORCHESTRATOR-WORKER & HUMAN-IN-THE-LOOP GATING BOUNDARY',
+      boundaryText:
+        'The SubmissionIQ orchestrator dispatches an unblocked intake-summary worker and a gated recommend-worker pulling from guideline retrieval and atlas-mcp-server; proposed bind/refer actions terminate at a mandatory human-approval gate.',
+      nodes: [
+        { id: 'intake', label: 'Submission Packet (OCR & Grounded Extraction)', kind: 'input' },
+        { id: 'orchestrator', label: 'SubmissionIQ Orchestrator', kind: 'service' },
+        { id: 'summary-worker', label: 'Intake Summary Worker (Ungated)', kind: 'service' },
+        { id: 'guideline-rag', label: 'Underwriting Guideline Retrieval (RAG)', kind: 'adapter' },
+        { id: 'atlas-mcp', label: 'Atlas MCP Server & Connector (Cursor / JWT)', kind: 'adapter' },
+        { id: 'recommend-worker', label: 'Recommend Worker (Tool Calling & Business Rules)', kind: 'service' },
+        { id: 'approval-gate', label: 'Mandatory Human Underwriter Approval Gate', kind: 'boundary', highlighted: true },
+        { id: 'policy-admin', label: 'Atlas Policy Administration (Read-Only IAM)', kind: 'output' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-08-mcq-01',
+        question: 'Why does the review-queue frontend need zero changes when the real extraction pipeline replaces the hardcoded stub?',
+        options: [
+          { id: 'a', label: 'A', text: 'The review queue does not actually read any data produced by either the stub or the real pipeline' },
+          { id: 'b', label: 'B', text: 'The stub and the real pipeline are deliberately built to emit data in the identical shape, so the frontend that was built and tested against the stub already handles the real pipeline\'s output correctly' },
+          { id: 'c', label: 'C', text: 'The stub and the real pipeline share the exact same underlying LLM extraction code' },
+          { id: 'd', label: 'D', text: 'Frontend changes are always deferred until after the real pipeline exists, regardless of shape' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the specific payoff of a well-designed stub: matching output shape lets frontend work proceed in parallel and survive the later swap without rework.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-08-mcq-02',
+        question: 'What happens to an extracted field whose `evidence_quote` doesn\'t literally match the corresponding OCR\'d source page text?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is automatically corrected by the LLM on a second extraction attempt' },
+          { id: 'b', label: 'B', text: 'It is rejected by the grounding check and routed to a human-review lane rather than reaching the recommendation step at a falsely high confidence' },
+          { id: 'c', label: 'C', text: 'It is silently dropped from the extraction output with no further action' },
+          { id: 'd', label: 'D', text: 'It is flagged but still allowed to proceed directly into the recommend-worker\'s tool calls' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'The grounding check\'s whole purpose is preventing an ungrounded value from silently entering the pipeline at a confidence it hasn\'t earned — it routes to human review instead of being auto-approved or discarded.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-08-mcq-03',
+        question: 'Why does the `recommend-worker`\'s output sit behind a blocking human-in-the-loop gate rather than a human-on-the-loop monitoring posture, unlike the `intake-summary-worker`?',
+        options: [
+          { id: 'a', label: 'A', text: 'The recommend-worker is technically slower to run than the intake-summary-worker' },
+          { id: 'b', label: 'B', text: 'A wrong bind recommendation has a real-money, hard-to-reverse consequence, which is exactly the criterion that determines which worker in an orchestrator-worker system needs a blocking gate' },
+          { id: 'c', label: 'C', text: 'General counsel requires every worker in the system to have a blocking gate, without exception' },
+          { id: 'd', label: 'D', text: 'The intake-summary-worker does not use any LLM calls, unlike the recommend-worker' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This directly applies the multi-agent curriculum\'s hard-to-reverse-consequence criterion: a reversible, low-stakes worker proceeds unblocked while a worker whose output carries real consequence needs the blocking gate.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-08-mcq-04',
+        question: 'How does Sprint 2\'s design turn general counsel\'s no-auto-bind constraint from Sprint 1 into a structural property of SubmissionIQ, rather than a policy someone has to remember to enforce?',
+        options: [
+          { id: 'a', label: 'A', text: 'By adding a comment in the code reminding future engineers not to remove the approval step' },
+          { id: 'b', label: 'B', text: 'By making the recommend-worker\'s output a proposal only, with no code path that lets it execute a bind action without first passing through the blocking human-approval gate' },
+          { id: 'c', label: 'C', text: 'By requiring general counsel to personally review every single submission before it reaches an underwriter' },
+          { id: 'd', label: 'D', text: 'By logging every recommendation for a quarterly compliance audit after the fact' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'The lesson\'s point is architectural: a constraint enforced by the absence of an executing code path is more durable than one enforced only by policy or a reminder, which someone could eventually bypass or forget.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-08-mcq-05',
+        question: 'Why does `AtlasConnector` use cursor-based pagination for exposure lookups instead of offset-based pagination?',
+        options: [
+          { id: 'a', label: 'A', text: 'Cursor pagination is always faster than offset pagination regardless of data volatility' },
+          { id: 'b', label: 'B', text: 'Meridian\'s exposure data changes continuously during business hours, and offset pagination\'s correctness assumption — a static, unchanging list — does not hold in that environment' },
+          { id: 'c', label: 'C', text: 'Atlas\'s API does not technically support offset-based query parameters' },
+          { id: 'd', label: 'D', text: 'Cursor pagination is required by the JWT bearer OAuth flow AtlasConnector uses' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This reuses the connector-design curriculum\'s exact reasoning: cursor pagination stays correct as records change mid-fetch, while offset pagination silently skips or duplicates records under the same conditions.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-08-mcq-06',
+        question: 'During the Atlas maintenance window, why does the `recommend-worker` surface findings with a note about unavailable exposure data instead of hanging the submission review indefinitely?',
+        options: [
+          { id: 'a', label: 'A', text: 'Atlas maintenance windows are announced far enough in advance that the system pre-emptively pauses all reviews' },
+          { id: 'b', label: 'B', text: 'The tool-calling loop applies the same timeout-and-circuit-breaker pattern established for agentic tool calls, so a degraded downstream dependency fails fast into a deterministic fallback instead of stalling the whole run' },
+          { id: 'c', label: 'C', text: 'The underwriter review queue automatically retries the entire submission from scratch every five minutes' },
+          { id: 'd', label: 'D', text: 'Exposure data is not actually required for any recommendation, so its unavailability has no effect' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the timeout/circuit-breaker discipline from the agentic-systems curriculum applied to a real downstream outage: fail fast into a deterministic, visible fallback rather than hanging indefinitely.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-08-mcq-07',
+        question: 'Why does `atlas-mcp-server` wrap `AtlasConnector` once instead of letting every individual tool handler that needs Atlas data reimplement OAuth refresh and pagination itself?',
+        options: [
+          { id: 'a', label: 'A', text: 'MCP servers are technically incapable of calling a shared connector abstraction' },
+          { id: 'b', label: 'B', text: 'Keeping system-specific plumbing in one place, rather than scattered across every tool handler that touches Atlas, is the same separation-of-concerns argument the MCP and connector-design curriculum both made for keeping integration mechanics out of business logic' },
+          { id: 'c', label: 'C', text: 'Reimplementing OAuth refresh in every tool handler is required for compliance with general counsel\'s constraint' },
+          { id: 'd', label: 'D', text: 'Connector abstractions are only useful when more than three tools need the same system' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the layered-separation argument from the curriculum applied one level deeper: an MCP server\'s tool handler calls into a connector rather than reimplementing OAuth and pagination itself, keeping that plumbing in exactly one place.',
+      }
+    ]
+  },
+
+  'fde-curriculum/system-design-capstone/09-capstone-sprint-3-harden-secure-and-observe': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-09-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — MULTI-TENANT PROCESS BOUNDARY AUDITING',
+        question: 'Why did the extraction worker\'s missing `SET LOCAL app.current_org_id` call produce no visible symptom until Coastal Underwriters onboarded?',
+        options: [
+          { id: 'a', label: 'A', text: 'The extraction worker did not query the `submissions` table at all before Coastal onboarded' },
+          { id: 'b', label: 'B', text: 'With only Meridian\'s data in the system, RLS being silently permissive on that one code path had no observable effect, since there was no second tenant\'s data for a leak to expose' },
+          { id: 'c', label: 'C', text: 'RLS policies only take effect once a second tenant exists in the database' },
+          { id: 'd', label: 'D', text: 'The gap was actually caught before Coastal onboarded and had already been fixed' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the specific danger of the defect class: a missing enforcement point produces no symptom until real cross-tenant data exists for it to leak, which is exactly why the audit has to check every boundary deliberately rather than waiting for a symptom.',
+        incorrectExplanation: 'In a single-tenant environment, omitting tenant context on background workers does not trigger visible cross-contamination because all records belong to the sole existing tenant.',
+        hint: 'Consider why security gaps at asynchronous process boundaries remain completely silent until a second organization\'s data enters the shared datastore.',
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-09-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — COMPLIANCE-DRIVEN BUILD VS. BUY DECISION',
+        question: 'Why does the FDE choose a self-hosted classifier over a managed third-party moderation API for the pre-call PII screen?',
+        options: [
+          { id: 'a', label: 'A', text: 'Managed moderation APIs are technically incapable of detecting PII in insurance documents' },
+          { id: 'b', label: 'B', text: 'A managed service would route submission data — which can carry policyholder PII — through a third party, violating general counsel\'s discovery-stage constraint that this data never leave Meridian\'s own infrastructure boundary' },
+          { id: 'c', label: 'C', text: 'Self-hosted classifiers are always more accurate than managed alternatives' },
+          { id: 'd', label: 'D', text: 'Managed services cost more per request regardless of any compliance consideration' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the LLM-safety curriculum\'s build-versus-buy decision applied to a real, named constraint from Sprint 1\'s discovery brief — the customer\'s actual data-residency requirement decides the choice, not a default preference.',
+        incorrectExplanation: 'The decision is strictly driven by legal compliance and data residency boundaries, which forbid sending policyholder PII outside customer infrastructure.',
+        hint: 'Recall General Counsel\'s strict constraint regarding policyholder data residency and third-party egress.',
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-09-mcq-01',
+        question: 'Why does the lesson insist on connecting explicitly as Coastal\'s tenant context and asserting Meridian\'s rows are absent, rather than only checking that Coastal\'s own data is present and correct?',
+        options: [
+          { id: 'a', label: 'A', text: 'Postgres does not support querying as a specific tenant context at all' },
+          { id: 'b', label: 'B', text: 'A test that only checks the correct tenant\'s own data is present can pass even while a leak of another tenant\'s data alongside it goes completely unnoticed, since nobody asserted the negative case' },
+          { id: 'c', label: 'C', text: 'Positive-case tests are always slower to run than negative-case tests' },
+          { id: 'd', label: 'D', text: 'FORCE ROW LEVEL SECURITY cannot be verified without a negative-case query' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This reuses the multi-tenant curriculum\'s exact testing discipline: RLS is a security boundary, and a boundary test that never checks the negative case can pass while silently leaking.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-09-mcq-02',
+        question: 'Why does the lesson say per-tenant Celery queue routing was applied only once Coastal Underwriters was a real, onboarded tenant, rather than being built during Sprint 2 against Meridian alone?',
+        options: [
+          { id: 'a', label: 'A', text: 'Celery does not technically support per-tenant queue routing until a certain traffic volume is reached' },
+          { id: 'b', label: 'B', text: 'Building queue routing against a single tenant would have nothing real to validate it against — the noisy-neighbor problem it solves only exists once a second tenant\'s traffic can actually contend for shared capacity' },
+          { id: 'c', label: 'C', text: 'Per-tenant routing was legally required to wait until Coastal\'s contract was fully signed' },
+          { id: 'd', label: 'D', text: 'Meridian explicitly requested that queue routing be delayed until Coastal\'s onboarding' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This reuses the build-sequencing argument from the enterprise-document-review-app lesson: a mitigation for a problem that doesn\'t yet exist has nothing real to validate it against.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-09-mcq-03',
+        question: 'Why does the submission-ingestion idempotency key need to be rescoped from the raw `submission_id` alone to `(org_id, submission_id)` once Coastal Underwriters onboards?',
+        options: [
+          { id: 'a', label: 'A', text: 'BrokerLink stopped generating submission IDs entirely after Coastal onboarded' },
+          { id: 'b', label: 'B', text: 'Two tenants\' independently-operated BrokerLink instances can plausibly generate the same raw identifier, and an unscoped key risks one tenant\'s submission silently colliding with and being dropped in favor of another\'s' },
+          { id: 'c', label: 'C', text: 'The idempotency key was never actually necessary and could be removed once RLS was in place' },
+          { id: 'd', label: 'D', text: 'Rescoping is required by BrokerLink\'s own API contract, unrelated to multi-tenancy' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This directly reuses the multi-tenant curriculum\'s idempotency-key scoping argument: an event-ID-only key becomes insufficient once multiple tenants\' independent systems can generate the same raw identifier.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-09-mcq-04',
+        question: 'In the scenario, why did the pre-call guardrail flag and log the injection-style cover letter but still let the submission proceed through the normal extraction and recommendation flow, rather than blocking it outright?',
+        options: [
+          { id: 'a', label: 'A', text: 'The guardrail pipeline was misconfigured and should have blocked the submission' },
+          { id: 'b', label: 'B', text: 'The actual bind decision was already going to pass through the human-approval gate regardless of what the cover letter requested, so the guardrail\'s role here is visibility and audit rather than a second blocking mechanism duplicating the gate' },
+          { id: 'c', label: 'C', text: 'Guardrails are only designed to catch PII, not injection attempts' },
+          { id: 'd', label: 'D', text: 'Blocking a submission outright is technically impossible once it reaches the pre-call layer' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This distinguishes the guardrail\'s audit-and-visibility role from the recommend-worker\'s structural no-auto-bind enforcement — both layers exist, but they don\'t need to duplicate each other\'s job.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-09-mcq-05',
+        question: 'What specific risk does the four-hour SLA escalation rule for the human-approval gate convert, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It converts a schema-validation failure into a business-rule failure' },
+          { id: 'b', label: 'B', text: 'It converts an open-ended wait for a human reviewer, who could be away or backlogged indefinitely, into a bounded one with a defined fallback reviewer' },
+          { id: 'c', label: 'C', text: 'It converts a low-stakes recommendation into a high-stakes one' },
+          { id: 'd', label: 'D', text: 'It converts a managed guardrail service into a self-hosted one' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This reuses the multi-agent curriculum\'s escalation-design reasoning: waiting indefinitely for a human is itself a failure mode, and an SLA-bound escalation rule bounds that risk.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-09-mcq-06',
+        question: 'Why does the observability dashboard track the full distribution of recommend-worker iteration counts, not just the average?',
+        options: [
+          { id: 'a', label: 'A', text: 'Averages are computationally more expensive to calculate than distributions' },
+          { id: 'b', label: 'B', text: 'A distribution surfaces runs quietly creeping toward the iteration cap, which often precedes an outright cap-triggered failure by days, a signal an average alone would mask' },
+          { id: 'c', label: 'C', text: 'Distributions are required for regulatory compliance in insurance-adjacent AI systems' },
+          { id: 'd', label: 'D', text: 'The average iteration count is always identical to the distribution\'s median in practice' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This reuses the agentic-systems curriculum\'s aggregate-observability reasoning directly: a distribution catches systemic drift an average would smooth over and hide.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-09-mcq-07',
+        question: 'In the scenario, how was the shared-queue starvation incident caught before any underwriter filed a complaint?',
+        options: [
+          { id: 'a', label: 'A', text: 'General counsel personally noticed the delay during a routine review' },
+          { id: 'b', label: 'B', text: 'The cost-and-latency dashboard flagged a queue-depth spike within minutes, surfacing the regression proactively as a graph trending the wrong way rather than waiting for a customer-reported symptom' },
+          { id: 'c', label: 'C', text: 'Coastal Underwriters\' own engineering team reported the issue directly to Meridian' },
+          { id: 'd', label: 'D', text: 'The SLA escalation rule for the human-approval gate detected the queue backlog automatically' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the proactive, aggregate-observability payoff the lesson describes: a dashboard signal caught the regression before it became a stack of individually-reported incidents.',
+      }
+    ]
+  },
+
+  'fde-curriculum/system-design-capstone/10-capstone-sprint-4-red-team-eval-and-fix': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-10-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — ADVERSARIAL TOOL MISUSE & AGGREGATION GAPS',
+        question: 'Why did the concentration-limit business-rule check fail to catch the submission with its schedule-of-values total split across two line items?',
+        options: [
+          { id: 'a', label: 'A', text: 'The submission\'s class code was outside Meridian\'s acceptable appetite range entirely' },
+          { id: 'b', label: 'B', text: 'The check was written to sum only a single field rather than aggregate across split line items, so two individually-under-threshold entries combined to exceed the concentration limit without the check ever summing them together' },
+          { id: 'c', label: 'C', text: 'The check had not been implemented at all before the red-team exercise began' },
+          { id: 'd', label: 'D', text: 'AtlasConnector\'s exposure lookup returned stale data due to a caching bug' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is a genuine, specific implementation gap rather than a held gate — the fix names the exact correction (summing all line items) rather than a vague call for "more validation."',
+        incorrectExplanation: 'When validation logic checks individual line items independently instead of computing their aggregate sum, an adversary can bypass exposure caps by fragmenting totals across multiple lines.',
+        hint: 'Consider how exposure calculations fail when examining items individually rather than aggregating the sum across all schedule-of-values rows.',
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-10-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — RED-TEAM RUBRIC: GENUINE GAP VS. HELD GATE',
+        question: 'What is the key distinction the lesson draws between the prompt-injection finding and the tool-misuse finding in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both findings are equally severe and require identical remediation' },
+          { id: 'b', label: 'B', text: 'The injection attempt was a confirmed pass — the gates held exactly as designed — while the split-schedule-of-values attempt exposed a genuine implementation gap requiring a specific fix' },
+          { id: 'c', label: 'C', text: 'The injection attempt exposed a gap while the tool-misuse attempt was a confirmed pass' },
+          { id: 'd', label: 'D', text: 'Neither finding required any documentation since both are considered routine test outcomes' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'Distinguishing a held gate from a genuine gap is the rubric\'s central skill — treating every red-team attempt as either an automatic failure or an automatic pass would miss this exact distinction.',
+        incorrectExplanation: 'In red-teaming, a test where protective gates successfully contain adversarial input is a confirmed pass, whereas a test that bypasses an intended invariant exposes a genuine flaw requiring code changes.',
+        hint: 'Distinguish between a test that successfully verified an existing defense held versus a test that surfaced an unhandled vulnerability.',
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-10-mcq-01',
+        question: 'Why does the FDE build the RAGAS eval dataset with two of Meridian\'s senior underwriters verifying gold answers, rather than writing the questions independently?',
+        options: [
+          { id: 'a', label: 'A', text: 'Meridian\'s contract requires underwriter sign-off on all technical artifacts' },
+          { id: 'b', label: 'B', text: 'An eval set an FDE writes alone tends to be easier and less representative of how underwriters actually phrase a guideline question than a domain expert\'s real usage' },
+          { id: 'c', label: 'C', text: 'RAGAS technically cannot score a dataset unless a domain expert authored every question' },
+          { id: 'd', label: 'D', text: 'Underwriters are the only people permitted to access the underwriting guideline documents' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This reuses the RAG-evaluation curriculum\'s exact claim about eval-dataset quality: a domain expert\'s verified questions and gold answers are more representative than what an FDE would write alone.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-10-mcq-02',
+        question: 'What specifically did the versioned, gated eval set catch when the FDE tuned the guideline-chunking strategy for newly added state-specific endorsement documents?',
+        options: [
+          { id: 'a', label: 'A', text: 'A missing field in the recommend-worker\'s JSON schema' },
+          { id: 'b', label: 'B', text: 'A context-recall drop on general-liability questions, flagged before the chunking change shipped rather than discovered later as a vague complaint about degraded answers' },
+          { id: 'c', label: 'C', text: 'An expired OAuth token on the AtlasConnector' },
+          { id: 'd', label: 'D', text: 'A cross-tenant data leak between Meridian and Coastal Underwriters' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This mirrors the RAG-evaluation curriculum\'s core CI-gate payoff: a metric regression caught automatically before a change ships, rather than surfacing later as an unattributed complaint.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-10-mcq-03',
+        question: 'Why does the FDE document the prompt-injection test against the ACORD remarks field as a "confirmed pass" rather than simply moving on once the gate held?',
+        options: [
+          { id: 'a', label: 'A', text: 'A confirmed pass has no evidentiary value and is recorded only for completeness' },
+          { id: 'b', label: 'B', text: 'The lesson\'s discipline is confirming gates hold under a deliberate adversarial attempt rather than assuming they do because routine traffic never broke them, and a confirmed pass is itself evidence worth recording' },
+          { id: 'c', label: 'C', text: 'General counsel requires every red-team attempt, regardless of outcome, to be documented for legal reasons unrelated to the test\'s result' },
+          { id: 'd', label: 'D', text: 'Confirmed passes are recorded only when the tool-misuse test also passes in the same session' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This matches the agentic-systems curriculum\'s red-team standard: distinguishing a genuine exploit from an attempt the system\'s gates correctly blocked is itself the point of the exercise, not a formality.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-10-mcq-04',
+        question: 'How did the FDE root-cause the partial-failure integration incident (submission marked approved in SubmissionIQ, but no corresponding Atlas exposure update) without being told in advance what had gone wrong?',
+        options: [
+          { id: 'a', label: 'A', text: 'By manually re-running the entire submission pipeline from scratch until the failure reproduced' },
+          { id: 'b', label: 'B', text: 'By pulling the trace ID propagated from the original BrokerLink webhook and following it through extraction, the human-approval event, and the timed-out Atlas write as one connected view' },
+          { id: 'c', label: 'C', text: 'By asking Sandra Voss which system she believed was at fault' },
+          { id: 'd', label: 'D', text: 'By assuming the failure was a schema-drift event without checking any evidence first' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This is the integration curriculum\'s distributed-tracing discipline applied directly: one propagated trace ID makes a multi-system failure\'s exact point of breakdown visible without manually correlating separate systems\' logs.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-10-mcq-05',
+        question: 'Why does this sprint check every red-team finding and diagnosed integration failure against Sprint 1\'s original risk register, rather than treating each finding as an isolated fix to apply and move on from?',
+        options: [
+          { id: 'a', label: 'A', text: 'The risk register is a legal document that must be formally closed before any code can ship' },
+          { id: 'b', label: 'B', text: 'A finding that maps to an existing register entry shows whether that risk\'s mitigation held or needs revising, and a finding with no corresponding entry is new information Sandra and Derek need before go-live, not a surprise to quietly patch and leave undocumented' },
+          { id: 'c', label: 'C', text: 'Checking against the register is only required for findings related to tenant isolation' },
+          { id: 'd', label: 'D', text: 'The risk register automatically updates itself based on red-team results with no manual review needed' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This closes the loop the capstone opened in Sprint 1: reconciling findings against the original risk register is what keeps the engagement\'s documented risk posture honest as real evidence accumulates.',
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-10-mcq-06',
+        question: 'The Suggested Extension asks for a status-update-style summary for Sandra and Derek. What structure does the lesson say this summary should follow?',
+        options: [
+          { id: 'a', label: 'A', text: 'A chronological narrative of every action the FDE took during the sprint, in the order it happened' },
+          { id: 'b', label: 'B', text: 'What was tested, what\'s fixed, what\'s still needed, and what\'s next — the same order the stakeholder-communication curriculum taught for a customer-facing status update' },
+          { id: 'c', label: 'C', text: 'A purely technical appendix with no summary framing at all, since Sandra and Derek are not engineers' },
+          { id: 'd', label: 'D', text: 'A single sentence stating only whether the system passed or failed the red-team exercise overall' },
+        ],
+        correctOptionId: 'b',
+        explanation: 'This ties Sprint 4\'s findings back to the stakeholder-communication discipline from earlier in the curriculum — the same fixed order (what changed, what\'s blocked, what\'s needed, what\'s next) applies to closing out the capstone\'s final technical sprint.',
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/11-capstone-demo-day-client-panel-presentation': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-11-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — PANEL TRIAGE UNDER SIMULTANEOUS PUSHBACK',
+        question:
+          'Why does a client panel demo require a new skill beyond the specific-acknowledge, current-evidence, concrete-follow-up pushback pattern already covered?',
+        options: [
+          { id: 'a', label: 'A', text: 'Panels never ask pushback questions, so the earlier pattern doesn\'t apply at all' },
+          { id: 'b', label: 'B', text: 'A panel raises simultaneous questions from stakeholders with different concerns rather than one audience taking turns, requiring real-time triage over which question to answer immediately versus explicitly park' },
+          { id: 'c', label: 'C', text: 'Panels only ever contain technical stakeholders, so business and security framing never comes up' },
+          { id: 'd', label: 'D', text: 'The pushback pattern is replaced entirely by a scripted Q&A format on a panel' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson builds directly on the earlier pushback pattern but adds triage as the genuinely new skill — simultaneous, differently-motivated questions is what a single-audience demo never required.',
+        incorrectExplanation:
+          'Think about what changes when three stakeholders with different vocabularies and priorities are in the room at the same time.',
+        hint:
+          'A panel introduces simultaneous questions from different angles that require immediate triage, not just one question at a time.'
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-11-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — THE SINGLE SPINE FACT',
+        question:
+          'What problem does preparing one "spine" fact for a cross-cutting decision solve on a panel, specifically?',
+        options: [
+          { id: 'a', label: 'A', text: 'It lets the FDE avoid answering the same decision twice, even if two different stakeholders ask about it' },
+          { id: 'b', label: 'B', text: 'It keeps two stakeholders\' different-angle questions about the same underlying decision from being answered in ways that could read as contradictory when compared afterward' },
+          { id: 'c', label: 'C', text: 'It shortens the total demo time regardless of how many stakeholders are present' },
+          { id: 'd', label: 'D', text: 'It replaces the need to prepare separate technical and security answers at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The spine is the single underlying fact that both the technical-lead framing and the security-stakeholder framing derive from, so the two answers can never actually contradict each other even though their phrasing differs.',
+        incorrectExplanation:
+          'Consider what happens after the meeting when the tech lead and security reviewer compare notes on the same architecture decision.',
+        hint:
+          'One precise spine fact ensures multiple framings of the same underlying decision remain consistent.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-11-mcq-01',
+        question:
+          'Per the lesson, what distinguishes correctly parking a stakeholder\'s question from either dropping it or derailing the demo to answer it immediately?',
+        options: [
+          { id: 'a', label: 'A', text: 'Parking means telling the stakeholder their question is not important enough to answer' },
+          { id: 'b', label: 'B', text: 'Parking states explicitly that a real answer is coming and names when, then actually returns to it before the session ends, rather than silently letting it disappear' },
+          { id: 'c', label: 'C', text: 'Parking means answering every question the instant it is asked, regardless of the room\'s current focus' },
+          { id: 'd', label: 'D', text: 'Parking is only appropriate for the business sponsor\'s questions, never for technical or security ones' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s Priya example shows the pattern: an explicit commitment to return, followed by an actual, on-schedule return — not silence and not an interruption of the current thread.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-11-mcq-02',
+        question:
+          'In the scenario, why is answering Dev\'s cross-tenant question with only the latency justification for the async worker (Meridith\'s answer) considered non-responsive, even though it is a true fact about the same worker?',
+        options: [
+          { id: 'a', label: 'A', text: 'Latency numbers are never appropriate to share with any stakeholder on a panel' },
+          { id: 'b', label: 'B', text: 'Dev asked about the control that prevents cross-tenant data leakage, not about why the step is asynchronous — the latency justification doesn\'t address what was actually asked, even though both concern the same worker' },
+          { id: 'c', label: 'C', text: 'Dev\'s question was really about cost, not security, so neither answer was relevant' },
+          { id: 'd', label: 'D', text: 'The async boundary itself is the vulnerability Dev was worried about' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s central register-mismatch failure mode: a true fact about the right subsystem still fails to answer the question if it addresses the wrong aspect of that subsystem.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-11-mcq-03',
+        question:
+          'What makes the FDE\'s answer to Dev credible beyond simply stating that tenant isolation exists?',
+        options: [
+          { id: 'a', label: 'A', text: 'The FDE promises to add tenant isolation before the system goes live' },
+          { id: 'b', label: 'B', text: 'The answer cites that Sprint 4\'s red-team exercise specifically attempted a cross-tenant read against the worker and confirmed it was refused — a verified result, not a design claim' },
+          { id: 'c', label: 'C', text: 'The FDE shows Dev the source code for the worker during the demo' },
+          { id: 'd', label: 'D', text: 'The FDE tells Dev that no client has ever reported a data leak before' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Citing a specific verification event (the red-team attempt and its confirmed refusal) is what turns the claim from an assertion into evidence, consistent with the accuracy-skepticism discipline from the earlier demo-storytelling lesson.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-11-mcq-04',
+        question:
+          'Why does Practice Loop step 4 specifically require the business sponsor\'s timeline-and-cost answer to make sense without any of the technical or security context?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because business sponsors are not permitted to hear any technical detail during a demo' },
+          { id: 'b', label: 'B', text: 'Because folding a business answer into a technical thread risks losing the sponsor\'s actual question inside context they don\'t need, the same register-mismatch risk the lesson warns against for the security stakeholder'
+          },
+          { id: 'c', label: 'C', text: 'Because the technical and security answers are always wrong if not reviewed by the business sponsor first' },
+          { id: 'd', label: 'D', text: 'Because a standalone answer takes less time to prepare than an integrated one' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A sponsor\'s cost/timeline question answered inside a technical thread risks the same mismatch the lesson calls out for the security stakeholder — the right fact, delivered in the wrong register, reads as non-responsive.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-11-mcq-05',
+        question:
+          'What does counting how many of three rapid-fire stakeholder questions get a real answer versus get explicitly parked (Practice Loop step 3) demonstrate that a general "practice staying calm under pressure" instruction would not?',
+        options: [
+          { id: 'a', label: 'A', text: 'How fast the FDE can speak during a demo' },
+          { id: 'b', label: 'B', text: 'A concrete, countable measure of triage discipline under simultaneous pressure — whether parked questions are actually explicit and actually returned to, not just a vague sense of "handling it well"' },
+          { id: 'c', label: 'C', text: 'Whether the demo software can handle three simultaneous browser tabs' },
+          { id: 'd', label: 'D', text: 'How many stakeholders attended the demo in total' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s diagnostic step: it turns "handle pressure well" into a specific, countable check on whether parking was explicit and honored, mirroring this curriculum\'s consistent preference for measurable practice steps over vague reflection.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-11-mcq-06',
+        question:
+          'Why does the lesson insist the spine fact be stated "precisely enough that it cannot be phrased two contradictory ways," rather than simply being a true statement?',
+        options: [
+          { id: 'a', label: 'A', text: 'Precision is a general communication virtue with no specific connection to the panel setting' },
+          { id: 'b', label: 'B', text: 'A true but loosely worded fact can still be framed in two ways that sound contradictory to a panel comparing notes afterward — precision is what prevents the technical and security framings from drifting into apparent disagreement' },
+          { id: 'c', label: 'C', text: 'Imprecise statements are always factually incorrect' },
+          { id: 'd', label: 'D', text: 'The client\'s legal team requires every demo statement to be pre-approved in writing' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Truth alone doesn\'t prevent apparent contradiction — a loosely worded true fact can still be phrased two different, seemingly conflicting ways; precision is what closes that gap.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-11-mcq-07',
+        question:
+          'What is the Suggested Extension (adding a maintaining-team panelist) specifically asking the learner to practice, beyond the three original roles?',
+        options: [
+          { id: 'a', label: 'A', text: 'Repeating the exact same spine answers already prepared for the technical lead, unchanged' },
+          { id: 'b', label: 'B', text: 'Anticipating a fourth stakeholder concern (long-term maintainability and handoff) that none of the technical, security, or business roles would naturally raise, and preparing a spine-consistent answer for it in advance' },
+          { id: 'c', label: 'C', text: 'Ignoring the new panelist since only three roles were covered in the lesson' },
+          { id: 'd', label: 'D', text: 'Asking the client to remove the fourth panelist before the demo begins' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The extension pushes the triage-and-spine-consistency skill to a genuinely new concern (maintainability/handoff) rather than reusing an existing answer verbatim, testing whether the underlying skill generalizes.'
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/12-interview-readiness-and-career-launch': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-12-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — FDE BEHAVIORAL JUDGMENT',
+        question:
+          'What is a question like "tell me about a time a stakeholder asked for something you didn\'t build" actually probing for, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the candidate is willing to say no to a stakeholder under any circumstances' },
+          { id: 'b', label: 'B', text: 'Whether the candidate can articulate the actual reasoning behind a real trade-off — a migration-cost argument, a measured gap, or a documented non-goal — the same judgment this curriculum\'s earlier lessons formalized' },
+          { id: 'c', label: 'C', text: 'Whether the candidate has ever worked with a difficult stakeholder before' },
+          { id: 'd', label: 'D', text: 'Whether the candidate prefers working alone over working with a team' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that this question tests reasoning, not the mere fact of pushing back — the strong answer names the specific criterion applied, mirroring the seam-versus-generality and non-goals discipline from earlier modules.',
+        incorrectExplanation:
+          'Focus on what distinguishes real engineering judgment from generic storytelling about handling disagreements.',
+        hint:
+          'The question tests the explicit reasoning (migration costs, evidence gaps, non-goals) behind trade-offs.'
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-12-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — THE T-SHAPED FDE NARRATIVE',
+        question:
+          'How does the lesson say an FDE technical interview loop\'s expectations differ from a standard backend-SWE loop\'s?',
+        options: [
+          { id: 'a', label: 'A', text: 'FDE interviews never ask any technical questions, only behavioral ones' },
+          { id: 'b', label: 'B', text: 'It looks for a genuine T-shape — broad competence across several verticals this curriculum covered, plus real depth in one vertical slice (the capstone) the candidate can defend under sustained follow-up' },
+          { id: 'c', label: 'C', text: 'FDE interviews only test knowledge of a single narrow specialization, like a standard SWE loop does' },
+          { id: 'd', label: 'D', text: 'FDE interviews are conducted entirely without any live coding or system discussion' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific claim is about the shape of expected competence — broad T-shape coverage plus one genuinely deep, defensible slice, matching what the FDE role itself requires day to day.',
+        incorrectExplanation:
+          'Consider what breadth and depth of technical skills an FDE must bring to client engagements.',
+        hint:
+          'FDE interviews look for broad multi-vertical competence backed by deep, lived execution in a capstone project.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-12-mcq-01',
+        question:
+          'Why does the lesson say a generic STAR answer — describing the "action" only as "I pushed back and explained my reasoning" — fails to demonstrate the judgment an FDE interviewer is looking for?',
+        options: [
+          { id: 'a', label: 'A', text: 'STAR-formatted answers are never appropriate in any technical interview' },
+          { id: 'b', label: 'B', text: 'It never actually names the specific reasoning behind the decision, so the interviewer cannot verify real judgment was applied rather than a rehearsed response about having applied some judgment' },
+          { id: 'c', label: 'C', text: 'STAR answers are too long for a typical interview time slot' },
+          { id: 'd', label: 'D', text: 'Interviewers are trained to reject any answer using the STAR framework by default' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific complaint is about missing content, not format — a STAR answer that never states the actual reasoning leaves the interviewer unable to distinguish real judgment from a rehearsed description of judgment.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-12-mcq-02',
+        question:
+          'Why does the lesson argue that a question like "why RLS instead of a separate schema per tenant" only has a defensible answer if the candidate actually built and lived with that trade-off?',
+        options: [
+          { id: 'a', label: 'A', text: 'RLS is always the objectively correct choice, so any candidate can defend it in the abstract' },
+          { id: 'b', label: 'B', text: 'A candidate who only memorized the trade-off from a reference cannot answer sustained follow-up the way one who actually made and lived with the decision can, because the reference answer runs out under real questioning' },
+          { id: 'c', label: 'C', text: 'Interviewers only ask this specific question if the candidate\'s resume mentions PostgreSQL' },
+          { id: 'd', label: 'D', text: 'Separate-schema-per-tenant is never a legitimate architecture choice worth discussing' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is about depth under follow-up specifically — a memorized answer has a shallow bottom that sustained questioning reaches quickly, while a lived decision does not.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-12-mcq-03',
+        question:
+          'Per the scenario, why is "reduced contract-extraction latency risk by isolating a measured 30-90 second step onto an async worker, verified tenant isolation under a live red-team attempt" a stronger resume line than "used Python, FastAPI, Celery, and PostgreSQL"?',
+        options: [
+          { id: 'a', label: 'A', text: 'The first sentence is shorter and therefore easier to read quickly' },
+          { id: 'b', label: 'B', text: 'The first sentence leads with a measured outcome tied to a specific artifact the candidate could open and defend in the next thirty seconds of the interview; the second is a technology list with no outcome or artifact attached' },
+          { id: 'c', label: 'C', text: 'The second sentence lists technologies that are no longer relevant to the industry' },
+          { id: 'd', label: 'D', text: 'The first sentence avoids mentioning any specific technology, which interviewers prefer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s resume framing rule is explicit: outcome-first, artifact-backed bullets are defensible under immediate follow-up; a technology list is not, regardless of length.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-12-mcq-04',
+        question:
+          'What does counting how many follow-up questions about one technical decision can be answered with a real, lived reason versus a guess (Practice Loop step 3) reveal?',
+        options: [
+          { id: 'a', label: 'A', text: 'How many total technologies were used across the capstone project' },
+          { id: 'b', label: 'B', text: 'Which specific decisions are actually interview-ready and which only appear defensible until a real follow-up question is asked' },
+          { id: 'c', label: 'C', text: 'Whether the candidate\'s resume is too long for a standard interview packet' },
+          { id: 'd', label: 'D', text: 'How long the capstone took to build in total hours' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This diagnostic step converts "is this decision interview-ready" from a guess into a countable check, matching the lesson\'s insistence on lived, defensible depth over surface familiarity.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-12-mcq-05',
+        question:
+          'What kind of interview preparation does this lesson deliberately not cover, leaving it to a different lesson in the module?',
+        options: [
+          { id: 'a', label: 'A', text: 'Behavioral question preparation' },
+          { id: 'b', label: 'B', text: 'Resume and portfolio bullet framing' },
+          { id: 'c', label: 'C', text: 'System-design-interview technique and mechanics' },
+          { id: 'd', label: 'D', text: 'T-shaped skillset framing for a technical narrative' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'System-design-interview mechanics are covered by this module\'s earlier interview-framework lesson; this lesson focuses on behavioral prep and portfolio/resume framing specific to an FDE role.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-12-mcq-06',
+        question:
+          'In Practice Loop step 5, what does checking whether an answer "survives a skeptical interviewer asking \'how do you know that\'s true\'" actually test?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether the candidate speaks confidently regardless of content' },
+          { id: 'b', label: 'B', text: 'Whether the answer is backed by real, verifiable evidence the candidate lived through, rather than an answer that only holds up if the interviewer takes it on faith' },
+          { id: 'c', label: 'C', text: 'Whether the interviewer personally agrees with the candidate\'s architecture choice' },
+          { id: 'd', label: 'D', text: 'Whether the answer is grammatically correct' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This final check applies the same accuracy-skepticism discipline from the demo-storytelling lesson to interview answers — an answer that requires the listener\'s trust rather than offering evidence has not actually passed the bar.'
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/13-fde-mock-engagement-full-simulation': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-13-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — COMPRESSED DISCOVERY TRIAGE',
+        question:
+          'Why does the five-to-ten-minute compressed discovery pass require a different skill than the full four-pass discovery call from the earlier discovery lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The compressed pass skips discovery entirely and moves straight to a solution' },
+          { id: 'b', label: 'B', text: 'There is no time to run all four passes (current-state, pain quantification, stakeholder mapping, constraints) in full depth, so the learner must triage which pass is most likely to surface decision-relevant information fastest' },
+          { id: 'c', label: 'C', text: 'The compressed pass only works for healthcare-domain clients specifically' },
+          { id: 'd', label: 'D', text: 'Compressed discovery requires no stakeholder interaction at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The new skill is triage under time scarcity — deciding which of the four established passes to prioritize when there is no time for all of them, not abandoning the discovery structure itself.',
+        incorrectExplanation:
+          'Think about how time pressure forces prioritization across the four discovery passes.',
+        hint:
+          'With limited time, you must triage which discovery pass yields decision-relevant information fastest.'
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-13-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — HONEST EVIDENCE-GAP DISCLOSURE',
+        question:
+          'When the mock stakeholder asks whether SMS reminders will actually reduce cancellations, what is the correct response, given that no evidence exists yet at week one of the engagement?',
+        options: [
+          { id: 'a', label: 'A', text: 'Claim the SMS reminders are already proven to work, to keep the stakeholder\'s confidence' },
+          { id: 'b', label: 'B', text: 'State plainly that no evidence exists yet, describe the two-week pilot against a control group of appointments will produce it, and name the unproven assumption openly rather than glossing over it' },
+          { id: 'c', label: 'C', text: 'Avoid answering the question and move on to a different topic' },
+          { id: 'd', label: 'D', text: 'Explain that accuracy skepticism questions are not answerable in a mock engagement' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific-acknowledge, current-evidence, concrete-follow-up pattern applied honestly — no evidence yet, a real plan to get it, and an openly named assumption, rather than invented reassurance.',
+        incorrectExplanation:
+          'Recall the pushback framework for handling accuracy skepticism when baseline evidence has not yet been collected.',
+        hint:
+          'Openly acknowledge the evidence gap and present a concrete validation plan.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-13-mcq-01',
+        question:
+          'Why does the mock engagement compress discovery, an architecture call, stakeholder handling, and a written artifact into one continuous timed session, rather than testing each separately as earlier assessments did?',
+        options: [
+          { id: 'a', label: 'A', text: 'Compressing the four skills into one session is purely a time-saving convenience for grading' },
+          { id: 'b', label: 'B', text: 'A real client engagement never separates those skills into distinct phases — a real call can raise a scoping question and a pushback question in the same thirty minutes, so this is the first exercise confirming the skills compose under one continuous clock' },
+          { id: 'c', label: 'C', text: 'The four skills are actually unrelated to each other and combining them tests nothing new' },
+          { id: 'd', label: 'D', text: 'Written artifacts are never produced under time pressure in a real engagement' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s explicit framing is that real engagements never isolate these skills into phases — this assessment is the first to test whether they hold up together, under one clock, the way a real engagement actually demands.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-13-mcq-02',
+        question:
+          'Why does discovering that no-shows cluster around same-day cancellations, not advance no-shows, count as a "decision-relevant" discovery fact in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'It confirms the client\'s original stated request ("reduce no-shows") was already precisely correct' },
+          { id: 'b', label: 'B', text: 'It reframes the actual system to build — from predicting who won\'t show to reducing the same-day cancellation window — which is a materially different engineering problem than the client\'s opening framing implied' },
+          { id: 'c', label: 'C', text: 'It has no bearing on what gets built, only on how the final report is worded' },
+          { id: 'd', label: 'D', text: 'It proves the client\'s stated problem was fabricated' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly the kind of fact the discovery lesson calls decision-relevant — it changes what system actually gets built, unlike a fact that merely restates or decorates the client\'s original framing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-13-mcq-03',
+        question:
+          'What is the correct live defense, per the scenario, for building an SMS-only reminder system instead of a configurable multi-channel notification layer?',
+        options: [
+          { id: 'a', label: 'A', text: 'Multi-channel notifications are a bad engineering idea in every circumstance' },
+          { id: 'b', label: 'B', text: 'No channel beyond SMS has actually been requested yet, and adding a channel later, once genuinely needed, is cheap — the same seam-versus-generality reasoning applied live rather than written calmly in a document' },
+          { id: 'c', label: 'C', text: 'SMS is the only notification channel the underlying framework supports' },
+          { id: 'd', label: 'D', text: 'The client explicitly forbade ever adding email or voice notifications' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The correct defense is the same architecture-lesson reasoning (defer generality until it\'s actually requested) now delivered live under stakeholder questioning, not a blanket rejection of multi-channel design.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-13-mcq-04',
+        question:
+          'What does the rubric\'s "architecture-decision quality" criterion require, specifically?',
+        options: [
+          { id: 'a', label: 'A', text: 'That the learner always chooses the most flexible possible design' },
+          { id: 'b', label: 'B', text: 'That the live decision is defended with an actual migration-cost or evidence argument, not a vague appeal to "best practice"' },
+          { id: 'c', label: 'C', text: 'That the decision matches whatever the mock stakeholder originally suggested' },
+          { id: 'd', label: 'D', text: 'That the decision is made within the first two minutes of the session, regardless of quality' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The rubric is explicit that a real cost or evidence argument is required — a design choice justified only by a vague appeal to convention does not meet the bar, regardless of whether the choice itself was reasonable.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-13-mcq-05',
+        question:
+          'Why does the rubric\'s written-artifact criterion specifically ask whether the brief is "something a real customer could receive as written," rather than just whether one was produced?',
+        options: [
+          { id: 'a', label: 'A', text: 'A brief only needs to exist; its actual quality is not part of the rubric' },
+          { id: 'b', label: 'B', text: 'A rushed outline that would still need a full rewrite before anyone could send it does not meet the standard the stakeholder-communication lesson set — the clock is meant to reveal whether the writing discipline holds under time pressure, not just whether words got typed' },
+          { id: 'c', label: 'C', text: 'Customers never actually read written briefs, so the criterion is symbolic only' },
+          { id: 'd', label: 'D', text: 'The brief\'s length is the only factor the rubric evaluates' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The rubric deliberately raises the bar past mere completion — a sendable brief demonstrates the writing discipline survives time pressure, which is the actual point of testing it under a clock.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-13-mcq-06',
+        question:
+          'What does Practice Loop step 5 require beyond simply scoring all four rubric criteria?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing further — scoring the four criteria alone is the complete step' },
+          { id: 'b', label: 'B', text: 'Naming the single weakest criterion with a specific, concrete reason, not a general "could be better" impression' },
+          { id: 'c', label: 'C', text: 'Re-running the entire ninety-minute simulation immediately if any criterion scores below perfect' },
+          { id: 'd', label: 'D', text: 'Asking a different learner to redo the same exercise from scratch' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The step explicitly requires specificity in the self-assessment — a concrete named gap in the weakest criterion, not a vague overall impression, matching this curriculum\'s consistent preference for falsifiable, specific findings.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-13-mcq-07',
+        question:
+          'Why does the Suggested Extension deliberately require a domain the learner has never scoped before (not healthcare, logistics, or legal), rather than repeating the same domain?',
+        options: [
+          { id: 'a', label: 'A', text: 'Repeating a familiar domain would take less total time to complete' },
+          { id: 'b', label: 'B', text: 'It isolates whether the discovery-and-pushback skills genuinely transfer to unfamiliar context, or whether the first run\'s strong performance depended on domain familiarity rather than the underlying skill itself' },
+          { id: 'c', label: 'C', text: 'The rubric only applies validly to healthcare, logistics, and legal domains' },
+          { id: 'd', label: 'D', text: 'A new domain guarantees a higher rubric score than the original run' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The extension is a deliberate transfer test — comparing performance across a genuinely unfamiliar domain isolates whether the skill itself transfers, rather than whether the first run\'s success depended on domain-specific familiarity.'
+      }
+    ]
+  },
+  'fde-curriculum/system-design-capstone/14-graduation-review-portfolio-defense-and-next-steps': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-system-design-capstone-14-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — DELIBERATE PORTFOLIO SELECTION',
+        question:
+          'Why does the lesson argue against walking a reviewer through every Build: lesson, capstone sprint, and assessment completed across the program?',
+        options: [
+          { id: 'a', label: 'A', text: 'Reviewers are only allotted five minutes per graduation review, regardless of content' },
+          { id: 'b', label: 'B', text: 'Breadth alone does not demonstrate depth on any one thing — a small, deliberate set of artifacts each chosen as clear evidence of one distinct competency defends judgment far better than a complete list' },
+          { id: 'c', label: 'C', text: 'Most of the program\'s lessons produced no artifacts worth discussing' },
+          { id: 'd', label: 'D', text: 'A full tour would reveal that some lessons were completed out of order' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s explicit claim is that breadth of listing does not substitute for depth of defense — a small, deliberately chosen set demonstrates real judgment in a way an exhaustive tour cannot.',
+        incorrectExplanation:
+          'Consider what a reviewer learns from seeing a list of 100 lessons versus a deep dive into three or four pivotal engineering decisions.',
+        hint:
+          'A small, deliberate set of artifacts demonstrates deep judgment far better than an exhaustive tour of every completed task.'
+      },
+      {
+        id: 'lesson-fde-system-design-capstone-14-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — THE SPECIFICITY DIAGNOSTIC',
+        question:
+          'Why does Practice Loop step 5 ask the learner to reject any 90-day-plan line that "would still be true if you deleted the specific dates and names"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Dates and names are required purely for formatting consistency across all graduates\' plans' },
+          { id: 'b', label: 'B', text: 'It is a concrete test for genericness — a plan line that survives having its specifics removed was never actually specific to begin with, the same failure mode as "keep learning"' },
+          { id: 'c', label: 'C', text: 'The rule exists only to make the plan longer and more detailed' },
+          { id: 'd', label: 'D', text: 'Plans without dates are against the program\'s stated policy' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This diagnostic operationalizes the lesson\'s core complaint about generic next-steps answers — if removing the specifics changes nothing, the line was never actually specific.',
+        incorrectExplanation:
+          'Think about why generic platitudes like "keep learning" fail to provide actionable guidance for post-graduation growth.',
+        hint:
+          'If a commitment remains true after stripping out names and dates, it is generic rather than concrete.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-14-mcq-01',
+        question:
+          'How does the lesson say each portfolio artifact should be walked through, per its evidence discipline?',
+        options: [
+          { id: 'a', label: 'A', text: 'As a chronological narration of the work being done, in the order it was completed' },
+          { id: 'b', label: 'B', text: 'As the actual decision made, the evidence that backed it, and what would have happened if the decision had gone the other way — the same evidence discipline the demo-storytelling lesson taught' },
+          { id: 'c', label: 'C', text: 'As a list of every technology used to build the artifact' },
+          { id: 'd', label: 'D', text: 'As a summary of how much time the artifact took to complete' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly reuses the demo-storytelling evidence pattern — decision, evidence, counterfactual — rather than a narrated description of process or a technology list.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-14-mcq-02',
+        question:
+          'Why does the lesson reject "keep learning" as an honest answer to "what comes next" for a graduate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Continued learning is not actually valuable for an FDE past graduation' },
+          { id: 'b', label: 'B', text: 'It is true of every engineer at every level, so it says nothing specific about this graduate\'s actual next steps — a real answer names specific areas and specific actions' },
+          { id: 'c', label: 'C', text: 'The program considers all further learning to be the employer\'s responsibility, not the graduate\'s' },
+          { id: 'd', label: 'D', text: '"Keep learning" implies the graduate did not learn enough during the program' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific complaint is genericness, not the value of continued learning itself — a statement true of every graduate of every program provides no real signal about this one.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-14-mcq-03',
+        question:
+          'Regarding the fast-moving LLM and agentic-tooling landscape, what does the lesson say this program actually made durable in the graduate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Permanent, unchanging familiarity with the exact frameworks and tools taught during the program' },
+          { id: 'b', label: 'B', text: 'The judgment to evaluate a new tool or model release against the same seam-versus-generality and evidence standards taught throughout the program, not memorized familiarity with today\'s specific toolchain' },
+          { id: 'c', label: 'C', text: 'A guarantee that no further tooling changes will occur during the graduate\'s career' },
+          { id: 'd', label: 'D', text: 'The ability to build any future tool from scratch without external libraries' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that judgment, not toolchain familiarity, is the durable output — the specific tools taught are a snapshot that will shift, but the evaluative criteria transfer forward.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-system-design-capstone-14-mcq-04',
+        question:
+          'Why does the candidate in the scenario answer "what would you have done differently if the red-team had found a leak" with a specific session-context check, rather than a general statement about adding more security?',
+        options: [
+          { id: 'a', label: 'A', text: 'General security statements are always factually incorrect' },
+          { id: 'b', label: 'B', text: 'It matches the remediation-specificity standard this curriculum\'s earlier red-team assessment required — a concrete, named fix demonstrates real understanding in a way a vague call for "more security" does not' },
+          { id: 'c', label: 'C', text: 'The reviewer explicitly forbids any answer involving security terminology' },
+          { id: 'd', label: 'D', text: 'Session-context checks are the only kind of remediation that exists in any system' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly reuses the earlier assessment\'s remediation-specificity bar — a concrete, named fix is the standard of real evidence, not a vague statement that could apply to any finding.'
+      }
+    ]
+  },
 };
 
 export function getLessonInteractions(courseSlug, moduleSlug, lessonSlug) {
