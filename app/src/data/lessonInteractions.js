@@ -4280,6 +4280,813 @@ const lessonInteractions = {
           'Running calls concurrently changes the failure semantics compared to a sequential loop with per-iteration try/except — deliberately deciding how one call\'s failure should (or shouldn\'t) affect the others is a design decision the concurrency introduces, not something that carries over automatically from sequential code.'
       }
     ]
+  },
+  'fde-curriculum/fde-foundations/07-pydantic-v2-structured-logging-and-profiling': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-07-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — PARSE, DON\'T VALIDATE',
+        question:
+          'Once a Pydantic model has successfully validated a piece of external data into an object, why can downstream code trust its shape without re-checking?',
+        options: [
+          { id: 'a', label: 'A', text: 'Pydantic models cannot be constructed with invalid data under any circumstances, even before validation runs' },
+          { id: 'b', label: 'B', text: 'Construction itself was the check — if the object exists, it already satisfied the model\'s type and constraint rules, so re-validating downstream would be redundant' },
+          { id: 'c', label: 'C', text: 'Downstream code should always re-validate regardless, Pydantic provides no real guarantee' },
+          { id: 'd', label: 'D', text: 'This is only true for models with no optional fields' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The entire value of the "parse, don\'t validate" pattern is that a successfully constructed model instance is proof the data already passed validation — checking again downstream would just repeat work the constructor already did.',
+        incorrectExplanation:
+          'Consider the design principle of establishing a single validation boundary versus scattering type checks throughout the codebase.',
+        hint: 'Validation at the boundary guarantees that internal code can assume strongly-typed, guaranteed-valid domain objects without defensive checks.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-07-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PROFILING METRICS: CUMULATIVE VS TOTAL TIME',
+        question:
+          'A profiler reports function `process_batch` with high cumulative time but low total/own time. What does this indicate?',
+        options: [
+          { id: 'a', label: 'A', text: '`process_batch` is definitely the function that needs to be optimized' },
+          { id: 'b', label: 'B', text: '`process_batch` itself isn\'t the bottleneck — most of its cumulative time comes from functions it calls, so the actual slow code lives in one of those called functions, not in `process_batch`\'s own logic' },
+          { id: 'c', label: 'C', text: 'High cumulative time with low own time is a measurement error and should be ignored' },
+          { id: 'd', label: 'D', text: '`process_batch` is called far more often than any other function in the program' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Cumulative time includes everything a function calls; own/total time is just its own execution. A high cumulative but low own time means the real cost is downstream in a called function, not in this function\'s own code.',
+        incorrectExplanation:
+          'Distinguish between the time spent inside a function\'s own bytecode versus time spent inside child functions it calls.',
+        hint: '`cumtime` includes time spent in subfunctions, while `tottime` measures only the function\'s own body execution.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-07-mcq-01',
+        question:
+          'Why is a typed settings object that fails loudly at startup on a missing environment variable specifically valuable for an FDE, compared to code that reads `os.environ.get()` with silent defaults?',
+        options: [
+          { id: 'a', label: 'A', text: '`pydantic-settings` is required by law for handling environment variables' },
+          { id: 'b', label: 'B', text: 'An FDE\'s code runs against different, unfamiliar configuration on every customer\'s infrastructure, so a loud startup failure surfaces a misconfiguration immediately rather than as a mysterious runtime error hours into a demo' },
+          { id: 'c', label: 'C', text: 'Silent defaults are always safer than loud failures in any context' },
+          { id: 'd', label: 'D', text: 'This has no particular relevance to FDE work specifically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The recurring FDE context — new, unfamiliar customer infrastructure every engagement — is exactly where a loud, immediate startup failure on bad configuration is more valuable than in a stable, long-lived internal environment where configuration rarely changes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-07-mcq-02',
+        question:
+          'What can a structured log statement support that a free-text log line cannot, without a fragile regex against message wording?',
+        options: [
+          { id: 'a', label: 'A', text: 'Structured logs execute faster than free-text logs at runtime' },
+          { id: 'b', label: 'B', text: 'Filtering, aggregating, and querying by specific field values (e.g. "show every record where duration_ms > 1000")' },
+          { id: 'c', label: 'C', text: 'Free-text logs cannot be written to a file, only structured logs can' },
+          { id: 'd', label: 'D', text: 'There is no practical difference between the two formats' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Structured logs carry queryable fields directly, so filtering by a specific value is a direct query rather than requiring a regex against a message string whose wording might change and silently break the query.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-07-mcq-03',
+        question:
+          'Why does the lesson argue structured logging matters more for an FDE than for an engineer on a long-lived internal team?',
+        options: [
+          { id: 'a', label: 'A', text: 'Internal teams never read logs at all' },
+          { id: 'b', label: 'B', text: 'An FDE\'s logs are frequently read by someone else entirely — a customer\'s on-call engineer, an observability tool with no context on the FDE\'s personal habits — so a log only useful to the person who wrote it defeats the point' },
+          { id: 'c', label: 'C', text: 'FDE code produces more log volume than internal team code by default' },
+          { id: 'd', label: 'D', text: 'This distinction doesn\'t actually matter; the lesson treats the two cases identically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The recurring theme of an FDE handing off work to people who didn\'t write it (echoing the "enable" step from the FDE-role lesson) applies directly to logs — they need to be legible to someone without the FDE\'s personal context.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-07-mcq-04',
+        question:
+          'Why does the lesson insist on profiling under realistic data volume rather than a small hand-picked test input?',
+        options: [
+          { id: 'a', label: 'A', text: 'Profilers technically cannot run against small inputs' },
+          { id: 'b', label: 'B', text: 'A function\'s relative cost can invert entirely between small and large input sizes, so a profile against toy data can point optimization effort at exactly the wrong function' },
+          { id: 'c', label: 'C', text: 'Small test inputs always produce identical relative costs to large inputs, so this is only a minor concern' },
+          { id: 'd', label: 'D', text: 'Realistic-scale profiling is only needed for functions that use loops' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Algorithmic behavior that\'s invisible at small scale (like quadratic growth) can dominate at real scale, so a profile at the wrong scale risks misidentifying the actual bottleneck.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-07-mcq-05',
+        question:
+          'Why was the FDE able to identify the actual slow stage of the sync job from shared logs alone, without a second round of production access?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because the customer happened to already know which stage was slow' },
+          { id: 'b', label: 'B', text: 'Because every stage\'s Pydantic-validated events were logged with structured, queryable fields including per-stage duration, filtering the shared logs for duration outliers directly revealed which stage was slow, without needing live debugging access' },
+          { id: 'c', label: 'C', text: 'Because Pydantic models automatically profile themselves' },
+          { id: 'd', label: 'D', text: 'This was luck and would not generally be possible from logs alone' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct payoff of the earlier structured-logging investment — a diagnostic question answerable purely by filtering existing structured log data, without needing new production access at all.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-07-mcq-06',
+        question:
+          'Why did the FDE only request a scoped profiling run after narrowing the problem to the fetch stage via logs, rather than requesting a full profiling run of the entire job upfront?',
+        options: [
+          { id: 'a', label: 'A', text: 'Profiling an entire job is technically impossible' },
+          { id: 'b', label: 'B', text: 'A scoped, targeted profiling request (specifically the fetch stage) is more likely to be granted quickly by the customer and produces a more directly useful result than an unscoped, broad request made before the actual bottleneck was known' },
+          { id: 'c', label: 'C', text: 'Logs and profiling data are mutually exclusive and cannot be used together' },
+          { id: 'd', label: 'D', text: 'There was no particular reason; either order would have worked identically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Narrowing scope first via cheap, already-available log data before requesting a more invasive or costly diagnostic (production profiling access) is a practical sequencing decision that respects both the customer\'s constraints and gets to the answer faster.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/08-git-internals-github-workflows-and-ai-dev-tools-cursor-claude-code-mcp': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-08-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — GIT COMMIT REWRITE HAZARD',
+        question:
+          'Why is rebasing dangerous specifically on a branch other people have already pulled, but safe on a branch only you\'re working on?',
+        options: [
+          { id: 'a', label: 'A', text: 'Rebasing is always unsafe regardless of who else has pulled the branch' },
+          { id: 'b', label: 'B', text: 'Rebasing creates new commit objects with different hashes; anyone who already pulled the old commits now has local history that diverges from the rewritten remote history, causing painful conflicts on their next pull' },
+          { id: 'c', label: 'C', text: 'Rebasing only affects the remote repository, never local copies' },
+          { id: 'd', label: 'D', text: 'This risk only applies to branches with more than 10 commits' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Since rebase produces new commit objects, anyone else\'s already-pulled copies of the old commits become orphaned relative to the rewritten history, creating a divergence that has to be manually reconciled — this is exactly what didn\'t happen with the FDE\'s declined rebase suggestion in the scenario.',
+        incorrectExplanation:
+          'Consider what happens to commit SHAs when replaying commits and how that impacts team members who branched from the original commits.',
+        hint: 'Rebasing creates new commit hashes for existing changes, desynchronizing the histories of everyone sharing the branch.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-08-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — AI DIFFS AS PROPOSALS',
+        question:
+          'How does the lesson connect an AI coding assistant proposing a diff to the function-calling pattern from the Agentic AI Core module?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two concepts are unrelated; the comparison is purely coincidental phrasing' },
+          { id: 'b', label: 'B', text: 'Both follow the same "model proposes, you/your code decides" seam — the assistant proposes a diff, but the FDE (not the tool) decides whether and how to actually apply it, just as a function call is proposed but not automatically executed' },
+          { id: 'c', label: 'C', text: 'AI coding assistants execute diffs automatically with no review step, unlike function calling' },
+          { id: 'd', label: 'D', text: 'Function calling and diff proposals both bypass any human decision point' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the "model proposes a call, your code decides whether to execute" distinction from the built-in-tools lesson — here applied to code changes, with the human FDE as the decision point instead of application logic.',
+        incorrectExplanation:
+          'Think about the seam between proposal and execution: the model generates a candidate action, but the engineer and CI retain execution authority.',
+        hint: 'The AI assistant only produces a proposed change; deterministic tests and human judgment gate whether that change is executed or merged.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-08-mcq-01',
+        question:
+          'What is a Git branch, at the object-model level?',
+        options: [
+          { id: 'a', label: 'A', text: 'A container that physically holds a copy of every commit made on it' },
+          { id: 'b', label: 'B', text: 'A movable pointer to a single commit, updated to point at a new commit each time you commit while that branch is checked out' },
+          { id: 'c', label: 'C', text: 'A separate, isolated copy of the entire repository\'s file contents' },
+          { id: 'd', label: 'D', text: 'A tag that permanently marks one specific commit and never moves' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Understanding a branch as a movable pointer, not a container, is what makes operations like rebase (which moves where commits sit relative to other branches) reasoned rather than memorized.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-08-mcq-02',
+        question:
+          'What is the key structural difference between `merge` and `rebase`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Merge and rebase produce identical resulting commit history in every case' },
+          { id: 'b', label: 'B', text: 'Merge creates a new commit with two parents, preserving both branches\' history as it happened; rebase re-plays commits onto a new base, creating entirely new commit objects with new hashes, rewriting history' },
+          { id: 'c', label: 'C', text: 'Rebase deletes commits permanently with no way to recover them' },
+          { id: 'd', label: 'D', text: 'Merge only works on branches with a single commit' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the core distinction: merge preserves actual history via a two-parent commit; rebase creates new commit objects (even if the content looks the same) by replaying changes onto a different base, which is what makes it history-rewriting.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-08-mcq-03',
+        question:
+          'Why does the lesson argue a PR-plus-CI workflow substitutes for something an FDE often lacks, more than it does for an engineer on a large internal team?',
+        options: [
+          { id: 'a', label: 'A', text: 'CI checks run faster on FDE projects than on internal team projects' },
+          { id: 'b', label: 'B', text: 'FDE work is often solo or in a very small on-site group, so an automated, required check provides a structural safety net that doesn\'t depend on a peer reviewer happening to be available, unlike routine code review on a larger team' },
+          { id: 'c', label: 'C', text: 'Large internal teams never use PR-based workflows' },
+          { id: 'd', label: 'D', text: 'This distinction is not actually meaningful; the lesson treats both cases identically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The structural safety net argument is specific to the reduced peer-oversight reality of embedded, often-solo FDE work — CI as a required, always-available check substitutes for the review capacity a larger team would otherwise provide.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-08-mcq-04',
+        question:
+          'What does connecting an AI coding assistant like Claude Code to a customer\'s ticket tracker via MCP actually enable, in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'MCP allows the assistant to merge pull requests without any human review' },
+          { id: 'b', label: 'B', text: 'The assistant can read the actual ticket description directly as additional context while drafting a change, rather than requiring the FDE to manually paste it in' },
+          { id: 'c', label: 'C', text: 'MCP is unrelated to AI coding assistants and only applies to n8n workflows' },
+          { id: 'd', label: 'D', text: 'MCP automatically rewrites Git history to match ticket descriptions' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is MCP\'s role as a context-connection mechanism, consistent with its use elsewhere in the course — it extends what external context a tool can pull in, here letting the coding assistant reach the ticket tracker directly instead of requiring manual copy-paste.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-08-mcq-05',
+        question:
+          'Why did the FDE accept the AI assistant\'s bug-fix diff but decline its rebase suggestion in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The bug fix itself was actually incorrect and needed to be rejected' },
+          { id: 'b', label: 'B', text: 'The bug fix was correctly scoped and safe to apply, but the rebase suggestion targeted a branch two other contractors had already pulled, which would have rewritten history they were actively working from — exactly the dangerous case identified earlier in the lesson' },
+          { id: 'c', label: 'C', text: 'AI-proposed diffs should always be rejected in customer repositories as a blanket policy' },
+          { id: 'd', label: 'D', text: 'The rebase suggestion was rejected purely because AI tools cannot perform Git operations' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a direct application of the shared-branch rebase danger from earlier in the lesson — the fix itself was fine, but the specific rebase suggestion targeted a branch with real, current dependents, making it the higher-risk part of the proposal to reject.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-08-mcq-06',
+        question:
+          'According to the lesson, what category of AI-assistant-proposed change deserves the most careful review before acceptance in an unfamiliar customer repository?',
+        options: [
+          { id: 'a', label: 'A', text: 'Any change under 5 lines long, regardless of what it does' },
+          { id: 'b', label: 'B', text: 'History-rewriting operations (like a rebase on a shared branch) or changes that extend outside the stated scope of the actual task, since these carry consequences well beyond the immediate diff being reviewed' },
+          { id: 'c', label: 'C', text: 'Changes to files with long names, since they\'re statistically more likely to be important' },
+          { id: 'd', label: 'D', text: 'All AI-proposed changes carry identical risk and require identical scrutiny' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson specifically calls out history-rewriting git operations and scope-creeping changes as the higher-risk category — not line count or file naming, which don\'t correlate with actual consequence.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/09-testing-pytest-property-based-testing-and-ci': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-09-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — PROPERTY-BASED VS EXAMPLE-BASED TESTING',
+        question:
+          'What is the fundamental difference between property-based testing and example-based testing?',
+        options: [
+          { id: 'a', label: 'A', text: 'Property-based tests run faster than example-based tests in every case' },
+          { id: 'b', label: 'B', text: 'Property-based testing specifies a property that should hold for all valid inputs and lets the framework generate a wide range of inputs to search for violations, rather than checking only specific, hand-picked example inputs' },
+          { id: 'c', label: 'C', text: 'Property-based testing replaces the need to write any test assertions' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference; the two terms describe the same technique' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The core inversion is specifying a property instead of examples — the framework then generates inputs (including ones a human wouldn\'t think to write) to search for a case that breaks the stated property.',
+        incorrectExplanation:
+          'Distinguish between testing pre-defined static examples versus testing invariant properties over a generative input domain.',
+        hint: 'Example tests verify specific inputs chosen by developer imagination; property tests verify universal invariants across hundreds of generated inputs.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-09-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — HYPOTHESIS TEST SHRINKING',
+        question:
+          'Why is Hypothesis\'s automatic shrinking of a failing input to its minimal reproducing case valuable?',
+        options: [
+          { id: 'a', label: 'A', text: 'Shrinking makes the test suite run faster overall' },
+          { id: 'b', label: 'B', text: 'A large, complex randomly-generated failing input is harder to debug than the smallest input that still triggers the same failure — shrinking makes the actual root cause easier to see' },
+          { id: 'c', label: 'C', text: 'Shrinking is required for Hypothesis to detect a failure at all' },
+          { id: 'd', label: 'D', text: 'Shrinking converts a property-based test back into an example-based test' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The debugging value comes specifically from reducing a large, possibly confusing generated input down to the minimal case that still fails — which is far easier to reason about than the original.',
+        incorrectExplanation:
+          'Consider the difficulty of debugging a failure when given a 10,000-line random string versus a 1-character minimal reproducer.',
+        hint: 'Shrinking reduces a massive 500-character failing string down to the single minimal character (like a null byte) that actually triggers the bug.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-09-mcq-01',
+        question:
+          'What problem does `@pytest.mark.parametrize` solve compared to writing several near-duplicate test functions?',
+        options: [
+          { id: 'a', label: 'A', text: 'It makes tests run in parallel automatically' },
+          { id: 'b', label: 'B', text: 'It collapses near-duplicate test logic into one function and a data table of input/expected-output pairs, so adding a new case is adding one row instead of a whole new function' },
+          { id: 'c', label: 'C', text: 'It removes the need for assertions in test functions' },
+          { id: 'd', label: 'D', text: 'It is required for pytest to discover any test at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Parametrize\'s value is reducing duplication — the test logic is written once, and new cases are added as data, keeping the suite maintainable as it grows.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-09-mcq-02',
+        question:
+          'Why did the CSV pipeline\'s solid example-based test suite fail to catch the null-byte crash before it hit production?',
+        options: [
+          { id: 'a', label: 'A', text: 'The example-based tests were poorly written and contained bugs of their own' },
+          { id: 'b', label: 'B', text: 'Example-based tests only check inputs a human specifically thought to write down, and no one writing the hand-picked examples anticipated an embedded null byte, so the suite never exercised that case' },
+          { id: 'c', label: 'C', text: 'pytest cannot detect crashes under any circumstances' },
+          { id: 'd', label: 'D', text: 'The null byte issue was unrelated to testing and was actually a deployment configuration problem' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly the coverage gap property-based testing is designed to close — example-based tests are bounded by human imagination about what inputs to write, and real-world data routinely exceeds that imagination.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-09-mcq-03',
+        question:
+          'Why would a Hypothesis property test ("parsing any string should never raise an unhandled exception, only return a record or a clear validation error") have caught the null-byte bug during development?',
+        options: [
+          { id: 'a', label: 'A', text: 'This property test would not have caught the bug; only manual testing against the real customer file could have' },
+          { id: 'b', label: 'B', text: 'Hypothesis\'s text-generation strategies deliberately include edge cases like null bytes and control characters, so the property test would generate exactly this kind of input while searching for a violation, catching it in CI before it reached production' },
+          { id: 'c', label: 'C', text: 'Hypothesis only tests numeric inputs, not string inputs' },
+          { id: 'd', label: 'D', text: 'Property-based tests cannot detect unhandled exceptions' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct payoff of property-based testing over example-based testing — Hypothesis\'s generation strategies are specifically built to explore edge cases like this without a human having to anticipate them individually.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-09-mcq-04',
+        question:
+          'How does this lesson\'s framing of CI connect to the reduced-peer-oversight argument from the Git/GitHub lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'CI and code review serve completely unrelated purposes with no meaningful connection' },
+          { id: 'b', label: 'B', text: 'CI is the automated component of the same review substitute — it doesn\'t depend on a human reviewer\'s availability, catching regressions the moment they\'re introduced, which specifically benefits FDE work that often has less routine peer review than a larger team' },
+          { id: 'c', label: 'C', text: 'CI replaces the need for any human review of any kind, ever' },
+          { id: 'd', label: 'D', text: 'This connection only applies to teams larger than 10 engineers' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'CI gating merge is the automated half of the same structural-safety-net argument made about PR review in the previous lesson — together they substitute for the peer-oversight capacity a small or solo FDE engagement may lack.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-09-mcq-05',
+        question:
+          'Based on the lesson\'s framing, for which kind of FDE code is property-based testing most worth its extra setup effort compared to example-based tests alone?',
+        options: [
+          { id: 'a', label: 'A', text: 'A fixed configuration constant that never changes' },
+          { id: 'b', label: 'B', text: 'Code parsing real, messy customer data, where the actual range of production inputs is exactly the kind of thing a human wouldn\'t fully anticipate by hand-writing examples' },
+          { id: 'c', label: 'C', text: 'Code with no external inputs of any kind' },
+          { id: 'd', label: 'D', text: 'Property-based testing provides equal value for every kind of code, with no meaningful difference in worthwhileness' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s central justification for property-based testing\'s extra effort is specifically about input-parsing code exposed to unpredictable real-world data — exactly the CSV-parsing scenario used to illustrate it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-09-mcq-06',
+        question:
+          'What class of bug does a round-trip property test (parse, serialize, re-parse, compare) catch that a simple "doesn\'t crash" property does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Round-trip properties and "doesn\'t crash" properties catch exactly the same bugs' },
+          { id: 'b', label: 'B', text: 'Silent data corruption or information loss during parsing/serialization — cases where the code runs without error but produces a subtly different result than the original, which a "doesn\'t crash" check would never flag since no exception occurs' },
+          { id: 'c', label: 'C', text: 'Round-trip properties can only be used with numeric data types' },
+          { id: 'd', label: 'D', text: 'Round-trip properties are strictly a performance optimization, not a correctness check' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A "doesn\'t crash" property only guards against exceptions; a round-trip equality check specifically guards against silent correctness bugs where parsing succeeds but subtly loses or alters information — a materially different and often more insidious failure mode.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/10-software-engineering-best-practices-solid-hexagonal-architecture': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-10-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — PORTS AND ADAPTERS IN HEXAGONAL ARCHITECTURE',
+        question:
+          'In hexagonal architecture, what is the difference between a "port" and an "adapter"?',
+        options: [
+          { id: 'a', label: 'A', text: 'A port and an adapter are two names for the exact same thing' },
+          { id: 'b', label: 'B', text: 'A port is the interface business logic defines for what it needs, with no reference to any specific technology; an adapter is a concrete implementation of that interface against an actual external system' },
+          { id: 'c', label: 'C', text: 'A port is always a database, and an adapter is always an API' },
+          { id: 'd', label: 'D', text: 'An adapter defines what the logic needs, and a port implements it against a real system' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The port is the abstract contract (what operations are needed); the adapter is the concrete implementation of that contract against a specific real system — getting this direction right is what makes the pattern\'s naming meaningful, not arbitrary.',
+        incorrectExplanation:
+          'Consider where the interface contract is defined versus where the technology-specific implementation lives.',
+        hint: 'A port is an abstract protocol defined inside the domain core; an adapter is a concrete implementation that connects external infrastructure to that port.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-10-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DEPENDENCY INVERSION UNDER CUSTOMER CONSTRAINTS',
+        question:
+          'Why does the lesson single out Dependency Inversion as carrying the most practical weight specifically for FDE work?',
+        options: [
+          { id: 'a', label: 'A', text: 'The other four SOLID principles are irrelevant to any software engineering context' },
+          { id: 'b', label: 'B', text: 'FDE scope changes rapidly and unpredictably mid-engagement, and if business logic depends directly on a concrete implementation rather than an abstraction, a change in what\'s available (like real customer system access arriving later) forces a rewrite instead of a swap' },
+          { id: 'c', label: 'C', text: 'Dependency Inversion is the only SOLID principle that applies to Python specifically' },
+          { id: 'd', label: 'D', text: 'This distinction is arbitrary and has no real justification' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The practical argument is specific to FDE\'s rapid-scope-change reality — depending on abstractions is what keeps a later change in the concrete implementation from forcing a rewrite of the logic that depends on it.',
+        incorrectExplanation:
+          'Think about how delayed customer access and evolving database credentials impact early development velocity without interface boundaries.',
+        hint: 'Decoupling business logic from external APIs lets you build, validate, and test against local mocks in week one before customer credentials arrive.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-fde-foundations-10-hexagonal-ports-adapters',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — HEXAGONAL ARCHITECTURE (PORTS & ADAPTERS)',
+      boundaryLabel: 'CORE DOMAIN & PORT BOUNDARY',
+      boundaryText:
+        'The ProvisioningService depends solely on the abstract DeviceRepository port. Concrete adapters (SQLite for local dev, Postgres for prod, or Cache decorators) plug in without modifying business logic.',
+      nodes: [
+        { id: 'driver', label: 'CLI / Webhook Trigger', kind: 'input' },
+        { id: 'domain', label: 'ProvisioningService (Core Logic)', kind: 'service' },
+        { id: 'boundary', label: 'DeviceRepository Port (Protocol)', kind: 'boundary', highlighted: true },
+        { id: 'adapter-sqlite', label: 'SqliteDeviceRepository (Week 1 Dev)', kind: 'adapter' },
+        { id: 'adapter-postgres', label: 'PostgresDeviceRepository (Prod)', kind: 'adapter' },
+        { id: 'adapter-cache', label: 'CachedDeviceRepository (Decorator)', kind: 'adapter' }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-10-mcq-01',
+        question:
+          'What specifically makes it possible to swap `SqliteDeviceRepository` for `CustomerApiDeviceRepository` without changing the provisioning logic?',
+        options: [
+          { id: 'a', label: 'A', text: 'SQLite and the customer\'s API happen to have identical underlying data formats' },
+          { id: 'b', label: 'B', text: 'The provisioning logic only ever calls methods on the `DeviceRepository` port\'s interface, never referencing SQLite or any storage detail directly, so any adapter satisfying that same interface is interchangeable' },
+          { id: 'c', label: 'C', text: 'The provisioning logic contains conditional checks for which storage backend is active' },
+          { id: 'd', label: 'D', text: 'Swapping adapters always requires rewriting the business logic; this scenario is unusual' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The swap works because the logic was never coupled to any adapter\'s implementation details — it only depends on the port\'s interface, which both adapters satisfy identically from the logic\'s point of view.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-10-mcq-02',
+        question:
+          'What would have gone wrong in week three if the provisioning logic had called SQLite directly instead of going through a `DeviceRepository` port?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing different would happen; the outcome would be identical either way' },
+          { id: 'b', label: 'B', text: 'Every place SQLite calls were sprinkled through the business logic would need to be found and rewritten to call the real customer API instead, turning a one-adapter swap into a risky, scattered rewrite of the logic itself' },
+          { id: 'c', label: 'C', text: 'The customer\'s real API would automatically become compatible with the SQLite calls' },
+          { id: 'd', label: 'D', text: 'The provisioning tool would stop working entirely with no possible fix' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct cost of skipping the port/adapter boundary — coupling business logic to a concrete implementation means a later swap requires finding and changing every coupled call site instead of writing one new adapter.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-10-mcq-03',
+        question:
+          'Why was building against a local SQLite mock in week one, before the customer\'s real device database was accessible, a sound decision rather than a risky shortcut?',
+        options: [
+          { id: 'a', label: 'A', text: 'Because the customer\'s real database was never actually going to be needed' },
+          { id: 'b', label: 'B', text: 'Because the hexagonal structure made that decision cheap to reverse later — the mock adapter could be swapped for a real one without touching the already-validated business logic, so building against the mock didn\'t lock in any real risk' },
+          { id: 'c', label: 'C', text: 'Because SQLite is technically identical to any production database system' },
+          { id: 'd', label: 'D', text: 'Because mocks are always safe regardless of how the code is structured' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The soundness of the decision depends entirely on the structure being in place — the same decision without the port/adapter boundary would have been a real risk, since it would have locked business logic to the mock\'s specifics.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-10-mcq-04',
+        question:
+          'What shared practical outcome do Single Responsibility and Open/Closed both reinforce, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'They guarantee code runs faster at scale' },
+          { id: 'b', label: 'B', text: 'Code structured around these principles tolerates rapid, discovery-driven scope change without requiring an increasingly risky rewrite each time the picture changes' },
+          { id: 'c', label: 'C', text: 'They eliminate the need for any testing' },
+          { id: 'd', label: 'D', text: 'They are only relevant to object-oriented languages, not Python specifically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames all three principles it discusses (SRP, Open/Closed, Dependency Inversion) as reinforcing the same practical outcome — tolerance for the kind of scope change that\'s normal in FDE engagements, not an abstract design purity goal.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-10-mcq-05',
+        question:
+          'Why does the practice loop specify passing the concrete adapter in via constructor injection, rather than having the provisioning logic import and instantiate `SqliteDeviceRepository` internally?',
+        options: [
+          { id: 'a', label: 'A', text: 'Constructor injection is required by Python syntax for any class to function' },
+          { id: 'b', label: 'B', text: 'Instantiating a concrete adapter internally would re-couple the logic to that specific implementation, defeating the purpose of depending only on the port\'s interface — injection keeps the logic agnostic to which adapter is actually supplied' },
+          { id: 'c', label: 'C', text: 'There is no practical difference between the two approaches' },
+          { id: 'd', label: 'D', text: 'Internal instantiation is always faster at runtime than injection' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'If the logic imports and constructs the concrete adapter itself, it\'s coupled to that specific class regardless of the interface existing — injection is what actually keeps the swap possible, echoing the same dependency-injection principle from the Facade pattern discussion in other parts of this platform.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-10-mcq-06',
+        question:
+          'Why can a `CachedDeviceRepository` wrap another `DeviceRepository` adapter and add caching, without the business logic ever needing to know a cache was introduced?',
+        options: [
+          { id: 'a', label: 'A', text: 'Caching requires modifying the business logic directly to check a cache before calling the repository' },
+          { id: 'b', label: 'B', text: '`CachedDeviceRepository` itself satisfies the same `DeviceRepository` port as any other adapter, so from the logic\'s perspective it\'s just another interchangeable implementation — the fact that it happens to wrap and delegate to a different adapter internally is invisible to the logic' },
+          { id: 'c', label: 'C', text: 'This kind of composition is not actually possible in a hexagonal architecture' },
+          { id: 'd', label: 'D', text: '`CachedDeviceRepository` must be a subclass of the business logic itself to function' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because the port defines the contract and any adapter satisfying it is interchangeable to the logic, an adapter is free to be implemented however it likes internally — including wrapping and delegating to another adapter — without that internal detail ever surfacing to the business logic depending on the port.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/11-linux-shell-and-scripting-for-fdes': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-11-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — DEFENSIVE BASH SCRIPTING',
+        question:
+          'What does `set -euo pipefail` do at the top of a bash script?',
+        options: [
+          { id: 'a', label: 'A', text: 'Makes the script run faster by skipping error checks' },
+          { id: 'b', label: 'B', text: 'Exits immediately on any command failure, on any reference to an unset variable, and on a failure anywhere in a pipeline (not just the last command) — preventing the script from silently continuing past a failed step' },
+          { id: 'c', label: 'C', text: 'Automatically fixes any errors the script encounters' },
+          { id: 'd', label: 'D', text: 'Suppresses all output from the script for cleaner logs' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Each flag closes a specific silent-failure gap: `-e` for command failures, `-u` for unset variables, `pipefail` for failures buried in the middle of a pipeline that would otherwise be masked by the last command\'s exit status.',
+        incorrectExplanation:
+          'Consider what happens in standard bash when an intermediate pipe command fails or when an unset variable evaluates to an empty string.',
+        hint: 'It enforces strict error handling: exiting on command failure (`-e`), failing on undefined variables (`-u`), and propagating pipeline errors (`-o pipefail`).'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-11-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — SCRIPTING LANGUAGE SELECTION BOUNDARY',
+        question:
+          'According to the lesson, which task is a better fit for a quick shell command than for a Python script?',
+        options: [
+          { id: 'a', label: 'A', text: 'A task involving complex branching logic and structured error handling that will run repeatedly in production' },
+          { id: 'b', label: 'B', text: 'A one-off question like "how many lines in this log file contain a specific error code," asked once and not expected to be repeated or maintained' },
+          { id: 'c', label: 'C', text: 'Anything that needs unit tests' },
+          { id: 'd', label: 'D', text: 'Any task that processes more than 100 lines of input' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The judgment line is about repetition, complexity, and cost of a mistake — a genuinely one-off, simple diagnostic question is shell\'s natural territory, while anything with real logic or lasting maintenance need belongs in Python where testing and typing tooling actually applies.',
+        incorrectExplanation:
+          'Look at where the complexity lies: OS process orchestration vs. structured data parsing and multi-step business logic.',
+        hint: 'Shell excels at piping native OS commands and process control; Python is required once complex data structures, JSON parsing, or API calls are involved.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-11-mcq-01',
+        question:
+          'Why does the lesson describe shell fluency as a baseline requirement rather than a nice-to-have for FDE work?',
+        options: [
+          { id: 'a', label: 'A', text: 'Shell scripts always run faster than equivalent Python programs' },
+          { id: 'b', label: 'B', text: 'An FDE frequently operates on infrastructure they didn\'t set up, often without a full IDE and sometimes without the ability to install new tools, making shell the tool that\'s reliably already available' },
+          { id: 'c', label: 'C', text: 'Customers require every FDE to use shell exclusively by contractual policy' },
+          { id: 'd', label: 'D', text: 'IDEs are technically incompatible with Linux servers' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The justification is about availability and constraint, not raw performance — shell is what\'s reliably present on unfamiliar infrastructure the FDE didn\'t set up and may not be able to modify.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-11-mcq-02',
+        question:
+          'You need to see the last hour of a specific systemd-managed service\'s log history to look for errors. Which command is the right tool?',
+        options: [
+          { id: 'a', label: 'A', text: '`ps aux`, since it shows all currently running processes' },
+          { id: 'b', label: 'B', text: '`journalctl -u <service> --since "1 hour ago"`, since `journalctl` pulls a service\'s full structured log history filterable by time range' },
+          { id: 'c', label: 'C', text: '`systemctl status <service>` alone, since it shows the complete log history with no time limit' },
+          { id: 'd', label: 'D', text: '`chmod 777` on the service\'s log directory' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`ps` shows current process state, not log history; `systemctl status` shows only a brief recent excerpt, not a full time-ranged query. `journalctl -u` with `--since` is specifically built for pulling filtered log history.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-11-mcq-03',
+        question:
+          'Why does the lesson single out `chmod 777` as a red flag on a customer\'s production server rather than an acceptable quick fix for a permission error?',
+        options: [
+          { id: 'a', label: 'A', text: '`chmod 777` is technically invalid syntax on most Linux systems' },
+          { id: 'b', label: 'B', text: 'It grants far more access than the actual problem requires, leaving a lasting security gap — the same least-privilege reasoning that applies to agent tool permissions applies to filesystem permissions' },
+          { id: 'c', label: 'C', text: 'Permission errors can never actually be fixed with `chmod`' },
+          { id: 'd', label: 'D', text: '`chmod 777` only affects files, never directories, making it ineffective for most fixes' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a direct application of least-privilege thinking from earlier security-focused lessons, just applied to filesystem permissions instead of agent tool access — granting maximal access to fix a narrow problem is the anti-pattern being flagged.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-11-mcq-04',
+        question:
+          'Why did the FDE in the 2am scenario write a defensive multi-step script instead of a single chained `systemctl restart` one-liner?',
+        options: [
+          { id: 'a', label: 'A', text: '`systemctl restart` is technically incapable of restarting any service' },
+          { id: 'b', label: 'B', text: 'One-liners are always slower to execute than multi-step scripts' },
+          { id: 'c', label: 'C', text: '' },
+          { id: 'd', label: 'D', text: 'The customer\'s server did not support shell scripts of any kind' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The risk being managed is a silent partial failure under time pressure — a defensive, explicitly-checked script surfaces a failure at the exact step it occurs rather than masking it inside a chained command.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-11-mcq-05',
+        question:
+          'Why does the lesson recommend quoting shell variables (`"$variable"`) rather than leaving them bare (`$variable`)?',
+        options: [
+          { id: 'a', label: 'A', text: 'Quoting is purely a stylistic convention with no functional effect' },
+          { id: 'b', label: 'B', text: 'Bare variables are subject to word-splitting and glob-expansion, which can cause surprising bugs when the variable\'s actual value contains spaces or special characters' },
+          { id: 'c', label: 'C', text: 'Bare variables are faster to type but always crash the script' },
+          { id: 'd', label: 'D', text: 'Quoting is only required for variables holding numeric values' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Unquoted variables undergo word-splitting and glob expansion by the shell, which is a real, common source of subtle bugs when a value contains spaces or shell-special characters — quoting prevents this.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-11-mcq-06',
+        question:
+          'Why does the suggested extension connect adding logging to the restart script back to the "enable" step from the FDE-role lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Logging has no relationship to enablement; the connection is incorrect' },
+          { id: 'b', label: 'B', text: 'A script that logs its own actions leaves a clear record for someone else — like the customer\'s own on-call engineer — who runs it later without the FDE present, which is exactly the capability-transfer goal "enable" describes' },
+          { id: 'c', label: 'C', text: 'Scripts without logging cannot technically be executed by anyone other than their original author' },
+          { id: 'd', label: 'D', text: 'This connection only applies if the script fails' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This ties the module\'s very first lesson (enable — transferring capability to the customer\'s own team) to a concrete practice here: a script that logs what it did is legible and safely re-runnable by someone who wasn\'t there when it was written, exactly the enablement goal.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/12-assessment-python-engineering-challenge': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-12-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — ARCHITECTURAL EVALUATION CRITERIA',
+        question:
+          'How does the rubric\'s "structural soundness" category propose checking whether the `LogSource` port is genuinely respected, rather than just nominally present?',
+        options: [
+          { id: 'a', label: 'A', text: 'Counting the number of lines of code in the `LogSource` interface definition' },
+          { id: 'b', label: 'B', text: 'Swapping the in-memory adapter for the file adapter should require zero changes to the summarization logic — if it doesn\'t, implementation details leaked through the supposed abstraction' },
+          { id: 'c', label: 'C', text: 'Checking whether the interface is named with the word "Port" in it' },
+          { id: 'd', label: 'D', text: 'Structural soundness cannot actually be verified and is a purely subjective judgment' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a concrete, checkable test rather than a subjective judgment — it directly verifies the hexagonal-architecture claim from the earlier lesson: if swapping adapters requires touching the logic, the port wasn\'t actually respected regardless of what the code looks like on the surface.',
+        incorrectExplanation:
+          'Consider how the rubric checks for clean separation of concerns and interface boundaries rather than just evaluating raw script length.',
+        hint: 'By checking that core aggregation and domain models depend only on abstract ports, allowing log sources and sinks to be swapped without modifying business logic.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-12-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — ROBUST STREAMING ERROR BOUNDARIES',
+        question:
+          'Per the challenge brief, what should happen when the tool encounters a malformed log line?',
+        options: [
+          { id: 'a', label: 'A', text: 'The entire tool should stop and exit immediately on the first malformed line' },
+          { id: 'b', label: 'B', text: 'The malformed line should be routed to a separate error count, not crash the entire run' },
+          { id: 'c', label: 'C', text: 'Malformed lines should be silently discarded with no record of how many were skipped' },
+          { id: 'd', label: 'D', text: 'Malformed lines should be automatically corrected and processed as if valid' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The brief is explicit: malformed input increments an error count rather than crashing the run or being silently dropped — a design decision that mirrors the earlier lesson\'s Hypothesis property about never raising unhandled exceptions on arbitrary input.',
+        incorrectExplanation:
+          'Think about how production streaming pipelines maintain resilience when processing noisy, multi-gigabyte customer log exports.',
+        hint: 'The analyzer must log a structured warning, record error telemetry, and continue streaming remaining records without aborting the batch.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-12-mcq-01',
+        question:
+          'What is the actual purpose of this assessment, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Teaching an entirely new Python library not covered elsewhere in the module' },
+          { id: 'b', label: 'B', text: 'Confirming that the module\'s individual tools (lazy iteration, validation, logging, hexagonal structure, testing) compose correctly into one coherent deliverable, the way they\'d need to on a real engagement — not testing any single new mechanism' },
+          { id: 'c', label: 'C', text: 'Testing typing speed under a strict time limit' },
+          { id: 'd', label: 'D', text: 'Determining whether the learner should use Python or a different language going forward' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This lesson is explicitly a composition check, not new content — its value is in proving the module\'s separate lessons actually integrate, which is a distinct skill from executing each one in isolation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-12-mcq-02',
+        question:
+          'According to the rubric\'s "test quality" criterion, what distinguishes a good property-based test from a weak one that technically satisfies the requirement?',
+        options: [
+          { id: 'a', label: 'A', text: 'A good property-based test must contain at least 100 lines of code' },
+          { id: 'b', label: 'B', text: 'A good property test exercises a meaningful property that would actually catch a real regression if one were introduced, not a trivial always-true assertion that technically runs Hypothesis but proves nothing' },
+          { id: 'c', label: 'C', text: 'Any test using the Hypothesis library automatically counts as high quality regardless of what it checks' },
+          { id: 'd', label: 'D', text: 'Test quality is measured purely by how long the test suite takes to run' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The rubric explicitly guards against gaming the checklist — merely having a Hypothesis test present isn\'t the bar; the test has to actually check something meaningful enough to catch a real regression.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-12-mcq-03',
+        question:
+          'Why does the practice loop suggest building the `InMemoryLogSource` adapter before the `FileLogSource` adapter?',
+        options: [
+          { id: 'a', label: 'A', text: 'In-memory adapters are always required to be built before file adapters by Python convention' },
+          { id: 'b', label: 'B', text: 'It lets the summarization logic be developed and tested immediately, without any real file-reading code needing to exist yet — the same "build against a lightweight local adapter first" pattern from the hexagonal-architecture lesson' },
+          { id: 'c', label: 'C', text: 'File-reading code is technically impossible to write in Python' },
+          { id: 'd', label: 'D', text: 'This ordering has no particular rationale; either order works identically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly reuses the earlier lesson\'s pattern — building against a fast, simple local adapter first lets the core logic get built and validated before the (often slower or less available) real adapter is ready.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-12-mcq-04',
+        question:
+          'What does the rubric\'s "operational hygiene" category evaluate?',
+        options: [
+          { id: 'a', label: 'A', text: 'How many total commits the project has' },
+          { id: 'b', label: 'B', text: 'Whether the environment is genuinely reproducible from a clean clone plus the lockfile, whether logs are structured and actually useful to someone else, and whether CI genuinely gates the PR rather than being decorative' },
+          { id: 'c', label: 'C', text: 'Whether the code uses tabs or spaces for indentation' },
+          { id: 'd', label: 'D', text: 'The total file count in the project directory' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Operational hygiene pulls together the toolchain, logging, and CI lessons from earlier in the module into one checkable category — genuinely reproducible, genuinely useful logs, and a CI check that actually blocks a broken PR rather than existing only nominally.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-12-mcq-05',
+        question:
+          'Why does the lesson argue that skipping a rubric item (e.g. coding directly against file I/O instead of through the `LogSource` port) produces a "noticeably worse, less defensible" result rather than merely a less polished one?',
+        options: [
+          { id: 'a', label: 'A', text: 'The rubric items are arbitrary stylistic preferences with no functional consequence' },
+          { id: 'b', label: 'B', text: 'Each rubric item corresponds to a real capability the deliverable loses without it (e.g. skipping the port means losing the ability to swap adapters or test in isolation) — the gap is functional, not cosmetic' },
+          { id: 'c', label: 'C', text: '"Less polished" and "less defensible" mean exactly the same thing in this context' },
+          { id: 'd', label: 'D', text: 'Skipping any rubric item makes the code fail to run entirely' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The rubric items were chosen because each maps to a real, demonstrated capability from earlier lessons (adapter swapping, catching regressions, reproducibility) — skipping one is a functional loss of that capability, not just a stylistic shortfall.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-12-mcq-06',
+        question:
+          'Why does the suggested extension recommend having a peer, or yourself after a day\'s gap, re-score the solution independently against the same rubric?',
+        options: [
+          { id: 'a', label: 'A', text: 'Independent re-scoring is purely a formality with no diagnostic value' },
+          { id: 'b', label: 'B', text: 'A significant disagreement between the original and independent score on any category usually means that rubric criterion was more ambiguous in practice than it seemed while writing the code, which is worth investigating directly' },
+          { id: 'c', label: 'C', text: 'A second scoring pass is only useful to catch typos in the code' },
+          { id: 'd', label: 'D', text: 'Rubric criteria are never ambiguous, so disagreement always indicates a scoring mistake, never an ambiguous criterion' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This echoes the "define success before building" discipline from the problem-discovery lesson — a rubric that produces consistent scores across independent evaluators is doing its job; disagreement is diagnostic of where the rubric (or the solution) was more ambiguous than assumed.'
+      }
+    ]
   }
 };
 
