@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/StudyTracker.Api.csproj": {}
+    "/src/api/StudyTracker.Api.csproj": {}
   },
   "projects": {
-    "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/StudyTracker.Api.csproj": {
+    "/src/api/StudyTracker.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/StudyTracker.Api.csproj",
+        "projectUniqueName": "/src/api/StudyTracker.Api.csproj",
         "projectName": "StudyTracker.Api",
-        "projectPath": "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/StudyTracker.Api.csproj",
-        "packagesPath": "/Users/raghuram/.nuget/packages/",
-        "outputPath": "/Users/raghuram/Documents/GitHub/scaler-education-journey/api/obj/",
+        "projectPath": "/src/api/StudyTracker.Api.csproj",
+        "packagesPath": "/root/.nuget/packages/",
+        "outputPath": "/src/api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/raghuram/.nuget/NuGet/NuGet.Config"
+          "/root/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -43,6 +43,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Docker.DotNet": {
+              "target": "Package",
+              "version": "[3.125.15, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.28, )"
@@ -85,7 +89,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.424/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.424/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

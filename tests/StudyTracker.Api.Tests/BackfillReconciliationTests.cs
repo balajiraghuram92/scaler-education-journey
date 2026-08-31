@@ -129,10 +129,7 @@ public class BackfillReconciliationTests
         var expectedJavaModuleSlugs = new HashSet<string>(StringComparer.Ordinal)
         {
             "design-principles-patterns",
-            "applied-design-machine-coding",
-            "ai-first-backend-capstone-primer",
-            "ai-first-backend-capstone-advanced",
-            "production-ai-enabled-system"
+            "applied-machine-coding"
         };
         var expectedStandaloneModuleSlugs = new HashSet<string>(StringComparer.Ordinal)
         {

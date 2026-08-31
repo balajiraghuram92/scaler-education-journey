@@ -24,7 +24,7 @@ public class FileBasedConfigurationManagerTest {
     private static Class<? extends FileBasedConfigurationManager> implementationClass;
 
     @TempDir
-    private Path tempDir;
+    Path tempDir;
 
     private Path tempConfigFile;
 
