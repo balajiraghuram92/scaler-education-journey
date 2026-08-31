@@ -3473,6 +3473,813 @@ const lessonInteractions = {
           'Closing the loop — converting a found failure into a permanent automated test — is what prevents the same failure mode from being silently rediscovered later; it\'s the same disciplined instinct as a regression test in traditional software, applied to a system that\'s otherwise harder to reproduce failures in on demand.'
       }
     ]
+  },
+  'fde-curriculum/fde-foundations/01-the-fde-role-customer-embedded-engineering': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-01-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — FDE ACCOUNTABILITY & SCOPE',
+        question:
+          'What is the key practical difference between an FDE\'s accountability and a typical product engineer\'s?',
+        options: [
+          { id: 'a', label: 'A', text: 'FDEs never write production code, only prototypes' },
+          { id: 'b', label: 'B', text: 'Judgment calls a product engineer would escalate to a PM or tech lead — scope, first slice, demo-readiness — are the FDE\'s own to make in real time, often with few or no other engineers on-site' },
+          { id: 'c', label: 'C', text: 'FDEs work exclusively on internal company tools, never customer-facing systems' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference in accountability between the two roles' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The embedded, often-solo nature of FDE engagements means scope and judgment decisions that would normally go through a PM or tech lead review become the FDE\'s direct responsibility, made under real customer-facing time pressure.',
+        incorrectExplanation:
+          'Consider where decisions about scope, first slice, and demo-readiness are made and who is present when they are made.',
+        hint: 'Product engineers escalate scope and readiness decisions to PMs; embedded FDEs make these judgment calls in real time.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-01-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — THE DISCIPLINE OF NARROW SLICES',
+        question:
+          'What is the lesson\'s specific cost argument for validating a narrow slice before building comprehensively?',
+        options: [
+          { id: 'a', label: 'A', text: 'Narrow slices always take less total engineering time than comprehensive builds, regardless of correctness' },
+          { id: 'b', label: 'B', text: 'It\'s far cheaper to be wrong about a narrow, validated slice than to be comprehensively wrong across a whole platform\'s worth of unvalidated assumptions' },
+          { id: 'c', label: 'C', text: 'Comprehensive builds are technically infeasible for any FDE engagement' },
+          { id: 'd', label: 'D', text: 'There is no cost difference; the choice is purely about developer preference' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The argument isn\'t that narrow is always faster in raw hours — it\'s that the blast radius of being wrong is much smaller when the wrong guess is scoped to one validated slice rather than baked into an entire platform\'s assumptions.',
+        incorrectExplanation:
+          'Think about what happens when a full platform is built on an unverified guess versus validating assumptions on a small slice first.',
+        hint: 'Validating a narrow slice limits the cost of being wrong about unvalidated assumptions.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-01-mcq-01',
+        question:
+          'How does the lesson define FDE success, in contrast to typical product-engineering success?',
+        options: [
+          { id: 'a', label: 'A', text: 'Number of features shipped against a quarterly roadmap' },
+          { id: 'b', label: 'B', text: 'A specific, real customer outcome actually achieved — not roadmap completeness or code correctness alone' },
+          { id: 'c', label: 'C', text: 'Lines of code delivered per engagement' },
+          { id: 'd', label: 'D', text: 'Number of customer meetings attended' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that FDE success is judged by a concrete outcome the customer experiences (a process now takes minutes instead of hours), not by shipped-feature count or code that merely runs without error.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-01-mcq-02',
+        question:
+          'What is the correct order of the FDE loop described in the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Prototype, discover, validate, instrument, enable' },
+          { id: 'b', label: 'B', text: 'Discover, prototype, instrument, validate, enable' },
+          { id: 'c', label: 'C', text: 'Enable, discover, prototype, validate, instrument' },
+          { id: 'd', label: 'D', text: 'Instrument, validate, discover, prototype, enable' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The loop starts with understanding the real need (discover), builds the smallest provable slice (prototype), makes its behavior visible (instrument), confirms the actual outcome (validate), and transfers capability to the customer\'s own team (enable).'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-01-mcq-03',
+        question:
+          'Why did the FDE in the scenario spend day one shadowing a dispatcher instead of starting to build against "add AI to our dispatch process" directly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Shadowing is a mandatory company policy unrelated to problem discovery' },
+          { id: 'b', label: 'B', text: 'The literal request was too vague to build against without guessing; shadowing the real workflow was necessary to discover the actual, narrow pain point (the 20-minute cross-reference step) before committing to a build' },
+          { id: 'c', label: 'C', text: 'The FDE didn\'t have the technical skill to start building yet' },
+          { id: 'd', label: 'D', text: 'The operations lead explicitly forbade any code from being written on day one' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the discover step in action — building against the literal vague request risks comprehensively solving the wrong problem, whereas direct observation surfaced the actual, specific, narrow pain point worth targeting first.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-01-mcq-04',
+        question:
+          'Why did the FDE log the script\'s recommendation against what the dispatcher actually chose, run on real data in front of the dispatcher, rather than presenting the work in a slide deck?',
+        options: [
+          { id: 'a', label: 'A', text: 'Slide decks are technically impossible to produce for a dispatch system' },
+          { id: 'b', label: 'B', text: 'A customer trusts evidence of real behavior on real data far more than a verbal promise or a slide describing intended behavior' },
+          { id: 'c', label: 'C', text: 'Logging output has no bearing on customer trust, it\'s purely for the FDE\'s own debugging' },
+          { id: 'd', label: 'D', text: 'This step was unnecessary and added no value beyond the working script itself' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Instrumentation makes the slice\'s actual behavior visible and provable, which is precisely why it earns more trust than a description or promise of what the system will eventually do.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-01-mcq-05',
+        question:
+          'Why does the lesson treat "enable" (transferring capability to the customer\'s own team) as a distinct, necessary step rather than an optional nice-to-have?',
+        options: [
+          { id: 'a', label: 'A', text: 'Enable is only relevant for engagements longer than six months' },
+          { id: 'b', label: 'B', text: 'An engagement that ends with only the FDE understanding the system hasn\'t actually transferred capability, which undermines the point of embedding with the customer in the first place' },
+          { id: 'c', label: 'C', text: 'Customers never want to operate systems themselves, they always prefer full outsourcing' },
+          { id: 'd', label: 'D', text: 'Enable is a formality with no real impact on engagement success' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The value of an FDE engagement isn\'t just the artifact built, but the customer\'s own team\'s ability to operate and extend it — skipping enablement leaves that value locked inside the FDE\'s own head.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-01-mcq-06',
+        question:
+          'The operations lead asks the FDE to extend the dispatch solution to an unrelated warehouse process. What is the correct next step, according to the lesson\'s framework?',
+        options: [
+          { id: 'a', label: 'A', text: 'Assume the first week\'s solution architecture generalizes and extend it directly without further discovery' },
+          { id: 'b', label: 'B', text: 'Apply the discover step again for the new process — the first slice\'s success doesn\'t imply the new request\'s actual need is already understood' },
+          { id: 'c', label: 'C', text: 'Decline the request since FDEs should only work on one process per engagement' },
+          { id: 'd', label: 'D', text: 'Skip straight to instrumenting a solution, since validation already happened once this engagement' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Each new request carries its own risk of being a vague ask masking a different real need — the loop restarts at discover for the new process rather than assuming the prior slice\'s approach transfers automatically.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/02-problem-discovery-and-solution-thinking-for-fdes': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-02-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — STATED REQUEST VS ROOT CAUSE',
+        question:
+          'Why is "add AI to our dispatch process" described as a solution-shaped request rather than a problem statement?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is too short to be a valid request' },
+          { id: 'b', label: 'B', text: 'It names a solution category (AI) rather than describing the actual current-state pain, its impact, or its cause — there\'s no way to check whether a given build actually addresses it' },
+          { id: 'c', label: 'C', text: 'It explicitly mentions a specific technology, which automatically disqualifies it as a problem statement' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference between this request and a problem statement' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A request framed around a solution shape (AI, automation, a dashboard) doesn\'t commit to what specifically should improve, which is exactly why it can\'t be used to check whether a proposed build actually addresses the real need.',
+        incorrectExplanation:
+          'Distinguish between a customer prescribing an imagined solution versus describing the underlying friction.',
+        hint: 'Customers often state an imagined solution rather than the underlying operational friction.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-02-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — FALSIFIABLE SUCCESS SIGNALS',
+        question:
+          'What specific risk does defining a measurable success signal before building protect against, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The risk of writing too much code before starting' },
+          { id: 'b', label: 'B', text: 'Unconsciously redefining success after the fact to match whatever the prototype happened to do well, producing a demo that looks convincing but was never tested against the real bar' },
+          { id: 'c', label: 'C', text: 'The risk of the customer changing their mind about wanting the feature at all' },
+          { id: 'd', label: 'D', text: 'There is no real risk; this step is purely a formality' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Without a signal fixed in advance, it\'s easy to retroactively frame whatever the prototype does as "success" — defining it first is what keeps validation honest rather than self-serving.',
+        incorrectExplanation:
+          'Consider what happens at demo time if there is no objective, measurable definition of success.',
+        hint: 'Without an agreed falsifiable metric, neither side can objectively prove whether the prototype solved the problem.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-02-mcq-01',
+        question:
+          'How does the lesson say you know you\'ve reached the actual underlying need during root-cause questioning?',
+        options: [
+          { id: 'a', label: 'A', text: 'After exactly three rounds of "why," regardless of the answers' },
+          { id: 'b', label: 'B', text: 'When the next "why" just restates the same answer differently instead of moving from a symptom toward a new cause' },
+          { id: 'c', label: 'C', text: 'As soon as the customer stops answering questions' },
+          { id: 'd', label: 'D', text: 'When the answer includes a specific dollar figure' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The technique isn\'t a fixed number of iterations — it\'s iterating until further questioning stops surfacing new causal information, which signals you\'ve reached something close to the actual root need.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-02-mcq-02',
+        question:
+          'What three components make up the problem-statement format the lesson recommends?',
+        options: [
+          { id: 'a', label: 'A', text: 'Solution, timeline, and budget' },
+          { id: 'b', label: 'B', text: 'Current state, impact, and cause' },
+          { id: 'c', label: 'C', text: 'Stakeholder, priority, and deadline' },
+          { id: 'd', label: 'D', text: 'Feature list, acceptance criteria, and owner' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A problem statement describes what happens today concretely (current state), what it costs (impact), and why it happens (cause) — all without naming a solution, which is what makes it checkable against any proposed fix.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-02-mcq-03',
+        question:
+          'In the scenario, the success signal "misassigned deliveries drop to 0-1/week" was derived directly from which part of the problem statement?',
+        options: [
+          { id: 'a', label: 'A', text: 'The cause line (no shared availability view)' },
+          { id: 'b', label: 'B', text: 'The impact line (an average of 2 misassigned deliveries per week)' },
+          { id: 'c', label: 'C', text: 'The current-state line describing the 20-minute manual step' },
+          { id: 'd', label: 'D', text: 'It was invented independently of the problem statement' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The measurable success signal is a direct, checkable transformation of the impact line\'s number — this is exactly why writing a specific, numeric impact matters, not just a qualitative description of harm.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-02-mcq-04',
+        question:
+          'Why can\'t "reduce dispatch errors" function as a validation signal the way "misassigned deliveries drop from 2/week to 0-1/week, measured over two weeks" can?',
+        options: [
+          { id: 'a', label: 'A', text: '"Reduce dispatch errors" is grammatically incorrect as a goal statement' },
+          { id: 'b', label: 'B', text: '"Reduce dispatch errors" has no specific baseline, target, or measurement window, so there\'s no way to check directly against real data whether it was actually achieved' },
+          { id: 'c', label: 'C', text: 'Vague goals are always false, while specific goals are always true' },
+          { id: 'd', label: 'D', text: 'There is no practical difference between the two phrasings' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A falsifiable signal names a baseline, a target, and how/when it\'s measured — "reduce" alone could be satisfied by an improvement of any size at any time, which makes it impossible to fail and therefore useless as a real check.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-02-mcq-05',
+        question:
+          'What is the main risk of building directly against "add AI to our dispatch process" instead of the derived problem statement?',
+        options: [
+          { id: 'a', label: 'A', text: 'The build would be technically impossible to implement' },
+          { id: 'b', label: 'B', text: 'The build could comprehensively address the wrong 80% of "dispatch" while missing the specific 20-minute cross-reference step that was actually causing the measurable harm' },
+          { id: 'c', label: 'C', text: 'The customer would immediately reject any AI-labeled solution' },
+          { id: 'd', label: 'D', text: 'There is no meaningful risk difference between the two starting points' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Without the discovery work, "dispatch" is broad enough that a technically impressive build could easily target a part of the process that isn\'t actually where the real, measurable pain lives.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-02-mcq-06',
+        question:
+          'What does it demonstrate if two genuinely different solution approaches can both satisfy the same success signal derived from a problem statement?',
+        options: [
+          { id: 'a', label: 'A', text: 'The problem statement was written incorrectly if more than one solution satisfies it' },
+          { id: 'b', label: 'B', text: 'A well-written problem statement and success signal constrain what "success" means without prematurely constraining how to achieve it, leaving room for genuine solution-design judgment' },
+          { id: 'c', label: 'C', text: 'Success signals are meaningless if multiple solutions can satisfy them' },
+          { id: 'd', label: 'D', text: 'This situation should never occur in well-scoped FDE work' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A good problem statement fixes the outcome bar, not the implementation — leaving multiple valid solution shapes open is a feature of this discipline, not a flaw, since it preserves engineering judgment about how to get there.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/03-python-toolchain-and-environment-setup-pyenv-uv-ruff-mypy': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-03-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — MODERN PYTHON TOOLCHAIN CONSOLIDATION',
+        question:
+          'Which set of tools\' roles does uv consolidate into a single Rust binary?',
+        options: [
+          { id: 'a', label: 'A', text: 'flake8, black, and isort' },
+          { id: 'b', label: 'B', text: 'pip, virtualenv, poetry, and pyenv' },
+          { id: 'c', label: 'C', text: 'pytest, coverage, and tox' },
+          { id: 'd', label: 'D', text: 'mypy and pyright' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'uv handles Python version management (pyenv\'s former role), virtual environment creation (virtualenv), and dependency resolution/installation (pip and poetry) all in one fast native tool — the first group listed (flake8/black/isort) is ruff\'s consolidation, not uv\'s.',
+        incorrectExplanation:
+          'Look at the full stack of separate legacy tools (pip, virtualenv, pip-tools, poetry) that uv replaces.',
+        hint: 'uv unifies Python version management, virtualenv creation, package resolution, and locking in a single fast tool.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-03-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — LINTING VS STATIC TYPE CHECKING',
+        question:
+          'What category of bug does mypy catch that ruff\'s linting does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Missing semicolons at the end of statements' },
+          { id: 'b', label: 'B', text: 'Type mismatches that are syntactically valid Python but semantically wrong, like passing a `str` where a function signature declares `int`' },
+          { id: 'c', label: 'C', text: 'Unused imports' },
+          { id: 'd', label: 'D', text: 'Inconsistent indentation' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'ruff\'s linting and formatting operate on syntax and style; mypy performs static type analysis, catching a distinct category of bug — type mismatches — that\'s syntactically valid but semantically incorrect, which is exactly why both tools are used together, not as substitutes for each other.',
+        incorrectExplanation:
+          'Distinguish between fast AST linting and deep static type-checker cross-module analysis.',
+        hint: 'ruff checks formatting and AST lint rules; mypy verifies type compatibility across module boundaries.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-03-mcq-01',
+        question:
+          'What problem did pyenv originally solve?',
+        options: [
+          { id: 'a', label: 'A', text: 'Linting and formatting Python code' },
+          { id: 'b', label: 'B', text: 'Managing multiple installed Python versions on one machine and letting a project pin which version it needs, so different projects on the same laptop don\'t conflict' },
+          { id: 'c', label: 'C', text: 'Resolving and locking third-party package dependency versions' },
+          { id: 'd', label: 'D', text: 'Running Python tests' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'pyenv\'s job was specifically Python-version management via shims and a project-level `.python-version` file — a distinct concern from dependency resolution (pip/poetry) or code quality (flake8/black), which uv and ruff respectively absorbed.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-03-mcq-02',
+        question:
+          'In the modern toolchain the lesson describes, where does uv, ruff, mypy, and pytest configuration typically live?',
+        options: [
+          { id: 'a', label: 'A', text: 'Each tool requires its own separate config file, with no consolidation possible' },
+          { id: 'b', label: 'B', text: 'A single `pyproject.toml` file, replacing the older sprawl of `setup.py`, `setup.cfg`, `.flake8`, and `mypy.ini`' },
+          { id: 'c', label: 'C', text: 'Environment variables set in the shell profile' },
+          { id: 'd', label: 'D', text: 'A `Dockerfile` is required to configure any of these tools' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`pyproject.toml` has become the single configuration surface for the whole modern Python toolchain, eliminating the need to hunt across several separate config files scattered through the project.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-03-mcq-03',
+        question:
+          'Why did the inherited script "work fine" on the customer\'s laptop but fail on the FDE\'s machine?',
+        options: [
+          { id: 'a', label: 'A', text: 'The FDE\'s machine had a corrupted Python installation' },
+          { id: 'b', label: 'B', text: 'The project had no lockfile and no pinned versions, so each machine\'s `pip install` independently resolved to whatever compatible versions happened to be latest at install time, and those had drifted between machines over time' },
+          { id: 'c', label: 'C', text: 'The script used a Python syntax feature that doesn\'t exist on any machine but the customer\'s' },
+          { id: 'd', label: 'D', text: 'The customer\'s laptop had a newer Python version than the FDE\'s machine, which is always the cause of import errors' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Unpinned dependencies mean "works on my machine" is really "happens to resolve favorably on my machine at this point in time" — exactly the fragility a lockfile is designed to eliminate.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-03-mcq-04',
+        question:
+          'Why does the lesson say deleting and recreating the environment from the lockfile is the real test of reproducibility, rather than just confirming the project currently runs?',
+        options: [
+          { id: 'a', label: 'A', text: 'Deleting the environment is required by uv\'s license terms' },
+          { id: 'b', label: 'B', text: 'A project that currently runs might still be relying on stale, already-installed packages that wouldn\'t actually be reproduced from a clean install — deleting and rebuilding from the lockfile is what actually proves the pinned versions are sufficient' },
+          { id: 'c', label: 'C', text: 'This step has no diagnostic value beyond what simply running the project already shows' },
+          { id: 'd', label: 'D', text: 'Lockfiles cannot be trusted under any circumstances without manual verification of every line' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A currently-working environment could be masking a gap in the lockfile if it still contains leftover packages from before the lockfile existed — only a clean rebuild proves the lockfile alone is sufficient to reproduce a working environment.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-03-mcq-05',
+        question:
+          'Why does the lesson argue toolchain consolidation (uv, ruff) matters more for FDEs specifically than for engineers working on one long-lived internal codebase?',
+        options: [
+          { id: 'a', label: 'A', text: 'Consolidated tools are only available to FDE-specific accounts' },
+          { id: 'b', label: 'B', text: 'FDEs repeatedly stand up clean environments on unfamiliar customer infrastructure they didn\'t originally build, so fewer tools and a single lockfile reduce the number of ways that unfamiliar environment can silently diverge from what worked elsewhere' },
+          { id: 'c', label: 'C', text: 'Internal-codebase engineers never need reproducible environments' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference in how this benefit applies across roles' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The recurring pattern of standing up environments on unfamiliar customer infrastructure is exactly where fewer moving parts and a single source of pinned truth (the lockfile) pays off most directly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-03-mcq-06',
+        question:
+          'Why would an FDE want ruff, mypy, and pytest in a separate dependency group from the project\'s runtime dependencies, when deploying code into a customer\'s production environment?',
+        options: [
+          { id: 'a', label: 'A', text: 'Development tools are technically incompatible with production Python versions' },
+          { id: 'b', label: 'B', text: 'The customer\'s production environment should only need what the running system actually requires — installing development-only tooling into it adds unnecessary attack surface and bloat with no runtime benefit' },
+          { id: 'c', label: 'C', text: 'Separating dependency groups is required by uv and cannot be configured otherwise' },
+          { id: 'd', label: 'D', text: 'There is no meaningful reason to separate them; it\'s purely a style preference' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Development tooling has no role in what the deployed system actually needs to run — keeping it in a separate dependency group means the production install stays minimal, which matters for both attack surface and deployment size in a customer\'s environment.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/04-iterators-generators-and-comprehensions': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-04-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — ITERTOOLS.GROUPBY CONSECUTIVE KEY CONTRACT',
+        question:
+          '`itertools.groupby` is used on a list of records that is NOT sorted by the grouping key. What happens?',
+        options: [
+          { id: 'a', label: 'A', text: 'It raises a `ValueError` requiring the input to be sorted first' },
+          { id: 'b', label: 'B', text: 'It silently produces multiple separate groups for the same key wherever that key happens to reappear in the unsorted input order, with no error raised — it groups only consecutive equal keys, and does not sort first' },
+          { id: 'c', label: 'C', text: 'It automatically sorts the input before grouping, so the result is always correct regardless of input order' },
+          { id: 'd', label: 'D', text: 'It returns an empty result if the input isn\'t sorted' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the specific trap the lesson calls out: `groupby` only groups consecutive matches and never sorts, so unsorted input produces a plausible-looking but wrong result with no error — the fix is always sorting by the same key first.',
+        incorrectExplanation:
+          'Remember that groupby does not build a hash table; it breaks groups whenever the key changes in stream order.',
+        hint: 'itertools.groupby only groups consecutive identical keys; unsorted input produces multiple fragmented groups for the same key.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-04-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — STREAMING MEMORY EFFICIENCY',
+        question:
+          'Why did fixing the CSV pipeline\'s memory problem require only changing list comprehensions to generator expressions, with no change to the CSV library or the write step?',
+        options: [
+          { id: 'a', label: 'A', text: 'The CSV library needed to be replaced with a streaming-specific alternative' },
+          { id: 'b', label: 'B', text: 'The CSV reader already yields rows one at a time as an iterator, and the write step already consumes its input one item at a time — the only place eager materialization was introduced was the intermediate list comprehensions, so removing just those restores the pipeline\'s lazy, constant-memory property end to end' },
+          { id: 'c', label: 'C', text: 'The write step needed to be rewritten to accept a list instead of an iterator' },
+          { id: 'd', label: 'D', text: 'This fix is incomplete and additional library changes were actually required' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Since both endpoints of the pipeline (the reader and the writer) were already iterator-based, the bug was isolated entirely to the eager list comprehensions in the middle — replacing just those with generator expressions was sufficient to make the whole chain lazy again.',
+        incorrectExplanation:
+          'Consider how generator expressions change evaluation from eager in-memory materialization to lazy row-by-row streaming.',
+        hint: 'Generators yield records one at a time, keeping memory constant O(1) regardless of file size.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-04-mcq-01',
+        question:
+          'What makes a Python function a generator function?',
+        options: [
+          { id: 'a', label: 'A', text: 'It must be decorated with `@generator`' },
+          { id: 'b', label: 'B', text: 'It returns a list explicitly' },
+          { id: 'c', label: 'C', text: '' },
+          { id: 'd', label: 'D', text: 'It must not take any arguments' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Containing `yield` is what transforms a function\'s calling convention — instead of running to completion and returning once, calling it produces a generator object whose execution suspends and resumes across `__next__` calls.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-04-mcq-02',
+        question:
+          'What happens to a generator\'s local variables and loop position between successive calls to `__next__`?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are reset to their initial values on every call' },
+          { id: 'b', label: 'B', text: 'They are suspended and preserved exactly as they were, resuming from that point on the next call, rather than being recomputed from scratch' },
+          { id: 'c', label: 'C', text: 'They are discarded, and the generator has no memory of prior calls at all' },
+          { id: 'd', label: 'D', text: 'They are stored in a global variable accessible outside the generator' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This suspend-and-resume behavior is exactly what makes laziness possible — the generator picks up exactly where it left off rather than restarting, which is why it can produce values one at a time without recomputing prior state.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-04-mcq-03',
+        question:
+          'You need to sort a moderately-sized collection of transformed values and then index into it repeatedly afterward. Which is the more appropriate choice, and why?',
+        options: [
+          { id: 'a', label: 'A', text: 'A generator expression, since it\'s always more memory-efficient regardless of use case' },
+          { id: 'b', label: 'B', text: 'A list comprehension, since you genuinely need the full materialized list to sort and repeatedly index into it — a generator would be consumed after one pass and couldn\'t support repeated indexing' },
+          { id: 'c', label: 'C', text: 'Neither is appropriate; only a dict comprehension supports repeated indexing' },
+          { id: 'd', label: 'D', text: 'It doesn\'t matter, the two are functionally interchangeable in every case' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A generator is single-pass and doesn\'t support indexing or being iterated more than once — when the full collection is genuinely needed for repeated access, a list comprehension is the correct choice despite using more memory upfront.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-04-mcq-04',
+        question:
+          'Why did the first CSV-processing attempt work on a small sample file but run out of memory on the customer\'s actual multi-gigabyte export?',
+        options: [
+          { id: 'a', label: 'A', text: 'The CSV library used is fundamentally incompatible with large files' },
+          { id: 'b', label: 'B', text: 'Building a full list of every parsed row with a list comprehension before filtering means the entire dataset must exist in memory at once, which only becomes a problem once the dataset is large enough to exceed available memory' },
+          { id: 'c', label: 'C', text: 'Python cannot process files larger than a few megabytes under any circumstances' },
+          { id: 'd', label: 'D', text: 'The customer\'s export file was corrupted' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The list comprehension\'s eager materialization was invisible at small scale (a small list fits in memory trivially) and only became a real failure once the input size grew large enough to matter — exactly the kind of bug that passes local testing and fails in production.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-04-mcq-05',
+        question:
+          '`itertools.islice(generator, 5)` is used to get the first 5 values from a generator that could in principle produce millions of values. What happens to the values beyond the first 5?',
+        options: [
+          { id: 'a', label: 'A', text: 'All millions of values are computed first, and only the first 5 are returned' },
+          { id: 'b', label: 'B', text: 'They are never computed at all — `islice` stops pulling from the underlying generator once it has produced the requested 5 values, preserving laziness' },
+          { id: 'c', label: 'C', text: '`islice` raises an error if the generator could produce more than the requested count' },
+          { id: 'd', label: 'D', text: 'The generator is converted to a list internally before slicing' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`islice` is itself lazy — it only pulls as many values from the underlying iterator as actually requested, which is exactly why it\'s useful for "give me the first N" without forcing the full (potentially huge or infinite) sequence to be computed.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-04-mcq-06',
+        question:
+          'Adding a running count of filtered-out rows to the lazy CSV pipeline, without breaking its constant-memory property, requires which approach?',
+        options: [
+          { id: 'a', label: 'A', text: 'Converting the entire pipeline back into list comprehensions so the filtered rows can be counted with `len()`' },
+          { id: 'b', label: 'B', text: 'Accumulating a simple counter variable that\'s incremented as each row is evaluated within the existing generator chain, rather than collecting filtered rows into a list to count them afterward' },
+          { id: 'c', label: 'C', text: 'This cannot be done without breaking the pipeline\'s lazy property' },
+          { id: 'd', label: 'D', text: 'Running the pipeline twice, once for the data and once for the count' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A scalar counter incremented inline as the pipeline processes each item adds negligible, constant memory — the key insight is that accumulating a small piece of state alongside a generator chain doesn\'t require materializing the underlying data, only collecting individual items into a list would.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/05-closures-decorators-and-context-managers': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-05-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — CLOSURE LATE-BINDING PITFALL',
+        question:
+          'What is the standard fix for the late-binding closure gotcha in `[lambda: i for i in range(3)]`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Use a `for` loop instead of a list comprehension, which fixes the issue automatically' },
+          { id: 'b', label: 'B', text: 'Pass the loop variable as a default argument, `lambda i=i: i`, which captures the current value at each iteration instead of a shared reference to the loop variable' },
+          { id: 'c', label: 'C', text: 'This behavior cannot be fixed and must be avoided by never using closures in loops' },
+          { id: 'd', label: 'D', text: 'Rename the loop variable to something other than `i`' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Default argument values are evaluated once, at function-definition time, which forces early binding — capturing the current value of `i` at each iteration rather than a shared reference to the loop variable itself.',
+        incorrectExplanation:
+          'Remember that Python closures look up variables in the enclosing scope when called, not when defined, unless bound via default args.',
+        hint: 'Use default argument assignment (lambda i=i: i) to capture the value of the loop variable at definition time.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-05-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — CONTEXT MANAGER YIELD BOUNDARY',
+        question:
+          'In a generator function decorated with `@contextlib.contextmanager`, what do the code before `yield` and the code after `yield` correspond to?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both sections run as `__enter__`; there is no equivalent of `__exit__` in this pattern' },
+          { id: 'b', label: 'B', text: 'Code before `yield` runs as `__enter__` (with the yielded value bound by `as`); code after `yield` runs as `__exit__`, guaranteed to execute even if the `with` block\'s body raised' },
+          { id: 'c', label: 'C', text: 'Code before `yield` is optional and has no special meaning' },
+          { id: 'd', label: 'D', text: 'The code after `yield` only runs if no exception occurred in the `with` block' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This maps the generator\'s structure directly onto the context manager protocol — critically, the code after `yield` runs regardless of whether the `with` block succeeded or raised, which is what provides the cleanup guarantee.',
+        incorrectExplanation:
+          'Think about how the with statement enters and exits the block around the single yielded value.',
+        hint: 'Code before yield executes during __enter__; code after yield in a finally block executes during __exit__.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-05-mcq-01',
+        question:
+          'Does a closure capture the value of an enclosing-scope variable at the moment the closure is created, or a reference to the variable itself?',
+        options: [
+          { id: 'a', label: 'A', text: 'A copy of the value at the moment the closure is created, permanently fixed' },
+          { id: 'b', label: 'B', text: 'A reference to the variable itself — if the variable\'s value changes after the closure is created but before it\'s called, the closure sees the updated value, not a snapshot from creation time' },
+          { id: 'c', label: 'C', text: 'Closures cannot access enclosing-scope variables at all' },
+          { id: 'd', label: 'D', text: 'It depends on whether the variable is a string or a number' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This "by reference, not value-at-definition-time" behavior is exactly what causes the late-binding loop-variable gotcha — every closure created in the loop shares the same underlying variable, not an independent snapshot.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-05-mcq-02',
+        question:
+          'What problem does `functools.wraps` solve when writing a decorator?',
+        options: [
+          { id: 'a', label: 'A', text: 'Without it, the decorator fails to execute at all' },
+          { id: 'b', label: 'B', text: 'Without it, the wrapper function silently replaces the original function\'s `__name__`, docstring, and other metadata, which breaks introspection, debugging tools, and anything relying on the function\'s identity' },
+          { id: 'c', label: 'C', text: 'It is required for a decorator to accept arguments' },
+          { id: 'd', label: 'D', text: 'It improves the runtime performance of the wrapped function' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A decorator without `functools.wraps` still works functionally, but the wrapped function reports the wrapper\'s own name and docstring instead of the original\'s, which silently breaks introspection and debugging.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-05-mcq-03',
+        question:
+          'Why does a decorator that itself takes arguments, like `@retry(times=3)`, need an extra level of function nesting compared to a plain `@decorator`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Parameterized decorators do not actually require any extra nesting' },
+          { id: 'b', label: 'B', text: 'The outermost function has to accept the decorator\'s own arguments (`times=3`) and return the actual decorator function, which then accepts and wraps the target function — three levels deep total' },
+          { id: 'c', label: 'C', text: 'Python requires exactly three levels of nesting for every decorator, parameterized or not' },
+          { id: 'd', label: 'D', text: 'The extra nesting is only needed if `functools.wraps` is also used' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`@retry(times=3)` first calls `retry(times=3)`, which must return the actual decorator (a function expecting the target function), which itself returns the wrapper — three nested layers, one more than a plain decorator that skips the arguments layer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-05-mcq-04',
+        question:
+          'What guarantee does a `with` block using a properly implemented context manager provide that a manual `try`/`finally` written at each call site does not reliably provide?',
+        options: [
+          { id: 'a', label: 'A', text: '`with` blocks execute faster than `try`/`finally` blocks' },
+          { id: 'b', label: 'B', text: 'The cleanup logic is defined once, correctly, in the context manager itself, so every call site automatically gets correct cleanup-on-exception behavior without someone having to remember to write a correct `try`/`finally` every single time' },
+          { id: 'c', label: 'C', text: '`try`/`finally` cannot handle exceptions at all' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference; the two approaches are identical in every way' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Both mechanisms can achieve guaranteed cleanup, but a context manager centralizes that correctness once instead of relying on every call site remembering to write it correctly — a real and common source of bugs at scale.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-05-mcq-05',
+        question:
+          'In the scenario, why was `timed_operation` built as a context manager rather than as another decorator like `@retry`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Decorators cannot measure elapsed time under any circumstances' },
+          { id: 'b', label: 'B', text: 'The lesson doesn\'t state this must be a context manager rather than a decorator, but the scenario needs it to wrap a block of code (a `with` statement\'s body) directly at the call site, which is exactly what a context manager is designed for, distinct from wrapping an entire function definition the way a decorator does' },
+          { id: 'c', label: 'C', text: 'Context managers execute faster than decorators for timing purposes' },
+          { id: 'd', label: 'D', text: '`functools.wraps` is incompatible with timing logic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A decorator wraps a whole function definition; a context manager wraps an arbitrary block of code at the call site via `with`. Timing "this specific operation right here" fits the context-manager shape more naturally than requiring the operation to be its own separately-defined function just to decorate it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-05-mcq-06',
+        question:
+          'When combining `@retry` and `timed_operation` on the same flaky API call, what design question does the lesson say you need to explicitly decide?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether `functools.wraps` should be applied to the context manager as well as the decorator' },
+          { id: 'b', label: 'B', text: 'Whether the timer should measure the total elapsed time across all retry attempts, or only the duration of the final successful attempt — these answer different diagnostic questions and the combination doesn\'t pick one for you automatically' },
+          { id: 'c', label: 'C', text: 'This combination is technically impossible and one of the two must be dropped' },
+          { id: 'd', label: 'D', text: 'Whether the retry decorator should be converted into a context manager to match the timer\'s style' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '"How long did this operation take" is ambiguous once retries are involved — total wall-clock time including failed attempts tells you something different from just the successful attempt\'s duration, and the implementation has to deliberately choose which question it\'s answering, not default to one silently.'
+      }
+    ]
+  },
+  'fde-curriculum/fde-foundations/06-oop-concurrency-and-async-python': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-fde-foundations-06-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — EVENT LOOP BLOCKING HAZARD',
+        question:
+          'Why does a single blocking (non-`await`-ing) call inside an `async def` function stall every other task the event loop is managing, not just the task that made the call?',
+        options: [
+          { id: 'a', label: 'A', text: 'Blocking calls raise an exception that propagates to every other task' },
+          { id: 'b', label: 'B', text: 'A blocking call never yields control back to the event loop, and since only one thread is running all the tasks cooperatively, nothing else can run until that blocking call finally returns' },
+          { id: 'c', label: 'C', text: 'This only affects tasks created after the blocking call, not ones already running' },
+          { id: 'd', label: 'D', text: 'This description is incorrect; a blocking call only affects the task that made it' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Because asyncio\'s concurrency depends entirely on tasks voluntarily yielding at `await` points, a call that never yields (a blocking call) monopolizes the single thread for its whole duration, silently stalling every other task with no error to indicate why.',
+        incorrectExplanation:
+          'Remember that asyncio uses cooperative multitasking on a single OS thread; blocking that thread blocks all tasks.',
+        hint: 'Asyncio runs on a single thread; any synchronous blocking call freezes the entire event loop from running other coroutines.'
+      },
+      {
+        id: 'lesson-fde-fde-foundations-06-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — GIL & CONCURRENCY PARADIGMS',
+        question:
+          'Why does threading provide a real speed benefit for I/O-bound work but not for CPU-bound work?',
+        options: [
+          { id: 'a', label: 'A', text: 'I/O operations are always faster than CPU operations regardless of threading' },
+          { id: 'b', label: 'B', text: 'The GIL is released while a thread is blocked waiting on I/O, letting another thread run during that wait; for CPU-bound work there\'s no wait to release the GIL during, so threads simply take turns with no parallel gain' },
+          { id: 'c', label: 'C', text: 'Threading provides no benefit for either type of workload' },
+          { id: 'd', label: 'D', text: 'CPU-bound work cannot be run in a thread at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The GIL\'s release during I/O waits is the specific mechanism that makes threading useful for I/O-bound work — CPU-bound work never triggers that release, so threads just take turns executing on the single GIL-holding slot with no real parallelism.',
+        incorrectExplanation:
+          'Consider when CPython releases the GIL during network/disk wait versus continuous bytecode computation.',
+        hint: 'The GIL is released while waiting on I/O operations, but CPU-bound tasks compete for execution time on a single core.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-06-mcq-01',
+        question:
+          'What does CPython\'s Global Interpreter Lock (GIL) actually restrict?',
+        options: [
+          { id: 'a', label: 'A', text: 'A Python program can only ever run a single thread total, with no ability to create more' },
+          { id: 'b', label: 'B', text: 'Only one thread can execute Python bytecode at a time, regardless of how many CPU cores are available' },
+          { id: 'c', label: 'C', text: 'Python programs cannot perform any I/O operations' },
+          { id: 'd', label: 'D', text: 'The GIL only affects programs running on a single-core machine' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Multiple threads can exist, but only one executes Python bytecode at any given instant due to the GIL — this single fact is what determines whether threading actually parallelizes a given workload or not.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-06-mcq-02',
+        question:
+          'Why does multiprocessing achieve real parallelism for CPU-bound work where threading does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Processes run faster than threads for any workload, unrelated to the GIL' },
+          { id: 'b', label: 'B', text: 'Each process has its own separate Python interpreter and its own GIL, so multiple processes can genuinely execute Python bytecode simultaneously on multiple cores, unlike threads which share one interpreter and one GIL' },
+          { id: 'c', label: 'C', text: 'Multiprocessing eliminates the need for a GIL entirely, even within a single process' },
+          { id: 'd', label: 'D', text: 'There is no real difference between multiprocessing and threading for CPU-bound work' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Sidestepping the shared GIL by using entirely separate interpreter processes is exactly what makes multiprocessing capable of true parallel execution on multiple cores, at the cost of higher memory overhead and explicit data serialization between processes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-06-mcq-03',
+        question:
+          'How does asyncio achieve concurrency using only a single thread?',
+        options: [
+          { id: 'a', label: 'A', text: 'asyncio secretly spawns operating system threads behind the scenes for every `await`' },
+          { id: 'b', label: 'B', text: 'A task voluntarily yields control at each `await` point, letting the single-threaded event loop run other tasks during that wait, and resumes once its own wait is satisfied — cooperative, not preemptive, switching' },
+          { id: 'c', label: 'C', text: 'asyncio bypasses the GIL entirely, similar to multiprocessing' },
+          { id: 'd', label: 'D', text: 'asyncio achieves concurrency by running tasks in a random, non-deterministic order with no coordination' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'asyncio\'s model is cooperative multitasking on one thread — tasks explicitly hand control back to the event loop at `await` points, which is what lets many I/O waits overlap without the overhead of real OS threads or processes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-06-mcq-04',
+        question:
+          'Why is asyncio the right model for the five-sequential-API-calls scenario, rather than multiprocessing?',
+        options: [
+          { id: 'a', label: 'A', text: 'Multiprocessing cannot make HTTP requests under any circumstances' },
+          { id: 'b', label: 'B', text: 'The bottleneck is I/O wait (network round-trips), not CPU computation, and asyncio\'s cooperative model overlaps I/O waits efficiently without the memory and process-management overhead multiprocessing would add for no corresponding benefit' },
+          { id: 'c', label: 'C', text: 'asyncio is always the correct choice for every workload, regardless of shape' },
+          { id: 'd', label: 'D', text: 'Multiprocessing and asyncio produce identical results for I/O-bound work, so the choice doesn\'t matter' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Multiprocessing solves a CPU-parallelism problem, which this scenario doesn\'t have — it would add process overhead without addressing the actual bottleneck (waiting on network responses), which asyncio\'s cooperative concurrency handles directly and cheaply.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-06-mcq-05',
+        question:
+          'Why would converting the scenario\'s CPU-bound record-transformation step to `async`/`await` provide no real benefit, even though the rest of the integration benefits from asyncio?',
+        options: [
+          { id: 'a', label: 'A', text: '`async`/`await` syntax is technically incompatible with data transformation code' },
+          { id: 'b', label: 'B', text: 'The step doesn\'t wait on anything — it\'s pure computation — so there\'s no I/O wait for asyncio\'s cooperative yielding to exploit; if it becomes a bottleneck, multiprocessing (real parallelism across cores) would help, not `async`/`await`' },
+          { id: 'c', label: 'C', text: 'Every step in a program must use the same concurrency model, so it should stay synchronous to match unrelated parts of the codebase' },
+          { id: 'd', label: 'D', text: 'asyncio always speeds up any code it\'s applied to, so this reasoning is incorrect' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'asyncio\'s entire benefit comes from overlapping waits during `await` points — a step with no waits to overlap gains nothing from being rewritten as async, which is exactly why matching the concurrency model to the actual bottleneck (I/O vs. CPU) matters more than defaulting to one model everywhere.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-06-mcq-06',
+        question:
+          'In the practice loop, replacing `asyncio.sleep(0.2)` with a real blocking `time.sleep(0.2)` inside one async function causes the whole batch to become slow again. Why?',
+        options: [
+          { id: 'a', label: 'A', text: '`time.sleep` and `asyncio.sleep` behave identically; the slowdown must be caused by something else' },
+          { id: 'b', label: 'B', text: '`time.sleep` blocks the single thread entirely without yielding to the event loop, so no other coroutine can run during that 0.2 seconds, unlike `asyncio.sleep` which yields control back and lets other tasks proceed concurrently' },
+          { id: 'c', label: 'C', text: '`time.sleep` raises an error that asyncio silently retries, adding delay' },
+          { id: 'd', label: 'D', text: 'This only happens if `time.sleep` is called more than once in the same program' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is a direct, hands-on demonstration of the blocking-call failure mode — `time.sleep` never yields to the event loop the way `asyncio.sleep` does, so it stalls every concurrent task for its full duration.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-fde-foundations-06-mcq-07',
+        question:
+          'Why does the suggested extension explicitly call out that concurrent error handling in asyncio needs to be considered deliberately, rather than assumed to work like a single sequential try/except?',
+        options: [
+          { id: 'a', label: 'A', text: 'asyncio does not support exceptions at all, so error handling is irrelevant' },
+          { id: 'b', label: 'B', text: 'With several coroutines running concurrently via something like `asyncio.gather`, one call\'s failure can, if not handled deliberately, cancel or otherwise affect the others — a naive single try/except wrapping the whole batch doesn\'t give the same per-call isolation a sequential loop\'s individual try/except blocks would' },
+          { id: 'c', label: 'C', text: 'Concurrent and sequential error handling are always identical in behavior' },
+          { id: 'd', label: 'D', text: 'Only the first coroutine\'s errors are ever caught in a concurrent batch' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Running calls concurrently changes the failure semantics compared to a sequential loop with per-iteration try/except — deliberately deciding how one call\'s failure should (or shouldn\'t) affect the others is a design decision the concurrency introduces, not something that carries over automatically from sequential code.'
+      }
+    ]
   }
 };
 
