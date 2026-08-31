@@ -159,3 +159,11 @@
 - [x] **Sub-task 21.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
 - [x] **Sub-task 21.5**: Update task tracker and provide Docker Compose / SQL verification steps.
 
+## Phase 22: FDE Curriculum Pipeline — Module 4: Cloud, DevOps, Kubernetes & Infrastructure (Lessons 1-6 of 12) (Completed)
+- [x] **Sub-task 22.1**: Ingest 6 Lesson chapter bodies for `cloud-devops-infrastructure` into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 22.2**: Wire 12 Concept Checks (2 per lesson) and 39 Practice Questions across all 6 lessons into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 22.3**: Add architecture diagram for Lesson 5 (`05-kubernetes-architecture-and-core-concepts`) visualizing the control-plane vs. worker-node topology.
+- [x] **Sub-task 22.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 22.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+

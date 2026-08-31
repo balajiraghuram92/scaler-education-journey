@@ -7896,6 +7896,894 @@ const lessonInteractions = {
           'The extension frames the feedback as an auditable data source for future improvement, not an immediate automated action — it\'s meant to surface patterns in what the assistant tends to get wrong.'
       }
     ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/01-aws-core-iam-vpc-and-networking': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-01-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What is the difference between a role\'s trust policy and its permission policy?',
+        options: [
+          { id: 'a', label: 'A', text: 'The trust policy controls who or what is allowed to assume the role; the permission policy controls what the role can actually do once assumed' },
+          { id: 'b', label: 'B', text: 'They are two names for the same policy document with no functional distinction' },
+          { id: 'c', label: 'C', text: 'The permission policy controls who can assume the role; the trust policy controls what actions are allowed' },
+          { id: 'd', label: 'D', text: 'Trust policies apply only to IAM users, and permission policies apply only to IAM roles' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the core distinction the lesson insists on keeping separate — "who may assume this" versus "what may the assumed identity do" are different questions answered by different policy documents.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'One controls who or what can assume the role, the other controls what the assumed identity can do.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-01-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'A role is created with a permission boundary attached, and later a permission policy granting `AdministratorAccess` is attached to that same role. What is the role\'s effective, actual permission?',
+        options: [
+          { id: 'a', label: 'A', text: 'The intersection of the permission policy and the boundary — the role cannot exceed whatever ceiling the boundary defines, no matter how broad the attached permission policy is' },
+          { id: 'b', label: 'B', text: 'Full AdministratorAccess, since the most recently attached policy always takes precedence over the boundary' },
+          { id: 'c', label: 'C', text: 'The union of the permission policy and the boundary, granting the combined total of both' },
+          { id: 'd', label: 'D', text: 'No permissions at all, since attaching AdministratorAccess to a bounded role always results in an error' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly the privilege-escalation path a permission boundary is designed to close — the effective permission is always the intersection, so attaching a broad permission policy on top of a boundary cannot exceed the boundary\'s own ceiling.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'A permission boundary acts as a maximum ceiling — effective permissions are always an intersection.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-01-mcq-01',
+        question:
+          'Why does the lesson argue that `"Action": "s3:*"` on `"Resource": "*"` is not simply a faster way to reach the same outcome as a scoped policy?',
+        options: [
+          { id: 'a', label: 'A', text: 'It grants a fundamentally larger blast radius — every S3 action on every bucket — that happens to also satisfy the narrow task, rather than being equivalent in effect to a properly scoped policy' },
+          { id: 'b', label: 'B', text: 'AWS technically evaluates wildcard policies more slowly, making them a performance concern rather than a security one' },
+          { id: 'c', label: 'C', text: 'Wildcard policies and scoped policies always produce identical effective permissions in practice' },
+          { id: 'd', label: 'D', text: 'This concern only applies to S3 specifically and not to other AWS services' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The risk isn\'t stylistic — a wildcard action/resource combination is a categorically larger grant of access than the task requires, and that gap is exactly the surface a compromised credential or a mistaken caller could exploit.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-01-mcq-02',
+        question:
+          'Why is an IAM role assumed by a workload preferred over a long-lived IAM user access key embedded in that workload\'s configuration?',
+        options: [
+          { id: 'a', label: 'A', text: 'A role\'s credentials are short-lived and automatically rotated, tied to the workload\'s actual runtime, whereas a long-lived key never expires on its own and grants the same access whether or not the workload is even still running' },
+          { id: 'b', label: 'B', text: 'IAM roles are technically incapable of being over-permissioned, unlike IAM user keys' },
+          { id: 'c', label: 'C', text: 'There is no meaningful security difference; the choice is purely about which is more convenient to configure' },
+          { id: 'd', label: 'D', text: 'Long-lived access keys are required for any workload that needs to call more than one AWS service' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The credential-lifetime mismatch is the actual risk — a leaked long-lived key remains valid indefinitely and independent of whether the workload it was meant for still exists, while a role\'s short-lived credentials expire and rotate automatically.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-01-mcq-05',
+        question:
+          'Why does the lesson describe a Service Control Policy denying CloudTrail from ever being disabled as sitting "above" IAM entirely, rather than as just another IAM policy?',
+        options: [
+          { id: 'a', label: 'A', text: 'An SCP is an account-wide guardrail that no IAM policy inside the account — including an administrator\'s — can override, which matters specifically because an FDE working in a customer\'s account shouldn\'t be the only thing preventing an unrecoverable mistake' },
+          { id: 'b', label: 'B', text: 'SCPs and IAM policies use identical syntax and enforcement, making the distinction purely organizational' },
+          { id: 'c', label: 'C', text: 'SCPs can only be applied to S3 buckets and have no relevance to CloudTrail or account-wide settings' },
+          { id: 'd', label: 'D', text: 'An IAM administrator can always override an SCP by editing their own permission policy' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The whole value of an SCP is that it isn\'t just another editable IAM policy — it\'s an organization-level ceiling that holds even against an account administrator, which is the guardrail property the lesson highlights.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-01-mcq-06',
+        question:
+          'Why does the lesson recommend an application\'s security group allow inbound traffic by referencing the load balancer\'s security group, rather than by allowing a specific CIDR range?',
+        options: [
+          { id: 'a', label: 'A', text: 'A reference-based rule stays correct automatically as instances behind the load balancer are replaced, whereas a CIDR-based rule would need to be manually updated whenever the underlying IP ranges change' },
+          { id: 'b', label: 'B', text: 'AWS security groups technically do not support CIDR-based rules at all' },
+          { id: 'c', label: 'C', text: 'CIDR-based rules are always more permissive than reference-based rules regardless of configuration' },
+          { id: 'd', label: 'D', text: 'Referencing another security group removes the need for the rule to specify a port' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The reference-based pattern is specifically about staying correct under change — resources get replaced and IPs shift, but a security-group reference keeps tracking the right source without manual upkeep.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-01-mcq-07',
+        question:
+          'In the scenario, why does routing S3 and Secrets Manager calls through VPC endpoints instead of a NAT gateway matter for the private subnet\'s security posture?',
+        options: [
+          { id: 'a', label: 'A', text: 'It means the private subnet has no general-purpose route to the public internet at all, closing off an entire exfiltration path that would otherwise exist purely because a NAT gateway had been provisioned' },
+          { id: 'b', label: 'B', text: 'VPC endpoints are required by AWS before any private subnet can make any AWS API call whatsoever' },
+          { id: 'c', label: 'C', text: 'NAT gateways are technically incapable of routing traffic to S3 or Secrets Manager' },
+          { id: 'd', label: 'D', text: 'This choice has no security implication and is purely a cost optimization' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The security payoff is specific — without a NAT gateway at all, there\'s no general internet egress path to worry about, not just a cheaper way to reach the same two AWS services.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-01-mcq-08',
+        question:
+          'How does the lesson connect scoping an IAM policy\'s actions and resources to the earlier AI-safety lesson\'s privilege-separation argument?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both describe the same discipline in different domains — a tool or credential should be scoped to the minimum surface a specific task needs, not the maximum surface that would make every future task convenient, whether that\'s a triage agent\'s tool permissions or an IAM policy\'s actions and resources' },
+          { id: 'b', label: 'B', text: 'The two lessons describe entirely unrelated concerns with no shared underlying principle' },
+          { id: 'c', label: 'C', text: 'This connection only holds if the IAM policy in question is attached to an AI agent\'s own workload' },
+          { id: 'd', label: 'D', text: 'IAM least privilege replaces the need for the AI-safety lesson\'s privilege-separation defenses entirely' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a deliberate cross-module echo — minimum-necessary-scope reasoning reappears here applied to cloud credentials instead of an agent\'s tool-calling permissions, but it\'s the same judgment call.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-01-mcq-09',
+        question:
+          'Why does the scenario end on the question "what could this service actually do if compromised" rather than "does this service have the access it needs to function"?',
+        options: [
+          { id: 'a', label: 'A', text: 'A design is only actually least-privilege if the answer to "what could go wrong" is a short, specific, bounded list — a service having enough access to function says nothing about whether it also has far more access than that, which is the real risk the whole exercise is meant to close' },
+          { id: 'b', label: 'B', text: 'These two questions are functionally identical and always produce the same answer for any IAM design' },
+          { id: 'c', label: 'C', text: 'The compromise question only matters for services that handle payment data specifically' },
+          { id: 'd', label: 'D', text: 'A service having sufficient access to function is sufficient proof that its permissions are properly scoped' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '"Does it have enough access" only verifies the lower bound; "what could it do if compromised" is what actually verifies the upper bound has been controlled — and least privilege is fundamentally a claim about the upper bound.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/02-compute-storage-and-managed-services-ec2-s3-rds-sqs': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-02-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'An object stored in S3 turns out to be world-readable due to an overly permissive bucket policy. Is this a failure of S3\'s durability guarantee?',
+        options: [
+          { id: 'a', label: 'A', text: 'No — durability and consistency are separate guarantees from access control; the object was stored durably and consistently exactly as promised, but a misconfigured bucket policy is an access-control failure, a distinct problem diagnosed differently' },
+          { id: 'b', label: 'B', text: 'Yes, because any unintended data exposure is automatically classified as a durability failure by definition' },
+          { id: 'c', label: 'C', text: 'This scenario is impossible, since S3\'s durability guarantee also enforces correct access permissions automatically' },
+          { id: 'd', label: 'D', text: 'It depends entirely on which storage class the object is stored in' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson explicitly separates these two failure modes because conflating them wastes time during an incident — durability is about whether the data survives, access control is about who can reach it, and they fail independently.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Durability describes whether the stored bytes survive, not who is permitted to access them.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-02-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Why does the lesson recommend sizing an SQS visibility timeout against the slowest realistic processing time, rather than the average case?',
+        options: [
+          { id: 'a', label: 'A', text: 'If the timeout is shorter than an actual processing run, the message becomes visible again and a second consumer picks it up before the first finishes, causing duplicate processing — sizing to the average case would still let slower-than-average runs trigger exactly this failure' },
+          { id: 'b', label: 'B', text: 'The visibility timeout has no effect on whether a message is processed more than once' },
+          { id: 'c', label: 'C', text: 'SQS automatically adjusts the visibility timeout to match actual processing time with no configuration needed' },
+          { id: 'd', label: 'D', text: 'Sizing to the average case is always safe because SQS deduplicates messages by content automatically' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'An average-case timeout still leaves every slower-than-average run exposed to the exact duplicate-delivery scenario the lesson describes — sizing to the slowest realistic case is what actually closes the gap.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'If the visibility timeout expires before processing completes, another worker can receive the message.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-02-mcq-01',
+        question:
+          'Why does the lesson push back on treating EC2 as a neutral, "closer to the metal, therefore safer" default choice compared to a managed service like RDS?',
+        options: [
+          { id: 'a', label: 'A', text: 'Every operational concern a managed service would absorb — patching, backup scheduling, failover orchestration — becomes something the FDE or the customer\'s team now owns indefinitely, which is a real, ongoing cost, not a free upgrade in control' },
+          { id: 'b', label: 'B', text: 'EC2 instances are technically incapable of running a production database workload' },
+          { id: 'c', label: 'C', text: 'There is no operational difference between EC2 and RDS; the choice is purely about raw compute price' },
+          { id: 'd', label: 'D', text: 'RDS is always strictly more expensive than EC2 for any workload of any size' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The real trade-off is who ends up owning the operational burden after the choice is made — EC2 gives more control at the cost of taking on everything a managed service would otherwise have handled.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-02-mcq-02',
+        question:
+          'According to the lesson, when does self-managed Postgres on EC2 become the right choice over RDS?',
+        options: [
+          { id: 'a', label: 'A', text: 'Only when a specific, named requirement RDS doesn\'t support forces it — a particular extension, a specific replication topology, or cost optimization at a scale justified by dedicated staff who will actually own the operational burden' },
+          { id: 'b', label: 'B', text: 'Self-managed Postgres should always be the default for any customer engagement, regardless of requirements' },
+          { id: 'c', label: 'C', text: 'RDS is technically incapable of running PostgreSQL, only MySQL-compatible engines' },
+          { id: 'd', label: 'D', text: 'Self-managed Postgres is preferable whenever the customer wants to reduce their AWS bill by any amount' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson frames RDS as the correct default and self-managed as the exception that needs a specific, justified reason — not a symmetric choice made on convenience or familiarity.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-02-mcq-04',
+        question:
+          'Why does the lesson recommend a presigned URL for a client uploading directly to S3, rather than giving that client a standing AWS credential?',
+        options: [
+          { id: 'a', label: 'A', text: 'A presigned URL grants scoped, time-limited access to one specific object, the same pattern as an IAM role\'s short-lived credentials, instead of handing the client a standing credential with open-ended access and lifetime' },
+          { id: 'b', label: 'B', text: 'Presigned URLs are required because S3 technically does not accept direct uploads from any AWS credential' },
+          { id: 'c', label: 'C', text: 'There is no meaningful access-control difference between a presigned URL and a standing credential' },
+          { id: 'd', label: 'D', text: 'Presigned URLs are exclusively a cost-optimization feature with no security implication' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the same scoped, time-limited pattern from the IAM lesson reapplied at the object level — narrow, expiring access instead of a standing credential the client would otherwise need to hold and protect.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-02-mcq-05',
+        question:
+          'How does SQS\'s delivery guarantee connect to the idempotency discipline covered in the Module 2 Stripe webhook lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'SQS is explicitly at-least-once, not exactly-once — the identical hazard the Stripe webhook lesson covered for inbound events — so an SQS consumer needs the same "check whether this has already been processed" discipline rather than assuming delivery count equals processing count' },
+          { id: 'b', label: 'B', text: 'SQS and Stripe webhooks share no meaningful similarity; the comparison is coincidental' },
+          { id: 'c', label: 'C', text: 'SQS guarantees exactly-once delivery, making idempotency unnecessary for SQS consumers specifically' },
+          { id: 'd', label: 'D', text: 'This connection only applies if the SQS queue is being used to relay Stripe webhook events specifically' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a deliberate cross-lesson echo — the same at-least-once delivery hazard shows up as a first-class AWS primitive here, requiring the identical defensive discipline the webhook lesson established.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-02-mcq-07',
+        question:
+          'In the scenario, what specific problem did the dead-letter queue surface, and why was that better than the alternative?',
+        options: [
+          { id: 'a', label: 'A', text: 'A structurally broken message (a malformed order ID that failed on every attempt) landed in the DLQ after three failed receives, giving the FDE an immediate, specific signal — rather than the message retrying indefinitely and blocking queue throughput while the FDE searched through hours of logs' },
+          { id: 'b', label: 'B', text: 'The DLQ automatically repaired the malformed order ID and reprocessed the message successfully' },
+          { id: 'c', label: 'C', text: 'The DLQ prevented the malformed message from ever being sent in the first place' },
+          { id: 'd', label: 'D', text: 'The scenario describes a queue with no actual problem; the DLQ was configured but never used' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The DLQ\'s value here is diagnostic — it turns an indefinitely-retrying, hard-to-notice problem into an immediately visible one, distinguishing a structurally broken message from a transient failure.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-02-mcq-08',
+        question:
+          'In the practical scenario, why does order/payment data go into RDS while uploaded attachments go into S3, rather than both going into the same service?',
+        options: [
+          { id: 'a', label: 'A', text: 'Order and payment data is relational, transactional, and needs Multi-AZ failover with point-in-time recovery, while attachments are whole-object files best served by S3\'s object storage model and presigned direct-upload pattern — each service matches the actual access pattern and shape of its data' },
+          { id: 'b', label: 'B', text: 'RDS and S3 are functionally interchangeable, and the split in the scenario is arbitrary' },
+          { id: 'c', label: 'C', text: 'S3 cannot store any data related to financial transactions under AWS\'s terms of service' },
+          { id: 'd', label: 'D', text: 'RDS technically cannot store more than one type of data per database instance' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This mirrors the access-pattern-matching discipline from the NoSQL lesson in Module 2 — the right storage choice follows from what the data actually is and how it\'s actually used, not a single default service for everything.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/03-aws-security-and-secrets-management-kms-secrets-manager-cloudtrail': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-03-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'An IAM role\'s permission policy grants `kms:Decrypt` on a specific key, but the role still cannot decrypt data with that key. What is the most likely explanation, per the lesson\'s dual-control design?',
+        options: [
+          { id: 'a', label: 'A', text: 'The KMS key\'s own key policy does not also grant that role access — by default, both the IAM policy and the key policy must independently agree before access is allowed, so an IAM grant alone is not sufficient' },
+          { id: 'b', label: 'B', text: 'KMS keys never actually check IAM policies at all, only key policies matter' },
+          { id: 'c', label: 'C', text: 'This situation is impossible; an IAM policy grant is always sufficient on its own' },
+          { id: 'd', label: 'D', text: 'The role\'s credentials must have expired, since key policies cannot block an otherwise-valid IAM grant' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly the dual-control gap the lesson highlights — checking only the IAM policy misses half the story, since the key policy is a genuinely separate, independently-required grant.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'KMS requires both the IAM permission policy and the key\'s own key policy to agree.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-03-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'What is the difference between a CloudTrail management event and a CloudTrail data event?',
+        options: [
+          { id: 'a', label: 'A', text: 'Management events are control-plane actions (changing a security group, modifying a key policy) and are logged by default; data events are data-plane actions on a specific resource (a specific GetObject or GetSecretValue call) and must be explicitly enabled per resource due to their volume' },
+          { id: 'b', label: 'B', text: 'Management events and data events are two names for the same category of CloudTrail log entry' },
+          { id: 'c', label: 'C', text: 'Data events are logged by default and management events must be explicitly enabled' },
+          { id: 'd', label: 'D', text: 'CloudTrail only records management events; data events are not a CloudTrail concept at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This distinction is exactly why the scenario\'s data-event logging had to be a deliberate choice on one specific secret\'s ARN — data events don\'t exist by default, unlike management events.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'One covers control plane API calls by default, the other covers data plane object/secret access and must be explicitly enabled.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-03-mcq-01',
+        question:
+          'In KMS envelope encryption, what does the KMS key itself directly encrypt?',
+        options: [
+          { id: 'a', label: 'A', text: 'A small, unique data key generated for the object or record being encrypted — the data key then encrypts the actual data locally, and the KMS key only ever encrypts that small data key, not the full payload' },
+          { id: 'b', label: 'B', text: 'The KMS key directly encrypts the entire data payload itself, regardless of size' },
+          { id: 'c', label: 'C', text: 'KMS keys are used exclusively for signing operations and never perform encryption' },
+          { id: 'd', label: 'D', text: 'The KMS key encrypts nothing; all encryption happens entirely outside of KMS' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the precise mechanism the lesson insists on — KMS wraps a small data key, and that data key (not the KMS key directly) does the actual work of encrypting the real payload.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-03-mcq-03',
+        question:
+          'A team needs to store a non-sensitive feature-flag value that never needs automatic rotation. Which service does the lesson recommend, and why?',
+        options: [
+          { id: 'a', label: 'A', text: 'SSM Parameter Store — its standard tier is free for a large number of parameters and is the right fit for configuration that doesn\'t need Secrets Manager\'s rotation machinery, which exists specifically to justify its per-secret cost' },
+          { id: 'b', label: 'B', text: 'Secrets Manager, because it should always be used for every stored value regardless of sensitivity or rotation need' },
+          { id: 'c', label: 'C', text: 'Neither service supports storing non-sensitive configuration values' },
+          { id: 'd', label: 'D', text: 'Parameter Store is only usable for values larger than 4KB, making it unsuitable for a short flag value' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson frames this as a real trade-off — Secrets Manager\'s cost buys rotation and staged versioning that a non-sensitive, non-rotating flag simply doesn\'t need.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-03-mcq-04',
+        question:
+          'Why can\'t Secrets Manager\'s native, out-of-the-box automatic rotation Lambda handle rotating a Stripe API key the same way it handles an RDS database password?',
+        options: [
+          { id: 'a', label: 'A', text: 'The native rotation Lambdas are built for AWS-adjacent secrets where Secrets Manager can coordinate directly with the database engine; a third-party service like Stripe has no such native rotation target, so it needs either a custom rotation Lambda calling Stripe\'s own API or a manual, staged rotation process' },
+          { id: 'b', label: 'B', text: 'Secrets Manager technically cannot store any value that isn\'t an AWS-native database credential' },
+          { id: 'c', label: 'C', text: 'Stripe secrets do not require rotation under any circumstances, unlike RDS passwords' },
+          { id: 'd', label: 'D', text: 'There is no actual difference; the native RDS rotation Lambda works identically for any third-party API key' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The gap is specifically about coordination — Secrets Manager\'s native rotation Lambdas assume an AWS-managed rotation target, which a third-party credential like Stripe\'s simply doesn\'t have.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-03-mcq-06',
+        question:
+          'How does the lesson connect enabling CloudTrail data events in advance to the OpenTelemetry distributed-tracing discipline from Module 2?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both make the same point — an audit trail or trace you can query after the fact only exists if the specific events worth capturing were instrumented in advance; you cannot reconstruct "who called GetSecretValue" or a request\'s trace after the fact if it was never being recorded' },
+          { id: 'b', label: 'B', text: 'CloudTrail and OpenTelemetry are unrelated tools serving entirely different purposes with no shared principle' },
+          { id: 'c', label: 'C', text: 'This connection only holds for secrets specifically, not for any other CloudTrail data event type' },
+          { id: 'd', label: 'D', text: 'OpenTelemetry traces are automatically retained by CloudTrail without any separate configuration' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a deliberate cross-module echo — proactive instrumentation, whether it\'s a distributed trace or an audit log, is what makes after-the-fact investigation possible at all.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-03-mcq-07',
+        question:
+          'Why does the lesson specifically call out that the Stripe secret hardcoded in EC2 user-data was visible to "a far larger set of people than anyone realizes"?',
+        options: [
+          { id: 'a', label: 'A', text: 'User-data isn\'t treated as sensitive by most teams\' own IAM reviews, so anyone with the relatively ordinary `ec2:DescribeInstanceAttribute` permission — a far broader group than anyone who\'d expect to see a payment secret — could read it, unlike a properly access-controlled secret' },
+          { id: 'b', label: 'B', text: 'EC2 user-data is technically encrypted by default, so this exposure could not actually have occurred' },
+          { id: 'c', label: 'C', text: 'This exposure only mattered because the instance was in a public subnet' },
+          { id: 'd', label: 'D', text: 'The exposure was limited to exactly one person: the engineer who originally wrote the user-data script' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The real danger is the mismatch between how sensitive the secret actually is and how ordinary the permission needed to read it turns out to be — user-data doesn\'t get the scrutiny a secret deserves.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-03-mcq-08',
+        question:
+          'Why does the scenario describe enabling data events on one specific secret\'s ARN as "a low-volume, deliberate choice, not a blanket \'log everything\'"?',
+        options: [
+          { id: 'a', label: 'A', text: 'A blanket, unfocused firehose of every data event across every resource buries the specific signal that actually matters under noise, whereas a narrow, deliberate choice on the one sensitive resource keeps the resulting evidence usable and queryable' },
+          { id: 'b', label: 'B', text: 'AWS technically limits every account to logging exactly one data event source at a time' },
+          { id: 'c', label: 'C', text: 'Logging more data events always costs strictly less than logging fewer, so the distinction is irrelevant to cost' },
+          { id: 'd', label: 'D', text: 'Blanket logging and narrow logging produce identical investigative value; the distinction is stylistic only' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The value of the audit trail depends on being able to actually use it — a deliberate, narrow choice produces a signal an investigator can act on, while an indiscriminate firehose produces volume without focus.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/04-docker-production-containers': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-04-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What specific, concrete risk does running a production container as a non-root user close, according to the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'A container escape or misconfigured volume mount can turn "the process runs as root inside the container" into "the process runs as root on the host" — a non-root process has nothing equivalent to escalate into, even under an imperfect isolation boundary' },
+          { id: 'b', label: 'B', text: 'Root-user containers are technically incapable of accessing the network, making them unsuitable for any server workload' },
+          { id: 'c', label: 'C', text: 'There is no actual security difference; the non-root recommendation is purely a stylistic convention' },
+          { id: 'd', label: 'D', text: 'Running as non-root prevents the container from ever crashing due to a resource limit' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the concrete escalation path the lesson names precisely — it\'s not an abstract checklist item, it\'s a specific consequence of what root access inside a container can become if isolation is ever imperfect.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Consider what happens if container isolation fails or host volume mounts are compromised.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-04-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'How does an application ignoring SIGTERM during a container stop connect to the duplicate-notification problem from Module 2\'s payments lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'A worker killed uncleanly (SIGKILL after an unhandled SIGTERM) mid-task doesn\'t get a chance to finish or roll back cleanly, producing the same kind of interrupted, half-completed state that can cause a duplicate or lost notification on the next delivery attempt — the identical idempotency hazard, now triggered by a container lifecycle event instead of a webhook retry' },
+          { id: 'b', label: 'B', text: 'SIGTERM and webhook retries are unrelated failure modes with no shared consequence' },
+          { id: 'c', label: 'C', text: 'This connection only applies if the worker is specifically processing a Stripe webhook at the moment SIGTERM arrives' },
+          { id: 'd', label: 'D', text: 'A container that ignores SIGTERM is guaranteed to lose the in-flight task entirely, never to duplicate it' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is a deliberate cross-module echo — the same interrupted-mid-task hazard that motivated idempotent webhook handling in Module 2 reappears here, caused by a deploy\'s SIGTERM/SIGKILL sequence instead of a network retry.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'An abrupt SIGKILL terminates work mid-flight without cleanup or rollback, causing retried executions to duplicate.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-04-mcq-01',
+        question:
+          'What does a multi-stage Docker build remove from the final production image that a single-stage build would otherwise include?',
+        options: [
+          { id: 'a', label: 'A', text: 'Build-time-only tools and artifacts — compilers, headers, package-manager caches — that were only ever needed to produce the compiled artifact, not to run the application' },
+          { id: 'b', label: 'B', text: 'The application\'s own source code, which must be copied back in through a separate deployment step' },
+          { id: 'c', label: 'C', text: 'All environment variables, which must be reconfigured manually after the image is built' },
+          { id: 'd', label: 'D', text: 'The container\'s networking configuration, which is not preserved across build stages' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The whole point of the separate builder stage is that its tools never need to exist in the image that actually ships — only the compiled output does.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-04-mcq-02',
+        question:
+          'Why does the lesson argue that reducing image size from roughly a gigabyte to a couple hundred megabytes matters beyond aesthetics?',
+        options: [
+          { id: 'a', label: 'A', text: 'A smaller image measurably improves cold-start latency, since less data has to be pulled and unpacked before a container can start — directly affecting how quickly an autoscaler or rolling deployment can bring up new instances under load' },
+          { id: 'b', label: 'B', text: 'Docker technically refuses to run any image larger than 500MB in a production environment' },
+          { id: 'c', label: 'C', text: 'Image size has no measurable effect on anything besides local disk usage' },
+          { id: 'd', label: 'D', text: 'Smaller images automatically run faster once started, regardless of pull or unpack time' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The concrete operational consequence is startup speed under real deployment and scaling events, not an abstract preference for smaller numbers.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-04-mcq-03',
+        question:
+          'Why does placing `COPY . .` before the dependency-installation step force a full dependency reinstall on nearly every build?',
+        options: [
+          { id: 'a', label: 'A', text: 'Docker\'s layer cache is invalidated for every instruction after one that changed, and since application source code changes on nearly every commit, placing the code copy first invalidates the cache for the dependency install that follows it, every time' },
+          { id: 'b', label: 'B', text: 'Docker technically does not cache any layer that involves a COPY instruction, regardless of its position' },
+          { id: 'c', label: 'C', text: 'Placing COPY . . early has no effect on caching; the reinstall happens regardless of instruction order' },
+          { id: 'd', label: 'D', text: 'This only affects builds running on CI, never local development builds' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The cache-invalidation mechanism is exactly why ordering matters — a layer\'s cache is only reused if nothing above it changed, so a frequently-changing layer placed early poisons the cache for everything after it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-04-mcq-05',
+        question:
+          'Why does the lesson distinguish a health check that verifies real readiness (e.g., checking a database connection) from one that only confirms the process hasn\'t crashed?',
+        options: [
+          { id: 'a', label: 'A', text: 'A process can be technically running while a real dependency it needs is unreachable, and a bare process-alive check would miss that distinction entirely, reporting the container healthy when it actually cannot serve real traffic correctly' },
+          { id: 'b', label: 'B', text: 'These two types of health check are functionally identical in every practical scenario' },
+          { id: 'c', label: 'C', text: 'A process-alive check is always sufficient because a crashed dependency always crashes the whole process too' },
+          { id: 'd', label: 'D', text: 'Health checks that verify dependencies are technically not supported by any container orchestrator' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The gap between "process alive" and "actually able to serve traffic" is exactly what a real readiness check closes — a crashed dependency doesn\'t necessarily crash the process that depends on it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-04-mcq-07',
+        question:
+          'Why does the scenario tune the orchestrator\'s grace period to exceed the worker\'s longest realistic single-task duration, rather than an average task duration?',
+        options: [
+          { id: 'a', label: 'A', text: 'A grace period sized to the average case would still let any slower-than-average task get cut off by SIGKILL before its clean-shutdown handler finishes, which is exactly the failure the fix was meant to close' },
+          { id: 'b', label: 'B', text: 'The grace period has no relationship to task duration; it is a fixed value that cannot be configured' },
+          { id: 'c', label: 'C', text: 'Average-case sizing is always sufficient because Celery automatically extends the grace period for slow tasks' },
+          { id: 'd', label: 'D', text: 'This consideration only matters for tasks that involve a network call, not any other kind of work' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The same "size to the worst realistic case, not the average" reasoning that applies to an SQS visibility timeout applies here — an average-case grace period still leaves the slower tail exposed to an unclean kill.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-04-mcq-08',
+        question:
+          'What specific problem did reordering the Dockerfile\'s instructions (dependency install before code copy) fix in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'It restored the CI build cache for the dependency-install layer, so a code-only change no longer forced a full dependency reinstall on every single build' },
+          { id: 'b', label: 'B', text: 'It fixed the container\'s non-root user configuration, which was unrelated to instruction ordering' },
+          { id: 'c', label: 'C', text: 'It reduced the final image\'s runtime memory usage during normal operation' },
+          { id: 'd', label: 'D', text: 'It had no actual effect described in the scenario; the reordering was purely stylistic' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the direct, named fix for the cache-invalidation problem the scenario describes — a build-speed issue, distinct from the separate root-user and multi-stage fixes applied alongside it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-04-mcq-09',
+        question:
+          'The scenario applies four distinct fixes to the original Dockerfile and worker. Which pairing correctly matches a fix to the specific problem it addresses?',
+        options: [
+          { id: 'a', label: 'A', text: 'Multi-stage build addresses image bloat from build tools; instruction reordering addresses CI cache invalidation; the non-root USER directive addresses container-escape severity; the SIGTERM handler addresses unclean shutdown during deploys' },
+          { id: 'b', label: 'B', text: 'All four fixes address the exact same underlying problem and are functionally interchangeable' },
+          { id: 'c', label: 'C', text: 'The SIGTERM handler is what reduces the final image size, not the multi-stage build' },
+          { id: 'd', label: 'D', text: 'The non-root USER directive is what restores the CI build cache, not the instruction reordering' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Each of the four fixes in the scenario targets a genuinely distinct problem — conflating them (as the distractors do) misses that production-readiness here is several separate, composable concerns, not one fix applied four times.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/05-kubernetes-architecture-and-core-concepts': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-05-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'What is the difference between the problem a Service solves and the problem a Deployment solves?',
+        options: [
+          { id: 'a', label: 'A', text: 'A Service provides a stable address in front of a changing set of Pod IPs; a Deployment maintains the right number and version of Pods over time, including rolling updates and rollback — two separate consequences of Pod identity being ephemeral' },
+          { id: 'b', label: 'B', text: 'A Service and a Deployment solve the exact same problem and are interchangeable in any Kubernetes manifest' },
+          { id: 'c', label: 'C', text: 'A Deployment provides a stable network address; a Service manages replica count and rolling updates' },
+          { id: 'd', label: 'D', text: 'A Service exists only to manage rollback history, with no role in network addressing' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'These are genuinely separate responsibilities — confusing them is exactly what the lesson calls out as a common source of misdiagnosed incidents.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'One provides a stable network address for dynamic endpoints, while the other manages replica counts and lifecycle rollouts.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-05-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'What is the fundamental difference in effect between a readiness probe failing and a liveness probe failing?',
+        options: [
+          { id: 'a', label: 'A', text: 'A failed readiness probe removes the Pod from the Service\'s endpoint list without restarting it; a failed liveness probe causes the kubelet to restart the container' },
+          { id: 'b', label: 'B', text: 'Both probes have an identical effect: they always trigger a container restart when they fail' },
+          { id: 'c', label: 'C', text: 'A failed liveness probe removes the Pod from Service traffic; a failed readiness probe triggers a restart' },
+          { id: 'd', label: 'D', text: 'Probe failures of either kind have no observable effect on the cluster\'s behavior' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the precise distinction the lesson insists on — traffic-routing consequence versus restart consequence — and mixing them up is the specific misconfiguration the lesson warns about.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'One removes the pod from the service endpoint list; the other tells kubelet to restart the container.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-cloud-devops-infrastructure-05-k8s-topology',
+      eyebrow: 'Cluster Control Plane & Worker Node Topology',
+      boundaryLabel: 'Kubernetes Control Plane vs. Worker Node Boundary',
+      boundaryText:
+        'The kube-apiserver is the sole gatekeeper and writer to etcd. Controllers and Schedulers watch and reconcile through the API server, while Kubelets and Services decouple dynamic Pod lifecycles on Worker Nodes.',
+      nodes: [
+        {
+          id: 'etcd-store',
+          label: 'etcd Key-Value Store',
+          subtext: 'Immutable cluster state & desired specs; strictly accessed only via API Server',
+          kind: 'output'
+        },
+        {
+          id: 'api-server',
+          label: 'kube-apiserver (Control Plane Gatekeeper)',
+          subtext: 'Central REST boundary; validates, authenticates, and orchestrates state watches',
+          kind: 'boundary'
+        },
+        {
+          id: 'controllers-scheduler',
+          label: 'Kube-Scheduler & Controllers',
+          subtext: 'Deployment/ReplicaSet reconciliation loops; evaluate state drift and schedule pods',
+          kind: 'service'
+        },
+        {
+          id: 'service-proxy',
+          label: 'K8s Service & Kube-Proxy',
+          subtext: 'Stable virtual IP & DNS; dynamic endpoint routing to ready Pods via label selector',
+          kind: 'adapter'
+        },
+        {
+          id: 'worker-pods',
+          label: 'Worker Node Pods (ReplicaSet)',
+          subtext: 'Ephemeral container runtimes managed by Kubelet; probed for liveness & readiness',
+          kind: 'input'
+        }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-05-mcq-01',
+        question:
+          'Why does the lesson emphasize that the API server is the only component that directly talks to `etcd`?',
+        options: [
+          { id: 'a', label: 'A', text: 'It\'s what makes the declarative reconciliation model work as one coherent loop — every other component interacts with cluster state exclusively through the API server, rather than several components racing each other against a shared database directly' },
+          { id: 'b', label: 'B', text: 'Every Kubernetes component is technically permitted to write to etcd directly; the API server is simply the fastest path' },
+          { id: 'c', label: 'C', text: 'This is purely a performance optimization with no bearing on the system\'s correctness or consistency' },
+          { id: 'd', label: 'D', text: 'etcd does not actually exist in a Kubernetes cluster; the API server maintains state entirely in memory' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This centralization is structural, not incidental — it\'s exactly what allows every controller\'s reconciliation loop to observe and act on a single, coherent source of truth.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-05-mcq-02',
+        question:
+          'How does a Deployment controller\'s behavior differ from an imperative "run this command once" model when a Pod dies?',
+        options: [
+          { id: 'a', label: 'A', text: 'The controller continuously observes that the replica count has dropped below the desired state and creates a replacement — it never waits for a schedule or a human to notice, because its job is enforcing a continuously-true condition, not executing a one-time action' },
+          { id: 'b', label: 'B', text: 'Nothing happens automatically; a human operator must manually trigger the replacement Pod\'s creation' },
+          { id: 'c', label: 'C', text: 'The controller only checks replica counts once per day on a fixed schedule' },
+          { id: 'd', label: 'D', text: 'A dead Pod is never replaced automatically under any circumstances in Kubernetes' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the core distinction of declarative reconciliation — desired state is continuously enforced by a loop, not achieved once and left alone.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-05-mcq-03',
+        question:
+          'Why does the lesson state that nothing in the system should be built assuming a specific Pod\'s IP will still be valid a minute from now?',
+        options: [
+          { id: 'a', label: 'A', text: 'A rescheduled Pod (due to node failure, eviction, or a rolling update) is a new Pod, typically with a new IP, not a resurrection of the old one — Pod identity is explicitly not durable' },
+          { id: 'b', label: 'B', text: 'Pod IPs change on a fixed schedule every 60 seconds regardless of whether the Pod itself is rescheduled' },
+          { id: 'c', label: 'C', text: 'This concern only applies to Pods running stateful workloads, never to stateless application Pods' },
+          { id: 'd', label: 'D', text: 'Pod IPs are actually permanent and this is a common misconception the lesson is correcting in the opposite direction' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the exact reason a Service exists — Pod identity and IP are explicitly ephemeral, so anything durable has to be built on a different abstraction.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-05-mcq-06',
+        question:
+          'In the scenario, why were the three Pods stuck in `Pending` after the Deployment was accepted by the API server?',
+        options: [
+          { id: 'a', label: 'A', text: 'The API server accepting the Deployment object only means desired state was recorded in etcd — it does not guarantee a node was actually available; the scheduler could not find a node with enough allocatable CPU, a separate, later step in the pipeline' },
+          { id: 'b', label: 'B', text: 'The Deployment manifest itself contained a YAML syntax error that the API server should have rejected' },
+          { id: 'c', label: 'C', text: 'The container image referenced by the Deployment did not exist in any accessible registry' },
+          { id: 'd', label: 'D', text: 'The cluster\'s Service object was misconfigured, which is unrelated to Pod scheduling' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly the gap between "accepted into desired state" and "actually scheduled onto a node" that the lesson\'s control-plane explanation sets up — API acceptance and successful scheduling are different steps, owned by different components.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-05-mcq-07',
+        question:
+          'Why did the Service report zero available endpoints even after all three Pods reached `Running` in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The readiness probe was misconfigured against the wrong port, so every Pod continuously failed readiness despite being genuinely healthy — the Service correctly excluded them from its endpoint list based on that readiness status, a separate problem from the earlier scheduling issue' },
+          { id: 'b', label: 'B', text: 'The Pods were still technically Pending, contradicting the premise that they had reached Running' },
+          { id: 'c', label: 'C', text: 'A liveness probe failure was restarting the Pods in an infinite loop, preventing any of them from staying up' },
+          { id: 'd', label: 'D', text: 'The Service object itself had not yet been created, so no endpoint list could exist' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the scenario\'s deliberate second, unrelated failure — a readiness misconfiguration, distinct from the scheduling problem, and correctly diagnosed only by treating it as a separate cause rather than assuming one root cause explains everything.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-05-mcq-08',
+        question:
+          'Why does the lesson insist the scenario\'s two problems must be diagnosed as separate issues rather than treated as one undifferentiated "the deployment isn\'t working" symptom?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two problems are owned by different control-plane components (the scheduler versus the readiness-probe/Service mechanism) with different diagnostic evidence (a FailedScheduling event versus a Pod\'s readiness status) — collapsing them into one symptom risks fixing one and assuming the whole problem is solved when it isn\'t' },
+          { id: 'b', label: 'B', text: 'There is no actual benefit to separating the diagnosis; both problems always have the same root cause in Kubernetes' },
+          { id: 'c', label: 'C', text: 'This distinction only matters when working with a cluster running more than 100 nodes' },
+          { id: 'd', label: 'D', text: 'Treating them separately is only useful for documentation purposes, not for actually resolving the incident faster' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Correct diagnosis depends on recognizing distinct evidence trails owned by distinct components — conflating them risks declaring victory after fixing only one of two real, separate problems.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-05-mcq-09',
+        question:
+          'What real consequence does the lesson describe from configuring a liveness probe with the same aggressive threshold as a readiness check?',
+        options: [
+          { id: 'a', label: 'A', text: 'A transient dependency blip that should only pull a Pod out of Service traffic momentarily instead triggers an unnecessary restart, disrupting in-flight work for a problem readiness alone would have handled without disruption' },
+          { id: 'b', label: 'B', text: 'This configuration has no negative consequence; using identical thresholds for both probes is always the recommended approach' },
+          { id: 'c', label: 'C', text: 'An aggressive liveness threshold causes the Pod to never restart, even when it is genuinely deadlocked' },
+          { id: 'd', label: 'D', text: 'This misconfiguration only affects the Service\'s endpoint list, never causing an actual container restart' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the concrete cost of mixing up the two probes\' purposes — a transient issue that readiness alone would have handled gracefully instead escalates into a disruptive restart.'
+      }
+    ]
+  },
+  'fde-curriculum/cloud-devops-infrastructure/06-eks-helm-and-production-kubernetes': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-06-concept-check-01',
+        eyebrow: 'Concept Check 1',
+        question:
+          'Why does the lesson call knowing the EKS management boundary "the single most important fact to have memorized before debugging a production EKS issue"?',
+        options: [
+          { id: 'a', label: 'A', text: 'It tells you where to look first — a control-plane/API-server failure shows up on AWS\'s own health dashboard and isn\'t something the customer\'s team could have misconfigured, while a node, networking, or add-on issue is the customer/FDE\'s own responsibility to investigate' },
+          { id: 'b', label: 'B', text: 'EKS technically has no meaningful management boundary; AWS and the customer share identical responsibility for every component' },
+          { id: 'c', label: 'C', text: 'This boundary only matters for billing purposes, not for actual incident diagnosis' },
+          { id: 'd', label: 'D', text: 'The management boundary is irrelevant once a cluster has been running for more than a year' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Knowing who owns a given layer directly determines the first diagnostic step during an incident — checking AWS\'s health dashboard versus investigating the customer\'s own node/network configuration.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'It identifies whether an issue lives in AWS-managed control plane health or customer-managed node/network configuration.'
+      },
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-06-concept-check-02',
+        eyebrow: 'Concept Check 2',
+        question:
+          'Before IRSA was configured in the scenario, why could the customer\'s unrelated internal reporting workload technically access the payments service\'s Stripe secret?',
+        options: [
+          { id: 'a', label: 'A', text: 'The node\'s shared IAM instance role had broad Secrets Manager access originally granted for the payments pods, and every pod scheduled onto that same node — including the unrelated reporting workload — inherited that same node-level access by default, regardless of what that pod actually needed' },
+          { id: 'b', label: 'B', text: 'The reporting workload had been explicitly and deliberately granted access to the Stripe secret by a separate IAM policy' },
+          { id: 'c', label: 'C', text: 'Kubernetes ServiceAccounts automatically share credentials across every pod in the entire cluster, not just pods on the same node' },
+          { id: 'd', label: 'D', text: 'This access was never actually possible; the scenario describes a purely hypothetical, unrealistic risk' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly the node-level privilege-separation gap IRSA is designed to close — access granted at the node level is available to every pod scheduled there, not scoped to the specific workload that actually needs it.',
+        incorrectExplanation:
+          'Review the concept discussion in the chapter body regarding this design decision.',
+        hint:
+          'Any pod scheduled onto a node inherits the node\'s IAM instance profile permissions by default.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-06-mcq-02',
+        question:
+          'What does EKS Auto Mode change about the traditional EKS management boundary?',
+        options: [
+          { id: 'a', label: 'A', text: 'It shifts more of the stack — Karpenter-based node provisioning, the VPC CNI, EBS CSI, CoreDNS, kube-proxy — into AWS-managed components, meaning AWS operates meaningfully more of the cluster than under a traditionally-managed node group, not that the architecture itself changes' },
+          { id: 'b', label: 'B', text: 'Auto Mode eliminates the control plane entirely, replacing it with a fully customer-managed API server' },
+          { id: 'c', label: 'C', text: 'Auto Mode has no effect on which components AWS manages; it only changes billing' },
+          { id: 'd', label: 'D', text: 'Auto Mode requires the customer to manage node provisioning manually, unlike traditional EKS' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Auto Mode moves the responsibility line, not the underlying architecture — which is exactly why an FDE needs to check which mode a given cluster runs before assuming who owns a failure.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-06-mcq-03',
+        question:
+          'Why does deploying the same Helm chart with different `values.yaml` files avoid the drift problem that hand-maintained per-environment YAML files have?',
+        options: [
+          { id: 'a', label: 'A', text: 'The chart\'s templates stay identical across environments, with only the specific values (replica count, endpoints, limits) differing per environment file, so there\'s no separate near-duplicate manifest per environment that could be edited in one place and forgotten in another' },
+          { id: 'b', label: 'B', text: 'Helm technically prevents any configuration difference between environments, forcing every environment to be identical' },
+          { id: 'c', label: 'C', text: 'There is no actual difference between Helm charts and hand-maintained YAML; drift happens equally in both approaches' },
+          { id: 'd', label: 'D', text: 'values.yaml files are automatically synchronized across environments by Helm without any explicit deployment step' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The single-source-of-template design is what closes the drift gap — one chart, several values files, instead of several independently-editable copies of the whole manifest set.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-06-mcq-04',
+        question:
+          'Why is `helm rollback` a genuinely different recovery mechanism than manually reconstructing the "last known good" YAML from memory or scattered git history?',
+        options: [
+          { id: 'a', label: 'A', text: 'Helm already has the exact prior release\'s rendered manifests recorded by revision number, and can reapply that exact known state as a single, already-tested operation, rather than requiring someone to reconstruct it accurately under incident pressure' },
+          { id: 'b', label: 'B', text: 'Manual YAML reconstruction is always faster than helm rollback in a real incident' },
+          { id: 'c', label: 'C', text: 'helm rollback and manual reconstruction produce identical results with identical risk; the difference is purely about which command is typed' },
+          { id: 'd', label: 'D', text: 'helm rollback only works if the exact same person who performed the original deploy is present to run it' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The reliability gain is specific — the exact prior state already exists and is tracked, removing the risk of misremembering or misreconstructing it during a high-pressure incident.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-06-mcq-06',
+        question:
+          'How did configuring IRSA for the payments deployment close the access gap without affecting how the unrelated reporting workload runs?',
+        options: [
+          { id: 'a', label: 'A', text: 'IRSA moved the Secrets Manager permission from the shared node-level role to a dedicated ServiceAccount used only by the payments pods, and the broad grant was removed from the node\'s own role — the reporting workload\'s own operation was never touched, only its previously unintended access to a secret it never needed' },
+          { id: 'b', label: 'B', text: 'IRSA required migrating the reporting workload onto entirely different nodes to isolate it from the payments pods' },
+          { id: 'c', label: 'C', text: 'IRSA disabled the reporting workload\'s networking entirely as a side effect of the payments configuration change' },
+          { id: 'd', label: 'D', text: 'This fix necessarily required redeploying every workload in the cluster, including the reporting workload' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The fix is precisely scoped — it removes an unintended access path for the reporting workload without touching anything about how that workload actually functions.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-06-mcq-07',
+        question:
+          'Why did the FDE run `helm rollback` before investigating the new image\'s actual defect, rather than debugging the CrashLoopBackOff live in production first?',
+        options: [
+          { id: 'a', label: 'A', text: 'Restoring service to a known-good state immediately minimizes customer-facing downtime, and the investigation can then happen against a stable, non-production-impacting baseline instead of under the added pressure and risk of debugging a broken deploy that\'s actively affecting real traffic' },
+          { id: 'b', label: 'B', text: 'Rolling back first is always unnecessary, since the root cause should always be identified before any recovery action is taken' },
+          { id: 'c', label: 'C', text: 'helm rollback and root-cause investigation cannot be performed in either order; the sequence in the scenario was arbitrary' },
+          { id: 'd', label: 'D', text: 'Rolling back destroys all evidence needed to investigate the original defect, making this sequence a mistake' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Restore-first is the standard incident-response sequence for exactly this reason — minimizing customer impact immediately, then investigating without the added pressure of live production impact.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-cloud-devops-infrastructure-06-mcq-08',
+        question:
+          'How does IRSA/Pod Identity connect to the least-privilege reasoning established earlier in this module\'s IAM lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It\'s the same minimum-necessary-scope discipline, now applied at pod granularity inside a shared cluster instead of at the level of an entire IAM role or EC2 instance — the specific workload gets exactly the access it needs, not the access every pod sharing its node happens to inherit' },
+          { id: 'b', label: 'B', text: 'IRSA and the IAM lesson\'s least-privilege reasoning are unrelated; IRSA is purely a networking feature' },
+          { id: 'c', label: 'C', text: 'This connection only holds if the pod in question is running on a self-managed EC2 node rather than inside EKS' },
+          { id: 'd', label: 'D', text: 'IRSA replaces the need for any IAM least-privilege reasoning at the account level entirely' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the module\'s recurring thread reaching its final, most granular form — the same least-privilege reasoning from Lesson 1\'s IAM policies, now scoped down to an individual pod\'s own workload identity.'
+      }
+    ]
   }
 };
 
