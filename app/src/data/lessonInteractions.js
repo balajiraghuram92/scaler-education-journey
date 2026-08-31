@@ -619,9 +619,7 @@ const lessonInteractions = {
           'A consumer-shaped PaymentAuthorizer keeps PaymentService focused on the use case. Each adapter translates its provider at the boundary, while dynamic dispatch lets the service work through the same contract when another implementation is registered.',
         incorrectExplanation:
           'Look for the boundary that owns provider-specific behavior. The application service should depend on a capability, not on concrete SDK types or a growing chain of type checks.',
-        hint: 'PaymentService → capability contract → provider adapters',
-        initialSelectedOption: 'b',
-        initialSubmitted: true
+        hint: 'PaymentService → capability contract → provider adapters'
       }
     ],
     architecture: {
