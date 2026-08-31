@@ -1,0 +1,131 @@
+{
+  "id": "java-lld-tictactoe-win-check",
+  "lessonSlug": "19-machine-coding-tictactoe",
+  "title": "Tic-Tac-Toe — Move Validation and Win Detection",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 50,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "symbol",
+      "path": "src/main/java/com/example/tttwinnerchecker/models/Symbol.java",
+      "displayName": "models/Symbol.java",
+      "editable": false
+    },
+    {
+      "id": "cell-state",
+      "path": "src/main/java/com/example/tttwinnerchecker/models/CellState.java",
+      "displayName": "models/CellState.java",
+      "editable": false
+    },
+    {
+      "id": "game-state",
+      "path": "src/main/java/com/example/tttwinnerchecker/models/GameState.java",
+      "displayName": "models/GameState.java",
+      "editable": false
+    },
+    {
+      "id": "cell",
+      "path": "src/main/java/com/example/tttwinnerchecker/models/Cell.java",
+      "displayName": "models/Cell.java",
+      "editable": false
+    },
+    {
+      "id": "move",
+      "path": "src/main/java/com/example/tttwinnerchecker/models/Move.java",
+      "displayName": "models/Move.java",
+      "editable": false
+    },
+    {
+      "id": "player",
+      "path": "src/main/java/com/example/tttwinnerchecker/models/Player.java",
+      "displayName": "models/Player.java",
+      "editable": false
+    },
+    {
+      "id": "bot",
+      "path": "src/main/java/com/example/tttwinnerchecker/models/Bot.java",
+      "displayName": "models/Bot.java",
+      "editable": false
+    },
+    {
+      "id": "board",
+      "path": "src/main/java/com/example/tttwinnerchecker/models/Board.java",
+      "displayName": "models/Board.java",
+      "editable": false
+    },
+    {
+      "id": "invalid-move-exception",
+      "path": "src/main/java/com/example/tttwinnerchecker/exceptions/InvalidMoveException.java",
+      "displayName": "exceptions/InvalidMoveException.java",
+      "editable": false
+    },
+    {
+      "id": "game-invalidation-exception",
+      "path": "src/main/java/com/example/tttwinnerchecker/exceptions/GameInvalidationException.java",
+      "displayName": "exceptions/GameInvalidationException.java",
+      "editable": false
+    },
+    {
+      "id": "winning-strategy",
+      "path": "src/main/java/com/example/tttwinnerchecker/strategies/WinningStrategy.java",
+      "displayName": "strategies/WinningStrategy.java",
+      "editable": false
+    },
+    {
+      "id": "game-controller",
+      "path": "src/main/java/com/example/tttwinnerchecker/controllers/GameController.java",
+      "displayName": "controllers/GameController.java",
+      "editable": false
+    },
+    {
+      "id": "winning-strategy-impl",
+      "path": "src/main/java/com/example/tttwinnerchecker/strategies/WinningStrategyImpl.java",
+      "displayName": "strategies/WinningStrategyImpl.java",
+      "editable": true
+    },
+    {
+      "id": "game",
+      "path": "src/main/java/com/example/tttwinnerchecker/models/Game.java",
+      "displayName": "models/Game.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/tttwinnerchecker/TttWinnerCheckerSolutionApplicationTests.java",
+    "className": "TttWinnerCheckerSolutionApplicationTests"
+  },
+  "evidence": [
+    {
+      "id": "win-row",
+      "label": "checkWinner detects a completed row for the moving player",
+      "testMethod": "testGameWinningCase1"
+    },
+    {
+      "id": "win-column",
+      "label": "checkWinner detects a completed column for the moving player",
+      "testMethod": "testGameWinningCase2"
+    },
+    {
+      "id": "win-diagonal",
+      "label": "checkWinner detects a completed diagonal for the moving player",
+      "testMethod": "testGameWinningCase3"
+    },
+    {
+      "id": "draw-detection",
+      "label": "A full board with no winner is correctly identified as a draw",
+      "testMethod": "testGameWinningCase4"
+    },
+    {
+      "id": "invalid-move-rejected",
+      "label": "validateMove rejects an out-of-bounds move with the expected exception",
+      "testMethod": "testInvalidMove"
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "id": "java-lld-hotel-add-rooms",
+  "lessonSlug": "24-machine-coding-hotel-management",
+  "title": "Hotel Management — Admin Adds Rooms",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "add-room-request-dto",
+      "path": "src/main/java/com/example/addroomshotelmanagement/dtos/AddRoomRequestDto.java",
+      "displayName": "dtos/AddRoomRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "add-room-response-dto",
+      "path": "src/main/java/com/example/addroomshotelmanagement/dtos/AddRoomResponseDto.java",
+      "displayName": "dtos/AddRoomResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "response-status",
+      "path": "src/main/java/com/example/addroomshotelmanagement/dtos/ResponseStatus.java",
+      "displayName": "dtos/ResponseStatus.java",
+      "editable": false
+    },
+    {
+      "id": "unauthorized-access",
+      "path": "src/main/java/com/example/addroomshotelmanagement/exceptions/UnAuthorizedAccess.java",
+      "displayName": "exceptions/UnAuthorizedAccess.java",
+      "editable": false
+    },
+    {
+      "id": "user-not-found-exception",
+      "path": "src/main/java/com/example/addroomshotelmanagement/exceptions/UserNotFoundException.java",
+      "displayName": "exceptions/UserNotFoundException.java",
+      "editable": false
+    },
+    {
+      "id": "base-model",
+      "path": "src/main/java/com/example/addroomshotelmanagement/models/BaseModel.java",
+      "displayName": "models/BaseModel.java",
+      "editable": false
+    },
+    {
+      "id": "customer",
+      "path": "src/main/java/com/example/addroomshotelmanagement/models/Customer.java",
+      "displayName": "models/Customer.java",
+      "editable": false
+    },
+    {
+      "id": "room",
+      "path": "src/main/java/com/example/addroomshotelmanagement/models/Room.java",
+      "displayName": "models/Room.java",
+      "editable": false
+    },
+    {
+      "id": "room-type",
+      "path": "src/main/java/com/example/addroomshotelmanagement/models/RoomType.java",
+      "displayName": "models/RoomType.java",
+      "editable": false
+    },
+    {
+      "id": "user",
+      "path": "src/main/java/com/example/addroomshotelmanagement/models/User.java",
+      "displayName": "models/User.java",
+      "editable": false
+    },
+    {
+      "id": "user-type",
+      "path": "src/main/java/com/example/addroomshotelmanagement/models/UserType.java",
+      "displayName": "models/UserType.java",
+      "editable": false
+    },
+    {
+      "id": "room-repository",
+      "path": "src/main/java/com/example/addroomshotelmanagement/repositories/RoomRepository.java",
+      "displayName": "repositories/RoomRepository.java",
+      "editable": false
+    },
+    {
+      "id": "user-repository",
+      "path": "src/main/java/com/example/addroomshotelmanagement/repositories/UserRepository.java",
+      "displayName": "repositories/UserRepository.java",
+      "editable": false
+    },
+    {
+      "id": "room-service",
+      "path": "src/main/java/com/example/addroomshotelmanagement/services/RoomService.java",
+      "displayName": "services/RoomService.java",
+      "editable": false
+    },
+    {
+      "id": "room-controller",
+      "path": "src/main/java/com/example/addroomshotelmanagement/controllers/RoomController.java",
+      "displayName": "controllers/RoomController.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-room-repository",
+      "path": "src/main/java/com/example/addroomshotelmanagement/repositories/InMemoryRoomRepository.java",
+      "displayName": "repositories/InMemoryRoomRepository.java",
+      "editable": true
+    },
+    {
+      "id": "in-memory-user-repository",
+      "path": "src/main/java/com/example/addroomshotelmanagement/repositories/InMemoryUserRepository.java",
+      "displayName": "repositories/InMemoryUserRepository.java",
+      "editable": true
+    },
+    {
+      "id": "room-service-impl",
+      "path": "src/main/java/com/example/addroomshotelmanagement/services/RoomServiceImpl.java",
+      "displayName": "services/RoomServiceImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/addroomshotelmanagement/RoomControllerTests.java",
+    "className": "RoomControllerTests"
+  },
+  "evidence": [
+    {
+      "id": "admin-can-add-room",
+      "label": "An admin user can successfully add a room",
+      "testMethod": "testAddRoomSuccess"
+    },
+    {
+      "id": "customer-cannot-add-room",
+      "label": "A non-admin user is rejected with FAILURE and no room is created",
+      "testMethod": "testAddRoomByCustomer"
+    },
+    {
+      "id": "unknown-user-cannot-add-room",
+      "label": "An unknown user id is rejected with FAILURE and no room is created",
+      "testMethod": "testAddRoomByNonExistingUser"
+    }
+  ]
+}

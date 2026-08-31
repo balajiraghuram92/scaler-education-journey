@@ -1,0 +1,199 @@
+{
+  "id": "java-lld-hotel-book-rooms",
+  "lessonSlug": "24-machine-coding-hotel-management",
+  "title": "Hotel Management — Book Rooms",
+  "language": "java",
+  "difficulty": "advanced",
+  "estimatedMinutes": 55,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "make-booking-request-dto",
+      "path": "src/main/java/com/example/bookrooms/dtos/MakeBookingRequestDto.java",
+      "displayName": "dtos/MakeBookingRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "make-booking-response-dto",
+      "path": "src/main/java/com/example/bookrooms/dtos/MakeBookingResponseDto.java",
+      "displayName": "dtos/MakeBookingResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "response-status",
+      "path": "src/main/java/com/example/bookrooms/dtos/ResponseStatus.java",
+      "displayName": "dtos/ResponseStatus.java",
+      "editable": false
+    },
+    {
+      "id": "invalid-room-exception",
+      "path": "src/main/java/com/example/bookrooms/exceptions/InvalidRoomException.java",
+      "displayName": "exceptions/InvalidRoomException.java",
+      "editable": false
+    },
+    {
+      "id": "unauthorized-access",
+      "path": "src/main/java/com/example/bookrooms/exceptions/UnAuthorizedAccess.java",
+      "displayName": "exceptions/UnAuthorizedAccess.java",
+      "editable": false
+    },
+    {
+      "id": "user-not-found-exception",
+      "path": "src/main/java/com/example/bookrooms/exceptions/UserNotFoundException.java",
+      "displayName": "exceptions/UserNotFoundException.java",
+      "editable": false
+    },
+    {
+      "id": "base-model",
+      "path": "src/main/java/com/example/bookrooms/models/BaseModel.java",
+      "displayName": "models/BaseModel.java",
+      "editable": false
+    },
+    {
+      "id": "booking",
+      "path": "src/main/java/com/example/bookrooms/models/Booking.java",
+      "displayName": "models/Booking.java",
+      "editable": false
+    },
+    {
+      "id": "customer",
+      "path": "src/main/java/com/example/bookrooms/models/Customer.java",
+      "displayName": "models/Customer.java",
+      "editable": false
+    },
+    {
+      "id": "customer-session",
+      "path": "src/main/java/com/example/bookrooms/models/CustomerSession.java",
+      "displayName": "models/CustomerSession.java",
+      "editable": false
+    },
+    {
+      "id": "customer-session-status",
+      "path": "src/main/java/com/example/bookrooms/models/CustomerSessionStatus.java",
+      "displayName": "models/CustomerSessionStatus.java",
+      "editable": false
+    },
+    {
+      "id": "invoice",
+      "path": "src/main/java/com/example/bookrooms/models/Invoice.java",
+      "displayName": "models/Invoice.java",
+      "editable": false
+    },
+    {
+      "id": "room",
+      "path": "src/main/java/com/example/bookrooms/models/Room.java",
+      "displayName": "models/Room.java",
+      "editable": false
+    },
+    {
+      "id": "room-type",
+      "path": "src/main/java/com/example/bookrooms/models/RoomType.java",
+      "displayName": "models/RoomType.java",
+      "editable": false
+    },
+    {
+      "id": "user",
+      "path": "src/main/java/com/example/bookrooms/models/User.java",
+      "displayName": "models/User.java",
+      "editable": false
+    },
+    {
+      "id": "user-type",
+      "path": "src/main/java/com/example/bookrooms/models/UserType.java",
+      "displayName": "models/UserType.java",
+      "editable": false
+    },
+    {
+      "id": "booking-repository",
+      "path": "src/main/java/com/example/bookrooms/repositories/BookingRepository.java",
+      "displayName": "repositories/BookingRepository.java",
+      "editable": false
+    },
+    {
+      "id": "customer-session-repository",
+      "path": "src/main/java/com/example/bookrooms/repositories/CustomerSessionRepository.java",
+      "displayName": "repositories/CustomerSessionRepository.java",
+      "editable": false
+    },
+    {
+      "id": "room-repository",
+      "path": "src/main/java/com/example/bookrooms/repositories/RoomRepository.java",
+      "displayName": "repositories/RoomRepository.java",
+      "editable": false
+    },
+    {
+      "id": "user-repository",
+      "path": "src/main/java/com/example/bookrooms/repositories/UserRepository.java",
+      "displayName": "repositories/UserRepository.java",
+      "editable": false
+    },
+    {
+      "id": "booking-service",
+      "path": "src/main/java/com/example/bookrooms/services/BookingService.java",
+      "displayName": "services/BookingService.java",
+      "editable": false
+    },
+    {
+      "id": "booking-controller",
+      "path": "src/main/java/com/example/bookrooms/controllers/BookingController.java",
+      "displayName": "controllers/BookingController.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-booking-repository",
+      "path": "src/main/java/com/example/bookrooms/repositories/InMemoryBookingRepository.java",
+      "displayName": "repositories/InMemoryBookingRepository.java",
+      "editable": true
+    },
+    {
+      "id": "in-memory-customer-session-repository",
+      "path": "src/main/java/com/example/bookrooms/repositories/InMemoryCustomerSessionRepository.java",
+      "displayName": "repositories/InMemoryCustomerSessionRepository.java",
+      "editable": true
+    },
+    {
+      "id": "in-memory-room-repository",
+      "path": "src/main/java/com/example/bookrooms/repositories/InMemoryRoomRepository.java",
+      "displayName": "repositories/InMemoryRoomRepository.java",
+      "editable": true
+    },
+    {
+      "id": "in-memory-user-repository",
+      "path": "src/main/java/com/example/bookrooms/repositories/InMemoryUserRepository.java",
+      "displayName": "repositories/InMemoryUserRepository.java",
+      "editable": true
+    },
+    {
+      "id": "booking-service-impl",
+      "path": "src/main/java/com/example/bookrooms/services/BookingServiceImpl.java",
+      "displayName": "services/BookingServiceImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/bookrooms/BookingControllerTest.java",
+    "className": "BookingControllerTest"
+  },
+  "evidence": [
+    {
+      "id": "successful-multi-room-booking",
+      "label": "Booking multiple rooms for a valid customer creates a CustomerSession and a Booking with the right room quantities",
+      "testMethod": "testBookRoomSuccess"
+    },
+    {
+      "id": "unknown-user-rejected",
+      "label": "Booking for an unknown user id returns FAILURE with no booking created",
+      "testMethod": "testBookRoomUserDoesntExists"
+    },
+    {
+      "id": "invalid-room-rejected",
+      "label": "Booking a room id that doesn't exist returns FAILURE with no booking created",
+      "testMethod": "testBookRoomInvalidRoom"
+    }
+  ]
+}

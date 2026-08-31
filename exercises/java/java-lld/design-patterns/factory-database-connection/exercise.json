@@ -1,0 +1,73 @@
+{
+  "id": "java-lld-factory-database-connection",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Simple Factory — Database Connection",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 40,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "database-type",
+      "path": "src/main/java/com/example/databaseconnection/DatabaseType.java",
+      "displayName": "DatabaseType.java",
+      "editable": false
+    },
+    {
+      "id": "database",
+      "path": "src/main/java/com/example/databaseconnection/Database.java",
+      "displayName": "Database.java",
+      "editable": true
+    },
+    {
+      "id": "mysql-database",
+      "path": "src/main/java/com/example/databaseconnection/MySQLDatabase.java",
+      "displayName": "MySQLDatabase.java",
+      "editable": true
+    },
+    {
+      "id": "postgresql-database",
+      "path": "src/main/java/com/example/databaseconnection/PostgreSQLDatabase.java",
+      "displayName": "PostgreSQLDatabase.java",
+      "editable": true
+    },
+    {
+      "id": "mongodb-database",
+      "path": "src/main/java/com/example/databaseconnection/MongoDBDatabase.java",
+      "displayName": "MongoDBDatabase.java",
+      "editable": true
+    },
+    {
+      "id": "database-factory",
+      "path": "src/main/java/com/example/databaseconnection/DatabaseFactory.java",
+      "displayName": "DatabaseFactory.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/databaseconnection/DatabaseConnectionTest.java",
+    "className": "DatabaseConnectionTest"
+  },
+  "evidence": [
+    {
+      "id": "database-shape",
+      "label": "Database declares the shared name field and abstract databaseConnection()/supportsType() methods, with exactly 3 concrete databases",
+      "testMethod": "testDatabaseClass"
+    },
+    {
+      "id": "factory-method-shape",
+      "label": "DatabaseFactory exposes a static createDatabase(DatabaseType, String) -> Database method",
+      "testMethod": "testDatabaseFactory"
+    },
+    {
+      "id": "factory-creates-correct-database",
+      "label": "createDatabase(MYSQL, name) returns a Database of the right type",
+      "testMethod": "testDatabaseFactoryMethodInvocation"
+    }
+  ]
+}

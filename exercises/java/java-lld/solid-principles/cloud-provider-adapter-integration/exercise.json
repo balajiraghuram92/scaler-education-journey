@@ -1,0 +1,162 @@
+{
+  "id": "java-lld-cloud-provider-adapter-integration",
+  "lessonSlug": "14-solid-principles",
+  "title": "SOLID-Compliant Cloud Provider Integration",
+  "language": "java",
+  "difficulty": "advanced",
+  "estimatedMinutes": 55,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "cloud-adapter",
+      "path": "src/main/java/com/example/cloudproviders/adapters/CloudAdapter.java",
+      "displayName": "adapters/CloudAdapter.java",
+      "editable": false
+    },
+    {
+      "id": "create-connection-request-dto",
+      "path": "src/main/java/com/example/cloudproviders/dtos/CreateConnectionRequestDto.java",
+      "displayName": "dtos/CreateConnectionRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "create-connection-response-dto",
+      "path": "src/main/java/com/example/cloudproviders/dtos/CreateConnectionResponseDto.java",
+      "displayName": "dtos/CreateConnectionResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "response-status",
+      "path": "src/main/java/com/example/cloudproviders/dtos/ResponseStatus.java",
+      "displayName": "dtos/ResponseStatus.java",
+      "editable": false
+    },
+    {
+      "id": "user-not-found-exception",
+      "path": "src/main/java/com/example/cloudproviders/exceptions/UserNotFoundException.java",
+      "displayName": "exceptions/UserNotFoundException.java",
+      "editable": false
+    },
+    {
+      "id": "aws-api",
+      "path": "src/main/java/com/example/cloudproviders/libraries/aws/AWSApi.java",
+      "displayName": "libraries/aws/AWSApi.java",
+      "editable": false
+    },
+    {
+      "id": "aws-connection-response",
+      "path": "src/main/java/com/example/cloudproviders/libraries/aws/AWSConnectionResponse.java",
+      "displayName": "libraries/aws/AWSConnectionResponse.java",
+      "editable": false
+    },
+    {
+      "id": "google-api",
+      "path": "src/main/java/com/example/cloudproviders/libraries/google/GoogleApi.java",
+      "displayName": "libraries/google/GoogleApi.java",
+      "editable": false
+    },
+    {
+      "id": "google-connection-response",
+      "path": "src/main/java/com/example/cloudproviders/libraries/google/GoogleConnectionResponse.java",
+      "displayName": "libraries/google/GoogleConnectionResponse.java",
+      "editable": false
+    },
+    {
+      "id": "base-model",
+      "path": "src/main/java/com/example/cloudproviders/models/BaseModel.java",
+      "displayName": "models/BaseModel.java",
+      "editable": false
+    },
+    {
+      "id": "connection",
+      "path": "src/main/java/com/example/cloudproviders/models/Connection.java",
+      "displayName": "models/Connection.java",
+      "editable": false
+    },
+    {
+      "id": "connection-status",
+      "path": "src/main/java/com/example/cloudproviders/models/ConnectionStatus.java",
+      "displayName": "models/ConnectionStatus.java",
+      "editable": false
+    },
+    {
+      "id": "user",
+      "path": "src/main/java/com/example/cloudproviders/models/User.java",
+      "displayName": "models/User.java",
+      "editable": false
+    },
+    {
+      "id": "user-repository",
+      "path": "src/main/java/com/example/cloudproviders/repositories/UserRepository.java",
+      "displayName": "repositories/UserRepository.java",
+      "editable": false
+    },
+    {
+      "id": "cloud-service",
+      "path": "src/main/java/com/example/cloudproviders/services/CloudService.java",
+      "displayName": "services/CloudService.java",
+      "editable": false
+    },
+    {
+      "id": "cloud-controller",
+      "path": "src/main/java/com/example/cloudproviders/controllers/CloudController.java",
+      "displayName": "controllers/CloudController.java",
+      "editable": false
+    },
+    {
+      "id": "aws-adapter",
+      "path": "src/main/java/com/example/cloudproviders/adapters/AWSAdapter.java",
+      "displayName": "adapters/AWSAdapter.java",
+      "editable": true
+    },
+    {
+      "id": "google-adapter",
+      "path": "src/main/java/com/example/cloudproviders/adapters/GoogleAdapter.java",
+      "displayName": "adapters/GoogleAdapter.java",
+      "editable": true
+    },
+    {
+      "id": "in-memory-user-repository-impl",
+      "path": "src/main/java/com/example/cloudproviders/repositories/InMemoryUserRepositoryImpl.java",
+      "displayName": "repositories/InMemoryUserRepositoryImpl.java",
+      "editable": true
+    },
+    {
+      "id": "cloud-service-impl",
+      "path": "src/main/java/com/example/cloudproviders/services/CloudServiceImpl.java",
+      "displayName": "services/CloudServiceImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/cloudproviders/CloudProviderSolutionApplicationTests.java",
+    "className": "CloudProviderSolutionApplicationTests"
+  },
+  "evidence": [
+    {
+      "id": "aws-adapter-valid-user",
+      "label": "Creating a connection for a valid user through the AWS adapter returns a populated, successful response",
+      "testMethod": "testCreateConnectionWithAwsAdapterAndValidUserId"
+    },
+    {
+      "id": "aws-adapter-invalid-user",
+      "label": "Creating a connection for an unknown user through the AWS adapter returns a FAILURE response with no connection details",
+      "testMethod": "testCreateConnectionWithAwsAdapterAndInValidUserId"
+    },
+    {
+      "id": "google-adapter-valid-user",
+      "label": "Creating a connection for a valid user through the Google adapter returns a populated, successful response",
+      "testMethod": "testCreateConnectionWithGoogleAdapterAndValidUserId"
+    },
+    {
+      "id": "google-adapter-invalid-user",
+      "label": "Creating a connection for an unknown user through the Google adapter returns a FAILURE response with no connection details",
+      "testMethod": "testCreateConnectionWithGoogleAdapterAndInValidUserId"
+    }
+  ]
+}

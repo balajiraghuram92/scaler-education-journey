@@ -1,0 +1,114 @@
+{
+  "id": "java-lld-hotel-get-rooms",
+  "lessonSlug": "24-machine-coding-hotel-management",
+  "title": "Hotel Management — Browse Rooms",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 40,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "response-status",
+      "path": "src/main/java/com/example/getrooms/dtos/ResponseStatus.java",
+      "displayName": "dtos/ResponseStatus.java",
+      "editable": false
+    },
+    {
+      "id": "get-rooms-request-dto",
+      "path": "src/main/java/com/example/getrooms/dtos/GetRoomsRequestDto.java",
+      "displayName": "dtos/GetRoomsRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "get-rooms-response-dto",
+      "path": "src/main/java/com/example/getrooms/dtos/GetRoomsResponseDto.java",
+      "displayName": "dtos/GetRoomsResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "base-model",
+      "path": "src/main/java/com/example/getrooms/models/BaseModel.java",
+      "displayName": "models/BaseModel.java",
+      "editable": false
+    },
+    {
+      "id": "room-type",
+      "path": "src/main/java/com/example/getrooms/models/RoomType.java",
+      "displayName": "models/RoomType.java",
+      "editable": false
+    },
+    {
+      "id": "room",
+      "path": "src/main/java/com/example/getrooms/models/Room.java",
+      "displayName": "models/Room.java",
+      "editable": false
+    },
+    {
+      "id": "user",
+      "path": "src/main/java/com/example/getrooms/models/User.java",
+      "displayName": "models/User.java",
+      "editable": false
+    },
+    {
+      "id": "room-repository",
+      "path": "src/main/java/com/example/getrooms/repositories/RoomRepository.java",
+      "displayName": "repositories/RoomRepository.java",
+      "editable": false
+    },
+    {
+      "id": "room-service",
+      "path": "src/main/java/com/example/getrooms/services/RoomService.java",
+      "displayName": "services/RoomService.java",
+      "editable": false
+    },
+    {
+      "id": "room-controller",
+      "path": "src/main/java/com/example/getrooms/controllers/RoomController.java",
+      "displayName": "controllers/RoomController.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-room-repository-impl",
+      "path": "src/main/java/com/example/getrooms/repositories/InMemoryRoomRepositoryImpl.java",
+      "displayName": "repositories/InMemoryRoomRepositoryImpl.java",
+      "editable": true
+    },
+    {
+      "id": "room-service-impl",
+      "path": "src/main/java/com/example/getrooms/services/RoomServiceImpl.java",
+      "displayName": "services/RoomServiceImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/getrooms/RoomsControllerTest.java",
+    "className": "RoomsControllerTest"
+  },
+  "evidence": [
+    {
+      "id": "no-filter-returns-all",
+      "label": "Getting rooms with no room type filter returns every stored room",
+      "testMethod": "testGetRoomsWithoutFilter"
+    },
+    {
+      "id": "deluxe-filter",
+      "label": "Filtering by DELUXE returns only DELUXE rooms",
+      "testMethod": "testGetRoomsWithDeluxeFilter"
+    },
+    {
+      "id": "super-deluxe-filter",
+      "label": "Filtering by SUPER_DELUXE returns only SUPER_DELUXE rooms",
+      "testMethod": "testGetRoomsWithSuperDeluxeFilter"
+    },
+    {
+      "id": "suite-filter",
+      "label": "Filtering by SUITE returns only SUITE rooms",
+      "testMethod": "testGetRoomsWithSuiteFilter"
+    }
+  ]
+}

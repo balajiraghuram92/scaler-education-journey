@@ -1,0 +1,169 @@
+{
+  "id": "java-lld-hotel-generate-invoice",
+  "lessonSlug": "24-machine-coding-hotel-management",
+  "title": "Hotel Management — Generate Invoice",
+  "language": "java",
+  "difficulty": "advanced",
+  "estimatedMinutes": 55,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "generate-invoice-request-dto",
+      "path": "src/main/java/com/example/generateinvoices/dtos/GenerateInvoiceRequestDto.java",
+      "displayName": "dtos/GenerateInvoiceRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "generate-invoice-response-dto",
+      "path": "src/main/java/com/example/generateinvoices/dtos/GenerateInvoiceResponseDto.java",
+      "displayName": "dtos/GenerateInvoiceResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "response-status",
+      "path": "src/main/java/com/example/generateinvoices/dtos/ResponseStatus.java",
+      "displayName": "dtos/ResponseStatus.java",
+      "editable": false
+    },
+    {
+      "id": "customer-session-not-found-exception",
+      "path": "src/main/java/com/example/generateinvoices/exceptions/CustomerSessionNotFoundException.java",
+      "displayName": "exceptions/CustomerSessionNotFoundException.java",
+      "editable": false
+    },
+    {
+      "id": "user-not-found-exception",
+      "path": "src/main/java/com/example/generateinvoices/exceptions/UserNotFoundException.java",
+      "displayName": "exceptions/UserNotFoundException.java",
+      "editable": false
+    },
+    {
+      "id": "base-model",
+      "path": "src/main/java/com/example/generateinvoices/models/BaseModel.java",
+      "displayName": "models/BaseModel.java",
+      "editable": false
+    },
+    {
+      "id": "booking",
+      "path": "src/main/java/com/example/generateinvoices/models/Booking.java",
+      "displayName": "models/Booking.java",
+      "editable": false
+    },
+    {
+      "id": "customer",
+      "path": "src/main/java/com/example/generateinvoices/models/Customer.java",
+      "displayName": "models/Customer.java",
+      "editable": false
+    },
+    {
+      "id": "customer-session",
+      "path": "src/main/java/com/example/generateinvoices/models/CustomerSession.java",
+      "displayName": "models/CustomerSession.java",
+      "editable": false
+    },
+    {
+      "id": "customer-session-status",
+      "path": "src/main/java/com/example/generateinvoices/models/CustomerSessionStatus.java",
+      "displayName": "models/CustomerSessionStatus.java",
+      "editable": false
+    },
+    {
+      "id": "invoice",
+      "path": "src/main/java/com/example/generateinvoices/models/Invoice.java",
+      "displayName": "models/Invoice.java",
+      "editable": false
+    },
+    {
+      "id": "room",
+      "path": "src/main/java/com/example/generateinvoices/models/Room.java",
+      "displayName": "models/Room.java",
+      "editable": false
+    },
+    {
+      "id": "room-type",
+      "path": "src/main/java/com/example/generateinvoices/models/RoomType.java",
+      "displayName": "models/RoomType.java",
+      "editable": false
+    },
+    {
+      "id": "user",
+      "path": "src/main/java/com/example/generateinvoices/models/User.java",
+      "displayName": "models/User.java",
+      "editable": false
+    },
+    {
+      "id": "user-type",
+      "path": "src/main/java/com/example/generateinvoices/models/UserType.java",
+      "displayName": "models/UserType.java",
+      "editable": false
+    },
+    {
+      "id": "booking-repository",
+      "path": "src/main/java/com/example/generateinvoices/repositories/BookingRepository.java",
+      "displayName": "repositories/BookingRepository.java",
+      "editable": false
+    },
+    {
+      "id": "customer-session-repository",
+      "path": "src/main/java/com/example/generateinvoices/repositories/CustomerSessionRepository.java",
+      "displayName": "repositories/CustomerSessionRepository.java",
+      "editable": false
+    },
+    {
+      "id": "booking-service",
+      "path": "src/main/java/com/example/generateinvoices/services/BookingService.java",
+      "displayName": "services/BookingService.java",
+      "editable": false
+    },
+    {
+      "id": "booking-controller",
+      "path": "src/main/java/com/example/generateinvoices/controllers/BookingController.java",
+      "displayName": "controllers/BookingController.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-booking-repository",
+      "path": "src/main/java/com/example/generateinvoices/repositories/InMemoryBookingRepository.java",
+      "displayName": "repositories/InMemoryBookingRepository.java",
+      "editable": true
+    },
+    {
+      "id": "in-memory-customer-session-repository",
+      "path": "src/main/java/com/example/generateinvoices/repositories/InMemoryCustomerSessionRepository.java",
+      "displayName": "repositories/InMemoryCustomerSessionRepository.java",
+      "editable": true
+    },
+    {
+      "id": "booking-service-impl",
+      "path": "src/main/java/com/example/generateinvoices/services/BookingServiceImpl.java",
+      "displayName": "services/BookingServiceImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/generateinvoices/GenerateInvoiceTests.java",
+    "className": "GenerateInvoiceTests"
+  },
+  "evidence": [
+    {
+      "id": "single-booking-invoice",
+      "label": "Generating an invoice for one booking totals the room charges plus 18% GST and 10% service charge",
+      "testMethod": "testGenerateInvoiceSuccess1"
+    },
+    {
+      "id": "multi-booking-invoice",
+      "label": "Generating an invoice aggregates room quantities across multiple bookings in the same session",
+      "testMethod": "testGenerateInvoiceSuccess2"
+    },
+    {
+      "id": "no-active-session-rejected",
+      "label": "Requesting an invoice for a user with no active session returns FAILURE with no invoice",
+      "testMethod": "testGenerateInvoiceForInvalidCustomerSession"
+    }
+  ]
+}

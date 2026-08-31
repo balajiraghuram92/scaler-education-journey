@@ -1,0 +1,73 @@
+{
+  "id": "java-lld-factory-board-game",
+  "lessonSlug": "15-creational-patterns",
+  "title": "Simple Factory — Board Game Creation",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 40,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "game-type",
+      "path": "src/main/java/com/example/boardgamecreation/GameType.java",
+      "displayName": "GameType.java",
+      "editable": false
+    },
+    {
+      "id": "board-game",
+      "path": "src/main/java/com/example/boardgamecreation/BoardGame.java",
+      "displayName": "BoardGame.java",
+      "editable": true
+    },
+    {
+      "id": "chess-board-game",
+      "path": "src/main/java/com/example/boardgamecreation/ChessBoardGame.java",
+      "displayName": "ChessBoardGame.java",
+      "editable": true
+    },
+    {
+      "id": "snake-ladder-board-game",
+      "path": "src/main/java/com/example/boardgamecreation/SnakeLadderBoardGame.java",
+      "displayName": "SnakeLadderBoardGame.java",
+      "editable": true
+    },
+    {
+      "id": "tic-tac-toe-board-game",
+      "path": "src/main/java/com/example/boardgamecreation/TicTacToeBoardGame.java",
+      "displayName": "TicTacToeBoardGame.java",
+      "editable": true
+    },
+    {
+      "id": "board-game-factory",
+      "path": "src/main/java/com/example/boardgamecreation/BoardGameFactory.java",
+      "displayName": "BoardGameFactory.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/boardgamecreation/BoardGameCreationTest.java",
+    "className": "BoardGameCreationTest"
+  },
+  "evidence": [
+    {
+      "id": "board-game-shape",
+      "label": "BoardGame declares the shared name field and abstract playGame()/gameType() methods, with exactly 3 concrete games",
+      "testMethod": "testBoardGameClass"
+    },
+    {
+      "id": "factory-method-shape",
+      "label": "BoardGameFactory exposes a static createGame(GameType, String) -> BoardGame method",
+      "testMethod": "testBoardGameFactoryClass"
+    },
+    {
+      "id": "factory-creates-correct-game",
+      "label": "createGame(TIC_TAC_TOE, name) returns a BoardGame of the right type carrying the given name",
+      "testMethod": "testBoardGameFactoryMethodInvocation"
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "id": "java-lld-tictactoe-undo-and-win-check",
+  "lessonSlug": "19-machine-coding-tictactoe",
+  "title": "Tic-Tac-Toe — O(1) Win Check and Undo",
+  "language": "java",
+  "difficulty": "advanced",
+  "estimatedMinutes": 60,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "symbol",
+      "path": "src/main/java/com/example/tttundo/models/Symbol.java",
+      "displayName": "models/Symbol.java",
+      "editable": false
+    },
+    {
+      "id": "cell-state",
+      "path": "src/main/java/com/example/tttundo/models/CellState.java",
+      "displayName": "models/CellState.java",
+      "editable": false
+    },
+    {
+      "id": "game-state",
+      "path": "src/main/java/com/example/tttundo/models/GameState.java",
+      "displayName": "models/GameState.java",
+      "editable": false
+    },
+    {
+      "id": "cell",
+      "path": "src/main/java/com/example/tttundo/models/Cell.java",
+      "displayName": "models/Cell.java",
+      "editable": false
+    },
+    {
+      "id": "move",
+      "path": "src/main/java/com/example/tttundo/models/Move.java",
+      "displayName": "models/Move.java",
+      "editable": false
+    },
+    {
+      "id": "player",
+      "path": "src/main/java/com/example/tttundo/models/Player.java",
+      "displayName": "models/Player.java",
+      "editable": false
+    },
+    {
+      "id": "bot",
+      "path": "src/main/java/com/example/tttundo/models/Bot.java",
+      "displayName": "models/Bot.java",
+      "editable": false
+    },
+    {
+      "id": "board",
+      "path": "src/main/java/com/example/tttundo/models/Board.java",
+      "displayName": "models/Board.java",
+      "editable": false
+    },
+    {
+      "id": "invalid-move-exception",
+      "path": "src/main/java/com/example/tttundo/exceptions/InvalidMoveException.java",
+      "displayName": "exceptions/InvalidMoveException.java",
+      "editable": false
+    },
+    {
+      "id": "game-invalidation-exception",
+      "path": "src/main/java/com/example/tttundo/exceptions/GameInvalidationException.java",
+      "displayName": "exceptions/GameInvalidationException.java",
+      "editable": false
+    },
+    {
+      "id": "empty-moves-exception",
+      "path": "src/main/java/com/example/tttundo/exceptions/EmptyMovesException.java",
+      "displayName": "exceptions/EmptyMovesException.java",
+      "editable": false
+    },
+    {
+      "id": "winning-strategy",
+      "path": "src/main/java/com/example/tttundo/strategies/WinningStrategy.java",
+      "displayName": "strategies/WinningStrategy.java",
+      "editable": false
+    },
+    {
+      "id": "game-controller",
+      "path": "src/main/java/com/example/tttundo/controllers/GameController.java",
+      "displayName": "controllers/GameController.java",
+      "editable": false
+    },
+    {
+      "id": "winning-strategy-impl",
+      "path": "src/main/java/com/example/tttundo/strategies/WinningStrategyImpl.java",
+      "displayName": "strategies/WinningStrategyImpl.java",
+      "editable": true
+    },
+    {
+      "id": "game",
+      "path": "src/main/java/com/example/tttundo/models/Game.java",
+      "displayName": "models/Game.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/tttundo/TttUndoApplicationTests.java",
+    "className": "TttUndoApplicationTests"
+  },
+  "evidence": [
+    {
+      "id": "win-detection",
+      "label": "checkWinner detects a completed row/column/diagonal for the moving player",
+      "testMethod": "testGameWinningCase"
+    },
+    {
+      "id": "undo-single-move",
+      "label": "Undoing the only move made clears that cell back to EMPTY",
+      "testMethod": "testUndoFunctionality1"
+    },
+    {
+      "id": "undo-multiple-moves",
+      "label": "Undoing 3 of 4 moves leaves only the earliest move on the board",
+      "testMethod": "testUndoFunctionality2"
+    },
+    {
+      "id": "undo-empty-history",
+      "label": "Undoing with no moves made throws EmptyMovesException with the expected message",
+      "testMethod": "testUndoFunctionality3"
+    }
+  ]
+}
