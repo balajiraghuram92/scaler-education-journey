@@ -7932,6 +7932,1189 @@ a recurring monthly job (an EventBridge-triggered Lambda that runs the scan and 
 a security review channel), and explain why a security review that only happens once, at launch, is
 insufficient for a system that keeps shipping new services and IAM roles after that first review.
 ",
+        "01-architect-the-storage-for-an-application" => @"# Architect the Storage for an Application
+
+## Concepts Covered
+
+Object, block, and file storage are not interchangeable options ranked by convenience — each has a
+distinct access contract that determines which workloads it can serve correctly. Object storage
+(S3) exposes a flat namespace of immutable-per-version objects addressed by key, written and read
+whole through an HTTP API (`PutObject`/`GetObject`); there is no in-place partial-byte edit, no
+POSIX file handle, and no guaranteed low-latency random access — which is exactly right for a policy
+PDF or a claims photo that is written once and read whole, and exactly wrong for a database's
+write-ahead log. Block storage (EBS) is a raw, low-latency block device attached to a single EC2
+instance (except io2 Block Express volumes, which support Multi-Attach across up to 16 instances in
+the same Availability Zone) — the OS lays a filesystem on top of it, and it is the only one of the
+three that can serve the small, random, latency-sensitive read/write pattern a relational database's
+storage engine actually generates. File storage (EFS) is a shared, POSIX-compliant filesystem
+mounted concurrently by many instances over NFS — the right choice when multiple compute nodes need
+to see the same mutable file tree at once, which object storage's whole-object model cannot provide
+and block storage's single-attach model (io2 Multi-Attach aside) does not either.
+
+The concrete decision is IOPS and throughput per dollar, not ""SSD versus HDD."" A `gp3` EBS volume
+provisions a 3,000 IOPS / 125 MiB/s baseline at $0.08/GB-month regardless of volume size, with
+additional IOPS purchasable up to 16,000 at $0.005/IOPS-month and additional throughput up to 1,000
+MiB/s at $0.04/MiB/s-month — decoupled from volume size, which is the change from the older `gp2`
+family, where IOPS scaled with size and a small volume could not be provisioned for high IOPS at
+all. An `io2` Block Express volume goes further, to 256,000 IOPS and 4,000 MiB/s per volume, at
+$0.125/GB-month plus $0.065 per provisioned IOPS-month — an order of magnitude more expensive per
+IOPS than gp3's purchasable tier, which only makes sense once a workload's actual measured IOPS
+requirement, not an assumed one, exceeds what gp3 can provision. S3 storage classes make the
+equivalent trade differently: S3 Standard is $0.023/GB-month with no retrieval fee and millisecond
+first-byte latency; S3 has no per-request minimum storage duration. Choosing wrong in either
+direction — over-provisioning io2 for a workload gp3 would serve, or under-provisioning IOPS for a
+database whose real write pattern was never measured — is a cost or an outage waiting to surface
+under load, not a stylistic preference.
+
+```hcl
+resource ""aws_ebs_volume"" ""policyvault_db_data"" {
+  availability_zone = ""us-east-1a""
+  size              = 200
+  type              = ""gp3""
+  iops              = 6000     # above the 3000 baseline, purchased explicitly
+  throughput        = 250      # MiB/s, above the 125 baseline
+  encrypted         = true
+
+  tags = { Name = ""policyvault-primary-db-data"" }
+}
+
+resource ""aws_s3_bucket"" ""policyvault_documents"" {
+  bucket = ""kestrel-policyvault-documents-prod""
+}
+
+resource ""aws_s3_bucket_versioning"" ""policyvault_documents"" {
+  bucket = aws_s3_bucket.policyvault_documents.id
+  versioning_configuration { status = ""Enabled"" }
+}
+```
+
+Encryption is a property of the storage layer, not a separate system, and it should be decided at
+the same time as the storage class rather than bolted on afterward: EBS volumes and S3 objects both
+support encryption at rest transparently, using either an AWS-managed key or a customer-managed KMS
+key, with no application-level code change required to read or write encrypted data — the encryption
+happens below the API the application already calls. The reason to choose a customer-managed KMS
+key over the AWS-managed default is auditability and revocation: a customer-managed key appears in
+CloudTrail with every `Encrypt`/`Decrypt` call attributable to a specific principal, and it can be
+disabled or have its key policy tightened independently of the data it protects, which an
+AWS-managed key does not expose. This decision belongs in the same sitting as the object/block/file
+choice, because retrofitting encryption onto an existing unencrypted EBS volume requires creating a
+new encrypted volume from a snapshot and cutting over, not a live in-place change — exactly the kind
+of retrofit cost that argues for deciding storage properties once, deliberately, at provisioning
+time rather than accepting a default and revisiting it under pressure later.
+
+## Practical Backend Scenario
+
+Kestrel Underwriting's PolicyVault stores four distinct data classes for each tenant agency, and the
+FDE maps each to a different backing store rather than defaulting everything to one. Policy PDFs,
+endorsement documents, and claims photos — written once, read occasionally, never partially
+modified — go into S3 with versioning enabled, so an accidental overwrite (a broker re-uploading a
+corrected policy under the same object key) is recoverable from a prior version instead of a
+destructive in-place edit. Policy and claim status — actively updated multiple times a day per
+active claim, queried by primary key and by adjuster, and requiring transactional consistency when
+a claim moves from ""under review"" to ""approved"" — goes into RDS for PostgreSQL on a `gp3` EBS
+volume provisioned at 6,000 IOPS after a load test showed the default 3,000 baseline caused write
+latency spikes during month-end batch premium recalculation. Searchable policy metadata (insured
+name, policy number, effective dates, tags) that underwriters filter and full-text search across
+goes into a Postgres `GIN` index on a `tsvector` column in the same RDS instance, rather than a
+separate search service, since query volume never justified the added operational surface. The
+seven-year regulatory audit trail — write-once records of every status change and document access —
+goes into a second, append-only S3 prefix with Object Lock in compliance mode, so no principal,
+including an account administrator, can delete or overwrite an audit record before its retention
+period expires.
+
+## Practice Loop
+
+1. Create a storage decision matrix listing PolicyVault's four data classes (documents, status,
+   metadata, audit trail) as rows and access pattern, durability need, and consistency need as
+   columns.
+2. Map each row to a specific AWS storage service (S3 Standard, RDS/EBS gp3, S3 with Object Lock)
+   and write one sentence justifying why the alternative services were rejected for that row.
+3. Measure the actual IOPS your policy-status database workload generates under a realistic load
+   test (month-end batch recalculation plus live adjuster traffic), and compare that measured
+   figure against gp3's 3,000-IOPS baseline to decide whether additional provisioned IOPS is
+   actually justified.
+4. Test one read, one write, one backup, and one restore assumption for each storage class in the
+   matrix — for example, confirm an S3 versioned object can actually be recovered to a prior
+   version, not just that versioning is ""enabled.""
+5. For each row in the matrix, write one sentence stating what happens to that specific workflow
+   (claim approval, document upload, audit lookup) if that store becomes unavailable, and whether
+   the failure is visible to the tenant or silently degraded.
+
+## Evidence of Understanding
+
+You can map a data class to object, block, or file storage by its actual access pattern rather than
+convention, and explain precisely why a database's storage engine needs block storage's random-I/O
+contract while a policy PDF does not. You can choose between gp3 and io2 Block Express using a
+measured IOPS requirement and the real per-GB and per-IOPS pricing, rather than an assumed default.
+You can produce a storage decision matrix that states, for every data class in a system, what
+happens to the dependent workflow when that store is unavailable.
+
+## Suggested Extension
+
+Add a fifth data class to PolicyVault — real-time underwriting-decision audit events streamed from
+a rules engine — and decide whether it belongs in the existing RDS instance, a new time-series
+store, or S3, justified by its actual write rate and query pattern rather than by convenience.
+",
+        "02-data-lifecycle-management-and-storage-optimization" => @"# Data Lifecycle Management and Storage Optimization
+
+## Concepts Covered
+
+Data lifecycle management is the discipline of making the transition from hot to warm to cold to
+deleted an explicit, automated, observable policy rather than a fact nobody tracked. S3 lifecycle
+rules operate on object age (or a tag-based filter) and move an object between storage classes on a
+schedule: S3 Standard ($0.023/GB-month, millisecond access, no retrieval fee) to S3 Standard-IA
+($0.0125/GB-month, same millisecond access, but a $0.01/GB retrieval fee and a 30-day minimum
+storage duration charge) to S3 Glacier Flexible Retrieval ($0.0036/GB-month, retrieval in minutes
+to hours depending on tier, with its own retrieval fee) to S3 Glacier Deep Archive ($0.00099/GB-
+month, 12-hour standard retrieval). The trade is always the same shape — lower per-GB storage cost
+in exchange for a retrieval fee and higher retrieval latency — which means a lifecycle rule is only
+correct if it is built from the object's actual access pattern (how often is a document class
+genuinely re-read after 30, 90, or 365 days) rather than a guess; transitioning frequently-accessed
+data into Glacier trades a small storage saving for a large, recurring retrieval cost and a support
+ticket every time a user needs a document ""immediately.""
+
+Lifecycle management is inseparable from retention correctness: an expiration rule that deletes
+data unconditionally at 90 days is wrong the moment a legal hold, an active claim, or a regulatory
+retention requirement applies to a specific object, which is why a lifecycle policy needs an
+explicit exception path — tag-based exclusion, S3 Object Lock, or a separate ""held"" prefix the
+lifecycle rule's filter does not match — rather than a human manually pulling flagged objects out of
+the deletion queue before each run. Cost attribution closes the loop: S3 Storage Lens and per-prefix
+or per-tag cost allocation let you answer ""which tenant's data is actually driving this month's
+storage bill"" instead of only seeing an aggregate total, which is the only way to catch the common
+failure mode where a temporary export or an old document version nobody ever intended to keep
+accumulates silently because no lifecycle rule or attribution tag was ever applied to that prefix.
+
+```json
+{
+  ""Rules"": [
+    {
+      ""ID"": ""policyvault-claims-photos-lifecycle"",
+      ""Filter"": { ""And"": {
+        ""Prefix"": ""tenants/"",
+        ""Tags"": [{ ""Key"": ""retention-hold"", ""Value"": ""false"" }]
+      }},
+      ""Status"": ""Enabled"",
+      ""Transitions"": [
+        { ""Days"": 30,  ""StorageClass"": ""STANDARD_IA"" },
+        { ""Days"": 180, ""StorageClass"": ""GLACIER"" }
+      ],
+      ""NoncurrentVersionTransitions"": [
+        { ""NoncurrentDays"": 30, ""StorageClass"": ""GLACIER"" }
+      ],
+      ""NoncurrentVersionExpiration"": { ""NoncurrentDays"": 730 }
+    }
+  ]
+}
+```
+
+S3 Intelligent-Tiering is a distinct alternative to writing explicit day-based transition rules: it
+monitors each object's actual access pattern and moves it automatically between a Frequent Access
+tier and an Infrequent Access tier (and, if enabled, Archive Instant Access and deeper archive
+tiers) after 30, 90, and up to 180 days without access — for a small monitoring fee, roughly
+$0.0025 per 1,000 objects per month, with no retrieval fee at all on the two most common tiers. The
+trade-off against a hand-written lifecycle rule is the inverse of the storage-class trade-off
+itself: Intelligent-Tiering costs more per object in monitoring overhead but removes the risk of a
+wrong access-pattern assumption baked into a static day threshold, which makes it the better default
+for a prefix whose access pattern is genuinely unpredictable (documents flagged for occasional
+re-review by an underwriter, for instance), while a hand-written rule with explicit day thresholds
+remains the better choice for a prefix whose access pattern is well understood and stable, like the
+weekly-export prefix in this lesson's scenario, where the correct threshold is already known and
+paying a monitoring fee to discover it again adds no value. Partitioning strategy is the parallel
+concern on the transactional side of the system: a `claims` table growing without bound degrades
+every sequential scan and every index rebuild over time, and range-partitioning it by a natural
+lifecycle boundary (policy year, or claim-closed date) lets an old partition be detached and archived
+as a unit — a single metadata operation — instead of a row-by-row delete that holds locks and
+generates enormous write-ahead-log volume for no equivalent benefit.
+
+## Practical Backend Scenario
+
+Six months into the PolicyVault engagement, Kestrel's monthly S3 bill has grown 40% faster than
+tenant count, and nobody can say why. The FDE finds the cause with S3 Storage Lens broken down by
+prefix: a batch-export job, run weekly for underwriting analytics, writes a full CSV snapshot of
+every active policy to `tenants/{tenant_id}/exports/` and never deletes the prior week's file, so
+52 near-duplicate exports accumulate per tenant per year with no lifecycle rule ever applied to that
+prefix — because the prefix was added after the original lifecycle policy was written and nobody
+updated the filter. The fix has two parts: first, a lifecycle rule scoped to the `exports/` prefix
+specifically, expiring objects after 14 days, since no export has ever been referenced by an
+underwriter after that window; second, the FDE explicitly checks that the audit-trail prefix (which
+must never expire before its seven-year hold) is not accidentally caught by the same broad
+`tenants/` prefix filter, so it tags every audit object `retention-hold: true` and adds that tag as
+an exclusion filter on every lifecycle rule that touches the `tenants/` prefix, rather than relying
+on separate prefixes alone to prevent an accidental future rule from matching audit data.
+
+## Practice Loop
+
+1. Classify every S3 prefix PolicyVault writes to (documents, exports, audit trail) as hot, warm,
+   cold, or held, based on its actual observed re-access pattern rather than a guess.
+2. For each non-held prefix, define transition and expiration rules with specific day thresholds,
+   and justify each threshold with the access-pattern evidence from step 1.
+3. Apply the lifecycle policy in a sandbox bucket seeded with objects of varying ages, and confirm
+   with `aws s3api list-objects-v2` (checking the `StorageClass` field) that objects actually
+   transitioned on schedule rather than only that the rule was accepted.
+4. Attempt to delete a tagged `retention-hold: true` object directly, and confirm the deletion is
+   rejected — this is the diagnostic step that proves the hold actually blocks deletion rather than
+   merely being excluded from the lifecycle rule's filter.
+5. Run S3 Storage Lens (or per-prefix cost allocation tags) and produce a cost-by-prefix breakdown
+   that shows which prefix is driving the largest share of the bill, and confirm it now matches
+   what the lifecycle policy intends to control.
+
+## Evidence of Understanding
+
+You can write an S3 lifecycle policy that transitions and expires objects by their actual access
+pattern, and explain the specific retrieval-cost and latency trade-off of each storage class
+transition. You can show which data moves, when it is deleted, who can restore it, and how cost is
+attributed, using a tag-based exclusion mechanism to keep held data safe from a broad lifecycle
+filter rather than relying on prefix separation alone. You can find an unbounded-growth source using
+per-prefix cost attribution rather than only observing an aggregate bill increase.
+
+## Suggested Extension
+
+Add a second export type (a nightly incremental delta file, distinct from the weekly full export)
+and design its own lifecycle rule, reasoning explicitly about why its retention window should differ
+from the weekly export's 14-day rule.
+",
+        "03-backup-and-disaster-recovery-strategies" => @"# Backup and Disaster Recovery Strategies
+
+## Concepts Covered
+
+RPO (Recovery Point Objective) and RTO (Recovery Time Objective) are the two numbers that turn
+""we take backups"" into an actual recovery commitment: RPO is how much recent work can be lost —
+the maximum acceptable gap between the last recoverable backup and the moment of failure — and RTO
+is how long the system may stay down while recovery happens. Neither number is a default; both must
+be derived from what the business actually loses per unit of data or per hour of downtime, and a
+system with no stated RPO/RTO effectively has an RPO and RTO of ""however long it takes,"" discovered
+for the first time during a real incident. RDS automated backups combine a daily full snapshot with
+continuous transaction-log shipping, which is what makes point-in-time recovery (PITR) possible —
+restoring the database to any specific second within the retention window (up to 35 days), not only
+to the moment of the last snapshot — because the log lets AWS replay every committed transaction
+between the snapshot and the requested timestamp. A snapshot alone (an EBS volume snapshot, or an
+RDS snapshot without PITR) captures a single point in time; restoring from it always means losing
+everything written after that snapshot was taken, however recent the failure — the gap between
+snapshot frequency and PITR's continuous log is exactly the difference between a coarse RPO and a
+near-zero one.
+
+Full and incremental backups differ in what they capture and, more consequentially, in what
+restoring from them costs: a full backup contains everything and restores in one step; an
+incremental backup contains only what changed since the last backup (full or incremental) and
+restoring means applying the full backup and then every incremental in sequence, so restore time
+grows with the number of increments since the last full — which is why a backup strategy needs a
+periodic full backup even when incrementals are cheaper day to day. Cross-region backup copies
+protect against a regional failure a same-region snapshot cannot survive, at the cost of the
+replication lag between the source and the copy, which becomes the effective RPO floor for a
+region-level disaster regardless of how tight the same-region RPO is. None of this is real until it
+is tested: a backup that has never been restored is a hypothesis, not a capability, and the only way
+to know the actual RTO is to perform a full restore into an isolated environment and time it — a
+number derived from an untested assumption is not evidence, and the gap between the assumed RTO and
+the measured one is frequently the first honest finding of a DR exercise.
+
+```bash
+# Point-in-time restore of the PolicyVault RDS instance to a specific second
+aws rds restore-db-instance-to-point-in-time \
+  --source-db-instance-identifier policyvault-prod \
+  --target-db-instance-identifier policyvault-pitr-restore-test \
+  --restore-time 2026-08-30T14:32:00Z \
+  --db-instance-class db.r6g.xlarge \
+  --no-multi-az \
+  --db-subnet-group-name policyvault-restore-sandbox
+
+# Time the restore end to end
+START=$(date +%s)
+aws rds wait db-instance-available --db-instance-identifier policyvault-pitr-restore-test
+END=$(date +%s)
+echo ""Restore completed in $(( (END - START) / 60 )) minutes""
+```
+
+## Practical Backend Scenario
+
+Kestrel's compliance team asks the FDE a direct question during a customer security review: ""If
+your production database is destroyed right now, how much of today's claim updates do you lose, and
+how long until PolicyVault is back?"" The FDE cannot answer with confidence, because PolicyVault has
+automated daily RDS snapshots but has never performed a restore. The FDE first states the actual
+business-derived numbers: an RPO of 5 minutes (the maximum acceptable loss, since a lost claim-
+status update requires manual reconciliation against the underwriting agency's own records, which
+Kestrel's ops team can tolerate for a few minutes of work but not a full day) and an RTO of 30
+minutes (the maximum acceptable downtime before Kestrel's SLA with its underwriting-agency
+customers is breached). RDS's automated backups with PITR already meet the 5-minute RPO, since the
+transaction log is shipped continuously. RTO is untested, so the FDE runs the restore command above
+against a snapshot from the previous night, into an isolated sandbox subnet group with no
+production traffic, and times it: 22 minutes for a `db.r6g.xlarge` instance with roughly 200 GB of
+data — under the 30-minute target, but only 8 minutes of margin, which the FDE flags as a risk given
+the database will keep growing and restore time is proportional to data volume, not a fixed constant.
+
+## Practice Loop
+
+1. Write an RPO/RTO table for PolicyVault naming the specific business cost that sets each number
+   (manual reconciliation effort for RPO, SLA breach for RTO), not a round-number default.
+2. Confirm PITR is actually enabled and that the transaction-log retention window covers the stated
+   RPO — check the RDS console or `describe-db-instances` for `BackupRetentionPeriod`, not just that
+   automated backups exist.
+3. Perform a full point-in-time restore into an isolated sandbox environment (no shared subnet or
+   security group with production) and measure the wall-clock time from restore command to the
+   instance reaching `available` — this is the diagnostic step that converts an assumed RTO into a
+   measured one.
+4. Compare the measured restore time against the stated 30-minute RTO, and if the margin is thin,
+   identify the largest lever for closing the gap (a smaller instance class restoring faster, a more
+   frequent snapshot cadence, or a warm standby that skips the restore step entirely).
+5. Write the recovery runbook with the exact commands used, the owner responsible for triggering it,
+   the dependency order (database before application, application before DNS cutover), and the
+   validation query that confirms the restored data is correct before traffic is routed to it.
+
+## Evidence of Understanding
+
+You can state RPO and RTO as specific numbers derived from the actual business cost of lost work or
+downtime, not aspirational defaults. You can distinguish what a full backup, an incremental backup,
+and a point-in-time-recovery-enabled continuous log each capture, and what restoring from each
+actually costs in time. You can produce a recovery runbook with tested commands, an owner, a
+dependency order, a validation check, and a timestamped measured result — not an assumption about
+how long recovery would take.
+
+## Suggested Extension
+
+Add a cross-region copy of the nightly RDS snapshot to a second AWS region, and restate the DR
+plan's effective RPO for a full regional failure, accounting for the replication lag between the
+source snapshot and the cross-region copy rather than assuming the same-region RPO still applies.
+",
+        "04-designing-the-networking-of-an-application" => @"# Designing the Networking of an Application
+
+## Concepts Covered
+
+Application network design is a set of trust-boundary decisions layered on top of subnet and route-
+table mechanics you should already have (VPCs, subnets, route tables, and security groups are
+covered elsewhere in this curriculum) — the question this lesson answers is which tier belongs where
+and why, not how a route table works. The rule that decides subnet placement is reachability, not
+convenience: a tier needs a public subnet (a route to an internet gateway) only if something outside
+the VPC must reach it directly, and every tier that does not need direct external reachability
+belongs in a private subnet, reachable only through whatever fronts it. For a typical three-tier
+application, that means exactly one thing sits in a public subnet by default: the load balancer.
+Everything the load balancer fronts — the application tier — sits in a private subnet, reachable only
+from the load balancer's security group, not from the internet directly; and the data tier sits in a
+still more private subnet, reachable only from the application tier's security group, with no route
+to an internet gateway or NAT gateway at all, since a database has no legitimate reason to originate
+or receive traffic from the public internet.
+
+Where the load balancer sits changes what ""internet-facing"" means for the rest of the design: an
+internet-facing ALB terminates public traffic in the public subnet and forwards it, over the private
+network, to targets in the private app subnet — the app tier never has a public IP and is
+unreachable from outside the VPC by construction, not by security-group configuration alone, which
+is a stronger guarantee than ""the security group happens to deny it today."" An internal ALB, by
+contrast, has no route to an internet gateway and exists specifically to load-balance east-west
+traffic between internal tiers — for example, a public-facing API tier calling an internal claims-
+processing tier that should never be reachable from outside the VPC under any security-group
+misconfiguration, because the ALB itself has no public path to misconfigure. Diagnosing a broken
+request path means reading which layer actually failed: a DNS failure looks like a resolution error
+before any connection is attempted; a route failure (a missing route-table entry, or a security
+group denying the specific port) looks like a connection timeout, since the packet either has
+nowhere to go or is silently dropped; and an application-layer failure (the service itself returning
+a 5xx or hanging) looks like a connection that succeeds but a request that fails or stalls after
+that — conflating a route-layer timeout with an application-layer hang wastes an incident's most
+valuable minutes chasing the wrong layer.
+
+```
+# Three-tier PolicyVault subnet layout (single AZ shown; mirrored per AZ for HA)
+public-subnet-1a      10.0.0.0/24   route: 0.0.0.0/0 -> igw-xxxx
+                                     hosts: internet-facing ALB only
+
+private-app-subnet-1a 10.0.10.0/24  route: 0.0.0.0/0 -> nat-gw-1a (outbound only)
+                                     hosts: PolicyVault API service (ECS tasks)
+                                     ingress: from ALB security group, port 443 only
+
+private-data-subnet-1a 10.0.20.0/24 route: no 0.0.0.0/0 route at all
+                                     hosts: RDS PostgreSQL primary
+                                     ingress: from app-tier security group, port 5432 only
+```
+
+Service discovery is the mechanism that lets the app tier find the data tier's actual network
+location without hard-coding an IP address that changes on every failover or scaling event. Inside
+a VPC, this is usually solved with a private DNS name (an RDS instance's endpoint, or a Route 53
+private hosted zone entry for an internal service) rather than an IP literal, so a database failover
+that promotes a new primary, or a scaling event that changes which instances are in service, is
+transparent to the app tier's configuration — it re-resolves the same name and reaches whichever
+instance now holds that role. Egress design deserves the same explicitness as ingress: an app tier
+that calls an external fraud-check API needs an explicit, named egress path (a NAT gateway route, or
+a VPC endpoint if the destination is another AWS service like S3, which avoids sending that traffic
+over the public internet and through the NAT gateway entirely) rather than an implicit ""it can reach
+the internet because it has a route,"" since an unbounded egress rule is exactly the kind of overly
+broad permission a least-privilege network design is meant to eliminate — the app tier should be able
+to reach the specific fraud-check endpoint and nothing else outbound that was never a stated
+dependency. Network observability closes the diagnostic loop these boundaries create: VPC Flow Logs
+record every accepted and rejected connection at the elastic-network-interface level, which is the
+concrete evidence that turns ""the request timed out"" into ""the request was rejected by this specific
+security group, at this specific timestamp, from this specific source"" — without flow logs, a
+route-layer failure and a silently-dropped packet look identical from the application's point of
+view, and the on-call engineer is left guessing which of several possible boundaries actually
+blocked the request.
+
+## Practical Backend Scenario
+
+Kestrel's security team flags an assumption in PolicyVault's early prototype during a review: the
+application tier was deployed with a public IP ""temporarily, to make debugging easier,"" and nobody
+removed it before the pilot went live. The FDE redraws the network with the three-tier layout above:
+the internet-facing ALB moves to the public subnet as the only public-facing component; the API
+service moves to a private subnet with its public IP removed, reachable only from the ALB's security
+group on port 443; and the RDS instance, already private, gets its security group tightened to allow
+inbound only from the app tier's security group, closing a broader rule that had allowed the entire
+VPC CIDR. To verify the redesign rather than assume it, the FDE runs a permitted-flow test (a
+request through the ALB reaches the API and returns a response) and a denied-flow test (a direct
+connection attempt to the app tier's private IP from outside the VPC, which times out rather than
+being refused — confirming there is genuinely no route, not merely a security-group denial a
+misconfiguration could later loosen). A third test, cutting the API tier's outbound NAT gateway
+route deliberately, produces a clean, diagnosable timeout on the API's calls to an external
+fraud-check service — distinct from what a DNS misconfiguration or an application exception would
+have produced, which is exactly the layer-specific signal the design is meant to preserve.
+
+## Practice Loop
+
+1. Draw PolicyVault's critical request path (a claim-status update: client to ALB to API to
+   database, and the API's outbound call to an external fraud-check service) and label the subnet
+   and trust boundary each hop crosses.
+2. For every component on that path, state explicitly whether it needs a public subnet, and justify
+   each answer by actual external reachability need, not convenience.
+3. Test a dependency timeout deliberately (cut the app tier's NAT gateway route, or remove a
+   security-group rule) and record the exact symptom it produces, so you have a known signature to
+   compare against during a real incident.
+4. Attempt the denied-flow test — a direct connection to the private app tier from outside the VPC —
+   and confirm it times out due to an actual missing route, not merely a security-group rule that
+   could be loosened later without anyone noticing the boundary weakened.
+5. Document the least-privilege network rule set for every tier boundary (ALB-to-app, app-to-data,
+   app-to-external-dependency) as an explicit table of source, destination, and port — no rule wider
+   than the specific traffic it must allow.
+
+## Evidence of Understanding
+
+You can assign each application tier to a subnet by its actual external-reachability need, placing
+only the load balancer in a public subnet by default. You can explain the difference between an
+internet-facing ALB and an internal ALB and choose correctly between them for a given request path.
+You can diagnose whether a broken dependency call is a DNS, route, security-policy, or application-
+layer failure from the specific symptom each layer produces, rather than guessing from a generic
+""it's not working.""
+
+## Suggested Extension
+
+Add a second internal ALB in front of a new internal fraud-scoring service that only the API tier
+should reach, and justify why this service gets an internal ALB rather than being called directly
+from the API tier via its private IP.
+",
+        "05-load-balancing-and-auto-scaling-groups" => @"# Load Balancing and Auto Scaling Groups
+
+## Concepts Covered
+
+A target group's health check decides which instances receive traffic, so its correctness is a
+direct availability property, not a configuration detail: a health check that only confirms the
+process is running (a TCP check on the listen port) will mark an instance healthy the moment the
+process binds the port, even if the application has not finished loading its configuration,
+warming its connection pool, or completing dependency checks — and the load balancer will start
+routing real user requests to an instance that cannot actually serve them correctly yet. An HTTP
+health check against a dedicated readiness endpoint (`GET /health/ready`, returning 200 only once
+the app has confirmed its database connection pool is live and any required startup cache is
+populated) is a stronger signal, because it tests the specific condition that determines whether the
+instance can actually do useful work, not merely whether its process exists. The health-check
+interval, timeout, healthy threshold, and unhealthy threshold together set how fast the target group
+reacts: a 10-second interval with a 2-check healthy threshold takes at least 20 seconds to register
+an instance as healthy after it starts passing, and a 3-check unhealthy threshold at the same
+interval takes at least 30 seconds to pull a failing instance out of rotation — both numbers are a
+direct trade between reacting fast and reacting to noise, not a default to leave untouched.
+
+Connection draining (deregistration delay) determines what happens to in-flight requests when an
+instance is being removed from the target group, whether because of a scale-in event or a
+deployment: without it, an instance is deregistered immediately and any request mid-flight to it is
+abruptly dropped; with a deregistration delay configured (for example, 30 seconds), the load balancer
+stops sending new requests to that target immediately but lets existing connections finish naturally
+within the delay window before the instance is actually terminated. Auto Scaling policies react to a
+signal — target tracking on CPU utilization or request count per target, step scaling on a specific
+CloudWatch alarm threshold, or a scheduled action for a known traffic pattern — and the cooldown
+period after a scaling action prevents the group from reacting to the same signal again before the
+new capacity has had time to actually absorb load and show up in the metric, which is what prevents
+a scale-out event from immediately triggering another scale-out on the same, not-yet-resolved
+metric spike. A launch template's warm-up time tells the Auto Scaling group how long a newly
+launched instance needs before its metrics should count toward the group's scaling decisions —
+without it, a fleet of instances still warming up can appear to still be under load, triggering an
+unnecessary second scale-out.
+
+```json
+{
+  ""TargetGroupArn"": ""arn:aws:elasticloadbalancing:...:targetgroup/policyvault-api/abc123"",
+  ""HealthCheckPath"": ""/health/ready"",
+  ""HealthCheckIntervalSeconds"": 10,
+  ""HealthCheckTimeoutSeconds"": 5,
+  ""HealthyThresholdCount"": 2,
+  ""UnhealthyThresholdCount"": 3,
+  ""Matcher"": { ""HttpCode"": ""200"" },
+  ""DeregistrationDelay"": { ""TimeoutSeconds"": 30 }
+}
+```
+
+```json
+{
+  ""PolicyName"": ""policyvault-api-target-tracking-cpu"",
+  ""PolicyType"": ""TargetTrackingScaling"",
+  ""TargetTrackingConfiguration"": {
+    ""PredefinedMetricSpecification"": { ""PredefinedMetricType"": ""ASGAverageCPUUtilization"" },
+    ""TargetValue"": 60.0,
+    ""ScaleOutCooldown"": 60,
+    ""ScaleInCooldown"": 300
+  },
+  ""DefaultInstanceWarmup"": 90
+}
+```
+
+Listener rules decide which target group a request reaches before health checks or scaling ever
+come into play, and getting the rule priority and condition wrong routes correctly-formed traffic to
+the wrong backend silently rather than producing an obvious error: a path-based rule
+(`/api/claims/*` to the claims target group, `/api/documents/*` to the documents target group) and a
+host-based rule (routing by `Host` header for a multi-tenant custom-domain setup) are evaluated in
+priority order, and a broader rule placed at a lower priority number than a more specific one will
+match first and swallow traffic the specific rule was meant to catch — the fix is always to order
+rules from most specific to least specific, with a catch-all default action last. Capacity limits are
+the boundary condition an Auto Scaling policy operates inside, not an afterthought: a target-tracking
+policy's `MaxSize` caps how far the group can scale regardless of how far above target the metric
+climbs, and choosing that ceiling requires the same capacity-modeling discipline as any other scaling
+decision — a `MaxSize` set from a guess rather than a measured peak-plus-margin calculation either
+caps the group below real peak demand, causing a sustained overload the policy cannot escape, or
+wastes budget provisioning headroom for a peak that never materializes. Sticky sessions, when a load
+balancer is configured to route a given client's requests to the same target for the session's
+duration (via a cookie), are worth naming as a targeted exception to statelessness rather than a
+default: they exist for a specific, narrow reason — an application that has not yet externalized
+some piece of session state — and every sticky session configured is a signal that a piece of the
+otherwise-stateless design still depends on one particular instance, worth tracking down and removing
+rather than leaving as a permanent crutch.
+
+## Practical Backend Scenario
+
+During a PolicyVault deployment, new instances register in the target group and immediately start
+receiving traffic before the application has finished loading its RDS connection pool, producing a
+burst of connection-refused errors visible in the ALB's 5xx metric for the first 15 seconds after
+every deploy. The FDE traces this to a TCP-only health check that marks the instance healthy the
+instant its process binds port 8080, regardless of readiness, and replaces it with an HTTP check
+against `/health/ready`, an endpoint the FDE adds that returns 200 only after the connection pool
+reports itself live. The FDE also sets a 30-second deregistration delay so that a deploy's outgoing
+instances finish their in-flight requests instead of dropping them mid-response, and configures a
+target-tracking Auto Scaling policy at 60% average CPU with a 300-second scale-in cooldown — chosen
+deliberately longer than the 60-second scale-out cooldown, since scaling in too eagerly during a
+brief lull and then immediately scaling back out during the next request burst is more expensive
+(cold-start latency on new instances) than carrying a small amount of excess capacity for a few extra
+minutes. To confirm the whole chain actually works rather than trusting the configuration alone, the
+FDE runs a load test that pushes CPU past 60%, watches a new instance launch and register, and
+separately terminates a running instance manually to confirm its in-flight requests finish during
+the 30-second drain window before it disappears from the target group.
+
+## Practice Loop
+
+1. Replace a TCP-only health check with an HTTP check against a dedicated readiness endpoint, and
+   define exactly what condition (database pool live, startup cache populated) must be true for
+   that endpoint to return 200.
+2. Configure the health-check interval, healthy threshold, and unhealthy threshold, and calculate
+   the minimum time each direction (healthy-to-serving, unhealthy-to-removed) takes given those
+   settings.
+3. Run a load test against the service and record, second by second, when the Auto Scaling group's
+   CPU metric crosses the 60% target, when a new instance registers, and when it starts receiving
+   traffic — this diagnostic timeline exposes any gap between ""scaling triggered"" and ""capacity
+   actually available.""
+4. Terminate a running, in-service instance manually while it has an in-flight request, and confirm
+   the request completes successfully within the deregistration delay window rather than being
+   dropped.
+5. Compare the scale-out and scale-in cooldowns, and justify why they are set to different values
+   given the relative cost of premature scale-in versus a small amount of excess capacity.
+
+## Evidence of Understanding
+
+You can configure a target-group health check whose success condition reflects actual application
+readiness, not process liveness, and calculate the minimum registration and removal time from its
+interval and threshold settings. You can configure a deregistration delay and verify, by terminating
+a live instance, that in-flight requests actually complete rather than being dropped. You can relate
+a scaling policy's target metric, cooldown, and warm-up settings to a measured load test, and justify
+asymmetric scale-out and scale-in cooldowns by the relative cost of each direction being wrong.
+
+## Suggested Extension
+
+Add a step-scaling policy triggered by a CloudWatch alarm on ALB `TargetResponseTime` p99 (rather
+than average CPU alone), and justify why a latency-based signal might catch a capacity problem the
+CPU-based target-tracking policy would miss.
+",
+        "06-designing-for-scalability-of-application-and-data" => @"# Designing for Scalability of Application and Data
+
+## Concepts Covered
+
+Scaling a system correctly starts with identifying its actual bottleneck, not applying more
+capacity uniformly across every layer — a system under load almost always has one component that
+saturates first, and scaling every other component while leaving that one unchanged spends effort
+and money without moving the ceiling at all. The distinction between vertical scaling (a bigger
+instance: more CPU, memory, or IOPS on the same node) and horizontal scaling (more instances sharing
+the load) matters because they solve different bottleneck shapes: vertical scaling has a hard
+ceiling (the largest instance type AWS offers) and does nothing for a bottleneck that is structural
+rather than resource-bound — a single database accepting serialized writes does not get faster
+because the instance below it got bigger, if the actual constraint is that writes are serialized by
+a table lock, not by CPU. Horizontal scaling requires statelessness to work at all: an application
+tier can only be scaled horizontally if any instance can serve any request, which means session
+state, in-memory caches that must stay consistent, and file uploads written to local disk all have
+to move to a shared, external store (Redis, S3, the database) before adding a second instance is
+safe — an application that silently depends on in-memory state will scale horizontally by
+introducing a new class of bug (a request landing on the ""wrong"" instance sees stale or missing
+state), not by getting faster.
+
+A queue is a specific, common bottleneck fix: it absorbs a burst by decoupling the rate work arrives
+from the rate work is processed, but an unbounded in-memory queue does not create capacity, it only
+defers the moment the bottleneck becomes visible — if the consumer's processing rate is genuinely
+below the arrival rate, an unbounded queue grows without limit until the process runs out of memory,
+which converts a visible slowdown into an invisible one until it becomes a crash. A bounded queue
+with explicit back-pressure (rejecting or delaying new work once the queue reaches a limit) makes the
+real constraint visible immediately instead of hiding it behind growing memory usage. A read replica
+addresses a specific, narrow bottleneck shape — read-heavy load exceeding what a single database
+instance can serve — by routing read queries to one or more replicas while writes still go to the
+primary; it does nothing for a write-bottlenecked workload, since every replica still receives the
+same write stream via replication, which means adding a read replica to a write-bound problem is a
+scaling boundary applied to the wrong layer. Building a capacity model — an estimate of expected
+request rate, the resource cost per request, and the resulting required capacity, worked out on
+paper or with a load test before the scaling change — is what turns ""we might need to scale"" into a
+specific, falsifiable prediction that a before/after measurement can actually confirm or refute.
+
+```
+# Back-of-envelope capacity model for PolicyVault's claim-status write path
+Expected peak claim updates: 40 requests/sec (10x current 4 req/sec, per customer's stated growth)
+Measured cost per write: 25ms DB time (serialized on the claims table's row lock, not CPU)
+Max sustainable throughput with current serialization: 1000ms / 25ms = 40 req/sec ceiling
+
+-> The database is not CPU-bound; it is lock-bound. A bigger RDS instance class raises the CPU
+   ceiling, not the lock-serialization ceiling. The actual fix is reducing per-write lock hold time
+   or partitioning writes so unrelated claims don't contend for the same lock.
+```
+
+## Practical Backend Scenario
+
+Kestrel tells the FDE PolicyVault must support ten times current traffic (400 req/sec) ahead of a
+new regional rollout. The FDE's first instinct — resize the RDS instance to a larger class — turns
+out to be the wrong lever once measured: a load test shows claim-status writes serialize on a
+row-level lock in the `claims` table (every update to a claim's status acquires the same lock
+briefly, regardless of which claim it is, because a poorly indexed trigger scans the whole table),
+capping throughput at roughly 40 writes/sec no matter how large the instance gets, since the
+bottleneck is lock contention, not CPU or IOPS. The FDE also finds an unbounded in-memory queue
+buffering outbound notification events, which had been silently growing during traffic spikes and
+nearly caused an out-of-memory crash during the last load test — invisible until it became a hard
+failure. The actual fix has two parts: the FDE removes the table-wide scan from the trigger so locks
+are held only as long as the single row's update actually takes, raising sustainable throughput well
+past the 400 req/sec target; and replaces the unbounded queue with a bounded SQS queue with a
+visibility timeout and a DLQ, so a genuine processing slowdown produces a visible, boundedqueue-depth
+metric instead of unbounded memory growth. A read replica, briefly considered, is correctly rejected
+once the FDE confirms the actual read load was never close to saturating the primary — the
+bottleneck was never a read-capacity problem at all.
+
+## Practice Loop
+
+1. Estimate PolicyVault's expected peak workload (400 req/sec) and the resource cost per request for
+   its most write-heavy operation (claim-status update), using measured, not assumed, per-request
+   cost.
+2. Model where the system actually saturates first given that estimate — compute the theoretical
+   throughput ceiling from the measured cost per operation, the way the capacity model above does.
+3. Run a load test against the current system and measure the actual observed ceiling, comparing it
+   against the modeled prediction — this diagnostic step confirms or corrects the model against
+   reality rather than trusting the paper estimate alone.
+4. Add exactly one scaling boundary targeted at the confirmed bottleneck (removing the lock-
+   contention source, or bounding the notification queue) — not a uniform resize of every component.
+5. Re-run the load test after the change and compare throughput, latency, and failure behavior
+   before and after, confirming the bottleneck actually moved rather than assuming the fix worked.
+
+## Evidence of Understanding
+
+You can identify a system's actual bottleneck from a measured workload estimate rather than scaling
+every layer uniformly on assumption, and distinguish a resource-bound bottleneck (CPU, IOPS) from a
+structural one (lock contention) that a bigger instance cannot fix. You can choose the least complex
+effective scaling boundary for a specifically identified bottleneck — a read replica only for a
+confirmed read-heavy constraint, a bounded queue with back-pressure rather than an unbounded one for
+a burst-absorption problem — and reject a scaling option that does not match the actual bottleneck
+shape. You can measure throughput, latency, and failure behavior before and after a scaling change to
+confirm it actually moved the ceiling.
+
+## Suggested Extension
+
+Model what happens to PolicyVault's throughput ceiling if a second regional customer base doubles
+write volume again after this fix, and identify what would become the next bottleneck once lock
+contention is no longer the constraint.
+",
+        "07-database-sharding-strategies-and-hot-spot-mitigation" => @"# Database Sharding Strategies and Hot-Spot Mitigation
+
+## Concepts Covered
+
+A shard key determines which shard a row lands on, and the entire quality of a sharding scheme
+follows from one property of that key: cardinality and distribution under the system's real traffic,
+not under a uniform assumption. Hashing the shard key (`hash(shard_key) mod N`) spreads rows evenly
+across N shards only if the key's actual value distribution in production traffic is close to
+uniform; a key with a small number of highly unequal values — like `tenant_id` in a multi-tenant
+system where one enterprise customer generates far more traffic than dozens of small tenants
+combined — produces a hot shard no matter how good the hash function is, because hashing cannot fix
+skew that already exists in the input distribution, it can only spread already-uniform input evenly.
+Consistent hashing improves on plain `mod N` hashing for a different problem — minimizing the
+fraction of keys that move when the shard count changes — but it does nothing for input skew either;
+a hot tenant's hashed key still lands on one shard and stays there, consistent hashing just makes
+adding shard N+1 later cheaper. Locality is the other axis a shard key decision affects: a key that
+keeps a tenant's related rows on the same shard (like `tenant_id`) makes single-tenant queries a
+single-shard operation, but a key chosen purely for even distribution (a random UUID) can force even
+a single tenant's own query to scatter across every shard, turning what should be a simple query into
+a scatter-gather across N shards, each contributing a partial result that must be merged — a real
+latency and complexity cost that a distribution-optimal key can silently introduce.
+
+Quantifying skew, not asserting it, is what turns a shard-key decision into an engineering choice
+rather than a guess: for a candidate key, compute each shard's share of total request volume, and
+express the imbalance as a ratio between the busiest and the median shard — a 1.2x ratio is normal
+variance, a 5x or 10x ratio is a hot shard that will saturate long before the others, regardless of
+overall cluster capacity, since a database cluster's real ceiling is its busiest shard's ceiling, not
+an average across all shards. Once a hot shard is confirmed, the two practical mitigations are
+different tools for different causes: bucketing (splitting one oversized tenant's key into several
+sub-keys — `tenant_id:0` through `tenant_id:9`, spreading that single tenant's rows across ten
+shards instead of one) fixes a hot key whose own volume genuinely exceeds one shard's capacity;
+tenant isolation (moving one specific hot tenant to a dedicated shard, off the shared pool entirely)
+fixes a hot tenant whose volume is disruptive to its neighbors on a shared shard even if it would fit
+comfortably alone. A resharding migration — moving rows from an old shard mapping to a new one — must
+happen without a full-system outage, which means a dual-write or backfill-then-cutover approach:
+write new rows under both the old and new mapping during a transition window, backfill historical
+rows into their new location, verify row counts match, then cut reads over and stop the dual write —
+never a single atomic ""flip"" across a dataset large enough that flipping it is not actually
+instantaneous.
+
+```
+# Shard-key comparison for PolicyVault's claims table, 6 shards, 12,000 req/sec total
+
+Candidate A: shard_key = hash(tenant_id) mod 6
+  Kestrel's largest tenant (a national underwriting group) alone generates 5,400 req/sec (45% of
+  total). It hashes onto shard 2.
+  Shard 0: 800   Shard 1: 950   Shard 2: 6,300 (5,400 + 900 other)   Shard 3: 1,100
+  Shard 4: 1,650  Shard 5: 1,200
+  Busiest (shard 2, 6,300) / median (~1,100) = 5.7x -> hot shard, will saturate long before others.
+
+Candidate B: shard_key = hash(claim_id) mod 6  (claim_id is a random UUID, no tenant correlation)
+  Shard 0: 2,050  Shard 1: 1,980  Shard 2: 2,010  Shard 3: 1,940  Shard 4: 2,020  Shard 5: 2,000
+  Busiest / median = 1.03x -> evenly distributed.
+  BUT: a single-tenant ""list all claims for tenant X"" query now scatter-gathers across all 6 shards
+  instead of hitting one, since a tenant's claims are no longer co-located.
+
+Mitigation applied to Candidate A: bucket the largest tenant only.
+  shard_key = hash(tenant_id) mod 6, UNLESS tenant_id in {large_tenant_ids} ->
+    hash(tenant_id || ':' || (claim_id mod 10)) mod 6
+  Largest tenant's 5,400 req/sec now spreads across up to 10 sub-buckets, landing across multiple
+  shards instead of concentrating on shard 2; every other tenant's locality is unaffected.
+```
+
+## Practical Backend Scenario
+
+As Kestrel signs a national underwriting group as PolicyVault's largest customer, the claims table
+starts showing uneven load: five of six shards run comfortably under capacity while one, hosting
+that single large tenant, saturates during business hours and pushes p99 latency for every tenant
+on that shard past the SLA — including several small tenants who did nothing to cause it, sharing
+infrastructure with a tenant forty times their size. The FDE runs the shard-key comparison above:
+plain `hash(tenant_id) mod 6` produces a 5.7x busiest-to-median skew because the hash function cannot
+fix the fact that one tenant's raw traffic share is 45% of the total, while `hash(claim_id) mod 6`
+would distribute evenly (1.03x) but breaks tenant-scoped query locality, forcing every ""list this
+tenant's claims"" query — the platform's single most common query — into a six-way scatter-gather.
+Neither candidate alone is acceptable, so the FDE applies bucketing specifically to the identified
+hot tenant, leaving every other tenant's simple `hash(tenant_id) mod 6` locality untouched, and
+writes a resharding migration plan: dual-write the large tenant's new claims under both the old
+single-shard mapping and the new bucketed mapping for two weeks, backfill its historical claims into
+the bucketed shards in the background, verify row counts and a sample of query results match between
+old and new locations, then cut reads over to the bucketed mapping and stop the dual write — timed
+for a low-traffic maintenance window, never a single atomic cutover across the tenant's full
+multi-year claims history.
+
+## Practice Loop
+
+1. Compute each shard's request-volume share for at least two candidate shard keys, using
+   PolicyVault's actual traffic mix (including the known large-tenant share), the way the worked
+   comparison above does.
+2. Express each candidate's imbalance as a busiest-to-median shard ratio, and state the threshold
+   (5x or greater, per this lesson) above which a shard is considered hot.
+3. For the candidate that distributes evenly, identify specifically which query pattern (tenant-
+   scoped listing) becomes a scatter-gather across all shards instead of a single-shard operation —
+   this diagnostic step makes the locality cost concrete rather than abstract.
+4. Apply bucketing to the identified hot tenant only, and recompute the shard distribution to confirm
+   the skew ratio actually drops while every other tenant's locality is unaffected.
+5. Write the resharding migration plan (dual-write window, backfill, row-count verification,
+   cutover, dual-write stop) and name the specific verification check that must pass before the
+   cutover is considered safe.
+
+## Evidence of Understanding
+
+You can quantify shard-key skew as a busiest-to-median ratio from real traffic numbers, rather than
+asserting a key is ""well distributed"" from intuition about cardinality alone. You can state which
+query pattern becomes harder — specifically, scatter-gather across all shards — when a shard key
+optimized for even distribution breaks tenant locality. You can explain how to move a hot tenant
+safely with a dual-write-then-cutover resharding plan, verified by row-count and sample-result
+checks, without a full-system outage.
+
+## Suggested Extension
+
+Model what happens to the skew ratio if Kestrel signs a second national-scale tenant roughly the
+same size as the first, and decide whether bucketing both hot tenants on the shared six-shard pool
+is still sufficient or whether one or both now warrant dedicated tenant isolation instead.
+",
+        "08-edge-caching-cdns-and-latency-reduction" => @"# Edge Caching, CDNs, and Latency Reduction
+
+## Concepts Covered
+
+A CDN's cache key is the actual unit of correctness, not an implementation detail you can leave to defaults. Every response has a set of dimensions it legitimately varies on — tenant, locale, currency, device, authentication state — and the cache key must include every one of those dimensions or the CDN will serve one tenant's response to another tenant's request the first time two requests happen to share every dimension the key *does* include. `Cache-Control` headers are the origin's half of this contract: `public` permits a shared cache (the CDN, any intermediate proxy) to store the response, `private` restricts storage to the requesting client's own browser cache, and `no-store` forbids storage anywhere. `max-age` sets how long a *private* cache may serve the response without revalidation; `s-maxage`, when present, overrides `max-age` specifically for shared caches like a CDN edge node — a response can legitimately say ""a user's browser should treat this as stale after 0 seconds, but the CDN edge may serve it for 300 seconds,"" which is exactly the shape a tenant-scoped submission page needs: private per-request freshness for the browser, shared freshness at the edge to absorb repeat traffic from many users hitting the same tenant's page.
+
+`stale-while-revalidate=N` is not a synonym for a longer `max-age` — it changes what happens the moment a cached response goes stale. Without it, the request that finds a stale entry blocks on a full origin round trip before the client gets a response. With `stale-while-revalidate=60`, that same request gets the stale response immediately while the CDN triggers a background refresh from the origin, and only requests arriving after the 60-second revalidation window closes pay the origin round trip. This converts ""always slow when stale"" into ""usually fast even when stale,"" at the cost of occasionally serving data up to N seconds old to the one request that triggers the refresh — a trade-off that is fine for a product listing and wrong for a payment confirmation page, which is why the directive belongs on specific response types, not as a blanket policy. Invalidation is the second half of correctness: a CDN cache key that changes with content (a versioned asset filename, a content hash in the URL) never needs explicit invalidation — the old URL simply stops being requested — while a cache key that stays stable while its underlying content changes (a submission page keyed by coverage line, not by a content hash) requires an explicit invalidation call the moment the underlying data changes, or the edge will keep serving the old response for the full TTL regardless of what the origin now holds.
+
+```
+# Static document thumbnails — filename includes a content hash, so the URL itself changes on update
+Cache-Control: public, max-age=31536000, immutable
+
+# Tenant-scoped submission page — shared cache may serve it for 5 minutes,
+# background-refreshes for up to 60s past that before blocking a request
+Cache-Control: private, s-maxage=300, stale-while-revalidate=60
+
+# Cart and bind responses — never stored anywhere
+Cache-Control: no-store
+```
+
+## Practical Backend Scenario
+
+PolicyVault fronts its Submission API with a CDN so that Meridian Underwriters's and Coastal Risk Partners' broker portal pages — each tenant runs its own branded broker portal on a shared platform — load quickly for brokers regardless of region. The original CDN cache policy whitelists the request path and the `currency` query parameter as the cache key, on the reasoning that ""the page content only depends on the coverage line in the path and the currency."" A support ticket reveals the actual bug: a broker on Coastal Risk Partners' broker portal briefly saw Meridian Underwriters's active rate discount banner on an identical coverage line path, because both tenants' submission pages resolve to the same URL path and query string once the shared platform's routing strips the tenant subdomain before the cache key is computed — the CDN edge, having already cached Meridian Underwriters's response for that path, served it straight back to the next request that matched the same key, regardless of which tenant's `X-Tenant-Id` header actually accompanied the request. The cache key was missing the one dimension the response actually varies on.
+
+## Practice Loop
+
+1. Define the cacheability rule for each of PolicyVault's three response types — static document thumbnails, tenant-scoped submission pages, and quote worksheet/bind responses — as an explicit `Cache-Control` header, matching the code block above to each.
+2. Rebuild the CDN cache policy to include `X-Tenant-Id` in the cache key alongside the coverage line path and `currency` query parameter, using a whitelist headers configuration rather than caching on every header by default.
+3. Diagnostic: request the same coverage line path for Meridian Underwriters and Coastal Risk Partners from two different simulated client locations before and after the fix, and confirm the pre-fix responses are identical (the leak) while the post-fix responses correctly diverge on the rate discount banner.
+4. Update a Coastal Risk Partners product's price at the origin, then issue a scoped CDN invalidation for exactly that coverage line's cached paths, and confirm a request immediately after the invalidation reflects the new price rather than waiting out the remaining `s-maxage`.
+5. Verify tenant separation holds under `stale-while-revalidate`: trigger a stale hit for Meridian Underwriters's page during the revalidation window and confirm the background refresh call to the origin still carries the correct `X-Tenant-Id`, not a value cached from whichever request happened to trigger the refresh.
+
+## Evidence of Understanding
+
+You can write correct `Cache-Control` directives for static, tenant-scoped, and never-cache responses, and explain the distinction between `max-age` (private-cache freshness) and `s-maxage` (shared-cache freshness). You can identify a cache key missing a dimension the response legitimately varies on, from the specific symptom of one client seeing another's cached response, and correct the cache key rather than only lowering the TTL. You can explain `stale-while-revalidate` as a latency/freshness trade-off — serve stale immediately, refresh in the background — rather than as a longer TTL, and issue a scoped invalidation instead of purging an entire distribution when only one asset changed.
+
+## Suggested Extension
+
+Add a `Vary: Accept-Language` dimension for a future localized broker portal, and identify which existing cache-key dimension (tenant, currency, or path) is the closest analog for reasoning about why an under-specified `Vary` header would reproduce the same cross-locale leak this lesson's cross-tenant leak demonstrated.
+",
+        "09-microservices-performance-latency-throughput-and-concurrency" => @"# Microservices Performance: Latency, Throughput, and Concurrency
+
+## Concepts Covered
+
+Performance in a microservices system is a queueing problem before it is a code problem. Little's Law — `L = λ × W`, where `L` is the average number of requests in the system, `λ` is arrival throughput, and `W` is average time each request spends in the system — is the tool that turns ""how big should this connection pool be"" from a guess into a computation. A bind service handling 200 requests per second with an average downstream call latency of 150ms has, on average, `200 × 0.150 = 30` requests in flight at any instant; a connection pool sized well below 30 will saturate and start queuing new requests behind the pool itself, adding wait time that then increases `W`, which increases `L` again — a feedback loop that turns a marginal pool-sizing mistake into a runaway latency spiral under load. Sizing the pool from this calculation, with headroom for burst above the measured average, replaces intuition (""10 connections felt like enough"") with a number derived from the actual arrival rate and latency the service experiences.
+
+Average latency and p99 latency answer different questions, and conflating them hides the failure mode that actually matters for a fan-out request. Average latency tells you what a typical request experiences; p99 tells you what the slowest 1% experiences, and in a request that calls out to several downstream services, the probability that *at least one* of those calls lands in its own p99 compounds multiplicatively, not additively. If each of 4 downstream calls independently has a 1% chance of hitting its own slow tail, the probability that the overall request hits at least one slow call is `1 - (0.99)^4 ≈ 3.94%` — four times the single-call tail rate, even though each individual dependency's SLA looks fine in isolation. This is tail amplification, and it is why a request's own p99 budget needs to be allocated per-hop with real headroom, not simply summed from each dependency's advertised average. Batching independent downstream calls in parallel (rather than serially) reduces the *latency* cost of fan-out but does not reduce this tail-amplification probability — each parallel call still independently risks landing in its own tail, and the overall request still waits for the slowest of them.
+
+```yaml
+# HikariCP pool sized from Little's Law for the bind service:
+# throughput ~200 req/s, avg downstream latency ~150ms → L ≈ 30 in-flight
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 40      # 30 + headroom for burst above the measured average
+      minimum-idle: 10
+      connection-timeout: 2000   # fail fast rather than queue indefinitely behind the pool
+      leak-detection-threshold: 5000
+```
+
+## Practical Backend Scenario
+
+PolicyVault's bind endpoint fans out to Underwriting Rules, Rating, Premium Tax, and BindPay on every request. Average response time is a comfortable 180ms and looks fine on the dashboard, but the on-call FDE is paged for p99 latency crossing 4 seconds during a renewal-season surge. Profiling the critical path shows each of the four downstream calls has its own p99 around 700ms — individually unremarkable — but a request that touches all four has roughly a `1 - (0.993)^4 ≈ 2.8%` chance of hitting at least one of those tails, and at renewal-season-surge throughput that 2.8% is thousands of real requests per hour, not a rounding error. The second finding is a HikariCP pool sized at 15 connections against a throughput of 220 req/s and average downstream latency of 160ms — Little's Law puts steady-state in-flight requests at `220 × 0.160 = 35.2`, more than double the pool's capacity, so most requests are queuing behind the pool itself before they ever reach a downstream call, and that queueing wait is the dominant contributor to the 4-second tail, not any single slow dependency.
+
+## Practice Loop
+
+1. Measure the bind endpoint's actual throughput (`λ`) and average per-request time-in-system (`W`) under current renewal-season-surge load, and compute `L` using Little's Law.
+2. Compare the computed `L` against the current HikariCP `maximum-pool-size` and identify whether the pool is undersized relative to the computed steady-state concurrency.
+3. Diagnostic: measure p50 and p99 latency separately for the bind endpoint and for each of its four downstream calls individually, and compute the compounded probability of at least one tail hit per bind request from the individual p99 rates.
+4. Resize the pool using the Little's Law result plus burst headroom, re-run the renewal-season-surge load test, and re-measure p50 and p99 to confirm which portion of the original tail was pool-queueing wait versus genuine downstream latency.
+5. Identify the first remaining saturation point after the pool resize — the next-lowest-capacity resource on the critical path — and propose one bounded fix (a specific pool, timeout, or batching change) rather than a general ""add more capacity"" recommendation.
+
+## Evidence of Understanding
+
+You can apply Little's Law to compute steady-state concurrency from measured throughput and latency, and use that computation to size a connection pool rather than choosing a round number by feel. You can explain why fan-out requests amplify tail-latency exposure multiplicatively even when each dependency's own tail looks acceptable in isolation, and compute the compounded probability from the individual rates. You can separate a pool-queueing symptom from a genuine downstream-latency symptom using p50/p99 measurement, and identify the specific next saturation point on a critical path rather than proposing generic capacity increases.
+
+## Suggested Extension
+
+Add a per-hop timeout budget to the bind endpoint (e.g., 300ms allocated to each of the four downstream calls, summing to less than the endpoint's own SLA) and explain why this budget needs slack below the SLA total rather than summing to exactly it, given the tail-amplification math above.
+",
+        "10-designing-for-high-availability-multi-region-active-active" => @"# Designing for High Availability: Multi-Region Active-Active
+
+## Concepts Covered
+
+Active-active means both regions accept writes, not merely that both regions serve reads — and that single distinction is what makes active-active harder than a read-replica topology, because it introduces the possibility that the same logical record is written in two regions before either region has heard about the other's write. Health-based routing (Route 53 with a health check per region, or an equivalent global load balancer) decides which region a given request reaches, but the routing layer's own detection interval and DNS TTL are themselves latency in the failure-recovery path: a health check that polls every 30 seconds and a DNS TTL of 60 seconds means a genuinely failed region can still receive live traffic for up to roughly 90 seconds after it actually failed, and that window is exactly the RTO (recovery time objective) the routing mechanism itself contributes — a number that has to be stated explicitly, not assumed to be zero because ""we have failover.""
+
+Conflict resolution is the mechanism that decides what happens when the same record is written in both regions during the (however brief) window before replication catches up, and the correct choice is per data type, not a single global policy. Last-writer-wins (LWW), keyed on a timestamp or vector clock, is simple to implement and correct enough for data where losing one of the two concurrent writes is a tolerable cost — a quote worksheet line-item quantity, where the customer can simply re-add the item if their update was the one silently dropped. LWW is the wrong choice for data where silently discarding one of two concurrent writes is not a tolerable cost — a payment bind-confirmation record, where two regions both marking the same policy ""bound"" from two different transaction attempts is not a case where discarding one write is safe; that data path needs a single authoritative writer (a CP data path, in CAP terms) rather than active-active acceptance, even if the rest of the system is active-active. This is the same per-data-path granularity argument that governs CAP theorem generally, applied specifically to the mechanics of what an active-active region pair actually does when a write lands in both regions concurrently: the region topology can be active-active while specific fields within it still route through a single authoritative region.
+
+```
+# Route 53 health-based routing — the region-selection half of active-active
+aws route53 change-resource-record-sets --hosted-zone-id Z1PA6795UKMFR9 --change-batch '{
+  ""Changes"": [{
+    ""Action"": ""UPSERT"",
+    ""ResourceRecordSet"": {
+      ""Name"": ""api.cascadecommerce.com"",
+      ""Type"": ""A"",
+      ""SetIdentifier"": ""us-east-1"",
+      ""Region"": ""us-east-1"",
+      ""HealthCheckId"": ""hc-us-east-1-4f21"",
+      ""TTL"": 60,
+      ""ResourceRecords"": [{""Value"": ""198.51.100.10""}]
+    }
+  }]
+}'
+```
+
+```python
+# LWW quote-worksheet merge — acceptable for line-item quantities, NOT for bind-confirmation records
+def merge_worksheet(local_worksheet: dict, remote_worksheet: dict) -> dict:
+    merged = {}
+    for line_id in set(local_worksheet) | set(remote_worksheet):
+        local, remote = local_worksheet.get(line_id), remote_worksheet.get(line_id)
+        if local and remote:
+            merged[line_id] = local if local[""updated_at""] >= remote[""updated_at""] else remote
+        else:
+            merged[line_id] = local or remote
+    return merged
+```
+
+## Practical Backend Scenario
+
+PolicyVault runs active-active in `us-east-1` and `eu-west-1` so that European brokers get local-region latency. A frequent-traveler broker adds items to their quote worksheet while connected to `eu-west-1`, then their next request routes to `us-east-1` (a mobile network handoff mid-session), where they remove one of those items before the `eu-west-1` write has finished replicating. Both regions now hold a different quote worksheet state for the same account, and the LWW merge resolves it correctly using each line item's own `updated_at` timestamp — an acceptable outcome because the customer can always re-add or re-remove an item and no business invariant is violated either way. Separately, the payment team proposes extending active-active to the policy-bind write path so a `eu-west-1` broker's payment confirmation doesn't pay the transatlantic round trip. The FDE flags this as the CP data path that must stay single-writer: a bind-confirmation record marked ""paid"" from a duplicated concurrent write in both regions, later resolved by LWW picking whichever write happened to have the later timestamp, could silently mark a failed authorization as bound — an outcome no amount of ""the broker can just retry"" tolerance applies to, unlike a dropped quote-worksheet-quantity update.
+
+## Practice Loop
+
+1. Draw the two regions' request paths for a quote worksheet write and a bind confirmation write, and mark which is active-active (both regions accept) and which must stay single-writer (one authoritative region).
+2. Configure the Route 53 health check and failover routing for `api.cascadecommerce.com`, and compute the worst-case detection-plus-propagation window (health-check interval plus DNS TTL) as the routing layer's own contribution to RTO.
+3. Diagnostic: simulate the traveling broker's quote worksheet conflict (a concurrent write to the same coverage line in both regions before replication completes) and trace the LWW merge's resolution, confirming which write was silently dropped and that this is an acceptable outcome for a quote worksheet.
+4. Simulate the same concurrent-write pattern against a bind-confirmation record under a hypothetical LWW policy, and show the specific unacceptable outcome (a failed authorization marked ""paid"") that motivates keeping bind confirmation single-writer instead.
+5. Document the operator decision point: name the exact field-level boundary between what is active-active (quote worksheet, browsing session) and what is not (bind confirmation), and the reconciliation runbook for the case where the single-writer region itself fails.
+
+## Evidence of Understanding
+
+You can design health-based routing across two active regions and state the RTO the routing mechanism's own detection interval and DNS TTL contribute, rather than assuming failover is instantaneous. You can choose a conflict-resolution strategy per data type based on whether silently discarding one of two concurrent writes is an acceptable cost for that specific field, and can name a concrete example of data where LWW is safe (quote worksheet lines) and one where it is not (bind-confirmation records). You can simulate a regional write conflict, trace how it resolves under the chosen strategy, and explain the operator boundary between active-active and single-writer data paths within the same overall region topology.
+
+## Suggested Extension
+
+Design the failback procedure for the case where `us-east-1` (the single-writer region for bind confirmation) fails entirely: which region becomes the new authoritative writer, what happens to in-flight bind confirmation writes that were accepted but not yet replicated at the moment of failure, and what reconciliation step runs before the failed region is allowed to rejoin as a writer.
+",
+        "11-fault-tolerance-engineering-circuit-breakers-retries-and-backoff" => @"# Fault Tolerance Engineering: Circuit Breakers, Retries, and Backoff
+
+## Concepts Covered
+
+A circuit breaker exists to stop a slow or failing dependency from consuming resources faster than the caller can afford, by tracking recent call outcomes and refusing to make new calls once a threshold is crossed rather than letting every request individually discover the dependency is unhealthy. The breaker's three states — CLOSED (calls proceed normally, outcomes are tracked), OPEN (calls fail immediately without touching the dependency, for a configured wait duration), and HALF_OPEN (a small number of trial calls are permitted through to test recovery) — are governed by concrete, tunable thresholds, not a binary ""trip on any failure."" A `slidingWindowSize` of 50 with a `failureRateThreshold` of 50 means the breaker evaluates the failure rate over the most recent 50 calls and opens once that rate crosses 50%; a `slowCallDurationThreshold` lets the breaker treat a call that technically succeeded but took far longer than acceptable as equivalent to a failure for the purposes of this calculation, which matters because a dependency that returns 200s after 4 seconds is often a worse failure mode than one that returns 500s immediately — it holds a thread and a connection the entire time.
+
+Retrying a failed call is only safe when the error is retryable — a timeout, a connection reset, a 503 — and actively harmful when it is not — a 400 for malformed input, a 402 for a declined card, where retrying identically will fail identically while adding load for no benefit. Exponential backoff spaces retries out geometrically (`baseDelay × 2^attempt`) so that repeated failures don't retry at a constant, load-compounding rate, but backoff alone has a specific failure mode: if many callers all fail at the same instant (a dependency recovers, briefly succeeds, then fails again under the resulting retry spike), pure exponential backoff without jitter has every caller retrying in near-lockstep, recreating the load spike the backoff was meant to avoid. Jitter — adding a random component to each computed delay — desynchronizes those retries across callers, spreading the retry load out in time instead of concentrating it. A circuit breaker and a bulkhead are complementary, not redundant: the breaker decides *whether* to call a dependency at all based on its recent health; a bulkhead limits *how many concurrent calls* to that dependency are permitted regardless of health, which is what stops one slow dependency from exhausting the entire application's thread pool even before the breaker's failure-rate threshold has been crossed.
+
+```yaml
+resilience4j:
+  circuitbreaker:
+    instances:
+      bindPay:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 50
+        failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 2s
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 5
+        minimumNumberOfCalls: 20
+  timelimiter:
+    instances:
+      bindPay:
+        timeoutDuration: 3s
+  bulkhead:
+    instances:
+      bindPay:
+        maxConcurrentCalls: 15
+        maxWaitDuration: 0
+```
+
+```java
+// Retry with exponential backoff and jitter for a retryable BindPay error
+int maxRetries = 4;
+long baseDelayMs = 200;
+for (int attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+        return bindPayClient.charge(request); // uses request.idempotencyKey
+    } catch (RetryableException e) {
+        if (attempt == maxRetries) throw e;
+        long backoff = baseDelayMs * (1L << attempt);              // 200, 400, 800, 1600ms
+        long jitter = ThreadLocalRandom.current().nextLong(0, backoff / 2);
+        Thread.sleep(backoff + jitter);
+    }
+}
+```
+
+## Practical Backend Scenario
+
+BindPay, PolicyVault's third-party payment processor, starts responding slowly during a partial outage — not failing outright, just taking 4-6 seconds per charge instead of the usual 200ms. Every bind-service thread that calls BindPay blocks for the full duration, and because the naive retry logic retries every timeout up to 3 times with a fixed 500ms delay and no jitter, the actual load PolicyVault sends to the already-struggling BindPay roughly triples at the exact moment BindPay can least absorb it, and every one of those retries is also holding a bind-service thread for the duration. Within minutes, the bind service's own thread pool is exhausted — not by BindPay's failure directly, but by PolicyVault's own retry behavior amplifying that failure into a self-inflicted outage across every bind request, including the ones that don't even touch BindPay. The fix layers three mechanisms: a `timeLimiter` bounding each call to 3 seconds so a slow call fails fast instead of holding a thread for 6, a `bulkhead` capping concurrent BindPay calls at 15 so a saturated payment dependency can only ever occupy 15 bind-service threads regardless of how many requests arrive, and a `circuitBreaker` that opens once the failure-and-slow-call rate crosses its threshold, so once BindPay's degradation is confirmed rather than a one-off blip, subsequent calls fail immediately without even attempting the network round trip — freeing every thread that would otherwise wait 3 seconds just to receive the failure the breaker already knows is coming.
+
+## Practice Loop
+
+1. Configure the `resilience4j` circuit breaker, time limiter, and bulkhead for the `bindPay` client using the thresholds shown above, and explain in one sentence what each of the three mechanisms independently protects against.
+2. Implement retry with exponential backoff and jitter for retryable BindPay errors only (timeouts, connection resets, 503s), explicitly excluding non-retryable errors (a declined-card 402) from the retry path.
+3. Diagnostic: inject a synthetic 5-second BindPay response delay and measure, before adding the time limiter, how many bind-service threads become blocked within 30 seconds — this should make the thread-exhaustion mechanism visible as a number, not an abstract risk.
+4. Re-run the same injected delay with the time limiter, bulkhead, and circuit breaker all in place, and confirm the breaker transitions CLOSED → OPEN once the failure/slow-call rate crosses 50%, then confirm it transitions to HALF_OPEN after the 30-second wait and admits exactly 5 trial calls.
+5. Confirm every retried charge attempt uses the same idempotency key as the original attempt, and verify a charge that actually succeeded at BindPay but whose response was lost to the timeout does not get charged twice on retry.
+
+## Evidence of Understanding
+
+You can configure a circuit breaker's sliding window, failure-rate and slow-call-rate thresholds, and half-open trial count, and trace its CLOSED → OPEN → HALF_OPEN state transitions against a specific failure pattern with real numbers. You can implement retry with exponential backoff and explain specifically why jitter is required to prevent a thundering-herd retry spike, not merely ""spread things out"" vaguely. You can distinguish a retryable error from a permanent one and explain why a bulkhead (limiting concurrent calls) is a distinct, complementary mechanism to a circuit breaker (deciding whether to call at all) rather than a redundant one, and why an idempotency key is what makes retrying a charge safe.
+
+## Suggested Extension
+
+Add a fallback response to the `bindPay` circuit breaker's OPEN state — instead of failing the bind request outright, queue the charge for asynchronous retry once the breaker closes and return a ""payment processing"" status to the customer — and connect this to the Graceful Degradation lesson's framing of what the minimum viable customer-facing outcome looks like when a dependency is confirmed unhealthy.
+",
+        "12-graceful-degradation" => @"# Graceful Degradation
+
+## Concepts Covered
+
+Graceful degradation starts from classifying a workflow's dependencies as critical or optional to the outcome the broker is actually trying to achieve — not every dependency the code happens to call is equally load-bearing for that outcome. A broker trying to search open submissions, review a specific one, and complete the bind has a critical path (search, submission data, bind, payment) and an optional path (personalized risk-flag suggestions, ""brokers who reviewed this also flagged"" enrichment) — the optional path can fail entirely without preventing the broker from completing the thing they came to do, while the critical path failing means the workflow genuinely cannot complete. This classification is the design decision graceful degradation actually depends on: without it, every dependency gets treated as equally essential by default, and a failure anywhere becomes a failure everywhere, which is precisely the outage graceful degradation exists to prevent.
+
+The mechanism for an optional path's failure is a fallback that returns something useful rather than an error — stale-but-useful cached data, a simpler non-personalized response, or a feature that's temporarily hidden rather than broken. This only works when the fallback is triggered fast: a fallback wired behind a per-request timeout that waits the full dependency timeout before falling back pays that cost on every degraded request, which is exactly the problem the previous lesson's circuit breaker solves for this case too — once the breaker for a given dependency has opened (confirming, not merely suspecting, that the dependency is unhealthy), a listener on that breaker's state can flip a feature flag for the corresponding optional capability off cluster-wide, so subsequent requests skip the dependency call entirely and go straight to the fallback rather than each one individually re-discovering the timeout. The final piece is honest user communication: silently substituting different content without disclosing it is a worse user experience than a visibly labeled fallback, because a user who trusts a ""Suggested for this submission"" label to mean personalized content and gets an unlabeled generic list has been quietly misled, while the same generic list labeled ""Common risk flags"" sets the correct expectation and signals that the system knows it's degraded rather than broken.
+
+```java
+public List<Product> getRiskSuggestions(String tenantId, String userId) {
+    if (!featureFlags.isEnabled(""ai-risk-suggestions"", tenantId)) {
+        // Flag flipped off cluster-wide by the RiskAssist circuit breaker's
+        // OPEN-state listener — skips the dependency call entirely.
+        return fallbackRiskSuggestions(tenantId); // cached ""frequently-flagged items in this class"", TTL 1h
+    }
+    try {
+        return riskAssistClient.getRiskFlags(userId)
+            .orTimeout(400, TimeUnit.MILLISECONDS)
+            .get();
+    } catch (TimeoutException | ExecutionException e) {
+        degradationMetrics.increment(""risk-suggestions.fallback"", tenantId);
+        return fallbackRiskSuggestions(tenantId);
+    }
+}
+```
+
+## Practical Backend Scenario
+
+PolicyVault's RiskAssist risk-flag suggestion service goes down during an unrelated deployment. Search, quote pages, quote worksheet, and bind — the critical path — are unaffected, because none of them call RiskAssist. The broker portal's ""Suggested for this submission"" panel, however, calls `getRiskSuggestions` on every quote page, and before this lesson's fix, that call blocked for its full 400ms timeout on every single page load before falling back — a small but real latency tax on every quote page view, applied even to brokers who never look at the panel. The fix wires RiskAssist's circuit breaker OPEN transition to an `ai-risk-suggestions` feature-flag flip: once the breaker confirms RiskAssist is unhealthy (crossing its own failure-rate threshold, per the previous lesson's mechanism), the flag flips off cluster-wide, and every subsequent quote-page request skips the RiskAssist call entirely, going straight to a cached ""Common risk flags"" list instead of paying the 400ms timeout first. The panel's heading also changes from ""Suggested for this submission"" to ""Common risk flags"" for the duration of the degradation, so brokers see a visibly different, clearly labeled section rather than a personalized-looking list that quietly isn't.
+
+## Practice Loop
+
+1. Classify PolicyVault's quote-page dependencies into critical (search, submission data, bind, payment) and optional (RiskAssist risk-flag suggestions), and state in one sentence why the optional path can fail without the customer's core outcome failing.
+2. Implement `fallbackRiskSuggestions(tenantId)` as a cached, tenant-scoped ""frequently-flagged items in this class"" list with a 1-hour TTL, distinct from RiskAssist's personalized results.
+3. Diagnostic: with the RiskAssist circuit breaker still CLOSED but the dependency itself made artificially slow, measure the added page-load latency the naive per-request timeout imposes across 100 quote-page requests before the breaker has tripped.
+4. Wire a listener on the RiskAssist circuit breaker's OPEN-state transition to flip the `ai-risk-suggestions` feature flag off, then re-run the same 100-request measurement and confirm the added latency drops to near-zero once the flag-based short-circuit is in place.
+5. Update the broker portal's panel heading to switch between ""Suggested for this submission"" and ""Common risk flags"" based on the feature flag's state, and verify a broker viewing the page during degradation sees the changed label rather than an unlabeled substitution.
+
+## Evidence of Understanding
+
+You can classify a workflow's dependencies into critical and optional paths relative to the customer's actual outcome, and implement a fallback for an optional path's failure that returns useful data rather than an error. You can explain why wiring a circuit breaker's OPEN-state transition to a feature flag avoids paying a per-request timeout cost for a dependency already confirmed unhealthy, rather than relying solely on a per-request try/catch fallback. You can design user-facing signaling that discloses a degraded state — a changed label, not a silent substitution — and explain why silent substitution is a worse outcome than a clearly labeled fallback even when the underlying data shown is similar.
+
+## Suggested Extension
+
+Extend the same critical/optional classification to PolicyVault's bind flow itself: identify one currently-critical-looking dependency (for example, a fraud-scoring call before payment) that could instead be reclassified as optional-with-a-conservative-fallback (approve at a lower auto-approval threshold, flag for manual review, rather than blocking bind entirely) if the fraud service becomes unavailable.
+",
+        "13-rate-limiting-throttling-and-shedding" => @"# Rate Limiting, Throttling, and Shedding
+
+## Concepts Covered
+
+A token bucket holds a capacity of tokens that refill at a steady rate; each request costs one or more tokens, and a request is admitted only if enough tokens are available, consuming them on admission. This gives the limiter two independently tunable numbers rather than one: `capacity` bounds how large a burst can be absorbed instantly (a bucket starting full permits a sudden spike up to its capacity before throttling kicks in), while `refill_rate` bounds the sustained long-run rate the caller can maintain indefinitely once the initial burst is spent. A bucket with `capacity=100, refill_rate=10` permits an immediate burst of up to 100 requests, then settles to a sustained ceiling of 10 requests per second — two very different numbers serving two different purposes, and conflating them (using one number for both) either makes bursts impossible when they'd be harmless, or makes the sustained rate too permissive when the burst allowance is set generously.
+
+Rate limiting only protects the system as a whole if limits are scoped per tenant rather than globally, in any system where tenants share capacity — a single global limit lets one tenant's traffic consume the entire allowance, starving every other tenant regardless of how well-behaved they are. The distinction between throttling and shedding matters at the admission-decision level: throttling delays a request until capacity is available (a 429 with a `Retry-After` header telling the caller when to come back), while shedding rejects a request outright with no promise of eventual admission, appropriate when the system is far enough over capacity that queuing more work would only delay the moment of failure rather than prevent it. Priority-aware admission combines both: a low-priority workload (a bulk catalog import) gets its own separate, smaller bucket and is the first class of traffic shed under overload, while a high-priority workload (an interactive bind request) keeps its own bucket with headroom specifically preserved for it — fairness here does not mean every request is treated identically, it means capacity is allocated according to which traffic the business actually needs preserved under pressure.
+
+```python
+class TokenBucket:
+    def __init__(self, capacity: int, refill_rate: float):
+        self.capacity = capacity            # max burst size
+        self.tokens = capacity
+        self.refill_rate = refill_rate      # tokens added per second, sustained rate
+        self.last_refill = time.monotonic()
+
+    def allow(self, cost: int = 1) -> bool:
+        now = time.monotonic()
+        elapsed = now - self.last_refill
+        self.tokens = min(self.capacity, self.tokens + elapsed * self.refill_rate)
+        self.last_refill = now
+        if self.tokens >= cost:
+            self.tokens -= cost
+            return True
+        return False
+
+# PolicyVault per-tenant buckets:
+interactive_bucket = TokenBucket(capacity=100, refill_rate=10)   # bind, browsing
+bulk_import_bucket  = TokenBucket(capacity=20,  refill_rate=2)    # catalog imports, isolated
+```
+
+```nginx
+# Edge-layer throttling, keyed per tenant
+limit_req_zone $http_x_tenant_id zone=tenant_interactive:10m rate=10r/s;
+limit_req_zone $http_x_tenant_id zone=tenant_bulk:10m rate=2r/s;
+
+location /api/bind/ {
+    limit_req zone=tenant_interactive burst=20 nodelay;
+}
+location /api/catalog/import/ {
+    limit_req zone=tenant_bulk burst=5;
+}
+```
+
+```
+HTTP/1.1 429 Too Many Requests
+Retry-After: 4
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1735689600
+```
+
+## Practical Backend Scenario
+
+Coastal Risk Partners, a large PolicyVault tenant, kicks off a 10,000-coverage-line bulk renewal import through the same worker pool that handles every tenant's interactive requests. The import's traffic pattern — many rapid, small requests with no natural pacing — consumes the shared worker pool's capacity within minutes, and Meridian Underwriters's brokers, on a completely unrelated tenant, start seeing bind timeouts because there are no workers left to serve them, even though Meridian Underwriters's own request volume hasn't changed at all. The fix is not a single global rate limit (which would still let one tenant's burst starve others within its own allowance) but per-tenant buckets, further split by workload class: `interactive_bucket` at `capacity=100, refill_rate=10` for browsing and bind traffic per tenant, and a separate, smaller `bulk_import_bucket` at `capacity=20, refill_rate=2` specifically for catalog-import endpoints, admitted onto an isolated low-priority worker pool. Under this design, Coastal Risk Partners' import is bounded to its own 2 req/s sustained rate on its own isolated workers regardless of how large the coverage line batch is, and even if Coastal Risk Partners' import bucket is fully exhausted and every import request is being shed with a 429, Meridian Underwriters's interactive bucket and worker pool are entirely unaffected, because the two workload classes never compete for the same capacity.
+
+## Practice Loop
+
+1. Define PolicyVault's per-tenant, per-workload-class token buckets — `interactive_bucket` and `bulk_import_bucket` — using the capacity and refill-rate numbers above, and state in one sentence what each number independently controls.
+2. Implement the edge-layer `limit_req` configuration keyed on `$http_x_tenant_id`, with separate zones for interactive and bulk-import traffic.
+3. Diagnostic: simulate Coastal Risk Partners' 10,000-coverage line import against the bulk bucket alone (no isolation) and measure how many requests per second the shared worker pool would need to absorb; then simulate the same import against the isolated `bulk_import_bucket` and confirm the sustained admitted rate never exceeds 2 req/s regardless of import size.
+4. Simulate Meridian Underwriters's interactive bind traffic concurrently with Coastal Risk Partners' import at full throttle, and confirm Meridian Underwriters's requests are admitted at their normal rate with no measurable interference from Coastal Risk Partners' load.
+5. Verify the 429 response contract: confirm a throttled request receives `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` headers with values that are internally consistent (e.g., `Retry-After` matches the time until the bucket would next admit a request at its refill rate).
+
+## Evidence of Understanding
+
+You can implement a token bucket with independently meaningful `capacity` (burst) and `refill_rate` (sustained rate) parameters, and compute the sustained throughput a given configuration permits. You can design per-tenant, per-workload-class rate limits that prevent one tenant's bulk operation from starving another tenant's interactive traffic, and explain why a single global limit fails to provide this isolation. You can distinguish throttling (delayed admission with a `Retry-After` promise) from load shedding (outright rejection, appropriate under genuine overload) and write a correct, internally consistent 429 response contract.
+
+## Suggested Extension
+
+Add a priority tier above `interactive_bucket` for PolicyVault's own internal health-check and monitoring traffic, sized so that even a fully saturated tenant workload never causes health checks to be throttled — and explain why starving health checks specifically would make an overload incident harder to diagnose, not just harder to serve.
+",
+        "14-data-consistency-trade-offs-cap-and-pacelc" => @"# Data Consistency Trade-offs: CAP and PACELC
+
+## Concepts Covered
+
+This lesson assumes you already know the CAP theorem and PACELC framework cold — the C-vs-A choice during a partition, the ""Else"" branch's latency-vs-consistency trade-off even absent a partition, per-data-path granularity rather than a whole-system label — covered in depth by the core curriculum's Distributed Systems Fundamentals lesson (System Design, Capstone & Hiring Readiness, lesson 1). This lesson does not re-teach that theory. It goes one level up: applying CAP/PACELC trade-off reasoning to the concrete, per-operation consistency DECISIONS an FDE actually has to make on a real system, with real numbers attached to each choice — a decision-making lesson, not a concepts lesson.
+
+Every operation in a system protects a specific business invariant, and the correct consistency guarantee follows from what that invariant actually requires, not from a single systemwide policy. An policy-bind status is either ""paid"" or it is not, and showing ""paid"" before the authoritative write is durably confirmed is a false positive with real business consequences — a customer or a downstream fulfillment system acting on an incorrect bind confirmation state. This operation needs strong, read-your-writes consistency: the read immediately following a bind confirmation write must reflect that write, which in practice means routing the read to the same node (or a synchronous quorum) that accepted the write, at the cost of that read paying whatever latency the authoritative path requires. A quote worksheet, by contrast, tolerates a brief window where a just-added item hasn't yet propagated to every replica — the customer's own next action (viewing the quote worksheet) is the read that matters, and session consistency (sticky routing so a given session's reads go to the region that accepted its own most recent write, for a short window) solves this specific case cheaply, without paying strong consistency's cost on every quote worksheet read from every session. An submission-history analytics dashboard tolerates several seconds of replica lag entirely — no individual customer decision depends on the dashboard reflecting an policy bound one second ago — so it reads from an asynchronous replica with no special consistency handling at all, at essentially zero added latency cost.
+
+| Operation | Consistency need | Tolerable staleness | Technique | Latency cost |
+|---|---|---|---|---|
+| Order bind confirmation write + read-back | Strong (read-your-writes) | 0ms | Read from primary / synchronous quorum | +40-80ms on bind confirmation |
+| Cart line-item read after write | Session consistency | ~10s, same session only | Sticky routing to write region for 10s post-write | Negligible for the session; zero for others |
+| Order-history dashboard | Eventual | Up to 5s replica lag | Async read replica | ~0ms added |
+| Premium rate display | Eventual, short TTL | Up to 60s (ties to Lesson 8's CDN caching) | Edge-cached response | Lowest of all four — no origin round trip |
+
+The ""Else"" branch of PACELC is what makes the bind confirmation row's latency cost concrete rather than abstract: `us-east-1` to `eu-west-1` round-trip time is roughly 65-80ms even under normal, non-partitioned conditions, so a synchronous cross-region confirmation for every bind confirmation write pays that tax on every bind, permanently — not only during a failure. This is the always-on cost PACELC forces onto the table, and it is why bind confirmation stays single-region-authoritative (paying the tax only for the fraction of `eu-west-1` traffic that writes, and only once per write, via the intra-region path plus a single cross-region confirmation) rather than synchronously quorum-replicating across both regions for every write, which would double that latency tax on every single bind confirmation operation regardless of region.
+
+```
+# Sticky read-your-writes routing for quote worksheet reads, 10s window post-write
+def route_worksheet_read(session_id, write_region_by_session):
+    if session_id in write_region_by_session:
+        region, ts = write_region_by_session[session_id]
+        if time.monotonic() - ts < 10:
+            return region              # pin to the write region briefly
+    return nearest_healthy_region(session_id)  # otherwise, normal latency-based routing
+```
+
+## Practical Backend Scenario
+
+A PolicyVault customer in `eu-west-1` completes bind. The bind-confirmation page's read of bind confirmation status must reflect the write that just happened — showing ""Payment pending"" on a page that already charged the customer's card is confusing but recoverable; showing ""Paid"" before the write is durably confirmed and then discovering it wasn't is the unacceptable direction of error, matching this module's Lesson 10 (Multi-Region Active-Active) conclusion that bind confirmation stays single-writer. The confirmation read is therefore routed to read-your-writes consistency against the authoritative region, paying the 65-80ms cross-region round trip as an explicit, accepted cost on this one operation. Two rows down on the same page, the customer's submission-history list (past submissions, unrelated to the one just placed) reads from the regional async replica with no special handling — a few seconds of staleness on an unrelated historical order is invisible to this customer's actual task. The team initially proposed applying the same read-your-writes routing to the submission-history list ""to be safe,"" and the FDE pushes back specifically because no business invariant on that list depends on sub-second freshness — the extra latency would be a cost paid for a guarantee nothing actually needs, on every page load, for every customer, forever.
+
+## Practice Loop
+
+1. List PolicyVault's bind-confirmation page's four constituent reads (bind confirmation status, quote worksheet summary, submission history, premium rate for a ""you might also like"" item) and classify each by the business invariant it protects.
+2. For each read, select strong/read-your-writes, session, or eventual consistency, and justify the choice using the specific consequence of getting it wrong — not a general ""safety"" argument.
+3. Diagnostic: measure the actual `us-east-1`-`eu-west-1` round-trip time in a sandbox environment, and use that measured number (not the 65-80ms estimate) to state the concrete latency cost the bind confirmation read pays under read-your-writes.
+4. Implement the sticky quote worksheet-read routing shown above, inject a scenario where a customer's quote worksheet write and subsequent read cross regions within the 10-second window, and confirm the read reflects the write.
+5. Push back on the proposal to apply read-your-writes to the submission-history list: compute the latency cost that change would add per page load, multiplied by PolicyVault's page-load volume, and use that number to make the case that the guarantee is not worth its cost for this specific read.
+
+## Evidence of Understanding
+
+You can classify a set of real operations by the business invariant each protects and select strong, session, or eventual consistency per operation, rather than applying one guarantee systemwide. You can quantify the latency cost a stronger guarantee imposes using a concrete cross-region round-trip number, and use that number to argue against over-applying a strong guarantee where the underlying invariant doesn't need it. You can implement read-your-writes via sticky, time-bounded routing for a specific operation and explain why the same technique would be wasted cost if applied to an operation, like an analytics dashboard, whose invariant tolerates staleness.
+
+## Suggested Extension
+
+PolicyVault adds a new operation: a ""binding authority nearly exhausted"" warning banner shown on a quote page, sourced from Meridian Underwriters's live remaining bind-capacity count for that coverage line. Classify this operation's consistency need using the same framework — name the specific consequence of both an overly strong guarantee (unnecessary latency on every quote page) and an overly weak one (a broker completes a bind the warning didn't flag as already over capacity) and state where on the strong-to-eventual spectrum this operation actually belongs.
+",
         _ => null
     };
 
