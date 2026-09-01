@@ -277,6 +277,21 @@
 - [x] **Sub-task 38.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
 - [x] **Sub-task 38.5**: Update task tracker and provide Docker Compose / SQL verification steps.
 
+## Phase 39: FDE Elective Pipeline — Storage, Networking & Reliability for FDEs (Lessons 1-7 of 14) (Completed)
+- [x] **Sub-task 39.1**: Ingest 7 Lesson chapter bodies for `elective-storage-networking-reliability` (Lessons 1-7) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 39.2**: Wire 14 Concept Checks (2 per lesson) and 44 Practice Questions across all 7 lessons (58 total MCQs, including 8 code-block MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 39.3**: Confirm architecture diagrams are omitted for Lessons 1-7 per §8a inclusion test criteria.
+- [x] **Sub-task 39.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 39.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+## Phase 40: FDE Elective Pipeline — Storage, Networking & Reliability for FDEs (Lessons 8-14 of 14 — MODULE & ENTIRE FDE CURRICULUM COMPLETE) (Completed)
+- [x] **Sub-task 40.1**: Ingest 7 Lesson chapter bodies for `elective-storage-networking-reliability` (Lessons 8-14) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 40.2**: Wire 14 Concept Checks (2 per lesson) and 47 Practice Questions across all 7 lessons (61 total MCQs, including 12 code-block MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 40.3**: Add architecture diagrams for Lesson 10 (`10-designing-for-high-availability-multi-region-active-active`) and Lesson 11 (`11-fault-tolerance-engineering-circuit-breakers-retries-and-backoff`).
+- [x] **Sub-task 40.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 40.5**: Update task tracker and provide final Docker Compose / SQL verification steps across all 152 authored lessons.
+
+
 
 
 

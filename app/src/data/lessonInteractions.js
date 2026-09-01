@@ -21616,6 +21616,2105 @@ const lessonInteractions = {
       }
     ]
   },
+  'fde-curriculum/elective-storage-networking-reliability/01-architect-the-storage-for-an-application': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-01-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — OBJECT VS. BLOCK ACCESS CONTRACT',
+        question:
+          'Why is S3 the wrong backing store for a relational database\'s write-ahead log, per the lesson\'s distinction between object and block storage?',
+        options: [
+          { id: 'a', label: 'A', text: 'S3\'s access contract is whole-object PUT and GET over HTTP with no in-place partial-byte edit and no guaranteed low-latency random access, while a WAL needs small, low-latency, sequential appends a block device provides' },
+          { id: 'b', label: 'B', text: 'S3 objects are not durable enough for a database\'s write-ahead log' },
+          { id: 'c', label: 'C', text: 'S3 does not support versioning, which a write-ahead log requires' },
+          { id: 'd', label: 'D', text: 'S3 is more expensive per GB than EBS in every region' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s distinction is about access contract, not durability or cost — object storage\'s whole-object model cannot serve the low-latency append pattern a WAL generates.',
+        incorrectExplanation:
+          'S3 provides 11 9s of durability and is cheaper per GB than EBS, but its HTTP-based whole-object PUT/GET access model fundamentally cannot support the microsecond-level, byte-range in-place append operations required by a database write-ahead log.',
+        hint:
+          'Focus on the fundamental difference in access contracts (HTTP whole-object REST API vs. attached block device filesystem).'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-01-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — OBJECT LOCK COMPLIANCE MODE',
+        question:
+          'PolicyVault\'s seven-year audit trail uses S3 Object Lock in compliance mode. What does this specifically guarantee that plain versioning alone does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'No principal, including an account administrator, can delete or overwrite the locked object version before its retention period expires' },
+          { id: 'b', label: 'B', text: 'The audit records are automatically encrypted with a customer-managed KMS key' },
+          { id: 'c', label: 'C', text: 'The audit records are replicated to a second AWS region automatically' },
+          { id: 'd', label: 'D', text: 'The audit records become searchable via full-text query without a separate index' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Compliance mode\'s distinguishing property over plain versioning is that deletion or overwrite is blocked for every principal, including root/admin, until retention expires — this is what a regulatory retention requirement actually needs.',
+        incorrectExplanation:
+          'In Compliance mode, no IAM user and not even the AWS root account can delete the object or reduce the retention period. Governance mode allows users with s3:BypassGovernanceRetention to override locks, but Compliance mode prohibits any bypass.',
+        hint:
+          'Distinguish between Governance mode (privileged users can override) and Compliance mode (strict immutable compliance where even root cannot override).'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-01-mcq-01',
+        question:
+          'Given the Terraform snippet in the lesson provisioning a `gp3` volume at 6,000 IOPS, under what condition would switching to `io2` Block Express actually be justified?',
+        codeBlock: 'resource "aws_ebs_volume" "policyvault_db_data" {\n  size       = 200\n  type       = "gp3"\n  iops       = 6000\n  throughput = 250\n}',
+        options: [
+          { id: 'a', label: 'A', text: 'io2 should always be preferred over gp3 regardless of measured workload, since it is a newer volume type' },
+          { id: 'b', label: 'B', text: 'Only once a measured workload requirement exceeds what gp3 can provision (up to 16,000 IOPS / 1,000 MiB/s) — io2\'s per-IOPS price is an order of magnitude higher, so it only makes sense past gp3\'s ceiling' },
+          { id: 'c', label: 'C', text: 'io2 is required whenever a volume is attached to a database instance, regardless of IOPS' },
+          { id: 'd', label: 'D', text: 'gp3 cannot be encrypted, so io2 is required for any regulated workload like PolicyVault\'s' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson states io2\'s per-IOPS cost is roughly an order of magnitude higher than gp3\'s, so the switch is justified only once a measured requirement exceeds gp3\'s provisionable ceiling, not by volume type preference alone.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-01-mcq-02',
+        question:
+          'What access pattern does EFS serve that neither S3 nor a standard EBS volume can serve correctly?',
+        options: [
+          { id: 'a', label: 'A', text: 'Storing large binary objects durably for occasional whole-file reads' },
+          { id: 'b', label: 'B', text: 'Providing the lowest possible per-request latency for a single-instance database' },
+          { id: 'c', label: 'C', text: 'Multiple compute instances mounting the same mutable, POSIX-compliant file tree concurrently over NFS' },
+          { id: 'd', label: 'D', text: 'Immutable, write-once-read-many archival storage with the lowest per-GB cost' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'EFS\'s distinguishing capability is concurrent multi-instance mount of a shared mutable filesystem — object storage\'s whole-object model and standard EBS\'s single-attach model cannot provide that.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-01-mcq-03',
+        question:
+          'In the PolicyVault scenario, a broker re-uploads a corrected policy PDF under the same S3 object key, overwriting the original. What makes this recoverable?',
+        options: [
+          { id: 'a', label: 'A', text: 'S3 versioning was enabled on the bucket, so the overwrite creates a new version rather than destroying the prior one, and the prior version can be restored' },
+          { id: 'b', label: 'B', text: 'S3 objects cannot actually be overwritten once written, regardless of configuration' },
+          { id: 'c', label: 'C', text: 'The FDE configured a nightly snapshot of the S3 bucket that captured the prior state' },
+          { id: 'd', label: 'D', text: 'S3\'s eleven-nines durability guarantee prevents any object from ever being lost or changed' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Versioning is the specific mechanism the scenario relies on — an overwrite becomes a new version, not a destructive edit, which is why the prior version is recoverable.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-01-mcq-04',
+        question:
+          'Why does the Practice Loop ask you to measure actual IOPS under a realistic load test before deciding whether additional provisioned IOPS is justified, rather than provisioning a higher figure up front?',
+        options: [
+          { id: 'a', label: 'A', text: 'Provisioning IOPS beyond what the workload actually needs is a real, ongoing cost, and the only way to know whether the gp3 baseline is insufficient is to measure the actual workload, not assume it' },
+          { id: 'b', label: 'B', text: 'AWS caps the maximum IOPS a newly created volume can request without a prior measurement on file' },
+          { id: 'c', label: 'C', text: 'Load testing is required by AWS before any gp3 volume can be provisioned above baseline' },
+          { id: 'd', label: 'D', text: 'Measuring IOPS is only relevant for io2 volumes, not gp3' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the diagnostic step of the loop — it makes the cost of over- or under-provisioning concrete by grounding the IOPS decision in a measured figure rather than an assumption.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-01-mcq-05',
+        question:
+          'Per the lesson\'s Evidence of Understanding, what must a correct storage decision matrix state for every data class, beyond which service it maps to?',
+        options: [
+          { id: 'a', label: 'A', text: 'The exact dollar cost per month for that data class\'s storage' },
+          { id: 'b', label: 'B', text: 'What happens to the dependent workflow when that specific store is unavailable' },
+          { id: 'c', label: 'C', text: 'The names of every engineer who approved the storage choice' },
+          { id: 'd', label: 'D', text: 'A comparison against every AWS storage service that was not chosen' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s evidence bar is explicit: a correct matrix explains why each datum lives where it does AND what happens when that store is unavailable, not merely a service mapping.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-01-mcq-06',
+        question:
+          'What changed with gp3 relative to the older gp2 EBS volume family, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'IOPS and throughput are provisioned independently of volume size, whereas gp2\'s IOPS scaled with volume size, making a small gp2 volume unable to reach high IOPS at all' },
+          { id: 'b', label: 'B', text: 'gp3 volumes can no longer be encrypted at rest' },
+          { id: 'c', label: 'C', text: 'gp3 removed the ability to resize a volume without downtime' },
+          { id: 'd', label: 'D', text: 'gp3 is only available for Multi-Attach configurations, unlike gp2' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson calls this out specifically: gp3 decouples IOPS/throughput from size, fixing gp2\'s limitation where a small volume could not be provisioned for high IOPS.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-storage-networking-reliability/02-data-lifecycle-management-and-storage-optimization': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-02-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — STORAGE-CLASS TRADE-OFFS',
+        question:
+          'What trade-off does every S3 storage-class transition (Standard to Standard-IA to Glacier to Deep Archive) share, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Lower per-GB storage cost in exchange for a retrieval fee and higher retrieval latency' },
+          { id: 'b', label: 'B', text: 'Lower durability in exchange for lower storage cost' },
+          { id: 'c', label: 'C', text: 'Lower storage cost with no other trade-off, since AWS absorbs the retrieval cost' },
+          { id: 'd', label: 'D', text: 'Higher storage cost in exchange for guaranteed millisecond retrieval at every tier' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this as the consistent shape of the trade-off across every storage class transition — cheaper storage, more expensive and slower retrieval.',
+        incorrectExplanation:
+          'All S3 storage classes (Standard, Standard-IA, Glacier Flexible, Glacier Deep Archive) offer the identical 99.999999999% (11 9s) durability and preserve object metadata; the trade-off is strictly lower per-GB monthly storage cost versus per-GB retrieval fees and retrieval latency.',
+        hint:
+          'Remember that durability is identical across S3 storage classes, while cost structure and retrieval latency differ.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-02-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — LIFECYCLE RULE EXCEPTIONS',
+        question:
+          'Why does the lesson argue that an unconditional expiration rule (delete everything at 90 days) is wrong the moment a legal hold or regulatory retention applies to some objects in that prefix?',
+        options: [
+          { id: 'a', label: 'A', text: 'The rule would delete held data along with ordinary data unless an explicit exception path (tag-based exclusion, Object Lock, or a separate prefix the filter does not match) is built in' },
+          { id: 'b', label: 'B', text: 'AWS technically prevents any lifecycle rule from ever deleting an object under 7 years old' },
+          { id: 'c', label: 'C', text: 'S3 lifecycle rules cannot operate on tagged objects at all' },
+          { id: 'd', label: 'D', text: 'A 90-day expiration is always too short for any regulated data regardless of the retention requirement' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s point is mechanism-specific: without an explicit exclusion, a broad expiration rule has no way to distinguish held objects from ordinary ones and will delete both.',
+        incorrectExplanation:
+          'S3 allows prefix-wide rules without tag filters, but applying a blanket age rule without exceptions causes active objects or audit records to be transitioned to archive tiers, causing high retrieval fees and multi-minute or multi-hour retrieval delays.',
+        hint:
+          'Consider what happens when active data that requires frequent sub-second access gets transitioned to an archive tier based purely on age.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-02-mcq-01',
+        question:
+          'Per the lifecycle policy JSON in the lesson, what happens to a noncurrent (prior) version of an object 800 days after it became noncurrent?',
+        codeBlock: '"NoncurrentVersionTransitions": [\n  { "NoncurrentDays": 30, "StorageClass": "GLACIER" }\n],\n"NoncurrentVersionExpiration": { "NoncurrentDays": 730 }',
+        options: [
+          { id: 'a', label: 'A', text: 'It has already been permanently expired (deleted), since 800 days exceeds the 730-day noncurrent expiration threshold' },
+          { id: 'b', label: 'B', text: 'It transitions to Glacier for the first time at day 800' },
+          { id: 'c', label: 'C', text: 'It remains in Standard storage since the rule only applies to current versions' },
+          { id: 'd', label: 'D', text: 'It is restored to Standard-IA automatically after the transition period elapses' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`NoncurrentVersionExpiration` at 730 days means a noncurrent version is deleted once it has been noncurrent for 730 days — 800 days exceeds that, so it would already be gone.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-02-mcq-02',
+        question:
+          'What was the actual root cause of PolicyVault\'s S3 bill growing 40% faster than tenant count?',
+        options: [
+          { id: 'a', label: 'A', text: 'S3 Standard-IA pricing increased for all Kestrel\'s tenants simultaneously' },
+          { id: 'b', label: 'B', text: 'A weekly batch-export job wrote to a new prefix (`exports/`) that was added after the original lifecycle policy was written, so no rule ever expired the accumulating weekly exports' },
+          { id: 'c', label: 'C', text: 'Claims photo uploads grew faster than tenant onboarding' },
+          { id: 'd', label: 'D', text: 'The audit-trail prefix\'s Object Lock retention period was misconfigured to be permanent' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s root cause is specifically the unmanaged `exports/` prefix accumulating weekly near-duplicate files with no lifecycle rule ever applied to it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-02-mcq-03',
+        question:
+          'Why did the FDE add a `retention-hold: true` tag as an exclusion filter, rather than relying on the audit trail\'s separate prefix alone to keep it safe from lifecycle rules?',
+        options: [
+          { id: 'a', label: 'A', text: 'Prefix separation alone does not prevent a future, broader rule from accidentally matching the audit prefix — the tag makes the exclusion explicit and independent of which prefix a rule happens to target' },
+          { id: 'b', label: 'B', text: 'S3 lifecycle rules cannot filter by prefix at all, only by tag' },
+          { id: 'c', label: 'C', text: 'Tags are required by AWS for any object under Object Lock' },
+          { id: 'd', label: 'D', text: 'The audit trail does not actually use a separate prefix from ordinary tenant documents' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s stated reasoning is defense against a future broad rule — a tag-based exclusion does not depend on every future rule remembering to exclude the audit prefix by path.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-02-mcq-04',
+        question:
+          'Why does the Practice Loop have you attempt to delete a `retention-hold: true` object directly, rather than only confirming it was excluded from the lifecycle rule\'s filter?',
+        options: [
+          { id: 'a', label: 'A', text: 'Being excluded from a lifecycle rule only proves automatic deletion won\'t happen — it does not prove a direct manual or programmatic delete is actually blocked, which is what a real hold requires' },
+          { id: 'b', label: 'B', text: 'S3 requires this test before any lifecycle rule can be enabled' },
+          { id: 'c', label: 'C', text: 'It confirms the object\'s storage class transitioned correctly' },
+          { id: 'd', label: 'D', text: 'It measures the retrieval latency of a held object' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the diagnostic step distinguishing "excluded from an automated rule" from "actually protected against deletion" — only Object Lock\'s enforcement, tested directly, proves the latter.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-02-mcq-05',
+        question:
+          'What distinguishes S3 Standard-IA from S3 Standard in terms of access cost, per the lesson\'s pricing figures?',
+        options: [
+          { id: 'a', label: 'A', text: 'Standard-IA has the same millisecond access latency as Standard, but adds a per-GB retrieval fee and a 30-day minimum storage duration charge' },
+          { id: 'b', label: 'B', text: 'Standard-IA has retrieval latency measured in hours, unlike Standard\'s millisecond access' },
+          { id: 'c', label: 'C', text: 'Standard-IA has no retrieval fee but a higher per-GB storage cost than Standard' },
+          { id: 'd', label: 'D', text: 'Standard-IA is identical to Standard in every way except a different AWS region requirement' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s figures are specific: Standard-IA keeps Standard\'s millisecond access but adds a retrieval fee and a minimum storage duration charge — that is its distinguishing trade.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-02-mcq-06',
+        question:
+          'What does per-prefix or per-tag cost attribution (via S3 Storage Lens) let an FDE do that an aggregate monthly bill total does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Identify which specific tenant\'s or workload\'s data is actually driving a cost increase, rather than only observing that the total grew' },
+          { id: 'b', label: 'B', text: 'Automatically apply a lifecycle rule to the most expensive prefix' },
+          { id: 'c', label: 'C', text: 'Reduce the per-GB storage cost of the most expensive prefix' },
+          { id: 'd', label: 'D', text: 'Encrypt objects in the most expensive prefix with a dedicated KMS key' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Cost attribution is a diagnostic capability, not an automatic remediation — it narrows an aggregate cost signal down to the specific source, which is exactly what found the `exports/` prefix problem in the scenario.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-storage-networking-reliability/03-backup-and-disaster-recovery-strategies': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-03-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — RPO VERSUS RTO DISTINCTION',
+        question:
+          'What is the precise distinction between RPO and RTO, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'RPO is the maximum acceptable amount of recent work that can be lost; RTO is the maximum acceptable time the system may stay down during recovery' },
+          { id: 'b', label: 'B', text: 'RPO is measured in dollars and RTO is measured in minutes' },
+          { id: 'c', label: 'C', text: 'RPO applies only to databases while RTO applies only to application servers' },
+          { id: 'd', label: 'D', text: 'RPO and RTO both measure the same thing — total time to restore full service' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s core definitional distinction — RPO bounds data loss, RTO bounds downtime.',
+        incorrectExplanation:
+          'RPO (Recovery Point Objective) defines how much data (measured backwards in time from the incident) a business can afford to lose. RTO (Recovery Time Objective) defines the duration of downtime permitted to get systems operational again.',
+        hint:
+          'Think: Point in time (how much data lost) vs. Time duration (how long until system is back up).'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-03-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — CROSS-REGION REPLICATION LAG AND DR RPO',
+        question:
+          'Why does the lesson state that cross-region backup replication lag becomes the "effective RPO floor" for a regional disaster, regardless of how tight the same-region RPO is?',
+        options: [
+          { id: 'a', label: 'A', text: 'In a full regional failure, only the cross-region copy survives, so recovery can only be as fresh as that copy — any lag between the source and the copy is unrecoverable data loss no same-region backup frequency can fix' },
+          { id: 'b', label: 'B', text: 'Cross-region replication is always slower than same-region replication, making it functionally useless' },
+          { id: 'c', label: 'C', text: 'AWS charges extra for cross-region PITR, so most customers disable it' },
+          { id: 'd', label: 'D', text: 'The same-region RPO and the cross-region RPO are always numerically identical by design' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s specific reasoning about failure scope — a regional failure removes the same-region backups from consideration entirely, so only the cross-region copy\'s freshness matters.',
+        incorrectExplanation:
+          'The secondary region\'s state is bounded by the most recent snapshot or WAL segment that successfully completed transfer. If cross-region replication takes 45 minutes to copy, the DR RPO cannot be better than 45 minutes in a regional failure.',
+        hint:
+          'Consider what data is actually present in the secondary region when the primary region experiences catastrophic failure.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-03-mcq-01',
+        question:
+          'Why does the lesson argue that a system with no explicitly stated RPO and RTO still effectively has values for both?',
+        options: [
+          { id: 'a', label: 'A', text: 'Without a stated commitment, the actual RPO and RTO are "however long it takes" — discovered for the first time during a real incident rather than chosen deliberately in advance' },
+          { id: 'b', label: 'B', text: 'AWS assigns a default RPO and RTO of 24 hours to every RDS instance automatically' },
+          { id: 'c', label: 'C', text: 'Every database technically guarantees a zero RPO and zero RTO unless explicitly configured otherwise' },
+          { id: 'd', label: 'D', text: 'RPO and RTO only apply once a system has been in production for over a year' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s point is that the absence of a stated commitment does not mean the absence of a real outcome — it just means that outcome is unknown until an incident forces it to be discovered.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-03-mcq-02',
+        question:
+          'What specifically does point-in-time recovery add beyond a daily RDS snapshot alone?',
+        options: [
+          { id: 'a', label: 'A', text: 'Continuous transaction-log shipping lets the database be restored to any specific second within the retention window, not only to the moment of the last snapshot' },
+          { id: 'b', label: 'B', text: 'PITR makes the backup encrypted, while a plain snapshot is not' },
+          { id: 'c', label: 'C', text: 'PITR automatically replicates the backup to a second AWS region' },
+          { id: 'd', label: 'D', text: 'PITR eliminates the need to ever take a full snapshot again' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is precise about the mechanism: the transaction log lets AWS replay committed transactions between the snapshot and the requested restore timestamp, giving second-level granularity a snapshot alone cannot.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-03-mcq-03',
+        question:
+          'Why does the lesson state that a backup strategy needs a periodic full backup even when incrementals are cheaper day to day?',
+        options: [
+          { id: 'a', label: 'A', text: 'Restoring from incrementals means applying the last full backup and then every incremental in sequence, so restore time grows with the number of increments since the last full' },
+          { id: 'b', label: 'B', text: 'Incremental backups are less durable than full backups and degrade over time' },
+          { id: 'c', label: 'C', text: 'Cloud providers charge a penalty fee for restoring from more than 5 incremental backups' },
+          { id: 'd', label: 'D', text: 'Incremental backups cannot capture schema changes, only data changes' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific claim is about restore-time growth, not durability or cost of the backups themselves — the accumulation of increments to replay is what a periodic full backup bounds.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-03-mcq-04',
+        question:
+          'In the lesson\'s CLI transcript, what does the `--restore-time` flag specifically control, and why does the restored instance target a separate sandbox subnet group rather than production\'s?',
+        codeBlock: 'aws rds restore-db-instance-to-point-in-time \\\n  --source-db-instance-identifier policyvault-prod \\\n  --target-db-instance-identifier policyvault-pitr-restore-test \\\n  --restore-time 2026-08-30T14:32:00Z \\\n  --db-subnet-group-name policyvault-restore-sandbox',
+        options: [
+          { id: 'a', label: 'A', text: '`--restore-time` sets the exact second the database is reconstructed to via the transaction log; the sandbox subnet group isolates the restore-test instance from production traffic and network paths during the test' },
+          { id: 'b', label: 'B', text: '`--restore-time` sets how long the restore command is allowed to run before timing out' },
+          { id: 'c', label: 'C', text: '`--restore-time` is ignored unless Multi-AZ is enabled on the target instance' },
+          { id: 'd', label: 'D', text: 'The sandbox subnet group is required because RDS cannot restore into the same VPC as the source' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The flag drives PITR\'s specific-second reconstruction; the isolated subnet group is a deliberate test-safety choice, not an AWS technical requirement — it keeps the restore test from touching production network paths.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-03-mcq-05',
+        question:
+          'The FDE\'s measured restore took 22 minutes against a 30-minute RTO target — under budget. Why does the lesson still flag this as a risk rather than closing the finding?',
+        options: [
+          { id: 'a', label: 'A', text: 'Restore time is proportional to data volume, not a fixed constant, and the database will keep growing, so the current 8-minute margin will shrink and eventually violate the RTO unless something changes' },
+          { id: 'b', label: 'B', text: 'A 22-minute restore is never acceptable regardless of the stated RTO' },
+          { id: 'c', label: 'C', text: 'The restore was performed in the wrong AWS region' },
+          { id: 'd', label: 'D', text: 'RDS PITR restores are not reliable enough to trust a single measurement' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s point is about the trend, not the single measurement — a thin, shrinking margin against a growing dataset is a real risk even when today\'s number technically passes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-03-mcq-06',
+        question:
+          'Why does restoring from a snapshot alone (without PITR) always mean losing everything written after the snapshot, however recent the failure?',
+        options: [
+          { id: 'a', label: 'A', text: 'A snapshot captures a single point in time with no continuous log to replay forward from, so recovery can only reconstruct state as of the snapshot, not up to the moment of failure' },
+          { id: 'b', label: 'B', text: 'Snapshots are inherently less durable than transaction logs' },
+          { id: 'c', label: 'C', text: 'AWS deletes all writes made after a snapshot is taken, by design' },
+          { id: 'd', label: 'D', text: 'Snapshots can only be restored once every 24 hours regardless of how frequently they are taken' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s distinction is mechanism-based: a snapshot has no log to replay forward from, so its RPO is bounded by snapshot frequency, unlike PITR\'s continuous log.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-03-mcq-07',
+        question:
+          'Per the lesson\'s closing claim in Concepts Covered, what actually distinguishes a real recovery capability from a hypothesis?',
+        options: [
+          { id: 'a', label: 'A', text: 'The backup has actually been restored and the restore time measured — an untested backup is a hypothesis, not a capability' },
+          { id: 'b', label: 'B', text: 'The backup is stored in more than one AWS region' },
+          { id: 'c', label: 'C', text: 'The backup retention period exceeds 30 days' },
+          { id: 'd', label: 'D', text: 'The backup was taken using RDS automated backups rather than a manual snapshot' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s explicit closing claim in Concepts Covered — testing via an actual restore is what converts an assumption into evidence.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-storage-networking-reliability/04-designing-the-networking-of-an-application': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-04-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — SUBNET PLACEMENT AND REACHABILITY',
+        question:
+          'Per the lesson, what determines whether a tier belongs in a public or private subnet?',
+        options: [
+          { id: 'a', label: 'A', text: 'Whether something outside the VPC must reach that tier directly — only a tier with a genuine external-reachability need belongs in a public subnet' },
+          { id: 'b', label: 'B', text: 'Whether the tier stores persistent data or is stateless' },
+          { id: 'c', label: 'C', text: 'Whether the tier is written in a compiled or interpreted language' },
+          { id: 'd', label: 'D', text: 'Whichever subnet has the most available IP addresses at deploy time' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this explicitly as the deciding rule — reachability need, not convenience or any property of the workload itself.',
+        incorrectExplanation:
+          'Subnet placement is not determined by instance family, database connections, or container technology; it is strictly a reachability rule: only resources requiring direct inbound communication from outside the VPC belong in public subnets.',
+        hint:
+          'Focus on the reachability requirement (does external internet traffic need to reach this resource directly?).'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-04-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — ARCHITECTURAL ISOLATION GUARANTEES',
+        question:
+          'Why does the lesson argue that an app tier with no public IP at all is a stronger guarantee than "the security group happens to deny external access today"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Unreachability by construction (no route to an internet gateway) cannot be undone by a single security-group misconfiguration, while a security-group-only guarantee can be accidentally loosened' },
+          { id: 'b', label: 'B', text: 'Security groups are stateless and therefore inherently less secure than route tables' },
+          { id: 'c', label: 'C', text: 'AWS does not allow security groups to be attached to instances without a public IP' },
+          { id: 'd', label: 'D', text: 'A private IP is technically unroutable on the public internet under any circumstance, making the distinction meaningless in practice' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s distinction is about failure mode: a route-level guarantee survives a security-group mistake, while a security-group-only guarantee does not survive a security-group mistake.',
+        incorrectExplanation:
+          'A security group rule is a configuration that can be modified or accidentally removed by any engineer with IAM permissions. A private subnet without public IPs or IGW routes provides a structural boundary that prevents inbound internet routing even if a security group rule is misconfigured.',
+        hint:
+          'Contrast structural network impossibility (no route/IP) with configuration rules that can be accidentally altered.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-04-mcq-01',
+        question:
+          'Per the lesson, when is an internal (not internet-facing) ALB the right choice?',
+        options: [
+          { id: 'a', label: 'A', text: 'To load-balance east-west traffic between internal tiers that should never be reachable from outside the VPC under any misconfiguration, since the ALB itself has no public route to misconfigure' },
+          { id: 'b', label: 'B', text: 'Whenever TLS termination is required, regardless of whether the traffic is internal or external' },
+          { id: 'c', label: 'C', text: 'Only when the application has fewer than three backend targets' },
+          { id: 'd', label: 'D', text: 'Internal ALBs should be used interchangeably with internet-facing ALBs; the distinction has no functional consequence' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific reasoning: an internal ALB has no route to an internet gateway, so it cannot be misconfigured into public exposure the way a security-group-only boundary could.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-04-mcq-02',
+        question:
+          'Per the lesson, what symptom distinguishes a route-layer failure (missing route or a denying security group) from an application-layer failure during an incident?',
+        options: [
+          { id: 'a', label: 'A', text: 'A route failure looks like a connection timeout (the packet has nowhere to go or is silently dropped); an application failure looks like a connection that succeeds but a request that then fails or hangs' },
+          { id: 'b', label: 'B', text: 'A route failure always produces an HTTP 500; an application failure always produces an HTTP 502' },
+          { id: 'c', label: 'C', text: 'There is no reliable symptom difference between the two; both must be diagnosed by reading application logs' },
+          { id: 'd', label: 'D', text: 'A route failure resolves itself within 60 seconds while an application failure does not' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s precise diagnostic distinction — whether the connection itself succeeds is the signal that separates a network-layer problem from an application-layer one.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-04-mcq-03',
+        question:
+          'Per the subnet layout in the lesson, why does the data subnet have no `0.0.0.0/0` route at all, unlike the app subnet, which has one pointed at a NAT gateway?',
+        codeBlock: 'private-app-subnet-1a  10.0.10.0/24  route: 0.0.0.0/0 -> nat-gw-1a (outbound only)\nprivate-data-subnet-1a 10.0.20.0/24  route: no 0.0.0.0/0 route at all',
+        options: [
+          { id: 'a', label: 'A', text: 'The app tier needs outbound internet access (to call the external fraud-check service), while the database has no legitimate reason to originate or receive any internet traffic at all' },
+          { id: 'b', label: 'B', text: 'NAT gateways are limited to one per VPC, so only one private subnet can have outbound access' },
+          { id: 'c', label: 'C', text: 'RDS instances are technically incapable of using a NAT gateway route' },
+          { id: 'd', label: 'D', text: 'The data subnet\'s missing route is a misconfiguration that should be fixed to match the app subnet' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit that the database has no legitimate reason for any internet-bound traffic, while the app tier\'s genuine outbound dependency (the fraud-check call) justifies its NAT route.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-04-mcq-04',
+        question:
+          'Why did the FDE specifically check that the direct connection attempt to the app tier\'s private IP timed out, rather than being actively refused, and treat that as the correct result?',
+        options: [
+          { id: 'a', label: 'A', text: 'A timeout confirms there is genuinely no route to the app tier from outside the VPC, which cannot be undone by a later security-group change — a "refused" result could instead mean only a security group is denying it, which is a weaker, more easily loosened guarantee' },
+          { id: 'b', label: 'B', text: 'A timeout is always the correct result for any network test, regardless of what is being tested' },
+          { id: 'c', label: 'C', text: 'An actively refused connection indicates a firewall is misconfigured, while a timeout indicates it is working correctly' },
+          { id: 'd', label: 'D', text: 'The distinction between a timeout and a refusal has no security significance; both prove the same thing' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This connects directly to the lesson\'s route-versus-security-group distinction — a timeout proves the stronger, construction-level guarantee, not merely a currently-configured denial.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-04-mcq-05',
+        question:
+          'What specifically was wrong with the RDS instance\'s original security-group rule in the scenario, before the FDE tightened it?',
+        options: [
+          { id: 'a', label: 'A', text: 'It allowed inbound traffic from the entire VPC CIDR block, rather than only from the app tier\'s specific security group' },
+          { id: 'b', label: 'B', text: 'It allowed inbound traffic from the public internet directly' },
+          { id: 'c', label: 'C', text: 'It blocked all inbound traffic, including from the legitimate app tier' },
+          { id: 'd', label: 'D', text: 'It used an outdated TLS version for connections to the database' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario states the original rule allowed the entire VPC CIDR, which is broader than least-privilege — the fix scopes it to only the app tier\'s own security group.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-04-mcq-06',
+        question:
+          'What does Practice Loop step 5 specifically require when documenting the least-privilege network rule set for each tier boundary?',
+        options: [
+          { id: 'a', label: 'A', text: 'An explicit table of source, destination, and port for every boundary, with no rule wider than the specific traffic it must allow' },
+          { id: 'b', label: 'B', text: 'A single rule allowing all traffic within the VPC, since every component is already trusted internally' },
+          { id: 'c', label: 'C', text: 'A written justification only for the ALB-to-app boundary; the app-to-data boundary is assumed safe by default' },
+          { id: 'd', label: 'D', text: 'A firewall diagram with no reference to specific ports or protocols' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The step\'s bar is explicit and per-boundary: source, destination, port, and no rule broader than necessary — matching the lesson\'s least-privilege framing throughout.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-storage-networking-reliability/05-load-balancing-and-auto-scaling-groups': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-05-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — TCP VS. HTTP HEALTH CHECKS',
+        question:
+          'Why does the lesson argue that a TCP-only health check is a weaker readiness signal than an HTTP check against a dedicated endpoint?',
+        options: [
+          { id: 'a', label: 'A', text: 'A TCP check only confirms the process has bound the port, which can be true before the application has finished loading configuration or warming its connection pool, so it can mark an instance healthy before it can actually serve requests correctly' },
+          { id: 'b', label: 'B', text: 'TCP health checks are deprecated by AWS and no longer supported on target groups' },
+          { id: 'c', label: 'C', text: 'TCP checks are slower to execute than HTTP checks, adding latency to every health-check cycle' },
+          { id: 'd', label: 'D', text: 'TCP checks cannot be configured with a custom interval or threshold' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s argument is about what the check actually verifies — process existence versus application readiness — not about deprecation or performance.',
+        incorrectExplanation:
+          'A TCP check succeeds as soon as the OS socket binds the port, even while the application is still running migrations, loading caches, or connecting to databases. An HTTP check on a dedicated /health endpoint exercises the application runtime and dependencies.',
+        hint:
+          'Consider the gap between the OS listening on a socket and the application layer actually being ready to handle business traffic.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-05-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — CONNECTION DRAINING MECHANICS',
+        question:
+          'What does configuring a deregistration delay (connection draining) actually change about how an instance is removed from a target group?',
+        options: [
+          { id: 'a', label: 'A', text: 'New requests stop being sent to the target immediately, but existing in-flight connections are allowed to finish naturally within the delay window before termination' },
+          { id: 'b', label: 'B', text: 'The instance keeps receiving new requests throughout the entire delay window, then all connections are dropped simultaneously' },
+          { id: 'c', label: 'C', text: 'Deregistration delay only affects health checks, not actual request routing' },
+          { id: 'd', label: 'D', text: 'It extends the health-check interval for that specific instance during shutdown' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s precise mechanism: new traffic stops immediately, but existing connections get a window to complete rather than being abruptly cut — that is the specific value of draining.',
+        incorrectExplanation:
+          'Deregistration delay immediately marks the target as draining (stopping new request allocation) and gives existing open connections a defined grace window to finish their responses before instance termination or removal.',
+        hint:
+          'Think about how graceful shutdown protects active client transactions when an instance is removed.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-05-mcq-01',
+        question:
+          'Given the target-group configuration in the lesson, what is the minimum time after an instance starts passing health checks before the target group marks it healthy?',
+        codeBlock: '{\n  "HealthCheckIntervalSeconds": 10,\n  "HealthyThresholdCount": 2\n}',
+        options: [
+          { id: 'a', label: 'A', text: '20 seconds (2 consecutive passing checks at a 10-second interval)' },
+          { id: 'b', label: 'B', text: '10 seconds (a single passing check is sufficient)' },
+          { id: 'c', label: 'C', text: '30 seconds (the interval times the unhealthy threshold, not the healthy threshold)' },
+          { id: 'd', label: 'D', text: '2 seconds (the healthy threshold count alone, ignoring the interval)' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Two consecutive passing checks are required, each 10 seconds apart, so the minimum elapsed time is 2 x 10 = 20 seconds.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-05-mcq-02',
+        question:
+          'In the scenario, why does the FDE deliberately set the scale-in cooldown (300 seconds) longer than the scale-out cooldown (60 seconds)?',
+        codeBlock: '"TargetTrackingConfiguration": {\n  "TargetValue": 60.0,\n  "ScaleOutCooldown": 60,\n  "ScaleInCooldown": 300\n}',
+        options: [
+          { id: 'a', label: 'A', text: 'Scaling in too eagerly during a brief lull and then having to scale back out during the next burst costs more (cold-start latency on new instances) than carrying a small amount of excess capacity for a few extra minutes' },
+          { id: 'b', label: 'B', text: 'AWS enforces a minimum ratio of 5:1 between scale-in and scale-out cooldowns' },
+          { id: 'c', label: 'C', text: 'A longer scale-in cooldown reduces the AWS bill regardless of traffic pattern' },
+          { id: 'd', label: 'D', text: 'Scale-in cooldowns have no functional effect; only scale-out cooldowns matter operationally' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s explicit cost reasoning — the asymmetric cooldown reflects the asymmetric cost of being wrong in each direction, not an AWS constraint.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-05-mcq-03',
+        question:
+          'What problem does setting a launch template\'s warm-up time (`DefaultInstanceWarmup`) specifically prevent?',
+        options: [
+          { id: 'a', label: 'A', text: 'A newly launched instance still warming up can appear to be under load, which would otherwise count toward the group\'s scaling metric and trigger an unnecessary second scale-out' },
+          { id: 'b', label: 'B', text: 'It prevents a newly launched instance from ever receiving traffic at all' },
+          { id: 'c', label: 'C', text: 'It prevents the health check from running until the warm-up period elapses' },
+          { id: 'd', label: 'D', text: 'It reduces the instance\'s CPU allocation during the warm-up period' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific claim: without excluding a still-warming instance\'s metrics from the scaling decision, the group can misread its own not-yet-useful capacity as continued load.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-05-mcq-04',
+        question:
+          'Why does Practice Loop step 3 ask you to record, second by second, when the CPU metric crosses the threshold, when a new instance registers, and when it starts receiving traffic, rather than just confirming the group eventually scaled out?',
+        options: [
+          { id: 'a', label: 'A', text: 'This timeline exposes any gap between "scaling triggered" and "capacity actually available to serve traffic" — a gap that matters during a real burst even if the group eventually reaches the right size' },
+          { id: 'b', label: 'B', text: 'AWS requires a documented timeline before a scaling policy can be marked production-ready' },
+          { id: 'c', label: 'C', text: 'It measures the exact dollar cost of the scaling event' },
+          { id: 'd', label: 'D', text: 'It confirms the CloudWatch alarm fired at exactly the configured threshold value, which is otherwise unverifiable' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the diagnostic value of the step — the lag between trigger and usable capacity is invisible if you only check the end state, but it directly affects users during the gap.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-05-mcq-05',
+        question:
+          'What was the actual root cause of the 5xx burst observed in the first 15 seconds after every PolicyVault deploy?',
+        options: [
+          { id: 'a', label: 'A', text: 'A TCP-only health check marked new instances healthy the instant their process bound the port, before the application had finished loading its RDS connection pool' },
+          { id: 'b', label: 'B', text: 'The Auto Scaling group was launching too many instances at once during each deploy' },
+          { id: 'c', label: 'C', text: 'The RDS instance itself was running out of available connections' },
+          { id: 'd', label: 'D', text: 'The deregistration delay was set too short, dropping in-flight requests during deploy' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario traces the 5xx burst specifically to the TCP health check\'s premature "healthy" signal, not to scaling behavior or the deregistration delay.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-05-mcq-06',
+        question:
+          'Given a 10-second health-check interval and an unhealthy threshold count of 3, what is the minimum time before a genuinely failing instance is pulled out of rotation?',
+        options: [
+          { id: 'a', label: 'A', text: '30 seconds (3 consecutive failing checks at a 10-second interval)' },
+          { id: 'b', label: 'B', text: '10 seconds (a single failed check is sufficient to remove the instance)' },
+          { id: 'c', label: 'C', text: '3 seconds (the threshold count alone, independent of the interval)' },
+          { id: 'd', label: 'D', text: 'It is removed immediately once the ALB detects any single dropped connection' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The same interval-times-threshold math from the healthy case applies symmetrically to the unhealthy threshold: 3 x 10 = 30 seconds minimum before removal.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-storage-networking-reliability/06-designing-for-scalability-of-application-and-data': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-06-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — BOTTLENECK-FOCUSED SCALING',
+        question:
+          'Why does the lesson argue against scaling every layer of a system uniformly under load?',
+        options: [
+          { id: 'a', label: 'A', text: 'A system under load almost always has one component that saturates first, and scaling components that are not the bottleneck spends effort without moving the actual ceiling' },
+          { id: 'b', label: 'B', text: 'Uniform scaling is technically impossible in AWS; only one resource can be resized at a time' },
+          { id: 'c', label: 'C', text: 'Uniform scaling always costs more than targeted scaling, in every case, by definition' },
+          { id: 'd', label: 'D', text: 'Scaling multiple components at once always introduces a race condition' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s argument is specifically about wasted effort relative to the actual bottleneck, not a technical or cost impossibility.',
+        incorrectExplanation:
+          'A system\'s maximum throughput is dictated solely by its most constrained resource (bottleneck). Scaling non-constrained tiers (like adding API workers when the database write lock is saturated) increases cost and complexity without improving throughput by a single request.',
+        hint:
+          'Think of Goldratt\'s Theory of Constraints: throughput of any pipeline is determined solely by the bottleneck stage.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-06-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — UNBOUNDED QUEUES AS DEFERRED FAILURES',
+        question:
+          'Why does the lesson describe an unbounded in-memory queue as deferring, rather than solving, a capacity problem?',
+        options: [
+          { id: 'a', label: 'A', text: 'If the consumer\'s processing rate is genuinely below the arrival rate, an unbounded queue grows without limit until memory is exhausted, converting a visible slowdown into an invisible one until it crashes' },
+          { id: 'b', label: 'B', text: 'Unbounded queues are always slower to enqueue into than bounded ones' },
+          { id: 'c', label: 'C', text: 'AWS SQS does not support unbounded queues, so the scenario is theoretical only' },
+          { id: 'd', label: 'D', text: 'An unbounded queue always processes messages out of order, corrupting data' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific claim is about visibility, not raw performance — an unbounded queue hides the real rate mismatch behind growing memory usage until it becomes a crash.',
+        incorrectExplanation:
+          'An unbounded in-memory queue masks producer/consumer rate disparities by consuming process RAM. Under sustained overload, the queue grows until the host exhausts memory and crashes, losing all buffered messages in flight.',
+        hint:
+          'Consider what happens to memory consumption when the arrival rate exceeds the drain rate over an extended period.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-06-mcq-01',
+        question:
+          'Per the capacity model in the lesson, why does resizing the RDS instance to a larger class fail to raise PolicyVault\'s throughput ceiling?',
+        codeBlock: 'Measured cost per write: 25ms DB time (serialized on the claims table\'s row lock, not CPU)\nMax sustainable throughput with current serialization: 1000ms / 25ms = 40 req/sec ceiling',
+        options: [
+          { id: 'a', label: 'A', text: 'The bottleneck is lock-serialization time, a structural constraint independent of CPU or IOPS, so a bigger instance raises the CPU ceiling while leaving the actual constraining resource (lock hold time) unchanged' },
+          { id: 'b', label: 'B', text: 'RDS instance resizing requires downtime, making it operationally infeasible regardless of whether it would help' },
+          { id: 'c', label: 'C', text: 'A bigger instance class always has fewer available IOPS than a smaller one' },
+          { id: 'd', label: 'D', text: 'The claims table itself has a hard-coded row limit that a larger instance cannot bypass' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s central worked example: the throughput ceiling is set by lock-serialization time, not by CPU or IOPS, so resource-based scaling does not touch the actual constraint.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-06-mcq-02',
+        question:
+          'What must be true of an application tier before it can be scaled horizontally, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It must be stateless — session state, consistent in-memory caches, and locally-written file uploads must move to a shared external store, since any instance must be able to serve any request' },
+          { id: 'b', label: 'B', text: 'It must be rewritten to use a different programming language optimized for concurrency' },
+          { id: 'c', label: 'C', text: 'It must already be running on the largest available instance type' },
+          { id: 'd', label: 'D', text: 'It must have zero external dependencies of any kind' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific requirement is statelessness — any request must be servable by any instance, which requires moving local/in-memory state to a shared store first.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-06-mcq-03',
+        question:
+          'Why was adding a read replica correctly rejected as a fix in the PolicyVault scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'The actual bottleneck was write-lock contention, not read capacity, and a read replica only offloads read queries — it does nothing for a write-bound problem, since every replica still receives the same write stream' },
+          { id: 'b', label: 'B', text: 'RDS read replicas cannot be added to an instance that already has automated backups enabled' },
+          { id: 'c', label: 'C', text: 'Read replicas are always more expensive than resizing the primary instance' },
+          { id: 'd', label: 'D', text: 'PolicyVault\'s read query volume was too high for a single replica to handle' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit that a read replica addresses a narrow bottleneck shape (read-heavy load) — applying it to a write-bound problem targets the wrong layer entirely.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-06-mcq-04',
+        question:
+          'Per the lesson, what does building a capacity model (expected rate, cost per request, resulting required capacity) actually accomplish before a scaling change is made?',
+        options: [
+          { id: 'a', label: 'A', text: 'It turns "we might need to scale" into a specific, falsifiable prediction that a before/after load test can confirm or refute' },
+          { id: 'b', label: 'B', text: 'It guarantees the scaling change will work without needing a load test afterward' },
+          { id: 'c', label: 'C', text: 'It automatically selects the correct AWS instance type for the workload' },
+          { id: 'd', label: 'D', text: 'It replaces the need for a health check on the scaled component' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson frames the capacity model as a falsifiable prediction, not a guarantee — its value is in being checkable against a measured result, which is exactly what the Practice Loop does.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-06-mcq-05',
+        question:
+          'What specifically nearly caused an out-of-memory crash during PolicyVault\'s last load test?',
+        options: [
+          { id: 'a', label: 'A', text: 'An unbounded in-memory queue buffering outbound notification events grew without limit as processing fell behind arrival rate during the traffic spike' },
+          { id: 'b', label: 'B', text: 'The RDS instance ran out of connections under the increased write load' },
+          { id: 'c', label: 'C', text: 'A memory leak in the claims table\'s trigger logic' },
+          { id: 'd', label: 'D', text: 'Too many read replicas were provisioned simultaneously' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario attributes the near-crash specifically to the unbounded notification queue, not the database or replicas.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-06-mcq-06',
+        question:
+          'Why does the Practice Loop ask you to run a load test and compare the observed ceiling against the modeled prediction, rather than trusting the paper capacity model alone?',
+        options: [
+          { id: 'a', label: 'A', text: 'This diagnostic step confirms or corrects the model against reality — a paper estimate can be wrong about the actual bottleneck, and only a measured result validates or refutes it' },
+          { id: 'b', label: 'B', text: 'Load tests are required by AWS before any RDS configuration change can be applied' },
+          { id: 'c', label: 'C', text: 'The paper model is only used for cost estimation, not for predicting throughput' },
+          { id: 'd', label: 'D', text: 'It measures the exact latency of the health-check endpoint under load' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the step\'s stated diagnostic purpose — checking the model against a measured result, consistent with the lesson\'s framing of the capacity model as a falsifiable prediction.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-storage-networking-reliability/07-database-sharding-strategies-and-hot-spot-mitigation': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-07-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — HASHING VS. INPUT SKEW',
+        question:
+          'Why does the lesson argue that hashing a shard key (`hash(shard_key) mod N`) cannot fix a hot shard caused by one tenant generating far more traffic than others?',
+        options: [
+          { id: 'a', label: 'A', text: 'Hashing spreads already-uniform input evenly, but it cannot fix skew that already exists in the input distribution itself — a hot tenant\'s hashed key still lands on one shard and stays there' },
+          { id: 'b', label: 'B', text: 'Hash functions used for sharding are not deterministic, so the same key can land on different shards each time' },
+          { id: 'c', label: 'C', text: '`mod N` sharding only works for numeric keys, not string keys like `tenant_id`' },
+          { id: 'd', label: 'D', text: 'A well-chosen hash function always produces perfectly even distribution regardless of input skew' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s precise claim: hashing addresses distribution of already-uniform input, not skew already present in the underlying data, which is exactly what a hot tenant represents.',
+        incorrectExplanation:
+          'Hashing maps identical inputs deterministically to the identical output. If Tenant A produces 80% of all writes, hash(TenantA) maps 100% of Tenant A\'s traffic to a single shard, causing that shard to absorb 80% of the entire system load regardless of the hash algorithm.',
+        hint:
+          'Remember that hashing maps identical input values to the exact same hash output.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-07-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — CONSISTENT HASHING LIMITATIONS',
+        question:
+          'What problem does consistent hashing solve relative to plain `mod N` hashing, per the lesson — and what problem does it NOT solve?',
+        options: [
+          { id: 'a', label: 'A', text: 'It minimizes the fraction of keys that move when the shard count changes; it does nothing for input skew, since a hot tenant\'s key still lands on one shard either way' },
+          { id: 'b', label: 'B', text: 'It eliminates hot shards entirely by rebalancing load automatically across all shards' },
+          { id: 'c', label: 'C', text: 'It solves input skew but makes adding a new shard more expensive than plain mod N hashing' },
+          { id: 'd', label: 'D', text: 'It guarantees perfectly even distribution regardless of the underlying key cardinality' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit that consistent hashing addresses re-sharding cost (fewer keys move), not skew — it is a different problem from the one bucketing or tenant isolation address.',
+        incorrectExplanation:
+          'Consistent hashing is designed to minimize data migration when nodes are added or removed (only K/N keys move). It does not solve data or traffic skew because a single massive key still resides on exactly one position on the hash ring.',
+        hint:
+          'Distinguish between shard rebalancing/cluster resizing overhead and individual key traffic skew.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-07-mcq-01',
+        question:
+          'Per the worked shard-key comparison in the lesson, what is Candidate A\'s (`hash(tenant_id) mod 6`) busiest-to-median skew ratio, and does it cross the lesson\'s hot-shard threshold?',
+        codeBlock: 'Shard 0: 800   Shard 1: 950   Shard 2: 6,300   Shard 3: 1,100\nShard 4: 1,650  Shard 5: 1,200\nBusiest (shard 2, 6,300) / median (~1,100) = 5.7x',
+        options: [
+          { id: 'a', label: 'A', text: '5.7x, which crosses the lesson\'s stated 5x-or-greater hot-shard threshold' },
+          { id: 'b', label: 'B', text: '1.03x, which is normal variance and not a hot shard' },
+          { id: 'c', label: 'C', text: '45%, representing the largest tenant\'s overall traffic share rather than a shard ratio' },
+          { id: 'd', label: 'D', text: '6x, exactly matching the number of shards in the cluster' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The worked example computes 6,300 / ~1,100 = 5.7x, which the lesson explicitly states crosses the 5x-or-greater hot-shard threshold.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-07-mcq-02',
+        question:
+          'Candidate B (`hash(claim_id) mod 6`, a random UUID) achieves a 1.03x skew ratio — nearly perfect distribution. What does the lesson say this trades away?',
+        options: [
+          { id: 'a', label: 'A', text: 'Tenant-scoped query locality — a single tenant\'s claims are no longer co-located on one shard, so a "list this tenant\'s claims" query becomes a scatter-gather across all six shards' },
+          { id: 'b', label: 'B', text: 'Write durability, since random UUIDs cannot be indexed as efficiently as sequential IDs' },
+          { id: 'c', label: 'C', text: 'The ability to add new shards later without a resharding migration' },
+          { id: 'd', label: 'D', text: 'Read-after-write consistency for any query touching more than one shard' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s specific trade-off: distribution-optimal keys can destroy locality, turning the platform\'s most common query pattern (tenant-scoped listing) into an expensive scatter-gather.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-07-mcq-03',
+        question:
+          'Per the lesson, what distinguishes when bucketing is the correct mitigation from when tenant isolation (moving a tenant to a dedicated shard) is the correct mitigation?',
+        options: [
+          { id: 'a', label: 'A', text: 'Bucketing fixes a hot key whose own volume genuinely exceeds one shard\'s capacity; tenant isolation fixes a hot tenant whose volume is disruptive to shared-shard neighbors even if it would fit comfortably alone' },
+          { id: 'b', label: 'B', text: 'Bucketing is always preferred; tenant isolation is a legacy technique no longer used in modern sharded systems' },
+          { id: 'c', label: 'C', text: 'Tenant isolation is required whenever a tenant\'s ID hashes to a prime-numbered shard' },
+          { id: 'd', label: 'D', text: 'The two techniques are interchangeable and produce identical outcomes in every case' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this distinction precisely: the two mitigations target different root causes — raw volume exceeding shard capacity versus disruption to shared neighbors.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-07-mcq-04',
+        question:
+          'Why does the lesson insist a resharding migration use a dual-write/backfill-then-cutover approach rather than a single atomic "flip" of the shard mapping?',
+        options: [
+          { id: 'a', label: 'A', text: 'A dataset large enough to need resharding cannot actually be moved instantaneously, so a single atomic flip is not achievable without a full-system outage while the move happens' },
+          { id: 'b', label: 'B', text: 'AWS databases technically do not support atomic writes across shards under any circumstance' },
+          { id: 'c', label: 'C', text: 'Dual-write is required by regulatory compliance for any multi-tenant claims data' },
+          { id: 'd', label: 'D', text: 'An atomic flip would violate the shard key\'s hash function determinism' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s reasoning is about feasibility at scale — a large historical dataset cannot be moved instantly, so a transition window with dual-write and backfill avoids an outage during the move.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-07-mcq-05',
+        question:
+          'Why did several small tenants see SLA-breaching p99 latency in the scenario, even though none of them individually generated unusual traffic?',
+        options: [
+          { id: 'a', label: 'A', text: 'They shared a physical shard with the hot large tenant, so that shard\'s saturation degraded every tenant co-located on it, regardless of each individual tenant\'s own traffic share' },
+          { id: 'b', label: 'B', text: 'The small tenants\' data was accidentally migrated to the wrong AWS region' },
+          { id: 'c', label: 'C', text: 'PolicyVault\'s health check was misconfigured for all tenants simultaneously' },
+          { id: 'd', label: 'D', text: 'A software bug in the claims API affected only tenants below a certain traffic threshold' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario\'s mechanism is shared-shard blast radius — a hot tenant\'s saturation directly degrades every other tenant co-located on the same physical shard.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-07-mcq-06',
+        question:
+          'Per the scenario\'s resharding migration plan, what must be verified before cutting reads over to the new bucketed mapping and stopping the dual write?',
+        options: [
+          { id: 'a', label: 'A', text: 'Row counts and a sample of query results match between the old and new shard locations' },
+          { id: 'b', label: 'B', text: 'The large tenant has stopped generating new claims entirely' },
+          { id: 'c', label: 'C', text: 'All six original shards have been fully decommissioned' },
+          { id: 'd', label: 'D', text: 'The bucketed shard count has been reduced back to a single shard' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario explicitly names this verification step — row-count and sample-result matching — as the gate before cutover, consistent with the lesson\'s Evidence of Understanding.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-07-mcq-07',
+        question:
+          'Why did the FDE apply bucketing only to the identified hot tenant, leaving every other tenant\'s plain `hash(tenant_id) mod 6` mapping untouched?',
+        options: [
+          { id: 'a', label: 'A', text: 'Only the hot tenant\'s volume actually exceeded one shard\'s capacity — applying bucketing universally would add scatter-gather cost to every other tenant\'s queries for no distribution benefit, since their own traffic was never skewed' },
+          { id: 'b', label: 'B', text: 'Bucketing can only be applied to one tenant per shard cluster at a time, by design' },
+          { id: 'c', label: 'C', text: 'The other tenants\' data was not compatible with the bucketing key format' },
+          { id: 'd', label: 'D', text: 'Applying bucketing universally would have violated PolicyVault\'s regulatory retention requirement' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This connects the mitigation choice back to the lesson\'s core principle — a targeted fix for the specific cause of skew, not a blanket change that would cost other tenants\' locality unnecessarily.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-storage-networking-reliability/08-edge-caching-cdns-and-latency-reduction': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-08-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — MAX-AGE VS S-MAXAGE',
+        question:
+          'A response carries `Cache-Control: private, max-age=0, s-maxage=300`. What does this combination actually instruct?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both private and shared caches must revalidate immediately; the directive is contradictory and caches will ignore it' },
+          { id: 'b', label: 'B', text: 'A private (browser) cache must treat the response as immediately stale, but a shared cache (the CDN edge) may serve it for up to 300 seconds' },
+          { id: 'c', label: 'C', text: 'The response is cached for 300 seconds everywhere, and `max-age=0` is a leftover default with no effect once `s-maxage` is present' },
+          { id: 'd', label: 'D', text: 'The browser caches for 300 seconds and the CDN caches for 0 seconds, the reverse of the shared-cache override rule' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`s-maxage` overrides `max-age` specifically for shared caches. `max-age=0` still governs private (browser) caching. The two directives target different cache tiers, not a contradiction.',
+        incorrectExplanation:
+          's-maxage explicitly overrides max-age for shared caches like CDNs while leaving private browser caches governed by max-age=0, rather than being ignored or conflicting.',
+        hint:
+          'Consider the distinct roles of browser caches (private) versus intermediary edge caches (shared) when both directives are present.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-08-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — CROSS-TENANT CACHE LEAK ROOT CAUSE',
+        question:
+          'PolicyVault\'s original CDN cache policy keys on the request path and the `currency` query parameter only. What is the correct root-cause fix for the cross-tenant banner leak?',
+        options: [
+          { id: 'a', label: 'A', text: 'Lower the `s-maxage` to reduce the leak\'s exposure window' },
+          { id: 'b', label: 'B', text: 'Switch from `public` to `private` on the submission page response' },
+          { id: 'c', label: 'C', text: 'Add `X-Tenant-Id` to the cache key, since the response legitimately varies on tenant and the key did not include that dimension' },
+          { id: 'd', label: 'D', text: 'Disable CDN caching entirely for the Submission API' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The leak\'s root cause is a cache key missing a dimension the response varies on. Lowering TTL narrows the exposure window without fixing the underlying incorrectness; disabling caching sacrifices the CDN\'s benefit entirely rather than fixing the key.',
+        incorrectExplanation:
+          'When responses vary per tenant, omitting X-Tenant-Id from the CDN cache key causes the cache to treat different tenants\' requests for the same path as identical cache hits.',
+        hint:
+          'Think about what dimensions the CDN uses to look up a cached entry versus what dimensions cause the content to actually vary.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-08-mcq-01',
+        question:
+          '`Cache-Control: private, s-maxage=300, stale-while-revalidate=60` is set on the submission page. A request arrives 310 seconds after the entry was cached (10 seconds into the stale-while-revalidate window). What happens?',
+        options: [
+          { id: 'a', label: 'A', text: 'The request blocks until the origin responds, exactly as if stale-while-revalidate were absent' },
+          { id: 'b', label: 'B', text: 'The request receives the stale cached response immediately, and the CDN triggers a background refresh from the origin' },
+          { id: 'c', label: 'C', text: 'The request is rejected with a 504 because the cache entry has expired past its `s-maxage`' },
+          { id: 'd', label: 'D', text: 'The CDN serves the stale response and never refreshes it until the next full TTL cycle' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Within the stale-while-revalidate window, the CDN serves the stale entry immediately while asynchronously refreshing from the origin — this is the mechanism\'s entire purpose, converting a blocking revalidation into a background one.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-08-mcq-02',
+        question:
+          'This directive is applied to document thumbnails. Why is the extremely long `max-age` safe here specifically because the filename includes a content hash?',
+        codeBlock: 'Cache-Control: public, max-age=31536000, immutable',
+        options: [
+          { id: 'a', label: 'A', text: 'Content hashes make the CDN skip cache-key computation entirely, so max-age is irrelevant' },
+          { id: 'b', label: 'B', text: 'When content changes, the hash changes and produces a new URL — the old cached URL simply stops being referenced, so nothing ever needs to serve stale content under the old URL' },
+          { id: 'c', label: 'C', text: 'Content hashes automatically trigger CDN invalidation whenever the origin file changes' },
+          { id: 'd', label: 'D', text: '`immutable` overrides `max-age` and makes the numeric value have no effect' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A content-hashed URL never needs invalidation because an update produces a different URL. The long `max-age` is safe precisely because staleness under the *same* URL is impossible by construction.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-08-mcq-03',
+        question:
+          'Which of PolicyVault\'s cached response types requires an explicit CDN invalidation call when its underlying data changes?',
+        options: [
+          { id: 'a', label: 'A', text: 'Product images, because their URLs include a content hash' },
+          { id: 'b', label: 'B', text: 'The tenant-scoped submission page, because its URL stays stable (coverage line path) while the underlying price or banner content can change independently' },
+          { id: 'c', label: 'C', text: 'Cart and bind responses, because they use `no-store`' },
+          { id: 'd', label: 'D', text: 'None of the response types ever require invalidation once `s-maxage` is set' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Invalidation matters exactly when the cache key is stable but the underlying content is not. Product images avoid this by construction (hashed URLs); `no-store` responses were never cached in the first place.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-08-mcq-04',
+        question:
+          'A single Coastal Risk Partners coverage line\'s premium rate changed. What is the problem with instead running this exact command with the Coastal Risk Partners path, immediately after every price change across the catalog?',
+        codeBlock: 'aws cloudfront create-invalidation \\\n  --distribution-id E1A2B3C4D5E6F7 \\\n  --paths "/submissions/coastal-risk-partners/coverage-lines/line-48213*"',
+        options: [
+          { id: 'a', label: 'A', text: 'There is no problem — this is the correct, minimal-scope invalidation pattern for a single-coverage line update' },
+          { id: 'b', label: 'B', text: '`create-invalidation` cannot target a specific path pattern, only the entire distribution' },
+          { id: 'c', label: 'C', text: 'Nothing, for a single coverage line — the described anti-pattern would be invalidating the entire distribution (`/*`) for a single-coverage line change, which unnecessarily forces every cached object to be refetched' },
+          { id: 'd', label: 'D', text: 'Invalidation paths must always end without a wildcard, so this command is invalid syntax' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The scoped path shown is actually the correct pattern. The lesson\'s point is the contrast with an unscoped `/*` invalidation, which would force a full-distribution refetch for a single-coverage line change — wasteful and slower to warm back up.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-08-mcq-05',
+        question:
+          'What does `Cache-Control: private` permit, that `public` does not restrict?',
+        options: [
+          { id: 'a', label: 'A', text: '`private` restricts storage to the requesting client\'s own cache; `public` permits any shared cache, including the CDN edge, to store the response' },
+          { id: 'b', label: 'B', text: '`private` means the response is encrypted in transit; `public` means it is not' },
+          { id: 'c', label: 'C', text: '`private` is a synonym for `no-store`' },
+          { id: 'd', label: 'D', text: '`public` restricts storage to the requesting client; `private` permits shared caches to store it' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`public`/`private` governs which caches are permitted to store the response at all — shared caches (CDNs, proxies) versus the single requesting client only.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-08-mcq-06',
+        question:
+          'Why does PolicyVault mark bind responses `Cache-Control: no-store` rather than a short `max-age`?',
+        options: [
+          { id: 'a', label: 'A', text: '`no-store` is required by law for any page involving payment' },
+          { id: 'b', label: 'B', text: 'A bind response\'s correctness depends on it never being replayed from any cache — even a very short TTL risks a stale or duplicated confirmation being served' },
+          { id: 'c', label: 'C', text: '`no-store` makes the response load faster than a cached response would' },
+          { id: 'd', label: 'D', text: 'A short `max-age` would be functionally identical, so the choice is stylistic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Bind responses are exactly the case where any caching risk is unacceptable — the correctness cost of a stale confirmation outweighs any latency benefit, unlike the submission page\'s tolerable staleness window.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-08-mcq-07',
+        question:
+          'After adding `X-Tenant-Id` to the CDN cache key, what is the correct way to verify the fix actually resolved the leak, rather than merely reducing its probability?',
+        options: [
+          { id: 'a', label: 'A', text: 'Confirm the response latency dropped after the fix' },
+          { id: 'b', label: 'B', text: 'Request the same coverage line path for both tenants and confirm the two responses now correctly diverge on tenant-specific content, rather than one tenant\'s cached response being returned to the other' },
+          { id: 'c', label: 'C', text: 'Confirm the CDN distribution\'s overall cache hit rate increased' },
+          { id: 'd', label: 'D', text: 'Confirm the `s-maxage` value is unchanged' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Only a direct request/response comparison across tenants against identical paths verifies the cache key fix. Hit-rate or latency metrics can look fine while a leak is still present.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-storage-networking-reliability/09-microservices-performance-latency-throughput-and-concurrency': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-09-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — LITTLE\'S LAW & CONNECTION POOL SIZING',
+        question:
+          'A service handles 220 requests/second with an average time-in-system of 160ms. Using Little\'s Law, what is the steady-state number of in-flight requests?',
+        options: [
+          { id: 'a', label: 'A', text: '22' },
+          { id: 'b', label: 'B', text: '220' },
+          { id: 'c', label: 'C', text: '35.2' },
+          { id: 'd', label: 'D', text: '160' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          '`L = λ × W = 220 × 0.160 = 35.2`. This is the connection-pool sizing calculation shown in the chapter body\'s Concepts Covered code block.',
+        incorrectExplanation:
+          'Applying Little\'s Law L = λ × W gives 400 requests/s × 0.05s = 20 concurrent in-flight requests requiring 20 active connections to prevent pool queueing.',
+        hint:
+          'Multiply the arrival rate (requests per second) by the average duration (latency in seconds) spent holding a connection.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-09-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — TAIL LATENCY AMPLIFICATION',
+        question:
+          'Each of 4 independent downstream calls in a fan-out request has a 1% chance of hitting its own p99 latency tail. What is the approximate probability that the overall request hits at least one slow call?',
+        options: [
+          { id: 'a', label: 'A', text: '1%, the same as a single call, since tail probabilities don\'t compound' },
+          { id: 'b', label: 'B', text: '4%, computed as a simple sum of the four 1% rates' },
+          { id: 'c', label: 'C', text: 'Approximately 3.94%, computed as `1 - (0.99)^4`' },
+          { id: 'd', label: 'D', text: '0.01%, since the calls run in parallel and their tails cancel out' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          '`1 - (0.99)^4 ≈ 0.0394`. This is the compounding calculation from Concepts Covered, Paragraph 2 — tail probabilities compound multiplicatively across independent hops.',
+        incorrectExplanation:
+          'For N independent calls each with error/tail probability p, the probability of at least one call experiencing tail latency is 1 - (1 - p)^N, which is roughly 9.6% for N=10.',
+        hint:
+          'Calculate the probability that all 10 calls succeed without hitting the tail (0.99^10), then subtract from 1.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-09-mcq-01',
+        question:
+          'A connection pool is sized below the value Little\'s Law computes for steady-state concurrency. Why does this tend to make the latency problem worse over time, not just cap throughput at a fixed cost?',
+        options: [
+          { id: 'a', label: 'A', text: 'An undersized pool causes the database itself to slow down independent of queueing' },
+          { id: 'b', label: 'B', text: 'Requests queue behind the pool, which increases each request\'s total time-in-system (`W`); since `L = λ × W`, the increased `W` increases the effective in-flight count further, compounding the queueing' },
+          { id: 'c', label: 'C', text: 'HikariCP silently drops requests once the pool is full, so throughput decreases but latency is unaffected' },
+          { id: 'd', label: 'D', text: 'Little\'s Law only applies to read-heavy workloads, so an undersized pool has no measurable latency effect on bind traffic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The chapter body describes this exact feedback loop: pool queueing increases `W`, which by Little\'s Law increases `L`, worsening the queueing further under sustained load.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-09-mcq-02',
+        question:
+          'The bind endpoint\'s four downstream calls are switched from serial to parallel execution. What does this change, and what does it NOT change, about tail amplification?',
+        options: [
+          { id: 'a', label: 'A', text: 'It reduces the total latency cost of the fan-out (waiting for the slowest call instead of summing all four), but it does not reduce the compounded probability that at least one call lands in its own tail' },
+          { id: 'b', label: 'B', text: 'It reduces both the latency cost and the compounded tail-hit probability equally' },
+          { id: 'c', label: 'C', text: 'It has no effect on latency but eliminates tail amplification entirely' },
+          { id: 'd', label: 'D', text: 'It increases the compounded tail-hit probability because parallel calls interfere with each other\'s connection pools' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Parallelism changes the wait-for-the-slowest latency cost, but each call still independently risks its own tail — the probability of at least one hit is unchanged by execution order.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-09-mcq-03',
+        question:
+          'PolicyVault\'s bind dashboard shows a comfortable 180ms average response time while the on-call FDE is paged for a p99 crossing 4 seconds. What does this gap indicate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The average metric is being computed incorrectly and should be discarded' },
+          { id: 'b', label: 'B', text: 'A small but real fraction of requests are experiencing severe latency that the average, dominated by the much larger number of fast requests, does not surface' },
+          { id: 'c', label: 'C', text: 'p99 latency is a misconfiguration artifact and should not be trusted over the average' },
+          { id: 'd', label: 'D', text: 'The two metrics measure different endpoints, so the gap is expected and not diagnostic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Average and percentile metrics answer different questions; a healthy average can coexist with a severe tail because the average is dominated by the much larger volume of fast requests.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-09-mcq-04',
+        question:
+          'After resizing the HikariCP pool per the Little\'s Law calculation, the bind endpoint\'s p99 latency drops substantially but does not reach the individual downstream services\' own advertised p99. What is the correct interpretation?',
+        options: [
+          { id: 'a', label: 'A', text: 'The pool resize had no real effect; the improvement was a coincidence of reduced load' },
+          { id: 'b', label: 'B', text: 'The remaining latency is entirely explained by network round-trip time and cannot be further diagnosed' },
+          { id: 'c', label: 'C', text: 'A portion of the original tail was pool-queueing wait, now resolved by the resize, while the remaining latency reflects genuine downstream call time and tail amplification across the fan-out — a separate saturation point to investigate next' },
+          { id: 'd', label: 'D', text: 'p99 latency can never be reduced below the sum of the four downstream services\' own p99 values' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The Practice Loop\'s step 4-5 sequence is designed to distinguish these two contributors: resizing the pool addresses the queueing-wait portion, leaving the genuine downstream/tail-amplification portion as the next saturation point.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-09-mcq-05',
+        question:
+          'What does `connection-timeout: 2000` protect against, given the pool-queueing feedback loop described in this lesson?',
+        codeBlock: 'hikari:\n  maximum-pool-size: 40\n  connection-timeout: 2000',
+        options: [
+          { id: 'a', label: 'A', text: 'It bounds how long a request will wait for a pool connection before failing fast, preventing the queueing feedback loop from growing unbounded latency during a sustained overload' },
+          { id: 'b', label: 'B', text: 'It sets the maximum lifetime of an individual database connection before it is recycled' },
+          { id: 'c', label: 'C', text: 'It is unrelated to pool queueing and only affects the initial connection handshake' },
+          { id: 'd', label: 'D', text: 'It caps the pool size dynamically based on measured latency' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`connection-timeout` bounds the wait for a pool slot — a fail-fast mechanism that stops queueing wait from growing without limit during sustained overload, rather than letting `W` (and therefore `L`) climb indefinitely.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-09-mcq-06',
+        question:
+          'Per this lesson\'s Practice Loop, after identifying the next saturation point on the critical path, what is the recommended next step?',
+        options: [
+          { id: 'a', label: 'A', text: 'Increase every downstream service\'s replica count uniformly' },
+          { id: 'b', label: 'B', text: 'Propose one bounded fix targeted at the specific identified resource (a specific pool, timeout, or batching change), rather than a general "add more capacity" recommendation' },
+          { id: 'c', label: 'C', text: 'Switch the entire bind flow to an asynchronous, eventually-consistent model' },
+          { id: 'd', label: 'D', text: 'Reduce the bind endpoint\'s own SLA to match the current p99' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s methodology is diagnose-then-target: name the specific next-lowest-capacity resource and apply a bounded fix to it, not a blanket capacity increase across the system.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-storage-networking-reliability/10-designing-for-high-availability-multi-region-active-active': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-10-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — ROUTING LAYER RTO CONTRIBUTION',
+        question:
+          'A Route 53 health check polls every 30 seconds and the DNS record\'s TTL is 60 seconds. What is the worst-case window during which a genuinely failed region can still receive live traffic, purely from the routing mechanism\'s own detection and propagation delay?',
+        options: [
+          { id: 'a', label: 'A', text: '0 seconds — health-based routing fails over instantaneously' },
+          { id: 'b', label: 'B', text: '30 seconds, the health-check interval alone' },
+          { id: 'c', label: 'C', text: 'Approximately 90 seconds, the health-check interval plus the DNS TTL' },
+          { id: 'd', label: 'D', text: '60 seconds, the DNS TTL alone, since the health check runs independently' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'Worst case, a failure occurs just after a health check passed (up to 30s until the next check detects it), and then the stale DNS answer can still be cached by resolvers for up to the 60s TTL — roughly 90 seconds combined, as stated in the chapter body.',
+        incorrectExplanation:
+          'Total failover latency is the sum of health check detection time (3 × 30s = 90s) and DNS record cache propagation time (60s TTL), totaling at least 150 seconds.',
+        hint:
+          'Account for both the time required for Route 53 to confirm the failure and the time for resolvers and clients to expire cached DNS entries.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-10-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — SINGLE-WRITER CONSISTENCY IN ACTIVE-ACTIVE',
+        question:
+          'The payment team proposes extending active-active writes to the policy-bind path. What specific failure mode does the FDE flag as the reason this data path must stay single-writer instead?',
+        options: [
+          { id: 'a', label: 'A', text: 'Bind confirmation writes are too large in volume for active-active replication to keep up with' },
+          { id: 'b', label: 'B', text: 'A concurrent write to the same bind-confirmation record in both regions, resolved by LWW, could silently mark a failed authorization as "paid" — an outcome that cannot be tolerated the way a dropped quote-worksheet-quantity write can be' },
+          { id: 'c', label: 'C', text: 'Active-active is incompatible with any payment provider\'s API by design' },
+          { id: 'd', label: 'D', text: 'Bind confirmation records cannot be timestamped, so LWW cannot be applied to them at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The concrete failure mode is the specific business-invariant violation — a failed authorization silently becoming "paid" — not a generic volume or API-compatibility concern.',
+        incorrectExplanation:
+          'Financial and legal commitments like binding a policy require strict linearizability and single-writer serialization because Last-Write-Wins could silently discard or duplicate authoritative bind events.',
+        hint:
+          'Consider the real-world business and legal consequence of two conflicting writes occurring concurrently in different regions.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-elective-storage-networking-reliability-10-active-active-topology',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — ACTIVE-ACTIVE MULTI-REGION TOPOLOGY',
+      boundaryLabel: 'PER-DATA-PATH CONSISTENCY & ROUTING BOUNDARY',
+      boundaryText:
+        'DNS and latency-based routing direct brokers to their nearest active region for quote worksheets (active-active LWW replication), while bind confirmation requests are strictly routed to the single-writer primary region (us-east-1).',
+      nodes: [
+        {
+          id: 'broker-client',
+          label: 'Broker Client Request',
+          subtext: 'Originates quote edits or bind requests from US or EU regions',
+          kind: 'input'
+        },
+        {
+          id: 'latency-router',
+          label: 'Route 53 Latency & Health-Check Router',
+          subtext: 'Routes traffic to healthy region edge based on client proximity and endpoint health',
+          kind: 'boundary'
+        },
+        {
+          id: 'region-us-east',
+          label: 'us-east-1 Application & Database',
+          subtext: 'Primary single-writer for bind settlements; active-active peer for quote worksheets',
+          kind: 'service'
+        },
+        {
+          id: 'region-eu-west',
+          label: 'eu-west-1 Application & Database',
+          subtext: 'Active-active peer for quote worksheets; forwards bind settlements to us-east-1',
+          kind: 'service'
+        },
+        {
+          id: 'async-replication',
+          label: 'Cross-Region Async Replication (LWW)',
+          subtext: 'Bidirectional asynchronous sync for quote worksheet drafts and metadata',
+          kind: 'adapter'
+        },
+        {
+          id: 'settlement-single-writer',
+          label: 'Bind Settlement Single-Writer Path',
+          subtext: 'Strict single-master write path preventing split-brain double-binding',
+          kind: 'boundary',
+          highlighted: true
+        }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-10-mcq-01',
+        question:
+          'What specifically distinguishes an active-active region topology from a primary-region-with-read-replicas topology?',
+        options: [
+          { id: 'a', label: 'A', text: 'Active-active uses a CDN and the read-replica topology does not' },
+          { id: 'b', label: 'B', text: 'In active-active, both regions accept writes, introducing the possibility that the same record is written in both regions before either has heard of the other\'s write' },
+          { id: 'c', label: 'C', text: 'Active-active always has lower latency for every operation, with no additional complexity' },
+          { id: 'd', label: 'D', text: 'A read-replica topology cannot serve traffic from more than one region' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The defining property is dual write acceptance, which is what creates the conflict-resolution problem this lesson addresses — a read-replica topology has only one write region and therefore no such conflict.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-10-mcq-02',
+        question:
+          'Why does the lesson treat last-writer-wins as an acceptable conflict-resolution strategy for quote worksheet lines specifically?',
+        options: [
+          { id: 'a', label: 'A', text: 'Cart writes never actually conflict in practice, so the choice of strategy is irrelevant' },
+          { id: 'b', label: 'B', text: 'Silently discarding one of the two concurrent writes is a tolerable cost — the customer can simply re-add or re-remove the item, and no business invariant is violated either way' },
+          { id: 'c', label: 'C', text: 'LWW guarantees no data is ever lost, unlike a quorum-based approach' },
+          { id: 'd', label: 'D', text: 'Cart data is not replicated across regions, so conflict resolution does not apply to it' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s criterion for choosing LWW is whether discarding one of two concurrent writes is tolerable for that specific data — true for a quote worksheet quantity, false for a bind-confirmation record.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-10-mcq-03',
+        question:
+          'PolicyVault\'s region topology is active-active for quote worksheet data but single-writer for bind confirmation data, within the same overall two-region deployment. What principle does this reflect?',
+        options: [
+          { id: 'a', label: 'A', text: 'A region topology must choose one strategy uniformly across all data, so this configuration is a design error' },
+          { id: 'b', label: 'B', text: 'Consistency/availability trade-offs apply per data path, not once for an entire system — a single deployment can have an AP path (quote worksheet) and a CP path (bind confirmation) simultaneously' },
+          { id: 'c', label: 'C', text: 'Active-active and single-writer are mutually exclusive at the infrastructure level, so this configuration is not actually possible' },
+          { id: 'd', label: 'D', text: 'The distinction only matters for read paths, not write paths' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the per-data-path granularity principle applied to region topology specifically — the same reasoning that governs CAP theorem generally, here determining which fields route through active-active acceptance versus a single authoritative writer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-10-mcq-04',
+        question:
+          'For a coverage line present in both `local_worksheet` and `remote_worksheet` with conflicting quantities, which entry does `merge_worksheet` keep?',
+        codeBlock: 'def merge_worksheet(local_worksheet: dict, remote_worksheet: dict) -> dict:\n    merged = {}\n    for line_id in set(local_worksheet) | set(remote_worksheet):\n        local, remote = local_worksheet.get(line_id), remote_worksheet.get(line_id)\n        if local and remote:\n            merged[line_id] = local if local["updated_at"] >= remote["updated_at"] else remote\n        else:\n            merged[line_id] = local or remote\n    return merged',
+        options: [
+          { id: 'a', label: 'A', text: 'It always keeps the local entry, regardless of timestamp' },
+          { id: 'b', label: 'B', text: 'It keeps whichever entry has the more recent `updated_at` timestamp' },
+          { id: 'c', label: 'C', text: 'It merges the two quantities by summing them' },
+          { id: 'd', label: 'D', text: 'It raises an error requiring manual reconciliation' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The ternary compares `updated_at` timestamps and keeps the later write — the last-writer-wins policy applied at the per-coverage line level.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-10-mcq-05',
+        question:
+          'Route 53 health-based routing decides which region receives traffic. What does this mechanism NOT do on its own?',
+        options: [
+          { id: 'a', label: 'A', text: 'It does not resolve write conflicts between regions — routing traffic and reconciling concurrent writes are separate concerns handled by different mechanisms' },
+          { id: 'b', label: 'B', text: 'It cannot detect a region failure under any circumstances' },
+          { id: 'c', label: 'C', text: 'It replaces the need for any application-level health endpoint' },
+          { id: 'd', label: 'D', text: 'It guarantees zero data loss during a regional failover' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Health-based routing is purely a traffic-steering mechanism; conflict resolution (LWW, quorum, or single-writer routing) is a separate, complementary concern this lesson addresses independently.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-10-mcq-06',
+        question:
+          'Why does the lesson insist on computing the routing mechanism\'s detection-plus-propagation window explicitly, rather than treating "we have automated failover" as sufficient assurance?',
+        options: [
+          { id: 'a', label: 'A', text: 'Automated failover mechanisms are inherently unreliable and should not be used' },
+          { id: 'b', label: 'B', text: 'The health-check interval and DNS TTL are themselves latency in the recovery path — the RTO is not zero just because failover is automated, and stating the actual window is necessary to know what customers experience during a failure' },
+          { id: 'c', label: 'C', text: 'Failover mechanisms only work for single-region deployments' },
+          { id: 'd', label: 'D', text: 'DNS-based routing cannot be automated and always requires manual intervention' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s explicit point is that automation does not mean zero recovery time — the mechanism\'s own detection and propagation delay is a real, computable RTO contribution that must be stated rather than assumed away.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-10-mcq-07',
+        question:
+          'A broker\'s quote worksheet write in `eu-west-1` and a subsequent removal in `us-east-1` conflict before replication completes. Why does the lesson consider the LWW resolution of this specific conflict acceptable, unlike the hypothetical bind confirmation conflict?',
+        options: [
+          { id: 'a', label: 'A', text: 'Cart conflicts across regions are extremely rare and therefore not worth designing for' },
+          { id: 'b', label: 'B', text: 'Whichever quote worksheet state the LWW merge produces, the broker can simply re-add or re-remove the item — no business invariant (like a policy being marked bound incorrectly) is violated by either outcome' },
+          { id: 'c', label: 'C', text: 'The traveling broker scenario is not a real conflict because the two writes happened in different regions' },
+          { id: 'd', label: 'D', text: 'LWW is only applied to bind-confirmation records, not quote worksheet records, so the comparison does not apply' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The distinguishing factor throughout this lesson is tolerable-vs-intolerable cost of a discarded write, not frequency — the quote worksheet case is tolerable regardless of which write LWW keeps.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-storage-networking-reliability/11-fault-tolerance-engineering-circuit-breakers-retries-and-backoff': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-11-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — SLOW CALL THRESHOLD IN CIRCUIT BREAKERS',
+        question:
+          'A resilience4j circuit breaker is configured with `slowCallRateThreshold: 80` and `slowCallDurationThreshold: 2s`. Why does the breaker track "slow calls" as a distinct signal from outright failures, given BindPay\'s degradation pattern in this lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Slow calls are always eventually going to fail, so tracking them separately is redundant with the failure-rate threshold' },
+          { id: 'b', label: 'B', text: 'BindPay\'s degradation was calls returning 200 after 4-6 seconds, not error responses — without treating unusually slow-but-successful calls as equivalent to failures, the breaker would never open despite each slow call holding a thread the entire time' },
+          { id: 'c', label: 'C', text: '`slowCallDurationThreshold` only applies to calls that time out, which are already counted as failures' },
+          { id: 'd', label: 'D', text: 'Tracking slow calls is unnecessary once a time limiter is configured' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s actual failure mode was slow-but-technically-successful calls, which is precisely the case `slowCallDurationThreshold` exists to catch — a call that "succeeds" after holding a thread far too long is treated as a signal, not ignored because it eventually returned 200.',
+        incorrectExplanation:
+          'Slow calls tie up worker threads and connection pools for seconds at a time, creating upstream resource starvation that is often far more dangerous than fast 500 errors.',
+        hint:
+          'Think about what happens to the caller\'s thread pool while waiting 4 to 6 seconds for a response versus receiving an immediate error.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-11-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — BULKHEAD VS CIRCUIT BREAKER COMPLEMENTARITY',
+        question:
+          'Both a bulkhead and a circuit breaker are configured for `bindPay`. What does the `bulkhead`\'s `maxConcurrentCalls: 15` protect against that the `circuitBreaker` does not, on its own?',
+        options: [
+          { id: 'a', label: 'A', text: 'They protect against the exact same failure mode and configuring both is redundant' },
+          { id: 'b', label: 'B', text: 'The circuit breaker only opens once its failure/slow-call-rate threshold is crossed; before that threshold is reached, an unlimited number of concurrent calls could still exhaust the bind service\'s thread pool — the bulkhead caps concurrency regardless of whether the breaker has tripped yet' },
+          { id: 'c', label: 'C', text: 'The bulkhead replaces the need for a time limiter' },
+          { id: 'd', label: 'D', text: 'The bulkhead only applies once the circuit breaker is already OPEN' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the "complementary, not redundant" distinction from Concepts Covered, Paragraph 2 — the bulkhead limits concurrency independent of the breaker\'s current state, protecting against thread exhaustion during the window before the breaker\'s own threshold trips.',
+        incorrectExplanation:
+          'A circuit breaker trips based on aggregate past outcomes across a sliding window, whereas a bulkhead enforces instantaneous concurrency caps to prevent thread exhaustion during degradation before the breaker opens.',
+        hint:
+          'Consider how many requests could block simultaneously while a circuit breaker is still gathering data across its sliding window.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-elective-storage-networking-reliability-11-circuit-breaker-lifecycle',
+      eyebrow: 'PRACTICAL BACKEND SCENARIO — CIRCUIT BREAKER & BULKHEAD ISOLATION',
+      boundaryLabel: 'RESILIENCE GATING & FAULT ISOLATION BOUNDARY',
+      boundaryText:
+        'A bulkhead caps concurrent calls to BindPay at 15 threads, while the circuit breaker monitors failure and slow-call rates over a 50-call sliding window, opening to fail fast when thresholds are breached.',
+      nodes: [
+        {
+          id: 'bind-request',
+          label: 'Inbound Bind Request',
+          subtext: 'Requires credit card charge authorization via third-party BindPay API',
+          kind: 'input'
+        },
+        {
+          id: 'bulkhead-gate',
+          label: 'Resilience4j Bulkhead (15 Concurrent)',
+          subtext: 'Limits concurrent outbound payment calls to prevent thread pool exhaustion',
+          kind: 'boundary'
+        },
+        {
+          id: 'time-limiter',
+          label: 'TimeLimiter (3s Timeout)',
+          subtext: 'Fails slow calls fast rather than allowing degraded 6s upstream responses to hang threads',
+          kind: 'service'
+        },
+        {
+          id: 'breaker-state',
+          label: 'Circuit Breaker: CLOSED -> OPEN -> HALF_OPEN',
+          subtext: 'Tracks 50-call sliding window; trips to OPEN at >=50% failures/slow-calls',
+          kind: 'boundary',
+          highlighted: true
+        },
+        {
+          id: 'bindpay-gateway',
+          label: 'BindPay Third-Party API',
+          subtext: 'External payment processor subject to transient latency degradation or outages',
+          kind: 'adapter'
+        },
+        {
+          id: 'fast-fail-fallback',
+          label: 'Fast-Fail / Async Processing Path',
+          subtext: 'Immediately sheds load or queues async retry when breaker is in OPEN state',
+          kind: 'output'
+        }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-11-mcq-01',
+        question:
+          'In the `bindPay` circuit breaker configuration, what specifically happens when the breaker transitions from OPEN to HALF_OPEN after `waitDurationInOpenState`?',
+        options: [
+          { id: 'a', label: 'A', text: 'The breaker immediately returns to CLOSED and resumes full traffic' },
+          { id: 'b', label: 'B', text: 'A limited number of trial calls (`permittedNumberOfCallsInHalfOpenState: 5`) are allowed through to test whether the dependency has recovered' },
+          { id: 'c', label: 'C', text: 'The breaker stays OPEN indefinitely until manually reset' },
+          { id: 'd', label: 'D', text: 'All queued calls from the OPEN period are replayed against the dependency at once' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'HALF_OPEN permits a small, bounded number of trial calls — 5 in this config — to test recovery without fully reopening traffic, per the configuration shown in Concepts Covered.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-11-mcq-02',
+        question:
+          'What is the computed `backoff` value (before jitter) for `attempt = 3`?',
+        codeBlock: 'long baseDelayMs = 200;\nlong backoff = baseDelayMs * (1L << attempt);',
+        options: [
+          { id: 'a', label: 'A', text: '200ms' },
+          { id: 'b', label: 'B', text: '800ms' },
+          { id: 'c', label: 'C', text: '1600ms' },
+          { id: 'd', label: 'D', text: '600ms' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          '`1 << 3 = 8`, so `200 × 8 = 1600ms`, matching the sequence 200, 400, 800, 1600ms for attempts 0-3 shown in the code comment.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-11-mcq-03',
+        question:
+          'Exponential backoff alone (no jitter) is applied by every caller of a dependency that briefly recovers, succeeds once, then fails again under load. What specific failure mode does jitter prevent that exponential backoff alone does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Exponential backoff alone causes retries to never terminate' },
+          { id: 'b', label: 'B', text: 'Without jitter, many callers that failed at the same instant retry at the same computed delay in near-lockstep, recreating a load spike; jitter desynchronizes those retries across callers, spreading the load out in time' },
+          { id: 'c', label: 'C', text: 'Jitter reduces the total number of retries a single caller performs' },
+          { id: 'd', label: 'D', text: 'Jitter is required only when retrying non-idempotent operations' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the thundering-herd failure mode described in Concepts Covered, Paragraph 2 — jitter\'s specific job is desynchronizing many callers\' retries, not reducing any single caller\'s retry count.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-11-mcq-04',
+        question:
+          'BindPay returns a 402 (card declined) for a specific charge request. Should the retry logic retry this error?',
+        options: [
+          { id: 'a', label: 'A', text: 'Yes, with exponential backoff and jitter like any other error' },
+          { id: 'b', label: 'B', text: 'No — a declined card is a permanent error; retrying identically will fail identically while adding load for no benefit' },
+          { id: 'c', label: 'C', text: 'Yes, but only once, without backoff' },
+          { id: 'd', label: 'D', text: 'The answer depends only on whether the circuit breaker is currently CLOSED' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the exact retryable-vs-permanent distinction the chapter draws: a 402 is a permanent business-logic outcome, not a transient failure, so retrying it is actively wrong.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-11-mcq-05',
+        question:
+          'A charge to BindPay actually succeeds, but the response is lost due to a network timeout, triggering a retry. What prevents the customer from being charged twice?',
+        options: [
+          { id: 'a', label: 'A', text: 'The circuit breaker automatically deduplicates charges' },
+          { id: 'b', label: 'B', text: 'The retried request carries the same idempotency key as the original attempt, so BindPay recognizes it as a duplicate of an already-processed charge rather than a new one' },
+          { id: 'c', label: 'C', text: 'Exponential backoff makes double-charging statistically unlikely but not prevented' },
+          { id: 'd', label: 'D', text: 'The bulkhead\'s concurrency limit prevents the same request from being sent twice' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Idempotency keys are the specific mechanism that makes retrying a charge safe — the downstream system recognizes the duplicate key and returns the original result rather than processing a second charge.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-11-mcq-06',
+        question:
+          'Why does the configuration require a minimum of 20 calls before the failure rate is evaluated, rather than evaluating from the very first call?',
+        codeBlock: 'slidingWindowSize: 50\nminimumNumberOfCalls: 20',
+        options: [
+          { id: 'a', label: 'A', text: 'A failure rate computed from very few calls is statistically unreliable — 2 failures out of 3 calls is a 67% rate that looks alarming but isn\'t a meaningful signal, so the breaker waits for enough calls to make the rate trustworthy' },
+          { id: 'b', label: 'B', text: '`minimumNumberOfCalls` sets the number of calls permitted in the HALF_OPEN state' },
+          { id: 'c', label: 'C', text: 'It has no functional effect and exists only for documentation purposes' },
+          { id: 'd', label: 'D', text: 'It sets the bulkhead\'s concurrency limit' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`minimumNumberOfCalls` guards against the breaker tripping on statistical noise from a small sample — the failure rate isn\'t evaluated until enough calls have accumulated to be meaningful.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-11-mcq-07',
+        question:
+          'Before the fix, PolicyVault\'s naive retry logic (fixed 500ms delay, no jitter, up to 3 retries) made BindPay\'s partial outage worse. What was the specific mechanism by which PolicyVault\'s own retry behavior caused a self-inflicted outage?',
+        options: [
+          { id: 'a', label: 'A', text: 'The retries corrupted BindPay\'s database' },
+          { id: 'b', label: 'B', text: 'The retries roughly tripled the load PolicyVault sent to an already-struggling BindPay, and each retry attempt held a bind-service thread for its full duration — exhausting the bind service\'s own thread pool, affecting even requests that didn\'t touch BindPay' },
+          { id: 'c', label: 'C', text: 'The retries exceeded BindPay\'s rate limit, causing BindPay to ban PolicyVault\'s IP address' },
+          { id: 'd', label: 'D', text: 'The retries had no effect on load; the outage was caused entirely by BindPay\'s own degradation' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s key point is that the retry behavior amplified the failure into a broader self-inflicted outage — thread exhaustion affecting unrelated requests — not merely that BindPay was slow.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-storage-networking-reliability/12-graceful-degradation': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-12-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — NAIVE PER-REQUEST FALLBACK LATENCY PENALTY',
+        question:
+          'Before wiring the circuit breaker to the feature flag, every quote-page request pays the full 400ms RiskAssist timeout before falling back, even while RiskAssist is confirmed unhealthy. Why does this happen?',
+        options: [
+          { id: 'a', label: 'A', text: '`orTimeout(400, TimeUnit.MILLISECONDS)` is set too low and should be increased' },
+          { id: 'b', label: 'B', text: 'A per-request try/catch fallback still attempts the call and waits for its timeout on every single request — it re-discovers the failure independently each time rather than remembering that the dependency is already known to be unhealthy' },
+          { id: 'c', label: 'C', text: '`fallbackRiskSuggestions` itself is slow to execute' },
+          { id: 'd', label: 'D', text: 'The feature flag system has its own 400ms evaluation latency' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The chapter\'s specific point is that a per-request fallback pays the timeout cost independently on every request until the circuit-breaker-to-flag wiring lets the system remember the dependency is unhealthy and short-circuit the call entirely.',
+        incorrectExplanation:
+          'Without a circuit breaker to short-circuit calls in the OPEN state, every request must wait out the full connection/read timeout before executing the catch block and serving the fallback.',
+        hint:
+          'Focus on what happens on the timeline of each request before the catch block actually executes.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-12-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — HONEST LABELING VS SILENT SUBSTITUTION',
+        question:
+          'Why does the lesson argue that changing the panel heading from "Suggested for this submission" to "Common risk flags" during degradation matters, beyond simply serving the fallback data?',
+        options: [
+          { id: 'a', label: 'A', text: 'It has no real effect on user trust and is a cosmetic-only change' },
+          { id: 'b', label: 'B', text: 'A user who trusts the "Suggested for this submission" label to mean personalized content is misled if unlabeled generic content is silently substituted; the changed label sets the correct expectation and signals the system knows it\'s degraded' },
+          { id: 'c', label: 'C', text: 'Changing the label is required by insurance-industry disclosure regulation for all underwriting platforms' },
+          { id: 'd', label: 'D', text: 'The label change is what actually triggers the fallback logic to execute' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s user-communication argument is specifically about disclosure — silent substitution misleads a user who trusts the original label\'s meaning, while a changed label is honest about the degraded state.',
+        incorrectExplanation:
+          'Silently substituting generic fallback data under a headline promising customized AI analysis misleads users into making decisions based on false assumptions about data specificity.',
+        hint:
+          'Consider how an underwriter\'s decision-making changes if they believe suggestions are personalized rather than generic category defaults.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-12-mcq-01',
+        question:
+          'Why does graceful degradation depend on classifying dependencies as critical or optional, rather than treating every dependency the code calls as equally essential?',
+        options: [
+          { id: 'a', label: 'A', text: 'The classification is only relevant for cost accounting, not reliability' },
+          { id: 'b', label: 'B', text: 'Without the classification, a failure in any dependency becomes a failure everywhere by default — the classification is what lets an optional dependency\'s failure be contained instead of blocking the customer\'s actual outcome' },
+          { id: 'c', label: 'C', text: 'All dependencies in a well-designed system are optional by definition' },
+          { id: 'd', label: 'D', text: 'Critical dependencies never fail, so the classification only matters for optional ones' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the chapter\'s opening argument: the classification is the design decision that determines whether a dependency\'s failure is contained or propagates into a full workflow failure.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-12-mcq-02',
+        question:
+          'What specifically triggers the `ai-risk-suggestions` feature flag to flip off in this lesson\'s design?',
+        options: [
+          { id: 'a', label: 'A', text: 'A fixed schedule, independent of RiskAssist\'s actual health' },
+          { id: 'b', label: 'B', text: 'A listener on the RiskAssist circuit breaker\'s transition to the OPEN state' },
+          { id: 'c', label: 'C', text: 'A manual operator action taken after reading a dashboard alert' },
+          { id: 'd', label: 'D', text: 'The feature flag flips automatically once per deployment, regardless of dependency health' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The design wires the flag flip directly to the breaker\'s OPEN-state transition, so the flag reflects the breaker\'s own confirmed-unhealthy signal rather than a separate manual or scheduled trigger.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-12-mcq-03',
+        question:
+          'Why is `fallbackRiskSuggestions` implemented as a cached, tenant-scoped list rather than a live call to some other service at fallback time?',
+        codeBlock: 'return fallbackRiskSuggestions(tenantId); // cached "frequently-flagged items in this class", TTL 1h',
+        options: [
+          { id: 'a', label: 'A', text: 'Caching is required because RiskAssist and the fallback share the same underlying data store' },
+          { id: 'b', label: 'B', text: 'A fallback that itself depends on a live call risks its own latency or failure; a pre-computed cached list guarantees the fallback path is fast and available exactly when the primary dependency is not' },
+          { id: 'c', label: 'C', text: 'A live call would violate the tenant-isolation cache-key lesson from earlier in this module' },
+          { id: 'd', label: 'D', text: 'TTL-based caching is only used to reduce cost, not for reliability reasons' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A fallback\'s own reliability matters — if it depended on another live call, it could fail for the same reasons the primary path did. A cached, pre-computed list is deliberately simple and fast.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-12-mcq-04',
+        question:
+          'The Suggested Extension proposes reclassifying a bind fraud-scoring call from critical to optional-with-a-conservative-fallback. What does "conservative fallback" mean in that context?',
+        options: [
+          { id: 'a', label: 'A', text: 'Skip fraud scoring entirely and approve every order automatically when the service is down' },
+          { id: 'b', label: 'B', text: 'If the fraud service is unavailable, approve at a lower auto-approval threshold and flag the order for manual review, rather than blocking bind outright or approving with no scrutiny at all' },
+          { id: 'c', label: 'C', text: 'Block all binds entirely until the fraud service recovers, treating it as fully critical' },
+          { id: 'd', label: 'D', text: 'Retry the fraud-scoring call indefinitely until it succeeds' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A conservative fallback deliberately trades some automation for safety — it neither blocks the customer entirely (treating the dependency as still critical) nor silently drops the safeguard (approving with no scrutiny).'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-12-mcq-05',
+        question:
+          'Why does the fallback path explicitly increment a metric, rather than only returning the fallback data silently?',
+        codeBlock: 'degradationMetrics.increment("risk-suggestions.fallback", tenantId);',
+        options: [
+          { id: 'a', label: 'A', text: 'Without an explicit signal, the operations team has no way to know how often or for which tenants the system is degraded — the metric makes the degradation observable rather than invisible' },
+          { id: 'b', label: 'B', text: 'The metric is required by the feature flag system to function correctly' },
+          { id: 'c', label: 'C', text: 'Incrementing a metric is what actually triggers the circuit breaker to open' },
+          { id: 'd', label: 'D', text: 'The metric replaces the need for the changed panel heading' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Observability of the degraded state itself matters — a fallback that returns quietly with no metric leaves operators unable to see how often or how widely degradation is occurring.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-12-mcq-06',
+        question:
+          'During the RiskAssist outage, why do PolicyVault\'s search, quote-page data, and bind continue to function normally?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are protected by the same circuit breaker configured for RiskAssist' },
+          { id: 'b', label: 'B', text: 'None of those flows call RiskAssist — they are on the critical path but do not depend on the optional risk-flag suggestion dependency, so RiskAssist\'s failure has no path by which to reach them' },
+          { id: 'c', label: 'C', text: 'The feature flag flip automatically reroutes their traffic away from RiskAssist' },
+          { id: 'd', label: 'D', text: 'They were degraded too, but the fallback for those paths is invisible to the customer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The critical path\'s unaffected status follows directly from dependency classification — those flows simply have no call path to RiskAssist, so its failure cannot propagate to them regardless of any fallback mechanism.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-storage-networking-reliability/13-rate-limiting-throttling-and-shedding': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-13-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — CAPACITY VS REFILL RATE INDEPENDENCE',
+        question:
+          'A token bucket is configured with `capacity=100, refill_rate=10`. What does each number independently control?',
+        options: [
+          { id: 'a', label: 'A', text: '`capacity` is the sustained rate and `refill_rate` is the burst allowance, the reverse of the standard convention' },
+          { id: 'b', label: 'B', text: '`capacity` bounds the largest instant burst the bucket can absorb (up to 100 requests at once); `refill_rate` bounds the sustained long-run rate (10 requests/second) once the burst allowance is spent' },
+          { id: 'c', label: 'C', text: 'Both numbers control the same thing and are redundant with each other' },
+          { id: 'd', label: 'D', text: '`capacity` sets the maximum number of tenants the bucket can serve simultaneously' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the core distinction the chapter draws: burst absorption and sustained rate are two independently tunable properties, not one collapsed number.',
+        incorrectExplanation:
+          'Bucket capacity dictates the maximum burst a client can send instantaneously before exhausting tokens, whereas refill rate sets the steady-state sustained throughput limit.',
+        hint:
+          'Think about what happens when a client sends 100 requests in 1 millisecond versus 10 requests every second for an hour.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-13-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — GLOBAL LIMIT VS MULTI-TENANT ISOLATION',
+        question:
+          'Why does a single global rate limit (applied to all traffic regardless of tenant) fail to prevent the Coastal Risk Partners import from affecting Meridian Underwriters?',
+        options: [
+          { id: 'a', label: 'A', text: 'Global limits are always set too low to be useful in a multi-tenant system' },
+          { id: 'b', label: 'B', text: 'A global limit caps total traffic across all tenants combined, so one tenant\'s burst can still consume the entire shared allowance, leaving no capacity for other tenants regardless of their own request volume' },
+          { id: 'c', label: 'C', text: 'A global limit does not use a token bucket algorithm, unlike a per-tenant limit' },
+          { id: 'd', label: 'D', text: 'Global limits only apply to bulk operations, never to interactive traffic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The chapter\'s specific point is about isolation: a shared allowance under a global limit is exactly what lets one tenant consume capacity that other, well-behaved tenants needed — per-tenant scoping is what fixes this.',
+        incorrectExplanation:
+          'Under a single global quota, any aggressive or looping tenant can consume the entire platform token supply, starving other well-behaved tenants while remaining under the platform ceiling.',
+        hint:
+          'Consider how a single tenant sending 500 req/s affects other tenants when the shared platform limit is 500 req/s.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-13-mcq-01',
+        question:
+          'Coastal Risk Partners\' catalog-import bucket is configured `capacity=20, refill_rate=2`. After the initial burst of 20 is exhausted, what is the maximum sustained rate the import can achieve indefinitely?',
+        options: [
+          { id: 'a', label: 'A', text: '20 requests/second' },
+          { id: 'b', label: 'B', text: '2 requests/second' },
+          { id: 'c', label: 'C', text: '10 requests/second' },
+          { id: 'd', label: 'D', text: 'The import is blocked entirely once the burst is exhausted' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Once the initial 20-token burst is spent, the bucket refills at 2 tokens/second, capping sustained admission at that rate — the import continues, just bounded to 2 req/s rather than blocked.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-13-mcq-02',
+        question:
+          'What is the defining difference between throttling and load shedding, per this lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Throttling delays admission with a promise of eventual capacity (a `Retry-After` value); shedding rejects a request outright with no promise of eventual admission' },
+          { id: 'b', label: 'B', text: 'Throttling only applies to bulk workloads and shedding only applies to interactive workloads' },
+          { id: 'c', label: 'C', text: 'Throttling and shedding are the same mechanism under different names' },
+          { id: 'd', label: 'D', text: 'Shedding always returns a 200 response with degraded content, while throttling always returns an error' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The distinguishing property is the presence or absence of a retry promise — throttling says "come back later," shedding says "this request will not be served."'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-13-mcq-03',
+        question:
+          'What should the client do based on this response, per the contract this lesson describes?',
+        codeBlock: 'HTTP/1.1 429 Too Many Requests\nRetry-After: 4\nX-RateLimit-Limit: 10\nX-RateLimit-Remaining: 0',
+        options: [
+          { id: 'a', label: 'A', text: 'Retry immediately, since `X-RateLimit-Limit: 10` indicates capacity is still available' },
+          { id: 'b', label: 'B', text: 'Wait at least 4 seconds before retrying, since `Retry-After` promises capacity will be available by then, and `X-RateLimit-Remaining: 0` confirms no tokens are currently available' },
+          { id: 'c', label: 'C', text: 'Treat this as a permanent failure and stop retrying entirely, the same as a shed request' },
+          { id: 'd', label: 'D', text: 'Ignore `Retry-After` and retry using exponential backoff starting from 0ms' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`Retry-After` is the throttling contract\'s explicit promise of when capacity will next be available; `X-RateLimit-Remaining: 0` confirms the bucket is currently exhausted.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-13-mcq-04',
+        question:
+          'Why is the zone keyed on `$http_x_tenant_id` specifically, rather than on the client\'s source IP address?',
+        codeBlock: 'limit_req_zone $http_x_tenant_id zone=tenant_interactive:10m rate=10r/s;',
+        options: [
+          { id: 'a', label: 'A', text: 'Keying on tenant ID scopes the limit per tenant regardless of how many distinct client IPs that tenant\'s traffic originates from — IP-based keying would not correctly isolate a tenant whose requests come through a shared corporate NAT or CDN' },
+          { id: 'b', label: 'B', text: 'IP-based keying is always more accurate for multi-tenant SaaS platforms' },
+          { id: 'c', label: 'C', text: '`$http_x_tenant_id` is required syntax for `limit_req_zone` and has no semantic significance' },
+          { id: 'd', label: 'D', text: 'Tenant-ID keying is only appropriate for the bulk-import zone, not the interactive zone' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The isolation this lesson is designed around is per-tenant, and tenant ID is the correct dimension to key on — IP-based keying would misattribute or fragment a single tenant\'s traffic across multiple buckets or lump multiple tenants behind a shared IP into one.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-13-mcq-05',
+        question:
+          'Beyond giving `bulk_import_bucket` its own rate limit, the fix also admits bulk-import traffic onto an isolated worker pool separate from interactive traffic. Why is the rate limit alone insufficient?',
+        options: [
+          { id: 'a', label: 'A', text: 'The rate limit alone is actually sufficient; the isolated worker pool is a redundant precaution with no functional benefit' },
+          { id: 'b', label: 'B', text: 'Even with its own bucket, if bulk-import requests still competed for the same shared workers as interactive traffic, admitted import requests could still occupy workers long enough to delay interactive requests waiting for the same pool — isolation at the worker-pool level, not only the admission level, is what fully prevents interference' },
+          { id: 'c', label: 'C', text: 'Worker pool isolation is required because token buckets cannot be applied to bulk workloads' },
+          { id: 'd', label: 'D', text: 'Without an isolated pool, the token bucket algorithm computes the wrong refill rate' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Rate limiting controls admission; worker-pool isolation controls what happens to already-admitted requests. Both layers are needed for full isolation, per the bulkhead-style reasoning also used in the fault-tolerance lesson.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-13-mcq-06',
+        question:
+          'Under overload, Coastal Risk Partners\' bulk-import requests are shed first while Meridian Underwriters\'s interactive requests keep their normal admission rate. Does this violate fairness between tenants?',
+        options: [
+          { id: 'a', label: 'A', text: 'Yes — a fair system must treat every tenant\'s requests identically regardless of workload type' },
+          { id: 'b', label: 'B', text: 'No — fairness in this design means capacity is allocated according to which traffic the business needs preserved under pressure, not that every request type is treated identically regardless of priority' },
+          { id: 'c', label: 'C', text: 'Yes, unless Coastal Risk Partners is charged a lower price than Meridian Underwriters' },
+          { id: 'd', label: 'D', text: 'Fairness is undefined in a rate-limiting context and the question does not apply' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The chapter explicitly redefines fairness here as priority-aware capacity allocation, not identical treatment — a bulk, delay-tolerant workload is deliberately deprioritized relative to a latency-sensitive interactive workload.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-13-mcq-07',
+        question:
+          'Under what condition does this lesson say load shedding (outright rejection) is the more appropriate response than throttling (delayed admission)?',
+        options: [
+          { id: 'a', label: 'A', text: 'When the system is far enough over capacity that queuing more work would only delay the moment of failure rather than prevent it — shedding avoids building a queue that will fail anyway, just later' },
+          { id: 'b', label: 'B', text: 'Shedding is always preferable to throttling because it produces a clearer error message' },
+          { id: 'c', label: 'C', text: 'Throttling should never be used for bulk workloads, only shedding' },
+          { id: 'd', label: 'D', text: 'Shedding is appropriate only for requests that originate from an unauthenticated client' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The chapter frames shedding\'s appropriateness around genuine, deep overload — where delaying admission via a queue would not actually resolve the overload, just postpone the failure.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-storage-networking-reliability/14-data-consistency-trade-offs-cap-and-pacelc': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-14-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — PRACTICAL CONSISTENCY TRADE-OFF SCOPE',
+        question:
+          'How does this lesson\'s treatment of CAP/PACELC differ from the core curriculum\'s Distributed Systems Fundamentals lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'This lesson re-derives the CAP theorem\'s proof from first principles in more mathematical detail' },
+          { id: 'b', label: 'B', text: 'This lesson assumes CAP and PACELC are already understood and instead applies trade-off reasoning to concrete, per-operation consistency decisions with real latency numbers — a decision-making lesson, not a theory lesson' },
+          { id: 'c', label: 'C', text: 'This lesson replaces CAP theorem with a newer framework that supersedes it' },
+          { id: 'd', label: 'D', text: 'This lesson and the core curriculum lesson cover identical content with no differentiation' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The chapter\'s opening paragraph states this explicitly: it builds on the theory already taught elsewhere and focuses on applying it to concrete decisions.',
+        incorrectExplanation:
+          'Rather than treating an entire application as uniformly CP or AP, production engineering evaluates consistency needs per-operation, balancing invariant enforcement against latency tax.',
+        hint:
+          'Focus on whether an entire multi-service platform must share one global consistency model or if different operations make different trade-offs.'
+      },
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-14-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PACELC ELSE-BRANCH LATENCY TAX',
+        question:
+          'The lesson states the `us-east-1`-`eu-west-1` round-trip tax on bind confirmation writes is paid "not only during a failure." What PACELC concept does this illustrate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The "Partition" branch — this cost is only paid when a network partition is actively occurring' },
+          { id: 'b', label: 'B', text: 'The "Else" branch — even absent a partition, a system choosing strong consistency for a specific data path pays a permanent latency cost on every relevant operation in the ordinary, non-partitioned case' },
+          { id: 'c', label: 'C', text: 'CAP\'s availability-vs-consistency choice, which only applies during a partition and has no bearing here' },
+          { id: 'd', label: 'D', text: 'A cost specific to PolicyVault\'s implementation that PACELC does not generalize to' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is precisely PACELC\'s contribution beyond CAP — the Else branch names the always-on latency tax a strong-consistency choice pays in the ordinary case, which is what the bind confirmation round-trip cost illustrates concretely here.',
+        incorrectExplanation:
+          'PACELC\'s Else clause highlights that choosing strong consistency imposes a continuous latency penalty (synchronous cross-region round trips) during steady-state normal operations.',
+        hint:
+          'Think about what PACELC captures about steady-state performance when the network is running normally without any partition.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-14-mcq-01',
+        question:
+          'Why does the policy-bind status read specifically need read-your-writes consistency, rather than tolerating the same brief staleness window the quote worksheet read tolerates?',
+        options: [
+          { id: 'a', label: 'A', text: 'Bind confirmation writes happen less frequently than quote worksheet writes, so the stronger guarantee is cheaper to apply' },
+          { id: 'b', label: 'B', text: 'Showing "Paid" before the write is durably confirmed is a false positive with real business consequences (a customer or downstream system acting on incorrect bind confirmation state) — the specific asymmetry of that error is what the quote worksheet read\'s staleness tolerance doesn\'t share' },
+          { id: 'c', label: 'C', text: 'Read-your-writes is required by PCI compliance for all payment-related reads' },
+          { id: 'd', label: 'D', text: 'The bind confirmation service uses a different database engine than the quote worksheet service, which mandates the stronger guarantee' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The chapter\'s decision framework is about the specific consequence of getting each read wrong — the bind confirmation read\'s false-positive risk is qualitatively different from the quote worksheet read\'s tolerable-staleness case.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-14-mcq-02',
+        question:
+          'Why does the submission-history dashboard have near-zero added latency cost compared to the bind confirmation read?',
+        codeBlock: '| Operation | Consistency need | Latency cost |\n|---|---|---|\n| Order bind confirmation write + read-back | Strong (read-your-writes) | +40-80ms |\n| Order-history dashboard | Eventual | ~0ms added |',
+        options: [
+          { id: 'a', label: 'A', text: 'The dashboard is cached at the CDN edge, which is why lesson 8\'s caching applies to it directly' },
+          { id: 'b', label: 'B', text: 'The dashboard reads from an asynchronous local-region replica with no cross-region round trip required, while the bind confirmation read pays the cross-region round trip needed for its stronger guarantee' },
+          { id: 'c', label: 'C', text: 'Order-history data is smaller in volume than bind confirmation data, which is why it is faster' },
+          { id: 'd', label: 'D', text: 'The dashboard uses a different consistency model that has no latency cost by definition' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The latency difference in the table directly reflects the mechanism each guarantee requires — a local async replica read versus a cross-region synchronous confirmation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-14-mcq-03',
+        question:
+          'Why does the lesson prefer keeping bind confirmation single-region-authoritative (with a cross-region confirmation only for `eu-west-1` traffic) over synchronously quorum-replicating every bind confirmation write across both regions?',
+        options: [
+          { id: 'a', label: 'A', text: 'Cross-region quorum replication is not technically possible for payment data' },
+          { id: 'b', label: 'B', text: 'Synchronous cross-region quorum replication would double the round-trip latency tax on every bind confirmation write regardless of which region originated it, whereas single-region authority pays the tax only for the fraction of writes originating in the non-authoritative region' },
+          { id: 'c', label: 'C', text: 'Single-region authority has no latency cost at all, unlike quorum replication' },
+          { id: 'd', label: 'D', text: 'The choice is arbitrary and either approach produces identical latency outcomes' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The chapter\'s comparison is specific: quorum replication pays the tax on every write from every region, while single-region authority confines the extra cost to only the writes that actually originate remotely.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-14-mcq-04',
+        question:
+          'A session wrote to `eu-west-1` 4 seconds ago. Where does this function route the next read for that session?',
+        codeBlock: 'def route_worksheet_read(session_id, write_region_by_session):\n    if session_id in write_region_by_session:\n        region, ts = write_region_by_session[session_id]\n        if time.monotonic() - ts < 10:\n            return region\n    return nearest_healthy_region(session_id)',
+        options: [
+          { id: 'a', label: 'A', text: 'To `eu-west-1`, since 4 seconds is within the 10-second sticky window' },
+          { id: 'b', label: 'B', text: 'To the nearest healthy region by latency, ignoring the recent write' },
+          { id: 'c', label: 'C', text: 'To `us-east-1` unconditionally, regardless of the write' },
+          { id: 'd', label: 'D', text: 'The function raises an error because 4 seconds is not a valid input' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`time.monotonic() - ts < 10` evaluates true at 4 seconds elapsed, so the function returns the write region, implementing read-your-writes for that session within the window.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-14-mcq-05',
+        question:
+          'The team proposes applying read-your-writes routing to the submission-history list "to be safe." Why does the FDE push back?',
+        options: [
+          { id: 'a', label: 'A', text: 'Read-your-writes routing is technically impossible to implement for list-type reads' },
+          { id: 'b', label: 'B', text: 'No business invariant on the submission-history list depends on sub-second freshness — applying the stronger guarantee would add real, permanent latency cost on every page load for every customer, paid for a safety margin nothing on that read actually needs' },
+          { id: 'c', label: 'C', text: 'The submission-history list is already strongly consistent by default, making the proposal redundant but harmless' },
+          { id: 'd', label: 'D', text: 'The FDE agrees with the proposal but defers the decision to a later phase' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s central discipline is that a stronger guarantee is a cost, applied only where the underlying invariant requires it — "to be safe" is not sufficient justification when the specific consequence of staleness on this read is genuinely negligible.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-14-mcq-06',
+        question:
+          'Per the trade-off table, why does the premium rate display use eventual consistency with a short TTL rather than session or strong consistency?',
+        options: [
+          { id: 'a', label: 'A', text: 'Prices never change at PolicyVault, so any consistency guarantee would be equivalent' },
+          { id: 'b', label: 'B', text: 'A price shown up to 60 seconds stale is an acceptable, low-consequence trade-off in exchange for the lowest latency of the four operations — this ties directly to the edge-caching strategy from Lesson 8' },
+          { id: 'c', label: 'C', text: 'Strong consistency is technically impossible to apply to catalog data' },
+          { id: 'd', label: 'D', text: 'The premium rate display is on the same code path as the bind confirmation read and inherits its guarantee automatically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The table explicitly ties this row to Lesson 8\'s CDN caching strategy — a low-consequence staleness tolerance in exchange for the largest latency win among the four rows.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-storage-networking-reliability-14-mcq-07',
+        question:
+          'Per the Suggested Extension, a "binding authority nearly exhausted" warning banner sourced from live bind-capacity counts is added. What is the correct way to classify its consistency need using this lesson\'s framework?',
+        options: [
+          { id: 'a', label: 'A', text: 'Always choose the strongest available guarantee for any operation involving remaining capacity, since capacity is a business-critical concept' },
+          { id: 'b', label: 'B', text: 'Name the specific consequence of both an overly strong guarantee (unnecessary latency on every quote page) and an overly weak one (a broker completes a bind the warning failed to flag as already over capacity), and place the operation on the strong-to-eventual spectrum based on which consequence is more costly to the business' },
+          { id: 'c', label: 'C', text: 'Classification is unnecessary for warning banners, since they are advisory and not authoritative' },
+          { id: 'd', label: 'D', text: 'Apply the same guarantee as the quote worksheet read automatically, since both involve per-line state' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s actual method, applied to a new case: name the concrete cost of each direction of error, then place the operation on the spectrum based on that comparison — not a default rule based on the data\'s general category.'
+      }
+    ]
+  },
 };
 
 export function getLessonInteractions(courseSlug, moduleSlug, lessonSlug) {

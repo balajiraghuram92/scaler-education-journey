@@ -403,15 +403,15 @@ spring:
 
 ## Practical Backend Scenario
 
-PolicyVault's bind endpoint fans out to Inventory, Pricing, Tax, and BindPay on every request. Average response time is a comfortable 180ms and looks fine on the dashboard, but the on-call FDE is paged for p99 latency crossing 4 seconds during a flash sale. Profiling the critical path shows each of the four downstream calls has its own p99 around 700ms — individually unremarkable — but a request that touches all four has roughly a `1 - (0.993)^4 ≈ 2.8%` chance of hitting at least one of those tails, and at flash-sale throughput that 2.8% is thousands of real requests per hour, not a rounding error. The second finding is a HikariCP pool sized at 15 connections against a throughput of 220 req/s and average downstream latency of 160ms — Little's Law puts steady-state in-flight requests at `220 × 0.160 = 35.2`, more than double the pool's capacity, so most requests are queuing behind the pool itself before they ever reach a downstream call, and that queueing wait is the dominant contributor to the 4-second tail, not any single slow dependency.
+PolicyVault's bind endpoint fans out to Underwriting Rules, Rating, Premium Tax, and BindPay on every request. Average response time is a comfortable 180ms and looks fine on the dashboard, but the on-call FDE is paged for p99 latency crossing 4 seconds during a renewal-season surge. Profiling the critical path shows each of the four downstream calls has its own p99 around 700ms — individually unremarkable — but a request that touches all four has roughly a `1 - (0.993)^4 ≈ 2.8%` chance of hitting at least one of those tails, and at renewal-season-surge throughput that 2.8% is thousands of real requests per hour, not a rounding error. The second finding is a HikariCP pool sized at 15 connections against a throughput of 220 req/s and average downstream latency of 160ms — Little's Law puts steady-state in-flight requests at `220 × 0.160 = 35.2`, more than double the pool's capacity, so most requests are queuing behind the pool itself before they ever reach a downstream call, and that queueing wait is the dominant contributor to the 4-second tail, not any single slow dependency.
 
 ## Practice Loop
 
-1. Measure the bind endpoint's actual throughput (`λ`) and average per-request time-in-system (`W`) under current flash-sale load, and compute `L` using Little's Law.
+1. Measure the bind endpoint's actual throughput (`λ`) and average per-request time-in-system (`W`) under current renewal-season-surge load, and compute `L` using Little's Law.
 2. Compare the computed `L` against the current HikariCP `maximum-pool-size` and identify whether the pool is undersized relative to the computed steady-state concurrency.
 3. Diagnostic: measure p50 and p99 latency separately for the bind endpoint and for each of its four downstream calls individually, and compute the compounded probability of at least one tail hit per bind request from the individual p99 rates.
-4. Resize the pool using the Little's Law result plus burst headroom, re-run the flash-sale load test, and re-measure p50 and p99 to confirm which portion of the original tail was pool-queueing wait versus genuine downstream latency.
-5. Identify the first remaining saturation point after the pool resize — the next-lowest-capacity resource on the critical path — and propose one bounded fix (a specific pool, timeout, or batching change) rather than a general "add more capacity" risk-flag suggestion.
+4. Resize the pool using the Little's Law result plus burst headroom, re-run the renewal-season-surge load test, and re-measure p50 and p99 to confirm which portion of the original tail was pool-queueing wait versus genuine downstream latency.
+5. Identify the first remaining saturation point after the pool resize — the next-lowest-capacity resource on the critical path — and propose one bounded fix (a specific pool, timeout, or batching change) rather than a general "add more capacity" recommendation.
 
 ## Evidence of Understanding
 
@@ -620,7 +620,7 @@ Per this lesson's Practice Loop, after identifying the next saturation point on 
 
 **OPTIONS:**
 - [ ] A: Increase every downstream service's replica count uniformly
-- [x] B: Propose one bounded fix targeted at the specific identified resource (a specific pool, timeout, or batching change), rather than a general "add more capacity" risk-flag suggestion
+- [x] B: Propose one bounded fix targeted at the specific identified resource (a specific pool, timeout, or batching change), rather than a general "add more capacity" recommendation
 - [ ] C: Switch the entire bind flow to an asynchronous, eventually-consistent model
 - [ ] D: Reduce the bind endpoint's own SLA to match the current p99
 **CORRECT_ANSWER_KEY:** B
@@ -961,7 +961,7 @@ A broker's quote worksheet write in `eu-west-1` and a subsequent removal in `us-
 
 **OPTIONS:**
 - [ ] A: Cart conflicts across regions are extremely rare and therefore not worth designing for
-- [x] B: Whichever quote worksheet state the LWW merge produces, the customer can simply re-add or re-remove the item — no business invariant (like a payment being marked settled incorrectly) is violated by either outcome
+- [x] B: Whichever quote worksheet state the LWW merge produces, the broker can simply re-add or re-remove the item — no business invariant (like a policy being marked bound incorrectly) is violated by either outcome
 - [ ] C: The traveling broker scenario is not a real conflict because the two writes happened in different regions
 - [ ] D: LWW is only applied to bind-confirmation records, not quote worksheet records, so the comparison does not apply
 **CORRECT_ANSWER_KEY:** B
@@ -1397,14 +1397,14 @@ public List<Product> getRiskSuggestions(String tenantId, String userId) {
 
 ## Practical Backend Scenario
 
-PolicyVault's RiskAssist risk-flag suggestion service goes down during an unrelated deployment. Search, quote pages, quote worksheet, and bind — the critical path — are unaffected, because none of them call RiskAssist. The broker portal's "Suggested for this submission" panel, however, calls `getRiskSuggestions` on every quote page, and before this lesson's fix, that call blocked for its full 400ms timeout on every single page load before falling back — a small but real latency tax on every quote page view, applied even to brokers who never look at the panel. The fix wires RiskAssist's circuit breaker OPEN transition to an `ai-risk-flag suggestions` feature-flag flip: once the breaker confirms RiskAssist is unhealthy (crossing its own failure-rate threshold, per the previous lesson's mechanism), the flag flips off cluster-wide, and every subsequent product-page request skips the RiskAssist call entirely, going straight to a cached "Common risk flags" list instead of paying the 400ms timeout first. The panel's heading also changes from "Suggested for this submission" to "Common risk flags" for the duration of the degradation, so brokers see a visibly different, clearly labeled section rather than a personalized-looking list that quietly isn't.
+PolicyVault's RiskAssist risk-flag suggestion service goes down during an unrelated deployment. Search, quote pages, quote worksheet, and bind — the critical path — are unaffected, because none of them call RiskAssist. The broker portal's "Suggested for this submission" panel, however, calls `getRiskSuggestions` on every quote page, and before this lesson's fix, that call blocked for its full 400ms timeout on every single page load before falling back — a small but real latency tax on every quote page view, applied even to brokers who never look at the panel. The fix wires RiskAssist's circuit breaker OPEN transition to an `ai-risk-suggestions` feature-flag flip: once the breaker confirms RiskAssist is unhealthy (crossing its own failure-rate threshold, per the previous lesson's mechanism), the flag flips off cluster-wide, and every subsequent quote-page request skips the RiskAssist call entirely, going straight to a cached "Common risk flags" list instead of paying the 400ms timeout first. The panel's heading also changes from "Suggested for this submission" to "Common risk flags" for the duration of the degradation, so brokers see a visibly different, clearly labeled section rather than a personalized-looking list that quietly isn't.
 
 ## Practice Loop
 
-1. Classify PolicyVault's product-page dependencies into critical (search, product data, bind, payment) and optional (RiskAssist risk-flag suggestions), and state in one sentence why the optional path can fail without the customer's core outcome failing.
+1. Classify PolicyVault's quote-page dependencies into critical (search, submission data, bind, payment) and optional (RiskAssist risk-flag suggestions), and state in one sentence why the optional path can fail without the customer's core outcome failing.
 2. Implement `fallbackRiskSuggestions(tenantId)` as a cached, tenant-scoped "frequently-flagged items in this class" list with a 1-hour TTL, distinct from RiskAssist's personalized results.
-3. Diagnostic: with the RiskAssist circuit breaker still CLOSED but the dependency itself made artificially slow, measure the added page-load latency the naive per-request timeout imposes across 100 product-page requests before the breaker has tripped.
-4. Wire a listener on the RiskAssist circuit breaker's OPEN-state transition to flip the `ai-risk-flag suggestions` feature flag off, then re-run the same 100-request measurement and confirm the added latency drops to near-zero once the flag-based short-circuit is in place.
+3. Diagnostic: with the RiskAssist circuit breaker still CLOSED but the dependency itself made artificially slow, measure the added page-load latency the naive per-request timeout imposes across 100 quote-page requests before the breaker has tripped.
+4. Wire a listener on the RiskAssist circuit breaker's OPEN-state transition to flip the `ai-risk-suggestions` feature flag off, then re-run the same 100-request measurement and confirm the added latency drops to near-zero once the flag-based short-circuit is in place.
 5. Update the broker portal's panel heading to switch between "Suggested for this submission" and "Common risk flags" based on the feature flag's state, and verify a broker viewing the page during degradation sees the changed label rather than an unlabeled substitution.
 
 ## Evidence of Understanding
@@ -1452,7 +1452,7 @@ This is the chapter's opening argument: the classification is the design decisio
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Before wiring the circuit breaker to the feature flag, every product-page request pays the full 400ms RiskAssist timeout before falling back, even while RiskAssist is confirmed unhealthy. Why does this happen?
+Before wiring the circuit breaker to the feature flag, every quote-page request pays the full 400ms RiskAssist timeout before falling back, even while RiskAssist is confirmed unhealthy. Why does this happen?
 
 **OPTIONS:**
 - [ ] A: `orTimeout(400, TimeUnit.MILLISECONDS)` is set too low and should be increased
@@ -1477,7 +1477,7 @@ The chapter's specific point is that a per-request fallback pays the timeout cos
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-What specifically triggers the `ai-risk-flag suggestions` feature flag to flip off in this lesson's design?
+What specifically triggers the `ai-risk-suggestions` feature flag to flip off in this lesson's design?
 
 **OPTIONS:**
 - [ ] A: A fixed schedule, independent of RiskAssist's actual health
@@ -1507,7 +1507,7 @@ Why does the lesson argue that changing the panel heading from "Suggested for th
 **OPTIONS:**
 - [ ] A: It has no real effect on user trust and is a cosmetic-only change
 - [x] B: A user who trusts the "Suggested for this submission" label to mean personalized content is misled if unlabeled generic content is silently substituted; the changed label sets the correct expectation and signals the system knows it's degraded
-- [ ] C: Changing the label is required by consumer-protection regulation for all e-commerce platforms
+- [ ] C: Changing the label is required by insurance-industry disclosure regulation for all underwriting platforms
 - [ ] D: The label change is what actually triggers the fallback logic to execute
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
@@ -1613,7 +1613,7 @@ Observability of the degraded state itself matters — a fallback that returns q
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-During the RiskAssist outage, why do PolicyVault's search, product-page data, and bind continue to function normally?
+During the RiskAssist outage, why do PolicyVault's search, quote-page data, and bind continue to function normally?
 
 **OPTIONS:**
 - [ ] A: They are protected by the same circuit breaker configured for RiskAssist
@@ -2044,7 +2044,7 @@ The "Else" branch of PACELC is what makes the bind confirmation row's latency co
 
 ```
 # Sticky read-your-writes routing for quote worksheet reads, 10s window post-write
-def route_quote worksheet_read(session_id, write_region_by_session):
+def route_worksheet_read(session_id, write_region_by_session):
     if session_id in write_region_by_session:
         region, ts = write_region_by_session[session_id]
         if time.monotonic() - ts < 10:
@@ -2070,7 +2070,7 @@ You can classify a set of real operations by the business invariant each protect
 
 ## Suggested Extension
 
-PolicyVault adds a new operation: a "low stock" warning banner shown on a quote page, sourced from live inventory counts. Classify this operation's consistency need using the same framework — name the specific consequence of both an overly strong guarantee (unnecessary latency on every quote page) and an overly weak one (a customer completes bind for an item the warning didn't flag as already sold out) and state where on the strong-to-eventual spectrum this operation actually belongs.
+PolicyVault adds a new operation: a "binding authority nearly exhausted" warning banner shown on a quote page, sourced from Meridian Underwriters's live remaining bind-capacity count for that coverage line. Classify this operation's consistency need using the same framework — name the specific consequence of both an overly strong guarantee (unnecessary latency on every quote page) and an overly weak one (a broker completes a bind the warning didn't flag as already over capacity) and state where on the strong-to-eventual spectrum this operation actually belongs.
 <!-- CHAPTER_BODY_END -->
 
 <!-- MCQ_SECTION_START -->
@@ -2217,7 +2217,7 @@ The chapter's comparison is specific: quorum replication pays the tax on every w
 **QUESTION_TEXT:**
 
 ```python
-def route_quote worksheet_read(session_id, write_region_by_session):
+def route_worksheet_read(session_id, write_region_by_session):
     if session_id in write_region_by_session:
         region, ts = write_region_by_session[session_id]
         if time.monotonic() - ts < 10:
@@ -2300,13 +2300,13 @@ The table explicitly ties this row to Lesson 8's CDN caching strategy — a low-
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Per the Suggested Extension, a "low stock" warning banner sourced from live inventory counts is added. What is the correct way to classify its consistency need using this lesson's framework?
+Per the Suggested Extension, a "binding authority nearly exhausted" warning banner sourced from live bind-capacity counts is added. What is the correct way to classify its consistency need using this lesson's framework?
 
 **OPTIONS:**
-- [ ] A: Always choose the strongest available guarantee for any operation involving inventory, since inventory is a business-critical concept
-- [x] B: Name the specific consequence of both an overly strong guarantee (unnecessary latency on every quote page) and an overly weak one (a customer checks out an item the warning failed to flag as sold out), and place the operation on the strong-to-eventual spectrum based on which consequence is more costly to the business
+- [ ] A: Always choose the strongest available guarantee for any operation involving remaining capacity, since capacity is a business-critical concept
+- [x] B: Name the specific consequence of both an overly strong guarantee (unnecessary latency on every quote page) and an overly weak one (a broker completes a bind the warning failed to flag as already over capacity), and place the operation on the strong-to-eventual spectrum based on which consequence is more costly to the business
 - [ ] C: Classification is unnecessary for warning banners, since they are advisory and not authoritative
-- [ ] D: Apply the same guarantee as the quote worksheet read automatically, since both involve per-item state
+- [ ] D: Apply the same guarantee as the quote worksheet read automatically, since both involve per-line state
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
