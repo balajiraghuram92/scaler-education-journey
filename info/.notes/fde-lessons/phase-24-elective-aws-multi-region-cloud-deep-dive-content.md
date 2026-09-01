@@ -124,6 +124,23 @@ just a running system; it is a one-page handoff document naming what was built, 
 deliberately deferred (and why), and what the measured recovery time actually was, not what it was
 assumed to be.
 
+The same staging discipline applies in reverse during rollback, and this is the part teams most
+often skip: a rollback is itself a deployment, and it deserves the same gated verification a
+forward deployment gets, not a panicked, unverified "just revert it" reaction. Reverting the RDS
+instance to a prior snapshot, redeploying an older application revision, or reverting an
+infrastructure-as-code change each has its own dependency order, and rolling one layer back
+without checking whether a layer above it still expects the new shape produces a second incident
+stacked on top of the first — an application revision rolled back against a database migration
+that has not been reverted is a common concrete instance of this. The project-day discipline also
+forces a decision about scope that a single-lesson exercise never has to make: given a fixed time
+box, which dependency's recovery gets rehearsed live (with a timestamped drill) versus which one
+is merely described in the runbook without being exercised. The FDE's choice to break the RDS
+instance specifically, rather than the Lambda callback or the VPC routing, is itself a judgment
+call about which failure is both plausible enough in production and cheap enough to rehearse
+safely in a sandbox account, and that judgment — not just the mechanics of the drill itself — is
+something the handoff document should make explicit so a future operator understands why RDS was
+tested live while another dependency was only documented.
+
 ```bash
 # Staged deployment script: each stage gates on a verification check before the next runs
 set -euo pipefail
@@ -486,6 +503,21 @@ and a **capacity provider** determines what actually runs them — Fargate (no E
 manage at all) or an EC2 capacity provider (a managed auto-scaling group of instances you still
 own the AMI and patching for) — the same Fargate-versus-EC2 trade-off the next lesson covers in
 operational depth.
+
+Deploying a new revision is not the only thing that changes a service's steady state — the
+**desired count** itself is a separately adjustable target, and a service reconciles toward
+whatever desired count and task definition revision are currently configured, continuously, not
+just at the moment `update-service` is called. This is why an ECS service recovers automatically
+from a task that crashes on its own (ECS notices the running count has fallen below the desired
+count and launches a replacement without any human action), but does not recover automatically from
+a bad task definition revision (a replacement launched from the same broken revision fails the same
+way, over and over, which is precisely the failure signature that distinguishes "the platform is
+healing a transient crash" from "the platform is repeatedly retrying a fundamentally broken
+deployment" — both look like task churn in `describe-services`, and only the stop reason
+distinguishes them). An FDE reading a service's task count history for the first time on an
+unfamiliar customer cluster should always check which of these two situations is actually
+occurring before assuming either "the service is fine, ECS is healing it" or "the deployment is
+broken" from the churn alone.
 
 ```bash
 # Authenticate to ECR and push the extraction-worker image
@@ -902,6 +934,20 @@ immediately transitions to `STOPPING` is a health-check or application-startup f
 two failure classes point an FDE toward completely different fixes — the events array names which
 one occurred, in plain English, rather than requiring you to correlate CloudWatch metrics to guess.
 
+Service discovery is the third piece of the ECS operating model worth naming precisely, because it
+is frequently confused with the load balancer target group covered above and the two solve
+different problems. AWS Cloud Map-based service discovery gives a service a stable internal DNS
+name (`worker.manifestflow.local`) that resolves to the current set of healthy task IPs, letting
+one internal service call another by name without going through a load balancer at all — the
+right tool for east-west, service-to-service traffic inside the cluster. The ALB target group,
+by contrast, is specifically for traffic entering from outside the service (north-south), whether
+that is public internet traffic or traffic from another AWS service that expects a stable,
+load-balanced endpoint rather than a raw DNS record pointing at a set of task IPs. Confusing the
+two — for instance, registering an internal-only worker behind a public ALB purely out of habit,
+or expecting Cloud Map DNS to perform connection draining the way a target group does during a
+deployment — produces a working-but-wrong architecture that a customer security review will
+eventually flag, even though nothing about it is functionally broken in the everyday case.
+
 ```bash
 # Create a target group whose health check matches the container's actual contract
 aws elbv2 create-target-group --name manifestflow-worker-tg --protocol HTTP --port 8080 \
@@ -1307,6 +1353,18 @@ describe-addon`, while a Helm-installed equivalent's lifecycle is entirely the c
 own responsibility to track, a distinction worth stating explicitly before assuming "installed via
 `kubectl apply`" and "installed as an EKS add-on" are operationally interchangeable.
 
+Cluster creation itself deserves one more precise distinction: `eksctl create cluster` is a
+convenience wrapper over a set of CloudFormation stacks it generates and applies on your behalf —
+one for the VPC (if you let it create one rather than pointing at existing subnets, as the
+ManifestFlow scenario does), one for the control plane, one per node group. This matters
+operationally because a failed or partially-applied `eksctl create cluster` run leaves behind real
+CloudFormation stacks that `eksctl delete cluster` needs to clean up correctly, and a customer's
+own infrastructure-as-code team will often ask whether the cluster was provisioned via `eksctl` or
+via their own Terraform/CloudFormation pipeline specifically because the two are not freely
+interchangeable after the fact — importing an `eksctl`-created cluster into a separate Terraform
+state, or vice versa, requires deliberate reconciliation, not just pointing a new tool at an
+existing cluster name.
+
 ```bash
 # Create the cluster and an initial managed node group in one operation
 eksctl create cluster --name manifestflow-eks --region us-east-1 \
@@ -1667,6 +1725,19 @@ an IAM role (via IRSA or Pod Identity) with permission to call `elasticloadbalan
 EC2 APIs on the cluster's behalf, which is the specific dependency that breaks silently if that
 IAM role is ever narrowed without accounting for the controller's own needs.
 
+Cost visibility is worth naming explicitly here too, because "advanced" EKS operation is not only
+about correctness — a customer engagement is also judged on whether spend tracks intended usage.
+A Fargate profile's per-pod billing is transparent per workload but can add up faster than expected
+for many small, short-lived pods, since each one carries its own minimum billed vCPU/memory
+allocation regardless of how little it actually uses; a managed node group's cost is coarser-grained
+(you pay for the node whether or not it is fully utilized) but easier to reason about in aggregate
+and easier to right-size with Cluster Autoscaler or Karpenter watching aggregate utilization rather
+than per-pod usage. Tagging both compute models consistently — a `workload` tag on the Fargate
+profile's namespace and an equivalent tag on the node group — is what actually makes a customer's
+Cost Explorer view legible per workload rather than showing one undifferentiated EKS line item,
+and an FDE who sets this up during initial cluster design saves the customer from a much harder
+retroactive cost-attribution exercise later.
+
 ```bash
 # A Fargate profile isolating the batch-reconciliation namespace onto per-pod compute
 cat > fargate-profile.yaml <<'EOF'
@@ -2026,5 +2097,464 @@ The Suggested Extension adds a `PodDisruptionBudget` to the extraction-worker De
 - [ ] B: It prevents the control plane from being upgraded before the node groups
 - [ ] C: It prevents the AWS Load Balancer Controller from provisioning a new ALB during the upgrade
 - [ ] D: It has no functional effect during a node-group upgrade; it only applies to Fargate profiles
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+The extension's purpose is bounding disruption pace during the rolling replacement — the budget caps how many pods can be unavailable at once, protecting the worker's replica count during the upgrade.
+**LESSON_CONNECTION:** Suggested Extension
+**KEYWORDS:** [poddisruptionbudget, rolling-node-replacement, upgrade-safety]
+### QUESTION_BLOCK_END: Q9
+<!-- MCQ_SECTION_END -->
+
+---
+
+# LESSON 12
+
+```yaml
+lesson_id: fde-elective-aws-multi-region-cloud-deep-dive-12-eks-security-and-operations
+lesson_title: "EKS Security and Operations"
+lesson_order: 12
+
+pathway_id: fde-curriculum
+pathway_name: "Forward Deployed Engineer (FDE)"
+
+module_id: elective-aws-multi-region-cloud-deep-dive
+module_name: "AWS Multi-Region Cloud Deep Dive (Elective)"
+module_order: "Elective 2"
+
+difficulty: Hard
+estimated_minutes: 120
+content_status: Draft
+
+learning_outcomes:
+  - "Set up IRSA's actual OIDC-provider and trust-policy mechanics, not just the high-level ServiceAccount-to-role mapping, and explain what the trust policy's condition keys enforce."
+  - "Apply a SecurityGroupPolicy to give one pod's ENI its own security group, distinct from every other pod's on the same node."
+  - "Enable EKS control-plane audit logging and write a CloudWatch Logs Insights query that reconstructs who made a specific change and when."
+
+created_date: "2026-09-01"
+last_updated: "2026-09-01"
+author: "Raghuram Balaji"
+
+supplementary_content:
+  has_mcq_section: true
+  mcq_count: 9
+  has_coding_exercises: false
+  exercise_count: 0
+  has_further_reading: false
+  resource_count: 0
+```
+
+<!-- CHAPTER_BODY_START -->
+# EKS Security and Operations
+
+## Concepts Covered
+
+Module 4's EKS lesson already introduced IRSA at the level of "a ServiceAccount can assume a
+scoped IAM role instead of inheriting the node's shared role" — the customer security team's next
+question is inevitably "how does that actually work, mechanically, and how do I prove it to an
+auditor?" IRSA depends on the cluster having an **OIDC identity provider** registered with IAM
+(`eksctl utils associate-iam-oidc-provider`, a one-time setup step per cluster) — EKS exposes an
+OIDC-compliant token issuer, and a ServiceAccount's projected token is a JWT that IAM can verify
+against that issuer. The IAM role a ServiceAccount assumes carries a **trust policy** whose
+condition keys are the actual enforcement mechanism worth reading closely: `sub` scopes the trust
+to one specific namespace/ServiceAccount pair (`system:serviceaccount:manifestflow:worker-sa`), and
+`aud` confirms the token was minted for STS specifically — without both conditions correctly set,
+the trust policy either grants no pod the ability to assume the role (too narrow, usually a typo in
+the `sub` condition) or, worse, allows any ServiceAccount in the cluster to assume it (too broad,
+usually a wildcarded or missing `sub` condition) — a security-relevant misconfiguration that will
+not throw an error, it will simply grant unintended access silently, exactly the class of gap a
+customer security review is designed to catch before it becomes an incident.
+
+`SecurityGroupPolicy` is the EKS-specific mechanism that gives a workload its own security group at
+the pod level, distinct from the node's shared security group — where IRSA scopes *AWS API* access
+per-workload, `SecurityGroupPolicy` scopes *network reachability* per-workload, using the VPC CNI's
+ability to attach an additional security-group-bearing ENI (branch ENI) to a specific pod matching
+the policy's selector, rather than relying on Kubernetes `NetworkPolicy` (which governs pod-to-pod
+traffic within the cluster's own network layer, not traffic that needs an actual VPC-level security
+group boundary — the RDS instance the extraction worker talks to, for instance, is outside the
+cluster and only respects security groups, not `NetworkPolicy`). Auditability closes the loop: EKS
+control-plane logging has five distinct log types (`api`, `audit`, `authenticator`, `controllerManager`,
+`scheduler`), each independently toggled and each landing in its own CloudWatch Logs log group once
+enabled — `audit` specifically records every request to the Kubernetes API server, including who
+(which IAM-mapped identity) did what (verb, resource) and when, which is the exact evidence a
+customer asking "prove a specific `kubectl` change was made by an authorized person, not an
+attacker" needs, and CloudWatch Logs Insights is how that evidence gets extracted quickly rather
+than grepped from raw JSON by hand.
+
+Kubernetes RBAC and IRSA answer two different questions that a security review will ask
+separately, and conflating them is a common gap: RBAC (Roles, ClusterRoles, and their bindings)
+governs what a Kubernetes identity — a user, a group, or a ServiceAccount — may do against the
+Kubernetes API itself (create a Pod, read a ConfigMap, delete a Secret object), entirely within
+the cluster's own authorization model, while IRSA governs what that same ServiceAccount's pods may
+do against AWS APIs once running, entirely outside Kubernetes' own authorization model. A
+ServiceAccount can be tightly scoped by IRSA to touch exactly one S3 bucket and simultaneously be
+bound, by a separate RBAC misconfiguration, to a ClusterRole broad enough to read every Secret in
+the cluster — the two controls do not automatically reinforce each other, and a genuinely complete
+review has to check both independently rather than assuming a narrow IRSA policy implies a narrow
+Kubernetes-level permission set, or the reverse.
+
+```bash
+# One-time setup: register the cluster's OIDC provider with IAM
+eksctl utils associate-iam-oidc-provider --cluster manifestflow-eks --approve
+
+# The IRSA trust policy: sub scopes to one namespace/ServiceAccount, aud confirms STS audience
+cat > worker-sa-trust-policy.json <<'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "Federated": "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE"
+    },
+    "Action": "sts:AssumeRoleWithWebIdentity",
+    "Condition": {
+      "StringEquals": {
+        "oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE:sub": "system:serviceaccount:manifestflow:worker-sa",
+        "oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE:aud": "sts.amazonaws.com"
+      }
+    }
+  }]
+}
+EOF
+aws iam create-role --role-name manifestflow-worker-irsa --assume-role-policy-document file://worker-sa-trust-policy.json
+
+# eksctl equivalent, one command instead of the raw trust-policy JSON
+eksctl create iamserviceaccount --cluster manifestflow-eks --namespace manifestflow \
+  --name worker-sa --attach-policy-arn arn:aws:iam::111122223333:policy/manifestflow-worker-scoped \
+  --approve
+```
+
+```yaml
+# Pod-level security group -- distinct from every other pod's on the same node
+apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: worker-sg-policy
+  namespace: manifestflow
+spec:
+  podSelector:
+    matchLabels:
+      app: extraction-worker
+  securityGroups:
+    groupIds:
+      - sg-0worker9d4e2f1a
+```
+
+```bash
+# Enable control-plane audit logging (and api, for correlation)
+aws eks update-cluster-config --name manifestflow-eks --logging \
+  '{"clusterLogging":[{"types":["api","audit"],"enabled":true}]}'
+
+# CloudWatch Logs Insights: reconstruct who deleted a specific Secret and when
+```
+```
+fields @timestamp, user.username, verb, objectRef.namespace, objectRef.name
+| filter objectRef.resource = "secrets" and verb = "delete"
+| filter objectRef.name = "manifestflow-db-password"
+| sort @timestamp desc
+| limit 20
+```
+
+## Practical Backend Scenario
+
+The customer security team's review of the EKS deployment asks two specific questions: "prove a pod
+can access only its assigned S3 bucket and no other AWS resource" and "prove an administrative
+change to the cluster is traceable to a specific person." For the first, the FDE runs `eksctl utils
+associate-iam-oidc-provider` (confirming it wasn't already set up, since a missing OIDC provider is
+the most common reason IRSA silently fails to work at all), creates `worker-sa` with a trust policy
+scoped by both `sub` and `aud`, and demonstrates the boundary by attempting `aws s3 ls` against an
+unrelated bucket from inside the worker pod — it fails with `AccessDenied`, while the pod's actual
+assigned bucket succeeds. The FDE separately applies a `SecurityGroupPolicy` restricting the
+worker's own ENI-level reachability to exactly the RDS security group and the VPC endpoint for S3,
+confirming a different pod on the same node — one without the matching pod selector — still uses
+the node's shared, broader security group and cannot be used to prove the worker's isolation. For
+the second question, the FDE enables `api` and `audit` control-plane logging, then runs a
+controlled test: deletes and recreates a test Secret via `kubectl`, and reconstructs the exact
+change using the CloudWatch Logs Insights query above — the query returns the IAM-mapped username,
+the exact verb and resource, and the timestamp, giving the security team auditable evidence rather
+than a verbal assurance that changes are traceable.
+
+## Practice Loop
+
+1. Register the cluster's OIDC provider (if not already done) and create a ServiceAccount-scoped
+   IAM role with a trust policy whose `sub` condition names one specific namespace/ServiceAccount
+   pair — verify the exact condition key syntax before applying it.
+2. From a pod using that ServiceAccount, run one AWS CLI call against the resource it should have
+   access to (success) and one against an unrelated resource (AccessDenied), capturing both
+   outcomes as evidence.
+3. Apply a `SecurityGroupPolicy` scoping one pod's ENI to a narrow security group, and confirm a
+   different pod on the same node — lacking the matching selector — still uses the node's broader
+   shared security group.
+4. Enable `api` and `audit` control-plane logging, perform one controlled administrative change,
+   and write a CloudWatch Logs Insights query that reconstructs who made it, what verb was used,
+   and when.
+5. Deliberately misconfigure the trust policy's `sub` condition with a typo or an overly broad
+   wildcard, and observe the resulting silent failure mode (either no pod can assume the role, or
+   an unintended ServiceAccount can) rather than an explicit error.
+
+## Evidence of Understanding
+
+You can set up IRSA's actual OIDC-provider and trust-policy mechanics, not just describe the
+ServiceAccount-to-role concept, and explain precisely what the `sub` and `aud` condition keys
+enforce and how each fails silently when misconfigured. You can scope a pod's network reachability
+with `SecurityGroupPolicy`, distinct from the node's shared security group and distinct from
+Kubernetes `NetworkPolicy`'s different enforcement layer. You can enable the specific EKS
+control-plane log types needed for an audit trail and extract a reconstructed, attributable
+timeline from CloudWatch Logs Insights rather than asserting traceability without evidence.
+
+## Suggested Extension
+
+Write a scheduled EventBridge rule that runs a Logs Insights query for any `delete` verb against
+`secrets` or `clusterrolebindings` resources in the audit log and publishes a match to the same SNS
+topic this module's CloudWatch alarms already use, turning the manual investigation query into a
+standing detection rule rather than something run only after an incident is already suspected.
+<!-- CHAPTER_BODY_END -->
+
+<!-- MCQ_SECTION_START -->
+## Multiple-Choice Questions
+
+### QUESTION_BLOCK_START: Q1
+**QUESTION_ID:** Q1
+**QUESTION_TITLE:** What the OIDC provider registration enables
+**DIFFICULTY:** Medium
+**BLOOM_LEVEL:** Understanding
+**SOURCE_TYPE:** LLM_GENERATED
+
+**QUESTION_TEXT:**
+Why does IRSA depend on the cluster having an OIDC identity provider registered with IAM?
+
+**OPTIONS:**
+- [x] A: EKS exposes an OIDC-compliant token issuer, and a ServiceAccount's projected token is a JWT that IAM can verify against that registered issuer to grant a role via AssumeRoleWithWebIdentity
+- [ ] B: The OIDC provider is only needed for kubectl authentication, unrelated to IRSA
+- [ ] C: EKS automatically registers this provider the moment a cluster is created, with no manual step ever required
+- [ ] D: The OIDC provider replaces the need for any IAM role or trust policy entirely
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+The lesson names this exact mechanism — the OIDC issuer plus the ServiceAccount's projected JWT is what IAM verifies before granting the role, and it also flags a missing OIDC provider as the most common reason IRSA silently fails.
+**LESSON_CONNECTION:** Concepts Covered, Paragraph 1
+**KEYWORDS:** [oidc-provider, irsa, assumerolewithwebidentity]
+### QUESTION_BLOCK_END: Q1
+
+### QUESTION_BLOCK_START: Q2
+**QUESTION_ID:** Q2
+**QUESTION_TITLE:** What the trust policy's sub and aud conditions enforce
+**DIFFICULTY:** Hard
+**BLOOM_LEVEL:** Analysis
+**SOURCE_TYPE:** LLM_GENERATED
+
+**CODE_BLOCK:**
+```json
+"Condition": {
+  "StringEquals": {
+    "oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE...:sub": "system:serviceaccount:manifestflow:worker-sa",
+    "oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE...:aud": "sts.amazonaws.com"
+  }
+}
+```
+
+**QUESTION_TEXT:**
+What does this trust policy condition block actually enforce, and what happens if the `sub` value is mistyped or wildcarded too broadly?
+
+**OPTIONS:**
+- [x] A: `sub` scopes the trust to exactly one namespace/ServiceAccount pair and `aud` confirms the token was minted for STS; a broad or mistyped `sub` either blocks every legitimate pod silently or lets an unintended ServiceAccount assume the role, with no explicit error either way
+- [ ] B: These conditions only affect which AWS region the role can be assumed from
+- [ ] C: A mistyped `sub` value causes IAM to throw an immediate, explicit validation error at role-creation time
+- [ ] D: `sub` and `aud` are optional decorative fields with no enforcement effect on AssumeRoleWithWebIdentity
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+The lesson is explicit that this misconfiguration fails silently — either too narrow (no pod can assume it) or too broad (unintended access), never a thrown error, which is exactly why a security review needs to check this condition directly rather than trust that it "must be fine."
+**LESSON_CONNECTION:** Concepts Covered, Paragraph 1
+**KEYWORDS:** [trust-policy, sub-condition, silent-misconfiguration]
+### QUESTION_BLOCK_END: Q2
+
+### QUESTION_BLOCK_START: Q3
+**QUESTION_ID:** Q3
+**QUESTION_TITLE:** SecurityGroupPolicy versus NetworkPolicy
+**DIFFICULTY:** Hard
+**BLOOM_LEVEL:** Analysis
+**SOURCE_TYPE:** LLM_GENERATED
+
+**QUESTION_TEXT:**
+Why does the lesson say Kubernetes `NetworkPolicy` alone is insufficient for restricting the worker pod's access to the RDS instance, requiring `SecurityGroupPolicy` instead?
+
+**OPTIONS:**
+- [x] A: `NetworkPolicy` governs pod-to-pod traffic within the cluster's own network layer, while the RDS instance is outside the cluster and only respects an actual VPC-level security group boundary
+- [ ] B: `NetworkPolicy` and `SecurityGroupPolicy` are functionally identical, so either one alone would work equally well
+- [ ] C: `NetworkPolicy` requires a paid EKS support tier that this cluster does not have
+- [ ] D: `SecurityGroupPolicy` replaces the need for the VPC CNI add-on entirely
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+The lesson draws this distinction precisely — RDS is outside the cluster and only enforces VPC-level security groups, a boundary `NetworkPolicy` (intra-cluster only) cannot reach.
+**LESSON_CONNECTION:** Concepts Covered, Paragraph 2
+**KEYWORDS:** [securitygrouppolicy, networkpolicy, vpc-boundary]
+### QUESTION_BLOCK_END: Q3
+
+### QUESTION_BLOCK_START: Q4
+**QUESTION_ID:** Q4
+**QUESTION_TITLE:** Reading the audit-log Insights query
+**DIFFICULTY:** Medium
+**BLOOM_LEVEL:** Application
+**SOURCE_TYPE:** LLM_GENERATED
+
+**CODE_BLOCK:**
+```
+fields @timestamp, user.username, verb, objectRef.namespace, objectRef.name
+| filter objectRef.resource = "secrets" and verb = "delete"
+| filter objectRef.name = "manifestflow-db-password"
+| sort @timestamp desc
+| limit 20
+```
+
+**QUESTION_TEXT:**
+Which EKS control-plane log type must be enabled for this query to return any results at all?
+
+**OPTIONS:**
+- [x] A: `audit` — it is the log type that records every request to the Kubernetes API server, including who performed which verb against which resource
+- [ ] B: `scheduler` — it records every pod placement decision, which this query depends on
+- [ ] C: `controllerManager` — it is the only log type that records Secret deletions specifically
+- [ ] D: No specific log type needs to be enabled; this query runs against CloudTrail by default
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+The lesson identifies `audit` as the specific log type recording API-server requests by actor, verb, and resource — exactly the fields this Insights query filters and returns.
+**LESSON_CONNECTION:** Concepts Covered, Paragraph 2
+**KEYWORDS:** [eks-audit-logging, cloudwatch-logs-insights]
+### QUESTION_BLOCK_END: Q4
+
+### QUESTION_BLOCK_START: Q5
+**QUESTION_ID:** Q5
+**QUESTION_TITLE:** Proving pod-level bucket isolation
+**DIFFICULTY:** Medium
+**BLOOM_LEVEL:** Application
+**SOURCE_TYPE:** LLM_GENERATED
+
+**QUESTION_TEXT:**
+How does the FDE demonstrate, rather than merely claim, that the worker pod's IAM access is scoped to only its assigned S3 bucket?
+
+**OPTIONS:**
+- [x] A: By running `aws s3 ls` from inside the pod against both its assigned bucket (success) and an unrelated bucket (AccessDenied), capturing both outcomes as evidence
+- [ ] B: By reading the IAM policy document's text alone and asserting it looks correctly scoped
+- [ ] C: By checking that the pod's SecurityGroupPolicy blocks the unrelated bucket, since S3 access is enforced at the network layer only
+- [ ] D: By confirming the ServiceAccount's name matches the bucket's name
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+The scenario performs exactly this live test — one allowed call succeeds, one against an unrelated resource fails with AccessDenied — turning the isolation claim into demonstrated evidence.
+**LESSON_CONNECTION:** Practical Backend Scenario
+**KEYWORDS:** [irsa-verification, accessdenied, least-privilege-evidence]
+### QUESTION_BLOCK_END: Q5
+
+### QUESTION_BLOCK_START: Q6
+**QUESTION_ID:** Q6
+**QUESTION_TITLE:** Confirming an unrelated pod is unaffected by SecurityGroupPolicy
+**DIFFICULTY:** Medium
+**BLOOM_LEVEL:** Application
+**SOURCE_TYPE:** LLM_GENERATED
+
+**QUESTION_TEXT:**
+Practice Loop step 3 has you confirm a different pod on the same node — lacking the matching pod selector — still uses the node's broader shared security group. Why is this confirmation part of proving the SecurityGroupPolicy actually works?
+
+**OPTIONS:**
+- [x] A: It proves the restriction is genuinely scoped to the selected pod specifically, not accidentally applied cluster-wide or node-wide in a way that would make the "isolation" claim false
+- [ ] B: It confirms the node itself has been replaced with a smaller instance type
+- [ ] C: It has no verification value; the step exists only to generate additional log volume
+- [ ] D: It confirms the OIDC provider is correctly registered
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+Checking the unaffected pod is what makes the isolation claim falsifiable and confirmed rather than assumed — exactly the discipline this module's lessons repeatedly apply to "prove it" style customer questions.
+**LESSON_CONNECTION:** Practice Loop, Step 3
+**KEYWORDS:** [security-group-scoping, verification-discipline]
+### QUESTION_BLOCK_END: Q6
+
+### QUESTION_BLOCK_START: Q7
+**QUESTION_ID:** Q7
+**QUESTION_TITLE:** The five EKS control-plane log types
+**DIFFICULTY:** Easy
+**BLOOM_LEVEL:** Knowledge
+**SOURCE_TYPE:** LLM_GENERATED
+
+**QUESTION_TEXT:**
+Per the lesson, how many distinct, independently toggled EKS control-plane log types are there, and where does each land once enabled?
+
+**OPTIONS:**
+- [x] A: Five (`api`, `audit`, `authenticator`, `controllerManager`, `scheduler`), each landing in its own CloudWatch Logs log group
+- [ ] B: One combined log type covering all control-plane activity, with no way to enable them independently
+- [ ] C: Three log types, all landing in a single shared S3 bucket rather than CloudWatch Logs
+- [ ] D: Five log types, but only `audit` can actually be enabled; the other four are always on by default
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+The lesson names all five log types explicitly and states each is independently toggled and lands in its own CloudWatch Logs group.
+**LESSON_CONNECTION:** Concepts Covered, Paragraph 2
+**KEYWORDS:** [control-plane-logging, log-types, cloudwatch-logs]
+### QUESTION_BLOCK_END: Q7
+
+### QUESTION_BLOCK_START: Q8
+**QUESTION_ID:** Q8
+**QUESTION_TITLE:** eksctl shortcut versus raw trust policy
+**DIFFICULTY:** Medium
+**BLOOM_LEVEL:** Understanding
+**SOURCE_TYPE:** LLM_GENERATED
+
+**CODE_BLOCK:**
+```bash
+eksctl create iamserviceaccount --cluster manifestflow-eks --namespace manifestflow \
+  --name worker-sa --attach-policy-arn arn:aws:iam::111122223333:policy/manifestflow-worker-scoped \
+  --approve
+```
+
+**QUESTION_TEXT:**
+This single `eksctl` command produces the same net result as manually writing the trust-policy JSON and calling `aws iam create-role`. What does it do under the hood, per the lesson's explanation of the mechanism?
+
+**OPTIONS:**
+- [x] A: It creates the IAM role, writes an equivalent `sub`/`aud`-scoped trust policy tied to the cluster's OIDC provider, attaches the specified policy, and creates the matching Kubernetes ServiceAccount annotated with the role's ARN
+- [ ] B: It bypasses OIDC entirely and grants the ServiceAccount the node's own shared IAM role instead
+- [ ] C: It only creates the Kubernetes ServiceAccount object, with no IAM role involved at all
+- [ ] D: It disables IRSA for every other ServiceAccount in the same namespace
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+The `eksctl` command is presented as the automated equivalent of the manual role/trust-policy/ServiceAccount steps shown just above it — same mechanism, less manual JSON.
+**LESSON_CONNECTION:** Concepts Covered, Paragraph 1
+**KEYWORDS:** [eksctl-iamserviceaccount, irsa-automation]
+### QUESTION_BLOCK_END: Q8
+
+### QUESTION_BLOCK_START: Q9
+**QUESTION_ID:** Q9
+**QUESTION_TITLE:** From reactive query to standing detection
+**DIFFICULTY:** Medium
+**BLOOM_LEVEL:** Application
+**SOURCE_TYPE:** LLM_GENERATED
+
+**QUESTION_TEXT:**
+The Suggested Extension turns the manual Logs Insights query into a scheduled EventBridge rule. What does this change about how the customer would learn of a suspicious `delete` against a Secret or ClusterRoleBinding?
+
+**OPTIONS:**
+- [x] A: It becomes a standing detection rule that proactively publishes a match to an alerting topic, rather than something only discovered by running the query manually after an incident is already suspected
+- [ ] B: It removes the need for control-plane audit logging to be enabled at all
+- [ ] C: It replaces IRSA as the mechanism enforcing least-privilege access
+- [ ] D: It has no functional difference from running the query manually; it only changes the query's syntax
+
+**CORRECT_ANSWER_KEY:** A
+**CORRECT_ANSWER_INDEX:** 0
+**EXPLANATION:**
+The extension's value is proactive standing detection versus reactive manual investigation — the same shift from passive to automated evidence-gathering the module has emphasized throughout.
+**LESSON_CONNECTION:** Suggested Extension
+**KEYWORDS:** [eventbridge, standing-detection, proactive-alerting]
+### QUESTION_BLOCK_END: Q9
+<!-- MCQ_SECTION_END -->
 
 

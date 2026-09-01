@@ -249,5 +249,20 @@
 - [x] **Sub-task 34.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
 - [x] **Sub-task 34.5**: Update task tracker and provide Docker Compose / SQL verification steps.
 
+## Phase 35: FDE Elective Pipeline — Containerization & Orchestration (Lessons 13-17 of 17 — MODULE COMPLETE) (Completed)
+- [x] **Sub-task 35.1**: Ingest 5 Lesson chapter bodies for `elective-containerization-orchestration` (Lessons 13-17) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 35.2**: Wire 10 Concept Checks (2 per lesson) and 33 Practice Questions across all 5 lessons (43 total MCQs, including 5 code-block MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 35.3**: Add architecture diagram for Lesson 13 (`13-kubernetes-networking`) modeling the Service, Endpoints, and NetworkPolicy decoupled routing path.
+- [x] **Sub-task 35.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 35.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+## Phase 36: FDE Elective Pipeline — AWS Multi-Region Cloud Deep Dive (Lessons 1-6 of 17) (Completed)
+- [x] **Sub-task 36.1**: Ingest 6 Lesson chapter bodies for `elective-aws-multi-region-cloud-deep-dive` (Lessons 1-6) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 36.2**: Wire 12 Concept Checks (2 per lesson) and 43 Practice Questions across all 6 lessons (55 total MCQs, including 12 code-block MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 36.3**: Confirm architecture diagrams are omitted for Lessons 1-6 per §8a inclusion test criteria.
+- [x] **Sub-task 36.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 36.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+
 
 

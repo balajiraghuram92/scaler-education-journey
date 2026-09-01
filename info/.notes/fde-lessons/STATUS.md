@@ -30,8 +30,54 @@ Sidecars). Its prompt's prerequisite check assumes Phase 20 already applied (110
 keys). 53 MCQs total, all verified (4-option, answer-key consistency). Every lesson has a real
 code example (hardened Dockerfile, CI security-gate workflow, `kubectl describe pod` diagnostic
 transcript, full Pod spec with init container + sidecar, Deployment manifest + rollout
-transcript). Module remains incomplete — lessons 13-17 are Phase 22, not yet authored.
+transcript). Module remains incomplete — lessons 13-17 are Phase 22, not yet applied.
 See `phase-21-elective-containerization-orchestration-content.md` / `-prompt.md`.
+
+**Phase 25 is AUTHORED, not yet applied — completes the `elective-aws-multi-region-cloud-deep-dive`
+module's own sub-sequence.** Lessons 13-17 of 17 (Microservices on AWS Project, Microservices
+Project: Phase 2, AWS Security: Identity and Network, AWS Security: Data and Detection, AWS
+Security Hands-on). Continues Phase 23's Lighthouse Freight Co./ManifestFlow scenario, introducing
+a second multi-service system on the same account/VPC family, **DispatchWorks** (booking,
+settlement, notification services on ECS Fargate), for the two microservices-project lessons; the
+three security lessons return to hardening ManifestFlow/DispatchWorks' AWS foundation with
+mechanism-specific IAM policy JSON (before/after scoped-vs-broad), trust policies, permission
+boundaries, VPC endpoints, S3 bucket policies, KMS, GuardDuty findings, and CloudTrail-based
+detection — deliberately more AWS-mechanism-specific than Module 7 Phase 16's compliance/BYOK
+framing, per an explicit overlap-avoidance check against that phase. 42 MCQs total across the 5
+lessons, all verified programmatically (exactly 4 options each, answer-key/index/marked-option
+consistent, no duplicate QUESTION_IDs). Every lesson's chapter body includes real, copy-adaptable
+AWS CLI / IAM-JSON / SQL / Java / GuardDuty-finding-JSON examples, including at least one explicit
+before/after hardening comparison (lesson 15's IAM policy, lesson 16's bucket policy), per the
+user's explicit requirement for this phase. Its prompt's prerequisite check assumes 133 existing
+cases / 151 existing keys before it (104 core + 17 Containerization/K8s + 6 Phase 23 + 6 Phase 24)
+— **this depends on Phase 24 (lessons 7-12 of this same module) being authored and applied first**;
+apply Phases 20-23 and Phase 24 before Phase 25. See
+`phase-25-elective-aws-multi-region-cloud-deep-dive-content.md` / `-prompt.md`.
+
+**Phase 24 is now AUTHORED and verified (content + prompt files both written).** Lessons 7-12 of 17
+(End-to-End Cloud Project Day, AWS ECS and ECR Introduction, ECS Fundamentals, EKS Basics, EKS
+Advanced, EKS Security and Operations) — continues Phase 23's Lighthouse Freight Co./ManifestFlow
+scenario: Lesson 7 is a checkpoint assembling Phase 23's pieces with a staged-deployment runbook
+and a timestamped failure drill; Lessons 8-9 migrate ManifestFlow's worker off the single EC2 host
+(Phase 23 Lesson 5) onto ECS (ECR digest-based images, execution-role-vs-task-role, target-group
+health-check contract, rolling-deployment blast radius); Lessons 10-12 introduce EKS as the
+managed-Kubernetes alternative, deliberately not re-teaching Module 4's EKS/Helm lesson or the
+Containerization/K8s elective's generic Kubernetes mechanics — focused instead on what is
+EKS-specific: `eksctl`/`update-kubeconfig` mechanics, VPC CNI pod-IP exhaustion, EKS add-on vs Helm
+chart lifecycle, managed node groups vs Fargate profiles, the control-plane-then-add-ons-then-
+node-groups upgrade order, the AWS Load Balancer Controller, IRSA's actual OIDC/trust-policy
+mechanics, `SecurityGroupPolicy` for pod-level security groups, and control-plane audit logging
+with CloudWatch Logs Insights. 52 MCQs total across the 6 lessons, all verified programmatically
+(exactly 4 options each, answer-key/index/marked-option consistent). Every lesson's chapter body
+includes at least one real, copy-adaptable code/config example (several lessons carry 3-4 separate
+fenced blocks — AWS CLI transcripts, ECS task-definition JSON, IAM trust-policy JSON, `eksctl`/
+Kubernetes YAML, CloudWatch Logs Insights queries), per the user's explicit requirement for this
+phase. Its prompt's prerequisite check assumes 127 existing cases / 145 existing keys before it
+(104 core + 17 Containerization/K8s + 6 Phase 23); apply Phases 20-23 before Phase 24. See
+`phase-24-elective-aws-multi-region-cloud-deep-dive-content.md` / `-prompt.md`.
+
+Phase 25 (lessons 13-17, completing this module) is also already authored and depends on Phase 24
+being applied first — see the Phase 25 entry above.
 
 ---
 
@@ -69,9 +115,9 @@ cd /home/rbalaji/scaler-education-journey
 git log --oneline -3
 sed -n '/GetAuthoredFdeLessonContent/,/^    };/p' api/Data/FdeCurriculumSeedData.cs | grep -oP '"\K[0-9]{2}-[a-z0-9-]+(?=")' | wc -l
 ```
-As of the latest working tree: **116 authored lesson cases** are in `GetAuthoredFdeLessonContent`,
-and `app/src/data/lessonInteractions.js` has 18 `java-spring-lld` + 116 `fde-curriculum` keys =
-134 total.
+As of the latest working tree: **127 authored lesson cases** are in `GetAuthoredFdeLessonContent`,
+and `app/src/data/lessonInteractions.js` has 18 `java-spring-lld` + 127 `fde-curriculum` keys =
+145 total.
 
 | # | Module | Slug | Lessons | Status |
 |---|---|---|---|---|
@@ -84,11 +130,11 @@ and `app/src/data/lessonInteractions.js` has 18 `java-spring-lld` + 116 `fde-cur
 | 6 | Agentic Systems & Enterprise Integrations | `agentic-systems-integrations` | 11/11 | ✅ Done (Phases 13-14) |
 | 7 | Application Engineering, Security & Reliability | `application-security-reliability` | 12/12 | ✅ Done (Phases 15-16 — MODULE COMPLETE) |
 | 8 | System Design, Capstone & Hiring Readiness | `system-design-capstone` | 14/14 | ✅ Done (Phases 17-19 — MODULE COMPLETE) |
-| — | Elective: Containerization/K8s | `elective-containerization-orchestration` | 12/17 | 🟡 In progress (Phases 20 & 21 done; Phase 22 L13-17 pending) |
-| — | Elective: AWS Multi-Region | `elective-aws-multi-region-cloud-deep-dive` | 0/17 | ❌ Not started |
+| — | Elective: Containerization/K8s | `elective-containerization-orchestration` | 17/17 | ✅ Done (Phases 20-22 — MODULE COMPLETE) |
+| — | Elective: AWS Multi-Region | `elective-aws-multi-region-cloud-deep-dive` | 6/17 | 🟡 In progress (Phase 23 L1-6 done; Phases 24-25 pending) |
 | — | Elective: Storage, Networking & Reliability | `elective-storage-networking-reliability` | 0/14 | ❌ Not started |
 
-**Total applied: 116 authored lessons (104 core [100% complete] + 12 elective lessons).**
+**Total applied: 127 authored lessons (104 core [100% complete] + 23 elective lessons).**
 
 ---
 
@@ -243,4 +289,16 @@ All phase files live in `info/.notes/fde-lessons/`:
 - `phase-20-elective-containerization-orchestration-content.md` / `-prompt.md` — authored, not yet
   applied (Elective module `elective-containerization-orchestration`, lessons 1-6 of 17 — first
   elective phase; module not yet complete)
+- `phase-21-elective-containerization-orchestration-content.md` / `-prompt.md` — authored, not yet
+  applied (lessons 7-12 of 17)
+- `phase-22-elective-containerization-orchestration-content.md` / `-prompt.md` — authored, not yet
+  applied (lessons 13-17 of 17, completes the module)
+- `phase-23-elective-aws-multi-region-cloud-deep-dive-content.md` / `-prompt.md` — authored, not
+  yet applied (lessons 1-6 of 17 of the second elective module)
+- `phase-24-elective-aws-multi-region-cloud-deep-dive-content.md` / `-prompt.md` — authored and
+  verified (lessons 7-12 of 17 of the second elective module; 52 MCQs, all 4-option/answer-key
+  clean; depends on Phase 23 applied first)
+- `phase-25-elective-aws-multi-region-cloud-deep-dive-content.md` / `-prompt.md` — authored, not
+  yet applied (lessons 13-17 of 17, completes the module — see status note near the top of this
+  file for scenario/overlap details)
 - This file (`STATUS.md`) — always check here first in a new session

@@ -18337,6 +18337,1696 @@ const lessonInteractions = {
           'The scenario\'s point is precision and speed — the retained ReplicaSet removes any need to guess or reconstruct the previous state by hand, and the mechanism is identical to a normal rollout.'
       }
     ]
+  },
+  'fde-curriculum/elective-containerization-orchestration/13-kubernetes-networking': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-13-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — DYNAMIC TARGET SYNCHRONIZATION VIA ENDPOINTS',
+        question:
+          'What object does the Endpoints controller update to keep a Service\'s traffic targets in sync with which Pods currently exist and are ready?',
+        options: [
+          { id: 'a', label: 'A', text: 'The Service object\'s own `spec.selector` field, rewritten on every Pod change' },
+          { id: 'b', label: 'B', text: 'A separate `Endpoints` (or `EndpointSlice`) object, whose Pod-IP list is added to only once a Pod\'s readiness probe passes and removed the instant the Pod stops being ready or is deleted' },
+          { id: 'c', label: 'C', text: 'The cluster\'s CoreDNS zone file, updated directly by kubelet' },
+          { id: 'd', label: 'D', text: 'The ReplicaSet\'s `status.readyReplicas` field' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that the target list lives in a separate object from the Service itself, and that readiness — not just Pod existence — gates membership in it.',
+        incorrectExplanation:
+          'Target Pod IPs are tracked in a decoupled Endpoints or EndpointSlice object gated by readiness probes, not in the Service spec, CoreDNS zone files, or ReplicaSet status.',
+        hint:
+          'Look for the decoupled object updated by the Endpoints controller based on readiness probe status.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-13-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — POD RUNNING STATUS VS TRAFFIC ELIGIBILITY',
+        question:
+          'In the Practical Backend Scenario, why did `kubectl get endpoints routeplanner` show only two IPs while `kubectl get pods` showed three Pods as `Running`?',
+        options: [
+          { id: 'a', label: 'A', text: 'The third Pod had not yet been scheduled to a node' },
+          { id: 'b', label: 'B', text: 'The Service\'s selector no longer matched the third Pod\'s labels' },
+          { id: 'c', label: 'C', text: 'The third Pod\'s readiness probe was failing (due to a misconfigured environment variable), so it was excluded from the Endpoints object even though its container process was alive and the Pod phase was `Running`' },
+          { id: 'd', label: 'D', text: '`kubectl get endpoints` only shows a maximum of two IPs regardless of how many Pods exist' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The scenario\'s specific point is the gap between "container alive" (`Running`) and "traffic eligible" (ready and therefore listed in Endpoints) — readiness, not process liveness, gates Endpoints membership.',
+        incorrectExplanation:
+          'A Pod in the Running phase will still be omitted from Endpoints if its readiness probe fails; container liveness does not guarantee traffic eligibility.',
+        hint:
+          'A running container process is not considered traffic-eligible until its readiness probe succeeds.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-elective-containerization-orchestration-13-k8s-service-endpoints-routing',
+      eyebrow: 'Kubernetes Traffic Routing & Endpoint Decoupling',
+      boundaryLabel: 'Virtual IP & Readiness-Gated Endpoint Routing Boundary',
+      boundaryText:
+        'Client requests target a stable DNS name resolved to a virtual ClusterIP; kube-proxy routes traffic across real Pod IPs dynamically synchronized into Endpoints only after readiness probes pass.',
+      nodes: [
+        {
+          id: 'ingress-client',
+          label: 'Client / Ingress Entrypoint',
+          subtext: 'Sends HTTP request to stable hostname (e.g. api.northwind.example.com)',
+          kind: 'input'
+        },
+        {
+          id: 'coredns-service-vip',
+          label: 'CoreDNS & ClusterIP Service',
+          subtext: 'Resolves Service name to stable virtual IP, decoupling callers from volatile Pod IPs',
+          kind: 'service'
+        },
+        {
+          id: 'kube-proxy-rules',
+          label: 'kube-proxy & iptables / IPVS',
+          subtext: 'Intercepts virtual IP traffic and load-balances across ready backend endpoints',
+          kind: 'adapter'
+        },
+        {
+          id: 'endpoints-controller',
+          label: 'Endpoints / EndpointSlice Controller',
+          subtext: 'Synchronizes Pod IPs; admits only Pods whose readiness probes currently pass',
+          kind: 'boundary',
+          highlighted: true
+        },
+        {
+          id: 'backend-pods',
+          label: 'Ready Target Pods',
+          subtext: 'Matching app: routeplanner label replicas executing workload behind NetworkPolicy',
+          kind: 'output'
+        }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-13-mcq-01',
+        question:
+          'In the lesson\'s `routeplanner-service.yaml`, what determines which Pods this Service sends traffic to?',
+        codeBlock: 'apiVersion: v1\nkind: Service\nmetadata:\n  name: routeplanner\nspec:\n  type: ClusterIP\n  selector:\n    app: routeplanner\n  ports:\n    - port: 8080\n      targetPort: 8080',
+        options: [
+          { id: 'a', label: 'A', text: 'The `metadata.name` field must exactly match the Deployment\'s name' },
+          { id: 'b', label: 'B', text: 'The `spec.selector` field (`app: routeplanner`) — any ready Pod carrying that label is included as a traffic target, regardless of which Deployment or ReplicaSet created it' },
+          { id: 'c', label: 'C', text: 'The `targetPort` value, which must be unique across the cluster' },
+          { id: 'd', label: 'D', text: 'The namespace alone; all Pods in `default` receive traffic from this Service' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Label selection, not naming or namespace alone, is what ties a Service to its backing Pods — this is also why two different Deployments\' Pods could be accidentally included if they share a label.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-13-mcq-02',
+        question:
+          'Why does the lesson call `NodePort` "almost always the wrong production choice" for exposing a service externally?',
+        options: [
+          { id: 'a', label: 'A', text: 'NodePort Services cannot be reached from outside the cluster under any configuration' },
+          { id: 'b', label: 'B', text: 'It bypasses any central routing, TLS termination, or path-based rule, and ties external reachability directly to node IPs, which can change — an Ingress with a single controller is the better entry point for HTTP(S) traffic' },
+          { id: 'c', label: 'C', text: 'NodePort only works with the `LoadBalancer` Service type as a prerequisite' },
+          { id: 'd', label: 'D', text: 'NodePort Services do not support DNS resolution inside the cluster' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific objection is about bypassing centralized routing/TLS and coupling to volatile node IPs, not about NodePort being unreachable.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-13-mcq-03',
+        question:
+          'What specific problem does the lesson say makes `LoadBalancer` Services unwieldy once a cluster has several externally-facing services, and how does `Ingress` solve it?',
+        options: [
+          { id: 'a', label: 'A', text: 'LoadBalancer Services cannot terminate TLS, while Ingress always can' },
+          { id: 'b', label: 'B', text: 'A `LoadBalancer` Service provisions one cloud load balancer per Service; an `Ingress` lets a single controller handle TLS termination and path/host-based routing to multiple backend Services behind one externally-facing load balancer' },
+          { id: 'c', label: 'C', text: 'LoadBalancer Services are deprecated in current Kubernetes versions' },
+          { id: 'd', label: 'D', text: 'Ingress objects replace the need for any Service object at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names the per-Service cost explicitly and contrasts it with Ingress\'s single-entry-point, multi-backend routing model.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-13-mcq-04',
+        question:
+          'Why did the FDE add a second `Ingress` path rule rather than changing the `routeplanner` Service\'s type to `LoadBalancer` to expose the partner-facing route-history endpoint?',
+        options: [
+          { id: 'a', label: 'A', text: '`LoadBalancer` Services cannot be created in the `default` namespace' },
+          { id: 'b', label: 'B', text: 'Changing the Service type to `LoadBalancer` would expose every port the Service defines, not just the one intended route; a scoped `Ingress` path exposes only the specific endpoint needed, through the existing TLS-terminating entry point' },
+          { id: 'c', label: 'C', text: '`Ingress` objects are required before a Service can have more than one port' },
+          { id: 'd', label: 'D', text: 'The partner company\'s network could not reach a `LoadBalancer`-type Service under any circumstances' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is about surface minimization — a path-scoped Ingress rule opens exactly what\'s needed, while flipping the Service type would have opened the whole Service.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-13-mcq-05',
+        question:
+          'What does CoreDNS resolve `routeplanner.default.svc.cluster.local` to?',
+        options: [
+          { id: 'a', label: 'A', text: 'The IP address of whichever Pod most recently started' },
+          { id: 'b', label: 'B', text: 'The Service\'s stable virtual IP, which `kube-proxy` (or the CNI\'s equivalent) then load-balances across the real Pod IPs currently marked ready in the Endpoints object' },
+          { id: 'c', label: 'C', text: 'A random Pod IP chosen fresh for every DNS lookup, bypassing the Service entirely' },
+          { id: 'd', label: 'D', text: 'The node IP of whichever node the Deployment happens to be scheduled on' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'DNS resolves to the Service\'s stable virtual IP; the actual load-balancing across ready Pod IPs happens at the kube-proxy layer, a separate step from name resolution.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-13-mcq-06',
+        question:
+          'Why does the lesson say a Pod\'s own IP address is "worthless as a stable target"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Pod IPs are randomized on every network request' },
+          { id: 'b', label: 'B', text: 'Pods are disposable and routinely replaced (by rolling updates, rescheduling, or crashes), each time getting a new IP, so anything hardcoding a specific Pod IP breaks the next time that Pod is replaced' },
+          { id: 'c', label: 'C', text: 'Pod IPs are not routable outside the node they run on' },
+          { id: 'd', label: 'D', text: 'Only Services have IP addresses; Pods do not receive one individually' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This connects directly to Phase 21\'s Pod-disposability lesson — the churn in Pod identity is exactly the problem a Service\'s stable virtual IP and DNS name exist to solve.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-13-mcq-07',
+        question:
+          'The lesson opens by distinguishing itself from Module 4\'s "Kubernetes Networking, Security & GPU Workloads" lesson. What is that distinction?',
+        options: [
+          { id: 'a', label: 'A', text: 'Module 4\'s lesson does not cover Kubernetes at all; it is purely about AWS VPC design' },
+          { id: 'b', label: 'B', text: 'Module 4\'s lesson assumes a Service already exists and focuses on securing an already-running cluster with `NetworkPolicy`; this lesson covers the earlier, more mechanism-focused question of how a Service and Ingress actually get built and how DNS/endpoint routing works' },
+          { id: 'c', label: 'C', text: 'This lesson covers only `NodePort` Services, while Module 4 covers only `ClusterIP`' },
+          { id: 'd', label: 'D', text: 'The two lessons cover identical content and either can be skipped' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s opening paragraph states this explicitly — the difference is mechanism-and-construction versus already-running-cluster security operations.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-containerization-orchestration/14-kubernetes-scaling-hpa-cluster-autoscaler-vpa-and-karpenter': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-14-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — HPA PERCENTAGE TARGET DEPENDENCY ON REQUESTS',
+        question:
+          'Why does the lesson say a Pod without `resources.requests` set makes the HPA\'s CPU-utilization target "undefined" rather than simply causing an error?',
+        options: [
+          { id: 'a', label: 'A', text: 'The HPA controller refuses to start at all if any target Pod lacks a resource request' },
+          { id: 'b', label: 'B', text: 'CPU utilization is measured as a percentage of the configured request; with no request set, there is no denominator to compute a percentage against, so the HPA silently cannot determine whether to scale' },
+          { id: 'c', label: 'C', text: 'Kubernetes automatically sets a default request of 100m, which is always too low for CPU-bound workloads' },
+          { id: 'd', label: 'D', text: 'The HPA only supports memory-based targets when no CPU request is set' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific mechanism is the percentage calculation itself — utilization is relative to the request, so no request means no meaningful percentage, a silent rather than loud failure mode.',
+        incorrectExplanation:
+          'Target CPU percentage requires a defined request denominator; omitting requests renders the calculation mathematically undefined, leaving autoscaling silently inert.',
+        hint:
+          'Percentage utilization is calculated against the configured resource request denominator.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-14-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — POD-LEVEL SCALING VS CLUSTER NODE CAPACITY',
+        question:
+          'In the Practical Backend Scenario, the HPA scaled `routeplanner` from 3 to 9 replicas correctly, but six Pods sat `Pending` for four minutes. What does this indicate about where the actual bottleneck was?',
+        options: [
+          { id: 'a', label: 'A', text: 'The HPA itself was misconfigured and needed a longer stabilization window' },
+          { id: 'b', label: 'B', text: 'The VPA was actively fighting the HPA\'s replica changes' },
+          { id: 'c', label: 'C', text: 'The bottleneck was one layer down, at cluster node capacity — the scheduler had nowhere to place the new Pods until Cluster Autoscaler provisioned and joined a new node, which takes real minutes unlike Pod scheduling\'s seconds' },
+          { id: 'd', label: 'D', text: 'The `routeplanner` Deployment\'s image had not finished pulling on any node' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The scenario\'s `kubectl describe pod` event ("insufficient cpu") confirms the HPA\'s replica-count decision was correct; the gap was node-level capacity, a different layer entirely.',
+        incorrectExplanation:
+          'HPA scales Pod replicas, but scheduling depends on Cluster Autoscaler or Karpenter providing node capacity when existing nodes lack allocatable CPU/memory.',
+        hint:
+          'Differentiate Pod-level replica management from the underlying node infrastructure provisioning layer.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-14-mcq-01',
+        question:
+          'What is the core difference between what the HorizontalPodAutoscaler changes and what the Cluster Autoscaler changes?',
+        options: [
+          { id: 'b', label: 'B', text: 'HPA changes how many Pod replicas a Deployment runs; Cluster Autoscaler changes how many nodes exist in the cluster — HPA never adds node capacity, and Cluster Autoscaler never changes Pod replica counts' },
+          { id: 'a', label: 'A', text: 'They are two names for the same controller, with HPA being the older, deprecated term' },
+          { id: 'c', label: 'C', text: 'HPA operates on nodes, and Cluster Autoscaler operates on individual Pods' },
+          { id: 'd', label: 'D', text: 'Cluster Autoscaler only runs once per day on a schedule, while HPA runs continuously' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that both HPA and VPA operate at the Pod level and never change node count — that is specifically the Cluster Autoscaler\'s (or Karpenter\'s) job.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-14-mcq-02',
+        question:
+          'In the lesson\'s `routeplanner-hpa.yaml`, what does `stabilizationWindowSeconds: 300` under `behavior.scaleDown` actually do?',
+        codeBlock: '  behavior:\n    scaleDown:\n      stabilizationWindowSeconds: 300',
+        options: [
+          { id: 'a', label: 'A', text: 'It delays every scale-up decision by 300 seconds regardless of metric readings' },
+          { id: 'b', label: 'B', text: 'It makes the HPA wait for a sustained low metric reading over that window before actually reducing replica count, preventing rapid oscillation from a brief dip in load' },
+          { id: 'c', label: 'C', text: 'It sets the minimum number of replicas to 300' },
+          { id: 'd', label: 'D', text: 'It is the maximum time a Pod is allowed to remain Pending before being evicted' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Stabilization windows specifically target scale-down oscillation, requiring a sustained reading rather than reacting to every momentary dip.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-14-mcq-03',
+        question:
+          'Why does the lesson warn against running an HPA and a VPA that both actively manage CPU on the same Deployment?',
+        options: [
+          { id: 'a', label: 'A', text: 'Kubernetes does not allow both controllers to be installed in the same cluster' },
+          { id: 'b', label: 'B', text: 'HPA scales replica count based on utilization relative to the CPU request; if VPA is simultaneously changing that same CPU request, the two controllers\' decisions can fight each other rather than converge' },
+          { id: 'c', label: 'C', text: 'VPA can only manage memory, never CPU, so the conflict described is not possible' },
+          { id: 'd', label: 'D', text: 'Running both always causes the Deployment to be deleted automatically' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific concern is the shared dependency — HPA\'s utilization math depends on the same request value VPA is actively changing, creating a feedback conflict.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-14-mcq-04',
+        question:
+          'What does the lesson say Karpenter does differently from Cluster Autoscaler when provisioning new node capacity?',
+        options: [
+          { id: 'a', label: 'A', text: 'Karpenter only works with spot instances, never on-demand capacity' },
+          { id: 'b', label: 'B', text: 'Karpenter skips the pre-defined node-group abstraction and provisions right-sized nodes directly from a flexible instance-type pool based on the actual pending Pods\' requirements, rather than scaling a group of identically-shaped nodes' },
+          { id: 'c', label: 'C', text: 'Karpenter operates entirely at the Pod level and never adds node capacity, unlike Cluster Autoscaler' },
+          { id: 'd', label: 'D', text: 'Karpenter requires the VPA to be disabled before it can run' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names this exact distinction — skipping the node-group abstraction for direct, requirement-driven, right-sized provisioning.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-14-mcq-05',
+        question:
+          'In the Practical Backend Scenario, the FDE reduces `routeplanner`\'s CPU request from 500m to 200m, not to the observed average of roughly 120m. What is the reasoning?',
+        options: [
+          { id: 'a', label: 'A', text: 'Kubernetes requires CPU requests to be set in increments of 100m' },
+          { id: 'b', label: 'B', text: 'Setting the request to exactly the observed average leaves no headroom for normal variance above that average, which would cause CPU throttling or scheduling pressure; 200m preserves some margin while still being far more accurate than the original 500m' },
+          { id: 'c', label: 'C', text: '200m is the minimum CPU request Kubernetes allows for any container' },
+          { id: 'd', label: 'D', text: 'The VPA tool automatically overrides any value below 200m' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Right-sizing means leaving deliberate headroom above the observed average, not matching it exactly — matching the exact average would leave no margin for normal fluctuation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-14-mcq-06',
+        question:
+          'According to the lesson, what trade-off do all four scaling layers (HPA, VPA, Cluster Autoscaler, Karpenter) share?',
+        options: [
+          { id: 'a', label: 'A', text: 'Pre-provisioned headroom costs money continuously but responds instantly; purely reactive provisioning costs nothing when idle but introduces a real, measurable delay before capacity actually exists' },
+          { id: 'b', label: 'B', text: 'All four layers have identical response times regardless of provisioning strategy' },
+          { id: 'c', label: 'C', text: 'Only HPA has a cost trade-off; the other three are always free to operate' },
+          { id: 'd', label: 'D', text: 'The trade-off is unique to Karpenter and does not apply to Cluster Autoscaler' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson closes on this exact generalization — headroom versus reactive provisioning is the same cost/latency trade-off at every layer, just at different timescales (seconds for Pods, minutes for nodes).'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-14-mcq-07',
+        question:
+          'The lesson notes Pod scheduling happens "in seconds" while new node provisioning takes "minutes." Why does this timing gap matter for how an FDE should read a scaling incident?',
+        options: [
+          { id: 'a', label: 'A', text: 'It doesn\'t matter; both operations always complete within the same time window' },
+          { id: 'b', label: 'B', text: 'A correctly-functioning HPA can add replicas within seconds, but if those replicas need a new node, the workload will still show `Pending` Pods for several minutes even though nothing is actually broken — the gap is expected latency, not a failure' },
+          { id: 'c', label: 'C', text: 'It means Cluster Autoscaler should always be disabled in favor of pre-provisioning all node capacity permanently' },
+          { id: 'd', label: 'D', text: 'It implies HPA should be configured with a longer stabilization window to match node provisioning time' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Recognizing this timing gap as expected (not a bug) is exactly what let the FDE in the scenario correctly diagnose the Pending Pods as a capacity-provisioning delay rather than an HPA malfunction.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-containerization-orchestration/15-kubernetes-scaling-and-network-policies': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-15-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — LABEL SELECTORS AND REPLICA INDEPENDENCE',
+        question:
+          'Why does the lesson say a `NetworkPolicy`\'s allowed traffic paths stay the same whether a Deployment has 3 replicas or 30?',
+        options: [
+          { id: 'a', label: 'A', text: 'NetworkPolicy objects have a hard cap of a fixed number of matched Pods regardless of replica count' },
+          { id: 'b', label: 'B', text: 'A NetworkPolicy\'s rules are defined by label selectors, and every new replica created by a scale-up event inherits the Deployment\'s Pod template labels automatically, so the same rule covers all replicas without being rewritten' },
+          { id: 'c', label: 'C', text: 'Kubernetes automatically creates a new NetworkPolicy object for every new replica' },
+          { id: 'd', label: 'D', text: 'NetworkPolicy rules only apply to the first replica created; later replicas are unrestricted' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Label-based matching, combined with label inheritance from the Pod template, is exactly why scaling and NetworkPolicy scope are orthogonal — the lesson\'s central mechanical point.',
+        incorrectExplanation:
+          'Network policies select Pods dynamically by label selectors, so newly spawned replicas inherit identical policy boundaries without altering permitted traffic paths.',
+        hint:
+          'Network policies match pods based on template labels, which are identical across all replicas.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-15-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — UNBOUNDED MEMORY AND NODE-PRESSURE EVICTION',
+        question:
+          'In the Practical Backend Scenario, why did unrelated `admin-console` Pods get evicted during `routeplanner`\'s load test?',
+        options: [
+          { id: 'a', label: 'A', text: 'The default-deny NetworkPolicy blocked `admin-console`\'s traffic during the test' },
+          { id: 'b', label: 'B', text: '`admin-console` shared the same NetworkPolicy label as `routeplanner` by mistake' },
+          { id: 'c', label: 'C', text: '`routeplanner` had no `resources.limits.memory` ceiling set, so a leaking replica consumed enough of the shared node\'s memory to trigger the kubelet\'s node-pressure eviction, which killed other Pods on that same node regardless of which Deployment they belonged to' },
+          { id: 'd', label: 'D', text: 'The Cluster Autoscaler removed the node `admin-console` was running on to make room for `routeplanner`\'s new replicas' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The scenario is explicit that the missing memory limit, not anything network-related or `admin-console`\'s own behavior, was the root cause — a node-sharing blast-radius failure.',
+        incorrectExplanation:
+          'Without memory limits, an unconstrained memory leak exhausts node allocatable memory, triggering node-pressure evictions that kill co-located neighbor Pods.',
+        hint:
+          'Uncapped memory consumption on a shared node triggers kubelet eviction across neighbor workloads.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-15-mcq-01',
+        question:
+          'In the lesson\'s two-policy YAML, what traffic does the `routeplanner-allow-db-and-redis` policy permit, given that `default-deny-all` is also applied to the same namespace?',
+        codeBlock: 'spec:\n  podSelector:\n    matchLabels:\n      app: routeplanner\n  policyTypes: ["Egress"]\n  egress:\n    - to:\n        - podSelector:\n            matchLabels:\n              app: postgres\n      ports:\n        - protocol: TCP\n          port: 5432\n    - to:\n        - podSelector:\n            matchLabels:\n              app: redis\n      ports:\n        - protocol: TCP\n          port: 6379',
+        options: [
+          { id: 'a', label: 'A', text: 'Pods labeled `app: routeplanner` may make outbound (egress) connections only to Pods labeled `app: postgres` on port 5432 and Pods labeled `app: redis` on port 6379 — every other egress path stays blocked by the default-deny policy' },
+          { id: 'b', label: 'B', text: 'All Pods in the namespace may reach Postgres and Redis on any port' },
+          { id: 'c', label: 'C', text: '`routeplanner` Pods may accept inbound connections from Postgres and Redis, but cannot initiate any connection themselves' },
+          { id: 'd', label: 'D', text: 'The policy grants unrestricted egress to `routeplanner` Pods, overriding the default-deny policy entirely' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is an egress-only allow rule scoped to two specific destination labels and ports; the default-deny policy still blocks everything not explicitly named here, including ingress.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-15-mcq-02',
+        question:
+          'What is the difference the lesson draws between exceeding a container\'s CPU limit and exceeding its memory limit?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both result in the container being immediately killed and restarted' },
+          { id: 'b', label: 'B', text: 'Exceeding a CPU limit throttles the process (it slows down but keeps running); exceeding a memory limit gets the container hard-killed (`OOMKilled`) immediately' },
+          { id: 'c', label: 'C', text: 'CPU limits are enforced by the scheduler, while memory limits are enforced by the NetworkPolicy controller' },
+          { id: 'd', label: 'D', text: 'Neither limit is actually enforced unless a `resources.requests` value is also set' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson calls this out explicitly as an asymmetry worth knowing — throttling versus a hard kill are very different failure signatures to debug.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-15-mcq-03',
+        question:
+          'The lesson warns that a policy using `podSelector: {}` at the allow-rule level (matching any Pod in the namespace) rather than a specific label is a real risk. What specifically does this risk?',
+        options: [
+          { id: 'a', label: 'A', text: 'The policy would fail to apply at all, since Kubernetes rejects empty selectors on allow rules' },
+          { id: 'b', label: 'B', text: 'Every newly-scaled replica of some other, unrelated future workload placed in the same namespace would silently inherit the access the sloppy rule granted, since nobody re-reads the policy\'s scope every time a new Deployment appears' },
+          { id: 'c', label: 'C', text: 'It would cause the NetworkPolicy to apply only to the `routeplanner` Deployment specifically and no other workload' },
+          { id: 'd', label: 'D', text: 'It would prevent `routeplanner` itself from communicating with Postgres or Redis' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is specifically about future, unrelated workloads silently inheriting broad access — a scope error that isn\'t obvious at write-time and doesn\'t surface until something new is deployed into the same namespace.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-15-mcq-04',
+        question:
+          'According to the lesson, what does the Kubernetes scheduler use a Pod\'s `resources.requests` value for?',
+        options: [
+          { id: 'a', label: 'A', text: 'To enforce a hard ceiling on how much CPU or memory the container may ever consume' },
+          { id: 'b', label: 'B', text: 'To decide whether a node has enough allocatable capacity for a new Pod before scheduling it there — an over-packed node (from requests set too low) risks not sustaining every scheduled Pod under real load' },
+          { id: 'c', label: 'C', text: 'To determine which NetworkPolicy rules apply to the Pod' },
+          { id: 'd', label: 'D', text: 'To set the container\'s process priority relative to other containers on the same node' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Requests are a scheduling input, distinct from limits (an enforcement ceiling) — the lesson ties this directly back to Lesson 14\'s HPA/Cluster-Autoscaler dependency on requests being set honestly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-15-mcq-05',
+        question:
+          'Why did the FDE re-run the connectivity test against all 9 replicas after scaling up, rather than trusting that the policy\'s correctness on the original 3 replicas would hold?',
+        options: [
+          { id: 'a', label: 'A', text: 'NetworkPolicy rules are evaluated independently per replica and can behave inconsistently, so full re-testing is the only way to be certain' },
+          { id: 'b', label: 'B', text: 'Orthogonal-in-theory (label-based rules should cover all replicas automatically) is not the same as verified-in-practice; the test exists to actually prove the blast radius held constant rather than assume it from the policy\'s design' },
+          { id: 'c', label: 'C', text: 'Kubernetes requires a manual policy re-application after every scaling event' },
+          { id: 'd', label: 'D', text: 'The original 3 replicas use a different Pod template than the 6 added during scale-up' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s explicit framing — the mechanical guarantee is real, but an FDE verifies it under real conditions rather than taking it on faith during a customer engagement.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-15-mcq-06',
+        question:
+          'Why does the lesson\'s practice loop require testing both an expected-allowed connection AND an expected-forbidden connection, rather than only confirming the allowed path works?',
+        options: [
+          { id: 'a', label: 'A', text: 'Testing only the allowed path is sufficient; the forbidden-path test is optional' },
+          { id: 'b', label: 'B', text: 'Confirming only that the allowed path works proves the policy isn\'t blocking too much, but says nothing about whether it\'s blocking too little — the forbidden-path test is what proves the blast radius is actually bounded, not just that the intended traffic still functions' },
+          { id: 'c', label: 'C', text: 'Kubernetes NetworkPolicy objects require exactly two test cases before they can be considered valid' },
+          { id: 'd', label: 'D', text: 'The forbidden-path test is only necessary when scaling beyond 5 replicas' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A functional test alone can\'t distinguish "correctly scoped" from "too permissive" — only a deliberately-forbidden path failing as expected proves the narrower claim.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-containerization-orchestration/16-kubernetes-security-rbac-and-devsecops': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-16-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — ROLE SPECIFICATION VS ROLEBINDING ATTACHMENT',
+        question:
+          'What is the distinct job of a `Role` versus a `RoleBinding` in Kubernetes RBAC?',
+        options: [
+          { id: 'a', label: 'A', text: 'A `Role` names a set of allowed verbs against specific resource types; a `RoleBinding` is what actually grants that named Role to a specific user, group, or ServiceAccount — a Role alone grants nothing until bound' },
+          { id: 'b', label: 'B', text: 'A `Role` and a `RoleBinding` are interchangeable terms for the same object' },
+          { id: 'c', label: 'C', text: 'A `RoleBinding` defines the allowed verbs, and a `Role` specifies which identity receives them' },
+          { id: 'd', label: 'D', text: 'A `Role` is cluster-scoped and a `RoleBinding` is namespace-scoped' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit about this two-part combination — permissions are defined in one object and granted to an identity in a separate, distinct object.',
+        incorrectExplanation:
+          'Roles define allowed rule sets (verbs and resources), while RoleBindings map those rules to subjects (ServiceAccounts, users, or groups).',
+        hint:
+          'Roles specify permitted actions; RoleBindings attach those permissions to subjects.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-16-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — DEFAULT SERVICEACCOUNT INHERITANCE RISK',
+        question:
+          'In the Practical Backend Scenario, why was `routeplanner`\'s CI Pod running under `default` bound to `cluster-admin` a serious finding, independent of whether the Pod itself was ever compromised?',
+        options: [
+          { id: 'a', label: 'A', text: '`cluster-admin` bindings automatically expire after 30 days, so the binding was already invalid' },
+          { id: 'b', label: 'B', text: 'Every Pod in the namespace that doesn\'t specify its own ServiceAccount inherits whatever `default` can do — the binding meant any Pod in that namespace, not just the CI Pod, could be silently granted cluster-admin-level API access if it were ever compromised' },
+          { id: 'c', label: 'C', text: '`cluster-admin` bindings can only be created by a cluster administrator, so its existence indicated an unauthorized privilege escalation had already occurred' },
+          { id: 'd', label: 'D', text: 'The binding had no actual security implication since the Pod was only used for CI, not customer-facing traffic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The finding is significant because of what it exposes namespace-wide (every Pod inheriting `default`), not just because of the one CI Pod\'s own behavior.',
+        incorrectExplanation:
+          'Any Pod lacking an explicit serviceAccountName inherits the namespace default ServiceAccount, so binding default to cluster-admin exposes the entire namespace.',
+        hint:
+          'Pods without explicit ServiceAccount declarations automatically run under the namespace default identity.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-16-mcq-01',
+        question:
+          'In the lesson\'s `routeplanner-deployer-role` manifest, what specifically is this identity NOT permitted to do?',
+        codeBlock: 'rules:\n  - apiGroups: ["apps"]\n    resources: ["deployments"]\n    resourceNames: ["routeplanner"]\n    verbs: ["get", "list", "watch", "update", "patch"]\n  - apiGroups: [""]\n    resources: ["pods"]\n    verbs: ["get", "list", "watch"]',
+        options: [
+          { id: 'a', label: 'A', text: 'It cannot delete the `routeplanner` Deployment, cannot touch any other Deployment by name, and has no write access to Pods at all (only read verbs)' },
+          { id: 'b', label: 'B', text: 'It cannot read or watch Pods under any circumstances' },
+          { id: 'c', label: 'C', text: 'It can update any Deployment in the namespace, not just `routeplanner`' },
+          { id: 'd', label: 'D', text: 'It has full cluster-admin access because no `resourceNames` restriction applies to the second rule' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`delete` is absent from the Deployment verbs, `resourceNames` restricts the first rule to exactly `routeplanner`, and the Pod rule grants only read verbs — no write access anywhere in this Role.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-16-mcq-02',
+        question:
+          'Why does the lesson insist on verifying a grant with `kubectl auth can-i --as` rather than trusting the Role/RoleBinding YAML\'s correctness by inspection alone?',
+        options: [
+          { id: 'a', label: 'A', text: '`kubectl auth can-i` is required before any RBAC object can be applied to the cluster' },
+          { id: 'b', label: 'B', text: 'Reasoning about the final effective permission set from YAML alone becomes genuinely error-prone once multiple bindings or role aggregation are involved; asking the API server directly gives a definitive yes/no answer instead of an inference' },
+          { id: 'c', label: 'C', text: 'RBAC YAML manifests do not take effect until confirmed by `kubectl auth can-i`' },
+          { id: 'd', label: 'D', text: '`kubectl auth can-i` is the only way to create a new RoleBinding' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is about verification discipline — asking the API server the actual question rather than trusting a manual read of potentially-interacting YAML objects.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-16-mcq-03',
+        question:
+          'Why does the lesson recommend defaulting to a `Role` over a `ClusterRole` whenever access only needs to reach one namespace?',
+        options: [
+          { id: 'a', label: 'A', text: '`ClusterRole` objects are deprecated and scheduled for removal in future Kubernetes versions' },
+          { id: 'b', label: 'B', text: 'A `Role`/`RoleBinding` pair grants access scoped to exactly the one namespace it\'s created in, while a `ClusterRole`/`ClusterRoleBinding` pair is valid cluster-wide — using the cluster-scoped option when only namespace-scoped access is needed grants more than the task requires' },
+          { id: 'c', label: 'C', text: '`Role` objects support a wider range of verbs than `ClusterRole` objects' },
+          { id: 'd', label: 'D', text: '`ClusterRole` objects cannot be bound to ServiceAccounts, only to human users' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames this as the same least-privilege discipline applied elsewhere in this pathway — matching the scope of the grant to the scope of the actual need.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-16-mcq-04',
+        question:
+          'Why does the lesson\'s Practice Loop require checking at least three `can-i` calls that should return `no`, not just confirming the intended access returns `yes`?',
+        options: [
+          { id: 'a', label: 'A', text: '`kubectl auth can-i` returns an error if fewer than three checks are performed in sequence' },
+          { id: 'b', label: 'B', text: 'Confirming only the intended access proves the grant works, but says nothing about whether it\'s also granting more than intended — checking that specific unwanted verbs correctly return `no` is what actually proves the boundary is narrow, not just functional' },
+          { id: 'c', label: 'C', text: 'Checking three `no` cases is a hard requirement enforced by the Kubernetes API server itself' },
+          { id: 'd', label: 'D', text: 'A single `no` check is sufficient; three is only a stylistic convention with no functional purpose' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Mirrors Lesson 15\'s two-part connectivity test logic — proving a boundary requires testing the negative space, not just confirming the positive case works.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-16-mcq-05',
+        question:
+          'What does the lesson recommend for the legitimate case where an operator genuinely needs broader, emergency diagnostic access than any scoped Role provides?',
+        options: [
+          { id: 'a', label: 'A', text: 'Permanently bind that operator\'s identity to `cluster-admin` so the access is always available when needed' },
+          { id: 'b', label: 'B', text: 'A separate, short-lived `ClusterRoleBinding` granted for the duration of the incident and explicitly revoked afterward (or an automated break-glass tool that expires the grant), never a standing binding kept "just in case"' },
+          { id: 'c', label: 'C', text: 'Disable RBAC entirely for the duration of any incident investigation' },
+          { id: 'd', label: 'D', text: 'Grant the operator a second, permanent ServiceAccount with unrestricted access as a backup' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly names time-boxing and automatic expiry as what distinguishes a legitimate break-glass pattern from the standing-cluster-admin anti-pattern it opened with.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-16-mcq-06',
+        question:
+          'The lesson opens by distinguishing itself from Module 4\'s Kubernetes security lesson. What is that distinction?',
+        options: [
+          { id: 'a', label: 'A', text: 'Module 4 does not cover RBAC at all, only network policy' },
+          { id: 'b', label: 'B', text: 'Module 4 assumes RBAC is already in place and audits an already-secured, shared multi-tenant cluster; this lesson covers the earlier, hands-on question of how to build a Role/RoleBinding pair from nothing and verify it rather than assume it' },
+          { id: 'c', label: 'C', text: 'This lesson only applies to ClusterRole objects, while Module 4 only covers Role objects' },
+          { id: 'd', label: 'D', text: 'The two lessons are functionally identical and either can be skipped without loss' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s opening paragraph states this explicitly — construction-and-verification versus already-secured-cluster auditing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-16-mcq-07',
+        question:
+          'If a Pod\'s spec does not set `serviceAccountName`, which identity does it run under when calling the Kubernetes API?',
+        options: [
+          { id: 'a', label: 'A', text: 'No identity; API calls from that Pod are rejected entirely' },
+          { id: 'b', label: 'B', text: 'The `default` ServiceAccount of the namespace it runs in, along with whatever permissions that ServiceAccount is bound to' },
+          { id: 'c', label: 'C', text: 'A randomly-generated, single-use ServiceAccount created just for that Pod' },
+          { id: 'd', label: 'D', text: 'The identity of the human who last applied the Deployment manifest' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the exact fact that makes the unscoped-`default` risk real — omission, not explicit misconfiguration, is enough to inherit whatever `default` is bound to.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-containerization-orchestration/17-kubernetes-volumes': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-17-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — EMPTYDIR LIFECYCLE BOUNDARIES',
+        question:
+          'According to the lesson, what does an `emptyDir` volume survive, and what does it not survive?',
+        options: [
+          { id: 'a', label: 'A', text: 'It survives a container crash and restart within the same Pod, but is deleted the moment the Pod itself is removed' },
+          { id: 'b', label: 'B', text: 'It survives the Pod being deleted and rescheduled onto a different node, but not a container crash' },
+          { id: 'c', label: 'C', text: 'It survives everything except a full cluster restart' },
+          { id: 'd', label: 'D', text: 'It is deleted immediately on any container restart, including one within the same Pod' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the exact boundary the lesson draws — Pod-scoped survival, not Pod-independent durability, which is what makes it the wrong tool for anything that must outlive the Pod.',
+        incorrectExplanation:
+          'emptyDir is tied strictly to the Pod lifecycle: container restarts within the Pod preserve its data, but Pod deletion/rescheduling destroys it.',
+        hint:
+          'emptyDir scratch space is tied to the lifecycle of the enclosing Pod, not individual containers.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-17-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PVC RESCHEDULING DURABILITY VS DISASTER RECOVERY',
+        question:
+          'Why did the FDE have to tell Northwind\'s security team that a PVC\'s durability guarantee alone doesn\'t answer how the database credential Secret would be recovered if the underlying volume were deleted?',
+        options: [
+          { id: 'a', label: 'A', text: 'Secrets cannot be stored on a PersistentVolumeClaim under any circumstances' },
+          { id: 'b', label: 'B', text: 'A PVC surviving Pod/node rescheduling protects against Pod and node churn specifically, not against the underlying volume itself being corrupted, deleted, or lost — that separate failure mode requires its own `VolumeSnapshot` policy with a tested restore path' },
+          { id: 'c', label: 'C', text: 'The security team\'s question was based on a misunderstanding; PVCs already provide full disaster recovery automatically' },
+          { id: 'd', label: 'D', text: '`VolumeSnapshot` objects are only available for ConfigMaps, not for PVCs backing Secrets' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that PVC durability and disaster-recovery coverage are two separate guarantees — the first doesn\'t imply the second, and the second needs its own explicit policy.',
+        incorrectExplanation:
+          'PVC durability preserves volume attachment across Pod and node rescheduling, but point-in-time recovery from loss or corruption requires independent VolumeSnapshots.',
+        hint:
+          'PVC attachment protects against compute churn; point-in-time recovery from volume loss requires independent snapshots.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-17-mcq-01',
+        question:
+          'The lesson says the added twist in Kubernetes, compared to Phase 20\'s Docker Volumes lesson, is that "the node itself is disposable too." What does this mean for what "durable" has to guarantee?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nothing changes; a Docker volume and a Kubernetes PersistentVolume provide identical guarantees' },
+          { id: 'b', label: 'B', text: 'Durable state must survive not just a container restart, but a Pod being rescheduled onto a completely different physical node — a guarantee a single-host Docker volume, tied to one machine\'s disk, cannot provide on its own' },
+          { id: 'c', label: 'C', text: 'Kubernetes volumes are always slower than Docker volumes because of the added node-independence requirement' },
+          { id: 'd', label: 'D', text: '"Durable" in Kubernetes only applies to ConfigMaps and Secrets, never to application data' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s opening frames this exact escalation — surviving node loss, not just container restart, is the new bar Kubernetes storage mechanisms need to clear.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-17-mcq-02',
+        question:
+          'In the lesson\'s manifest, what happens to `/etc/secrets` inside the `routeplanner` container if the `routeplanner-db-secret` Secret\'s value is later rotated?',
+        codeBlock: '          volumeMounts:\n            - name: db-credentials\n              mountPath: /etc/secrets\n              readOnly: true\n      volumes:\n        - name: db-credentials\n          secret:\n            secretName: routeplanner-db-secret',
+        options: [
+          { id: 'a', label: 'A', text: 'The mount path becomes permanently unavailable until the Pod is manually deleted and recreated' },
+          { id: 'b', label: 'B', text: 'The mounted file is updated to reflect the new Secret value (subject to the kubelet\'s sync delay), the same live-update behavior the lesson describes for ConfigMap mounts, without requiring a Pod restart' },
+          { id: 'c', label: 'C', text: '`readOnly: true` prevents the Secret from ever being updated at the API level' },
+          { id: 'd', label: 'D', text: 'Kubernetes automatically restarts the container whenever a mounted Secret changes' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson states this explicitly for ConfigMap mounts and notes Secret mounts work identically — live sync subject to the kubelet\'s delay, not a Pod restart trigger.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-17-mcq-03',
+        question:
+          'What is the practical difference between a PVC\'s `ReadWriteOnce` and `ReadWriteMany` access modes, and why does the lesson warn that the choice has real consequences?',
+        options: [
+          { id: 'b', label: 'B', text: '`ReadWriteOnce` allows read-write mounting by only one node at a time; `ReadWriteMany` allows multiple nodes to mount the same volume simultaneously — but not every storage backend supports RWX (EBS notably doesn\'t), so requiring it can constrain which StorageClass a PVC can actually bind to' },
+          { id: 'a', label: 'A', text: '`ReadWriteOnce` is read-only, and `ReadWriteMany` is the only mode that permits writes at all' },
+          { id: 'c', label: 'C', text: 'The two modes are functionally identical; the name only affects logging output' },
+          { id: 'd', label: 'D', text: '`ReadWriteMany` is always faster than `ReadWriteOnce` regardless of the storage backend' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson calls out the EBS-doesn\'t-support-RWX detail specifically as the kind of consequence that makes this a deliberate choice, not a default to leave unexamined.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-17-mcq-04',
+        question:
+          'In the Practical Backend Scenario, why did `routeplanner`\'s cache survive the node drain while `test-worker`\'s cache did not, given that both Pods were deleted and rescheduled?',
+        options: [
+          { id: 'a', label: 'A', text: '`test-worker` was scheduled onto a node with less available storage capacity' },
+          { id: 'b', label: 'B', text: '`routeplanner` used a PersistentVolumeClaim, which is not deleted along with its Pod — a new Pod referencing the same PVC reattaches to the same underlying volume with data intact; `test-worker` used `emptyDir`, which is deleted the moment its Pod is removed' },
+          { id: 'c', label: 'C', text: '`routeplanner`\'s Deployment had a higher priority class than `test-worker`\'s' },
+          { id: 'd', label: 'D', text: 'The node drain only affected `test-worker`\'s node, not `routeplanner`\'s' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly the PVC-versus-emptyDir distinction the lesson builds toward — the scenario is a direct, concrete demonstration of the mechanism difference described in Concepts Covered.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-17-mcq-05',
+        question:
+          'What is the relationship between a `PersistentVolumeClaim` and a `PersistentVolume`, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are the same object under two different names, used interchangeably' },
+          { id: 'b', label: 'B', text: 'A PVC is a namespaced request for storage (size, access mode, optionally a StorageClass); the cluster fulfills it by binding the PVC to an actual PersistentVolume, either pre-provisioned or dynamically created on demand by the named StorageClass' },
+          { id: 'c', label: 'C', text: 'A PersistentVolume is created manually for every Pod, and the PVC only exists to delete it afterward' },
+          { id: 'd', label: 'D', text: 'PVCs are cluster-scoped, while PersistentVolumes are namespace-scoped' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson describes exactly this request/fulfillment relationship, including the dynamic- provisioning path via a named StorageClass like `gp3`.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-17-mcq-06',
+        question:
+          'The lesson states neither a `ConfigMap` nor a `Secret` mount is "meant for data the application itself writes." What is the implication of using one for that purpose anyway?',
+        options: [
+          { id: 'a', label: 'A', text: 'ConfigMaps and Secrets are meant for data handed to the application, not data the application generates — using either for application-written output misuses a mechanism designed around the API server managing the object\'s content, not the running container writing to it at runtime' },
+          { id: 'b', label: 'B', text: 'Kubernetes physically prevents any container process from writing to a ConfigMap or Secret mount path, making the misuse impossible' },
+          { id: 'c', label: 'C', text: 'There is no meaningful downside; ConfigMaps and Secrets function identically to a PersistentVolumeClaim for any purpose' },
+          { id: 'd', label: 'D', text: 'Only Secrets are restricted this way; ConfigMaps may be freely written to by the application' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s framing is about the mechanism\'s intended direction — data flowing in from the API server to the Pod, not data the Pod generates and needs to persist, which is what a PVC is for.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/01-aws-vpc-and-networking-basics': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-01-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — WHAT MAKES A SUBNET PUBLIC',
+        question:
+          'Per the lesson, what actually determines whether a subnet is "public" or "private" in AWS?',
+        options: [
+          { id: 'a', label: 'A', text: 'A flag set on the subnet resource itself at creation time' },
+          { id: 'b', label: 'B', text: 'Whether the subnet\'s associated route table has a `0.0.0.0/0` route pointing to an Internet Gateway' },
+          { id: 'c', label: 'C', text: 'Whether the subnet\'s CIDR block falls within a specific reserved range' },
+          { id: 'd', label: 'D', text: 'Whether any instance inside the subnet has a public IP address assigned' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that "public" and "private" are just names for what a subnet\'s route table does — the presence or absence of an IGW-bound default route — not an inherent subnet property.',
+        incorrectExplanation:
+          'Public vs private status is entirely determined by whether the subnet\'s associated route table routes 0.0.0.0/0 to an Internet Gateway, not by IP auto-assignment, security group rules, or CIDR block definitions.',
+        hint:
+          'Focus on how AWS routing directs default internet traffic at the route table layer.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-01-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — SECURITY GROUP VS NACL STATEFULNESS',
+        question:
+          'A security group allows inbound port 443 with no matching outbound rule, and response traffic still flows correctly. A NACL allowing the same inbound port 443 blocks response traffic unless a matching outbound rule is also added. What explains this difference?',
+        options: [
+          { id: 'a', label: 'A', text: 'Security groups are stateful (a permitted inbound request auto-allows its response); NACLs are stateless (inbound and outbound must each be explicitly allowed)' },
+          { id: 'b', label: 'B', text: 'NACLs are a deprecated feature that no longer evaluates outbound traffic correctly' },
+          { id: 'c', label: 'C', text: 'Security groups only apply to TCP while NACLs apply to all protocols' },
+          { id: 'd', label: 'D', text: 'The difference is a bug specific to port 443 and does not generalize to other ports' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s core statefulness distinction — security groups track connection state and auto-permit responses, NACLs evaluate every direction independently.',
+        incorrectExplanation:
+          'Security groups are stateful and automatically permit return response packets, whereas stateless NACLs require explicit outbound rules for ephemeral port response traffic.',
+        hint:
+          'Remember the fundamental difference in state tracking between resource-level security groups and subnet-level network ACLs.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-01-mcq-01',
+        question:
+          'Given this output for the private-data subnet\'s route table, what can you conclude about its reachability from the internet?',
+        codeBlock: '$ aws ec2 describe-route-tables --route-table-ids rtb-private-db-1a \\\n  --query \'RouteTables[0].Routes[].DestinationCidrBlock\'\n[ "10.20.0.0/16" ]',
+        options: [
+          { id: 'a', label: 'A', text: 'No traffic from the internet can reach resources in this subnet through this route table, since the only route is to the local VPC CIDR' },
+          { id: 'b', label: 'B', text: 'The subnet is reachable from the internet as long as a security group allows it' },
+          { id: 'c', label: 'C', text: 'This output is inconclusive without also checking the subnet\'s NACL' },
+          { id: 'd', label: 'D', text: 'This route table proves a NAT Gateway is attached to this subnet' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'With only a local VPC route and no `0.0.0.0/0` route of any kind (IGW or NAT), there is no path for internet traffic to arrive at all — this is the route-table backstop the lesson describes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-01-mcq-02',
+        question:
+          'A worker in a private subnet needs to call Amazon Textract\'s public API but must never accept an inbound connection initiated from the internet. What AWS component provides exactly this asymmetric behavior?',
+        options: [
+          { id: 'a', label: 'A', text: 'An Internet Gateway attached directly to the private subnet\'s route table' },
+          { id: 'b', label: 'B', text: 'A NAT Gateway in a public subnet, with the private subnet\'s route table sending `0.0.0.0/0` traffic to it' },
+          { id: 'c', label: 'C', text: 'A network ACL with an explicit deny rule for all inbound traffic' },
+          { id: 'd', label: 'D', text: 'A security group rule allowing outbound 443 with no other component involved' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names the NAT Gateway specifically as the asymmetric-access primitive — outbound-initiated connections succeed, inbound-initiated connections from the internet cannot reach the private subnet through it at all.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-01-mcq-03',
+        question:
+          'The scenario has the worker\'s security group allow inbound 8080 from the ALB\'s security group by reference, not by CIDR. Why does this matter operationally?',
+        options: [
+          { id: 'a', label: 'A', text: 'A security-group reference stays valid automatically if the ALB is redeployed with a new IP, while a CIDR-based rule would silently stop matching' },
+          { id: 'b', label: 'B', text: 'Referencing a security group by ID is required by AWS and CIDR-based rules are not permitted between two AWS resources' },
+          { id: 'c', label: 'C', text: 'It has no operational effect; both approaches behave identically in every case' },
+          { id: 'd', label: 'D', text: 'It makes the rule stateless instead of stateful' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Referencing a peer security group by ID tracks the peer\'s actual current membership; a hardcoded CIDR rule breaks the moment that peer\'s address changes, which the Practice Loop\'s diagnostic step is built to surface.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-01-mcq-04',
+        question:
+          'The scenario has the worker\'s security group allow inbound 8080 from the ALB\'s security group by reference, not by CIDR. Why does this matter operationally?',
+        options: [
+          { id: 'a', label: 'A', text: 'A security-group reference stays valid automatically if the ALB is redeployed with a new IP, while a CIDR-based rule would silently stop matching' },
+          { id: 'b', label: 'B', text: 'Referencing a security group by ID is required by AWS; CIDR-based rules are not permitted between two AWS resources' },
+          { id: 'c', label: 'C', text: 'It has no operational effect; both approaches behave identically in every case' },
+          { id: 'd', label: 'D', text: 'It makes the rule stateless instead of stateful' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Referencing a peer security group by ID tracks the peer\'s actual current membership; a hardcoded CIDR rule breaks the moment that peer\'s address changes, which the Practice Loop\'s diagnostic step is built to surface.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-01-mcq-05',
+        question:
+          'Why does a highly-available design need at least two subnets per tier (public, private-app, private-data), rather than one subnet per tier?',
+        options: [
+          { id: 'a', label: 'A', text: 'A subnet is pinned to exactly one Availability Zone, so surviving the loss of one AZ requires a second subnet in a second AZ for each tier' },
+          { id: 'b', label: 'B', text: 'AWS enforces a maximum of 256 addresses per subnet, requiring a second subnet for capacity' },
+          { id: 'c', label: 'C', text: 'Route tables can only be associated with one subnet at a time across the entire VPC' },
+          { id: 'd', label: 'D', text: 'Security groups require at least two subnets to function correctly' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states plainly that a subnet is pinned to one AZ — a single subnet cannot "span" two AZs, so AZ-level resilience requires a subnet pair, not a single wider subnet.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-01-mcq-06',
+        question:
+          'A known-malicious IP range needs to be blocked from every resource in a subnet, regardless of which security group any individual resource carries. Per the lesson, which control is the right tool for this, and why?',
+        options: [
+          { id: 'a', label: 'A', text: 'A NACL explicit deny rule at the subnet boundary, since it applies to every resource in the subnet in one place rather than requiring an audit of each resource\'s security group individually' },
+          { id: 'b', label: 'B', text: 'A security group deny rule, since security groups support explicit denies unlike NACLs' },
+          { id: 'c', label: 'C', text: 'There is no AWS-native way to block a CIDR range subnet-wide; this requires a third-party firewall' },
+          { id: 'd', label: 'D', text: 'An IGW route removal, since that is the only way to block a specific CIDR range' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this exact case — a coarse, subnet-wide block — as where a NACL\'s explicit deny at the subnet boundary beats relying on individually auditing every resource\'s security group.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-01-mcq-07',
+        question:
+          'In the Practice Loop\'s denied-flow test, an EC2 instance in the public subnet attempts a direct connection to the RDS instance\'s private IP and the connection times out. What does the timeout (rather than an immediate "connection refused") most likely indicate?',
+        options: [
+          { id: 'a', label: 'A', text: 'There is no matching security group rule allowing the traffic, so packets are silently dropped rather than actively rejected' },
+          { id: 'b', label: 'B', text: 'The RDS instance is not running' },
+          { id: 'c', label: 'C', text: 'The route table has no route to the RDS subnet\'s CIDR at all, so the packet cannot leave the public subnet' },
+          { id: 'd', label: 'D', text: 'A NACL is actively sending a TCP RST packet back to the sender' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Both hosts share the same VPC CIDR, so the route exists; a security group without a matching allow rule drops the packet silently, producing a timeout rather than an explicit rejection — this is the expected signature of a security-group-level denial.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/02-advanced-aws-networking': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-02-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — NON-TRANSITIVE VPC PEERING',
+        question:
+          'VPC A peers with VPC B, and VPC B peers with VPC C. Can traffic from VPC A reach VPC C through VPC B using only these two peering connections?',
+        options: [
+          { id: 'a', label: 'A', text: 'Yes, peering connections automatically chain transitively' },
+          { id: 'b', label: 'B', text: 'No, peering is non-transitive — A and C would need their own direct peering connection' },
+          { id: 'c', label: 'C', text: 'Yes, but only if all three VPCs are in the same Availability Zone' },
+          { id: 'd', label: 'D', text: 'No, because peering connections can only exist between VPCs in different AWS accounts' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson states this directly as the core limitation of peering — no transitive routing through an intermediate VPC, regardless of how many pairwise connections exist.',
+        incorrectExplanation:
+          'VPC peering connections are non-transitive by design in AWS; traffic cannot traverse an intermediate VPC to reach a third VPC.',
+        hint:
+          'Consider why Transit Gateway exists as a regional hub compared to point-to-point VPC peering constraints.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-02-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PRIVATELINK VS PEERING BLAST RADIUS',
+        question:
+          'Lighthouse\'s security team refuses to approve VPC peering with an external partner\'s account but does approve a PrivateLink endpoint service for one specific API. What is the core reason PrivateLink is the lower-risk option here?',
+        options: [
+          { id: 'a', label: 'A', text: 'PrivateLink grants reachability to exactly one named service, while peering grants broad network reachability across both VPCs gated only by security groups and NACLs' },
+          { id: 'b', label: 'B', text: 'PrivateLink connections are encrypted while peering connections are not' },
+          { id: 'c', label: 'C', text: 'PrivateLink is only usable within a single AWS account, so external partners cannot use it at all' },
+          { id: 'd', label: 'D', text: 'Peering connections require the partner to share their entire VPC CIDR block publicly' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s central distinction is scope of access: PrivateLink exposes one service, peering exposes a network path that anything in either VPC could reach if security groups were ever misconfigured.',
+        incorrectExplanation:
+          'PrivateLink scopes connectivity strictly to a specific TCP service endpoint (ENI) without routing entire VPC CIDR ranges or exposing internal network topology.',
+        hint:
+          'Think about the difference between broad layer-3 network routing and targeted service-endpoint publication.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-02-mcq-01',
+        question:
+          'Why does the lesson recommend Transit Gateway over VPC peering once more than a handful of VPCs need to interconnect?',
+        options: [
+          { id: 'a', label: 'A', text: 'Peering is non-transitive and requires its own connection per pair, so full connectivity among n VPCs needs n(n-1)/2 peering connections, while Transit Gateway needs only n attachments' },
+          { id: 'b', label: 'B', text: 'VPC peering connections expire automatically after 90 days and must be recreated' },
+          { id: 'c', label: 'C', text: 'AWS technically limits any VPC to a maximum of two peering connections' },
+          { id: 'd', label: 'D', text: 'Peering connections cannot carry HTTPS traffic, only HTTP' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson gives the exact mesh-growth math — n(n-1)/2 pairwise peering connections versus n Transit Gateway attachments — as the reason peering stops scaling.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-02-mcq-02',
+        question:
+          'Mechanically, what does creating a PrivateLink interface endpoint place inside the consumer\'s VPC?',
+        options: [
+          { id: 'a', label: 'A', text: 'An elastic network interface with its own private IP, which forwards traffic to the provider\'s service over AWS\'s internal network' },
+          { id: 'b', label: 'B', text: 'A new route table entry pointing to the public internet' },
+          { id: 'c', label: 'C', text: 'A full copy of the provider\'s VPC, replicated into the consumer\'s account' },
+          { id: 'd', label: 'D', text: 'A NAT Gateway dedicated to the provider\'s traffic' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson describes the endpoint as an ENI with its own private IP forwarding over AWS\'s internal network — never touching the public internet and never requiring VPC-level peering or routing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-02-mcq-03',
+        question:
+          'A Route 53 failover record\'s health check fails and switches immediately at the DNS layer. Some clients still resolve to the dead primary endpoint for up to an hour afterward. What most likely explains this?',
+        options: [
+          { id: 'a', label: 'A', text: 'The record\'s TTL is set high (e.g., 3600 seconds), so resolvers that already cached the primary\'s answer will not re-query Route 53 until that TTL expires' },
+          { id: 'b', label: 'B', text: 'Route 53 failover records do not actually take effect until the next AWS billing cycle' },
+          { id: 'c', label: 'C', text: 'The health check itself was misconfigured to check the wrong path' },
+          { id: 'd', label: 'D', text: 'Failover records only work for weighted routing policies, not for failover policies' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson makes this explicit: DNS caching means the record\'s TTL, not the health check\'s own responsiveness, determines how quickly failover becomes visible to clients that already cached an answer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-02-mcq-04',
+        question:
+          'The FDE wants ManifestFlow to reach Lighthouse\'s shared-services VPC through the Transit Gateway, but not the reverse. How is this one-way restriction actually enforced?',
+        options: [
+          { id: 'a', label: 'A', text: 'By omitting the route in the Transit Gateway route table that would let shared-services\' attachment reach ManifestFlow\'s attachment, while including the reverse route' },
+          { id: 'b', label: 'B', text: 'By setting a "one-way" flag on the Transit Gateway attachment itself' },
+          { id: 'c', label: 'C', text: 'This cannot be enforced at the Transit Gateway level; it requires a security group change in shared-services instead' },
+          { id: 'd', label: 'D', text: 'By using a NACL on ManifestFlow\'s subnet to block all inbound traffic from the Transit Gateway' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Transit Gateway routing is controlled entirely by which routes exist in its own route table per attachment — omitting the reverse route is what enforces the one-way access, exactly as the lesson\'s Practice Loop step 2 asks the learner to state.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-02-mcq-05',
+        question:
+          'Which Route 53 routing policy is designed specifically for splitting a percentage of traffic to a new endpoint for a canary rollout, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Failover routing' },
+          { id: 'b', label: 'B', text: 'Latency-based routing' },
+          { id: 'c', label: 'C', text: 'Weighted routing' },
+          { id: 'd', label: 'D', text: 'Geolocation routing' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The lesson names weighted routing specifically as the policy that splits traffic by percentage, which is exactly the canary-rollout use case.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-02-mcq-06',
+        question:
+          'What does the `--acceptance-required` flag on this PrivateLink endpoint service configuration accomplish?',
+        codeBlock: 'aws ec2 create-vpc-endpoint-service-configuration \\\n  --network-load-balancer-arns arn:aws:elasticloadbalancing:us-east-1:111122223333:loadbalancer/net/manifestflow-nlb/abc123 \\\n  --acceptance-required',
+        options: [
+          { id: 'a', label: 'A', text: 'Any consumer\'s request to create an interface endpoint connecting to this service must be manually approved before traffic can flow' },
+          { id: 'b', label: 'B', text: 'It requires the consumer to accept a legal terms-of-service agreement before the API returns a response' },
+          { id: 'c', label: 'C', text: 'It forces the connection to use mutual TLS instead of standard TLS' },
+          { id: 'd', label: 'D', text: 'It has no functional effect and is purely cosmetic metadata' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`--acceptance-required` gates every consumer\'s endpoint connection behind manual approval by the service owner — the specific control the Suggested Extension asks the learner to reason about for a second partner integration.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/03-aws-observability-with-cloudwatch': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — PERCENTILES VS AVERAGE LATENCY',
+        question:
+          'In the scenario, average processing latency looked healthy at 8 seconds while p90 was 74 seconds and climbing. What explains this gap?',
+        options: [
+          { id: 'a', label: 'A', text: 'A localized failure (two workers in one AZ not processing messages) affected only a subset of requests; healthy workers in the other AZ picked up the slack, keeping the average low while the affected subset\'s latency, visible only in the tail percentile, kept climbing' },
+          { id: 'b', label: 'B', text: 'CloudWatch computes averages and percentiles from entirely different, unrelated data sources' },
+          { id: 'c', label: 'C', text: 'The average metric was simply misconfigured with the wrong unit' },
+          { id: 'd', label: 'D', text: 'Percentiles are always higher than averages by mathematical definition, regardless of the underlying data' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s central diagnostic point: a localized, minority-affecting failure is exactly what an average can mask while a tail percentile like p90 reveals, because the average blends unaffected requests in with the affected ones.',
+        incorrectExplanation:
+          'Mathematical averages dilute extreme outliers across high-volume fast requests; percentile metrics (p95/p99) are essential for catching tail latency degradation.',
+        hint:
+          'Consider how high volumes of sub-second requests skew arithmetic means versus percentile distributions.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — EMBEDDED METRIC FORMAT (EMF)',
+        question:
+          'What does Embedded Metric Format (EMF) let application code avoid, compared to calling `PutMetricData` directly from inside a hot request path?',
+        options: [
+          { id: 'a', label: 'A', text: 'The extra network call and API rate-limit exposure of an explicit `PutMetricData` call, since EMF is written as a structured JSON log line and ingested by the CloudWatch agent' },
+          { id: 'b', label: 'B', text: 'The need to define a metric namespace at all' },
+          { id: 'c', label: 'C', text: 'The requirement for the application to run inside a container' },
+          { id: 'd', label: 'D', text: 'The need for any IAM permissions related to CloudWatch' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this trade-off directly: EMF avoids the network round trip and rate-limit exposure of calling `PutMetricData` synchronously in a hot path, by writing a structured log line instead.',
+        incorrectExplanation:
+          'EMF decouples metric extraction from the application runtime by logging structured JSON to stdout, eliminating synchronous HTTP API overhead and PutMetricData throttling.',
+        hint:
+          'Think about the latency and operational difference between synchronous external API calls on every request versus asynchronous log extraction.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-mcq-01',
+        question:
+          'Per the lesson, why is "manifest processing completes within 60 seconds of upload, p90" a better SLI than "SQS ApproximateNumberOfMessagesVisible"?',
+        options: [
+          { id: 'a', label: 'A', text: 'The first is defined at the level of the customer\'s actual journey; the second is a component metric that might explain a violation of the first but is not itself what the customer experiences' },
+          { id: 'b', label: 'B', text: 'SQS metrics are less accurate than custom application metrics' },
+          { id: 'c', label: 'C', text: 'ApproximateNumberOfMessagesVisible cannot be graphed on a CloudWatch dashboard' },
+          { id: 'd', label: 'D', text: 'The two metrics measure identical things, so there is no meaningful difference' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this exact distinction — an SLI belongs at the customer-journey level; a queue depth metric is a component signal that may explain, but is not equivalent to, that journey\'s actual outcome.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-mcq-02',
+        question:
+          'What does this metric filter accomplish, without requiring any change to the extraction worker\'s application code?',
+        codeBlock: 'aws logs put-metric-filter --log-group-name /manifestflow/extraction-worker \\\n  --filter-name ExtractionFailures \\\n  --filter-pattern \'[ts, level=ERROR, msg="extraction_failed*"]\' \\\n  --metric-transformations \\\n    metricName=ExtractionFailureCount,metricNamespace=ManifestFlow/Processing,metricValue=1,defaultValue=0',
+        options: [
+          { id: 'a', label: 'A', text: 'It turns every log line matching the `extraction_failed` pattern, as they arrive in CloudWatch Logs, into a real-time CloudWatch metric that can be alarmed on' },
+          { id: 'b', label: 'B', text: 'It deletes matching log lines from the log group to save storage costs' },
+          { id: 'c', label: 'C', text: 'It automatically restarts the extraction worker process whenever a matching line appears' },
+          { id: 'd', label: 'D', text: 'It requires the application to call `PutMetricData` explicitly whenever this log line is written' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'A metric filter matches an incoming log pattern and produces a metric automatically — the lesson specifically contrasts this with needing the application to publish a custom metric explicitly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-mcq-03',
+        question:
+          'Per the lesson, why does an alarm on "CPU above 70%" risk training an on-call engineer to ignore alarms?',
+        options: [
+          { id: 'a', label: 'A', text: 'CPU utilization is a resource-utilization signal, not a customer-impact signal — it can fire during a legitimate traffic spike that customers are experiencing perfectly fine service through' },
+          { id: 'b', label: 'B', text: 'CPU metrics are unreliable and frequently report incorrect values' },
+          { id: 'c', label: 'C', text: '70% is technically below the threshold AWS recommends, so the alarm would never fire in practice' },
+          { id: 'd', label: 'D', text: 'Alarms on resource metrics are not supported by CloudWatch at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s judgment call is precisely this: a threshold that merely differs from normal, without reflecting actual customer impact, produces noisy alarms an on-call learns to ignore.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-mcq-04',
+        question:
+          'Per the lesson, why does an alarm on "CPU above 70%" risk training an on-call engineer to ignore alarms?',
+        options: [
+          { id: 'a', label: 'A', text: 'CPU utilization is a resource-utilization signal, not a customer-impact signal — it can fire during a legitimate traffic spike that customers are experiencing perfectly fine service through' },
+          { id: 'b', label: 'B', text: 'CPU metrics are unreliable and frequently report incorrect values' },
+          { id: 'c', label: 'C', text: '70% is technically below the threshold AWS recommends, so the alarm would never fire in practice' },
+          { id: 'd', label: 'D', text: 'Alarms on resource metrics are not supported by CloudWatch at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s judgment call is precisely this: a threshold that merely differs from normal, without reflecting actual customer impact, produces noisy alarms an on-call learns to ignore.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-mcq-05',
+        question:
+          'Given this alarm definition, what condition must hold for the alarm to transition into `ALARM` state?',
+        codeBlock: 'aws cloudwatch put-metric-alarm --alarm-name manifestflow-p90-processing-latency \\\n  --namespace ManifestFlow/Processing --metric-name ProcessingLatencyMs \\\n  --statistic p90 --period 300 --evaluation-periods 3 \\\n  --threshold 60000 --comparison-operator GreaterThanThreshold \\\n  --alarm-actions arn:aws:sns:us-east-1:111122223333:manifestflow-oncall',
+        options: [
+          { id: 'a', label: 'A', text: 'The p90 of ProcessingLatencyMs must exceed 60000ms for three consecutive 5-minute evaluation periods' },
+          { id: 'b', label: 'B', text: 'Any single request\'s latency must exceed 60000ms, once, at any point' },
+          { id: 'c', label: 'C', text: 'The average latency across the entire account must exceed 60000ms' },
+          { id: 'd', label: 'D', text: 'The alarm fires immediately the first time p90 crosses 60000ms, with no evaluation window' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`--period 300 --evaluation-periods 3` requires the p90 threshold breach to persist across three consecutive 5-minute periods before the alarm state transitions, not a single instantaneous breach.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-mcq-06',
+        question:
+          'The FDE publishes `QueueBacklogDepth` with an `AvailabilityZone` dimension. What does this dimension specifically enable that publishing the metric without it would not?',
+        options: [
+          { id: 'a', label: 'A', text: 'Slicing and querying the same metric name separately per AZ, which is what reveals that the backlog is concentrated in `us-east-1b` rather than spread evenly' },
+          { id: 'b', label: 'B', text: 'Reducing the number of API calls needed to publish the metric' },
+          { id: 'c', label: 'C', text: 'Automatically triggering an Auto Scaling action without a separate alarm' },
+          { id: 'd', label: 'D', text: 'Making the metric visible in the AWS Billing console' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Dimensions are what let the same metric name be sliced by an attribute like AZ — without it, the metric would only show an aggregate figure and the localized `us-east-1b` concentration would be invisible.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-mcq-07',
+        question:
+          'What does this CloudWatch Logs Insights query surface that a simple count of ERROR-level log lines would not?',
+        codeBlock: 'fields @timestamp, requestId, dependency, latencyMs\n| filter @message like /extraction_failed/\n| stats count(*) as failures by dependency, bin(5m)\n| sort failures desc',
+        options: [
+          { id: 'a', label: 'A', text: 'Which specific downstream dependency each extraction failure is attributed to, grouped into 5-minute buckets, so a spike can be traced to a specific dependency rather than treated as one undifferentiated error count' },
+          { id: 'b', label: 'B', text: 'The exact dollar cost of each failed extraction request' },
+          { id: 'c', label: 'C', text: 'Whether the failure occurred in a public or private subnet' },
+          { id: 'd', label: 'D', text: 'The CPU utilization of the instance at the time of failure' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The query groups failures `by dependency, bin(5m)` — attributing failures to a specific dependency over time, which is exactly the trace-to-failing-dependency step the Practice Loop asks for, rather than a flat error count.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-03-mcq-08',
+        question:
+          'In the scenario\'s final diagnosis, which pairing correctly separates the symptom from the cause?',
+        options: [
+          { id: 'a', label: 'A', text: 'Symptom: manifest processing feels slow (p90 latency breach); Cause: two workers in us-east-1b silently failing health checks and not processing messages' },
+          { id: 'b', label: 'B', text: 'Symptom: two workers failing health checks; Cause: the SQS queue existing at all' },
+          { id: 'c', label: 'C', text: 'Symptom: the 60-second SLI threshold; Cause: the average latency metric' },
+          { id: 'd', label: 'D', text: 'There is no meaningful distinction between symptom and cause in this scenario' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The customer-visible p90 latency breach is the symptom; the two silently-unhealthy workers are the root cause the investigation traces back to — exactly the distinction the Evidence of Understanding requires the learner to state precisely.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/04-cloudwatch-and-cloudtrail-advanced': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — MANAGEMENT VS DATA EVENTS',
+        question:
+          'Per the lesson, what is the key operational difference between CloudTrail management events and data events?',
+        options: [
+          { id: 'a', label: 'A', text: 'Management events (control-plane operations) are recorded by default; data events (per-resource operations like S3 GetObject) are not recorded unless explicitly enabled in advance' },
+          { id: 'b', label: 'B', text: 'Data events are recorded by default; management events must be explicitly enabled' },
+          { id: 'c', label: 'C', text: 'Both are recorded by default with identical retention and no configuration needed' },
+          { id: 'd', label: 'D', text: 'Management events only cover IAM actions, while data events cover everything else' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this precisely: management events are on by default; data events require an explicit opt-in per resource due to their volume and cost.',
+        incorrectExplanation:
+          'Management events track control-plane administrative API calls and are logged by default; data events track high-frequency resource operations like S3 GetObject and require explicit opt-in.',
+        hint:
+          'Distinguish between administrative resource configuration changes (control plane) and high-volume data-plane operations on resource contents.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — CLOUDTRAIL LOG INTEGRITY VALIDATION',
+        question:
+          'What does CloudTrail\'s SHA-256 digest file mechanism (log file integrity validation) let you demonstrate that raw log files alone do not?',
+        options: [
+          { id: 'a', label: 'A', text: 'That a given period\'s delivered log files were not altered after delivery, making the evidence tamper-evident rather than merely "what the log said"' },
+          { id: 'b', label: 'B', text: 'That the underlying API call itself was authorized correctly' },
+          { id: 'c', label: 'C', text: 'That the events occurred in the correct AWS Region' },
+          { id: 'd', label: 'D', text: 'That no data events were missed during the investigation window' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this as the specific evidentiary upgrade — tamper-evidence via cryptographic validation, not just an unverified claim about log contents.',
+        incorrectExplanation:
+          'Log file integrity validation uses cryptographic SHA-256 digest signatures to prove that log files in S3 have not been altered, truncated, or forged post-delivery.',
+        hint:
+          'Consider how auditors cryptographically verify that stored audit records were not tampered with after being recorded.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-mcq-01',
+        question:
+          'A customer asks who downloaded a specific S3 object last month, but data events were never enabled on that bucket. What does the lesson say about recovering this information now?',
+        options: [
+          { id: 'a', label: 'A', text: 'It cannot be recovered — data events are not retroactive; they must have been enabled before the download occurred to have been captured at all' },
+          { id: 'b', label: 'B', text: 'Enabling data events now will backfill the missing history from S3\'s own internal logs automatically' },
+          { id: 'c', label: 'C', text: 'Management events already captured this, since S3 GetObject is classified as a management event' },
+          { id: 'd', label: 'D', text: 'AWS Support can always recover any historical API call regardless of trail configuration' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit that deciding what to enable is a proactive design decision — you cannot retroactively enable data events to see activity that happened before they were turned on.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-mcq-02',
+        question:
+          'What does CloudTrail Event History provide without requiring you to configure a dedicated trail first?',
+        options: [
+          { id: 'a', label: 'A', text: 'A 90-day rolling window of management events, searchable via the console or `lookup-events`' },
+          { id: 'b', label: 'B', text: 'An unlimited-retention archive of every event type, including data events' },
+          { id: 'c', label: 'C', text: 'Real-time alarming capability equivalent to a metric filter' },
+          { id: 'd', label: 'D', text: 'Automatic cross-region replication of all events' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states Event History gives a 90-day, no-configuration rolling window of management events — sufficient for most single-incident investigations without a dedicated trail.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-mcq-03',
+        question:
+          'What specific condition does this metric filter turn into a real-time metric?',
+        codeBlock: 'aws logs put-metric-filter --log-group-name /aws/cloudtrail/manifestflow-org-trail \\\n  --filter-name SecurityGroupIngressChanges \\\n  --filter-pattern \'{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupIngress) }\' \\\n  --metric-transformations \\\n    metricName=SGIngressChangeCount,metricNamespace=ManifestFlow/Security,metricValue=1,defaultValue=0',
+        options: [
+          { id: 'a', label: 'A', text: 'Any CloudTrail event whose `eventName` is either `AuthorizeSecurityGroupIngress` or `RevokeSecurityGroupIngress`, regardless of which security group or actor was involved' },
+          { id: 'b', label: 'B', text: 'Every API call recorded by CloudTrail, with no filtering at all' },
+          { id: 'c', label: 'C', text: 'Only failed API calls that returned an access-denied error' },
+          { id: 'd', label: 'D', text: 'Only changes made by IAM users, excluding changes made by assumed roles' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The filter pattern matches on `eventName` for the two specific ingress-rule-changing API calls — any matching event, from any actor or security group, increments the metric.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-mcq-04',
+        question:
+          '`lookup-events` returns two `AuthorizeSecurityGroupIngress` events on the same security group in one afternoon: one from `deploy-pipeline-role` sourced from a known internal VPC IP, and one from a human IAM user sourced from a residential ISP IP outside any deployment window. What lets the investigator distinguish "intended" from "suspicious" here?',
+        options: [
+          { id: 'a', label: 'A', text: 'Correlating each event\'s actor identity and source IP against known deployment-automation identities and expected change windows' },
+          { id: 'b', label: 'B', text: 'CloudTrail automatically labels one event "intended" and the other "suspicious" in its output' },
+          { id: 'c', label: 'C', text: 'The event names themselves differ between the two calls' },
+          { id: 'd', label: 'D', text: 'Only the timestamp matters; source IP and actor identity are not relevant to this determination' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s scenario resolves this exactly by correlating actor and source IP against known automation identities and expected windows — CloudTrail records the facts, the investigator draws the conclusion.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-mcq-05',
+        question:
+          'The scenario notes the alarm was already enabled before the suspicious change happened. Why does this timing matter?',
+        options: [
+          { id: 'a', label: 'A', text: 'It let the security on-call be paged within a minute of the change, instead of discovering it days later during a routine audit' },
+          { id: 'b', label: 'B', text: 'CloudTrail cannot record an event unless a matching alarm already exists for it' },
+          { id: 'c', label: 'C', text: 'It reduced the AWS bill for the CloudTrail trail' },
+          { id: 'd', label: 'D', text: 'It has no bearing on detection speed, only on billing' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Proactive alarming is what converts CloudTrail from a forensic record you search after the fact into a near-real-time detection signal — the lesson contrasts near-immediate paging against discovery during a later audit.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-mcq-06',
+        question:
+          'Per the lesson\'s Suggested Extension, why should the investigative IAM role have read-only access to CloudTrail, CloudWatch Logs, and Athena, with no permission to modify production resources?',
+        options: [
+          { id: 'a', label: 'A', text: 'Granting broader access "just in case" undermines the tamper-evidence goal of the investigation itself — an investigator who could modify production resources could also, even unintentionally, alter the very evidence being examined' },
+          { id: 'b', label: 'B', text: 'AWS technically forbids granting write permissions to any role used for CloudTrail queries' },
+          { id: 'c', label: 'C', text: 'Read-only roles are billed at a lower rate than roles with write access' },
+          { id: 'd', label: 'D', text: 'Athena queries are only supported from roles with no other IAM permissions at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s stated reasoning is about investigative integrity — the value of tamper-evident logs is undermined if the very role investigating them could also alter production state.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-mcq-07',
+        question:
+          'Given this output, what four fields does the timeline reconstruction extract for each event, per the lesson\'s approach?',
+        codeBlock: '$ aws cloudtrail lookup-events \\\n  --lookup-attributes AttributeKey=ResourceName,AttributeValue=sg-0worker9a8b7c6d5 \\\n  --start-time 2026-08-30T00:00:00Z --end-time 2026-08-31T00:00:00Z \\\n  --query \'Events[].{Time:EventTime,User:Username,Event:EventName,Source:SourceIPAddress}\'\n[{"Time": "2026-08-30T14:22:10Z", "User": "deploy-pipeline-role", "Event": "AuthorizeSecurityGroupIngress", "Source": "10.20.10.44"},\n {"Time": "2026-08-30T14:47:03Z", "User": "j.rivera", "Event": "AuthorizeSecurityGroupIngress", "Source": "203.0.113.201"}]',
+        options: [
+          { id: 'a', label: 'A', text: 'Actor (Username), exact timestamp (Time), the API action (Event), and the source IP (Source), for the resource in question' },
+          { id: 'b', label: 'B', text: 'Only the timestamp and the resource ARN, with actor identity considered irrelevant' },
+          { id: 'c', label: 'C', text: 'Only the API action name, since the other fields are not captured by CloudTrail' },
+          { id: 'd', label: 'D', text: 'The AWS Support case number associated with each event' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The `--query` projects exactly these four fields — actor, time, event name, and source IP — matching the lesson\'s stated timeline reconstruction fields (actor, time, resource, outcome).'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-04-mcq-08',
+        question:
+          'Given this output, what four fields does the timeline reconstruction extract for each event, per the lesson\'s approach?',
+        codeBlock: '$ aws cloudtrail lookup-events \\\n  --lookup-attributes AttributeKey=ResourceName,AttributeValue=sg-0worker9a8b7c6d5 \\\n  --start-time 2026-08-30T00:00:00Z --end-time 2026-08-31T00:00:00Z \\\n  --query \'Events[].{Time:EventTime,User:Username,Event:EventName,Source:SourceIPAddress}\'\n[{"Time": "2026-08-30T14:22:10Z", "User": "deploy-pipeline-role", "Event": "AuthorizeSecurityGroupIngress", "Source": "10.20.10.44"},\n {"Time": "2026-08-30T14:47:03Z", "User": "j.rivera", "Event": "AuthorizeSecurityGroupIngress", "Source": "203.0.113.201"}]',
+        options: [
+          { id: 'a', label: 'A', text: 'Actor (Username), exact timestamp (Time), the API action (Event), and the source IP (Source), for the resource in question' },
+          { id: 'b', label: 'B', text: 'Only the timestamp and the resource ARN, with actor identity considered irrelevant' },
+          { id: 'c', label: 'C', text: 'Only the API action name, since the other fields are not captured by CloudTrail' },
+          { id: 'd', label: 'D', text: 'The AWS Support case number associated with each event' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The `--query` projects exactly these four fields — actor, time, event name, and source IP — matching the lesson\'s stated timeline reconstruction fields (actor, time, resource, outcome).'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/05-docker-app-on-ec2-project': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-05-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — IAM INSTANCE ROLES VS EMBEDDED KEYS',
+        question:
+          'Per the lesson, why should the EC2 instance\'s ECR and CloudWatch Logs access come from an IAM instance role rather than an access key pair embedded in the container\'s environment?',
+        options: [
+          { id: 'a', label: 'A', text: 'The instance role\'s credentials are temporary, automatically rotated by the EC2 metadata service, and scoped narrowly — a compromised instance leaks a narrowly-scoped, auto-expiring credential rather than a long-lived key' },
+          { id: 'b', label: 'B', text: 'Access key pairs are technically incompatible with the Docker CLI' },
+          { id: 'c', label: 'C', text: 'Instance roles are free while access keys incur an hourly charge' },
+          { id: 'd', label: 'D', text: 'There is no meaningful security difference; the choice is purely about convenience' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this exactly — auto-rotating, narrowly-scoped temporary credentials versus a long-lived embedded key with whatever permissions were granted.',
+        incorrectExplanation:
+          'IAM instance roles issue temporary, auto-rotating credentials via IMDS, eliminating the security vulnerability of static access keys stored on disk or in environment variables.',
+        hint:
+          'Focus on credential lifecycle, automatic rotation, and the risks of long-lived static keys stored on file systems.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-05-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — APPLICATION HEALTH CHECK VS PROCESS RUNNING',
+        question:
+          'Why does the lesson insist on an application-level health check (curling `/health`) rather than simply checking that the container process is still running?',
+        options: [
+          { id: 'a', label: 'A', text: 'A hung process can remain alive and pass a naive process-exists check while never successfully responding to a real request again, so only an application-level check confirms the service is actually serving traffic correctly' },
+          { id: 'b', label: 'B', text: 'Process-exists checks are not supported by the Docker CLI at all' },
+          { id: 'c', label: 'C', text: 'An application-level health check uses less CPU than a process check' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference between the two kinds of checks' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson makes this exact distinction — "the process is running" is not the same claim as "the application inside it is serving traffic correctly," and only an app-level check verifies the latter.',
+        incorrectExplanation:
+          'A running process PID does not guarantee that the application is functional; only an active HTTP probe verifies that the runtime can receive and successfully serve incoming traffic.',
+        hint:
+          'Think about failure modes where a process continues running in memory but cannot respond to incoming client requests.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-05-mcq-01',
+        question:
+          'What does bootstrapping the instance via user data accomplish that manually configuring the instance over SSH after launch does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'It makes the setup a repeatable, documented process any operator can reproduce from the launch template, rather than steps only the original engineer remembers' },
+          { id: 'b', label: 'B', text: 'It removes the need for the instance to have an IAM role at all' },
+          { id: 'c', label: 'C', text: 'User data runs continuously in the background, unlike a one-time SSH session' },
+          { id: 'd', label: 'D', text: 'It automatically encrypts the instance\'s root EBS volume' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s stated distinction is reproducibility — user data is what separates "a new operator can launch a working instance from the template" from tribal knowledge held by one engineer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-05-mcq-02',
+        question:
+          'What does scoping this policy statement\'s `Resource` to one specific ECR repository, rather than `*`, accomplish?',
+        codeBlock: '{\n  "Effect": "Allow", "Action": ["ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer"],\n  "Resource": "arn:aws:ecr:us-east-1:111122223333:repository/digest-notifier"\n}',
+        options: [
+          { id: 'a', label: 'A', text: 'It limits the instance role to pulling only the `digest-notifier` repository, so a compromised instance cannot pull images from unrelated repositories in the same account' },
+          { id: 'b', label: 'B', text: 'It has no functional effect since ECR ignores resource-level restrictions' },
+          { id: 'c', label: 'C', text: 'It prevents the repository from being deleted by any principal' },
+          { id: 'd', label: 'D', text: 'It is required syntax with no security implication' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Resource-scoping the policy is exactly the "narrowly scoped to what the instance needs" principle the lesson names — this is the difference between a compromised instance leaking narrow versus broad access.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-05-mcq-03',
+        question:
+          'Per the lesson, what is the operational advantage of routing container logs to CloudWatch Logs via the `awslogs` driver instead of requiring an operator to SSH in and run `docker logs`?',
+        options: [
+          { id: 'a', label: 'A', text: 'An operator can diagnose the service from CloudWatch Logs even if they have no SSH key access to production, which matters for teams whose access is deliberately break-glass-only' },
+          { id: 'b', label: 'B', text: 'The `awslogs` driver makes the container start faster' },
+          { id: 'c', label: 'C', text: 'SSH access to EC2 instances is technically deprecated by AWS' },
+          { id: 'd', label: 'D', text: 'CloudWatch Logs is the only place Docker container logs can be written to at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this specifically — diagnosing via CloudWatch Logs rather than SSH matters for an operations team that may not have (or want to routinely use) SSH access to production.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-05-mcq-04',
+        question:
+          'When `digest-notifier`\'s AMI needs a security patch, why does the lesson replace the instance from an updated launch template instead of SSHing in to patch the running instance directly?',
+        options: [
+          { id: 'a', label: 'A', text: 'SSHing in to patch a running instance leaves an undocumented, unreproducible change baked into that one instance, while replacing it from an updated launch template keeps every running instance traceable to the same documented process' },
+          { id: 'b', label: 'B', text: 'EC2 instances cannot technically be patched in place under any circumstances' },
+          { id: 'c', label: 'C', text: 'Replacing an instance is always faster than applying a security patch' },
+          { id: 'd', label: 'D', text: 'Launch templates automatically detect and apply security patches without any user action' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s immutable-infrastructure argument stated precisely — traceability to a documented, versioned process versus an undocumented manual change nobody can reconstruct later.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-05-mcq-05',
+        question:
+          'This command runs successfully during instance boot with no credentials configured anywhere in the user-data script itself. What makes this possible?',
+        codeBlock: 'aws ecr get-login-password --region us-east-1 | \\\n  docker login --username AWS --password-stdin 111122223333.dkr.ecr.us-east-1.amazonaws.com',
+        options: [
+          { id: 'a', label: 'A', text: 'The AWS CLI automatically uses the instance\'s attached IAM instance role credentials, obtained from the EC2 metadata service, to authorize the `ecr:GetAuthorizationToken` call' },
+          { id: 'b', label: 'B', text: '`aws ecr get-login-password` does not actually require any AWS credentials to run' },
+          { id: 'c', label: 'C', text: 'Docker Hub provides this authentication transparently regardless of the registry specified' },
+          { id: 'd', label: 'D', text: 'The command silently fails and the container falls back to a public image' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly why the instance role was attached — the AWS CLI transparently uses the role\'s temporary credentials from the instance metadata service, no explicit credential configuration needed.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-05-mcq-06',
+        question:
+          'This command runs successfully during instance boot with no credentials configured anywhere in the user-data script itself. What makes this possible?',
+        codeBlock: 'aws ecr get-login-password --region us-east-1 | \\\n  docker login --username AWS --password-stdin 111122223333.dkr.ecr.us-east-1.amazonaws.com',
+        options: [
+          { id: 'a', label: 'A', text: 'The AWS CLI automatically uses the instance\'s attached IAM instance role credentials, obtained from the EC2 metadata service, to authorize the `ecr:GetAuthorizationToken` call' },
+          { id: 'b', label: 'B', text: '`aws ecr get-login-password` does not actually require any AWS credentials to run' },
+          { id: 'c', label: 'C', text: 'Docker Hub provides this authentication transparently regardless of the registry specified' },
+          { id: 'd', label: 'D', text: 'The command silently fails and the container falls back to a public image' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly why the instance role was attached — the AWS CLI transparently uses the role\'s temporary credentials from the instance metadata service, no explicit credential configuration needed.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-05-mcq-07',
+        question:
+          'Wrapping the single instance in an Auto Scaling group with `MinSize=1, MaxSize=1` and health-check-based replacement adds what capability beyond the manual launch-template-swap process this lesson walked through?',
+        options: [
+          { id: 'a', label: 'A', text: 'Automatic replacement of an unhealthy instance without requiring an operator to notice the failure and manually trigger the swap' },
+          { id: 'b', label: 'B', text: 'It removes the need for an IAM instance role, since the ASG provides credentials directly' },
+          { id: 'c', label: 'C', text: 'It eliminates the need for a launch template entirely' },
+          { id: 'd', label: 'D', text: 'It changes the underlying container image without any user action' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The manual process this lesson taught still requires a human to notice a problem and trigger the swap; an ASG with health-check-based replacement automates that detection-and-replacement loop.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/06-aws-lambda-and-api-gateway': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-06-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — RESOURCE-BASED POLICY VS EXECUTION ROLE',
+        question:
+          'What is the difference between the Lambda function\'s resource-based policy (set via `add-permission`) and its execution role?',
+        options: [
+          { id: 'a', label: 'A', text: 'The resource-based policy governs who may invoke the function; the execution role governs what the function\'s own code may do once invoked' },
+          { id: 'b', label: 'B', text: 'They are two names for the exact same IAM construct' },
+          { id: 'c', label: 'C', text: 'The execution role governs who may invoke the function; the resource-based policy governs what the code may do' },
+          { id: 'd', label: 'D', text: 'The resource-based policy is optional and has no effect if omitted' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this line explicitly — invocation permission (resource-based policy) versus runtime code permission (execution role) are two separate identity boundaries.',
+        incorrectExplanation:
+          'Resource-based policies authorize external triggers like API Gateway to invoke the Lambda function, whereas the execution role authorizes the function code itself to make API calls to downstream AWS resources.',
+        hint:
+          'Separate inbound invocation authorization (who can call me) from outbound API authorization (what I can call).'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-06-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — RESERVED CONCURRENCY PURPOSE',
+        question:
+          'Why does the FDE set `--reserved-concurrent-executions 20` on the `manifest-callback` function, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'To cap how many invocations can run simultaneously, protecting the downstream SQS-consuming worker fleet from being overwhelmed if the broker\'s system misbehaves and fires an unusually large burst of callbacks' },
+          { id: 'b', label: 'B', text: 'To guarantee the function always has at least 20 warm execution environments available, eliminating cold starts entirely' },
+          { id: 'c', label: 'C', text: 'To limit the function\'s memory allocation to 20MB' },
+          { id: 'd', label: 'D', text: 'To set the function\'s maximum execution duration to 20 seconds' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this precisely — concurrency limits cap simultaneous invocations to protect a downstream dependency, distinct from timeout (which bounds a single invocation\'s duration).',
+        incorrectExplanation:
+          'Reserved concurrency simultaneously protects downstream systems (like relational databases) from connection saturation and guarantees reserved capacity against account-wide concurrency starvation.',
+        hint:
+          'Consider both the upper limit protecting downstream dependencies and the guaranteed capacity allocation for the function itself.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-06-mcq-01',
+        question:
+          'Per the lesson\'s own framing, what does this lesson deliberately focus on that Module 4\'s serverless lesson does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'The actual console/CLI mechanics of wiring API Gateway to Lambda — resource-based permissions, execution role scoping, timeout/concurrency configuration — and a concrete idempotency implementation' },
+          { id: 'b', label: 'B', text: 'Whether serverless or a container is the right architectural choice for a given workload' },
+          { id: 'c', label: 'C', text: 'Step Functions state machine design with Retry and Catch fields' },
+          { id: 'd', label: 'D', text: 'The cold-start cost trade-off between infrequent and steady traffic' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this explicitly in its opening paragraph — Module 4 already covers the architectural framing (B, C, D); this lesson goes one level more mechanical.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-06-mcq-02',
+        question:
+          'A `POST /callback` route is created with a correctly configured `AWS_PROXY` integration, but calling it returns a 500 "Internal server error" with no useful detail. What is the most likely cause, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'API Gateway has not been granted permission to invoke the Lambda function — the `lambda add-permission` resource-based policy statement is missing' },
+          { id: 'b', label: 'B', text: 'The Lambda function\'s timeout is set too low' },
+          { id: 'c', label: 'C', text: 'The API Gateway resource path contains an invalid character' },
+          { id: 'd', label: 'D', text: '`AWS_PROXY` integrations are incompatible with `POST` methods' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this exact failure mode — a missing resource-based permission produces a vague 500 from API Gateway, discoverable only in execution logs, and is easy to omit in CLI/IaC-driven deployments.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-06-mcq-03',
+        question:
+          'What happens the second time this handler is invoked with the same `idempotency_key`?',
+        codeBlock: 'try:\n    table.put_item(\n        Item={"idempotency_key": idempotency_key, "status": "processing"},\n        ConditionExpression="attribute_not_exists(idempotency_key)"\n    )\nexcept ClientError as e:\n    if e.response["Error"]["Code"] == "ConditionalCheckFailedException":\n        return {"statusCode": 200, "body": json.dumps({"status": "duplicate_ignored"})}\n    raise',
+        options: [
+          { id: 'a', label: 'A', text: 'The conditional `PutItem` fails with `ConditionalCheckFailedException` because the item already exists, and the handler returns `duplicate_ignored` without re-queuing the manifest' },
+          { id: 'b', label: 'B', text: 'The item is overwritten silently and the manifest is queued a second time' },
+          { id: 'c', label: 'C', text: 'DynamoDB raises an unrecoverable error that crashes the Lambda function' },
+          { id: 'd', label: 'D', text: 'The `ConditionExpression` is ignored on the second call, since conditions only apply to the first write ever made to the table' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`attribute_not_exists(idempotency_key)` makes the write succeed only the first time; a second attempt with the same key fails the condition, which the handler catches and turns into a safe no-op response.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-06-mcq-04',
+        question:
+          'In the Practice Loop\'s step 5, the conditional `PutItem` succeeds but the subsequent `sqs:SendMessage` call fails because the execution role\'s permission was revoked. What does this expose about the handler\'s current idempotency design?',
+        options: [
+          { id: 'a', label: 'A', text: 'The idempotency key is marked "seen" before the downstream action (queuing) is confirmed to have succeeded, so a failure after the write leaves the manifest never queued but also permanently treated as a duplicate on any future retry with that same key' },
+          { id: 'b', label: 'B', text: 'This scenario is impossible, since DynamoDB and SQS calls always succeed or fail together' },
+          { id: 'c', label: 'C', text: 'The handler automatically retries the SQS call an unlimited number of times before returning' },
+          { id: 'd', label: 'D', text: 'This has no effect on the manifest\'s eventual processing outcome' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly the gap the Practice Loop\'s diagnostic step is designed to surface — the write-then-act ordering means a downstream failure after the idempotency key is claimed needs an explicit decision (retryable status vs. manual reconciliation), which the lesson asks the learner to make and document rather than leaving implicit.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-06-mcq-05',
+        question:
+          'Per the lesson, why is rejecting a malformed request via an API Gateway request validator strictly cheaper than validating the same condition as the first lines of the Lambda handler?',
+        options: [
+          { id: 'a', label: 'A', text: 'A request rejected by API Gateway never invokes the Lambda function at all, avoiding paying for an invocation that was always going to fail' },
+          { id: 'b', label: 'B', text: 'API Gateway request validators are more accurate than any validation logic that could be written in Python' },
+          { id: 'c', label: 'C', text: 'Lambda functions cannot access the request body at all, making handler-side validation impossible' },
+          { id: 'd', label: 'D', text: 'There is no cost difference; the two approaches are functionally and financially identical' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this directly — rejecting before invocation avoids billing for an invocation whose outcome (a validation failure) was already certain.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-06-mcq-06',
+        question:
+          'What does an `AWS_PROXY` integration type do with an incoming HTTP request, compared to a non-proxy integration requiring a request-mapping template?',
+        options: [
+          { id: 'a', label: 'A', text: 'It forwards the entire HTTP request (headers, body, path parameters) as-is into the Lambda\'s event payload, with no hand-written mapping template required' },
+          { id: 'b', label: 'B', text: 'It strips the request body entirely and forwards only the HTTP headers' },
+          { id: 'c', label: 'C', text: 'It requires a request-mapping template just like a non-proxy integration, but applies it after invocation instead of before' },
+          { id: 'd', label: 'D', text: 'It converts the request into an XML payload before invoking Lambda' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson describes `AWS_PROXY` specifically as forwarding the entire request as-is, which is why the handler code above reads `event["body"]` and `event["headers"]` directly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-06-mcq-07',
+        question:
+          '`--timeout` and `--reserved-concurrent-executions` protect against two different failure modes. Which pairing is correct?',
+        options: [
+          { id: 'a', label: 'A', text: '`--timeout` bounds how long one invocation may run (protecting against a hung dependency consuming billed time); `--reserved-concurrent-executions` caps how many invocations run simultaneously (protecting a downstream system from a traffic spike)' },
+          { id: 'b', label: 'B', text: 'Both settings control exactly the same thing — the maximum billed execution time per invocation' },
+          { id: 'c', label: 'C', text: '`--timeout` controls simultaneous invocations; `--reserved-concurrent-executions` controls single-invocation duration' },
+          { id: 'd', label: 'D', text: '`--reserved-concurrent-executions` only takes effect after `--timeout` is exceeded' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson separates these explicitly — a per-invocation duration bound versus an account-wide simultaneous-invocation cap — each protecting against a distinct failure mode.'
+      }
+    ]
   }
 };
 

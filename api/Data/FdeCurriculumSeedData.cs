@@ -4978,6 +4978,1414 @@ compare how much capacity is actually lost during the stall versus the zero-tole
 — then state which setting Northwind should use for a customer-facing service versus an internal
 batch worker.
 ",
+        "13-kubernetes-networking" => @"# Kubernetes Networking
+
+## Concepts Covered
+
+Module 4's Kubernetes networking lesson assumed a `Service` already existed and focused on
+locking a running cluster down with `NetworkPolicy`. This lesson goes one level earlier: how a
+`Service` object itself gets built, what cluster DNS actually does with it, and why the traffic
+that reaches a Pod through one is never sent to a Pod's IP directly. Every Pod in a cluster gets
+its own IP address, but that address is worthless as a stable target — Phase 21's ReplicaSet
+lesson established that Pods are disposable and get replaced with new IPs constantly, so nothing
+should ever hardcode one. A `Service` solves this by giving a stable virtual IP and DNS name to a
+*set* of Pods selected by label, and continuously updating which real Pod IPs sit behind that
+stable address as Pods come and go. The mechanism has two halves working together: `kube-proxy`
+(or the CNI's equivalent) programs iptables or IPVS rules on every node so that traffic to the
+Service's virtual IP gets load-balanced across the real Pod IPs currently marked ready, and
+`kube-dns`/CoreDNS resolves `routeplanner.default.svc.cluster.local` (or just `routeplanner`
+inside the same namespace) to that virtual IP so application code never needs to know the virtual
+IP either — it just calls the Service by name. The list of real Pod IPs behind a Service isn't
+part of the Service object itself; it lives in a separate `Endpoints` (or `EndpointSlice`) object
+that the Endpoints controller keeps in sync, adding a Pod's IP only once its readiness probe
+passes and removing it the instant the Pod stops being ready or is deleted — this is the same
+readiness signal from Phase 21's Pod lesson, now wired directly into traffic routing rather than
+just restart behavior.
+
+```yaml
+# routeplanner-service.yaml — internal ClusterIP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: routeplanner
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: routeplanner
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+```
+
+Three Service types open three different traffic directions, and picking the wrong one is a
+common trust-boundary mistake. `ClusterIP` (the default, shown above) is reachable only from
+inside the cluster — the correct choice for `routeplanner` reaching Redis or Postgres, and for
+anything that should never be internet-facing. `NodePort` opens a fixed port (30000-32767) on
+every node's own IP, which technically makes the Service reachable from outside the cluster the
+moment any node's firewall allows it — a shortcut that is almost always the wrong production
+choice because it bypasses any central routing, TLS termination, or path-based rule, and ties
+external reachability to node IPs that can change. `LoadBalancer` provisions a cloud load balancer
+(an AWS NLB/ALB, in Northwind's case) pointing at the Service, which works but provisions one
+load balancer *per Service* — expensive and unwieldy once there are several externally-facing
+services. An `Ingress` object is the better answer for HTTP(S) traffic specifically: one Ingress
+controller (commonly `ingress-nginx` or an AWS Load Balancer Controller) runs as a single entry
+point handling TLS termination and path/host-based routing to multiple backend Services, so
+`api.northwind.example.com/routes` and `api.northwind.example.com/admin` can route to two
+different internal ClusterIP Services behind one externally-facing load balancer instead of two.
+
+```yaml
+# routeplanner-ingress.yaml — HTTP routing through one entry point
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: routeplanner-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.northwind.example.com
+      http:
+        paths:
+          - path: /routes
+            pathType: Prefix
+            backend:
+              service:
+                name: routeplanner
+                port:
+                  number: 8080
+```
+
+## Practical Backend Scenario
+
+Northwind's `routeplanner` Deployment runs three replicas behind a `ClusterIP` Service that the
+customer's internal order-processing job calls by DNS name. During a rolling update, one new Pod
+starts but its readiness probe never passes because its Postgres connection string points at the
+wrong environment variable name for the new revision. `kubectl get pods` shows it as `Running` —
+the container process is alive — but requests to `routeplanner` never land on it, and nobody
+notices anything is wrong because the other two Pods still serving traffic absorb the load fine.
+The FDE runs `kubectl get endpoints routeplanner` and sees only two IPs listed where three Pods
+exist, immediately narrowing the investigation from ""is the Service broken"" to ""which specific Pod
+is excluded and why"" — `kubectl describe pod` on the missing one shows the readiness probe's exact
+failure reason. Separately, when Northwind's product team asks to expose `routeplanner`'s read-only
+route-history endpoint to a partner logistics company without exposing anything else, the FDE
+resists the instinct to flip the Service to `LoadBalancer` (which would expose every port the
+Service defines, not just the one route) and instead adds a second `Ingress` path scoped to
+exactly `/routes/history`, routed through the existing TLS-terminating entry point.
+
+## Practice Loop
+
+1. Create the `routeplanner` ClusterIP Service and confirm `kubectl get endpoints routeplanner`
+   lists exactly as many IPs as there are ready Pods.
+2. Exec into any Pod in the cluster and run `nslookup routeplanner` (or
+   `routeplanner.default.svc.cluster.local`) to confirm cluster DNS resolves the Service name to
+   its virtual IP.
+3. Deliberately break one Pod's readiness probe (point it at a nonexistent health endpoint),
+   redeploy, and watch `kubectl get endpoints` drop that Pod's IP while `kubectl get pods` still
+   shows it `Running`.
+4. Write the `Ingress` manifest routing `api.northwind.example.com/routes` to the `routeplanner`
+   Service, apply it, and trace the full request path from client to Pod in one sentence per hop.
+5. Compare `NodePort` and `LoadBalancer` for the same Service and write one sentence stating which
+   trust boundary each one opens that `ClusterIP` does not.
+
+## Evidence of Understanding
+
+You can build a `ClusterIP` Service and explain the two-part mechanism (kube-proxy's traffic
+routing, CoreDNS's name resolution) that makes it work without any application code knowing a Pod
+IP. You can read an `Endpoints`/`EndpointSlice` object to distinguish a Pod's container-alive state
+from its traffic-eligible state, and use that distinction to diagnose a Pod that is `Running` but
+silently excluded from rotation. You can choose the correct Service type or Ingress for a given
+traffic direction and explain why a shortcut like `NodePort` or an unscoped `LoadBalancer` opens
+more surface than the task actually requires.
+
+## Suggested Extension
+
+Add a second backend Service and a second `Ingress` path rule so two different routes on the same
+host route to two different Deployments, and confirm with `curl` that each path reaches only its
+intended backend.
+",
+        "14-kubernetes-scaling-hpa-cluster-autoscaler-vpa-and-karpenter" => @"# Kubernetes Scaling: HPA, Cluster Autoscaler, VPA, and Karpenter
+
+## Concepts Covered
+
+Kubernetes scaling is really four separate mechanisms answering four different questions, and the
+single most common scaling failure is diagnosing the wrong one — adding more Pods when the cluster
+has no room to run them, or right-sizing a Pod when the actual problem is Pod count. The
+**HorizontalPodAutoscaler (HPA)** answers ""how many replicas of this Deployment should exist right
+now,"" watching a metric (CPU/memory utilization by default, or a custom metric like queue depth via
+the metrics API) against a target and adjusting `spec.replicas` on the Deployment it targets. It
+only works correctly if every container has `resources.requests` set — CPU utilization is measured
+*as a percentage of the request*, so a Pod with no request set has an undefined percentage and the
+HPA cannot compute a target at all, a subtle configuration gap that silently makes autoscaling
+inert rather than erroring loudly. The **Vertical Pod Autoscaler (VPA)** answers a different
+question — ""is this Pod's own CPU/memory request sized correctly"" — recommending (or, in `Auto`
+mode, applying) request/limit changes based on observed usage history; it and the HPA should not
+both actively resize the same resource dimension on the same workload, since they'd fight each
+other's decisions.
+
+```yaml
+# routeplanner-hpa.yaml — scale 3-10 replicas targeting 70% CPU
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: routeplanner-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: routeplanner
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+```
+
+Both HPA and VPA operate entirely at the Pod level — they never change how many *nodes* exist. That
+is the **Cluster Autoscaler**'s job: it watches for Pods stuck `Pending` because no node has enough
+allocatable CPU/memory to schedule them, and adds nodes to a node group to make room (and,
+symmetrically, removes underutilized nodes when it's safe to). This is why a bursty workload can
+scale its Pod count via HPA and still sit `Pending` — the HPA did its job correctly, but the
+cluster genuinely had no spare node capacity, and Cluster Autoscaler hadn't caught up yet (node
+provisioning takes real minutes, not the seconds Pod scheduling takes). **Karpenter** is a newer
+alternative to Cluster Autoscaler that skips the node-group abstraction entirely: instead of
+scaling a pre-defined group of identically-shaped nodes, it looks at the actual pending Pods'
+resource requests, taints/tolerations, and affinity rules and provisions right-sized nodes directly
+from a flexible instance-type pool, which is both faster to react and avoids the classic Cluster
+Autoscaler waste of over-provisioning a large uniform node just to fit one small Pod.
+`stabilizationWindowSeconds` on the HPA's `scaleDown` behavior (shown above) exists because a
+workload with a bursty, spiky metric can otherwise oscillate — scaling up, immediately scaling back
+down as the burst passes, scaling up again seconds later — churning Pods and nodes for no real
+benefit; the window makes the HPA wait for a sustained low reading before actually scaling down,
+trading a little latency for stability. All four layers trade cost against latency in the same
+direction: pre-provisioned headroom (extra nodes or Pods sitting idle, ready) costs money
+continuously but responds instantly; purely reactive provisioning costs nothing when idle but
+means a real, measurable delay — Pod scheduling in seconds, new node provisioning in minutes — before
+capacity actually exists.
+
+## Practical Backend Scenario
+
+Northwind's `routeplanner` Deployment gets a HPA targeting 70% CPU, `minReplicas: 3,
+maxReplicas: 10`. During a regional weather event that spikes delivery-route recalculation
+requests, the HPA correctly scales `routeplanner` from 3 to 9 replicas within two minutes — but six
+of the new Pods sit `Pending` for four more minutes before becoming schedulable. The FDE checks
+`kubectl describe pod` on one `Pending` replica and sees the scheduling-failure event: `0/6 nodes
+are available: insufficient cpu`. The HPA layer worked exactly as designed; the bottleneck was one
+layer down, at cluster node capacity, and Cluster Autoscaler needed those four minutes to actually
+provision and join a new node before the Pending Pods could schedule. Separately, a VPA
+recommendation run against `routeplanner`'s historical usage shows its containers are requesting
+500m CPU but only ever using roughly 120m — the FDE right-sizes the request down to 200m (leaving
+headroom, not matching the exact observed average), which both improves node bin-packing (more
+Pods fit per node at a smaller, more accurate request) and makes the HPA's utilization percentage
+meaningful again, since it had been computing against an inflated denominator.
+
+## Practice Loop
+
+1. Add `resources.requests` to the `routeplanner` Deployment (a prerequisite the HPA silently
+   depends on) and apply the `HorizontalPodAutoscaler` manifest above.
+2. Generate synthetic CPU load against `routeplanner` and watch `kubectl get hpa routeplanner-hpa
+   --watch` to see `TARGETS` climb and `REPLICAS` increase.
+3. Deliberately cap the cluster's available node capacity (or run this against a small cluster) and
+   reproduce a `Pending` Pod during a scale-up event; run `kubectl describe pod` and identify
+   exactly which resource the scheduling-failure event names as insufficient.
+4. Run a VPA in recommendation-only mode against `routeplanner`'s historical usage and compare its
+   suggested CPU/memory request against the value currently set.
+5. Explain in one paragraph why Karpenter's node provisioning can be faster than Cluster
+   Autoscaler's for the same pending-Pod event, naming the specific abstraction Karpenter skips.
+
+## Evidence of Understanding
+
+You can write a `HorizontalPodAutoscaler` that scales on CPU utilization and explain precisely why
+it depends on every container having `resources.requests` set. You can distinguish which of the
+four scaling layers (HPA, VPA, Cluster Autoscaler, Karpenter) is responsible when a workload's Pod
+count scaled correctly but new Pods remain `Pending`, and read the exact `kubectl describe pod`
+event that confirms which resource is actually saturated. You can explain what a stabilization
+window prevents and state the cost/latency trade-off between pre-provisioned headroom and reactive
+provisioning in concrete terms.
+
+## Suggested Extension
+
+Configure the HPA to scale on a custom metric (queue depth from the Redis-backed route-calculation
+queue) instead of CPU, and explain in one paragraph why queue depth is a more accurate scaling
+signal than CPU utilization for a workload whose bottleneck is I/O-bound queue processing rather
+than compute.
+",
+        "15-kubernetes-scaling-and-network-policies" => @"# Kubernetes Scaling and Network Policies
+
+## Concepts Covered
+
+Lesson 14 covered the mechanics of scaling in isolation. This lesson covers the question that
+matters once scaling is live in a real customer environment: does adding replicas ever change
+*what a workload is allowed to reach*, and if not, why does that reassurance still need to be
+tested rather than assumed. The short mechanical answer is that a `NetworkPolicy`'s rules are
+defined by label selectors, not by replica count — a policy allowing ingress from Pods labeled
+`app: routeplanner` covers every Pod carrying that label whether there are 3 of them or 30, because
+new replicas created by a scale-up event inherit the Deployment's Pod template labels automatically.
+Scaling and network policy are, mechanically, orthogonal concerns. But orthogonal-in-theory is not
+the same as verified-in-practice, and this is exactly the kind of gap an FDE should not take on
+faith during a customer engagement: a policy written sloppily — for example, a namespace-level
+`podSelector: {}` matching *any* Pod in the namespace rather than the specific `app: routeplanner`
+label — would silently let every newly-scaled replica of some *other* future workload in the same
+namespace inherit access nobody intended, precisely because nobody re-reads the policy's selector
+scope every time a new Deployment or a scale-up event happens.
+
+```yaml
+# default-deny-then-allow.yaml — namespace-wide default-deny, then one scoped allow
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes: [""Ingress"", ""Egress""]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: routeplanner-allow-db-and-redis
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: routeplanner
+  policyTypes: [""Egress""]
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+```
+
+The second half of this lesson's concern is that autoscaling *without* a resource ceiling is its
+own kind of blast-radius problem, just in the compute dimension instead of the network dimension.
+A `resources.limits` value caps how much CPU/memory a single container can consume — CPU is
+throttled (the process slows down but keeps running) when it exceeds its limit, while memory is
+hard-killed (`OOMKilled`) the instant it exceeds its limit, an asymmetry worth knowing before
+debugging a mysterious container restart. Without a `limits.memory` ceiling, a single leaking
+replica during a scale-up burst can consume an entire node's memory and get every other Pod
+scheduled on that node evicted alongside it — a single workload's bug taking down unrelated
+neighbors sharing the node, which is precisely the kind of silently-widened blast radius the
+network-policy half of this lesson is also about, just expressed through a different resource.
+`resources.requests`, separately, is what the scheduler uses to decide whether a node has room for
+a new Pod at all (Lesson 14's HPA/Cluster-Autoscaler mechanics depend on it) — a request that's set
+too low lets the scheduler over-pack a node with more Pods than it can actually sustain under real
+load, and a request set too high wastes capacity and triggers unnecessary Cluster Autoscaler
+scale-outs. Getting both dimensions right — a tight, label-scoped `NetworkPolicy` and an honest
+`requests`/`limits` pair — is what lets a customer trust that ""we can scale this workload"" doesn't
+quietly also mean ""we widened what it can reach or how much of a shared node it can consume.""
+
+## Practical Backend Scenario
+
+Northwind's platform team asks the FDE to prove that scaling `routeplanner` from 3 to 9 replicas
+during a traffic spike does not change its network reachability. The FDE applies the default-deny
+policy above plus the scoped `routeplanner-allow-db-and-redis` policy, then forces a scale-up to 9
+replicas and runs the same connectivity test against every one of the 9 Pods: a `curl` to Postgres
+on port 5432 succeeds from all 9 (the expected-allowed path), and a `curl` attempt to the
+`admin-console` Deployment's ClusterIP (which no policy explicitly allows) times out from all 9
+(the expected-forbidden path) — proving the policy's blast radius held constant across the scale
+event because it was written against the `app: routeplanner` label, not against a fixed replica
+count. Separately, a load test against `routeplanner` without a `resources.limits.memory` ceiling
+set reveals that one replica with a slow memory leak, when it happens to land on the same node as
+the customer's separate `admin-console` Deployment, eventually consumes enough of that node's
+memory to trigger the kubelet's node-pressure eviction, which kills several `admin-console` Pods
+that had nothing to do with the leak — a customer-visible incident the FDE traces back to the
+missing memory limit, not to anything `admin-console` itself did wrong.
+
+## Practice Loop
+
+1. Apply the namespace-wide default-deny `NetworkPolicy`, confirm all existing traffic breaks, then
+   apply the scoped `routeplanner-allow-db-and-redis` policy and confirm only Postgres and Redis
+   traffic from `routeplanner` succeeds.
+2. Scale `routeplanner` from 3 to 9 replicas and re-run the same connectivity test against every
+   replica, confirming the expected-allowed and expected-forbidden outcomes hold for all 9, not
+   just the original 3.
+3. Set `resources.requests` and `resources.limits` on the `routeplanner` container and explain, in
+   one sentence each, what the scheduler uses the request for and what the kubelet does when the
+   limit is exceeded for CPU versus for memory.
+4. Remove the memory limit deliberately, run a load test that induces high memory usage, and
+   observe (in a sandbox, not production) whether an unrelated Pod on the same node gets evicted.
+5. Write a one-paragraph test report stating the exact allowed and forbidden connections tested,
+   the replica counts at which each was tested, and the resource limits in place during the test.
+
+## Evidence of Understanding
+
+You can write a default-deny `NetworkPolicy` plus a label-scoped allow rule and explain why the
+policy's blast radius does not change as a Deployment scales, because it's defined by label
+selectors that every new replica inherits automatically. You can distinguish a CPU limit's
+throttling behavior from a memory limit's hard-kill (`OOMKilled`) behavior, and explain how an
+unset memory limit lets one workload's bug evict unrelated neighbors sharing a node. You can design
+and run a two-part connectivity test — one expected-allowed path, one expected-forbidden path —
+that proves a scaled workload's network and resource blast radius held constant, rather than
+assuming it from the policy's theoretical correctness alone.
+
+## Suggested Extension
+
+Add an egress `NetworkPolicy` rule restricting `routeplanner` from reaching the public internet at
+all except a named external DNS/IP range, and explain in one paragraph why an unrestricted egress
+rule would undermine the rest of this lesson's network-isolation testing even with every ingress
+rule locked down correctly.
+",
+        "16-kubernetes-security-rbac-and-devsecops" => @"# Kubernetes Security: RBAC and DevSecOps
+
+## Concepts Covered
+
+Module 4's Kubernetes security lesson assumed RBAC was already in place and focused on auditing an
+already-secured, shared multi-tenant cluster. This lesson covers the earlier, hands-on question:
+how do you actually build a `Role` and `RoleBinding` from nothing, and how do you verify — not
+assume — that a new identity has exactly the permissions it needs and nothing more. Every request
+to the Kubernetes API is made *as* some identity — a human user (typically authenticated via a
+cloud provider's IAM integration or a client certificate) or a `ServiceAccount` (the identity every
+Pod runs under, `default` if none is specified explicitly). RBAC decides what that identity may do
+by combining a `Role` or `ClusterRole` (a named set of allowed verbs — `get`, `list`, `watch`,
+`create`, `update`, `delete` — against specific resource types, optionally scoped to specific
+resource names) with a `RoleBinding` or `ClusterRoleBinding` (which actually grants that role to a
+specific user, group, or `ServiceAccount`). A `Role`/`RoleBinding` pair is namespace-scoped — it
+grants access only within the one namespace it's created in — while a `ClusterRole`/
+`ClusterRoleBinding` pair is cluster-scoped, valid across every namespace; defaulting to a `Role`
+whenever access genuinely only needs to reach one namespace is the deliberate least-privilege
+choice, the same discipline this pathway's DevSecOps lessons have applied to Dockerfiles and CI
+gates now applied to the Kubernetes API surface itself.
+
+```yaml
+# routeplanner-deployer-rbac.yaml — narrow, task-scoped Role
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: routeplanner-deployer
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: routeplanner-deployer-role
+  namespace: default
+rules:
+  - apiGroups: [""apps""]
+    resources: [""deployments""]
+    resourceNames: [""routeplanner""]
+    verbs: [""get"", ""list"", ""watch"", ""update"", ""patch""]
+  - apiGroups: [""""]
+    resources: [""pods""]
+    verbs: [""get"", ""list"", ""watch""]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: routeplanner-deployer-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: routeplanner-deployer
+    namespace: default
+roleRef:
+  kind: Role
+  name: routeplanner-deployer-role
+  apiGroup: rbac.authorization.k8s.io
+```
+
+Writing the YAML is only half the job — an FDE never assumes a grant is correctly scoped without
+checking it, and the tool for that is `kubectl auth can-i`, which asks the API server directly
+whether a given identity can perform a given verb on a given resource, rather than reasoning about
+it from the YAML alone (a genuinely error-prone habit once bindings and role aggregation get
+involved). `kubectl auth can-i delete secrets --as=system:serviceaccount:default:routeplanner-deployer`
+returns a plain `yes` or `no`, and running the full negative-space check — every verb the identity
+should *not* have — is what actually proves a least-privilege boundary rather than just checking
+that the intended access works. The unscoped-`default`-ServiceAccount risk this lesson opens with
+is not abstract: any namespace where nobody has deliberately restricted the `default`
+ServiceAccount's bindings means every Pod in that namespace that doesn't specify its own
+ServiceAccount inherits whatever `default` can do — if any Pod in that namespace is ever
+compromised, the blast radius is exactly whatever `default` is bound to, which is why the DevSecOps
+discipline here is to give every workload its own named, narrowly-scoped ServiceAccount rather than
+letting anything run under `default` by omission. For the rare case where an operator genuinely
+needs emergency, time-boxed elevated access — debugging a production incident that a scoped Role
+can't diagnose — the right pattern is a separate, short-lived `ClusterRoleBinding` granted for the
+duration of the incident and explicitly revoked afterward (or an automated break-glass tool that
+expires the grant), never a standing `cluster-admin` binding kept ""just in case.""
+
+## Practical Backend Scenario
+
+During Northwind's pre-handoff review, the FDE discovers `routeplanner`'s CI deployment Pod is
+running under the `default` ServiceAccount, which was bound to `cluster-admin` months earlier by a
+previous engineer during a rushed demo and never revisited. The FDE builds the
+`routeplanner-deployer` ServiceAccount/Role/RoleBinding shown above — scoped to exactly `get`,
+`list`, `watch`, `update`, and `patch` on the single named `routeplanner` Deployment, plus read-only
+Pod access for diagnosing a failed rollout — and verifies the new grant with a full sweep of
+`kubectl auth can-i` checks: `can-i update deployments/routeplanner --as=...` returns `yes`, and
+`can-i delete secrets --as=...`, `can-i create clusterrolebindings --as=...`, and `can-i get
+deployments -A --as=...` (checking access outside the `default` namespace) all correctly return
+`no`. The FDE then removes the old `cluster-admin` binding from `default` entirely and re-points the
+CI pipeline at the new, narrow ServiceAccount — and separately documents a break-glass procedure
+(a time-boxed `ClusterRoleBinding` an on-call engineer can request and that auto-expires after four
+hours) for the legitimate but rare case of an incident that needs broader diagnostic access than any
+standing Role provides.
+
+## Practice Loop
+
+1. Run `kubectl auth can-i --list --as=system:serviceaccount:default:default` against the current
+   cluster to see exactly what the unscoped `default` ServiceAccount can currently do.
+2. Build the `routeplanner-deployer` ServiceAccount, Role, and RoleBinding from the YAML above and
+   apply it to a sandbox namespace.
+3. Run a full sweep of `kubectl auth can-i <verb> <resource> --as=system:serviceaccount:<ns>:routeplanner-deployer`
+   checks — both the verbs it should have (confirm `yes`) and at least three it should not (confirm
+   `no`, including one cluster-scoped check like listing Deployments across all namespaces).
+4. Re-point a Deployment's `spec.template.spec.serviceAccountName` at the new, narrow
+   ServiceAccount instead of `default`, redeploy, and confirm the workload still functions.
+5. Write a one-paragraph break-glass procedure describing how an on-call engineer would request
+   temporary elevated access during an incident, and how that access is guaranteed to expire rather
+   than becoming a new standing grant.
+
+## Evidence of Understanding
+
+You can build a `ServiceAccount`, `Role`, and `RoleBinding` from scratch scoped to exactly the
+verbs and resources a task needs, and you never assume a grant is correctly scoped without
+verifying it with `kubectl auth can-i --as`, including checking verbs the identity should *not*
+have. You can explain why leaving the namespace's `default` ServiceAccount unscoped is a live risk
+tied directly to what happens if any Pod in that namespace is compromised, and why a `Role` is the
+least-privilege default choice over a `ClusterRole` whenever access genuinely only needs one
+namespace. You can describe a time-boxed emergency-access pattern that avoids the standing-
+cluster-admin anti-pattern.
+
+## Suggested Extension
+
+Write the equivalent `Role` for a genuinely read-only monitoring identity (only `get`/`list`/`watch`
+on Pods, Deployments, and Services, no write verbs anywhere) and verify with `kubectl auth can-i`
+that it cannot perform a single mutating action anywhere in the namespace.
+",
+        "17-kubernetes-volumes" => @"# Kubernetes Volumes
+
+## Concepts Covered
+
+Phase 20's Docker Volumes lesson established the boundary between a container's disposable
+filesystem and durable state at the single-host level; this lesson carries the same question onto
+Kubernetes, where the added twist is that a Pod isn't just disposable — the *node* it's scheduled
+on is disposable too, so ""durable"" has to mean ""survives being rescheduled onto a completely
+different machine,"" not just ""survives a container restart."" Kubernetes gives you several distinct
+volume mechanisms, and picking the wrong one for a given kind of state is the single most common
+storage mistake. An `emptyDir` volume is ephemeral scratch space shared between containers in the
+same Pod — it survives a container crash and restart *within* the same Pod, but is deleted the
+moment the Pod itself is removed, making it the right tool for a cache or a shared working
+directory between an app container and a sidecar, and the wrong tool for anything that must outlive
+the Pod. A `ConfigMap` volume mounts non-secret configuration data (an environment file, a feature
+flag) as files inside the Pod, updated live if the ConfigMap changes (subject to the kubelet's sync
+delay) without requiring a Pod restart; a `Secret` volume works identically but for sensitive data
+(API keys, database passwords) and is stored by the API server with tighter access controls and
+(depending on cluster configuration) at-rest encryption — neither is meant for data the application
+itself writes, only for data that's handed *to* it.
+
+```yaml
+# routeplanner-storage.yaml — PVC for durable scratch space, plus config/secret mounts
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: routeplanner-cache-pvc
+spec:
+  accessModes: [""ReadWriteOnce""]
+  storageClassName: gp3
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: routeplanner
+spec:
+  template:
+    spec:
+      containers:
+        - name: routeplanner
+          image: routeplanner@sha256:3f9c...
+          volumeMounts:
+            - name: cache
+              mountPath: /var/cache/routeplanner
+            - name: config
+              mountPath: /etc/routeplanner
+            - name: db-credentials
+              mountPath: /etc/secrets
+              readOnly: true
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: routeplanner-cache-pvc
+        - name: config
+          configMap:
+            name: routeplanner-config
+        - name: db-credentials
+          secret:
+            secretName: routeplanner-db-secret
+```
+
+For state that must genuinely outlive a Pod being deleted and recreated on a different node
+entirely, a `PersistentVolumeClaim (PVC)` is the mechanism: it's a namespaced *request* for storage
+(a size, an access mode, optionally a specific `StorageClass`), which the cluster fulfills by
+binding it to an actual `PersistentVolume (PV)` — either pre-provisioned by a platform team, or
+dynamically provisioned on demand by the named `StorageClass` (`gp3` above, mapping to an AWS EBS
+volume type in an EKS cluster). The access mode is a deliberate choice with real consequences:
+`ReadWriteOnce (RWO)` means the volume can be mounted read-write by only one node at a time — the
+overwhelmingly common case, and the right default for `routeplanner`'s local cache — while
+`ReadWriteMany (RWX)` allows multiple nodes to mount the same volume simultaneously (needed for a
+shared file store across replicas, but not every storage backend supports it, EBS notably does
+not), and `ReadOnlyMany (ROX)` allows many simultaneous read-only mounts. What actually happens
+when the claiming Pod is deleted and rescheduled is the detail worth internalizing precisely: the
+PVC and its bound PV are *not* deleted with the Pod — a new Pod referencing the same PVC name
+reattaches to the same underlying volume with all its data intact, which is exactly the durability
+guarantee a PVC provides that `emptyDir` does not. That guarantee is distinct from, and does not by
+itself provide, backup and disaster-recovery coverage: a PVC surviving Pod rescheduling protects
+against Pod/node churn, not against the underlying volume itself being corrupted, deleted, or lost
+to an availability-zone failure — a `VolumeSnapshot` (a point-in-time copy of a PVC's data, taken
+via the storage backend's native snapshot capability through the CSI driver) is the separate
+mechanism that provides that coverage, and it needs its own explicit retention and restore-testing
+policy, the same way any backup strategy does.
+
+## Practical Backend Scenario
+
+Northwind's `routeplanner` gets a local `PersistentVolumeClaim` for its route-calculation result
+cache (state that's expensive to recompute but not the source of truth — Postgres owns that), a
+`ConfigMap` mount for its non-secret tuning parameters, and a `Secret` mount for its database
+credentials. During a node maintenance drain, `routeplanner`'s Pod is deleted and rescheduled onto
+a different node entirely; the FDE confirms the new Pod's cache directory still contains the
+pre-drain cache contents (proving the PVC — not `emptyDir` — was the right choice) while a
+`test-worker` Pod that was mistakenly using `emptyDir` for the same kind of cache loses its cache
+completely on the same drain, forcing a costly full recomputation the FDE has to explain to the
+platform team as a design mistake, not a platform bug. Separately, when Northwind's security team
+asks how the database credential Secret would be recovered if the underlying EBS volume backing it
+were somehow deleted, the FDE has to admit that a PVC's durability guarantee alone doesn't cover
+that case — a `VolumeSnapshot` schedule needs to exist independently, with a documented restore
+test, or ""durable"" is a claim that's never actually been verified end to end.
+
+## Practice Loop
+
+1. Create the `routeplanner-cache-pvc` PersistentVolumeClaim against a `gp3` (or your cluster's
+   available) `StorageClass` and mount it into the `routeplanner` Deployment at
+   `/var/cache/routeplanner`.
+2. Write some test data into the mounted cache path, delete the Pod (not the PVC), and confirm the
+   replacement Pod's cache directory still contains that data after Kubernetes reschedules it.
+3. Add a `ConfigMap` mount for a non-secret setting and a `Secret` mount for a credential, and
+   confirm both appear as files at their mount paths inside the running container.
+4. Compare an `emptyDir`-backed cache against the PVC-backed one across a Pod deletion and
+   recreation, and write one sentence stating exactly which one loses its data and why.
+5. Take a `VolumeSnapshot` of the PVC (or describe the exact `kubectl` steps if your cluster's CSI
+   driver doesn't support it in your sandbox), and write a one-paragraph restore-test plan stating
+   how you'd prove the snapshot is actually restorable, not just that it exists.
+
+## Evidence of Understanding
+
+You can distinguish an `emptyDir`, a `ConfigMap`/`Secret` mount, and a `PersistentVolumeClaim` by
+which one survives Pod deletion-and-rescheduling and which one does not, and choose the correct one
+for a given kind of state. You can write a PVC against a named `StorageClass`, choose an access mode
+deliberately (`ReadWriteOnce` versus `ReadWriteMany`) based on whether the volume needs simultaneous
+multi-node access, and explain precisely what happens to the underlying data when the claiming Pod
+is deleted and a new Pod references the same PVC. You can state why a PVC's durability guarantee
+does not by itself cover disaster recovery, and why a `VolumeSnapshot` policy needs its own
+explicit retention and restore-testing discipline rather than being assumed to exist.
+
+## Suggested Extension
+
+Write the equivalent manifest for a stateful component that genuinely needs `ReadWriteMany` access
+(a shared file store read by multiple `routeplanner` replicas simultaneously), and explain in one
+paragraph why this access mode is not universally supported and what you'd need to confirm about
+the cluster's storage backend before relying on it.
+",
+        "01-aws-vpc-and-networking-basics" => @"# AWS VPC and Networking Basics
+
+## Concepts Covered
+
+A VPC is a logically isolated slice of AWS network address space, scoped to one AWS Region and
+carved into one or more CIDR blocks you choose (`10.20.0.0/16`, for instance, gives you 65,536
+addresses to subdivide). A subnet inherits a portion of that CIDR range and is pinned to exactly
+one Availability Zone — this is why a highly-available design always needs at least two subnets
+per tier, one per AZ, not one subnet that somehow ""spans"" two AZs. The critical mental model to
+get right, because almost every misconfiguration traces back to getting it wrong, is that ""public
+subnet"" and ""private subnet"" are not properties AWS assigns to a subnet — they are just the names
+engineers give to a subnet based on what its **route table** does. A subnet becomes ""public"" the
+moment its route table has a route sending `0.0.0.0/0` traffic to an Internet Gateway (IGW); a
+subnet is ""private"" simply because its route table has no such route. Two subnets with identical
+CIDR ranges, security groups, and instances are public or private based purely on which route
+table is associated with them — you can make a subnet private by detaching the IGW route, with
+zero changes to anything running inside it.
+
+Reachability then layers two independent controls on top of routing. A security group is
+stateful, attached to individual resources (an EC2 instance's network interface, an RDS instance,
+a Lambda function's ENI), and can only allow traffic — there is no explicit deny rule, only the
+implicit deny of ""not listed."" Statefulness means a security group rule permitting inbound port
+443 automatically permits the corresponding outbound response traffic without a matching outbound
+rule. A network ACL (NACL) is the opposite in every respect: stateless (you must write both
+inbound and outbound rules explicitly, including for return traffic), evaluated at the subnet
+boundary rather than per-resource, and capable of explicit `DENY` rules evaluated in numbered
+order until the first match. This makes NACLs the right tool for a coarse, subnet-wide block (an
+IP range you never want touching this subnet at all, regardless of what security group any
+individual instance carries) and security groups the right tool for fine-grained, per-service
+""as-strict-as-actually-needed"" rules — using a NACL for fine-grained allow rules is unnecessarily
+brittle because of the statelessness tax, and relying on a security group alone to block a known-bad
+CIDR range subnet-wide means auditing every resource's security group individually rather than one
+subnet-level rule. A NAT Gateway, finally, is the asymmetric-access primitive: it lives in a public
+subnet and lets private-subnet resources initiate outbound connections (to pull an OS update, call
+an external API) while remaining completely unreachable for anything initiating a connection
+inbound from the internet — the private subnet's route table sends `0.0.0.0/0` to the NAT Gateway,
+not to the IGW directly, which is the mechanical reason a NAT Gateway subnet is never itself called
+""private.""
+
+```bash
+# Create the VPC and a public/private subnet pair in one AZ
+aws ec2 create-vpc --cidr-block 10.20.0.0/16 --tag-specifications \
+  'ResourceType=vpc,Tags=[{Key=Name,Value=manifestflow-vpc}]'
+# -> Vpc: { ""VpcId"": ""vpc-0a1b2c3d4e5f60789"", ""CidrBlock"": ""10.20.0.0/16"" }
+
+aws ec2 create-subnet --vpc-id vpc-0a1b2c3d4e5f60789 \
+  --cidr-block 10.20.0.0/24 --availability-zone us-east-1a \
+  --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=public-1a}]'
+aws ec2 create-subnet --vpc-id vpc-0a1b2c3d4e5f60789 \
+  --cidr-block 10.20.10.0/24 --availability-zone us-east-1a \
+  --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=private-app-1a}]'
+aws ec2 create-subnet --vpc-id vpc-0a1b2c3d4e5f60789 \
+  --cidr-block 10.20.20.0/24 --availability-zone us-east-1a \
+  --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=private-db-1a}]'
+
+# Attach an IGW and route ONLY the public subnet's table to it
+aws ec2 create-internet-gateway --tag-specifications \
+  'ResourceType=internet-gateway,Tags=[{Key=Name,Value=manifestflow-igw}]'
+aws ec2 attach-internet-gateway --internet-gateway-id igw-0d4f5a6b --vpc-id vpc-0a1b2c3d4e5f60789
+aws ec2 create-route --route-table-id rtb-public-1a \
+  --destination-cidr-block 0.0.0.0/0 --gateway-id igw-0d4f5a6b
+
+# private-db-1a's route table has NO 0.0.0.0/0 route of any kind — verify it
+aws ec2 describe-route-tables --route-table-ids rtb-private-db-1a \
+  --query 'RouteTables[0].Routes[].DestinationCidrBlock'
+# -> [ ""10.20.0.0/16"" ]   <-- local VPC traffic only, no internet route at all
+```
+
+## Practical Backend Scenario
+
+ManifestFlow needs three reachability tiers inside one VPC: an Application Load Balancer in a
+public subnet that accepts broker uploads over HTTPS from the internet, extraction workers in a
+private-app subnet that call out to Amazon Textract and an internal API but must never accept a
+direct inbound connection from the internet, and an RDS PostgreSQL instance in a private-data
+subnet that must be unreachable from the internet under every circumstance, including a
+misconfigured security group on the workers. The security group on the workers allows outbound
+443 to Textract's VPC endpoint and inbound 8080 only from the ALB's security group by reference
+(not by CIDR) — so redeploying the ALB with a new IP never requires touching the worker's rule. The
+database subnet's route table carries no route to the IGW or the NAT Gateway at all, which means
+even a security group misconfiguration that opened port 5432 to `0.0.0.0/0` would still fail,
+because there is no path for that traffic to arrive from the internet in the first place — the
+route table is the backstop, not the security group.
+
+## Practice Loop
+
+1. Draw the packet path for a broker's HTTPS upload from their laptop to the RDS instance,
+   labeling every hop (IGW, ALB, worker ENI, RDS ENI) and which route table governs each leg.
+2. Create the three-subnet layout in a sandbox VPC using the CLI commands above, associating each
+   subnet with a distinct route table rather than reusing the VPC's main route table for all three.
+3. Run `aws ec2 describe-route-tables` against the private-data subnet's route table and count how
+   many `0.0.0.0/0`-reaching routes exist — the diagnostic answer must be zero before you proceed.
+4. Test one permitted flow (worker security group to RDS security group on port 5432, referenced
+   by security-group ID, not CIDR) and one denied flow (attempt a direct connection to the RDS
+   instance's private IP from an EC2 instance in the public subnet with no matching security group
+   rule) and capture the connection timeout as your evidence of denial.
+5. Review the security group rules and note every rule that references a CIDR block instead of a
+   peer security group ID, and rewrite each one to reference the security group instead, since a
+   CIDR-based rule silently stops matching the moment the peer's IP changes.
+
+## Evidence of Understanding
+
+You can explain that ""public"" and ""private"" describe a subnet's route table, not an inherent
+property of the subnet itself, and can make any subnet private by removing its IGW route without
+touching a single instance inside it. You can choose correctly between a stateful, per-resource
+security group and a stateless, subnet-wide NACL for a given control, and explain why relying on a
+security group alone for a subnet-wide block requires auditing every resource individually. You
+can design a database subnet whose route table has no path to the internet at all, and demonstrate
+that this backstop holds even against a security group misconfiguration.
+
+## Suggested Extension
+
+Add a fourth subnet tier for a bastion host used only for emergency database access, restrict its
+security group to a specific corporate IP range, and explain why routing the RDS security group's
+inbound rule to the bastion's security group ID (not the bastion's current public IP) keeps the
+rule valid even if the bastion is replaced.
+",
+        "02-advanced-aws-networking" => @"# Advanced AWS Networking
+
+## Concepts Covered
+
+VPC peering connects exactly two VPCs with a direct, non-transitive route: if VPC A peers with
+VPC B, and VPC B peers with VPC C, traffic from A cannot reach C through B — each pair needs its
+own explicit peering connection and its own route table entries on both sides. This is fine for two
+or three VPCs, but the number of connections in a full mesh grows as `n(n-1)/2`, so ten VPCs
+needing full connectivity require 45 separate peering connections, each with its own route table
+maintenance. Transit Gateway solves this by acting as a regional routing hub: each VPC attaches
+once to the Transit Gateway, and the Transit Gateway's own route table decides which attachments
+can reach which — turning an `n(n-1)/2` peering mesh into `n` attachments, and centralizing the
+routing policy (which VPC can reach which) in one place instead of scattering it across every
+VPC's own route table. Transit Gateway also supports inter-region peering between two Transit
+Gateways, which is the primitive that makes a genuinely multi-region network topology manageable
+rather than a hand-wired mesh of point-to-point VPC peering connections across regions.
+
+PrivateLink solves a different problem: exposing one specific service to another VPC or another
+AWS account without exposing network-level reachability to anything else in either VPC. A
+PrivateLink interface endpoint places an elastic network interface, with its own private IP, inside
+the consumer's VPC; that ENI forwards traffic to the provider's service over AWS's internal
+network, never crossing the public internet and never requiring the consumer's VPC to be peered,
+routed, or CIDR-reachable to the provider's VPC at all. This is the correct tool specifically when
+the requirement is ""let this one service be called,"" not ""let these two networks talk"" — VPC
+peering or Transit Gateway grants broad network reachability (anything in VPC A can potentially
+reach anything in VPC B, gated only by security groups and NACLs), while PrivateLink grants
+reachability to exactly one named service and nothing else, which matters enormously when the
+consumer is a different company's AWS account and you do not want to trust their network
+hygiene. Route 53 routing policies then decide, at the DNS layer, which endpoint a client resolves
+to at all: a failover policy pairs a primary and secondary record with a health check, returning
+the primary's IP while its health check passes and switching to the secondary the moment it fails;
+a latency-based policy resolves to whichever region's endpoint has the lowest measured latency from
+the resolving location; a weighted policy splits traffic by percentage for canary rollouts. Because
+DNS resolvers cache aggressively, a low TTL on the record is what actually determines how quickly a
+failover becomes visible to clients — a failover policy with a 3600-second TTL will still route
+some fraction of clients to a dead endpoint for up to an hour after the health check fails.
+
+```bash
+# Attach ManifestFlow's VPC to a Transit Gateway shared with Lighthouse's shared-services VPC
+aws ec2 create-transit-gateway-vpc-attachment \
+  --transit-gateway-id tgw-0f1e2d3c4b5a69870 \
+  --vpc-id vpc-0a1b2c3d4e5f60789 \
+  --subnet-ids subnet-0priv1 subnet-0priv2
+
+# Create a PrivateLink endpoint service fronting ManifestFlow's internal broker API (NLB-backed)
+aws ec2 create-vpc-endpoint-service-configuration \
+  --network-load-balancer-arns arn:aws:elasticloadbalancing:us-east-1:111122223333:loadbalancer/net/manifestflow-nlb/abc123 \
+  --acceptance-required
+# -> ServiceId: vpce-svc-0d5e6f7a8b9c0d1e2
+
+# The customs-broker partner's account then creates the consumer-side interface endpoint:
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-partner-0011 --service-name com.amazonaws.vpce.us-east-1.vpce-svc-0d5e6f7a8b9c0d1e2 \
+  --vpc-endpoint-type Interface --subnet-ids subnet-partner-1
+
+# Route 53 failover: primary us-east-1 ALB, secondary us-west-2 ALB, gated by a health check
+aws route53 create-health-check --caller-reference manifestflow-primary-hc-2026 \
+  --health-check-config Type=HTTPS,ResourcePath=/health,FullyQualifiedDomainName=api.manifestflow.io,Port=443
+aws route53 change-resource-record-sets --hosted-zone-id Z1D633PJN98FT9 \
+  --change-batch '{
+    ""Changes"": [{
+      ""Action"": ""UPSERT"",
+      ""ResourceRecordSet"": {
+        ""Name"": ""api.manifestflow.io"", ""Type"": ""A"", ""SetIdentifier"": ""primary-us-east-1"",
+        ""Failover"": ""PRIMARY"", ""TTL"": 30, ""HealthCheckId"": ""a1b2c3d4-hc-primary"",
+        ""ResourceRecords"": [{""Value"": ""203.0.113.10""}]
+      }
+    }]
+  }'
+```
+
+## Practical Backend Scenario
+
+Lighthouse's shared-services VPC (holding an internal identity provider and a logging pipeline)
+needs to reach ManifestFlow's private subnets without a full mesh of point-to-point peering as more
+service VPCs get added later, so the FDE attaches both to a Transit Gateway and writes the TGW
+route table to allow ManifestFlow to reach shared-services but not the reverse, since ManifestFlow
+never needs to initiate a connection into shared-services. Separately, a customs-broker partner
+needs to call ManifestFlow's internal broker-status API from their own AWS account, but Lighthouse's
+security team will not approve any VPC peering or CIDR-based access into a partner's network they
+do not control — so the FDE exposes only that one API through a PrivateLink endpoint service,
+which the partner's own VPC endpoint reaches without any broader network path existing between the
+two accounts at all. For disaster recovery, ManifestFlow is deployed to both `us-east-1` (primary)
+and `us-west-2` (secondary, kept warm but not serving traffic), with a Route 53 failover record
+whose health check polls `/health` on the primary ALB every 30 seconds and switches DNS resolution
+to the secondary region after three consecutive failures.
+
+## Practice Loop
+
+1. Model the connectivity requirement as a small graph (which VPCs must reach which) and decide,
+   using the peering-mesh-growth argument, whether VPC peering or Transit Gateway fits — justify
+   the choice with the actual number of VPCs involved, not a default preference.
+2. Write the Transit Gateway route table entries that let ManifestFlow reach shared-services but
+   not the reverse, and state which specific route's absence enforces the one-way restriction.
+3. Compare the blast radius of a PrivateLink endpoint (one named service reachable) against a VPC
+   peering connection (broad network reachability gated only by security groups) for the
+   customs-broker integration, and count how many additional resources the partner could reach
+   under each option if a security group were ever misconfigured.
+4. Create the Route 53 health check and failover record set from the CLI above, then intentionally
+   fail the health check (stop the primary ALB's target group) and time how long DNS resolution
+   takes to return the secondary region's IP, comparing that to the record's configured TTL.
+5. Document the one-way TGW route table entry and the PrivateLink endpoint service's
+   `--acceptance-required` flag as the two access decisions a security reviewer should check first,
+   since both directly bound blast radius rather than relying on downstream security groups alone.
+
+## Evidence of Understanding
+
+You can choose between VPC peering and Transit Gateway for a given number of VPCs, justified by
+peering's non-transitive routing and the `n(n-1)/2` mesh-growth problem it creates at scale. You
+can expose one specific service to an external AWS account through a PrivateLink interface
+endpoint and explain why its blast radius is smaller than a VPC peering connection granting the
+same functional access. You can configure and verify a Route 53 failover policy, including why the
+record's TTL — not just the health check interval — determines how quickly a failover becomes
+visible to real clients.
+
+## Suggested Extension
+
+Add a second PrivateLink endpoint service for a different partner's read-only reporting API, set
+`--acceptance-required` so each partner's endpoint connection request must be manually approved,
+and write the one-sentence justification for why manual acceptance matters more here than it does
+for the Transit Gateway attachment between Lighthouse's own two VPCs.
+",
+        "03-aws-observability-with-cloudwatch" => @"# AWS Observability with CloudWatch
+
+## Concepts Covered
+
+A CloudWatch metric is a time-ordered sequence of data points identified by a namespace, a metric
+name, and a set of dimensions — key-value pairs that let you slice the same metric name by, for
+example, which Availability Zone or which queue produced it. This dimensional slicing matters more
+than the metric name itself for diagnosing a real incident: `Duration` on a Lambda function
+aggregated across all invocations tells you the overall average, but `Duration` filtered by the
+`FunctionName` and further correlated against which AZ the underlying execution environment ran in
+can reveal that one AZ's invocations are consistently slower while the aggregate hides it entirely,
+because an average is a single number computed across every data point regardless of how unevenly
+they are distributed. This is why a percentile (p50, p90, p99) is a fundamentally different, and
+usually more useful, statistic than an average for latency: p50 tells you what a typical request
+experiences, while p99 tells you what your worst-served one-in-a-hundred requests experience — and
+a workflow with a healthy average and a terrible p99 is exactly the ""some customers are having a
+bad time and the dashboard looks fine"" scenario an FDE gets paged for. CloudWatch Logs organizes
+application log output into log groups and log streams, and a metric filter turns a pattern match
+against incoming log lines into a CloudWatch metric in real time — for instance, counting every
+line matching `[ERROR] extraction_failed` as they arrive, without the application code needing to
+publish a custom metric explicitly for that condition.
+
+An alarm watches one metric (or a math expression combining several) against a threshold over an
+evaluation window, and transitions between `OK`, `ALARM`, and `INSUFFICIENT_DATA` states, each of
+which can trigger an SNS notification or an Auto Scaling action. The judgment that separates a
+useful alarm from a noisy one is choosing a threshold and evaluation period that reflects an actual
+customer-impacting condition rather than a number that merely differs from normal — an alarm on
+""CPU above 70%"" is a resource-utilization signal, not a customer-impact signal, and firing it
+during a legitimate traffic spike that customers are experiencing perfectly fine service through
+trains the on-call engineer to ignore the alarm. A dashboard should be built around a **service-level
+indicator (SLI)** defined at the level of the customer's actual journey, not at the level of any
+one AWS resource's internal metric: ""manifest processing completes within 60 seconds of upload,
+p90"" is an SLI; ""SQS `ApproximateNumberOfMessagesVisible`"" is a component metric that might explain
+a violation of that SLI but is not itself the thing the customer experiences. Embedded Metric
+Format (EMF) lets application code emit a metric as a specially structured JSON log line — written
+once to stdout, ingested by the CloudWatch agent, and automatically extracted into both a metric
+and a searchable log entry — which avoids the extra network call and API rate limit exposure of
+calling `PutMetricData` directly from inside a hot request path.
+
+```bash
+# Publish a custom metric for queue depth, tagged with the AZ it was measured from
+aws cloudwatch put-metric-data --namespace ManifestFlow/Processing \
+  --metric-name QueueBacklogDepth --dimensions AvailabilityZone=us-east-1b \
+  --value 842 --unit Count
+
+# Create a metric filter that turns a log pattern into a real-time metric
+aws logs put-metric-filter --log-group-name /manifestflow/extraction-worker \
+  --filter-name ExtractionFailures \
+  --filter-pattern '[ts, level=ERROR, msg=""extraction_failed*""]' \
+  --metric-transformations \
+    metricName=ExtractionFailureCount,metricNamespace=ManifestFlow/Processing,metricValue=1,defaultValue=0
+
+# Alarm on the p90 of end-to-end processing latency, not the average
+aws cloudwatch put-metric-alarm --alarm-name manifestflow-p90-processing-latency \
+  --namespace ManifestFlow/Processing --metric-name ProcessingLatencyMs \
+  --statistic p90 --period 300 --evaluation-periods 3 \
+  --threshold 60000 --comparison-operator GreaterThanThreshold \
+  --alarm-actions arn:aws:sns:us-east-1:111122223333:manifestflow-oncall
+
+# CloudWatch Logs Insights: correlate a slow request to its dependency chain
+```
+```sql
+fields @timestamp, requestId, dependency, latencyMs
+| filter @message like /extraction_failed/
+| stats count(*) as failures by dependency, bin(5m)
+| sort failures desc
+```
+
+## Practical Backend Scenario
+
+Lighthouse reports that document processing ""feels slow sometimes,"" but ManifestFlow's dashboard
+shows average processing latency holding steady at 8 seconds — well under the 60-second SLI target.
+The FDE defines the SLI properly first: ""a manifest upload completes extraction and routing within
+60 seconds, p90"" — a journey-level statement, not a per-resource metric — and immediately finds
+that the p90 (not the average) is 74 seconds and climbing. Correlating `QueueBacklogDepth` by
+`AvailabilityZone` dimension shows the backlog is concentrated in `us-east-1b`: two of the six
+extraction workers, both in that AZ, have been silently failing their health checks and not
+processing any messages for the last forty minutes, while workers in `us-east-1a` pick up slack and
+keep the average looking fine. The average masked exactly the kind of localized failure a p90 and a
+per-AZ dimension breakdown reveal immediately.
+
+## Practice Loop
+
+1. Define the SLI at the customer-journey level (""manifest processing completes within 60 seconds
+   of upload, p90"") rather than naming any single AWS resource's metric.
+2. Publish `QueueBacklogDepth` and `ProcessingLatencyMs` as custom metrics, each dimensioned by
+   Availability Zone, from the extraction worker code.
+3. Query the p90 (not the average) of `ProcessingLatencyMs` over the last hour, broken down by AZ
+   dimension, and identify exactly which AZ's workers are behind — this measurement step is what
+   makes the symptom-vs-cause gap visible rather than assumed.
+4. Build the alarm from the CLI above on the p90 threshold, and separately build a metric filter
+   and alarm on the `ExtractionFailures` log pattern, so a failing worker and a growing backlog
+   surface as two distinct signals rather than one blended one.
+5. Trace one specific slow request's `requestId` through the Logs Insights query above to its
+   exact failing dependency, and write one sentence distinguishing the symptom (slow processing),
+   the cause (two unhealthy `us-east-1b` workers), the threshold (60s p90), and the customer impact
+   (a subset of uploads delayed, not all of them).
+
+## Evidence of Understanding
+
+You can define an SLI at the level of a customer's actual journey rather than at the level of a
+single AWS resource's internal metric, and can name a specific case where an average latency figure
+hides a real, customer-visible problem that a percentile reveals. You can build a metric filter
+that turns a specific log pattern into a real-time CloudWatch metric, and an alarm whose threshold
+reflects a customer-impacting condition rather than a number merely different from baseline. You can
+trace one slow request through CloudWatch Logs Insights to its specific failing dependency and
+state, precisely, the difference between the symptom, the cause, the threshold, and the customer
+impact.
+
+## Suggested Extension
+
+Add a composite alarm that only fires when both the `ExtractionFailures` metric filter alarm and
+the p90 latency alarm are simultaneously in `ALARM` state, and explain why this composite reduces
+false-positive pages compared to either alarm firing independently for a transient, self-recovering
+blip.
+",
+        "04-cloudwatch-and-cloudtrail-advanced" => @"# CloudWatch and CloudTrail Advanced
+
+## Concepts Covered
+
+CloudTrail records two distinct categories of activity, and confusing them is the most common
+reason an investigation turns up nothing. Management events capture control-plane operations —
+creating a security group, modifying an IAM policy, launching an EC2 instance — and are recorded to
+your trail by default, with no additional configuration. Data events capture data-plane operations
+on individual resources — an S3 `GetObject` call, a Lambda `Invoke` call, a DynamoDB `GetItem` —
+and are **not** recorded by default, because the volume is enormous (every single object read,
+across every bucket) and enabling them incurs both storage cost and, for S3 specifically, a
+per-event charge; you opt in per resource or per resource type. An investigation into ""who
+modified this security group"" only ever needs management events and works out of the box; an
+investigation into ""who downloaded this specific customer document from S3"" needs data events
+enabled on that bucket *before* the download happened, which is why deciding what to enable is a
+proactive design decision, not something you can retroactively enable after an incident to see the
+past.
+
+CloudTrail Event History gives you a 90-day, no-configuration-required rolling window of management
+events, searchable in the console or via `lookup-events`, which covers most single-incident
+investigations without needing to stand up a dedicated trail. For anything beyond 90 days, or for
+data events, or for delivering events into CloudWatch Logs where a metric filter can alarm on them
+in near-real-time, you need an explicit trail delivering to an S3 bucket (with optional CloudWatch
+Logs delivery for the metric-filter use case). CloudTrail log files are delivered with SHA-256
+digest files that let you cryptographically verify a given period's log files were not altered
+after delivery — log file integrity validation — which is the specific mechanism that lets you
+present CloudTrail evidence in an incident report as tamper-evident rather than merely
+""what the log said,"" a materially stronger claim when a customer's security team is scrutinizing
+the timeline. A metric filter on the CloudTrail-delivered CloudWatch Logs group, matching a specific
+`eventName` like `AuthorizeSecurityGroupIngress`, turns ""a security group rule changed"" from
+something you'd only discover by manually searching Event History after the fact into a real-time
+alarm — the same metric-filter mechanism from the previous lesson, applied to CloudTrail's own log
+stream instead of application logs. Reconstructing a defensible timeline means pulling, for one
+specific change, the actor (IAM principal ARN, and whether it was an assumed role vs a long-lived
+user), the exact timestamp, the source IP, the specific resource ARN modified, the before/after
+values where the event captures them, and whether the calling principal's own permission boundary
+should have allowed the action at all — a least-privilege investigative role that can read
+CloudTrail and query Athena, but cannot itself modify any production resource, keeps the
+investigation itself from becoming a second incident.
+
+```bash
+# Enable data events for one specific S3 bucket holding customer manifests
+aws cloudtrail put-event-selectors --trail-name manifestflow-org-trail \
+  --event-selectors '[{
+    ""ReadWriteType"": ""All"", ""IncludeManagementEvents"": true,
+    ""DataResources"": [{""Type"": ""AWS::S3::Object"", ""Values"": [""arn:aws:s3:::manifestflow-manifests/""]}]
+  }]'
+
+# Metric filter + alarm on a specific security-relevant CloudTrail API call
+aws logs put-metric-filter --log-group-name /aws/cloudtrail/manifestflow-org-trail \
+  --filter-name SecurityGroupIngressChanges \
+  --filter-pattern '{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupIngress) }' \
+  --metric-transformations \
+    metricName=SGIngressChangeCount,metricNamespace=ManifestFlow/Security,metricValue=1,defaultValue=0
+
+aws cloudwatch put-metric-alarm --alarm-name manifestflow-sg-ingress-change \
+  --namespace ManifestFlow/Security --metric-name SGIngressChangeCount \
+  --statistic Sum --period 60 --evaluation-periods 1 \
+  --threshold 0 --comparison-operator GreaterThanThreshold \
+  --alarm-actions arn:aws:sns:us-east-1:111122223333:manifestflow-security-oncall
+
+# Reconstruct the timeline for one specific security group
+aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=ResourceName,AttributeValue=sg-0worker9a8b7c6d5 \
+  --start-time 2026-08-30T00:00:00Z --end-time 2026-08-31T00:00:00Z \
+  --query 'Events[].{Time:EventTime,User:Username,Event:EventName,Source:SourceIPAddress}'
+# -> [{""Time"": ""2026-08-30T14:22:10Z"", ""User"": ""deploy-pipeline-role"",
+#      ""Event"": ""AuthorizeSecurityGroupIngress"", ""Source"": ""10.20.10.44""},
+#     {""Time"": ""2026-08-30T14:47:03Z"", ""User"": ""j.rivera"",
+#      ""Event"": ""AuthorizeSecurityGroupIngress"", ""Source"": ""203.0.113.201""}]
+```
+
+## Practical Backend Scenario
+
+A worker security group's inbound rules changed twice in one afternoon: once as part of a scheduled
+deploy pipeline run, and once — outside the deploy window — by a human IAM user, opening port 22
+to `0.0.0.0/0`. Lighthouse's security team asks the FDE for a timeline that separates the intended
+deployment change from the suspicious one, and asks specifically whether the second change was made
+by a role that should have had permission to touch that security group at all. Because the
+`AuthorizeSecurityGroupIngress` metric filter and alarm were already enabled before this happened,
+the security on-call was paged within a minute of the second change rather than discovering it days
+later during a routine audit. `lookup-events` against the specific security group's resource ID
+returns both events with distinct actors, timestamps, and source IPs; the deploy pipeline's change
+came from the CI role's known IP range inside the VPC, while the second change's source IP traces
+to a residential ISP range, immediately distinguishing ""intended automation"" from ""a human using
+credentials outside of any expected deployment window.""
+
+## Practice Loop
+
+1. Enable the relevant CloudTrail event category for the investigation you actually need — confirm
+   whether management events alone suffice (they do, for a security group change) or whether you
+   would also need data events enabled in advance for a different kind of investigation.
+2. Create the metric filter and alarm on `AuthorizeSecurityGroupIngress` /
+   `RevokeSecurityGroupIngress` from the CLI above, before making any change, so the alarm is live
+   ahead of the controlled test in the next step.
+3. Perform a controlled change to a test security group (add and then remove an inbound rule) and
+   measure, in seconds, how long the alarm takes to transition to `ALARM` state after the change —
+   this diagnostic proves the alarm actually fires rather than assuming it would.
+4. Run `lookup-events` scoped to the test security group's resource ID and extract the actor, exact
+   timestamp, source IP, and specific action for every matching event.
+5. Write the timeline as a table (actor, timestamp, source IP, action, resource) and mark which
+   entries fall inside a known, expected change window versus outside it, producing the exact
+   artifact the security team asked for.
+
+## Evidence of Understanding
+
+You can distinguish CloudTrail management events (recorded by default) from data events (opt-in,
+must be enabled before the activity you want to investigate occurs) and choose correctly which
+category a given investigation needs. You can build a metric filter and alarm on a specific,
+security-relevant CloudTrail API call, rather than a generic activity-count alarm, and demonstrate
+that it fires within a measured, short window of a controlled test change. You can reconstruct an
+actor/time/resource/outcome timeline from CloudTrail Event History for one specific resource and
+distinguish an expected automated change from a suspicious out-of-window one using source IP and
+principal identity, producing an artifact that does not depend on a screenshot or an engineer's
+memory.
+
+## Suggested Extension
+
+Create a dedicated, least-privilege IAM role for security investigations — read-only access to
+CloudTrail, CloudWatch Logs, and Athena, with no permission to modify any production resource — and
+explain why granting broader access ""just in case"" to whoever runs the next investigation would
+undermine the very tamper-evidence property log file integrity validation is meant to provide.
+",
+        "05-docker-app-on-ec2-project" => @"# Docker App on EC2 Project
+
+## Concepts Covered
+
+Deploying a container to a single EC2 instance is the right call when a customer needs something
+running quickly and has not yet adopted ECS, EKS, or any managed container platform — but doing it
+in a way an operator other than the original FDE can actually maintain requires several deliberate
+choices, not just `docker run` typed once over SSH. The instance's identity should come from an
+**IAM instance role** attached via an instance profile, never from an access key pair baked into
+the container's environment variables or embedded in the AMI — the instance role's temporary
+credentials are automatically rotated by the EC2 metadata service and scoped to exactly what the
+instance needs (pulling one specific ECR repository, writing to one specific CloudWatch Logs group),
+which means a compromised instance leaks a narrowly-scoped, auto-expiring credential rather than a
+long-lived key with whatever permissions someone happened to grant it. **User data** is the
+mechanism that turns instance launch into a repeatable bootstrap: a shell script (or cloud-init
+directive) that runs once, automatically, the first time the instance boots, installing the Docker
+engine, authenticating to ECR using the instance role's credentials, and starting the container —
+this is what separates ""a new operator can launch a working instance from the documented launch
+template"" from ""only the FDE who set it up by hand remembers all the steps.""
+
+Getting logs and health signals off the instance without SSH is the second deliberate choice. The
+CloudWatch agent, itself running on the instance (or, for container logs specifically, configured
+via the `awslogs` Docker logging driver), forwards both the container's stdout/stderr and
+instance-level metrics (memory, disk) to CloudWatch, which means an operator diagnosing a problem
+opens CloudWatch Logs, not an SSH session — a meaningful distinction for a customer's operations
+team that may not have SSH key access to production at all, or whose access is deliberately
+break-glass-only. A health check — even something as simple as a container-internal `curl
+localhost:8080/health` on an interval, reported via a `HEALTHCHECK` instruction in the Dockerfile
+or an external check against an Application Load Balancer target group — is what turns ""the
+container process is still running"" into ""the application inside it is actually serving traffic
+correctly,"" since a hung process can stay alive (and pass a naive process-exists check) while never
+successfully responding to a real request again. Finally, the replacement strategy matters as much
+as the bootstrap: treating the instance as **immutable** — never SSHing in to patch a running
+instance, but instead updating the launch template (a new AMI, a new user data script, a new
+container image tag) and replacing the instance wholesale — means every instance that exists at any
+moment was provisioned by the same documented, versioned process, rather than accumulating
+undocumented manual changes over its lifetime that nobody can reconstruct later.
+
+```bash
+# IAM trust policy + instance role scoped to exactly what this instance needs
+cat > digest-notifier-trust-policy.json <<'EOF'
+{
+  ""Version"": ""2012-10-17"",
+  ""Statement"": [{""Effect"": ""Allow"", ""Principal"": {""Service"": ""ec2.amazonaws.com""},
+                  ""Action"": ""sts:AssumeRole""}]
+}
+EOF
+aws iam create-role --role-name digest-notifier-instance-role \
+  --assume-role-policy-document file://digest-notifier-trust-policy.json
+
+cat > digest-notifier-permissions.json <<'EOF'
+{
+  ""Version"": ""2012-10-17"",
+  ""Statement"": [
+    {""Effect"": ""Allow"", ""Action"": [""ecr:GetAuthorizationToken""], ""Resource"": ""*""},
+    {""Effect"": ""Allow"", ""Action"": [""ecr:BatchGetImage"", ""ecr:GetDownloadUrlForLayer""],
+     ""Resource"": ""arn:aws:ecr:us-east-1:111122223333:repository/digest-notifier""},
+    {""Effect"": ""Allow"", ""Action"": [""logs:CreateLogStream"", ""logs:PutLogEvents""],
+     ""Resource"": ""arn:aws:logs:us-east-1:111122223333:log-group:/manifestflow/digest-notifier:*""}
+  ]
+}
+EOF
+aws iam put-role-policy --role-name digest-notifier-instance-role \
+  --policy-name digest-notifier-scoped-access --policy-document file://digest-notifier-permissions.json
+aws iam create-instance-profile --instance-profile-name digest-notifier-profile
+aws iam add-role-to-instance-profile --instance-profile-name digest-notifier-profile \
+  --role-name digest-notifier-instance-role
+
+# User data: bootstrap Docker, authenticate to ECR, run the container with the awslogs driver
+cat > user-data.sh <<'EOF'
+#!/bin/bash
+yum install -y docker
+systemctl enable --now docker
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin 111122223333.dkr.ecr.us-east-1.amazonaws.com
+docker run -d --name digest-notifier --restart unless-stopped \
+  --log-driver awslogs \
+  --log-opt awslogs-group=/manifestflow/digest-notifier \
+  --log-opt awslogs-region=us-east-1 \
+  --log-opt awslogs-stream=$(curl -s http://169.254.169.254/latest/meta-data/instance-id) \
+  -p 8080:8080 \
+  111122223333.dkr.ecr.us-east-1.amazonaws.com/digest-notifier:1.3.0
+EOF
+
+# Launch the instance with the role and user data attached
+aws ec2 run-instances --image-id ami-0abcdef1234567890 --instance-type t3.small \
+  --iam-instance-profile Name=digest-notifier-profile \
+  --security-group-ids sg-0notifier7f8e9d0c \
+  --subnet-id subnet-0priv1 --user-data file://user-data.sh \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=digest-notifier}]'
+```
+
+## Practical Backend Scenario
+
+Lighthouse needs a small internal service, `digest-notifier`, that emails dispatchers a daily
+summary of processed manifests — low traffic, no need for ECS or EKS yet, but it must survive a
+restart and be replaceable by whoever is on call, not just the FDE who built it. The FDE launches
+it on a single `t3.small` EC2 instance using the instance role, user-data bootstrap, and
+`awslogs` logging driver above. Two weeks later, the underlying AMI needs a security patch: instead
+of SSHing into the running instance to apply it (which would leave an undocumented, unreproducible
+change baked into that one instance), the FDE updates the launch template to reference a patched
+AMI, launches a replacement instance from the updated template, confirms its health check passes,
+and terminates the original — recovering the exact same running state through the documented
+process alone, with zero manual intervention on the instance itself.
+
+## Practice Loop
+
+1. Package `digest-notifier` as a container image and push it to ECR, then create the IAM
+   instance role and instance profile scoped to exactly the ECR repository and CloudWatch Logs
+   group this one service needs — nothing broader.
+2. Write the user-data bootstrap script, launch the instance, and confirm the container is running
+   by curling its health endpoint from another instance in the same VPC (not from the public
+   internet, since this service has no public ingress requirement).
+3. Restrict inbound access to only the security group of whatever internal service calls
+   `digest-notifier`, and run the denied-flow test: attempt to reach port 8080 from an unrelated
+   security group and confirm the connection is refused.
+4. Confirm container logs are visible in the `/manifestflow/digest-notifier` CloudWatch Logs group
+   without opening an SSH session to the instance at any point in this step.
+5. Update the launch template to reference a new AMI, launch a replacement instance, verify its
+   health check passes, terminate the original instance, and time the whole replacement from
+   launch to termination as your recovery evidence.
+
+## Evidence of Understanding
+
+You can bootstrap a Docker runtime and a specific application container onto EC2 using user data
+and an IAM instance role, with no embedded credentials and no manual post-launch configuration.
+You can route container logs to CloudWatch Logs via the `awslogs` driver so an operator can
+diagnose the service without SSH access to the instance. You can replace an instance wholesale
+using an updated launch template rather than patching it in place, and demonstrate — with a
+measured replacement time — that a new operator following only the documented steps recovers the
+service correctly.
+
+## Suggested Extension
+
+Wrap the single instance in an Auto Scaling group with `MinSize=1, MaxSize=1` and a target-tracking
+policy on the health check, and explain what the ASG's automatic instance replacement adds beyond
+the manual launch-template-swap process this lesson walked through by hand.
+",
+        "06-aws-lambda-and-api-gateway" => @"# AWS Lambda and API Gateway
+
+## Concepts Covered
+
+Module 4's serverless lesson already covers the architectural framing of Lambda and API Gateway —
+why cold starts are a first-class trade-off, when a Step Functions state machine beats hand-rolled
+orchestration, and when serverless wins or loses against a continuously-running container for a
+given workload's shape. This lesson deliberately does not repeat that framing; it goes one level
+more mechanical, into the actual console/CLI wiring an FDE performs to make an API Gateway route
+callable at all, and into the concrete implementation of idempotency this module's earlier lessons
+kept assuming rather than showing.
+
+An API Gateway REST API is built from resources (URL path segments), methods (an HTTP verb attached
+to a resource), and integrations (what the method actually invokes — here, a Lambda function via
+`AWS_PROXY` integration, which forwards the entire HTTP request as-is into the Lambda's event
+payload rather than requiring a hand-written request-mapping template). Creating the resource and
+method is not, by itself, sufic­ient to make the route work: API Gateway is a separate AWS service
+from Lambda, and by default has no permission to invoke your function. You must explicitly grant it
+that permission with a **resource-based policy** on the Lambda function itself — `lambda
+add-permission` with `--principal apigateway.amazonaws.com` and a `--source-arn` scoped to the
+specific API and route — which is easy to forget because the console's ""Add Trigger"" flow performs
+this step invisibly for you, leaving CLI/IaC-driven deployments as the place this omission actually
+bites, producing a mysterious 500 ""Internal server error"" from API Gateway with no useful detail in
+the response, discoverable only in the API Gateway execution logs.
+
+Lambda's execution role is the second identity boundary, separate from the resource-based policy:
+where the resource-based policy governs *who may invoke the function*, the execution role governs
+*what the function's code is permitted to do once invoked* — write to a specific SQS queue, read
+one DynamoDB table, nothing more. `--timeout` bounds how long a single invocation may run before
+Lambda forcibly terminates it (protecting against a hung downstream dependency consuming billed
+execution time indefinitely), while `--reserved-concurrent-executions` caps how many invocations of
+this specific function may run simultaneously across the entire account, protecting a downstream
+dependency (a database, a rate-limited third-party API) from being overwhelmed by a traffic spike
+that Lambda's default near-unlimited concurrency would otherwise pass straight through unthrottled.
+API Gateway's own request validation (a JSON Schema model attached to the method) rejects a
+malformed request *before* it ever invokes the Lambda function at all, which is strictly cheaper
+and faster than writing the same validation as the first lines of the handler and paying for an
+invocation that was always going to fail. Idempotency, finally, is not a Lambda or API Gateway
+feature — it is something the handler code must implement explicitly, typically via a
+conditional write against a store (here, DynamoDB) keyed by a client-supplied idempotency key: the
+write only succeeds the first time a given key is seen, and every subsequent request with the same
+key can detect the duplicate and return the original result instead of reprocessing.
+
+```bash
+# Wire the resource, method, and AWS_PROXY integration
+aws apigateway create-resource --rest-api-id abc123xyz \
+  --parent-id root-resource-id --path-part callback
+aws apigateway put-method --rest-api-id abc123xyz --resource-id res-callback \
+  --http-method POST --authorization-type NONE --request-validator-id val-body-required
+aws apigateway put-integration --rest-api-id abc123xyz --resource-id res-callback \
+  --http-method POST --type AWS_PROXY --integration-http-method POST \
+  --uri arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:111122223333:function:manifest-callback/invocations
+
+# The permission API Gateway needs to actually invoke the function — easy to forget
+aws lambda add-permission --function-name manifest-callback \
+  --statement-id apigateway-invoke-callback --action lambda:InvokeFunction \
+  --principal apigateway.amazonaws.com \
+  --source-arn ""arn:aws:execute-api:us-east-1:111122223333:abc123xyz/*/POST/callback""
+
+# Timeout and concurrency, set independently of the function's code
+aws lambda update-function-configuration --function-name manifest-callback \
+  --timeout 10 --reserved-concurrent-executions 20
+
+# Execution role: what the function's own code is permitted to do once invoked
+cat > manifest-callback-permissions.json <<'EOF'
+{
+  ""Version"": ""2012-10-17"",
+  ""Statement"": [
+    {""Effect"": ""Allow"", ""Action"": ""dynamodb:PutItem"",
+     ""Resource"": ""arn:aws:dynamodb:us-east-1:111122223333:table/manifest-idempotency-keys"",
+     ""Condition"": {""StringEquals"": {""dynamodb:LeadingKeys"": []}}},
+    {""Effect"": ""Allow"", ""Action"": ""sqs:SendMessage"",
+     ""Resource"": ""arn:aws:sqs:us-east-1:111122223333:manifest-processing-queue""}
+  ]
+}
+EOF
+```
+
+```python
+# Handler: idempotent callback via a DynamoDB conditional PutItem
+import boto3, json, hashlib
+from botocore.exceptions import ClientError
+
+table = boto3.resource(""dynamodb"").Table(""manifest-idempotency-keys"")
+sqs = boto3.client(""sqs"")
+
+def handler(event, context):
+    body = json.loads(event[""body""])
+    idempotency_key = event[""headers""].get(""Idempotency-Key"")
+    if not idempotency_key:
+        return {""statusCode"": 400, ""body"": json.dumps({""error"": ""Idempotency-Key header required""})}
+
+    try:
+        # Conditional write: succeeds only if this key has never been seen
+        table.put_item(
+            Item={""idempotency_key"": idempotency_key, ""status"": ""processing""},
+            ConditionExpression=""attribute_not_exists(idempotency_key)""
+        )
+    except ClientError as e:
+        if e.response[""Error""][""Code""] == ""ConditionalCheckFailedException"":
+            return {""statusCode"": 200, ""body"": json.dumps({""status"": ""duplicate_ignored""})}
+        raise
+
+    sqs.send_message(
+        QueueUrl=""https://sqs.us-east-1.amazonaws.com/111122223333/manifest-processing-queue"",
+        MessageBody=json.dumps(body),
+        MessageAttributes={""idempotency_key"": {""DataType"": ""String"", ""StringValue"": idempotency_key}}
+    )
+    return {""statusCode"": 202, ""body"": json.dumps({""status"": ""accepted""})}
+```
+
+## Practical Backend Scenario
+
+A customs broker's system calls `POST /manifests/callback` whenever a manifest is finalized on
+their side, to notify ManifestFlow to begin processing — a low-volume, bursty event, well suited to
+Lambda rather than a continuously-running container. The broker's integration retries on any
+non-2xx response or timeout, which means ManifestFlow's callback will occasionally receive the same
+manifest notification twice. The Lambda handler above treats the broker-supplied `Idempotency-Key`
+header as the deduplication key: the first request's conditional `PutItem` succeeds and the manifest
+is queued for processing; a retried duplicate's conditional `PutItem` fails with
+`ConditionalCheckFailedException`, and the handler returns `200 duplicate_ignored` instead of
+queuing the manifest a second time. Separately, the FDE deliberately sets
+`--reserved-concurrent-executions 20`, well above the broker's realistic peak burst but well below
+what would overwhelm the downstream SQS-consuming worker fleet if the broker's system ever
+misbehaved and fired thousands of callbacks in a tight loop.
+
+## Practice Loop
+
+1. Create the API Gateway resource, method, and `AWS_PROXY` integration, then attempt to call the
+   route before granting the `lambda add-permission` statement — capture the exact error API
+   Gateway returns, since this is the specific failure mode CLI/IaC deployments hit that the
+   console's ""Add Trigger"" flow hides.
+2. Add the resource-based permission scoped to this specific API and route, re-call the endpoint,
+   and confirm the invocation now succeeds.
+3. Set `--timeout 10` and `--reserved-concurrent-executions 20`, then deliberately invoke the
+   function with a payload that causes the downstream SQS call to hang, and measure how long the
+   invocation actually runs before Lambda terminates it — this diagnostic proves the timeout is
+   enforced rather than assumed.
+4. Send the same request twice with an identical `Idempotency-Key` header and confirm, from the
+   response bodies, that the manifest was queued exactly once (`accepted` then `duplicate_ignored`),
+   not twice.
+5. Simulate the downstream SQS call failing (temporarily revoke the execution role's `sqs:SendMessage`
+   permission) and confirm the conditional `PutItem` already succeeded, then decide and document
+   whether a failed downstream call after a successful idempotency-key write should be treated as
+   retryable or as requiring manual reconciliation.
+
+## Evidence of Understanding
+
+You can wire an API Gateway resource, method, and Lambda proxy integration together, and can name
+the specific resource-based permission (`lambda add-permission` with a scoped `--source-arn`) that
+makes the route actually callable, distinct from the execution role that governs what the function's
+own code may do. You can configure `--timeout` and `--reserved-concurrent-executions`
+independently and explain what each protects against — a hung dependency consuming billed time
+versus an unthrottled traffic spike overwhelming a downstream system. You can implement and prove,
+with an actual duplicate request, that a DynamoDB conditional write makes a callback endpoint safe
+against retries, and can state whether a failure after the idempotency key is written should be
+retried or requires manual reconciliation.
+
+## Suggested Extension
+
+Add a JSON Schema request validator to the `POST /callback` method so a malformed payload (missing
+the required `manifest_id` field) is rejected by API Gateway itself with a 400, before the Lambda
+function is ever invoked, and measure whether this reduces the function's invocation count during a
+deliberate burst of malformed test requests compared to validating inside the handler.
+",
         _ => null
     };
 
