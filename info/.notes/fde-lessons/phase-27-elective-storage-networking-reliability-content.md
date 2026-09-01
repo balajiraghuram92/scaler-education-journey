@@ -6,17 +6,19 @@ offering: the full ~104-lesson core curriculum (Modules 1-8 + Prerequisite) plus
 elective modules (Containerization/K8s 17, AWS Multi-Region 17, Storage/Networking/Reliability
 14), for 152 total authored lessons. There is no Phase 28.**
 
-Running scenario for this phase: **CascadeCommerce**, a multi-tenant e-commerce SaaS platform.
-Retail tenants **Northlight Retail** and **Ferrum Goods** share the platform's Order, Catalog,
-Cart, and Payment services. CascadeCommerce integrates a third-party payment processor, **Aurora
-Pay**, and runs its own recommendation microservice, **InsightEngine**. The platform serves
-`us-east-1` as its primary region and `eu-west-1` as a second active region for EU customers.
-This scenario is used consistently across all 7 lessons in this phase, in the spirit of the prior
-phases' single-running-scenario convention (Lighthouse Freight Co./ManifestFlow for the AWS
-elective, Meridian Legal Ops/ClauseReview for the core curriculum's application-security module) —
-`elective-storage-networking-reliability` lessons 1-7 (Phase 26) had not yet been authored at the
-time this phase was written, so this is a new scenario introduced for this module rather than a
-continuation; see `STATUS.md` for the note on ordering.
+Running scenario for this phase: **PolicyVault**, the multi-tenant SaaS platform introduced in
+Phase 26 (lessons 1-7 of this same module) for an FDE engagement with **Kestrel Underwriting**, a
+regional insurance MGA. PolicyVault serves independent underwriting agencies as tenants —
+**Meridian Underwriters** and **Coastal Risk Partners** are two example agencies used throughout
+this phase — through Submission, Quote, and Bind services. PolicyVault integrates a third-party
+premium-payment processor, **BindPay**, and runs its own AI risk-flag suggestion microservice,
+**RiskAssist**, that surfaces likely underwriting concerns on a submission. The platform serves
+`us-east-1` as its primary region and `eu-west-1` as a second active region for EU-based agencies.
+This phase's lessons were authored before Phase 26's content file was available to read directly;
+the scenario continuity above (PolicyVault, Kestrel Underwriting, BindPay, RiskAssist, and the
+Meridian Underwriters/Coastal Risk Partners tenant agencies) was reconciled afterward against
+Phase 26's actual scenario once it was authored, so both phases now read as one continuous
+engagement across all 14 lessons.
 
 ---
 
@@ -61,33 +63,33 @@ supplementary_content:
 
 ## Concepts Covered
 
-A CDN's cache key is the actual unit of correctness, not an implementation detail you can leave to defaults. Every response has a set of dimensions it legitimately varies on — tenant, locale, currency, device, authentication state — and the cache key must include every one of those dimensions or the CDN will serve one tenant's response to another tenant's request the first time two requests happen to share every dimension the key *does* include. `Cache-Control` headers are the origin's half of this contract: `public` permits a shared cache (the CDN, any intermediate proxy) to store the response, `private` restricts storage to the requesting client's own browser cache, and `no-store` forbids storage anywhere. `max-age` sets how long a *private* cache may serve the response without revalidation; `s-maxage`, when present, overrides `max-age` specifically for shared caches like a CDN edge node — a response can legitimately say "a user's browser should treat this as stale after 0 seconds, but the CDN edge may serve it for 300 seconds," which is exactly the shape a tenant-scoped catalog page needs: private per-request freshness for the browser, shared freshness at the edge to absorb repeat traffic from many users hitting the same tenant's page.
+A CDN's cache key is the actual unit of correctness, not an implementation detail you can leave to defaults. Every response has a set of dimensions it legitimately varies on — tenant, locale, currency, device, authentication state — and the cache key must include every one of those dimensions or the CDN will serve one tenant's response to another tenant's request the first time two requests happen to share every dimension the key *does* include. `Cache-Control` headers are the origin's half of this contract: `public` permits a shared cache (the CDN, any intermediate proxy) to store the response, `private` restricts storage to the requesting client's own browser cache, and `no-store` forbids storage anywhere. `max-age` sets how long a *private* cache may serve the response without revalidation; `s-maxage`, when present, overrides `max-age` specifically for shared caches like a CDN edge node — a response can legitimately say "a user's browser should treat this as stale after 0 seconds, but the CDN edge may serve it for 300 seconds," which is exactly the shape a tenant-scoped submission page needs: private per-request freshness for the browser, shared freshness at the edge to absorb repeat traffic from many users hitting the same tenant's page.
 
-`stale-while-revalidate=N` is not a synonym for a longer `max-age` — it changes what happens the moment a cached response goes stale. Without it, the request that finds a stale entry blocks on a full origin round trip before the client gets a response. With `stale-while-revalidate=60`, that same request gets the stale response immediately while the CDN triggers a background refresh from the origin, and only requests arriving after the 60-second revalidation window closes pay the origin round trip. This converts "always slow when stale" into "usually fast even when stale," at the cost of occasionally serving data up to N seconds old to the one request that triggers the refresh — a trade-off that is fine for a product listing and wrong for a payment confirmation page, which is why the directive belongs on specific response types, not as a blanket policy. Invalidation is the second half of correctness: a CDN cache key that changes with content (a versioned asset filename, a content hash in the URL) never needs explicit invalidation — the old URL simply stops being requested — while a cache key that stays stable while its underlying content changes (a catalog page keyed by SKU, not by a content hash) requires an explicit invalidation call the moment the underlying data changes, or the edge will keep serving the old response for the full TTL regardless of what the origin now holds.
+`stale-while-revalidate=N` is not a synonym for a longer `max-age` — it changes what happens the moment a cached response goes stale. Without it, the request that finds a stale entry blocks on a full origin round trip before the client gets a response. With `stale-while-revalidate=60`, that same request gets the stale response immediately while the CDN triggers a background refresh from the origin, and only requests arriving after the 60-second revalidation window closes pay the origin round trip. This converts "always slow when stale" into "usually fast even when stale," at the cost of occasionally serving data up to N seconds old to the one request that triggers the refresh — a trade-off that is fine for a product listing and wrong for a payment confirmation page, which is why the directive belongs on specific response types, not as a blanket policy. Invalidation is the second half of correctness: a CDN cache key that changes with content (a versioned asset filename, a content hash in the URL) never needs explicit invalidation — the old URL simply stops being requested — while a cache key that stays stable while its underlying content changes (a submission page keyed by coverage line, not by a content hash) requires an explicit invalidation call the moment the underlying data changes, or the edge will keep serving the old response for the full TTL regardless of what the origin now holds.
 
 ```
-# Static product images — filename includes a content hash, so the URL itself changes on update
+# Static document thumbnails — filename includes a content hash, so the URL itself changes on update
 Cache-Control: public, max-age=31536000, immutable
 
-# Tenant-scoped catalog page — shared cache may serve it for 5 minutes,
+# Tenant-scoped submission page — shared cache may serve it for 5 minutes,
 # background-refreshes for up to 60s past that before blocking a request
 Cache-Control: private, s-maxage=300, stale-while-revalidate=60
 
-# Cart and checkout responses — never stored anywhere
+# Cart and bind responses — never stored anywhere
 Cache-Control: no-store
 ```
 
 ## Practical Backend Scenario
 
-CascadeCommerce fronts its Catalog API with a CDN so that Northlight Retail's and Ferrum Goods' storefront pages — each tenant runs its own branded storefront on a shared platform — load quickly for shoppers regardless of region. The original CDN cache policy whitelists the request path and the `currency` query parameter as the cache key, on the reasoning that "the page content only depends on the SKU in the path and the currency." A support ticket reveals the actual bug: a shopper on Ferrum Goods' storefront briefly saw Northlight Retail's active discount banner on an identical SKU path, because both tenants' catalog pages resolve to the same URL path and query string once the shared platform's routing strips the tenant subdomain before the cache key is computed — the CDN edge, having already cached Northlight's response for that path, served it straight back to the next request that matched the same key, regardless of which tenant's `X-Tenant-Id` header actually accompanied the request. The cache key was missing the one dimension the response actually varies on.
+PolicyVault fronts its Submission API with a CDN so that Meridian Underwriters's and Coastal Risk Partners' broker portal pages — each tenant runs its own branded broker portal on a shared platform — load quickly for brokers regardless of region. The original CDN cache policy whitelists the request path and the `currency` query parameter as the cache key, on the reasoning that "the page content only depends on the coverage line in the path and the currency." A support ticket reveals the actual bug: a broker on Coastal Risk Partners' broker portal briefly saw Meridian Underwriters's active rate discount banner on an identical coverage line path, because both tenants' submission pages resolve to the same URL path and query string once the shared platform's routing strips the tenant subdomain before the cache key is computed — the CDN edge, having already cached Meridian Underwriters's response for that path, served it straight back to the next request that matched the same key, regardless of which tenant's `X-Tenant-Id` header actually accompanied the request. The cache key was missing the one dimension the response actually varies on.
 
 ## Practice Loop
 
-1. Define the cacheability rule for each of CascadeCommerce's three response types — static product images, tenant-scoped catalog pages, and cart/checkout responses — as an explicit `Cache-Control` header, matching the code block above to each.
-2. Rebuild the CDN cache policy to include `X-Tenant-Id` in the cache key alongside the SKU path and `currency` query parameter, using a whitelist headers configuration rather than caching on every header by default.
-3. Diagnostic: request the same SKU path for Northlight Retail and Ferrum Goods from two different simulated client locations before and after the fix, and confirm the pre-fix responses are identical (the leak) while the post-fix responses correctly diverge on the discount banner.
-4. Update a Ferrum Goods product's price at the origin, then issue a scoped CDN invalidation for exactly that SKU's cached paths, and confirm a request immediately after the invalidation reflects the new price rather than waiting out the remaining `s-maxage`.
-5. Verify tenant separation holds under `stale-while-revalidate`: trigger a stale hit for Northlight Retail's page during the revalidation window and confirm the background refresh call to the origin still carries the correct `X-Tenant-Id`, not a value cached from whichever request happened to trigger the refresh.
+1. Define the cacheability rule for each of PolicyVault's three response types — static document thumbnails, tenant-scoped submission pages, and quote worksheet/bind responses — as an explicit `Cache-Control` header, matching the code block above to each.
+2. Rebuild the CDN cache policy to include `X-Tenant-Id` in the cache key alongside the coverage line path and `currency` query parameter, using a whitelist headers configuration rather than caching on every header by default.
+3. Diagnostic: request the same coverage line path for Meridian Underwriters and Coastal Risk Partners from two different simulated client locations before and after the fix, and confirm the pre-fix responses are identical (the leak) while the post-fix responses correctly diverge on the rate discount banner.
+4. Update a Coastal Risk Partners product's price at the origin, then issue a scoped CDN invalidation for exactly that coverage line's cached paths, and confirm a request immediately after the invalidation reflects the new price rather than waiting out the remaining `s-maxage`.
+5. Verify tenant separation holds under `stale-while-revalidate`: trigger a stale hit for Meridian Underwriters's page during the revalidation window and confirm the background refresh call to the origin still carries the correct `X-Tenant-Id`, not a value cached from whichever request happened to trigger the refresh.
 
 ## Evidence of Understanding
 
@@ -95,7 +97,7 @@ You can write correct `Cache-Control` directives for static, tenant-scoped, and 
 
 ## Suggested Extension
 
-Add a `Vary: Accept-Language` dimension for a future localized storefront, and identify which existing cache-key dimension (tenant, currency, or path) is the closest analog for reasoning about why an under-specified `Vary` header would reproduce the same cross-locale leak this lesson's cross-tenant leak demonstrated.
+Add a `Vary: Accept-Language` dimension for a future localized broker portal, and identify which existing cache-key dimension (tenant, currency, or path) is the closest analog for reasoning about why an under-specified `Vary` header would reproduce the same cross-locale leak this lesson's cross-tenant leak demonstrated.
 <!-- CHAPTER_BODY_END -->
 
 <!-- MCQ_SECTION_START -->
@@ -134,13 +136,13 @@ A response carries `Cache-Control: private, max-age=0, s-maxage=300`. What does 
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-CascadeCommerce's original CDN cache policy keys on the request path and the `currency` query parameter only. What is the correct root-cause fix for the cross-tenant banner leak?
+PolicyVault's original CDN cache policy keys on the request path and the `currency` query parameter only. What is the correct root-cause fix for the cross-tenant banner leak?
 
 **OPTIONS:**
 - [ ] A: Lower the `s-maxage` to reduce the leak's exposure window
-- [ ] B: Switch from `public` to `private` on the catalog page response
+- [ ] B: Switch from `public` to `private` on the submission page response
 - [x] C: Add `X-Tenant-Id` to the cache key, since the response legitimately varies on tenant and the key did not include that dimension
-- [ ] D: Disable CDN caching entirely for the Catalog API
+- [ ] D: Disable CDN caching entirely for the Submission API
 **CORRECT_ANSWER_KEY:** C
 **CORRECT_ANSWER_INDEX:** 2
 
@@ -159,7 +161,7 @@ The leak's root cause is a cache key missing a dimension the response varies on.
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-`Cache-Control: private, s-maxage=300, stale-while-revalidate=60` is set on the catalog page. A request arrives 310 seconds after the entry was cached (10 seconds into the stale-while-revalidate window). What happens?
+`Cache-Control: private, s-maxage=300, stale-while-revalidate=60` is set on the submission page. A request arrives 310 seconds after the entry was cached (10 seconds into the stale-while-revalidate window). What happens?
 
 **OPTIONS:**
 - [ ] A: The request blocks until the origin responds, exactly as if stale-while-revalidate were absent
@@ -189,7 +191,7 @@ Within the stale-while-revalidate window, the CDN serves the stale entry immedia
 Cache-Control: public, max-age=31536000, immutable
 ```
 
-This directive is applied to product images. Why is the extremely long `max-age` safe here specifically because the filename includes a content hash?
+This directive is applied to document thumbnails. Why is the extremely long `max-age` safe here specifically because the filename includes a content hash?
 
 **OPTIONS:**
 - [ ] A: Content hashes make the CDN skip cache-key computation entirely, so max-age is irrelevant
@@ -214,12 +216,12 @@ A content-hashed URL never needs invalidation because an update produces a diffe
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Which of CascadeCommerce's cached response types requires an explicit CDN invalidation call when its underlying data changes?
+Which of PolicyVault's cached response types requires an explicit CDN invalidation call when its underlying data changes?
 
 **OPTIONS:**
 - [ ] A: Product images, because their URLs include a content hash
-- [x] B: The tenant-scoped catalog page, because its URL stays stable (SKU path) while the underlying price or banner content can change independently
-- [ ] C: Cart and checkout responses, because they use `no-store`
+- [x] B: The tenant-scoped submission page, because its URL stays stable (coverage line path) while the underlying price or banner content can change independently
+- [ ] C: Cart and bind responses, because they use `no-store`
 - [ ] D: None of the response types ever require invalidation once `s-maxage` is set
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
@@ -243,21 +245,21 @@ Invalidation matters exactly when the cache key is stable but the underlying con
 ```
 aws cloudfront create-invalidation \
   --distribution-id E1A2B3C4D5E6F7 \
-  --paths "/catalog/northlight-retail/products/sku-48213*"
+  --paths "/submissions/coastal-risk-partners/coverage-lines/line-48213*"
 ```
 
-A single Ferrum Goods SKU's price changed. What is the problem with instead running this exact command with the Ferrum Goods path, immediately after every price change across the catalog?
+A single Coastal Risk Partners coverage line's premium rate changed. What is the problem with instead running this exact command with the Coastal Risk Partners path, immediately after every price change across the catalog?
 
 **OPTIONS:**
-- [ ] A: There is no problem — this is the correct, minimal-scope invalidation pattern for a single-SKU update
+- [ ] A: There is no problem — this is the correct, minimal-scope invalidation pattern for a single-coverage line update
 - [ ] B: `create-invalidation` cannot target a specific path pattern, only the entire distribution
-- [x] C: Nothing, for a single SKU — the described anti-pattern would be invalidating the entire distribution (`/*`) for a single-SKU change, which unnecessarily forces every cached object to be refetched
+- [x] C: Nothing, for a single coverage line — the described anti-pattern would be invalidating the entire distribution (`/*`) for a single-coverage line change, which unnecessarily forces every cached object to be refetched
 - [ ] D: Invalidation paths must always end without a wildcard, so this command is invalid syntax
 **CORRECT_ANSWER_KEY:** C
 **CORRECT_ANSWER_INDEX:** 2
 
 **EXPLANATION:**
-The scoped path shown is actually the correct pattern. The lesson's point is the contrast with an unscoped `/*` invalidation, which would force a full-distribution refetch for a single-SKU change — wasteful and slower to warm back up.
+The scoped path shown is actually the correct pattern. The lesson's point is the contrast with an unscoped `/*` invalidation, which would force a full-distribution refetch for a single-coverage line change — wasteful and slower to warm back up.
 
 **LESSON_CONNECTION:** Practice Loop, Step 4
 **KEYWORDS:** [cloudfront, invalidation-scope]
@@ -290,27 +292,27 @@ What does `Cache-Control: private` permit, that `public` does not restrict?
 
 ### QUESTION_BLOCK_START: Q8
 **QUESTION_ID:** Q8
-**QUESTION_TITLE:** Why checkout responses use no-store
+**QUESTION_TITLE:** Why bind responses use no-store
 **DIFFICULTY:** Easy
 **BLOOM_LEVEL:** Understanding
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Why does CascadeCommerce mark checkout responses `Cache-Control: no-store` rather than a short `max-age`?
+Why does PolicyVault mark bind responses `Cache-Control: no-store` rather than a short `max-age`?
 
 **OPTIONS:**
 - [ ] A: `no-store` is required by law for any page involving payment
-- [x] B: A checkout response's correctness depends on it never being replayed from any cache — even a very short TTL risks a stale or duplicated confirmation being served
+- [x] B: A bind response's correctness depends on it never being replayed from any cache — even a very short TTL risks a stale or duplicated confirmation being served
 - [ ] C: `no-store` makes the response load faster than a cached response would
 - [ ] D: A short `max-age` would be functionally identical, so the choice is stylistic
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
 **EXPLANATION:**
-Checkout responses are exactly the case where any caching risk is unacceptable — the correctness cost of a stale confirmation outweighs any latency benefit, unlike the catalog page's tolerable staleness window.
+Bind responses are exactly the case where any caching risk is unacceptable — the correctness cost of a stale confirmation outweighs any latency benefit, unlike the submission page's tolerable staleness window.
 
 **LESSON_CONNECTION:** Concepts Covered, Paragraph 1
-**KEYWORDS:** [no-store, checkout, correctness]
+**KEYWORDS:** [no-store, bind, correctness]
 ### QUESTION_BLOCK_END: Q8
 
 ### QUESTION_BLOCK_START: Q9
@@ -325,7 +327,7 @@ After adding `X-Tenant-Id` to the CDN cache key, what is the correct way to veri
 
 **OPTIONS:**
 - [ ] A: Confirm the response latency dropped after the fix
-- [x] B: Request the same SKU path for both tenants and confirm the two responses now correctly diverge on tenant-specific content, rather than one tenant's cached response being returned to the other
+- [x] B: Request the same coverage line path for both tenants and confirm the two responses now correctly diverge on tenant-specific content, rather than one tenant's cached response being returned to the other
 - [ ] C: Confirm the CDN distribution's overall cache hit rate increased
 - [ ] D: Confirm the `s-maxage` value is unchanged
 - [ ] E: Confirm the invalidation command runs without error
@@ -383,12 +385,12 @@ supplementary_content:
 
 ## Concepts Covered
 
-Performance in a microservices system is a queueing problem before it is a code problem. Little's Law — `L = λ × W`, where `L` is the average number of requests in the system, `λ` is arrival throughput, and `W` is average time each request spends in the system — is the tool that turns "how big should this connection pool be" from a guess into a computation. A checkout service handling 200 requests per second with an average downstream call latency of 150ms has, on average, `200 × 0.150 = 30` requests in flight at any instant; a connection pool sized well below 30 will saturate and start queuing new requests behind the pool itself, adding wait time that then increases `W`, which increases `L` again — a feedback loop that turns a marginal pool-sizing mistake into a runaway latency spiral under load. Sizing the pool from this calculation, with headroom for burst above the measured average, replaces intuition ("10 connections felt like enough") with a number derived from the actual arrival rate and latency the service experiences.
+Performance in a microservices system is a queueing problem before it is a code problem. Little's Law — `L = λ × W`, where `L` is the average number of requests in the system, `λ` is arrival throughput, and `W` is average time each request spends in the system — is the tool that turns "how big should this connection pool be" from a guess into a computation. A bind service handling 200 requests per second with an average downstream call latency of 150ms has, on average, `200 × 0.150 = 30` requests in flight at any instant; a connection pool sized well below 30 will saturate and start queuing new requests behind the pool itself, adding wait time that then increases `W`, which increases `L` again — a feedback loop that turns a marginal pool-sizing mistake into a runaway latency spiral under load. Sizing the pool from this calculation, with headroom for burst above the measured average, replaces intuition ("10 connections felt like enough") with a number derived from the actual arrival rate and latency the service experiences.
 
 Average latency and p99 latency answer different questions, and conflating them hides the failure mode that actually matters for a fan-out request. Average latency tells you what a typical request experiences; p99 tells you what the slowest 1% experiences, and in a request that calls out to several downstream services, the probability that *at least one* of those calls lands in its own p99 compounds multiplicatively, not additively. If each of 4 downstream calls independently has a 1% chance of hitting its own slow tail, the probability that the overall request hits at least one slow call is `1 - (0.99)^4 ≈ 3.94%` — four times the single-call tail rate, even though each individual dependency's SLA looks fine in isolation. This is tail amplification, and it is why a request's own p99 budget needs to be allocated per-hop with real headroom, not simply summed from each dependency's advertised average. Batching independent downstream calls in parallel (rather than serially) reduces the *latency* cost of fan-out but does not reduce this tail-amplification probability — each parallel call still independently risks landing in its own tail, and the overall request still waits for the slowest of them.
 
 ```yaml
-# HikariCP pool sized from Little's Law for the checkout service:
+# HikariCP pool sized from Little's Law for the bind service:
 # throughput ~200 req/s, avg downstream latency ~150ms → L ≈ 30 in-flight
 spring:
   datasource:
@@ -401,15 +403,15 @@ spring:
 
 ## Practical Backend Scenario
 
-CascadeCommerce's checkout endpoint fans out to Inventory, Pricing, Tax, and Aurora Pay on every request. Average response time is a comfortable 180ms and looks fine on the dashboard, but the on-call FDE is paged for p99 latency crossing 4 seconds during a flash sale. Profiling the critical path shows each of the four downstream calls has its own p99 around 700ms — individually unremarkable — but a request that touches all four has roughly a `1 - (0.993)^4 ≈ 2.8%` chance of hitting at least one of those tails, and at flash-sale throughput that 2.8% is thousands of real requests per hour, not a rounding error. The second finding is a HikariCP pool sized at 15 connections against a throughput of 220 req/s and average downstream latency of 160ms — Little's Law puts steady-state in-flight requests at `220 × 0.160 = 35.2`, more than double the pool's capacity, so most requests are queuing behind the pool itself before they ever reach a downstream call, and that queueing wait is the dominant contributor to the 4-second tail, not any single slow dependency.
+PolicyVault's bind endpoint fans out to Inventory, Pricing, Tax, and BindPay on every request. Average response time is a comfortable 180ms and looks fine on the dashboard, but the on-call FDE is paged for p99 latency crossing 4 seconds during a flash sale. Profiling the critical path shows each of the four downstream calls has its own p99 around 700ms — individually unremarkable — but a request that touches all four has roughly a `1 - (0.993)^4 ≈ 2.8%` chance of hitting at least one of those tails, and at flash-sale throughput that 2.8% is thousands of real requests per hour, not a rounding error. The second finding is a HikariCP pool sized at 15 connections against a throughput of 220 req/s and average downstream latency of 160ms — Little's Law puts steady-state in-flight requests at `220 × 0.160 = 35.2`, more than double the pool's capacity, so most requests are queuing behind the pool itself before they ever reach a downstream call, and that queueing wait is the dominant contributor to the 4-second tail, not any single slow dependency.
 
 ## Practice Loop
 
-1. Measure the checkout endpoint's actual throughput (`λ`) and average per-request time-in-system (`W`) under current flash-sale load, and compute `L` using Little's Law.
+1. Measure the bind endpoint's actual throughput (`λ`) and average per-request time-in-system (`W`) under current flash-sale load, and compute `L` using Little's Law.
 2. Compare the computed `L` against the current HikariCP `maximum-pool-size` and identify whether the pool is undersized relative to the computed steady-state concurrency.
-3. Diagnostic: measure p50 and p99 latency separately for the checkout endpoint and for each of its four downstream calls individually, and compute the compounded probability of at least one tail hit per checkout request from the individual p99 rates.
+3. Diagnostic: measure p50 and p99 latency separately for the bind endpoint and for each of its four downstream calls individually, and compute the compounded probability of at least one tail hit per bind request from the individual p99 rates.
 4. Resize the pool using the Little's Law result plus burst headroom, re-run the flash-sale load test, and re-measure p50 and p99 to confirm which portion of the original tail was pool-queueing wait versus genuine downstream latency.
-5. Identify the first remaining saturation point after the pool resize — the next-lowest-capacity resource on the critical path — and propose one bounded fix (a specific pool, timeout, or batching change) rather than a general "add more capacity" recommendation.
+5. Identify the first remaining saturation point after the pool resize — the next-lowest-capacity resource on the critical path — and propose one bounded fix (a specific pool, timeout, or batching change) rather than a general "add more capacity" risk-flag suggestion.
 
 ## Evidence of Understanding
 
@@ -417,7 +419,7 @@ You can apply Little's Law to compute steady-state concurrency from measured thr
 
 ## Suggested Extension
 
-Add a per-hop timeout budget to the checkout endpoint (e.g., 300ms allocated to each of the four downstream calls, summing to less than the endpoint's own SLA) and explain why this budget needs slack below the SLA total rather than summing to exactly it, given the tail-amplification math above.
+Add a per-hop timeout budget to the bind endpoint (e.g., 300ms allocated to each of the four downstream calls, summing to less than the endpoint's own SLA) and explain why this budget needs slack below the SLA total rather than summing to exactly it, given the tail-amplification math above.
 <!-- CHAPTER_BODY_END -->
 
 <!-- MCQ_SECTION_START -->
@@ -462,7 +464,7 @@ A connection pool is sized below the value Little's Law computes for steady-stat
 - [ ] A: An undersized pool causes the database itself to slow down independent of queueing
 - [x] B: Requests queue behind the pool, which increases each request's total time-in-system (`W`); since `L = λ × W`, the increased `W` increases the effective in-flight count further, compounding the queueing
 - [ ] C: HikariCP silently drops requests once the pool is full, so throughput decreases but latency is unaffected
-- [ ] D: Little's Law only applies to read-heavy workloads, so an undersized pool has no measurable latency effect on checkout traffic
+- [ ] D: Little's Law only applies to read-heavy workloads, so an undersized pool has no measurable latency effect on bind traffic
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
@@ -506,7 +508,7 @@ Each of 4 independent downstream calls in a fan-out request has a 1% chance of h
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-The checkout endpoint's four downstream calls are switched from serial to parallel execution. What does this change, and what does it NOT change, about tail amplification?
+The bind endpoint's four downstream calls are switched from serial to parallel execution. What does this change, and what does it NOT change, about tail amplification?
 
 **OPTIONS:**
 - [x] A: It reduces the total latency cost of the fan-out (waiting for the slowest call instead of summing all four), but it does not reduce the compounded probability that at least one call lands in its own tail
@@ -532,7 +534,7 @@ Parallelism changes the wait-for-the-slowest latency cost, but each call still i
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-CascadeCommerce's checkout dashboard shows a comfortable 180ms average response time while the on-call FDE is paged for a p99 crossing 4 seconds. What does this gap indicate?
+PolicyVault's bind dashboard shows a comfortable 180ms average response time while the on-call FDE is paged for a p99 crossing 4 seconds. What does this gap indicate?
 
 **OPTIONS:**
 - [ ] A: The average metric is being computed incorrectly and should be discarded
@@ -557,7 +559,7 @@ Average and percentile metrics answer different questions; a healthy average can
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-After resizing the HikariCP pool per the Little's Law calculation, the checkout endpoint's p99 latency drops substantially but does not reach the individual downstream services' own advertised p99. What is the correct interpretation?
+After resizing the HikariCP pool per the Little's Law calculation, the bind endpoint's p99 latency drops substantially but does not reach the individual downstream services' own advertised p99. What is the correct interpretation?
 
 **OPTIONS:**
 - [ ] A: The pool resize had no real effect; the improvement was a coincidence of reduced load
@@ -618,9 +620,9 @@ Per this lesson's Practice Loop, after identifying the next saturation point on 
 
 **OPTIONS:**
 - [ ] A: Increase every downstream service's replica count uniformly
-- [x] B: Propose one bounded fix targeted at the specific identified resource (a specific pool, timeout, or batching change), rather than a general "add more capacity" recommendation
-- [ ] C: Switch the entire checkout flow to an asynchronous, eventually-consistent model
-- [ ] D: Reduce the checkout endpoint's own SLA to match the current p99
+- [x] B: Propose one bounded fix targeted at the specific identified resource (a specific pool, timeout, or batching change), rather than a general "add more capacity" risk-flag suggestion
+- [ ] C: Switch the entire bind flow to an asynchronous, eventually-consistent model
+- [ ] D: Reduce the bind endpoint's own SLA to match the current p99
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
@@ -677,7 +679,7 @@ supplementary_content:
 
 Active-active means both regions accept writes, not merely that both regions serve reads — and that single distinction is what makes active-active harder than a read-replica topology, because it introduces the possibility that the same logical record is written in two regions before either region has heard about the other's write. Health-based routing (Route 53 with a health check per region, or an equivalent global load balancer) decides which region a given request reaches, but the routing layer's own detection interval and DNS TTL are themselves latency in the failure-recovery path: a health check that polls every 30 seconds and a DNS TTL of 60 seconds means a genuinely failed region can still receive live traffic for up to roughly 90 seconds after it actually failed, and that window is exactly the RTO (recovery time objective) the routing mechanism itself contributes — a number that has to be stated explicitly, not assumed to be zero because "we have failover."
 
-Conflict resolution is the mechanism that decides what happens when the same record is written in both regions during the (however brief) window before replication catches up, and the correct choice is per data type, not a single global policy. Last-writer-wins (LWW), keyed on a timestamp or vector clock, is simple to implement and correct enough for data where losing one of the two concurrent writes is a tolerable cost — a shopping cart line-item quantity, where the customer can simply re-add the item if their update was the one silently dropped. LWW is the wrong choice for data where silently discarding one of two concurrent writes is not a tolerable cost — a payment settlement record, where two regions both marking an order "paid" from two different transaction attempts is not a case where discarding one write is safe; that data path needs a single authoritative writer (a CP data path, in CAP terms) rather than active-active acceptance, even if the rest of the system is active-active. This is the same per-data-path granularity argument that governs CAP theorem generally, applied specifically to the mechanics of what an active-active region pair actually does when a write lands in both regions concurrently: the region topology can be active-active while specific fields within it still route through a single authoritative region.
+Conflict resolution is the mechanism that decides what happens when the same record is written in both regions during the (however brief) window before replication catches up, and the correct choice is per data type, not a single global policy. Last-writer-wins (LWW), keyed on a timestamp or vector clock, is simple to implement and correct enough for data where losing one of the two concurrent writes is a tolerable cost — a quote worksheet line-item quantity, where the customer can simply re-add the item if their update was the one silently dropped. LWW is the wrong choice for data where silently discarding one of two concurrent writes is not a tolerable cost — a payment bind-confirmation record, where two regions both marking the same policy "bound" from two different transaction attempts is not a case where discarding one write is safe; that data path needs a single authoritative writer (a CP data path, in CAP terms) rather than active-active acceptance, even if the rest of the system is active-active. This is the same per-data-path granularity argument that governs CAP theorem generally, applied specifically to the mechanics of what an active-active region pair actually does when a write lands in both regions concurrently: the region topology can be active-active while specific fields within it still route through a single authoritative region.
 
 ```
 # Route 53 health-based routing — the region-selection half of active-active
@@ -698,37 +700,37 @@ aws route53 change-resource-record-sets --hosted-zone-id Z1PA6795UKMFR9 --change
 ```
 
 ```python
-# LWW cart merge — acceptable for line-item quantities, NOT for settlement records
-def merge_cart(local_cart: dict, remote_cart: dict) -> dict:
+# LWW quote-worksheet merge — acceptable for line-item quantities, NOT for bind-confirmation records
+def merge_worksheet(local_worksheet: dict, remote_worksheet: dict) -> dict:
     merged = {}
-    for sku in set(local_cart) | set(remote_cart):
-        local, remote = local_cart.get(sku), remote_cart.get(sku)
+    for line_id in set(local_worksheet) | set(remote_worksheet):
+        local, remote = local_worksheet.get(line_id), remote_worksheet.get(line_id)
         if local and remote:
-            merged[sku] = local if local["updated_at"] >= remote["updated_at"] else remote
+            merged[line_id] = local if local["updated_at"] >= remote["updated_at"] else remote
         else:
-            merged[sku] = local or remote
+            merged[line_id] = local or remote
     return merged
 ```
 
 ## Practical Backend Scenario
 
-CascadeCommerce runs active-active in `us-east-1` and `eu-west-1` so that European shoppers get local-region latency. A frequent-traveler shopper adds items to their cart while connected to `eu-west-1`, then their next request routes to `us-east-1` (a mobile network handoff mid-session), where they remove one of those items before the `eu-west-1` write has finished replicating. Both regions now hold a different cart state for the same account, and the LWW merge resolves it correctly using each line item's own `updated_at` timestamp — an acceptable outcome because the customer can always re-add or re-remove an item and no business invariant is violated either way. Separately, the payment team proposes extending active-active to the order-settlement write path so a `eu-west-1` shopper's payment confirmation doesn't pay the transatlantic round trip. The FDE flags this as the CP data path that must stay single-writer: a settlement record marked "paid" from a duplicated concurrent write in both regions, later resolved by LWW picking whichever write happened to have the later timestamp, could silently mark a failed authorization as settled — an outcome no amount of "the customer can just retry" tolerance applies to, unlike a dropped cart-quantity update.
+PolicyVault runs active-active in `us-east-1` and `eu-west-1` so that European brokers get local-region latency. A frequent-traveler broker adds items to their quote worksheet while connected to `eu-west-1`, then their next request routes to `us-east-1` (a mobile network handoff mid-session), where they remove one of those items before the `eu-west-1` write has finished replicating. Both regions now hold a different quote worksheet state for the same account, and the LWW merge resolves it correctly using each line item's own `updated_at` timestamp — an acceptable outcome because the customer can always re-add or re-remove an item and no business invariant is violated either way. Separately, the payment team proposes extending active-active to the policy-bind write path so a `eu-west-1` broker's payment confirmation doesn't pay the transatlantic round trip. The FDE flags this as the CP data path that must stay single-writer: a bind-confirmation record marked "paid" from a duplicated concurrent write in both regions, later resolved by LWW picking whichever write happened to have the later timestamp, could silently mark a failed authorization as bound — an outcome no amount of "the broker can just retry" tolerance applies to, unlike a dropped quote-worksheet-quantity update.
 
 ## Practice Loop
 
-1. Draw the two regions' request paths for a cart write and a settlement write, and mark which is active-active (both regions accept) and which must stay single-writer (one authoritative region).
+1. Draw the two regions' request paths for a quote worksheet write and a bind confirmation write, and mark which is active-active (both regions accept) and which must stay single-writer (one authoritative region).
 2. Configure the Route 53 health check and failover routing for `api.cascadecommerce.com`, and compute the worst-case detection-plus-propagation window (health-check interval plus DNS TTL) as the routing layer's own contribution to RTO.
-3. Diagnostic: simulate the traveling shopper's cart conflict (a concurrent write to the same SKU in both regions before replication completes) and trace the LWW merge's resolution, confirming which write was silently dropped and that this is an acceptable outcome for a cart.
-4. Simulate the same concurrent-write pattern against a settlement record under a hypothetical LWW policy, and show the specific unacceptable outcome (a failed authorization marked "paid") that motivates keeping settlement single-writer instead.
-5. Document the operator decision point: name the exact field-level boundary between what is active-active (cart, browsing session) and what is not (settlement), and the reconciliation runbook for the case where the single-writer region itself fails.
+3. Diagnostic: simulate the traveling broker's quote worksheet conflict (a concurrent write to the same coverage line in both regions before replication completes) and trace the LWW merge's resolution, confirming which write was silently dropped and that this is an acceptable outcome for a quote worksheet.
+4. Simulate the same concurrent-write pattern against a bind-confirmation record under a hypothetical LWW policy, and show the specific unacceptable outcome (a failed authorization marked "paid") that motivates keeping bind confirmation single-writer instead.
+5. Document the operator decision point: name the exact field-level boundary between what is active-active (quote worksheet, browsing session) and what is not (bind confirmation), and the reconciliation runbook for the case where the single-writer region itself fails.
 
 ## Evidence of Understanding
 
-You can design health-based routing across two active regions and state the RTO the routing mechanism's own detection interval and DNS TTL contribute, rather than assuming failover is instantaneous. You can choose a conflict-resolution strategy per data type based on whether silently discarding one of two concurrent writes is an acceptable cost for that specific field, and can name a concrete example of data where LWW is safe (cart line items) and one where it is not (settlement records). You can simulate a regional write conflict, trace how it resolves under the chosen strategy, and explain the operator boundary between active-active and single-writer data paths within the same overall region topology.
+You can design health-based routing across two active regions and state the RTO the routing mechanism's own detection interval and DNS TTL contribute, rather than assuming failover is instantaneous. You can choose a conflict-resolution strategy per data type based on whether silently discarding one of two concurrent writes is an acceptable cost for that specific field, and can name a concrete example of data where LWW is safe (quote worksheet lines) and one where it is not (bind-confirmation records). You can simulate a regional write conflict, trace how it resolves under the chosen strategy, and explain the operator boundary between active-active and single-writer data paths within the same overall region topology.
 
 ## Suggested Extension
 
-Design the failback procedure for the case where `us-east-1` (the single-writer region for settlement) fails entirely: which region becomes the new authoritative writer, what happens to in-flight settlement writes that were accepted but not yet replicated at the moment of failure, and what reconciliation step runs before the failed region is allowed to rejoin as a writer.
+Design the failback procedure for the case where `us-east-1` (the single-writer region for bind confirmation) fails entirely: which region becomes the new authoritative writer, what happens to in-flight bind confirmation writes that were accepted but not yet replicated at the moment of failure, and what reconciliation step runs before the failed region is allowed to rejoin as a writer.
 <!-- CHAPTER_BODY_END -->
 
 <!-- MCQ_SECTION_START -->
@@ -786,13 +788,13 @@ Worst case, a failure occurs just after a health check passed (up to 30s until t
 
 ### QUESTION_BLOCK_START: Q3
 **QUESTION_ID:** Q3
-**QUESTION_TITLE:** Why LWW is acceptable for cart quantities
+**QUESTION_TITLE:** Why LWW is acceptable for quote worksheet quantities
 **DIFFICULTY:** Medium
 **BLOOM_LEVEL:** Analysis
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Why does the lesson treat last-writer-wins as an acceptable conflict-resolution strategy for cart line items specifically?
+Why does the lesson treat last-writer-wins as an acceptable conflict-resolution strategy for quote worksheet lines specifically?
 
 **OPTIONS:**
 - [ ] A: Cart writes never actually conflict in practice, so the choice of strategy is irrelevant
@@ -803,27 +805,27 @@ Why does the lesson treat last-writer-wins as an acceptable conflict-resolution 
 **CORRECT_ANSWER_INDEX:** 1
 
 **EXPLANATION:**
-The lesson's criterion for choosing LWW is whether discarding one of two concurrent writes is tolerable for that specific data — true for a cart quantity, false for a settlement record.
+The lesson's criterion for choosing LWW is whether discarding one of two concurrent writes is tolerable for that specific data — true for a quote worksheet quantity, false for a bind-confirmation record.
 
 **LESSON_CONNECTION:** Concepts Covered, Paragraph 2
-**KEYWORDS:** [lww, cart, tolerable-loss]
+**KEYWORDS:** [lww, quote worksheet, tolerable-loss]
 ### QUESTION_BLOCK_END: Q3
 
 ### QUESTION_BLOCK_START: Q4
 **QUESTION_ID:** Q4
-**QUESTION_TITLE:** Why settlement must stay single-writer
+**QUESTION_TITLE:** Why bind confirmation must stay single-writer
 **DIFFICULTY:** Hard
 **BLOOM_LEVEL:** Analysis
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-The payment team proposes extending active-active writes to the order-settlement path. What specific failure mode does the FDE flag as the reason this data path must stay single-writer instead?
+The payment team proposes extending active-active writes to the policy-bind path. What specific failure mode does the FDE flag as the reason this data path must stay single-writer instead?
 
 **OPTIONS:**
-- [ ] A: Settlement writes are too large in volume for active-active replication to keep up with
-- [x] B: A concurrent write to the same settlement record in both regions, resolved by LWW, could silently mark a failed authorization as "paid" — an outcome that cannot be tolerated the way a dropped cart-quantity write can be
+- [ ] A: Bind confirmation writes are too large in volume for active-active replication to keep up with
+- [x] B: A concurrent write to the same bind-confirmation record in both regions, resolved by LWW, could silently mark a failed authorization as "paid" — an outcome that cannot be tolerated the way a dropped quote-worksheet-quantity write can be
 - [ ] C: Active-active is incompatible with any payment provider's API by design
-- [ ] D: Settlement records cannot be timestamped, so LWW cannot be applied to them at all
+- [ ] D: Bind confirmation records cannot be timestamped, so LWW cannot be applied to them at all
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
@@ -831,7 +833,7 @@ The payment team proposes extending active-active writes to the order-settlement
 The concrete failure mode is the specific business-invariant violation — a failed authorization silently becoming "paid" — not a generic volume or API-compatibility concern.
 
 **LESSON_CONNECTION:** Practical Backend Scenario
-**KEYWORDS:** [settlement, single-writer, cp-data-path]
+**KEYWORDS:** [bind confirmation, single-writer, cp-data-path]
 ### QUESTION_BLOCK_END: Q4
 
 ### QUESTION_BLOCK_START: Q5
@@ -842,11 +844,11 @@ The concrete failure mode is the specific business-invariant violation — a fai
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-CascadeCommerce's region topology is active-active for cart data but single-writer for settlement data, within the same overall two-region deployment. What principle does this reflect?
+PolicyVault's region topology is active-active for quote worksheet data but single-writer for bind confirmation data, within the same overall two-region deployment. What principle does this reflect?
 
 **OPTIONS:**
 - [ ] A: A region topology must choose one strategy uniformly across all data, so this configuration is a design error
-- [x] B: Consistency/availability trade-offs apply per data path, not once for an entire system — a single deployment can have an AP path (cart) and a CP path (settlement) simultaneously
+- [x] B: Consistency/availability trade-offs apply per data path, not once for an entire system — a single deployment can have an AP path (quote worksheet) and a CP path (bind confirmation) simultaneously
 - [ ] C: Active-active and single-writer are mutually exclusive at the infrastructure level, so this configuration is not actually possible
 - [ ] D: The distinction only matters for read paths, not write paths
 **CORRECT_ANSWER_KEY:** B
@@ -869,18 +871,18 @@ This is the per-data-path granularity principle applied to region topology speci
 **QUESTION_TEXT:**
 
 ```python
-def merge_cart(local_cart: dict, remote_cart: dict) -> dict:
+def merge_worksheet(local_worksheet: dict, remote_worksheet: dict) -> dict:
     merged = {}
-    for sku in set(local_cart) | set(remote_cart):
-        local, remote = local_cart.get(sku), remote_cart.get(sku)
+    for line_id in set(local_worksheet) | set(remote_worksheet):
+        local, remote = local_worksheet.get(line_id), remote_worksheet.get(line_id)
         if local and remote:
-            merged[sku] = local if local["updated_at"] >= remote["updated_at"] else remote
+            merged[line_id] = local if local["updated_at"] >= remote["updated_at"] else remote
         else:
-            merged[sku] = local or remote
+            merged[line_id] = local or remote
     return merged
 ```
 
-For a SKU present in both `local_cart` and `remote_cart` with conflicting quantities, which entry does `merge_cart` keep?
+For a coverage line present in both `local_worksheet` and `remote_worksheet` with conflicting quantities, which entry does `merge_worksheet` keep?
 
 **OPTIONS:**
 - [ ] A: It always keeps the local entry, regardless of timestamp
@@ -891,10 +893,10 @@ For a SKU present in both `local_cart` and `remote_cart` with conflicting quanti
 **CORRECT_ANSWER_INDEX:** 1
 
 **EXPLANATION:**
-The ternary compares `updated_at` timestamps and keeps the later write — the last-writer-wins policy applied at the per-SKU level.
+The ternary compares `updated_at` timestamps and keeps the later write — the last-writer-wins policy applied at the per-coverage line level.
 
 **LESSON_CONNECTION:** Concepts Covered, Paragraph 2 (code block)
-**KEYWORDS:** [lww, merge-cart, timestamp]
+**KEYWORDS:** [lww, merge-quote worksheet, timestamp]
 ### QUESTION_BLOCK_END: Q6
 
 ### QUESTION_BLOCK_START: Q7
@@ -949,27 +951,27 @@ The lesson's explicit point is that automation does not mean zero recovery time 
 
 ### QUESTION_BLOCK_START: Q9
 **QUESTION_ID:** Q9
-**QUESTION_TITLE:** The traveling shopper scenario
+**QUESTION_TITLE:** The traveling broker scenario
 **DIFFICULTY:** Medium
 **BLOOM_LEVEL:** Application
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-A shopper's cart write in `eu-west-1` and a subsequent removal in `us-east-1` conflict before replication completes. Why does the lesson consider the LWW resolution of this specific conflict acceptable, unlike the hypothetical settlement conflict?
+A broker's quote worksheet write in `eu-west-1` and a subsequent removal in `us-east-1` conflict before replication completes. Why does the lesson consider the LWW resolution of this specific conflict acceptable, unlike the hypothetical bind confirmation conflict?
 
 **OPTIONS:**
 - [ ] A: Cart conflicts across regions are extremely rare and therefore not worth designing for
-- [x] B: Whichever cart state the LWW merge produces, the customer can simply re-add or re-remove the item — no business invariant (like a payment being marked settled incorrectly) is violated by either outcome
-- [ ] C: The traveling shopper scenario is not a real conflict because the two writes happened in different regions
-- [ ] D: LWW is only applied to settlement records, not cart records, so the comparison does not apply
+- [x] B: Whichever quote worksheet state the LWW merge produces, the customer can simply re-add or re-remove the item — no business invariant (like a payment being marked settled incorrectly) is violated by either outcome
+- [ ] C: The traveling broker scenario is not a real conflict because the two writes happened in different regions
+- [ ] D: LWW is only applied to bind-confirmation records, not quote worksheet records, so the comparison does not apply
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
 **EXPLANATION:**
-The distinguishing factor throughout this lesson is tolerable-vs-intolerable cost of a discarded write, not frequency — the cart case is tolerable regardless of which write LWW keeps.
+The distinguishing factor throughout this lesson is tolerable-vs-intolerable cost of a discarded write, not frequency — the quote worksheet case is tolerable regardless of which write LWW keeps.
 
 **LESSON_CONNECTION:** Practical Backend Scenario
-**KEYWORDS:** [lww, tolerable-conflict, cart-vs-settlement]
+**KEYWORDS:** [lww, tolerable-conflict, quote worksheet-vs-bind confirmation]
 ### QUESTION_BLOCK_END: Q9
 <!-- MCQ_SECTION_END -->
 
@@ -1024,7 +1026,7 @@ Retrying a failed call is only safe when the error is retryable — a timeout, a
 resilience4j:
   circuitbreaker:
     instances:
-      auroraPay:
+      bindPay:
         slidingWindowType: COUNT_BASED
         slidingWindowSize: 50
         failureRateThreshold: 50
@@ -1035,22 +1037,22 @@ resilience4j:
         minimumNumberOfCalls: 20
   timelimiter:
     instances:
-      auroraPay:
+      bindPay:
         timeoutDuration: 3s
   bulkhead:
     instances:
-      auroraPay:
+      bindPay:
         maxConcurrentCalls: 15
         maxWaitDuration: 0
 ```
 
 ```java
-// Retry with exponential backoff and jitter for a retryable Aurora Pay error
+// Retry with exponential backoff and jitter for a retryable BindPay error
 int maxRetries = 4;
 long baseDelayMs = 200;
 for (int attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-        return auroraPayClient.charge(request); // uses request.idempotencyKey
+        return bindPayClient.charge(request); // uses request.idempotencyKey
     } catch (RetryableException e) {
         if (attempt == maxRetries) throw e;
         long backoff = baseDelayMs * (1L << attempt);              // 200, 400, 800, 1600ms
@@ -1062,15 +1064,15 @@ for (int attempt = 0; attempt <= maxRetries; attempt++) {
 
 ## Practical Backend Scenario
 
-Aurora Pay, CascadeCommerce's third-party payment processor, starts responding slowly during a partial outage — not failing outright, just taking 4-6 seconds per charge instead of the usual 200ms. Every checkout thread that calls Aurora Pay blocks for the full duration, and because the naive retry logic retries every timeout up to 3 times with a fixed 500ms delay and no jitter, the actual load CascadeCommerce sends to the already-struggling Aurora Pay roughly triples at the exact moment Aurora Pay can least absorb it, and every one of those retries is also holding a checkout-service thread for the duration. Within minutes, the checkout service's own thread pool is exhausted — not by Aurora Pay's failure directly, but by CascadeCommerce's own retry behavior amplifying that failure into a self-inflicted outage across every checkout request, including the ones that don't even touch Aurora Pay. The fix layers three mechanisms: a `timeLimiter` bounding each call to 3 seconds so a slow call fails fast instead of holding a thread for 6, a `bulkhead` capping concurrent Aurora Pay calls at 15 so a saturated payment dependency can only ever occupy 15 checkout threads regardless of how many requests arrive, and a `circuitBreaker` that opens once the failure-and-slow-call rate crosses its threshold, so once Aurora Pay's degradation is confirmed rather than a one-off blip, subsequent calls fail immediately without even attempting the network round trip — freeing every thread that would otherwise wait 3 seconds just to receive the failure the breaker already knows is coming.
+BindPay, PolicyVault's third-party payment processor, starts responding slowly during a partial outage — not failing outright, just taking 4-6 seconds per charge instead of the usual 200ms. Every bind-service thread that calls BindPay blocks for the full duration, and because the naive retry logic retries every timeout up to 3 times with a fixed 500ms delay and no jitter, the actual load PolicyVault sends to the already-struggling BindPay roughly triples at the exact moment BindPay can least absorb it, and every one of those retries is also holding a bind-service thread for the duration. Within minutes, the bind service's own thread pool is exhausted — not by BindPay's failure directly, but by PolicyVault's own retry behavior amplifying that failure into a self-inflicted outage across every bind request, including the ones that don't even touch BindPay. The fix layers three mechanisms: a `timeLimiter` bounding each call to 3 seconds so a slow call fails fast instead of holding a thread for 6, a `bulkhead` capping concurrent BindPay calls at 15 so a saturated payment dependency can only ever occupy 15 bind-service threads regardless of how many requests arrive, and a `circuitBreaker` that opens once the failure-and-slow-call rate crosses its threshold, so once BindPay's degradation is confirmed rather than a one-off blip, subsequent calls fail immediately without even attempting the network round trip — freeing every thread that would otherwise wait 3 seconds just to receive the failure the breaker already knows is coming.
 
 ## Practice Loop
 
-1. Configure the `resilience4j` circuit breaker, time limiter, and bulkhead for the `auroraPay` client using the thresholds shown above, and explain in one sentence what each of the three mechanisms independently protects against.
-2. Implement retry with exponential backoff and jitter for retryable Aurora Pay errors only (timeouts, connection resets, 503s), explicitly excluding non-retryable errors (a declined-card 402) from the retry path.
-3. Diagnostic: inject a synthetic 5-second Aurora Pay response delay and measure, before adding the time limiter, how many checkout-service threads become blocked within 30 seconds — this should make the thread-exhaustion mechanism visible as a number, not an abstract risk.
+1. Configure the `resilience4j` circuit breaker, time limiter, and bulkhead for the `bindPay` client using the thresholds shown above, and explain in one sentence what each of the three mechanisms independently protects against.
+2. Implement retry with exponential backoff and jitter for retryable BindPay errors only (timeouts, connection resets, 503s), explicitly excluding non-retryable errors (a declined-card 402) from the retry path.
+3. Diagnostic: inject a synthetic 5-second BindPay response delay and measure, before adding the time limiter, how many bind-service threads become blocked within 30 seconds — this should make the thread-exhaustion mechanism visible as a number, not an abstract risk.
 4. Re-run the same injected delay with the time limiter, bulkhead, and circuit breaker all in place, and confirm the breaker transitions CLOSED → OPEN once the failure/slow-call rate crosses 50%, then confirm it transitions to HALF_OPEN after the 30-second wait and admits exactly 5 trial calls.
-5. Confirm every retried charge attempt uses the same idempotency key as the original attempt, and verify a charge that actually succeeded at Aurora Pay but whose response was lost to the timeout does not get charged twice on retry.
+5. Confirm every retried charge attempt uses the same idempotency key as the original attempt, and verify a charge that actually succeeded at BindPay but whose response was lost to the timeout does not get charged twice on retry.
 
 ## Evidence of Understanding
 
@@ -1078,7 +1080,7 @@ You can configure a circuit breaker's sliding window, failure-rate and slow-call
 
 ## Suggested Extension
 
-Add a fallback response to the `auroraPay` circuit breaker's OPEN state — instead of failing the checkout request outright, queue the charge for asynchronous retry once the breaker closes and return a "payment processing" status to the customer — and connect this to the Graceful Degradation lesson's framing of what the minimum viable customer-facing outcome looks like when a dependency is confirmed unhealthy.
+Add a fallback response to the `bindPay` circuit breaker's OPEN state — instead of failing the bind request outright, queue the charge for asynchronous retry once the breaker closes and return a "payment processing" status to the customer — and connect this to the Graceful Degradation lesson's framing of what the minimum viable customer-facing outcome looks like when a dependency is confirmed unhealthy.
 <!-- CHAPTER_BODY_END -->
 
 <!-- MCQ_SECTION_START -->
@@ -1092,7 +1094,7 @@ Add a fallback response to the `auroraPay` circuit breaker's OPEN state — inst
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-In the `auroraPay` circuit breaker configuration, what specifically happens when the breaker transitions from OPEN to HALF_OPEN after `waitDurationInOpenState`?
+In the `bindPay` circuit breaker configuration, what specifically happens when the breaker transitions from OPEN to HALF_OPEN after `waitDurationInOpenState`?
 
 **OPTIONS:**
 - [ ] A: The breaker immediately returns to CLOSED and resumes full traffic
@@ -1123,11 +1125,11 @@ slowCallRateThreshold: 80
 slowCallDurationThreshold: 2s
 ```
 
-Why does the breaker track "slow calls" as a distinct signal from outright failures, given Aurora Pay's degradation pattern in this lesson?
+Why does the breaker track "slow calls" as a distinct signal from outright failures, given BindPay's degradation pattern in this lesson?
 
 **OPTIONS:**
 - [ ] A: Slow calls are always eventually going to fail, so tracking them separately is redundant with the failure-rate threshold
-- [x] B: Aurora Pay's degradation was calls returning 200 after 4-6 seconds, not error responses — without treating unusually slow-but-successful calls as equivalent to failures, the breaker would never open despite each slow call holding a thread the entire time
+- [x] B: BindPay's degradation was calls returning 200 after 4-6 seconds, not error responses — without treating unusually slow-but-successful calls as equivalent to failures, the breaker would never open despite each slow call holding a thread the entire time
 - [ ] C: `slowCallDurationThreshold` only applies to calls that time out, which are already counted as failures
 - [ ] D: Tracking slow calls is unnecessary once a time limiter is configured
 **CORRECT_ANSWER_KEY:** B
@@ -1204,7 +1206,7 @@ This is the thundering-herd failure mode described in Concepts Covered, Paragrap
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Aurora Pay returns a 402 (card declined) for a specific charge request. Should the retry logic retry this error?
+BindPay returns a 402 (card declined) for a specific charge request. Should the retry logic retry this error?
 
 **OPTIONS:**
 - [ ] A: Yes, with exponential backoff and jitter like any other error
@@ -1229,11 +1231,11 @@ This is the exact retryable-vs-permanent distinction the chapter draws: a 402 is
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Both a bulkhead and a circuit breaker are configured for `auroraPay`. What does the `bulkhead`'s `maxConcurrentCalls: 15` protect against that the `circuitBreaker` does not, on its own?
+Both a bulkhead and a circuit breaker are configured for `bindPay`. What does the `bulkhead`'s `maxConcurrentCalls: 15` protect against that the `circuitBreaker` does not, on its own?
 
 **OPTIONS:**
 - [ ] A: They protect against the exact same failure mode and configuring both is redundant
-- [x] B: The circuit breaker only opens once its failure/slow-call-rate threshold is crossed; before that threshold is reached, an unlimited number of concurrent calls could still exhaust the checkout service's thread pool — the bulkhead caps concurrency regardless of whether the breaker has tripped yet
+- [x] B: The circuit breaker only opens once its failure/slow-call-rate threshold is crossed; before that threshold is reached, an unlimited number of concurrent calls could still exhaust the bind service's thread pool — the bulkhead caps concurrency regardless of whether the breaker has tripped yet
 - [ ] C: The bulkhead replaces the need for a time limiter
 - [ ] D: The bulkhead only applies once the circuit breaker is already OPEN
 **CORRECT_ANSWER_KEY:** B
@@ -1254,11 +1256,11 @@ This is the "complementary, not redundant" distinction from Concepts Covered, Pa
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-A charge to Aurora Pay actually succeeds, but the response is lost due to a network timeout, triggering a retry. What prevents the customer from being charged twice?
+A charge to BindPay actually succeeds, but the response is lost due to a network timeout, triggering a retry. What prevents the customer from being charged twice?
 
 **OPTIONS:**
 - [ ] A: The circuit breaker automatically deduplicates charges
-- [x] B: The retried request carries the same idempotency key as the original attempt, so Aurora Pay recognizes it as a duplicate of an already-processed charge rather than a new one
+- [x] B: The retried request carries the same idempotency key as the original attempt, so BindPay recognizes it as a duplicate of an already-processed charge rather than a new one
 - [ ] C: Exponential backoff makes double-charging statistically unlikely but not prevented
 - [ ] D: The bulkhead's concurrency limit prevents the same request from being sent twice
 **CORRECT_ANSWER_KEY:** B
@@ -1310,18 +1312,18 @@ Why does the configuration require a minimum of 20 calls before the failure rate
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Before the fix, CascadeCommerce's naive retry logic (fixed 500ms delay, no jitter, up to 3 retries) made Aurora Pay's partial outage worse. What was the specific mechanism by which CascadeCommerce's own retry behavior caused a self-inflicted outage?
+Before the fix, PolicyVault's naive retry logic (fixed 500ms delay, no jitter, up to 3 retries) made BindPay's partial outage worse. What was the specific mechanism by which PolicyVault's own retry behavior caused a self-inflicted outage?
 
 **OPTIONS:**
-- [ ] A: The retries corrupted Aurora Pay's database
-- [x] B: The retries roughly tripled the load CascadeCommerce sent to an already-struggling Aurora Pay, and each retry attempt held a checkout-service thread for its full duration — exhausting the checkout service's own thread pool, affecting even requests that didn't touch Aurora Pay
-- [ ] C: The retries exceeded Aurora Pay's rate limit, causing Aurora Pay to ban CascadeCommerce's IP address
-- [ ] D: The retries had no effect on load; the outage was caused entirely by Aurora Pay's own degradation
+- [ ] A: The retries corrupted BindPay's database
+- [x] B: The retries roughly tripled the load PolicyVault sent to an already-struggling BindPay, and each retry attempt held a bind-service thread for its full duration — exhausting the bind service's own thread pool, affecting even requests that didn't touch BindPay
+- [ ] C: The retries exceeded BindPay's rate limit, causing BindPay to ban PolicyVault's IP address
+- [ ] D: The retries had no effect on load; the outage was caused entirely by BindPay's own degradation
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
 **EXPLANATION:**
-The scenario's key point is that the retry behavior amplified the failure into a broader self-inflicted outage — thread exhaustion affecting unrelated requests — not merely that Aurora Pay was slow.
+The scenario's key point is that the retry behavior amplified the failure into a broader self-inflicted outage — thread exhaustion affecting unrelated requests — not merely that BindPay was slow.
 
 **LESSON_CONNECTION:** Practical Backend Scenario
 **KEYWORDS:** [retry-amplification, thread-exhaustion]
@@ -1371,39 +1373,39 @@ supplementary_content:
 
 ## Concepts Covered
 
-Graceful degradation starts from classifying a workflow's dependencies as critical or optional to the outcome the customer is actually trying to achieve — not every dependency the code happens to call is equally load-bearing for that outcome. A shopper trying to search the catalog, review results, and complete checkout has a critical path (search, product data, checkout, payment) and an optional path (personalized recommendations, "customers also bought" enrichment) — the optional path can fail entirely without preventing the customer from completing the thing they came to do, while the critical path failing means the workflow genuinely cannot complete. This classification is the design decision graceful degradation actually depends on: without it, every dependency gets treated as equally essential by default, and a failure anywhere becomes a failure everywhere, which is precisely the outage graceful degradation exists to prevent.
+Graceful degradation starts from classifying a workflow's dependencies as critical or optional to the outcome the broker is actually trying to achieve — not every dependency the code happens to call is equally load-bearing for that outcome. A broker trying to search open submissions, review a specific one, and complete the bind has a critical path (search, submission data, bind, payment) and an optional path (personalized risk-flag suggestions, "brokers who reviewed this also flagged" enrichment) — the optional path can fail entirely without preventing the broker from completing the thing they came to do, while the critical path failing means the workflow genuinely cannot complete. This classification is the design decision graceful degradation actually depends on: without it, every dependency gets treated as equally essential by default, and a failure anywhere becomes a failure everywhere, which is precisely the outage graceful degradation exists to prevent.
 
-The mechanism for an optional path's failure is a fallback that returns something useful rather than an error — stale-but-useful cached data, a simpler non-personalized response, or a feature that's temporarily hidden rather than broken. This only works when the fallback is triggered fast: a fallback wired behind a per-request timeout that waits the full dependency timeout before falling back pays that cost on every degraded request, which is exactly the problem the previous lesson's circuit breaker solves for this case too — once the breaker for a given dependency has opened (confirming, not merely suspecting, that the dependency is unhealthy), a listener on that breaker's state can flip a feature flag for the corresponding optional capability off cluster-wide, so subsequent requests skip the dependency call entirely and go straight to the fallback rather than each one individually re-discovering the timeout. The final piece is honest user communication: silently substituting different content without disclosing it is a worse user experience than a visibly labeled fallback, because a user who trusts a "Recommended for you" label to mean personalized content and gets an unlabeled generic list has been quietly misled, while the same generic list labeled "Popular picks" sets the correct expectation and signals that the system knows it's degraded rather than broken.
+The mechanism for an optional path's failure is a fallback that returns something useful rather than an error — stale-but-useful cached data, a simpler non-personalized response, or a feature that's temporarily hidden rather than broken. This only works when the fallback is triggered fast: a fallback wired behind a per-request timeout that waits the full dependency timeout before falling back pays that cost on every degraded request, which is exactly the problem the previous lesson's circuit breaker solves for this case too — once the breaker for a given dependency has opened (confirming, not merely suspecting, that the dependency is unhealthy), a listener on that breaker's state can flip a feature flag for the corresponding optional capability off cluster-wide, so subsequent requests skip the dependency call entirely and go straight to the fallback rather than each one individually re-discovering the timeout. The final piece is honest user communication: silently substituting different content without disclosing it is a worse user experience than a visibly labeled fallback, because a user who trusts a "Suggested for this submission" label to mean personalized content and gets an unlabeled generic list has been quietly misled, while the same generic list labeled "Common risk flags" sets the correct expectation and signals that the system knows it's degraded rather than broken.
 
 ```java
-public List<Product> getRecommendations(String tenantId, String userId) {
-    if (!featureFlags.isEnabled("ai-recommendations", tenantId)) {
-        // Flag flipped off cluster-wide by the InsightEngine circuit breaker's
+public List<Product> getRiskSuggestions(String tenantId, String userId) {
+    if (!featureFlags.isEnabled("ai-risk-suggestions", tenantId)) {
+        // Flag flipped off cluster-wide by the RiskAssist circuit breaker's
         // OPEN-state listener — skips the dependency call entirely.
-        return fallbackRecommendations(tenantId); // cached "trending in category", TTL 1h
+        return fallbackRiskSuggestions(tenantId); // cached "frequently-flagged items in this class", TTL 1h
     }
     try {
-        return insightEngineClient.getPersonalized(userId)
+        return riskAssistClient.getRiskFlags(userId)
             .orTimeout(400, TimeUnit.MILLISECONDS)
             .get();
     } catch (TimeoutException | ExecutionException e) {
-        degradationMetrics.increment("recommendations.fallback", tenantId);
-        return fallbackRecommendations(tenantId);
+        degradationMetrics.increment("risk-suggestions.fallback", tenantId);
+        return fallbackRiskSuggestions(tenantId);
     }
 }
 ```
 
 ## Practical Backend Scenario
 
-CascadeCommerce's InsightEngine recommendation service goes down during an unrelated deployment. Search, product pages, cart, and checkout — the critical path — are unaffected, because none of them call InsightEngine. The storefront's "Recommended for you" carousel, however, calls `getRecommendations` on every product page, and before this lesson's fix, that call blocked for its full 400ms timeout on every single page load before falling back — a small but real latency tax on every product page view, applied even to shoppers who never look at the carousel. The fix wires InsightEngine's circuit breaker OPEN transition to an `ai-recommendations` feature-flag flip: once the breaker confirms InsightEngine is unhealthy (crossing its own failure-rate threshold, per the previous lesson's mechanism), the flag flips off cluster-wide, and every subsequent product-page request skips the InsightEngine call entirely, going straight to a cached "Popular picks" list instead of paying the 400ms timeout first. The carousel's heading also changes from "Recommended for you" to "Popular picks" for the duration of the degradation, so shoppers see a visibly different, clearly labeled section rather than a personalized-looking list that quietly isn't.
+PolicyVault's RiskAssist risk-flag suggestion service goes down during an unrelated deployment. Search, quote pages, quote worksheet, and bind — the critical path — are unaffected, because none of them call RiskAssist. The broker portal's "Suggested for this submission" panel, however, calls `getRiskSuggestions` on every quote page, and before this lesson's fix, that call blocked for its full 400ms timeout on every single page load before falling back — a small but real latency tax on every quote page view, applied even to brokers who never look at the panel. The fix wires RiskAssist's circuit breaker OPEN transition to an `ai-risk-flag suggestions` feature-flag flip: once the breaker confirms RiskAssist is unhealthy (crossing its own failure-rate threshold, per the previous lesson's mechanism), the flag flips off cluster-wide, and every subsequent product-page request skips the RiskAssist call entirely, going straight to a cached "Common risk flags" list instead of paying the 400ms timeout first. The panel's heading also changes from "Suggested for this submission" to "Common risk flags" for the duration of the degradation, so brokers see a visibly different, clearly labeled section rather than a personalized-looking list that quietly isn't.
 
 ## Practice Loop
 
-1. Classify CascadeCommerce's product-page dependencies into critical (search, product data, checkout, payment) and optional (InsightEngine recommendations), and state in one sentence why the optional path can fail without the customer's core outcome failing.
-2. Implement `fallbackRecommendations(tenantId)` as a cached, tenant-scoped "trending in category" list with a 1-hour TTL, distinct from InsightEngine's personalized results.
-3. Diagnostic: with the InsightEngine circuit breaker still CLOSED but the dependency itself made artificially slow, measure the added page-load latency the naive per-request timeout imposes across 100 product-page requests before the breaker has tripped.
-4. Wire a listener on the InsightEngine circuit breaker's OPEN-state transition to flip the `ai-recommendations` feature flag off, then re-run the same 100-request measurement and confirm the added latency drops to near-zero once the flag-based short-circuit is in place.
-5. Update the storefront's carousel heading to switch between "Recommended for you" and "Popular picks" based on the feature flag's state, and verify a shopper viewing the page during degradation sees the changed label rather than an unlabeled substitution.
+1. Classify PolicyVault's product-page dependencies into critical (search, product data, bind, payment) and optional (RiskAssist risk-flag suggestions), and state in one sentence why the optional path can fail without the customer's core outcome failing.
+2. Implement `fallbackRiskSuggestions(tenantId)` as a cached, tenant-scoped "frequently-flagged items in this class" list with a 1-hour TTL, distinct from RiskAssist's personalized results.
+3. Diagnostic: with the RiskAssist circuit breaker still CLOSED but the dependency itself made artificially slow, measure the added page-load latency the naive per-request timeout imposes across 100 product-page requests before the breaker has tripped.
+4. Wire a listener on the RiskAssist circuit breaker's OPEN-state transition to flip the `ai-risk-flag suggestions` feature flag off, then re-run the same 100-request measurement and confirm the added latency drops to near-zero once the flag-based short-circuit is in place.
+5. Update the broker portal's panel heading to switch between "Suggested for this submission" and "Common risk flags" based on the feature flag's state, and verify a broker viewing the page during degradation sees the changed label rather than an unlabeled substitution.
 
 ## Evidence of Understanding
 
@@ -1411,7 +1413,7 @@ You can classify a workflow's dependencies into critical and optional paths rela
 
 ## Suggested Extension
 
-Extend the same critical/optional classification to CascadeCommerce's checkout flow itself: identify one currently-critical-looking dependency (for example, a fraud-scoring call before payment) that could instead be reclassified as optional-with-a-conservative-fallback (approve at a lower auto-approval threshold, flag for manual review, rather than blocking checkout entirely) if the fraud service becomes unavailable.
+Extend the same critical/optional classification to PolicyVault's bind flow itself: identify one currently-critical-looking dependency (for example, a fraud-scoring call before payment) that could instead be reclassified as optional-with-a-conservative-fallback (approve at a lower auto-approval threshold, flag for manual review, rather than blocking bind entirely) if the fraud service becomes unavailable.
 <!-- CHAPTER_BODY_END -->
 
 <!-- MCQ_SECTION_START -->
@@ -1450,12 +1452,12 @@ This is the chapter's opening argument: the classification is the design decisio
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Before wiring the circuit breaker to the feature flag, every product-page request pays the full 400ms InsightEngine timeout before falling back, even while InsightEngine is confirmed unhealthy. Why does this happen?
+Before wiring the circuit breaker to the feature flag, every product-page request pays the full 400ms RiskAssist timeout before falling back, even while RiskAssist is confirmed unhealthy. Why does this happen?
 
 **OPTIONS:**
 - [ ] A: `orTimeout(400, TimeUnit.MILLISECONDS)` is set too low and should be increased
 - [x] B: A per-request try/catch fallback still attempts the call and waits for its timeout on every single request — it re-discovers the failure independently each time rather than remembering that the dependency is already known to be unhealthy
-- [ ] C: `fallbackRecommendations` itself is slow to execute
+- [ ] C: `fallbackRiskSuggestions` itself is slow to execute
 - [ ] D: The feature flag system has its own 400ms evaluation latency
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
@@ -1475,11 +1477,11 @@ The chapter's specific point is that a per-request fallback pays the timeout cos
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-What specifically triggers the `ai-recommendations` feature flag to flip off in this lesson's design?
+What specifically triggers the `ai-risk-flag suggestions` feature flag to flip off in this lesson's design?
 
 **OPTIONS:**
-- [ ] A: A fixed schedule, independent of InsightEngine's actual health
-- [x] B: A listener on the InsightEngine circuit breaker's transition to the OPEN state
+- [ ] A: A fixed schedule, independent of RiskAssist's actual health
+- [x] B: A listener on the RiskAssist circuit breaker's transition to the OPEN state
 - [ ] C: A manual operator action taken after reading a dashboard alert
 - [ ] D: The feature flag flips automatically once per deployment, regardless of dependency health
 **CORRECT_ANSWER_KEY:** B
@@ -1500,11 +1502,11 @@ The design wires the flag flip directly to the breaker's OPEN-state transition, 
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Why does the lesson argue that changing the carousel heading from "Recommended for you" to "Popular picks" during degradation matters, beyond simply serving the fallback data?
+Why does the lesson argue that changing the panel heading from "Suggested for this submission" to "Common risk flags" during degradation matters, beyond simply serving the fallback data?
 
 **OPTIONS:**
 - [ ] A: It has no real effect on user trust and is a cosmetic-only change
-- [x] B: A user who trusts the "Recommended for you" label to mean personalized content is misled if unlabeled generic content is silently substituted; the changed label sets the correct expectation and signals the system knows it's degraded
+- [x] B: A user who trusts the "Suggested for this submission" label to mean personalized content is misled if unlabeled generic content is silently substituted; the changed label sets the correct expectation and signals the system knows it's degraded
 - [ ] C: Changing the label is required by consumer-protection regulation for all e-commerce platforms
 - [ ] D: The label change is what actually triggers the fallback logic to execute
 **CORRECT_ANSWER_KEY:** B
@@ -1519,7 +1521,7 @@ The lesson's user-communication argument is specifically about disclosure — si
 
 ### QUESTION_BLOCK_START: Q5
 **QUESTION_ID:** Q5
-**QUESTION_TITLE:** fallbackRecommendations design
+**QUESTION_TITLE:** fallbackRiskSuggestions design
 **DIFFICULTY:** Medium
 **BLOOM_LEVEL:** Application
 **SOURCE_TYPE:** LLM_GENERATED
@@ -1527,13 +1529,13 @@ The lesson's user-communication argument is specifically about disclosure — si
 **QUESTION_TEXT:**
 
 ```java
-return fallbackRecommendations(tenantId); // cached "trending in category", TTL 1h
+return fallbackRiskSuggestions(tenantId); // cached "frequently-flagged items in this class", TTL 1h
 ```
 
-Why is `fallbackRecommendations` implemented as a cached, tenant-scoped list rather than a live call to some other service at fallback time?
+Why is `fallbackRiskSuggestions` implemented as a cached, tenant-scoped list rather than a live call to some other service at fallback time?
 
 **OPTIONS:**
-- [ ] A: Caching is required because InsightEngine and the fallback share the same underlying data store
+- [ ] A: Caching is required because RiskAssist and the fallback share the same underlying data store
 - [x] B: A fallback that itself depends on a live call risks its own latency or failure; a pre-computed cached list guarantees the fallback path is fast and available exactly when the primary dependency is not
 - [ ] C: A live call would violate the tenant-isolation cache-key lesson from earlier in this module
 - [ ] D: TTL-based caching is only used to reduce cost, not for reliability reasons
@@ -1555,12 +1557,12 @@ A fallback's own reliability matters — if it depended on another live call, it
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-The Suggested Extension proposes reclassifying a checkout fraud-scoring call from critical to optional-with-a-conservative-fallback. What does "conservative fallback" mean in that context?
+The Suggested Extension proposes reclassifying a bind fraud-scoring call from critical to optional-with-a-conservative-fallback. What does "conservative fallback" mean in that context?
 
 **OPTIONS:**
 - [ ] A: Skip fraud scoring entirely and approve every order automatically when the service is down
-- [x] B: If the fraud service is unavailable, approve at a lower auto-approval threshold and flag the order for manual review, rather than blocking checkout outright or approving with no scrutiny at all
-- [ ] C: Block all checkouts entirely until the fraud service recovers, treating it as fully critical
+- [x] B: If the fraud service is unavailable, approve at a lower auto-approval threshold and flag the order for manual review, rather than blocking bind outright or approving with no scrutiny at all
+- [ ] C: Block all binds entirely until the fraud service recovers, treating it as fully critical
 - [ ] D: Retry the fraud-scoring call indefinitely until it succeeds
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
@@ -1582,7 +1584,7 @@ A conservative fallback deliberately trades some automation for safety — it ne
 **QUESTION_TEXT:**
 
 ```java
-degradationMetrics.increment("recommendations.fallback", tenantId);
+degradationMetrics.increment("risk-suggestions.fallback", tenantId);
 ```
 
 Why does the fallback path explicitly increment a metric, rather than only returning the fallback data silently?
@@ -1591,7 +1593,7 @@ Why does the fallback path explicitly increment a metric, rather than only retur
 - [x] A: Without an explicit signal, the operations team has no way to know how often or for which tenants the system is degraded — the metric makes the degradation observable rather than invisible
 - [ ] B: The metric is required by the feature flag system to function correctly
 - [ ] C: Incrementing a metric is what actually triggers the circuit breaker to open
-- [ ] D: The metric replaces the need for the changed carousel heading
+- [ ] D: The metric replaces the need for the changed panel heading
 - [ ] E: It has no functional or observability purpose in this design
 **CORRECT_ANSWER_KEY:** A
 **CORRECT_ANSWER_INDEX:** 0
@@ -1605,24 +1607,24 @@ Observability of the degraded state itself matters — a fallback that returns q
 
 ### QUESTION_BLOCK_START: Q8
 **QUESTION_ID:** Q8
-**QUESTION_TITLE:** Why search and checkout are unaffected
+**QUESTION_TITLE:** Why search and bind are unaffected
 **DIFFICULTY:** Medium
 **BLOOM_LEVEL:** Analysis
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-During the InsightEngine outage, why do CascadeCommerce's search, product-page data, and checkout continue to function normally?
+During the RiskAssist outage, why do PolicyVault's search, product-page data, and bind continue to function normally?
 
 **OPTIONS:**
-- [ ] A: They are protected by the same circuit breaker configured for InsightEngine
-- [x] B: None of those flows call InsightEngine — they are on the critical path but do not depend on the optional recommendation dependency, so InsightEngine's failure has no path by which to reach them
-- [ ] C: The feature flag flip automatically reroutes their traffic away from InsightEngine
+- [ ] A: They are protected by the same circuit breaker configured for RiskAssist
+- [x] B: None of those flows call RiskAssist — they are on the critical path but do not depend on the optional risk-flag suggestion dependency, so RiskAssist's failure has no path by which to reach them
+- [ ] C: The feature flag flip automatically reroutes their traffic away from RiskAssist
 - [ ] D: They were degraded too, but the fallback for those paths is invisible to the customer
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
 **EXPLANATION:**
-The critical path's unaffected status follows directly from dependency classification — those flows simply have no call path to InsightEngine, so its failure cannot propagate to them regardless of any fallback mechanism.
+The critical path's unaffected status follows directly from dependency classification — those flows simply have no call path to RiskAssist, so its failure cannot propagate to them regardless of any fallback mechanism.
 
 **LESSON_CONNECTION:** Practical Backend Scenario
 **KEYWORDS:** [critical-path-isolation, dependency-classification]
@@ -1674,7 +1676,7 @@ supplementary_content:
 
 A token bucket holds a capacity of tokens that refill at a steady rate; each request costs one or more tokens, and a request is admitted only if enough tokens are available, consuming them on admission. This gives the limiter two independently tunable numbers rather than one: `capacity` bounds how large a burst can be absorbed instantly (a bucket starting full permits a sudden spike up to its capacity before throttling kicks in), while `refill_rate` bounds the sustained long-run rate the caller can maintain indefinitely once the initial burst is spent. A bucket with `capacity=100, refill_rate=10` permits an immediate burst of up to 100 requests, then settles to a sustained ceiling of 10 requests per second — two very different numbers serving two different purposes, and conflating them (using one number for both) either makes bursts impossible when they'd be harmless, or makes the sustained rate too permissive when the burst allowance is set generously.
 
-Rate limiting only protects the system as a whole if limits are scoped per tenant rather than globally, in any system where tenants share capacity — a single global limit lets one tenant's traffic consume the entire allowance, starving every other tenant regardless of how well-behaved they are. The distinction between throttling and shedding matters at the admission-decision level: throttling delays a request until capacity is available (a 429 with a `Retry-After` header telling the caller when to come back), while shedding rejects a request outright with no promise of eventual admission, appropriate when the system is far enough over capacity that queuing more work would only delay the moment of failure rather than prevent it. Priority-aware admission combines both: a low-priority workload (a bulk catalog import) gets its own separate, smaller bucket and is the first class of traffic shed under overload, while a high-priority workload (an interactive checkout request) keeps its own bucket with headroom specifically preserved for it — fairness here does not mean every request is treated identically, it means capacity is allocated according to which traffic the business actually needs preserved under pressure.
+Rate limiting only protects the system as a whole if limits are scoped per tenant rather than globally, in any system where tenants share capacity — a single global limit lets one tenant's traffic consume the entire allowance, starving every other tenant regardless of how well-behaved they are. The distinction between throttling and shedding matters at the admission-decision level: throttling delays a request until capacity is available (a 429 with a `Retry-After` header telling the caller when to come back), while shedding rejects a request outright with no promise of eventual admission, appropriate when the system is far enough over capacity that queuing more work would only delay the moment of failure rather than prevent it. Priority-aware admission combines both: a low-priority workload (a bulk catalog import) gets its own separate, smaller bucket and is the first class of traffic shed under overload, while a high-priority workload (an interactive bind request) keeps its own bucket with headroom specifically preserved for it — fairness here does not mean every request is treated identically, it means capacity is allocated according to which traffic the business actually needs preserved under pressure.
 
 ```python
 class TokenBucket:
@@ -1694,8 +1696,8 @@ class TokenBucket:
             return True
         return False
 
-# CascadeCommerce per-tenant buckets:
-interactive_bucket = TokenBucket(capacity=100, refill_rate=10)   # checkout, browsing
+# PolicyVault per-tenant buckets:
+interactive_bucket = TokenBucket(capacity=100, refill_rate=10)   # bind, browsing
 bulk_import_bucket  = TokenBucket(capacity=20,  refill_rate=2)    # catalog imports, isolated
 ```
 
@@ -1704,7 +1706,7 @@ bulk_import_bucket  = TokenBucket(capacity=20,  refill_rate=2)    # catalog impo
 limit_req_zone $http_x_tenant_id zone=tenant_interactive:10m rate=10r/s;
 limit_req_zone $http_x_tenant_id zone=tenant_bulk:10m rate=2r/s;
 
-location /api/checkout/ {
+location /api/bind/ {
     limit_req zone=tenant_interactive burst=20 nodelay;
 }
 location /api/catalog/import/ {
@@ -1722,14 +1724,14 @@ X-RateLimit-Reset: 1735689600
 
 ## Practical Backend Scenario
 
-Ferrum Goods, a large CascadeCommerce tenant, kicks off a 10,000-SKU catalog import through the same worker pool that handles every tenant's interactive requests. The import's traffic pattern — many rapid, small requests with no natural pacing — consumes the shared worker pool's capacity within minutes, and Northlight Retail's shoppers, on a completely unrelated tenant, start seeing checkout timeouts because there are no workers left to serve them, even though Northlight's own request volume hasn't changed at all. The fix is not a single global rate limit (which would still let one tenant's burst starve others within its own allowance) but per-tenant buckets, further split by workload class: `interactive_bucket` at `capacity=100, refill_rate=10` for browsing and checkout traffic per tenant, and a separate, smaller `bulk_import_bucket` at `capacity=20, refill_rate=2` specifically for catalog-import endpoints, admitted onto an isolated low-priority worker pool. Under this design, Ferrum Goods' import is bounded to its own 2 req/s sustained rate on its own isolated workers regardless of how large the SKU batch is, and even if Ferrum Goods' import bucket is fully exhausted and every import request is being shed with a 429, Northlight Retail's interactive bucket and worker pool are entirely unaffected, because the two workload classes never compete for the same capacity.
+Coastal Risk Partners, a large PolicyVault tenant, kicks off a 10,000-coverage-line bulk renewal import through the same worker pool that handles every tenant's interactive requests. The import's traffic pattern — many rapid, small requests with no natural pacing — consumes the shared worker pool's capacity within minutes, and Meridian Underwriters's brokers, on a completely unrelated tenant, start seeing bind timeouts because there are no workers left to serve them, even though Meridian Underwriters's own request volume hasn't changed at all. The fix is not a single global rate limit (which would still let one tenant's burst starve others within its own allowance) but per-tenant buckets, further split by workload class: `interactive_bucket` at `capacity=100, refill_rate=10` for browsing and bind traffic per tenant, and a separate, smaller `bulk_import_bucket` at `capacity=20, refill_rate=2` specifically for catalog-import endpoints, admitted onto an isolated low-priority worker pool. Under this design, Coastal Risk Partners' import is bounded to its own 2 req/s sustained rate on its own isolated workers regardless of how large the coverage line batch is, and even if Coastal Risk Partners' import bucket is fully exhausted and every import request is being shed with a 429, Meridian Underwriters's interactive bucket and worker pool are entirely unaffected, because the two workload classes never compete for the same capacity.
 
 ## Practice Loop
 
-1. Define CascadeCommerce's per-tenant, per-workload-class token buckets — `interactive_bucket` and `bulk_import_bucket` — using the capacity and refill-rate numbers above, and state in one sentence what each number independently controls.
+1. Define PolicyVault's per-tenant, per-workload-class token buckets — `interactive_bucket` and `bulk_import_bucket` — using the capacity and refill-rate numbers above, and state in one sentence what each number independently controls.
 2. Implement the edge-layer `limit_req` configuration keyed on `$http_x_tenant_id`, with separate zones for interactive and bulk-import traffic.
-3. Diagnostic: simulate Ferrum Goods' 10,000-SKU import against the bulk bucket alone (no isolation) and measure how many requests per second the shared worker pool would need to absorb; then simulate the same import against the isolated `bulk_import_bucket` and confirm the sustained admitted rate never exceeds 2 req/s regardless of import size.
-4. Simulate Northlight Retail's interactive checkout traffic concurrently with Ferrum Goods' import at full throttle, and confirm Northlight's requests are admitted at their normal rate with no measurable interference from Ferrum Goods' load.
+3. Diagnostic: simulate Coastal Risk Partners' 10,000-coverage line import against the bulk bucket alone (no isolation) and measure how many requests per second the shared worker pool would need to absorb; then simulate the same import against the isolated `bulk_import_bucket` and confirm the sustained admitted rate never exceeds 2 req/s regardless of import size.
+4. Simulate Meridian Underwriters's interactive bind traffic concurrently with Coastal Risk Partners' import at full throttle, and confirm Meridian Underwriters's requests are admitted at their normal rate with no measurable interference from Coastal Risk Partners' load.
 5. Verify the 429 response contract: confirm a throttled request receives `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` headers with values that are internally consistent (e.g., `Retry-After` matches the time until the bucket would next admit a request at its refill rate).
 
 ## Evidence of Understanding
@@ -1738,7 +1740,7 @@ You can implement a token bucket with independently meaningful `capacity` (burst
 
 ## Suggested Extension
 
-Add a priority tier above `interactive_bucket` for CascadeCommerce's own internal health-check and monitoring traffic, sized so that even a fully saturated tenant workload never causes health checks to be throttled — and explain why starving health checks specifically would make an overload incident harder to diagnose, not just harder to serve.
+Add a priority tier above `interactive_bucket` for PolicyVault's own internal health-check and monitoring traffic, sized so that even a fully saturated tenant workload never causes health checks to be throttled — and explain why starving health checks specifically would make an overload incident harder to diagnose, not just harder to serve.
 <!-- CHAPTER_BODY_END -->
 
 <!-- MCQ_SECTION_START -->
@@ -1777,7 +1779,7 @@ This is the core distinction the chapter draws: burst absorption and sustained r
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Ferrum Goods' catalog-import bucket is configured `capacity=20, refill_rate=2`. After the initial burst of 20 is exhausted, what is the maximum sustained rate the import can achieve indefinitely?
+Coastal Risk Partners' catalog-import bucket is configured `capacity=20, refill_rate=2`. After the initial burst of 20 is exhausted, what is the maximum sustained rate the import can achieve indefinitely?
 
 **OPTIONS:**
 - [ ] A: 20 requests/second
@@ -1802,7 +1804,7 @@ Once the initial 20-token burst is spent, the bucket refills at 2 tokens/second,
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Why does a single global rate limit (applied to all traffic regardless of tenant) fail to prevent the Ferrum Goods import from affecting Northlight Retail?
+Why does a single global rate limit (applied to all traffic regardless of tenant) fail to prevent the Coastal Risk Partners import from affecting Meridian Underwriters?
 
 **OPTIONS:**
 - [ ] A: Global limits are always set too low to be useful in a multi-tenant system
@@ -1941,12 +1943,12 @@ Rate limiting controls admission; worker-pool isolation controls what happens to
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Under overload, Ferrum Goods' bulk-import requests are shed first while Northlight Retail's interactive requests keep their normal admission rate. Does this violate fairness between tenants?
+Under overload, Coastal Risk Partners' bulk-import requests are shed first while Meridian Underwriters's interactive requests keep their normal admission rate. Does this violate fairness between tenants?
 
 **OPTIONS:**
 - [ ] A: Yes — a fair system must treat every tenant's requests identically regardless of workload type
 - [x] B: No — fairness in this design means capacity is allocated according to which traffic the business needs preserved under pressure, not that every request type is treated identically regardless of priority
-- [ ] C: Yes, unless Ferrum Goods is charged a lower price than Northlight Retail
+- [ ] C: Yes, unless Coastal Risk Partners is charged a lower price than Meridian Underwriters
 - [ ] D: Fairness is undefined in a rate-limiting context and the question does not apply
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
@@ -2029,20 +2031,20 @@ supplementary_content:
 
 This lesson assumes you already know the CAP theorem and PACELC framework cold — the C-vs-A choice during a partition, the "Else" branch's latency-vs-consistency trade-off even absent a partition, per-data-path granularity rather than a whole-system label — covered in depth by the core curriculum's Distributed Systems Fundamentals lesson (System Design, Capstone & Hiring Readiness, lesson 1). This lesson does not re-teach that theory. It goes one level up: applying CAP/PACELC trade-off reasoning to the concrete, per-operation consistency DECISIONS an FDE actually has to make on a real system, with real numbers attached to each choice — a decision-making lesson, not a concepts lesson.
 
-Every operation in a system protects a specific business invariant, and the correct consistency guarantee follows from what that invariant actually requires, not from a single systemwide policy. An order-settlement status is either "paid" or it is not, and showing "paid" before the authoritative write is durably confirmed is a false positive with real business consequences — a customer or a downstream fulfillment system acting on an incorrect settlement state. This operation needs strong, read-your-writes consistency: the read immediately following a settlement write must reflect that write, which in practice means routing the read to the same node (or a synchronous quorum) that accepted the write, at the cost of that read paying whatever latency the authoritative path requires. A shopping cart, by contrast, tolerates a brief window where a just-added item hasn't yet propagated to every replica — the customer's own next action (viewing the cart) is the read that matters, and session consistency (sticky routing so a given session's reads go to the region that accepted its own most recent write, for a short window) solves this specific case cheaply, without paying strong consistency's cost on every cart read from every session. An order-history analytics dashboard tolerates several seconds of replica lag entirely — no individual customer decision depends on the dashboard reflecting an order placed one second ago — so it reads from an asynchronous replica with no special consistency handling at all, at essentially zero added latency cost.
+Every operation in a system protects a specific business invariant, and the correct consistency guarantee follows from what that invariant actually requires, not from a single systemwide policy. An policy-bind status is either "paid" or it is not, and showing "paid" before the authoritative write is durably confirmed is a false positive with real business consequences — a customer or a downstream fulfillment system acting on an incorrect bind confirmation state. This operation needs strong, read-your-writes consistency: the read immediately following a bind confirmation write must reflect that write, which in practice means routing the read to the same node (or a synchronous quorum) that accepted the write, at the cost of that read paying whatever latency the authoritative path requires. A quote worksheet, by contrast, tolerates a brief window where a just-added item hasn't yet propagated to every replica — the customer's own next action (viewing the quote worksheet) is the read that matters, and session consistency (sticky routing so a given session's reads go to the region that accepted its own most recent write, for a short window) solves this specific case cheaply, without paying strong consistency's cost on every quote worksheet read from every session. An submission-history analytics dashboard tolerates several seconds of replica lag entirely — no individual customer decision depends on the dashboard reflecting an policy bound one second ago — so it reads from an asynchronous replica with no special consistency handling at all, at essentially zero added latency cost.
 
 | Operation | Consistency need | Tolerable staleness | Technique | Latency cost |
 |---|---|---|---|---|
-| Order settlement write + read-back | Strong (read-your-writes) | 0ms | Read from primary / synchronous quorum | +40-80ms on checkout confirmation |
+| Order bind confirmation write + read-back | Strong (read-your-writes) | 0ms | Read from primary / synchronous quorum | +40-80ms on bind confirmation |
 | Cart line-item read after write | Session consistency | ~10s, same session only | Sticky routing to write region for 10s post-write | Negligible for the session; zero for others |
 | Order-history dashboard | Eventual | Up to 5s replica lag | Async read replica | ~0ms added |
-| Catalog price display | Eventual, short TTL | Up to 60s (ties to Lesson 8's CDN caching) | Edge-cached response | Lowest of all four — no origin round trip |
+| Premium rate display | Eventual, short TTL | Up to 60s (ties to Lesson 8's CDN caching) | Edge-cached response | Lowest of all four — no origin round trip |
 
-The "Else" branch of PACELC is what makes the settlement row's latency cost concrete rather than abstract: `us-east-1` to `eu-west-1` round-trip time is roughly 65-80ms even under normal, non-partitioned conditions, so a synchronous cross-region confirmation for every settlement write pays that tax on every checkout, permanently — not only during a failure. This is the always-on cost PACELC forces onto the table, and it is why settlement stays single-region-authoritative (paying the tax only for the fraction of `eu-west-1` traffic that writes, and only once per write, via the intra-region path plus a single cross-region confirmation) rather than synchronously quorum-replicating across both regions for every write, which would double that latency tax on every single settlement operation regardless of region.
+The "Else" branch of PACELC is what makes the bind confirmation row's latency cost concrete rather than abstract: `us-east-1` to `eu-west-1` round-trip time is roughly 65-80ms even under normal, non-partitioned conditions, so a synchronous cross-region confirmation for every bind confirmation write pays that tax on every bind, permanently — not only during a failure. This is the always-on cost PACELC forces onto the table, and it is why bind confirmation stays single-region-authoritative (paying the tax only for the fraction of `eu-west-1` traffic that writes, and only once per write, via the intra-region path plus a single cross-region confirmation) rather than synchronously quorum-replicating across both regions for every write, which would double that latency tax on every single bind confirmation operation regardless of region.
 
 ```
-# Sticky read-your-writes routing for cart reads, 10s window post-write
-def route_cart_read(session_id, write_region_by_session):
+# Sticky read-your-writes routing for quote worksheet reads, 10s window post-write
+def route_quote worksheet_read(session_id, write_region_by_session):
     if session_id in write_region_by_session:
         region, ts = write_region_by_session[session_id]
         if time.monotonic() - ts < 10:
@@ -2052,15 +2054,15 @@ def route_cart_read(session_id, write_region_by_session):
 
 ## Practical Backend Scenario
 
-A CascadeCommerce customer in `eu-west-1` completes checkout. The order-confirmation page's read of settlement status must reflect the write that just happened — showing "Payment pending" on a page that already charged the customer's card is confusing but recoverable; showing "Paid" before the write is durably confirmed and then discovering it wasn't is the unacceptable direction of error, matching this module's Lesson 10 (Multi-Region Active-Active) conclusion that settlement stays single-writer. The confirmation read is therefore routed to read-your-writes consistency against the authoritative region, paying the 65-80ms cross-region round trip as an explicit, accepted cost on this one operation. Two rows down on the same page, the customer's order-history list (past orders, unrelated to the one just placed) reads from the regional async replica with no special handling — a few seconds of staleness on an unrelated historical order is invisible to this customer's actual task. The team initially proposed applying the same read-your-writes routing to the order-history list "to be safe," and the FDE pushes back specifically because no business invariant on that list depends on sub-second freshness — the extra latency would be a cost paid for a guarantee nothing actually needs, on every page load, for every customer, forever.
+A PolicyVault customer in `eu-west-1` completes bind. The bind-confirmation page's read of bind confirmation status must reflect the write that just happened — showing "Payment pending" on a page that already charged the customer's card is confusing but recoverable; showing "Paid" before the write is durably confirmed and then discovering it wasn't is the unacceptable direction of error, matching this module's Lesson 10 (Multi-Region Active-Active) conclusion that bind confirmation stays single-writer. The confirmation read is therefore routed to read-your-writes consistency against the authoritative region, paying the 65-80ms cross-region round trip as an explicit, accepted cost on this one operation. Two rows down on the same page, the customer's submission-history list (past submissions, unrelated to the one just placed) reads from the regional async replica with no special handling — a few seconds of staleness on an unrelated historical order is invisible to this customer's actual task. The team initially proposed applying the same read-your-writes routing to the submission-history list "to be safe," and the FDE pushes back specifically because no business invariant on that list depends on sub-second freshness — the extra latency would be a cost paid for a guarantee nothing actually needs, on every page load, for every customer, forever.
 
 ## Practice Loop
 
-1. List CascadeCommerce's order-confirmation page's four constituent reads (settlement status, cart summary, order history, catalog price for a "you might also like" item) and classify each by the business invariant it protects.
+1. List PolicyVault's bind-confirmation page's four constituent reads (bind confirmation status, quote worksheet summary, submission history, premium rate for a "you might also like" item) and classify each by the business invariant it protects.
 2. For each read, select strong/read-your-writes, session, or eventual consistency, and justify the choice using the specific consequence of getting it wrong — not a general "safety" argument.
-3. Diagnostic: measure the actual `us-east-1`-`eu-west-1` round-trip time in a sandbox environment, and use that measured number (not the 65-80ms estimate) to state the concrete latency cost the settlement read pays under read-your-writes.
-4. Implement the sticky cart-read routing shown above, inject a scenario where a customer's cart write and subsequent read cross regions within the 10-second window, and confirm the read reflects the write.
-5. Push back on the proposal to apply read-your-writes to the order-history list: compute the latency cost that change would add per page load, multiplied by CascadeCommerce's page-load volume, and use that number to make the case that the guarantee is not worth its cost for this specific read.
+3. Diagnostic: measure the actual `us-east-1`-`eu-west-1` round-trip time in a sandbox environment, and use that measured number (not the 65-80ms estimate) to state the concrete latency cost the bind confirmation read pays under read-your-writes.
+4. Implement the sticky quote worksheet-read routing shown above, inject a scenario where a customer's quote worksheet write and subsequent read cross regions within the 10-second window, and confirm the read reflects the write.
+5. Push back on the proposal to apply read-your-writes to the submission-history list: compute the latency cost that change would add per page load, multiplied by PolicyVault's page-load volume, and use that number to make the case that the guarantee is not worth its cost for this specific read.
 
 ## Evidence of Understanding
 
@@ -2068,7 +2070,7 @@ You can classify a set of real operations by the business invariant each protect
 
 ## Suggested Extension
 
-CascadeCommerce adds a new operation: a "low stock" warning banner shown on a product page, sourced from live inventory counts. Classify this operation's consistency need using the same framework — name the specific consequence of both an overly strong guarantee (unnecessary latency on every product page) and an overly weak one (a customer completes checkout for an item the warning didn't flag as already sold out) and state where on the strong-to-eventual spectrum this operation actually belongs.
+PolicyVault adds a new operation: a "low stock" warning banner shown on a quote page, sourced from live inventory counts. Classify this operation's consistency need using the same framework — name the specific consequence of both an overly strong guarantee (unnecessary latency on every quote page) and an overly weak one (a customer completes bind for an item the warning didn't flag as already sold out) and state where on the strong-to-eventual spectrum this operation actually belongs.
 <!-- CHAPTER_BODY_END -->
 
 <!-- MCQ_SECTION_START -->
@@ -2101,27 +2103,27 @@ The chapter's opening paragraph states this explicitly: it builds on the theory 
 
 ### QUESTION_BLOCK_START: Q2
 **QUESTION_ID:** Q2
-**QUESTION_TITLE:** Why settlement needs read-your-writes
+**QUESTION_TITLE:** Why bind confirmation needs read-your-writes
 **DIFFICULTY:** Hard
 **BLOOM_LEVEL:** Analysis
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Why does the order-settlement status read specifically need read-your-writes consistency, rather than tolerating the same brief staleness window the cart read tolerates?
+Why does the policy-bind status read specifically need read-your-writes consistency, rather than tolerating the same brief staleness window the quote worksheet read tolerates?
 
 **OPTIONS:**
-- [ ] A: Settlement writes happen less frequently than cart writes, so the stronger guarantee is cheaper to apply
-- [x] B: Showing "Paid" before the write is durably confirmed is a false positive with real business consequences (a customer or downstream system acting on incorrect settlement state) — the specific asymmetry of that error is what the cart read's staleness tolerance doesn't share
+- [ ] A: Bind confirmation writes happen less frequently than quote worksheet writes, so the stronger guarantee is cheaper to apply
+- [x] B: Showing "Paid" before the write is durably confirmed is a false positive with real business consequences (a customer or downstream system acting on incorrect bind confirmation state) — the specific asymmetry of that error is what the quote worksheet read's staleness tolerance doesn't share
 - [ ] C: Read-your-writes is required by PCI compliance for all payment-related reads
-- [ ] D: The settlement service uses a different database engine than the cart service, which mandates the stronger guarantee
+- [ ] D: The bind confirmation service uses a different database engine than the quote worksheet service, which mandates the stronger guarantee
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
 **EXPLANATION:**
-The chapter's decision framework is about the specific consequence of getting each read wrong — the settlement read's false-positive risk is qualitatively different from the cart read's tolerable-staleness case.
+The chapter's decision framework is about the specific consequence of getting each read wrong — the bind confirmation read's false-positive risk is qualitatively different from the quote worksheet read's tolerable-staleness case.
 
 **LESSON_CONNECTION:** Concepts Covered, Paragraph 2
-**KEYWORDS:** [read-your-writes, settlement, false-positive]
+**KEYWORDS:** [read-your-writes, bind confirmation, false-positive]
 ### QUESTION_BLOCK_END: Q2
 
 ### QUESTION_BLOCK_START: Q3
@@ -2135,15 +2137,15 @@ The chapter's decision framework is about the specific consequence of getting ea
 
 | Operation | Consistency need | Latency cost |
 |---|---|---|
-| Order settlement write + read-back | Strong (read-your-writes) | +40-80ms |
+| Order bind confirmation write + read-back | Strong (read-your-writes) | +40-80ms |
 | Order-history dashboard | Eventual | ~0ms added |
 
-Why does the order-history dashboard have near-zero added latency cost compared to the settlement read?
+Why does the submission-history dashboard have near-zero added latency cost compared to the bind confirmation read?
 
 **OPTIONS:**
 - [ ] A: The dashboard is cached at the CDN edge, which is why lesson 8's caching applies to it directly
-- [x] B: The dashboard reads from an asynchronous local-region replica with no cross-region round trip required, while the settlement read pays the cross-region round trip needed for its stronger guarantee
-- [ ] C: Order-history data is smaller in volume than settlement data, which is why it is faster
+- [x] B: The dashboard reads from an asynchronous local-region replica with no cross-region round trip required, while the bind confirmation read pays the cross-region round trip needed for its stronger guarantee
+- [ ] C: Order-history data is smaller in volume than bind confirmation data, which is why it is faster
 - [ ] D: The dashboard uses a different consistency model that has no latency cost by definition
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
@@ -2157,24 +2159,24 @@ The latency difference in the table directly reflects the mechanism each guarant
 
 ### QUESTION_BLOCK_START: Q4
 **QUESTION_ID:** Q4
-**QUESTION_TITLE:** PACELC's Else branch applied to settlement
+**QUESTION_TITLE:** PACELC's Else branch applied to bind confirmation
 **DIFFICULTY:** Hard
 **BLOOM_LEVEL:** Analysis
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-The lesson states the `us-east-1`-`eu-west-1` round-trip tax on settlement writes is paid "not only during a failure." What PACELC concept does this illustrate?
+The lesson states the `us-east-1`-`eu-west-1` round-trip tax on bind confirmation writes is paid "not only during a failure." What PACELC concept does this illustrate?
 
 **OPTIONS:**
 - [ ] A: The "Partition" branch — this cost is only paid when a network partition is actively occurring
 - [x] B: The "Else" branch — even absent a partition, a system choosing strong consistency for a specific data path pays a permanent latency cost on every relevant operation in the ordinary, non-partitioned case
 - [ ] C: CAP's availability-vs-consistency choice, which only applies during a partition and has no bearing here
-- [ ] D: A cost specific to CascadeCommerce's implementation that PACELC does not generalize to
+- [ ] D: A cost specific to PolicyVault's implementation that PACELC does not generalize to
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
 **EXPLANATION:**
-This is precisely PACELC's contribution beyond CAP — the Else branch names the always-on latency tax a strong-consistency choice pays in the ordinary case, which is what the settlement round-trip cost illustrates concretely here.
+This is precisely PACELC's contribution beyond CAP — the Else branch names the always-on latency tax a strong-consistency choice pays in the ordinary case, which is what the bind confirmation round-trip cost illustrates concretely here.
 
 **LESSON_CONNECTION:** Concepts Covered, Paragraph 3
 **KEYWORDS:** [pacelc-else-branch, always-on-latency-tax]
@@ -2182,17 +2184,17 @@ This is precisely PACELC's contribution beyond CAP — the Else branch names the
 
 ### QUESTION_BLOCK_START: Q5
 **QUESTION_ID:** Q5
-**QUESTION_TITLE:** Why not synchronously replicate settlement across both regions
+**QUESTION_TITLE:** Why not synchronously replicate bind confirmation across both regions
 **DIFFICULTY:** Hard
 **BLOOM_LEVEL:** Evaluation
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Why does the lesson prefer keeping settlement single-region-authoritative (with a cross-region confirmation only for `eu-west-1` traffic) over synchronously quorum-replicating every settlement write across both regions?
+Why does the lesson prefer keeping bind confirmation single-region-authoritative (with a cross-region confirmation only for `eu-west-1` traffic) over synchronously quorum-replicating every bind confirmation write across both regions?
 
 **OPTIONS:**
 - [ ] A: Cross-region quorum replication is not technically possible for payment data
-- [x] B: Synchronous cross-region quorum replication would double the round-trip latency tax on every settlement write regardless of which region originated it, whereas single-region authority pays the tax only for the fraction of writes originating in the non-authoritative region
+- [x] B: Synchronous cross-region quorum replication would double the round-trip latency tax on every bind confirmation write regardless of which region originated it, whereas single-region authority pays the tax only for the fraction of writes originating in the non-authoritative region
 - [ ] C: Single-region authority has no latency cost at all, unlike quorum replication
 - [ ] D: The choice is arbitrary and either approach produces identical latency outcomes
 **CORRECT_ANSWER_KEY:** B
@@ -2215,7 +2217,7 @@ The chapter's comparison is specific: quorum replication pays the tax on every w
 **QUESTION_TEXT:**
 
 ```python
-def route_cart_read(session_id, write_region_by_session):
+def route_quote worksheet_read(session_id, write_region_by_session):
     if session_id in write_region_by_session:
         region, ts = write_region_by_session[session_id]
         if time.monotonic() - ts < 10:
@@ -2248,12 +2250,12 @@ A session wrote to `eu-west-1` 4 seconds ago. Where does this function route the
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-The team proposes applying read-your-writes routing to the order-history list "to be safe." Why does the FDE push back?
+The team proposes applying read-your-writes routing to the submission-history list "to be safe." Why does the FDE push back?
 
 **OPTIONS:**
 - [ ] A: Read-your-writes routing is technically impossible to implement for list-type reads
-- [x] B: No business invariant on the order-history list depends on sub-second freshness — applying the stronger guarantee would add real, permanent latency cost on every page load for every customer, paid for a safety margin nothing on that read actually needs
-- [ ] C: The order-history list is already strongly consistent by default, making the proposal redundant but harmless
+- [x] B: No business invariant on the submission-history list depends on sub-second freshness — applying the stronger guarantee would add real, permanent latency cost on every page load for every customer, paid for a safety margin nothing on that read actually needs
+- [ ] C: The submission-history list is already strongly consistent by default, making the proposal redundant but harmless
 - [ ] D: The FDE agrees with the proposal but defers the decision to a later phase
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
@@ -2267,19 +2269,19 @@ The lesson's central discipline is that a stronger guarantee is a cost, applied 
 
 ### QUESTION_BLOCK_START: Q8
 **QUESTION_ID:** Q8
-**QUESTION_TITLE:** Catalog price display's consistency choice
+**QUESTION_TITLE:** Premium rate display's consistency choice
 **DIFFICULTY:** Medium
 **BLOOM_LEVEL:** Application
 **SOURCE_TYPE:** LLM_GENERATED
 
 **QUESTION_TEXT:**
-Per the trade-off table, why does the catalog price display use eventual consistency with a short TTL rather than session or strong consistency?
+Per the trade-off table, why does the premium rate display use eventual consistency with a short TTL rather than session or strong consistency?
 
 **OPTIONS:**
-- [ ] A: Prices never change at CascadeCommerce, so any consistency guarantee would be equivalent
+- [ ] A: Prices never change at PolicyVault, so any consistency guarantee would be equivalent
 - [x] B: A price shown up to 60 seconds stale is an acceptable, low-consequence trade-off in exchange for the lowest latency of the four operations — this ties directly to the edge-caching strategy from Lesson 8
 - [ ] C: Strong consistency is technically impossible to apply to catalog data
-- [ ] D: The catalog price display is on the same code path as the settlement read and inherits its guarantee automatically
+- [ ] D: The premium rate display is on the same code path as the bind confirmation read and inherits its guarantee automatically
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 
@@ -2302,9 +2304,9 @@ Per the Suggested Extension, a "low stock" warning banner sourced from live inve
 
 **OPTIONS:**
 - [ ] A: Always choose the strongest available guarantee for any operation involving inventory, since inventory is a business-critical concept
-- [x] B: Name the specific consequence of both an overly strong guarantee (unnecessary latency on every product page) and an overly weak one (a customer checks out an item the warning failed to flag as sold out), and place the operation on the strong-to-eventual spectrum based on which consequence is more costly to the business
+- [x] B: Name the specific consequence of both an overly strong guarantee (unnecessary latency on every quote page) and an overly weak one (a customer checks out an item the warning failed to flag as sold out), and place the operation on the strong-to-eventual spectrum based on which consequence is more costly to the business
 - [ ] C: Classification is unnecessary for warning banners, since they are advisory and not authoritative
-- [ ] D: Apply the same guarantee as the cart read automatically, since both involve per-item state
+- [ ] D: Apply the same guarantee as the quote worksheet read automatically, since both involve per-item state
 **CORRECT_ANSWER_KEY:** B
 **CORRECT_ANSWER_INDEX:** 1
 

@@ -20027,7 +20027,1595 @@ const lessonInteractions = {
           'The lesson separates these explicitly — a per-invocation duration bound versus an account-wide simultaneous-invocation cap — each protecting against a distinct failure mode.'
       }
     ]
-  }
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/07-end-to-end-cloud-project-day': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-07-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — VERIFICATION GATES IN STAGED ROLLOUTS',
+        question:
+          'Why does the lesson insist on a verification gate after every deployment stage rather than one script that runs all stages and reports success or failure only at the end?',
+        options: [
+          { id: 'a', label: 'A', text: 'A single script that fails midway gives no record of how far it got or which stage actually failed, while gated stages fail fast with a specific, attributable checkpoint' },
+          { id: 'b', label: 'B', text: 'AWS requires deployment scripts to include explicit sleep statements between API calls' },
+          { id: 'c', label: 'C', text: 'Gated stages run faster than an ungated script in every case' },
+          { id: 'd', label: 'D', text: 'Verification gates are only necessary when deploying to more than one AWS region' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s core sequencing argument: composing several working pieces exposes ordering defects that isolated lessons never surface, and a gate after each stage turns an ambiguous mid-script failure into an attributable one.',
+        incorrectExplanation:
+          'A monolithic script failing midway leaves the environment in an unknown, ambiguous partial state, whereas staged verification gates enforce strict preconditions and provide immediate attribution.',
+        hint:
+          'Consider how an operator diagnoses a failure when five dependent systems are deployed sequentially.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-07-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — ACTIONABLE RUNBOOK REQUIREMENTS',
+        question:
+          'Per the lesson, why does a runbook step like "redeploy the service" fail as a usable runbook entry?',
+        options: [
+          { id: 'a', label: 'A', text: 'It has no literal command, no expected output, and no stated time window or rollback trigger — all things an operator who did not build the system needs' },
+          { id: 'b', label: 'B', text: 'It is too short; a usable runbook step must be at least one paragraph long' },
+          { id: 'c', label: 'C', text: 'Runbooks should never mention specific AWS CLI commands, only high-level intent' },
+          { id: 'd', label: 'D', text: 'It fails only because it does not name a specific engineer to execute it' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is specific: a usable runbook step needs the literal command, expected output, and a stated time window with a rollback trigger — not vague intent.',
+        incorrectExplanation:
+          'Vague instructions force on-call operators to improvise under incident pressure; a robust runbook step requires exact CLI commands, verifiable output expectations, time thresholds, and automated rollback triggers.',
+        hint:
+          'Think about what an on-call engineer who did not author the service needs to execute safely under incident pressure.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-07-mcq-01',
+        question:
+          'Why does stage 2 call `aws rds wait db-instance-available` before stage 3 deploys the application, instead of proceeding immediately after stage 1 passes?',
+        codeBlock: 'echo "[2/4] Waiting for RDS to become available..."\naws rds wait db-instance-available --db-instance-identifier manifestflow-db\naws rds describe-db-instances --db-instance-identifier manifestflow-db \\\n  --query \'DBInstances[0].Endpoint.Address\' --output text',
+        options: [
+          { id: 'a', label: 'A', text: 'RDS instances can take several minutes to become reachable, and deploying the application before then would fail its first health check against a database that is not actually ready yet' },
+          { id: 'b', label: 'B', text: 'The `wait` subcommand is required syntax for every `aws rds` call regardless of context' },
+          { id: 'c', label: 'C', text: 'It has no functional purpose; it only improves the script\'s readability' },
+          { id: 'd', label: 'D', text: 'It substitutes for creating the RDS instance in the first place' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names exactly this failure mode — an RDS instance that takes minutes to become available will fail the application\'s first health check if the deployment does not wait for it first.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-07-mcq-02',
+        question:
+          'The lesson says "recovery works" is a claim, not evidence. What converts it into evidence, per the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'Deliberately breaking one real dependency, executing the documented recovery runbook, and capturing timestamps at each step to produce a measured recovery time' },
+          { id: 'b', label: 'B', text: 'Writing a longer and more detailed description of the recovery process in the handoff document' },
+          { id: 'c', label: 'C', text: 'Having a second engineer independently agree that recovery should work' },
+          { id: 'd', label: 'D', text: 'Running the deployment script an additional time without inducing any failure' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the scenario\'s explicit recovery drill — a real induced failure plus timestamped execution of the documented runbook is what makes the six-minute recovery time evidence rather than an estimate.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-07-mcq-03',
+        question:
+          'The one-page handoff explicitly lists deferred risks such as "no automated failover for the single RDS instance." Why does the lesson treat naming this as important as the delivered scope itself?',
+        options: [
+          { id: 'a', label: 'A', text: 'A handoff that only lists what was built lets an unstated gap surface later as a surprise incident instead of a known, prioritized follow-up' },
+          { id: 'b', label: 'B', text: 'AWS billing requires every deferred risk to be documented for cost-allocation purposes' },
+          { id: 'c', label: 'C', text: 'Listing deferred risks is a formality with no operational consequence' },
+          { id: 'd', label: 'D', text: 'It is only necessary when the customer explicitly asks for a risk register' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this directly: naming what was not done is as much a part of the deliverable as what was — an unstated gap becomes a surprise later instead of a tracked decision now.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-07-mcq-04',
+        question:
+          'What does this gate confirm before the script proceeds to provisioning compute, and why does that ordering matter?',
+        codeBlock: 'echo "[1/4] Verifying VPC route tables..."\naws ec2 describe-route-tables --route-table-ids "$PRIVATE_DATA_RTB" \\\n  --query \'RouteTables[0].Routes[?DestinationCidrBlock==`0.0.0.0/0`]\' --output text | grep -q \'\' \\\n  && { echo "FAIL: private-data subnet has an internet route"; exit 1; } || echo "  OK: no internet route"',
+        options: [
+          { id: 'a', label: 'A', text: 'It confirms the private-data route table still has no `0.0.0.0/0` route before anything else is built on top of it, catching a regressed network boundary at the earliest possible stage rather than after compute is already live' },
+          { id: 'b', label: 'B', text: 'It confirms the RDS instance itself is reachable, which is what stage 2 already checks' },
+          { id: 'c', label: 'C', text: 'It provisions the route table for the first time as part of the deployment' },
+          { id: 'd', label: 'D', text: 'It has no ordering purpose; it could run at any point in the script with an identical result' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the "verify before provisioning compute" gate the lesson describes — catching a network regression at the earliest stage is cheaper than discovering it once an application is already deployed on top of it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-07-mcq-05',
+        question:
+          'The FDE time-boxes discovery to thirty minutes before deploying anything. What is the purpose of that time-box in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'To confirm which pieces from prior lessons are still live and which config has drifted, without letting discovery consume the time needed to deploy and demonstrate the working path' },
+          { id: 'b', label: 'B', text: 'AWS enforces a hard thirty-minute limit on how long a sandbox account may run `describe` API calls' },
+          { id: 'c', label: 'C', text: 'Thirty minutes is the minimum time required for an RDS instance to start' },
+          { id: 'd', label: 'D', text: 'The time-box exists only to satisfy the customer panel\'s meeting schedule, with no engineering purpose' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario states the discovery time-box\'s purpose directly — confirm state and drift without letting discovery crowd out deploying and demonstrating the smallest working path.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-07-mcq-06',
+        question:
+          'The Suggested Extension proposes a synthetic canary that uploads a test manifest every five minutes. Why would this catch a failure class that the application\'s own passive `/healthz` check would miss?',
+        options: [
+          { id: 'a', label: 'A', text: 'A passive health check only confirms the application process is up and can reach its immediate dependencies; a canary exercises the actual end-to-end broker-upload-to-dispatch workflow the customer cares about, catching a break anywhere along that path' },
+          { id: 'b', label: 'B', text: 'A synthetic canary is functionally identical to `/healthz` and provides no additional coverage' },
+          { id: 'c', label: 'C', text: '`/healthz` checks cannot run inside a VPC, so only a canary can verify connectivity' },
+          { id: 'd', label: 'D', text: 'A canary is only useful for verifying Lambda cold-start latency, unrelated to workflow correctness' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The extension\'s point is exactly this distinction — a passive check confirms local health, while an active canary exercises the real customer-facing workflow end to end and would fire even outside a rehearsed demo window.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/08-aws-ecs-and-ecr-introduction': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-08-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — IMAGE DIGEST VS MUTABLE TAG',
+        question:
+          'Why does the lesson call a tag like `v14` an untrustworthy record of what image actually ran, while treating the digest as the image\'s real identity?',
+        options: [
+          { id: 'a', label: 'A', text: 'A tag is a mutable pointer that can be repointed to a different digest at any time, so a deployment log recording only the tag cannot prove which actual image content ran' },
+          { id: 'b', label: 'B', text: 'Tags are deprecated in ECR and no longer supported for new repositories' },
+          { id: 'c', label: 'C', text: 'Digests are shorter and therefore easier to log than tags' },
+          { id: 'd', label: 'D', text: 'A digest and a tag always refer to the same image content by definition, making this a non-issue' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit: a tag is a mutable pointer, and the digest is the image\'s actual content identity — logging only the tag loses that guarantee.',
+        incorrectExplanation:
+          'Docker tags are mutable references that can be overwritten or pointed to new builds, whereas sha256 digests represent immutable cryptographic hashes of the container image contents.',
+        hint:
+          'Remember that image tags can be overwritten at any time in a container registry.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-08-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — EXECUTION ROLE VS TASK ROLE',
+        question:
+          'What is the precise difference between an ECS task\'s execution role and its task role?',
+        options: [
+          { id: 'a', label: 'A', text: 'The execution role governs what the ECS platform does on the task\'s behalf before the application runs (pulling the image, injecting a secret, writing logs); the task role governs what the application\'s own code may do once it is running' },
+          { id: 'b', label: 'B', text: 'The execution role and task role are two names for the same IAM concept and can be used interchangeably' },
+          { id: 'c', label: 'C', text: 'The task role is only used for Fargate tasks, while the execution role is only used for EC2-launch-type tasks' },
+          { id: 'd', label: 'D', text: 'The execution role only applies to the first task definition revision; later revisions use only the task role' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this exact line — execution role for what the platform does on the task\'s behalf, task role for what the running application code itself is permitted to do.',
+        incorrectExplanation:
+          'The execution role is assumed by the ECS container agent to pull images and fetch secrets before container launch, whereas the task role provides IAM credentials directly to the running application inside the container.',
+        hint:
+          'Differentiate between infrastructure bootstrapping needs (ECR pull, CloudWatch agent) and runtime application business logic needs (S3, SQS).'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-08-mcq-01',
+        question:
+          'Revision `:15` adds a new environment variable sourced from Secrets Manager, and the task stops immediately after starting, before the application container even runs. Which role\'s permissions is the actual cause, and why?',
+        options: [
+          { id: 'a', label: 'A', text: 'The execution role — it had not been granted `secretsmanager:GetSecretValue` on the new ARN, and injecting the secret is something ECS itself does on the task\'s behalf before the application starts' },
+          { id: 'b', label: 'B', text: 'The task role — the application\'s own code failed while trying to read the secret from within its runtime logic' },
+          { id: 'c', label: 'C', text: 'Neither role; this specific failure mode is always caused by a security group misconfiguration' },
+          { id: 'd', label: 'D', text: 'The task role, because Secrets Manager access is always modeled at the task-role level regardless of when the read happens' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Injecting a secret as an environment variable is an execution-role operation performed before the application container starts — exactly the scenario\'s diagnosis, confirmed via the stopped task\'s stop reason.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-08-mcq-02',
+        question:
+          'Given this task definition excerpt, which role\'s policy must grant `secretsmanager:GetSecretValue` on the `manifestflow-db-password` secret for the task to start successfully?',
+        codeBlock: '{\n  "family": "manifestflow-worker",\n  "executionRoleArn": "arn:aws:iam::111122223333:role/manifestflow-worker-execution-role",\n  "taskRoleArn": "arn:aws:iam::111122223333:role/manifestflow-worker-task-role",\n  "containerDefinitions": [\n    {\n      "name": "worker",\n      "secrets": [\n        {"name": "DB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:us-east-1:111122223333:secret:manifestflow-db-password"}\n      ]\n    }\n  ]\n}',
+        options: [
+          { id: 'a', label: 'A', text: '`manifestflow-worker-execution-role`, since the `secrets` field is resolved by ECS before the container starts' },
+          { id: 'b', label: 'B', text: '`manifestflow-worker-task-role`, since it is the role most closely associated with the running container' },
+          { id: 'c', label: 'C', text: 'Both roles must independently grant the same permission, or the task fails' },
+          { id: 'd', label: 'D', text: 'Neither role needs this permission; `secrets` resolution is handled entirely by the Fargate control plane with no IAM check' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Injecting a `secrets`-block value happens via the execution role, the platform-side identity used before the container\'s own code runs — reinforcing the same execution-role/task-role distinction as Q2 and Q3.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-08-mcq-03',
+        question:
+          'Why does the lesson highlight enabling scan-on-push for the new ECR repository specifically, rather than treating it as an optional afterthought?',
+        options: [
+          { id: 'a', label: 'A', text: 'A customer security review will specifically ask whether a deployed image was scanned before it reached production, not just whether it was eventually scanned' },
+          { id: 'b', label: 'B', text: 'ECS refuses to run any image that has not been scanned, so scan-on-push is a hard technical requirement' },
+          { id: 'c', label: 'C', text: 'Scan-on-push is required only for images referenced by tag, not by digest' },
+          { id: 'd', label: 'D', text: 'Scanning is purely a cost-optimization feature unrelated to security posture' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson makes this the specific reason to care about scan timing — "before" production, not just "eventually," is what a security review asks about.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-08-mcq-04',
+        question:
+          'Per the lesson, what is the relationship between an ECS cluster, a service, and a capacity provider?',
+        options: [
+          { id: 'a', label: 'A', text: 'A cluster is the logical grouping tasks run in; a service maintains a desired count of tasks from a specific task definition revision; a capacity provider (Fargate or an EC2 auto-scaling group) determines what actually runs those tasks' },
+          { id: 'b', label: 'B', text: 'A capacity provider is a synonym for a cluster, and a service is what ECR calls a repository' },
+          { id: 'c', label: 'C', text: 'A service replaces the need for a task definition entirely' },
+          { id: 'd', label: 'D', text: 'A cluster can only contain one service at a time' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson defines these three terms precisely in that layered relationship — cluster as grouping, service as desired-state management of a revision, capacity provider as the actual compute substrate.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-08-mcq-05',
+        question:
+          'After diagnosing revision `:15`\'s failure, what does the FDE do first, before fixing the execution role\'s policy?',
+        options: [
+          { id: 'a', label: 'A', text: 'Roll the service back to the last known-good revision (`:14`) immediately, restoring service, and only then fix the underlying permission and redeploy the corrected revision' },
+          { id: 'b', label: 'B', text: 'Fix the execution role\'s policy first, then leave the failing revision `:15` running while the fix propagates' },
+          { id: 'c', label: 'C', text: 'Delete the ECR repository and start the deployment over from scratch' },
+          { id: 'd', label: 'D', text: 'Wait for the next scheduled maintenance window before taking any action' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario\'s sequence is explicit — restore service via rollback first, then diagnose and fix the underlying cause, mirroring the same "stabilize first" discipline as the project-day lesson\'s runbook.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-08-mcq-06',
+        question:
+          'Per the lesson, what is the essential difference between running ECS tasks on a Fargate capacity provider versus an EC2 capacity provider?',
+        options: [
+          { id: 'a', label: 'A', text: 'Fargate has no EC2 instances to manage at all; an EC2 capacity provider is a managed auto-scaling group of instances whose AMI and patching you still own' },
+          { id: 'b', label: 'B', text: 'Fargate is only usable for tasks with fewer than 256 MB of memory' },
+          { id: 'c', label: 'C', text: 'An EC2 capacity provider cannot be used with a task definition that references an image by digest' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference; the two terms describe the same underlying compute' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this trade-off directly and defers the operational depth of it to the next lesson (ECS Fundamentals) — the essential distinction is who owns the underlying instance lifecycle.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-08-mcq-07',
+        question:
+          'The Suggested Extension proposes running `aws ecs wait services-stable` after every `update-service` call in CI. What problem does this solve compared to the manual rollback the FDE performed in the scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'It removes the dependency on a human watching a dashboard to notice a failed deployment, making the bounded-timeout failure and rollback decision automatic and consistent' },
+          { id: 'b', label: 'B', text: 'It eliminates the need for task definition revisions entirely' },
+          { id: 'c', label: 'C', text: 'It replaces the need for an execution role on any future task definition' },
+          { id: 'd', label: 'D', text: 'It guarantees that no future task definition will ever reference an inaccessible secret' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The extension\'s point is automation of the rollback trigger itself — a bounded wait-and-fail replaces relying on a human to notice and manually decide to roll back.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/09-ecs-fundamentals': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-09-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — AWSVPC NETWORKING AND SECURITY ISOLATION',
+        question:
+          'What does `awsvpc` networking mode give each ECS task that classic `bridge` mode does not, and why does that matter for security groups?',
+        options: [
+          { id: 'a', label: 'A', text: 'Its own ENI with its own private IP, which lets a security group attach directly to the task rather than only to the shared host it happens to land on' },
+          { id: 'b', label: 'B', text: 'Direct public internet access by default, regardless of the subnet\'s route table' },
+          { id: 'c', label: 'C', text: 'A permanent IP address that survives task replacement indefinitely' },
+          { id: 'd', label: 'D', text: 'Exemption from needing any target group health check' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this as the direct mechanical reason `awsvpc` matters for security — per-task ENI/IP lets a security group scope to that specific task, not to every task sharing a host.',
+        incorrectExplanation:
+          'In awsvpc mode, every ECS task receives its own dedicated Elastic Network Interface and private IP within the VPC, allowing discrete Security Groups to be attached directly to individual tasks.',
+        hint:
+          'Focus on how awsvpc integrates containers as first-class citizens into the VPC network model.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-09-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PENDING VS STOPPING FAILURE MODES',
+        question:
+          'A task stuck `PENDING` indefinitely and a task cycling `RUNNING`→`STOPPING` are described as two different failure classes. What does each one indicate, and why does the distinction matter?',
+        options: [
+          { id: 'a', label: 'A', text: '`PENDING` indicates a placement failure (no capacity or subnet IPs satisfy the task\'s requirements); `STOPPING` after briefly running indicates a health-check or startup failure — each points toward a completely different fix' },
+          { id: 'b', label: 'B', text: 'Both states indicate the exact same underlying failure and can be diagnosed identically' },
+          { id: 'c', label: 'C', text: '`PENDING` always means the task definition itself is malformed JSON' },
+          { id: 'd', label: 'D', text: '`STOPPING` always means the execution role lacks ECR pull permission' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this exact distinction — placement failure versus health/startup failure — and states that the events array names which one occurred rather than requiring the FDE to guess.',
+        incorrectExplanation:
+          'Tasks stuck in PENDING indicate infrastructure resource provisioning failures (such as ENI/IP exhaustion or insufficient memory), whereas cycling STOPPING tasks indicate runtime application crashes or target group health check failures.',
+        hint:
+          'Ask whether the container agent has finished provisioning infrastructure resources or if the container process has already started.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-09-mcq-01',
+        question:
+          'Given this events output, what is the most likely root cause to investigate first?',
+        codeBlock: '$ aws ecs describe-services --cluster manifestflow --services manifestflow-worker \\\n  --query \'services[0].events[:5]\'\n[\n  "service manifestflow-worker registered 0 targets in (target-group arn) due to unhealthy state",\n  "service manifestflow-worker (port 8080) is unhealthy in target-group manifestflow-worker-tg due to (reason Health checks failed)",\n  "service manifestflow-worker has started 2 tasks: task 8f1a... task 3c9b..."\n]',
+        options: [
+          { id: 'a', label: 'A', text: 'A mismatch between the target group\'s configured health-check port/path and what the container actually serves, since tasks are starting but registering as unhealthy against the target group specifically' },
+          { id: 'b', label: 'B', text: 'The execution role is missing ECR pull permission' },
+          { id: 'c', label: 'C', text: 'The subnet has run out of available IP addresses for new ENIs' },
+          { id: 'd', label: 'D', text: 'The task definition references an image tag instead of a digest' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Tasks starting successfully but registering unhealthy against the target group specifically points at the health-check contract, exactly the scenario\'s port-mismatch diagnosis.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-09-mcq-02',
+        question:
+          'With this deployment configuration, if revision `:16` is broken and never passes its health check, what happens to the currently running (old) tasks?',
+        codeBlock: 'aws ecs update-service --cluster manifestflow --service manifestflow-worker \\\n  --task-definition manifestflow-worker:16 \\\n  --deployment-configuration "minimumHealthyPercent=100,maximumPercent=200"',
+        options: [
+          { id: 'a', label: 'A', text: 'ECS starts new tasks alongside the old ones and only stops an old task once its replacement is confirmed healthy, so a broken new revision never drops capacity below what was already running' },
+          { id: 'b', label: 'B', text: 'ECS immediately stops all old tasks before starting any new ones, causing a capacity outage' },
+          { id: 'c', label: 'C', text: 'This configuration has no effect on deployment behavior; it only changes billing' },
+          { id: 'd', label: 'D', text: 'ECS stops exactly half the old tasks regardless of the configured percentages' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`minimumHealthyPercent=100` with `maximumPercent=200` is exactly the conservative configuration the lesson describes — new tasks are added alongside old ones, and old tasks are only stopped once a healthy replacement exists.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-09-mcq-03',
+        question:
+          'During the load test, `desired count` scales to 6 but `running count` stalls at 3, with tasks stuck `PENDING`. What is the root cause per the scenario, and what does fixing it actually require?',
+        options: [
+          { id: 'a', label: 'A', text: 'The private-app subnet\'s available IP pool is nearly exhausted because each task under `awsvpc` mode consumes one ENI/IP; fixing it requires resizing the subnet\'s CIDR allocation, a change that affects every other tenant of that subnet' },
+          { id: 'b', label: 'B', text: 'The target group\'s health check is misconfigured; fixing it only requires updating the health-check port' },
+          { id: 'c', label: 'C', text: 'The execution role lacks permission to launch new tasks; fixing it requires an IAM policy change' },
+          { id: 'd', label: 'D', text: 'The cluster has reached its maximum task-definition-revision limit' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario\'s diagnosis is explicit — `awsvpc` mode\'s per-task ENI/IP consumption exhausted the subnet\'s IP pool, and the fix is a CIDR resize affecting other tenants, distinct from the target-group mismatch in the other stuck task.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-09-mcq-04',
+        question:
+          'The scenario has two distinct problems occurring at once: IP exhaustion for some tasks and a port mismatch for another. Why is it important that the FDE diagnose and fix these as two independent issues rather than assuming one root cause explains both symptoms?',
+        options: [
+          { id: 'a', label: 'A', text: 'They are genuinely unrelated failure classes (placement capacity versus health-check contract) with different fixes, and conflating them risks either fix being applied to the wrong problem or one issue being missed entirely' },
+          { id: 'b', label: 'B', text: 'ECS requires all service failures to share a single root cause by design' },
+          { id: 'c', label: 'C', text: 'There is no actual distinction; both symptoms always resolve from the same CIDR resize' },
+          { id: 'd', label: 'D', text: 'The health-check port mismatch is caused by the IP exhaustion itself' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson treats these as the two failure classes from Q2 occurring simultaneously in one scenario, requiring independent diagnosis — the FDE fixes the subnet sizing and the target-group port as two separate corrections.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-09-mcq-05',
+        question:
+          'What must be true about the `worker` container definition for this target group\'s health check to succeed?',
+        codeBlock: 'aws elbv2 create-target-group --name manifestflow-worker-tg --protocol HTTP --port 8080 \\\n  --vpc-id vpc-0a1b2c3d4e5f60789 --target-type ip \\\n  --health-check-path /healthz --health-check-port 8080 \\\n  --healthy-threshold-count 2 --unhealthy-threshold-count 3 --health-check-interval-seconds 15',
+        options: [
+          { id: 'a', label: 'A', text: 'The container must actually listen on port 8080 and serve a successful response at `/healthz`' },
+          { id: 'b', label: 'B', text: 'The container must be launched with the EC2 launch type rather than Fargate' },
+          { id: 'c', label: 'C', text: 'The container must reference its image by tag rather than by digest' },
+          { id: 'd', label: 'D', text: 'The container\'s execution role must grant `elasticloadbalancing:DescribeTargetGroups`' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The target group\'s health check path and port must genuinely match what the container serves — this is the exact contract the lesson emphasizes, and getting it wrong is the recurring silent-mismatch failure this lesson demonstrates.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-09-mcq-06',
+        question:
+          'The lesson compares `awsvpc` mode\'s per-task ENI to a gap it echoes from the containerization elective\'s Docker networking lesson. What is that gap under classic `bridge` mode?',
+        options: [
+          { id: 'a', label: 'A', text: 'Tasks share the host\'s network namespace, so a security-group-equivalent exposure at the host level applies to every task on that host rather than being scoped to one task specifically' },
+          { id: 'b', label: 'B', text: '`bridge` mode makes every task\'s traffic automatically encrypted, unlike `awsvpc`' },
+          { id: 'c', label: 'C', text: '`bridge` mode is not supported at all by ECS and only exists in plain Docker' },
+          { id: 'd', label: 'D', text: '`bridge` mode assigns each task a public IP by default, which `awsvpc` does not' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this parallel explicitly — a shared network namespace under `bridge` mode means host-level exposure applies broadly, the same "any workload on this host inherits the host\'s exposure" gap the networking lesson raised for Docker.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-09-mcq-07',
+        question:
+          'The Suggested Extension proposes a CloudWatch alarm on `UnHealthyHostCount` with a short evaluation period. What does this catch that waiting for the next load test would not?',
+        options: [
+          { id: 'a', label: 'A', text: 'A target-group health-check mismatch introduced by a routine deployment, caught automatically within minutes rather than only being discovered when traffic happens to spike enough to expose it' },
+          { id: 'b', label: 'B', text: 'IP address exhaustion in the private-app subnet, which this metric measures directly' },
+          { id: 'c', label: 'C', text: 'Whether the execution role has ECR pull permission' },
+          { id: 'd', label: 'D', text: 'Nothing meaningfully different; a load test and this alarm catch identical failure classes' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The extension\'s value is proactive detection — an automated alarm catches a routine-deployment mismatch within minutes, rather than the failure only surfacing when a future load test happens to exercise it.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/10-eks-basics': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-10-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — KUBECONFIG AUTHENTICATION MECHANICS',
+        question:
+          'What does `aws eks update-kubeconfig` actually do, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It writes a kubeconfig entry that shells out to `aws eks get-token` at connection time, wiring kubectl to whatever IAM credentials are active in the current AWS CLI session — it creates no new identity' },
+          { id: 'b', label: 'B', text: 'It creates a brand-new, separate Kubernetes-level credential independent of any AWS IAM identity' },
+          { id: 'c', label: 'C', text: 'It permanently grants cluster-admin to the IAM user who ran the command' },
+          { id: 'd', label: 'D', text: 'It has no effect on authentication; kubectl always uses an anonymous connection to EKS' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is precise about this mechanism — the command writes a kubeconfig entry tied to the current AWS CLI session\'s IAM identity, not a separate credential, which is why losing that IAM access breaks kubectl too.',
+        incorrectExplanation:
+          'update-kubeconfig only writes local client configuration in ~/.kube/config to call the aws eks get-token command; it creates no RBAC ClusterRoleBindings or IAM cluster permissions.',
+        hint:
+          'Notice whether update-kubeconfig modifies client files on your workstation or resources on the EKS control plane.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-10-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — VPC CNI POD IP ROUTABILITY',
+        question:
+          'How does the VPC CNI assign pod IP addresses, and what does that imply about a pod\'s routability inside the VPC?',
+        options: [
+          { id: 'a', label: 'A', text: 'It assigns each pod a real, routable IP from the VPC\'s own CIDR range via secondary IPs (or prefix delegation) on each node\'s ENIs, rather than a separate overlay address space' },
+          { id: 'b', label: 'B', text: 'It assigns pods addresses from a private overlay network entirely separate from the VPC\'s own CIDR' },
+          { id: 'c', label: 'C', text: 'All pods on a node share one single IP address, distinguished only by port' },
+          { id: 'd', label: 'D', text: 'Pod IP addresses are assigned randomly from any AWS region\'s address pool, not the VPC\'s' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit that the VPC CNI gives pods real routable VPC-CIDR addresses via node ENIs, not a separate overlay space — the mechanical basis for the IP-exhaustion failure mode it then describes.',
+        incorrectExplanation:
+          'The AWS VPC CNI allocates native VPC IP addresses directly from the node\'s subnet to each pod ENI secondary IP, enabling direct VPC routing without encapsulation overlays while consuming VPC address space.',
+        hint:
+          'Compare the AWS VPC CNI native routing model to traditional overlay network models (like Calico/Flannel).'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-10-mcq-01',
+        question:
+          'Given this event, what is the correct fix per the lesson, and what fix does the lesson explicitly caution against reaching for first?',
+        codeBlock: '$ kubectl describe pod extraction-worker-7d9f8c-xk2p9 -n manifestflow | grep -A2 Events\nWarning  FailedScheduling  ...  0/2 nodes are available: 2 Too many pods (node has reached IP address capacity)',
+        options: [
+          { id: 'a', label: 'A', text: 'Enable prefix delegation on the VPC CNI add-on to raise the pod-per-node IP ceiling on the existing node type; the lesson cautions against immediately switching to larger, more expensive instance types' },
+          { id: 'b', label: 'B', text: 'Increase the node\'s CPU request; the lesson cautions against touching the VPC CNI configuration at all' },
+          { id: 'c', label: 'C', text: 'Delete and recreate the cluster; the lesson cautions against any partial fix' },
+          { id: 'd', label: 'D', text: 'Add more nodes to the node group without changing any CNI configuration; the lesson cautions against prefix delegation as unsafe' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario states this directly — the FDE enables prefix delegation rather than reaching for larger, cost-increasing instance types that side-step the actual IP-allocation constraint.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-10-mcq-02',
+        question:
+          'The platform team asks whether to install the EBS CSI driver as a Helm chart, matching their on-prem convention. Why does the FDE recommend the EKS add-on instead?',
+        options: [
+          { id: 'a', label: 'A', text: 'An EKS add-on\'s version compatibility with the cluster\'s Kubernetes version is AWS\'s managed responsibility to track; a Helm-installed equivalent\'s lifecycle is entirely the customer\'s own responsibility' },
+          { id: 'b', label: 'B', text: 'Helm charts cannot be installed on EKS clusters at all; only add-ons are supported' },
+          { id: 'c', label: 'C', text: 'EKS add-ons are always free while Helm-installed components always incur additional cost' },
+          { id: 'd', label: 'D', text: 'There is no functional difference; the recommendation is purely about matching AWS\'s marketing preference' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this exact operational distinction — AWS tracks add-on version compatibility, while a Helm-installed equivalent leaves that lifecycle entirely to the customer or FDE.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-10-mcq-03',
+        question:
+          'The lesson calls EKS\'s pod IP exhaustion "the direct EKS analog" to the ECS `awsvpc` subnet IP exhaustion from the previous lesson. What is genuinely the same, and what is different?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both stem from per-task/per-pod ENI-based IP consumption hitting a ceiling, diagnosed by reading a platform-specific scheduling event rather than assuming a generic compute-capacity problem; the difference is the ceiling itself — subnet-wide IP availability for ECS versus per-node ENI/IP allocation for EKS' },
+          { id: 'b', label: 'B', text: 'They are completely unrelated failure modes with no shared mechanism' },
+          { id: 'c', label: 'C', text: 'Both are fixed by the exact same command, `kubectl set env daemonset aws-node`' },
+          { id: 'd', label: 'D', text: 'ECS\'s version is caused by CoreDNS misconfiguration, while EKS\'s is caused by a target-group mismatch' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this comparison precisely — same underlying ENI-based-IP-ceiling mechanism and same diagnostic discipline (read the actual event), different scope of the ceiling itself.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-10-mcq-04',
+        question:
+          'What does enabling prefix delegation on the VPC CNI change, mechanically?',
+        options: [
+          { id: 'a', label: 'A', text: 'Instead of allocating one secondary IP at a time per ENI slot, it allocates a `/28` prefix per slot, dramatically raising the pod-per-node ceiling without changing the node\'s instance type' },
+          { id: 'b', label: 'B', text: 'It removes the pod-per-node IP ceiling entirely, with no upper bound' },
+          { id: 'c', label: 'C', text: 'It moves pod networking to an overlay network, bypassing the VPC CIDR entirely' },
+          { id: 'd', label: 'D', text: 'It changes which IAM role the VPC CNI add-on runs as' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson describes this mechanism precisely — a `/28` prefix per ENI slot instead of one IP at a time, raising the ceiling on the same node type rather than requiring a larger instance.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-10-mcq-05',
+        question:
+          'Per the lesson, what does AWS operate directly in EKS, and what has historically remained the customer/FDE\'s responsibility?',
+        options: [
+          { id: 'a', label: 'A', text: 'AWS operates the control plane\'s availability, patching, and the etcd backing store; the worker nodes\' AMI, IAM role, and add-on version compatibility have historically been the customer\'s responsibility' },
+          { id: 'b', label: 'B', text: 'AWS operates every layer including the worker nodes\' AMI by default in all configurations, with no customer responsibility remaining' },
+          { id: 'c', label: 'C', text: 'The customer operates the control plane; AWS only manages the worker nodes' },
+          { id: 'd', label: 'D', text: 'There is no meaningful division of responsibility in EKS; everything is jointly managed' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this boundary briefly, deferring depth to Module 4\'s dedicated lesson, but the basic split — control plane to AWS, node/AMI/IAM ownership historically to the customer — is stated directly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-10-mcq-06',
+        question:
+          'Step 5 of the Practice Loop has you assume a different IAM role with no cluster access and confirm `kubectl` access breaks immediately. What does this exercise directly demonstrate?',
+        options: [
+          { id: 'a', label: 'A', text: 'That kubectl has no separate Kubernetes-level credential to fall back on — access is entirely a function of the currently active AWS IAM identity, mapped via aws-auth or access entries' },
+          { id: 'b', label: 'B', text: 'That EKS clusters maintain a permanent local credential cache independent of IAM, so access should not actually break' },
+          { id: 'c', label: 'C', text: 'That kubectl access is tied to the specific laptop the kubeconfig file was generated on, not to any IAM identity' },
+          { id: 'd', label: 'D', text: 'That losing IAM access only affects the AWS Console, never kubectl' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly the point Q1 and the lesson\'s opening paragraph make — kubectl access is a live function of the current IAM identity, with no independent Kubernetes-level credential as a fallback.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/11-eks-advanced': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-11-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — FARGATE PROFILE VS MANAGED NODE GROUP',
+        question:
+          'What is the essential compute-ownership difference between a Fargate profile and a managed node group?',
+        options: [
+          { id: 'a', label: 'A', text: 'A Fargate profile runs matching pods on AWS-managed, per-pod isolated compute with no node to patch or size; a managed node group is AWS-provisioned EC2 capacity where you still choose instance type, AMI, and scaling bounds' },
+          { id: 'b', label: 'B', text: 'Both are functionally identical; the only difference is naming convention' },
+          { id: 'c', label: 'C', text: 'A managed node group runs pods on per-pod isolated compute, while Fargate requires you to choose an instance type' },
+          { id: 'd', label: 'D', text: 'A Fargate profile requires manually patching each pod\'s underlying host OS' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this exact ownership distinction — Fargate\'s per-pod AWS-managed compute versus a managed node group\'s customer-sized, customer-patched EC2 capacity.',
+        incorrectExplanation:
+          'Fargate provisions an isolated VM boundary for each individual pod without shared underlying EC2 instances or node management, whereas managed node groups run pods across auto-scaled EC2 host instances.',
+        hint:
+          'Consider whether pods share a common underlying host operating system and kernel or run in isolated microVMs.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-11-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — EKS UPGRADE STAGE SEQUENCING',
+        question:
+          'Why must the control plane be upgraded before the node groups, per the lesson, rather than the reverse order?',
+        options: [
+          { id: 'a', label: 'A', text: 'A newer node kubelet talking to an older API server is a temporarily supported configuration, while an older control plane fielding requests shaped for a newer node\'s kubelet is not' },
+          { id: 'b', label: 'B', text: 'AWS bills node-group upgrades at a higher rate if performed before the control plane' },
+          { id: 'c', label: 'C', text: 'The order has no functional consequence; it is a stylistic convention only' },
+          { id: 'd', label: 'D', text: 'Add-ons must always be upgraded before the control plane, and node groups have no ordering constraint relative to either' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this asymmetry directly — newer-node/older-control-plane is a supported transitional state, the reverse is not, which is the mechanical reason the control plane goes first.',
+        incorrectExplanation:
+          'Kubernetes version skew policy prohibits kubelet versions from being newer than the API server; therefore, the control plane must always be updated before worker node groups.',
+        hint:
+          'Review the Kubernetes version skew policy regarding kubelet and API server compatibility.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-11-mcq-01',
+        question:
+          'What does the lesson name as a limitation of Fargate pods compared to pods on a managed node group?',
+        options: [
+          { id: 'a', label: 'A', text: 'Fargate pods cannot use DaemonSets and cannot mount an EBS volume directly' },
+          { id: 'b', label: 'B', text: 'Fargate pods cannot make outbound network calls of any kind' },
+          { id: 'c', label: 'C', text: 'Fargate pods cannot be scheduled with any resource requests or limits' },
+          { id: 'd', label: 'D', text: 'Fargate pods are always billed at a lower rate than an equivalent node-group pod in every case' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this exact limitation and uses it directly in the scenario — the worker stays on the node group specifically because it needs DaemonSet-based log forwarding that Fargate does not support.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-11-mcq-02',
+        question:
+          'The scenario has the FDE run the add-on upgrade stage even though the cluster "appears to function immediately after the control-plane upgrade alone." Why not skip straight to node groups once things look fine?',
+        options: [
+          { id: 'a', label: 'A', text: 'The add-ons\' compatibility with the newly upgraded control plane is not guaranteed by an untested older version, even one that has not yet visibly broken — apparent function is not the same as a verified compatibility guarantee' },
+          { id: 'b', label: 'B', text: 'Skipping the add-on stage is technically impossible; the EKS API blocks any node-group upgrade until add-ons are upgraded first' },
+          { id: 'c', label: 'C', text: 'The add-on stage is purely cosmetic and has no bearing on cluster stability either way' },
+          { id: 'd', label: 'D', text: 'Add-ons must be upgraded only after node groups, making the described order actually backwards' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario states this reasoning explicitly — not skipping a stage just because things look fine, since compatibility is a guarantee, not an observation.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-11-mcq-03',
+        question:
+          'What does this taint-and-toleration pair achieve for the batch-reconciliation workload, if it were run on this node group instead of a Fargate profile?',
+        codeBlock: 'eksctl create nodegroup --cluster manifestflow-eks --name batch-workers \\\n  --node-type c5.2xlarge --nodes 0 --nodes-min 0 --nodes-max 4 \\\n  --taints batch-only=true:NoSchedule --managed',
+        options: [
+          { id: 'a', label: 'A', text: 'Only pods carrying the matching toleration can be scheduled onto the tainted node group, keeping the extraction-worker Deployment (which lacks that toleration) off that capacity entirely' },
+          { id: 'b', label: 'B', text: 'It grants the batch job\'s pods elevated IAM permissions automatically' },
+          { id: 'c', label: 'C', text: 'It guarantees the node group scales to zero whenever the batch job is idle, with no other configuration required' },
+          { id: 'd', label: 'D', text: 'It has no scheduling effect; taints only affect networking, not pod placement' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this exact use — taints/tolerations achieve the same workload isolation Fargate gives by default, without needing a separate Fargate profile.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-11-mcq-04',
+        question:
+          'Per the lesson, why is the AWS Load Balancer Controller installed via Helm rather than as an EKS add-on?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is a community project rather than an AWS first-party component, which is the same lifecycle distinction the EKS Basics lesson drew between AWS-managed add-ons and customer-managed Helm charts' },
+          { id: 'b', label: 'B', text: 'EKS add-ons cannot provision any AWS resource outside the cluster, and the controller needs to create ALBs' },
+          { id: 'c', label: 'C', text: 'Helm charts install faster than EKS add-ons in every case, which is the only reason for the choice' },
+          { id: 'd', label: 'D', text: 'The AWS Load Balancer Controller does not require any IAM permissions, unlike EKS add-ons' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson calls this out explicitly, connecting back to the previous lesson\'s add-on-versus-Helm distinction — the controller is a community project, hence Helm-installed rather than an AWS-managed add-on.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-11-mcq-05',
+        question:
+          'After the IRSA role\'s policy is narrowed without checking the controller\'s documented requirements, new Ingress objects silently stop provisioning ALBs. Where does the FDE actually find the root-cause error, and why not the Ingress object\'s own events?',
+        options: [
+          { id: 'a', label: 'A', text: 'In the AWS Load Balancer Controller\'s own pod logs, since the controller — not the Ingress object itself — is what calls the ALB-provisioning API and receives the AccessDenied error from AWS' },
+          { id: 'b', label: 'B', text: 'In the Ingress object\'s Kubernetes events, since Kubernetes always surfaces IAM-level API errors directly on the object that triggered them' },
+          { id: 'c', label: 'C', text: 'In the EKS control plane\'s own audit log exclusively, with no other location containing this error' },
+          { id: 'd', label: 'D', text: 'The error cannot be found in logs at all; only a support ticket to AWS reveals it' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario states this directly — the controller\'s own pod logs, not the Ingress object\'s events, are where the actual AccessDenied error surfaces, because the controller is the actor making the AWS API call.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-11-mcq-06',
+        question:
+          'What do these annotations tell the AWS Load Balancer Controller to do?',
+        codeBlock: 'metadata:\n  annotations:\n    kubernetes.io/ingress.class: alb\n    alb.ingress.kubernetes.io/scheme: internet-facing\n    alb.ingress.kubernetes.io/target-type: ip',
+        options: [
+          { id: 'a', label: 'A', text: 'Handle this Ingress object (via the `alb` ingress class), provision a publicly reachable ALB rather than an internal one, and register pod IPs directly as ALB targets rather than routing through node ports' },
+          { id: 'b', label: 'B', text: 'Deploy this workload onto a Fargate profile automatically' },
+          { id: 'c', label: 'C', text: 'Enable IRSA for every pod matched by this Ingress object' },
+          { id: 'd', label: 'D', text: 'Restrict this Ingress to only the `manifestflow` namespace\'s internal traffic' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Each annotation maps to exactly one of these controller behaviors — ingress class selection, public scheme, and IP target-type registration — which the controller translates into real ALB configuration.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-11-mcq-07',
+        question:
+          'The Suggested Extension adds a `PodDisruptionBudget` to the extraction-worker Deployment before the next node-group upgrade rehearsal. What problem does this specifically prevent during the rolling node replacement?',
+        options: [
+          { id: 'a', label: 'A', text: 'Nodes draining faster than the budget allows could otherwise drop the worker\'s available replica count below an acceptable threshold during the upgrade window' },
+          { id: 'b', label: 'B', text: 'It prevents the control plane from being upgraded before the node groups' },
+          { id: 'c', label: 'C', text: 'It prevents the AWS Load Balancer Controller from provisioning a new ALB during the upgrade' },
+          { id: 'd', label: 'D', text: 'It has no functional effect during a node-group upgrade; it only applies to Fargate profiles' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The extension\'s purpose is bounding disruption pace during the rolling replacement — the budget caps how many pods can be unavailable at once, protecting the worker\'s replica count during the upgrade.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/12-eks-security-and-operations': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-12-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — OIDC PROVIDER ROLE IN IRSA',
+        question:
+          'Why does IRSA depend on the cluster having an OIDC identity provider registered with IAM?',
+        options: [
+          { id: 'a', label: 'A', text: 'EKS exposes an OIDC-compliant token issuer, and a ServiceAccount\'s projected token is a JWT that IAM can verify against that registered issuer to grant a role via AssumeRoleWithWebIdentity' },
+          { id: 'b', label: 'B', text: 'The OIDC provider is only needed for kubectl authentication, unrelated to IRSA' },
+          { id: 'c', label: 'C', text: 'EKS automatically registers this provider the moment a cluster is created, with no manual step ever required' },
+          { id: 'd', label: 'D', text: 'The OIDC provider replaces the need for any IAM role or trust policy entirely' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this exact mechanism — the OIDC issuer plus the ServiceAccount\'s projected JWT is what IAM verifies before granting the role, and it also flags a missing OIDC provider as the most common reason IRSA silently fails.',
+        incorrectExplanation:
+          'IAM uses the registered OIDC identity provider endpoint and its public keys to cryptographically validate the JSON Web Tokens (JWT) projected into pods by the Kubernetes API server.',
+        hint:
+          'Consider how AWS IAM verifies the authenticity of a token presented by a Kubernetes pod.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-12-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — SECURITYGROUPPOLICY VS NETWORKPOLICY',
+        question:
+          'Why does the lesson say Kubernetes `NetworkPolicy` alone is insufficient for restricting the worker pod\'s access to the RDS instance, requiring `SecurityGroupPolicy` instead?',
+        options: [
+          { id: 'a', label: 'A', text: '`NetworkPolicy` governs pod-to-pod traffic within the cluster\'s own network layer, while the RDS instance is outside the cluster and only respects an actual VPC-level security group boundary' },
+          { id: 'b', label: 'B', text: '`NetworkPolicy` and `SecurityGroupPolicy` are functionally identical, so either one alone would work equally well' },
+          { id: 'c', label: 'C', text: '`NetworkPolicy` requires a paid EKS support tier that this cluster does not have' },
+          { id: 'd', label: 'D', text: '`SecurityGroupPolicy` replaces the need for the VPC CNI add-on entirely' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this distinction precisely — RDS is outside the cluster and only enforces VPC-level security groups, a boundary `NetworkPolicy` (intra-cluster only) cannot reach.',
+        incorrectExplanation:
+          'Kubernetes NetworkPolicy is evaluated within the cluster for pod-to-pod network traffic, whereas AWS resources outside the cluster like RDS validate AWS VPC Security Groups attached to pod ENIs.',
+        hint:
+          'Distinguish between in-cluster Kubernetes network enforcement and AWS VPC network interface boundary enforcement.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-12-mcq-01',
+        question:
+          'What does this trust policy condition block actually enforce, and what happens if the `sub` value is mistyped or wildcarded too broadly?',
+        codeBlock: '"Condition": {\n  "StringEquals": {\n    "oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE...:sub": "system:serviceaccount:manifestflow:worker-sa",\n    "oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE...:aud": "sts.amazonaws.com"\n  }\n}',
+        options: [
+          { id: 'a', label: 'A', text: '`sub` scopes the trust to exactly one namespace/ServiceAccount pair and `aud` confirms the token was minted for STS; a broad or mistyped `sub` either blocks every legitimate pod silently or lets an unintended ServiceAccount assume the role, with no explicit error either way' },
+          { id: 'b', label: 'B', text: 'These conditions only affect which AWS region the role can be assumed from' },
+          { id: 'c', label: 'C', text: 'A mistyped `sub` value causes IAM to throw an immediate, explicit validation error at role-creation time' },
+          { id: 'd', label: 'D', text: '`sub` and `aud` are optional decorative fields with no enforcement effect on AssumeRoleWithWebIdentity' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit that this misconfiguration fails silently — either too narrow (no pod can assume it) or too broad (unintended access), never a thrown error, which is exactly why a security review needs to check this condition directly rather than trust that it "must be fine."'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-12-mcq-02',
+        question:
+          'Which EKS control-plane log type must be enabled for this query to return any results at all?',
+        codeBlock: 'fields @timestamp, user.username, verb, objectRef.namespace, objectRef.name\n| filter objectRef.resource = "secrets" and verb = "delete"\n| filter objectRef.name = "manifestflow-db-password"\n| sort @timestamp desc\n| limit 20',
+        options: [
+          { id: 'a', label: 'A', text: '`audit` — it is the log type that records every request to the Kubernetes API server, including who performed which verb against which resource' },
+          { id: 'b', label: 'B', text: '`scheduler` — it records every pod placement decision, which this query depends on' },
+          { id: 'c', label: 'C', text: '`controllerManager` — it is the only log type that records Secret deletions specifically' },
+          { id: 'd', label: 'D', text: 'No specific log type needs to be enabled; this query runs against CloudTrail by default' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson identifies `audit` as the specific log type recording API-server requests by actor, verb, and resource — exactly the fields this Insights query filters and returns.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-12-mcq-03',
+        question:
+          'How does the FDE demonstrate, rather than merely claim, that the worker pod\'s IAM access is scoped to only its assigned S3 bucket?',
+        options: [
+          { id: 'a', label: 'A', text: 'By running `aws s3 ls` from inside the pod against both its assigned bucket (success) and an unrelated bucket (AccessDenied), capturing both outcomes as evidence' },
+          { id: 'b', label: 'B', text: 'By reading the IAM policy document\'s text alone and asserting it looks correctly scoped' },
+          { id: 'c', label: 'C', text: 'By checking that the pod\'s SecurityGroupPolicy blocks the unrelated bucket, since S3 access is enforced at the network layer only' },
+          { id: 'd', label: 'D', text: 'By confirming the ServiceAccount\'s name matches the bucket\'s name' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The scenario performs exactly this live test — one allowed call succeeds, one against an unrelated resource fails with AccessDenied — turning the isolation claim into demonstrated evidence.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-12-mcq-04',
+        question:
+          'Practice Loop step 3 has you confirm a different pod on the same node — lacking the matching pod selector — still uses the node\'s broader shared security group. Why is this confirmation part of proving the SecurityGroupPolicy actually works?',
+        options: [
+          { id: 'a', label: 'A', text: 'It proves the restriction is genuinely scoped to the selected pod specifically, not accidentally applied cluster-wide or node-wide in a way that would make the "isolation" claim false' },
+          { id: 'b', label: 'B', text: 'It confirms the node itself has been replaced with a smaller instance type' },
+          { id: 'c', label: 'C', text: 'It has no verification value; the step exists only to generate additional log volume' },
+          { id: 'd', label: 'D', text: 'It confirms the OIDC provider is correctly registered' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Checking the unaffected pod is what makes the isolation claim falsifiable and confirmed rather than assumed — exactly the discipline this module\'s lessons repeatedly apply to "prove it" style customer questions.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-12-mcq-05',
+        question:
+          'Per the lesson, how many distinct, independently toggled EKS control-plane log types are there, and where does each land once enabled?',
+        options: [
+          { id: 'a', label: 'A', text: 'Five (`api`, `audit`, `authenticator`, `controllerManager`, `scheduler`), each landing in its own CloudWatch Logs log group' },
+          { id: 'b', label: 'B', text: 'One combined log type covering all control-plane activity, with no way to enable them independently' },
+          { id: 'c', label: 'C', text: 'Three log types, all landing in a single shared S3 bucket rather than CloudWatch Logs' },
+          { id: 'd', label: 'D', text: 'Five log types, but only `audit` can actually be enabled; the other four are always on by default' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names all five log types explicitly and states each is independently toggled and lands in its own CloudWatch Logs group.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-12-mcq-06',
+        question:
+          'This single `eksctl` command produces the same net result as manually writing the trust-policy JSON and calling `aws iam create-role`. What does it do under the hood, per the lesson\'s explanation of the mechanism?',
+        codeBlock: 'eksctl create iamserviceaccount --cluster manifestflow-eks --namespace manifestflow \\\n  --name worker-sa --attach-policy-arn arn:aws:iam::111122223333:policy/manifestflow-worker-scoped \\\n  --approve',
+        options: [
+          { id: 'a', label: 'A', text: 'It creates the IAM role, writes an equivalent `sub`/`aud`-scoped trust policy tied to the cluster\'s OIDC provider, attaches the specified policy, and creates the matching Kubernetes ServiceAccount annotated with the role\'s ARN' },
+          { id: 'b', label: 'B', text: 'It bypasses OIDC entirely and grants the ServiceAccount the node\'s own shared IAM role instead' },
+          { id: 'c', label: 'C', text: 'It only creates the Kubernetes ServiceAccount object, with no IAM role involved at all' },
+          { id: 'd', label: 'D', text: 'It disables IRSA for every other ServiceAccount in the same namespace' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The `eksctl` command is presented as the automated equivalent of the manual role/trust-policy/ServiceAccount steps shown just above it — same mechanism, less manual JSON.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-12-mcq-07',
+        question:
+          'The Suggested Extension turns the manual Logs Insights query into a scheduled EventBridge rule. What does this change about how the customer would learn of a suspicious `delete` against a Secret or ClusterRoleBinding?',
+        options: [
+          { id: 'a', label: 'A', text: 'It becomes a standing detection rule that proactively publishes a match to an alerting topic, rather than something only discovered by running the query manually after an incident is already suspected' },
+          { id: 'b', label: 'B', text: 'It removes the need for control-plane audit logging to be enabled at all' },
+          { id: 'c', label: 'C', text: 'It replaces IRSA as the mechanism enforcing least-privilege access' },
+          { id: 'd', label: 'D', text: 'It has no functional difference from running the query manually; it only changes the query\'s syntax' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The extension\'s value is proactive standing detection versus reactive manual investigation — the same shift from passive to automated evidence-gathering the module has emphasized throughout.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/13-microservices-on-aws-project': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-13-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — CHOOSING SYNC VS. ASYNC SERVICE BOUNDARIES',
+        question:
+          'Why does `booking-service` call `settlement-service`\'s `/estimate` endpoint synchronously rather than publishing an event and waiting for a later response?',
+        options: [
+          { id: 'a', label: 'A', text: 'The booking confirmation page needs some settlement figure immediately before it can render, so the caller cannot proceed without a timely answer' },
+          { id: 'b', label: 'B', text: 'SNS and SQS cannot be used for any interaction involving money' },
+          { id: 'c', label: 'C', text: 'Synchronous calls are always faster than asynchronous ones regardless of the workload' },
+          { id: 'd', label: 'D', text: 'ECS Fargate does not support asynchronous messaging between services' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s rule is that the boundary choice follows from whether the caller needs an immediate answer — the confirmation page needs a figure now, which is exactly the synchronous case.',
+        incorrectExplanation:
+          'Service boundary choices follow whether the caller needs an immediate response to proceed, not protocol rules against financial payloads or platform messaging limitations.',
+        hint:
+          'Consider whether the booking user interface can complete rendering without having the estimate in hand.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-13-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — GRACEFUL DEGRADATION UNDER DEPENDENCY OUTAGE',
+        question:
+          'The scenario injects a 3-second delay into `settlement-service`\'s `/estimate` handler while running a load test against `booking-service`, and every booking still completes successfully. What does this outcome actually demonstrate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The 800ms timeout and `PENDING` fallback prevent a slow synchronous dependency from cascading into booking failures, proving the system degrades gracefully rather than failing outright' },
+          { id: 'b', label: 'B', text: 'That `settlement-service`\'s 3-second delay has no effect on the system at all' },
+          { id: 'c', label: 'C', text: 'That the asynchronous SNS-to-SQS path was bypassed entirely during the test' },
+          { id: 'd', label: 'D', text: 'That `booking-service` retried the estimate call until it eventually succeeded' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The point of the injected delay is to prove the timeout-and-fallback design, not the absence of impact — bookings still complete, just with a deferred settlement figure, which is graceful degradation, not a bypass of the failure.',
+        incorrectExplanation:
+          'The zero failure rate is achieved because booking-service catches the timeout exception and returns a fallback estimate rather than passing an error back to the client.',
+        hint:
+          'Look at how booking-service handles the timeout exception in its HTTP client call.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-13-mcq-01',
+        question:
+          'When `settlement-service`\'s `/estimate` call exceeds its 800ms timeout, what happens to the booking, per this code?',
+        codeBlock: 'try {\n    var response = settlementClient.send(request, HttpResponse.BodyHandlers.ofString());\n    booking.setEstimatedSettlement(parseEstimate(response.body()));\n} catch (HttpTimeoutException e) {\n    booking.setEstimatedSettlement(Estimate.PENDING);\n}',
+        options: [
+          { id: 'a', label: 'A', text: 'The booking still completes, with its estimated settlement set to a PENDING placeholder rather than the request failing' },
+          { id: 'b', label: 'B', text: 'The booking request fails and returns an error to the caller' },
+          { id: 'c', label: 'C', text: 'The code retries the call indefinitely until it succeeds' },
+          { id: 'd', label: 'D', text: 'The booking is silently discarded without any record being created' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The `catch` block sets a `PENDING` placeholder rather than propagating the timeout as a failure — the booking proceeds, and the real settlement value resolves later through the asynchronous path.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-13-mcq-02',
+        question:
+          'What does the `FilterPolicy` attribute on this subscription accomplish?',
+        codeBlock: 'aws sns subscribe --topic-arn arn:aws:sns:us-east-1:111122223333:settlement-completed \\\n  --protocol sqs --notification-endpoint arn:aws:sqs:us-east-1:111122223333:notification-inbox \\\n  --attributes \'{"FilterPolicy": "{\\"eventType\\": [\\"SETTLEMENT_COMPLETED\\"]}"}\'',
+        options: [
+          { id: 'a', label: 'A', text: 'It ensures `notification-inbox` only receives messages whose `eventType` attribute is `SETTLEMENT_COMPLETED`, filtering out any other event types the topic might later carry' },
+          { id: 'b', label: 'B', text: 'It encrypts the message body before delivery to the queue' },
+          { id: 'c', label: 'C', text: 'It sets the maximum number of messages the queue can hold at once' },
+          { id: 'd', label: 'D', text: 'It delays delivery of the message by a fixed number of seconds' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'SNS filter policies let a subscriber receive only messages matching specific attribute values, so `notification-inbox` stays scoped to the one event type it actually needs even if the topic later carries others.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-13-mcq-03',
+        question:
+          'Why does `booking-service` reach `settlement-service` through Service Connect\'s internal DNS name rather than through the public-facing Application Load Balancer?',
+        options: [
+          { id: 'a', label: 'A', text: 'Routing internal traffic through the public ALB would mean it unnecessarily leaves and re-enters the VPC boundary and depends on the ALB\'s own availability for calls that never needed to touch it' },
+          { id: 'b', label: 'B', text: 'ECS Fargate tasks are technically incapable of calling an Application Load Balancer' },
+          { id: 'c', label: 'C', text: 'Service Connect is required by AWS for any service with more than one replica' },
+          { id: 'd', label: 'D', text: 'The public ALB does not support HTTP, only HTTPS' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this exactly — unnecessary VPC round-trips and an availability dependency on a component the call never needed are the reasons internal service-to-service calls use Service Connect\'s DNS names.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-13-mcq-04',
+        question:
+          'Per the lesson, why does the "no service queries another service\'s database directly" rule matter for Lighthouse\'s three teams releasing independently, even though all three services could technically share one RDS instance?',
+        options: [
+          { id: 'a', label: 'A', text: 'A schema migration in `settlement-service` could otherwise silently break `booking-service` at the database level, bypassing the smaller, more reviewable API contract the two services actually agree on' },
+          { id: 'b', label: 'B', text: 'RDS technically enforces one schema per database and cannot host multiple services\' tables at all' },
+          { id: 'c', label: 'C', text: 'Shared databases are always slower than per-service databases regardless of query pattern' },
+          { id: 'd', label: 'D', text: 'AWS billing requires each ECS service to have its own dedicated RDS instance' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s stated reasoning is about the failure surface: an API contract is small and reviewable, while direct table access means any schema change anywhere can silently break an unrelated service.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-13-mcq-05',
+        question:
+          'The Practice Loop asks the learner to trace one booking\'s correlation ID across all three services\' logs. What does successfully doing this demonstrate that checking each service\'s logs independently would not?',
+        options: [
+          { id: 'a', label: 'A', text: 'That one specific business transaction\'s full path — across both the synchronous call and the asynchronous event — can be reconstructed as a single connected story, not three unrelated log entries' },
+          { id: 'b', label: 'B', text: 'That the ECS cluster has enough CPU capacity to run all three services' },
+          { id: 'c', label: 'C', text: 'That the SNS topic has message encryption enabled' },
+          { id: 'd', label: 'D', text: 'That the correlation ID is cryptographically signed and tamper-proof' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Tracing the same correlation ID across services is what turns three independently deployed services\' logs into one reconstructable transaction narrative, which is the lesson\'s stated purpose for propagating it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-13-mcq-06',
+        question:
+          'Why does the asynchronous SNS-to-SQS boundary tolerate `notification-service` being briefly unavailable, in a way a synchronous call never could?',
+        options: [
+          { id: 'a', label: 'A', text: 'SQS holds the message until `notification-service` is able to process it, rather than requiring the receiver to be available at the exact moment the message is sent' },
+          { id: 'b', label: 'B', text: 'SNS automatically retries the entire booking transaction if `notification-service` is down' },
+          { id: 'c', label: 'C', text: 'SQS messages are deleted automatically if the receiver does not respond within one second' },
+          { id: 'd', label: 'D', text: 'Asynchronous boundaries do not actually decouple availability; the lesson is incorrect on this point' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this directly — SQS\'s durability lets it hold a message until the consumer is ready, which a synchronous call cannot do since both sides must be available simultaneously.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/14-microservices-project-phase-2': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-14-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — THE DUAL-WRITE PROBLEM',
+        question:
+          'Per the lesson, what specifically causes the dual-write problem in the original `settlement-service` design?',
+        options: [
+          { id: 'a', label: 'A', text: 'The database write and the SNS publish call are two independent operations with no shared transaction, so a crash between them leaves the settlement recorded but the event never published' },
+          { id: 'b', label: 'B', text: 'SNS itself corrupts messages under high load' },
+          { id: 'c', label: 'C', text: 'PostgreSQL does not support transactions for insert statements' },
+          { id: 'd', label: 'D', text: 'The dual-write problem only occurs when two different databases are involved' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson defines the dual-write problem precisely as two independent operations lacking a shared transaction — any interruption between them leaves an inconsistent state neither retry can fix alone.',
+        incorrectExplanation:
+          'Dual writes refer specifically to the atomicity failure between a local database transaction and an external network call like publishing a message.',
+        hint:
+          'Think about what happens if a crash occurs immediately after committing a database write but before the message broker API call finishes.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-14-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — AT-LEAST-ONCE DELIVERY AND IDEMPOTENCY',
+        question:
+          'Per the lesson, why can a consumer that successfully processes an SQS message still see that same message delivered again?',
+        options: [
+          { id: 'a', label: 'A', text: 'If the consumer crashes after processing the message but before deleting it from the queue, SQS will redeliver it, since delivery guarantees are at-least-once rather than exactly-once' },
+          { id: 'b', label: 'B', text: 'SQS intentionally duplicates every message twice for durability' },
+          { id: 'c', label: 'C', text: 'SNS always sends two copies of every published event' },
+          { id: 'd', label: 'D', text: 'This scenario cannot actually happen; the lesson is describing a hypothetical that SQS prevents' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this exactly — the gap between "processed successfully" and "deleted from the queue" is where a crash produces redelivery, which is the mechanical reason delivery is at-least-once.',
+        incorrectExplanation:
+          'Standard SQS provides at-least-once delivery semantics, making consumer-side deduplication necessary to prevent duplicate side effects.',
+        hint:
+          'Consider the difference between at-least-once delivery and exactly-once processing guarantees.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-14-mcq-01',
+        question:
+          'Why does inserting into `outbox_events` inside the same transaction as the `settlements` insert eliminate the dual-write problem?',
+        codeBlock: 'BEGIN;\nINSERT INTO settlements (id, booking_id, amount_cents, status)\n  VALUES (\'stl_8f2a\', \'bkg_1c3d\', 48900, \'COMPLETED\');\nINSERT INTO outbox_events (id, event_type, payload, published)\n  VALUES (\'evt_9b1e\', \'SETTLEMENT_COMPLETED\', \'{"settlementId":"stl_8f2a"...}\', false);\nCOMMIT;',
+        options: [
+          { id: 'a', label: 'A', text: 'Both inserts either commit together or neither does, so "settlement recorded but no event queued for publish" becomes structurally impossible' },
+          { id: 'b', label: 'B', text: 'It makes the SNS publish call itself part of the same database transaction' },
+          { id: 'c', label: 'C', text: 'It removes the need for a poller to ever publish the event' },
+          { id: 'd', label: 'D', text: 'It guarantees the event reaches `notification-service` within one second' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The outbox pattern\'s guarantee is atomicity between the business write and the outbox insert, not the publish call itself — the lesson is explicit that the worst remaining case is "queued but not yet published," which a poller retries.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-14-mcq-02',
+        question:
+          'What mechanism actually prevents a duplicate SQS delivery from sending a second notification here?',
+        codeBlock: 'boolean firstTimeSeen = processedEventsRepo.tryInsert(event.getMessageId());\nif (!firstTimeSeen) {\n    return; // already processed\n}\ndispatcherAlertService.notify(event.getBookingId(), event.getAmountCents());',
+        options: [
+          { id: 'a', label: 'A', text: 'A unique constraint on `message_id` in the `processed_events` table causes the second insert attempt to fail, and the failed insert is what signals "already processed"' },
+          { id: 'b', label: 'B', text: 'SQS itself guarantees each message is delivered exactly once, making the check redundant' },
+          { id: 'c', label: 'C', text: 'The `@Transactional` annotation alone prevents duplicate notifications with no other logic needed' },
+          { id: 'd', label: 'D', text: '`dispatcherAlertService.notify` internally deduplicates by booking ID' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The insert\'s unique constraint is the actual deduplication mechanism — a duplicate message\'s insert fails, `firstTimeSeen` is false, and the notification is skipped, exactly as the lesson describes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-14-mcq-03',
+        question:
+          'What happens to a message that fails processing on `notification-inbox` for the 6th consecutive time, given this redrive policy?',
+        codeBlock: '{"RedrivePolicy": "{\\"deadLetterTargetArn\\":\\"arn:aws:sqs:us-east-1:111122223333:notification-inbox-dlq\\",\\"maxReceiveCount\\":\\"5\\"}"}',
+        options: [
+          { id: 'a', label: 'A', text: 'SQS moves it to `notification-inbox-dlq` instead of redelivering it again, so it stops blocking the live queue' },
+          { id: 'b', label: 'B', text: 'SQS deletes the message permanently with no further trace' },
+          { id: 'c', label: 'C', text: 'SQS pauses the entire queue until a human manually intervenes' },
+          { id: 'd', label: 'D', text: 'SQS automatically retries the message every millisecond until it succeeds' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`maxReceiveCount: 5` means the 6th failed receive triggers the redrive to the DLQ — exactly the "one bad message sitting in a DLQ, rest of the queue keeps flowing" behavior the lesson describes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-14-mcq-04',
+        question:
+          'What is the trade-off the lesson names between a canary deployment and a full rollout?',
+        options: [
+          { id: 'a', label: 'A', text: 'A canary limits a bad deployment\'s blast radius but takes longer to fully roll out and requires a precisely tuned alarm threshold; a full rollout is faster but exposes every request to a regression immediately' },
+          { id: 'b', label: 'B', text: 'A canary is always strictly better with no downside, which is why it should always be used' },
+          { id: 'c', label: 'C', text: 'A full rollout is safer because it tests the new revision against more traffic at once' },
+          { id: 'd', label: 'D', text: 'Canary deployments are only possible for stateless Lambda functions, not ECS services' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this trade-off directly — smaller blast radius and slower full completion, dependent on a well-tuned alarm, versus a full rollout\'s speed at the cost of immediate full exposure.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-14-mcq-05',
+        question:
+          'What does this alarm require before it transitions to ALARM and triggers the rollback action?',
+        codeBlock: 'aws cloudwatch put-metric-alarm --alarm-name notification-service-canary-5xx \\\n  --namespace ManifestFlow/DispatchWorks --metric-name 5xxCount --statistic Sum \\\n  --period 60 --evaluation-periods 2 --threshold 5 --comparison-operator GreaterThanThreshold \\\n  --alarm-actions arn:aws:sns:us-east-1:111122223333:deployment-rollback-topic',
+        options: [
+          { id: 'a', label: 'A', text: 'More than 5 total 5xx responses in each of two consecutive 60-second periods' },
+          { id: 'b', label: 'B', text: 'A single 5xx response at any point during the canary' },
+          { id: 'c', label: 'C', text: 'A 5xx rate above 5% averaged over the entire canary duration' },
+          { id: 'd', label: 'D', text: 'Any 5xx response combined with a p99 latency breach in the same period' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`--period 60 --evaluation-periods 2 --threshold 5 --comparison-operator GreaterThanThreshold` requires more than 5 in each of two consecutive 60-second windows before the alarm fires.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-14-mcq-06',
+        question:
+          'After adopting the outbox pattern, `settlement-service` crashes right after the transaction in the SQL example commits. What is the worst-case state the poller has to recover from, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The event row exists in `outbox_events` with `published = false` — the poller simply retries publishing it; the settlement write itself is never at risk of being lost or duplicated' },
+          { id: 'b', label: 'B', text: 'Both the settlement row and the outbox row may or may not exist, requiring manual reconciliation' },
+          { id: 'c', label: 'C', text: 'The settlement row is lost and must be manually re-entered from a paper record' },
+          { id: 'd', label: 'D', text: 'The poller must roll back the settlement transaction entirely and ask the customer to resubmit' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Because both inserts commit atomically, a crash right after commit leaves a fully consistent, already-committed transaction with only the downstream publish outstanding — the lesson states this is the entire remaining failure surface.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/15-aws-security-identity-and-network': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-15-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — THE FOUR DIMENSIONS OF IAM POLICIES',
+        question:
+          'Per the lesson, checking only which dimension of an IAM policy statement causes a security review to miss most of the actual risk?',
+        options: [
+          { id: 'a', label: 'A', text: 'Checking only `Action` while ignoring `Resource` and `Condition`' },
+          { id: 'b', label: 'B', text: 'Checking only the policy\'s `Version` field' },
+          { id: 'c', label: 'C', text: 'Checking only whether the policy is attached to a role versus a user' },
+          { id: 'd', label: 'D', text: 'Checking only the policy\'s character-count length' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson opens with exactly this point — a review that checks only `Action` misses the `Resource: "*"` overprivilege pattern and any missing `Condition` narrowing.',
+        incorrectExplanation:
+          'An IAM statement is evaluated across Effect, Action, Resource, and Condition together; scoping Action while leaving Resource as * permits access to all matching resources account-wide.',
+        hint:
+          'Review what happens when Resource is set to a wildcard `*` even with specific actions.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-15-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — TRUST POLICY VS. PERMISSION POLICY',
+        question:
+          'A role has a narrowly scoped permission policy but its trust policy names an entire AWS account as the trusted principal rather than one specific role within it. What is the actual risk here, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Far more principals than intended — any identity in that trusted account — can assume the role, regardless of how narrow the role\'s own permission policy is' },
+          { id: 'b', label: 'B', text: 'There is no risk, since the permission policy\'s narrow scope caps what any assumer could do anyway' },
+          { id: 'c', label: 'C', text: 'The role becomes unassumable entirely because the trust policy is too broad' },
+          { id: 'd', label: 'D', text: 'AWS automatically rejects trust policies that name an entire account' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s core distinction is that the trust policy controls *who* can assume the role, entirely separate from what the role can do — a broad trust policy widens the set of principals regardless of how tight the permission policy is.',
+        incorrectExplanation:
+          'Trust policies specify the trusted principals allowed to assume the role, while permission policies specify the authorized actions and resources available to that role.',
+        hint:
+          'Distinguish between the identity assuming the role and the permissions granted after assumption.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-15-mcq-01',
+        question:
+          'What can `manifestflow-worker-role` do under this single statement, beyond reading the one manifests bucket it actually needs?',
+        codeBlock: '{ "Effect": "Allow", "Action": "s3:*", "Resource": "*" }',
+        options: [
+          { id: 'a', label: 'A', text: 'Read, write, and delete objects in every S3 bucket in the account, not just the manifests bucket' },
+          { id: 'b', label: 'B', text: 'Nothing beyond reading the manifests bucket; `s3:*` is scoped automatically to buckets the role has previously accessed' },
+          { id: 'c', label: 'C', text: 'Only read access is granted; `s3:*` never includes write or delete actions' },
+          { id: 'd', label: 'D', text: 'Access to S3 in other AWS accounts, but not other buckets within this account' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`s3:*` grants every S3 action (read, write, delete, and administrative actions), and `Resource: "*"` scopes it to every bucket in the account — exactly the overprivilege the customer review flags.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-15-mcq-02',
+        question:
+          'What does adding this condition to the scoped S3 statement accomplish that scoping `Resource` alone does not?',
+        codeBlock: '"Condition": { "Bool": { "aws:SecureTransport": "true" } }',
+        options: [
+          { id: 'a', label: 'A', text: 'It denies the action if the request was not made over TLS, adding a context-based restriction beyond which resource is targeted' },
+          { id: 'b', label: 'B', text: 'It restricts the action to only the account\'s root user' },
+          { id: 'c', label: 'C', text: 'It automatically encrypts objects at rest with a customer-managed KMS key' },
+          { id: 'd', label: 'D', text: 'It has no effect since S3 always requires TLS regardless of policy' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`Condition` narrows a grant by context — here, the transport security of the request — which `Resource` scoping alone does not address, exactly as the lesson\'s four-dimension framing describes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-15-mcq-03',
+        question:
+          'Per the lesson, what does attaching a permission boundary to `deploy-pipeline-role` actually guarantee?',
+        options: [
+          { id: 'a', label: 'A', text: 'No role that `deploy-pipeline-role` creates can ever be granted permissions beyond the boundary\'s ceiling, even if the pipeline\'s own policy-generation logic has a bug' },
+          { id: 'b', label: 'B', text: 'It prevents `deploy-pipeline-role` itself from being deleted by mistake' },
+          { id: 'c', label: 'C', text: 'It automatically rotates the credentials of every role the pipeline creates' },
+          { id: 'd', label: 'D', text: 'It replaces the need for a trust policy on any role the pipeline creates' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names this exact use case — a hard ceiling on maximum grantable permissions, independent of and as a backstop against bugs in whatever generates the actual policies.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-15-mcq-04',
+        question:
+          'What is the mechanical difference between the S3 Gateway endpoint and the Secrets Manager Interface endpoint in the lesson\'s CLI example?',
+        options: [
+          { id: 'a', label: 'A', text: 'The Gateway endpoint adds a route-table entry with no ENI or hourly cost; the Interface endpoint places an ENI with a private IP inside the subnet, using the PrivateLink mechanism' },
+          { id: 'b', label: 'B', text: 'Both are functionally identical; the naming difference is purely cosmetic' },
+          { id: 'c', label: 'C', text: 'The Interface endpoint is only usable for S3, and the Gateway endpoint only for Secrets Manager' },
+          { id: 'd', label: 'D', text: 'The Gateway endpoint requires a security group while the Interface endpoint does not' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this mechanical distinction directly — Gateway endpoints (S3, DynamoDB only) are route-table entries; Interface endpoints use an ENI via the same PrivateLink primitive covered in an earlier lesson.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-15-mcq-05',
+        question:
+          'Practice Loop step 4 has the FDE remove the worker subnet\'s NAT Gateway route entirely after adding the VPC endpoints, then confirm the worker still functions. What does this specific test demonstrate?',
+        options: [
+          { id: 'a', label: 'A', text: 'That the worker\'s only remaining network dependencies (S3, Secrets Manager) are reachable through the endpoints alone, so the subnet\'s internet-reachable surface for outbound traffic is now genuinely zero, not merely "restricted by a security group"' },
+          { id: 'b', label: 'B', text: 'That the NAT Gateway was never actually necessary for any AWS workload' },
+          { id: 'c', label: 'C', text: 'That VPC endpoints are faster than NAT Gateway-routed calls' },
+          { id: 'd', label: 'D', text: 'That removing a NAT Gateway route has no effect on which services a subnet can reach' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s point is the network-level backstop: with the NAT Gateway route gone and only the two endpoints present, there is no path to the general internet at all — a stronger guarantee than a security-group-only restriction.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-15-mcq-06',
+        question:
+          'Practice Loop step 3 asks the learner to run `aws iam simulate-principal-policy` for one action that should be allowed (`s3:GetObject`) and one that should now be denied (`s3:DeleteBucket`). Why check both rather than only the allowed action?',
+        options: [
+          { id: 'a', label: 'A', text: 'Confirming only the allowed action would not prove the wildcard permissions were actually removed — the denied-action check is the evidence the scoping took effect, not just that the intended access still works' },
+          { id: 'b', label: 'B', text: '`simulate-principal-policy` requires exactly two actions to be checked in a single call' },
+          { id: 'c', label: 'C', text: '`s3:DeleteBucket` is technically part of the same API call as `s3:GetObject`' },
+          { id: 'd', label: 'D', text: 'There is no reason; checking only the allowed action would be equally sufficient' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Verifying the scoped policy still allows what it should is only half the evidence — confirming a previously-allowed, now out-of-scope action is denied is what proves the wildcard was actually removed rather than just additively extended.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-15-mcq-07',
+        question:
+          'After scoping `manifestflow-worker-role` tightly, why does the lesson still recommend documenting a separate break-glass emergency-access role?',
+        options: [
+          { id: 'a', label: 'A', text: 'A scoped policy can turn out to be missing a permission an on-call engineer genuinely needs during a real incident, and a tightly-scoped, MFA-required, CloudTrail-logged break-glass path handles that case without permanently widening the worker role\'s own policy' },
+          { id: 'b', label: 'B', text: 'Break-glass roles are required by AWS for every account regardless of policy scope' },
+          { id: 'c', label: 'C', text: 'The scoped policy is expected to be wrong on first attempt, so break-glass is the primary access path' },
+          { id: 'd', label: 'D', text: 'MFA cannot be applied to the worker role itself, only to break-glass roles' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson frames break-glass access as the deliberate escape hatch for a scoped policy\'s inevitable edge case, kept separately auditable rather than solved by loosening the worker role\'s everyday permissions.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/16-aws-security-data-and-detection': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-16-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — BUCKET POLICY AS A SECURITY CONTROL',
+        question:
+          'Per the lesson, why does denying unencrypted uploads at the S3 bucket-policy layer matter more than relying on application code always setting the encryption header?',
+        options: [
+          { id: 'a', label: 'A', text: 'A bucket policy holds regardless of which client attempts the upload, while relying on application code is a promise that breaks the moment someone uploads by hand or a new integration forgets the header' },
+          { id: 'b', label: 'B', text: 'Application-level encryption headers are not actually supported by S3 at all' },
+          { id: 'c', label: 'C', text: 'Bucket policies are evaluated faster than application code, which is the only reason to prefer them' },
+          { id: 'd', label: 'D', text: 'There is no meaningful difference; both approaches are equally reliable' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s point is resource-level enforcement versus a client-side promise — the bucket policy holds no matter which tool or script attempts the upload.',
+        incorrectExplanation:
+          'Bucket policies enforce constraints server-side across every principal and caller, preventing any client-side misconfiguration or unapproved caller from bypassing security baselines.',
+        hint:
+          'Consider whether application code controls requests sent by other services or compromised CLI credentials.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-16-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — RECONNAISSANCE VS. EXFILTRATION FINDINGS',
+        question:
+          'What is the difference in what `Recon:IAMUser/TorIPCaller` and `Exfiltration:S3/ObjectRead.Unusual` each assert, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The Tor-caller finding means a call originated from a Tor exit node — worth investigating but not necessarily active compromise; the exfiltration finding means GuardDuty\'s model detected an S3 read pattern that deviates sharply from the principal\'s historical baseline, a materially more urgent signal' },
+          { id: 'b', label: 'B', text: 'Both findings mean exactly the same thing; the naming is cosmetic' },
+          { id: 'c', label: 'C', text: 'The Tor-caller finding is always more severe than any S3-related finding' },
+          { id: 'd', label: 'D', text: '`Recon` findings are false positives by definition and can be safely ignored' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this exact distinction between the two named finding types — origin-based reconnaissance versus a baseline-deviation exfiltration signal.',
+        incorrectExplanation:
+          'Reconnaissance reflects an adversary exploring or mapping the account\'s environment, whereas exfiltration reflects actual unauthorized extraction of sensitive data.',
+        hint:
+          'Think about the stages of an attack: discovering what exists versus stealing data.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-16-mcq-01',
+        question:
+          'What upload does this statement actually block?',
+        codeBlock: '{\n  "Sid": "DenyUnencryptedObjectUploads",\n  "Effect": "Deny", "Principal": "*", "Action": "s3:PutObject",\n  "Resource": "arn:aws:s3:::manifestflow-manifests/*",\n  "Condition": { "StringNotEquals": { "s3:x-amz-server-side-encryption": "aws:kms" } }\n}',
+        options: [
+          { id: 'a', label: 'A', text: 'Any `PutObject` into this bucket whose server-side-encryption header is not exactly `aws:kms` — including uploads with no encryption header at all' },
+          { id: 'b', label: 'B', text: 'Any upload larger than the default S3 object size limit' },
+          { id: 'c', label: 'C', text: 'Any upload made outside business hours' },
+          { id: 'd', label: 'D', text: 'Any upload that uses AWS-managed (not customer-managed) KMS encryption specifically' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`StringNotEquals` on the encryption header denies any `PutObject` where that header is missing or set to anything other than `aws:kms` — exactly the "no encryption header at all" case this control is meant to catch.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-16-mcq-02',
+        question:
+          'Per the lesson, why does using a customer-managed KMS key (rather than the AWS-managed default) give a data-level kill switch that tightening the application role\'s IAM policy alone cannot replicate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Disabling or scheduling deletion of the key itself revokes access to every object ever encrypted under it, regardless of what IAM permissions any role still holds' },
+          { id: 'b', label: 'B', text: 'Customer-managed keys are automatically rotated every 24 hours, unlike AWS-managed keys' },
+          { id: 'c', label: 'C', text: 'AWS-managed keys cannot be used with S3 server-side encryption at all' },
+          { id: 'd', label: 'D', text: 'A customer-managed key removes the need for a bucket policy entirely' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this exactly — disabling the key revokes access at the data layer itself, independent of any IAM policy tightening on the roles that would otherwise still hold their existing permissions.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-16-mcq-03',
+        question:
+          'Which principal does this finding implicate, and what specific behavior triggered it?',
+        codeBlock: '{\n  "type": "Exfiltration:S3/ObjectRead.Unusual",\n  "severity": 8.0,\n  "resource": {\n    "s3BucketDetails": [{"name": "manifestflow-manifests"}],\n    "accessKeyDetails": {"principalId": "AROAEXAMPLE:manifestflow-worker-role", "userType": "AssumedRole"}\n  },\n  "service": {"action": {"awsApiCallAction": {"api": "GetObject", "count": 214}}}\n}',
+        options: [
+          { id: 'a', label: 'A', text: 'The `manifestflow-worker-role` assumed role, flagged for an unusual volume (214) of `GetObject` calls against the `manifestflow-manifests` bucket' },
+          { id: 'b', label: 'B', text: 'An anonymous, unauthenticated caller with no identifiable principal' },
+          { id: 'c', label: 'C', text: 'The AWS account root user, flagged for a billing anomaly' },
+          { id: 'd', label: 'D', text: '`deploy-pipeline-role`, flagged for a failed deployment' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`accessKeyDetails.principalId` names `manifestflow-worker-role` as an assumed role, and `service.action.awsApiCallAction` shows 214 `GetObject` calls as the specific triggering behavior.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-16-mcq-04',
+        question:
+          'Per the lesson, why are CloudTrail S3 data events off by default, unlike CloudTrail\'s management events?',
+        options: [
+          { id: 'a', label: 'A', text: 'Data events capture object-level operations (every GetObject/PutObject), which produce far higher volume and cost than management events, so they must be explicitly enabled per resource' },
+          { id: 'b', label: 'B', text: 'AWS considers data events a security risk and disables them by policy' },
+          { id: 'c', label: 'C', text: 'Data events are a paid add-on that requires a separate AWS support contract' },
+          { id: 'd', label: 'D', text: 'Data events only work for DynamoDB, not S3, so they are irrelevant here by default' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this directly — the volume and cost of logging every object-level operation is why data events require explicit, per-resource opt-in unlike always-on management events.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-16-mcq-05',
+        question:
+          'The GuardDuty finding already names the bucket, the principal, and a call count. What does correlating it with the CloudTrail S3 data events add that the finding alone does not provide?',
+        options: [
+          { id: 'a', label: 'A', text: 'The exact per-call detail — specific timestamps, source IP for each call, and whether each individual call succeeded — turning a summary alert into a full, attributable timeline' },
+          { id: 'b', label: 'B', text: 'CloudTrail data events duplicate exactly what GuardDuty already reports, adding no new information' },
+          { id: 'c', label: 'C', text: 'CloudTrail can retroactively change the GuardDuty finding\'s severity score' },
+          { id: 'd', label: 'D', text: 'CloudTrail is required before GuardDuty can generate any finding at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s stated payoff is exactly this — GuardDuty gives the alert and summary, CloudTrail data events give the granular per-call timeline needed for full attribution.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-16-mcq-06',
+        question:
+          'What is the scope of the S3 data events this command enables?',
+        codeBlock: 'aws cloudtrail put-event-selectors --trail-name manifestflow-org-trail \\\n  --event-selectors \'[{\n    "ReadWriteType": "All", "IncludeManagementEvents": true,\n    "DataResources": [{"Type": "AWS::S3::Object", "Values": ["arn:aws:s3:::manifestflow-manifests/"]}]\n  }]\'',
+        options: [
+          { id: 'a', label: 'A', text: 'Only object-level events for the `manifestflow-manifests` bucket specifically, not every S3 bucket in the account' },
+          { id: 'b', label: 'B', text: 'Every S3 bucket in the account, since data events cannot be scoped to a single bucket' },
+          { id: 'c', label: 'C', text: 'Only write events (`PutObject`); read events are excluded by `ReadWriteType: All`' },
+          { id: 'd', label: 'D', text: 'Only events triggered by `manifestflow-worker-role`, excluding all other principals' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`DataResources` names the specific bucket ARN, scoping the (costly) data events to just this one sensitive bucket rather than every bucket in the account — matching the lesson\'s stated volume/cost trade-off reasoning.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-16-mcq-07',
+        question:
+          'The Suggested Extension proposes an EventBridge-triggered Lambda that revokes a principal\'s active sessions automatically on a high-severity GuardDuty finding, but still requires a human to confirm before permanently disabling that principal. Why keep that second step manual?',
+        options: [
+          { id: 'a', label: 'A', text: 'Revoking active sessions is a fast, reversible containment step with low cost if the finding turns out to be a false positive, while permanently disabling a principal is a higher-cost, harder-to-reverse action that benefits from human judgment before being taken' },
+          { id: 'b', label: 'B', text: 'AWS Lambda is technically incapable of calling `iam:DeleteRole` or similar disabling actions' },
+          { id: 'c', label: 'C', text: 'EventBridge cannot trigger two Lambda actions from a single finding' },
+          { id: 'd', label: 'D', text: 'There is no real reason; full automation would be strictly better' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The reasoning is a cost/reversibility trade-off — automating the cheap, reversible first response while keeping the higher-cost, harder-to-reverse action gated on human confirmation.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-aws-multi-region-cloud-deep-dive/17-aws-security-hands-on': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-17-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — IMPLEMENTED VS. TESTED CONTROLS',
+        question:
+          'Per the lesson, what is the difference between a control being "implemented" and a control being "tested"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Implemented means the control exists (a policy is attached); tested means the control was actually exercised and observed to hold under a real attempt, such as a denied action actually being denied' },
+          { id: 'b', label: 'B', text: 'The two terms are interchangeable in the lesson\'s framing' },
+          { id: 'c', label: 'C', text: '"Tested" only applies to network controls, never to IAM policies' },
+          { id: 'd', label: 'D', text: 'A control can only be "tested" after it has been marked as residual risk' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s opening distinction is exactly this — existence versus verified behavior under an actual attempt, which is the gap that let the stale `s3:*` statement go unnoticed.',
+        incorrectExplanation:
+          'Implementation refers to configuring the rule or resource, whereas testing requires actively asserting that allowed paths work and disallowed paths are blocked under realistic conditions.',
+        hint:
+          'Think about whether configuring a policy guarantees that no edge case or conflicting statement overrides it without verification.'
+      },
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-17-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — RE-TESTING INCIDENT CONTAINMENT',
+        question:
+          'Per the lesson, why is attaching the deny-all emergency policy not, by itself, sufficient evidence that containment worked?',
+        options: [
+          { id: 'a', label: 'A', text: 'The only way to know containment actually stopped access is to attempt the same action again immediately afterward and confirm it now fails — applying a policy is not the same claim as verifying its effect' },
+          { id: 'b', label: 'B', text: 'IAM deny policies technically take up to 24 hours to propagate, so no verification is possible sooner' },
+          { id: 'c', label: 'C', text: 'Deny-all policies are known to be unreliable and should never be used for containment' },
+          { id: 'd', label: 'D', text: 'There is no need to re-test; attaching the policy is sufficient proof on its own' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s containment step explicitly requires re-attempting the action to confirm the deny actually took effect — matching its broader implemented-vs-tested distinction applied to this specific step.',
+        incorrectExplanation:
+          'Re-testing containment confirms that the policy took effect and that no caching, syntax errors, or alternative access paths allow continued unauthorized operations.',
+        hint:
+          'Consider how an incident responder proves that a compromised key is actually blocked rather than assuming the API command succeeded.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-17-mcq-01',
+        question:
+          'Why does the lesson consider an IAM Access Analyzer finding stronger evidence than a manual policy read-through?',
+        options: [
+          { id: 'a', label: 'A', text: 'Access Analyzer checks a policy\'s actual logical implications for external or cross-account access, rather than relying on a reviewer\'s read of the policy\'s apparent intent' },
+          { id: 'b', label: 'B', text: 'Access Analyzer replaces the need for IAM policies entirely' },
+          { id: 'c', label: 'C', text: 'A manual read-through is always faster, so Access Analyzer is only used when time allows' },
+          { id: 'd', label: 'D', text: 'Access Analyzer only checks network configuration, not IAM policies' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this precisely — Access Analyzer evaluates logical implications of a policy, which is exactly what a manual read missed with the stale `s3:*` statement.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-17-mcq-02',
+        question:
+          'What does this Access Analyzer finding reveal about `notification-service-role`\'s policy?',
+        codeBlock: '[{"Resource": "arn:aws:s3:::dispatchworks-audit-exports", "Action": ["s3:*"],\n  "IsPublic": false, "Condition": {}}]',
+        options: [
+          { id: 'a', label: 'A', text: 'It holds an unscoped `s3:*` statement against the `dispatchworks-audit-exports` bucket, with no `Condition` narrowing it — an over-privileged, leftover grant a manual read missed' },
+          { id: 'b', label: 'B', text: 'The bucket is publicly accessible to the entire internet' },
+          { id: 'c', label: 'C', text: 'The finding indicates the role has no access to S3 at all' },
+          { id: 'd', label: 'D', text: 'The finding is a false positive that requires no action' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`IsPublic: false` rules out public exposure, but the unscoped `s3:*` action with an empty `Condition` is exactly the stale, over-privileged leftover statement the scenario describes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-17-mcq-03',
+        question:
+          'During the verification step, the CloudTrail `lookup-events` query for the compromised principal, run after containment, shows one successful `GetObject` call in the post-containment window. What does the lesson say this means?',
+        options: [
+          { id: 'a', label: 'A', text: 'Containment did not actually work and the review is not finished — a single successful call in that window disproves the claim that access was closed' },
+          { id: 'b', label: 'B', text: 'One successful call is expected and acceptable as long as most subsequent calls are denied' },
+          { id: 'c', label: 'C', text: 'The successful call must be a CloudTrail logging error, not a real access event' },
+          { id: 'd', label: 'D', text: 'This result has no bearing on whether containment succeeded' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this as an unambiguous verification standard — any successful call after containment invalidates the claim that access was closed, not merely a partial success to be tolerated.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-17-mcq-04',
+        question:
+          'Why does the lesson require every residual-risk row in the final review to name an explicit owner and target date, rather than just listing the gap?',
+        options: [
+          { id: 'a', label: 'A', text: 'Without an owner and date, "accepted residual risk" is indistinguishable from a gap that was simply overlooked and forgotten, undermining the credibility of the review\'s other claims' },
+          { id: 'b', label: 'B', text: 'AWS requires this information for compliance purposes on every account' },
+          { id: 'c', label: 'C', text: 'The owner and date fields are only cosmetic formatting with no substantive purpose' },
+          { id: 'd', label: 'D', text: 'A residual risk without an owner automatically becomes a tested control' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s scenario explicitly distinguishes an accepted, owned, dated risk (the dev-environment IAM gap) from something merely overlooked — the owner and date are what make that distinction credible.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-17-mcq-05',
+        question:
+          'Per the lesson, why is "we fixed everything" insufficient when a customer\'s security team asks about a review\'s findings?',
+        options: [
+          { id: 'a', label: 'A', text: 'A customer\'s security team will ask specifically which finding was fixed first and why, and which was accepted as residual risk and why — an unqualified claim provides no sequencing rationale or evidence to answer either question' },
+          { id: 'b', label: 'B', text: 'It is factually always false; no security review can ever fix every finding' },
+          { id: 'c', label: 'C', text: 'Customers legally require a minimum number of residual risks to be reported' },
+          { id: 'd', label: 'D', text: 'The phrase is too short to be considered a proper review deliverable' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names the specific questions a customer\'s security team will ask — sequencing and evidence — which an unqualified "fixed everything" claim does not answer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-aws-multi-region-cloud-deep-dive-17-mcq-06',
+        question:
+          'Practice Loop step 4 has the FDE time how long detection took from the triggering action to the GuardDuty finding appearing. Why is this measurement part of the review\'s evidence, not just an interesting side note?',
+        options: [
+          { id: 'a', label: 'A', text: 'It proves the detection layer works within a reasonable, real window — if detection took hours instead of minutes, the review would need to flag that latency as its own residual risk rather than assume detection "works" in the abstract' },
+          { id: 'b', label: 'B', text: 'AWS bills GuardDuty based on how long a finding takes to appear' },
+          { id: 'c', label: 'C', text: 'Detection timing has no bearing on the review; only whether a finding eventually appears matters' },
+          { id: 'd', label: 'D', text: 'The timing measurement is only useful for the containment step, not detection' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s framing treats detection as one of three steps that must each be verified, not assumed — a slow detection window is itself a finding the review should surface, not a detail to skip past.'
+      }
+    ]
+  },
 };
 
 export function getLessonInteractions(courseSlug, moduleSlug, lessonSlug) {

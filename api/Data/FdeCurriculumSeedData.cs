@@ -6386,6 +6386,1552 @@ the required `manifest_id` field) is rejected by API Gateway itself with a 400, 
 function is ever invoked, and measure whether this reduces the function's invocation count during a
 deliberate burst of malformed test requests compared to validating inside the handler.
 ",
+        "07-end-to-end-cloud-project-day" => @"# End-to-End Cloud Project Day
+
+## Concepts Covered
+
+Every prior lesson in this module produced one working piece of ManifestFlow in isolation — a VPC
+with a verified reachability boundary, CloudWatch alarms on a queue backlog, a CloudTrail-backed
+incident timeline, a containerized service on a single EC2 host, and a serverless intake callback.
+A project day is where those pieces have to compose into one deployable, demoable, recoverable
+slice, and composing them exposes a category of defect that no individual lesson's scenario ever
+surfaces: sequencing. An RDS instance that takes four minutes to become available will make an
+application's first health check fail if the deployment script does not wait for it; a security
+group written against a load balancer that has not been created yet will reference an ID that does
+not exist. The discipline that prevents this is treating deployment as an ordered pipeline with an
+explicit verification gate after each stage, not a single `terraform apply` or shell script that
+either succeeds completely or fails somewhere in the middle with no record of how far it got.
+Health checks belong at each gate, not only at the end: verifying the VPC's route tables before
+provisioning compute, verifying RDS is `available` and reachable from the app subnet before
+deploying the application, and verifying the application's own `/healthz` returns 200 before
+wiring it behind a load balancer or before declaring the project day's demo path ""done.""
+
+The second discipline a project day forces is writing the runbook for someone who is not you. An
+FDE who built every layer personally over five prior lessons has all the sequencing and rollback
+knowledge in their head; a customer's on-call operator, or a teammate covering for the FDE next
+week, has none of it. A runbook that says ""redeploy the service"" is not a runbook — it needs the
+literal command, the expected output, the specific log line or metric that confirms success, and
+the specific rollback command if that confirmation does not appear within a stated time window. The
+same standard applies to the failure drill: ""recovery works"" is a claim, and a claim is not
+evidence. Breaking one real dependency (stopping the RDS instance, or removing the security group
+rule the application needs) and then following the runbook's documented recovery steps, with
+timestamps captured at each step, converts the claim into evidence a customer panel — or an
+incident retrospective — can actually trust. The deliverable at the end of a project day is not
+just a running system; it is a one-page handoff document naming what was built, what was
+deliberately deferred (and why), and what the measured recovery time actually was, not what it was
+assumed to be.
+
+The same staging discipline applies in reverse during rollback, and this is the part teams most
+often skip: a rollback is itself a deployment, and it deserves the same gated verification a
+forward deployment gets, not a panicked, unverified ""just revert it"" reaction. Reverting the RDS
+instance to a prior snapshot, redeploying an older application revision, or reverting an
+infrastructure-as-code change each has its own dependency order, and rolling one layer back
+without checking whether a layer above it still expects the new shape produces a second incident
+stacked on top of the first — an application revision rolled back against a database migration
+that has not been reverted is a common concrete instance of this. The project-day discipline also
+forces a decision about scope that a single-lesson exercise never has to make: given a fixed time
+box, which dependency's recovery gets rehearsed live (with a timestamped drill) versus which one
+is merely described in the runbook without being exercised. The FDE's choice to break the RDS
+instance specifically, rather than the Lambda callback or the VPC routing, is itself a judgment
+call about which failure is both plausible enough in production and cheap enough to rehearse
+safely in a sandbox account, and that judgment — not just the mechanics of the drill itself — is
+something the handoff document should make explicit so a future operator understands why RDS was
+tested live while another dependency was only documented.
+
+```bash
+# Staged deployment script: each stage gates on a verification check before the next runs
+set -euo pipefail
+
+echo ""[1/4] Verifying VPC route tables...""
+aws ec2 describe-route-tables --route-table-ids ""$PRIVATE_DATA_RTB"" \
+  --query 'RouteTables[0].Routes[?DestinationCidrBlock==`0.0.0.0/0`]' --output text | grep -q '' \
+  && { echo ""FAIL: private-data subnet has an internet route""; exit 1; } || echo ""  OK: no internet route""
+
+echo ""[2/4] Waiting for RDS to become available...""
+aws rds wait db-instance-available --db-instance-identifier manifestflow-db
+aws rds describe-db-instances --db-instance-identifier manifestflow-db \
+  --query 'DBInstances[0].Endpoint.Address' --output text
+
+echo ""[3/4] Deploying application and polling health check...""
+aws ecs update-service --cluster manifestflow --service manifestflow-api --force-new-deployment
+for i in $(seq 1 30); do
+  status=$(curl -sf -o /dev/null -w '%{http_code}' ""https://internal.manifestflow.local/healthz"" || echo ""000"")
+  [ ""$status"" = ""200"" ] && { echo ""  OK: healthz 200 after ${i}0s""; break; }
+  sleep 10
+done
+[ ""$status"" = ""200"" ] || { echo ""FAIL: healthz never returned 200""; exit 1; }
+
+echo ""[4/4] Confirming CloudWatch alarm state is OK before declaring done...""
+aws cloudwatch describe-alarms --alarm-names manifestflow-queue-backlog \
+  --query 'MetricAlarms[0].StateValue' --output text
+```
+
+## Practical Backend Scenario
+
+The customer panel wants a working end-to-end path by close of business: a broker uploads a
+manifest through the Lambda/API Gateway callback from Lesson 6, the extraction worker (running on
+the EC2 host from Lesson 5) picks it up, and a status query confirms the manifest reached the
+dispatch queue — all inside a VPC whose reachability the FDE already verified in Lessons 1-2, with
+CloudWatch alarms from Lesson 3 watching the queue depth. The FDE time-boxes discovery to thirty
+minutes (confirm which pieces from prior lessons are still live in the sandbox account, which
+config values have drifted), then deploys the smallest path that makes the full workflow real
+rather than gold-plating any single stage. Mid-afternoon, the FDE deliberately stops the RDS
+instance mid-demo-rehearsal to prove the recovery story: the extraction worker's health check
+starts failing within thirty seconds, the CloudWatch alarm transitions to `ALARM` within the
+evaluation period, and the documented runbook step — restart the RDS instance, wait for
+`db-instance-available`, redeploy the worker — brings the workflow back in just under six minutes,
+a number the FDE records rather than estimates. The one-page handoff lists three deferred risks
+explicitly: no automated failover for the single RDS instance, no synthetic canary running outside
+demo hours, and the Lambda callback's DynamoDB idempotency table has no documented backup policy
+yet — naming what was not done is as much a part of the deliverable as what was.
+
+## Practice Loop
+
+1. Inventory every resource from Lessons 1-6 still live in the sandbox account and note any
+   configuration that has drifted from what those lessons documented (an expired security group
+   rule, a stopped instance, a Lambda concurrency limit that was never reset).
+2. Write the staged deployment script above (or your own equivalent) with an explicit verification
+   gate after each stage, and run it once end-to-end before touching anything else.
+3. Break exactly one dependency on purpose — stop the RDS instance, or remove the worker's security
+   group rule to the database — and time how long the CloudWatch alarm takes to reach `ALARM`.
+4. Execute your own documented recovery runbook against the induced failure, capturing a timestamp
+   at each step, and record the actual end-to-end recovery time rather than an estimate.
+5. Write the one-page handoff: what was built, the measured recovery time from step 4, and at
+   least two deliberately deferred risks with a one-sentence reason each for deferring them.
+
+## Evidence of Understanding
+
+You can sequence a multi-service deployment with an independent verification gate after every
+stage, rather than a single script that either fully succeeds or fails somewhere unrecoverable in
+the middle. You can write a runbook precise enough — literal commands, expected output, a stated
+time window — that someone who did not build the system could execute it under pressure. You have
+timestamped evidence, not a verbal claim, that a specific induced failure recovers within a
+measured time, and a handoff document that names deferred risk as explicitly as delivered scope.
+
+## Suggested Extension
+
+Add a synthetic canary (a scheduled Lambda that uploads a small test manifest and polls for its
+status every five minutes) so the alarm from step 3 above would have fired automatically outside a
+rehearsed demo window, and explain why a canary catches a class of failure a passive health check
+on the application itself cannot.
+",
+        "08-aws-ecs-and-ecr-introduction" => @"# AWS ECS and ECR Introduction
+
+## Concepts Covered
+
+ManifestFlow's extraction worker has been running on the single EC2 host from Lesson 5, which
+means every deployment is a manual sequence of stopping the old container, pulling the new image,
+and starting it again — no rolling update, no automatic recovery if the process dies, and no
+record of which image tag was actually running at 3 a.m. when something went wrong. ECS (Elastic
+Container Service) replaces that manual sequence with a managed orchestration layer while ECR
+(Elastic Container Registry) replaces ad hoc image storage with a registry that gives every pushed
+image an immutable content digest. The digest — `sha256:...` — is the actual identity of an image;
+a tag like `latest` or `v14` is just a mutable pointer that can be repointed to a different digest
+at any time, which is why a deployment record that only logs ""deployed `v14`"" is not trustworthy
+evidence of what actually ran — the same tag can mean two different images at two different points
+in time. ECR also runs an image scan on push (basic OS-package CVE scanning is free; enhanced
+scanning via Inspector covers more), and a customer security review will specifically ask whether a
+deployed image was scanned before it reached production, not just whether it eventually was.
+
+An ECS **task definition** is the declarative blueprint — container image (by digest, ideally),
+CPU/memory reservation, port mappings, environment variables, log configuration, and two distinct
+IAM roles that are easy to confuse: the **execution role** governs what the ECS platform itself is
+permitted to do on the task's behalf before your code ever runs — pulling the image from ECR,
+writing logs to CloudWatch Logs, retrieving a secret from Secrets Manager to inject as an
+environment variable — while the **task role** governs what your application's own code is
+permitted to do once it's running, the same way a Lambda's execution role does. A task definition
+is versioned every time it changes; deploying a new image produces a new **task definition
+revision**, and an ECS **service** maintains a desired count of running tasks from a specific
+revision, replacing failed tasks automatically and rolling forward or back across revisions rather
+than manually stopping and starting containers. A **cluster** is the logical grouping tasks run in,
+and a **capacity provider** determines what actually runs them — Fargate (no EC2 instances to
+manage at all) or an EC2 capacity provider (a managed auto-scaling group of instances you still
+own the AMI and patching for) — the same Fargate-versus-EC2 trade-off the next lesson covers in
+operational depth.
+
+Deploying a new revision is not the only thing that changes a service's steady state — the
+**desired count** itself is a separately adjustable target, and a service reconciles toward
+whatever desired count and task definition revision are currently configured, continuously, not
+just at the moment `update-service` is called. This is why an ECS service recovers automatically
+from a task that crashes on its own (ECS notices the running count has fallen below the desired
+count and launches a replacement without any human action), but does not recover automatically from
+a bad task definition revision (a replacement launched from the same broken revision fails the same
+way, over and over, which is precisely the failure signature that distinguishes ""the platform is
+healing a transient crash"" from ""the platform is repeatedly retrying a fundamentally broken
+deployment"" — both look like task churn in `describe-services`, and only the stop reason
+distinguishes them). An FDE reading a service's task count history for the first time on an
+unfamiliar customer cluster should always check which of these two situations is actually
+occurring before assuming either ""the service is fine, ECS is healing it"" or ""the deployment is
+broken"" from the churn alone.
+
+```bash
+# Authenticate to ECR and push the extraction-worker image
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin 111122223333.dkr.ecr.us-east-1.amazonaws.com
+
+docker build -t manifestflow-worker:build-482 .
+docker tag manifestflow-worker:build-482 \
+  111122223333.dkr.ecr.us-east-1.amazonaws.com/manifestflow-worker:build-482
+docker push 111122223333.dkr.ecr.us-east-1.amazonaws.com/manifestflow-worker:build-482
+# -> digest: sha256:c3f8e1a29b7d4c1e8f6a0b2d9c4e7f1a3b5c8d0e2f4a6b8c0d2e4f6a8b0c2d4e
+
+# Register a task definition referencing the image BY DIGEST, not the mutable tag
+cat > task-def.json <<'EOF'
+{
+  ""family"": ""manifestflow-worker"",
+  ""networkMode"": ""awsvpc"",
+  ""requiresCompatibilities"": [""FARGATE""],
+  ""cpu"": ""512"",
+  ""memory"": ""1024"",
+  ""executionRoleArn"": ""arn:aws:iam::111122223333:role/manifestflow-worker-execution-role"",
+  ""taskRoleArn"": ""arn:aws:iam::111122223333:role/manifestflow-worker-task-role"",
+  ""containerDefinitions"": [
+    {
+      ""name"": ""worker"",
+      ""image"": ""111122223333.dkr.ecr.us-east-1.amazonaws.com/manifestflow-worker@sha256:c3f8e1a29b7d4c1e8f6a0b2d9c4e7f1a3b5c8d0e2f4a6b8c0d2e4f6a8b0c2d4e"",
+      ""portMappings"": [{""containerPort"": 8080, ""protocol"": ""tcp""}],
+      ""secrets"": [
+        {""name"": ""DB_PASSWORD"", ""valueFrom"": ""arn:aws:secretsmanager:us-east-1:111122223333:secret:manifestflow-db-password""}
+      ],
+      ""logConfiguration"": {
+        ""logDriver"": ""awslogs"",
+        ""options"": {
+          ""awslogs-group"": ""/ecs/manifestflow-worker"",
+          ""awslogs-region"": ""us-east-1"",
+          ""awslogs-stream-prefix"": ""worker""
+        }
+      }
+    }
+  ]
+}
+EOF
+aws ecs register-task-definition --cli-input-json file://task-def.json
+# -> ""taskDefinitionArn"": "".../manifestflow-worker:14""   <-- revision 14
+
+aws ecs create-service --cluster manifestflow --service-name manifestflow-worker \
+  --task-definition manifestflow-worker:14 --desired-count 2 \
+  --launch-type FARGATE --network-configuration \
+  '{""awsvpcConfiguration"":{""subnets"":[""subnet-0a1b2c3""],""securityGroups"":[""sg-0worker""],""assignPublicIp"":""DISABLED""}}'
+```
+
+## Practical Backend Scenario
+
+The customer is ready to leave the single EC2 host — a hurricane-season incident review flagged
+that the host's failure would take ManifestFlow's extraction pipeline down entirely with no
+automatic recovery, and the team wants a simpler operational model than standing up a self-managed
+cluster themselves. The FDE pushes the extraction worker image to a new ECR repository, enabling
+scan-on-push, and registers a task definition that references the image by digest rather than a
+mutable tag, with two separate roles: an execution role scoped to pull from this one ECR repository
+and write to this one CloudWatch log group, and a task role scoped to the worker's actual runtime
+needs — reading one S3 bucket of uploaded manifests and writing to one SQS queue, nothing broader.
+The first deployed revision (`:14`) works; a follow-up change to add a new environment variable
+produces revision `:15`, which the FDE deploys with `update-service --task-definition
+manifestflow-worker:15` — and it fails to reach steady state, with `describe-services` showing
+tasks starting and immediately stopping. `aws ecs describe-tasks` on a stopped task reveals the
+actual stop reason: the new environment variable references a Secrets Manager ARN the execution
+role was never granted `secretsmanager:GetSecretValue` on, so the task fails before the
+application container even starts. The FDE rolls the service back to revision `:14` immediately,
+restoring service, then fixes the execution role's policy and redeploys `:15` cleanly — this time
+verifying the stop reason is absent before calling it done.
+
+## Practice Loop
+
+1. Push an image to a new ECR repository with scan-on-push enabled, and capture the resulting
+   digest rather than only the tag you pushed it under.
+2. Register a task definition referencing the image by digest, with two separate roles — an
+   execution role scoped to ECR pull and CloudWatch Logs write, and a task role scoped to only the
+   application's actual runtime AWS calls.
+3. Create a service from that task definition with a desired count of 2, and confirm both tasks
+   reach `RUNNING` with a passing container health check.
+4. Deploy a second revision that references a Secrets Manager ARN the execution role has not been
+   granted access to, and use `aws ecs describe-tasks` to read the actual stop reason from a
+   failed task rather than guessing from the service's steady-state failure alone.
+5. Roll the service back to the last known-good task definition revision, confirm steady state
+   returns, then fix the execution role's policy and redeploy the fixed revision cleanly.
+
+## Evidence of Understanding
+
+You can identify an image's digest as its actual immutable identity, distinct from a mutable tag,
+and reference images by digest in a task definition for that reason. You can name the specific
+difference between an execution role (what ECS does on the task's behalf) and a task role (what
+the task's own code may do), and diagnose a stopped-task failure to the correct one of the two. You
+can read a service's failed-deployment evidence from `describe-tasks`' stop reason rather than
+inferring it, and execute a clean rollback to a specific prior task definition revision.
+
+## Suggested Extension
+
+Add a CI step that runs `aws ecs wait services-stable` after every `update-service` call and fails
+the pipeline (triggering an automatic rollback to the previous task definition revision) if steady
+state is not reached within a bounded timeout, rather than leaving that judgment to a human
+watching a dashboard.
+",
+        "09-ecs-fundamentals" => @"# ECS Fundamentals
+
+## Concepts Covered
+
+Running `manifestflow-worker` as an ECS service, rather than a one-off task, means committing to a
+specific networking mode and a specific health-check contract, and getting either one slightly
+wrong produces a service that looks like it deployed successfully but never actually serves
+traffic. `awsvpc` networking mode — required for Fargate, optional but strongly preferred for
+EC2-launch-type tasks — gives every task its own elastic network interface (ENI) with its own
+private IP address inside the VPC, rather than sharing the host's network namespace the way
+classic `bridge` mode does; this is what makes a security group attachable directly to a task
+rather than only to the host it happens to land on, closing the same ""any pod on this node
+inherits the node's networking exposure"" gap the containerization elective's networking lesson
+raised for Docker bridge networks. An Application Load Balancer's **target group** is the second
+half of the contract: the target group's health check path, port, and expected status code must
+match what the container actually serves, and these are two independently configured settings that
+silently disagree far more often than either configuration is independently wrong — a target group
+still checking `/health` on port 80 after the container definition changed to serve `/healthz` on
+port 8080 will mark every newly launched task unhealthy, deregister it, and the service will churn
+tasks indefinitely while `desired count` never actually reaches `running count`, with no error
+message pointing directly at the mismatch.
+
+A service's **rolling deployment** configuration — `minimumHealthyPercent` and
+`maximumPercent` — controls exactly how aggressively a deployment replaces old tasks with new ones,
+and this is the actual blast-radius control during a bad rollout: `minimumHealthyPercent: 100` with
+`maximumPercent: 200` means ECS starts new tasks alongside the old ones and only stops an old task
+once its replacement passes health checks, so a bad new revision never drops capacity below what
+was already running; the more aggressive default of `minimumHealthyPercent: 50` allows ECS to stop
+half the old tasks before any new ones are confirmed healthy, trading deployment speed for a real
+capacity dip if the new revision turns out to be broken. Reading `aws ecs describe-services`'
+`events` array is the actual diagnostic tool for a stuck deployment — a task that stays `PENDING`
+indefinitely is a placement failure (no capacity satisfies the task's CPU/memory reservation, or a
+subnet has run out of available IP addresses), while a task that reaches `RUNNING` and then almost
+immediately transitions to `STOPPING` is a health-check or application-startup failure, and these
+two failure classes point an FDE toward completely different fixes — the events array names which
+one occurred, in plain English, rather than requiring you to correlate CloudWatch metrics to guess.
+
+Service discovery is the third piece of the ECS operating model worth naming precisely, because it
+is frequently confused with the load balancer target group covered above and the two solve
+different problems. AWS Cloud Map-based service discovery gives a service a stable internal DNS
+name (`worker.manifestflow.local`) that resolves to the current set of healthy task IPs, letting
+one internal service call another by name without going through a load balancer at all — the
+right tool for east-west, service-to-service traffic inside the cluster. The ALB target group,
+by contrast, is specifically for traffic entering from outside the service (north-south), whether
+that is public internet traffic or traffic from another AWS service that expects a stable,
+load-balanced endpoint rather than a raw DNS record pointing at a set of task IPs. Confusing the
+two — for instance, registering an internal-only worker behind a public ALB purely out of habit,
+or expecting Cloud Map DNS to perform connection draining the way a target group does during a
+deployment — produces a working-but-wrong architecture that a customer security review will
+eventually flag, even though nothing about it is functionally broken in the everyday case.
+
+```bash
+# Create a target group whose health check matches the container's actual contract
+aws elbv2 create-target-group --name manifestflow-worker-tg --protocol HTTP --port 8080 \
+  --vpc-id vpc-0a1b2c3d4e5f60789 --target-type ip \
+  --health-check-path /healthz --health-check-port 8080 \
+  --healthy-threshold-count 2 --unhealthy-threshold-count 3 --health-check-interval-seconds 15
+
+# Update the service with a conservative rolling-deployment configuration
+aws ecs update-service --cluster manifestflow --service manifestflow-worker \
+  --task-definition manifestflow-worker:16 \
+  --deployment-configuration ""minimumHealthyPercent=100,maximumPercent=200"" \
+  --load-balancers ""targetGroupArn=arn:aws:elasticloadbalancing:...:targetgroup/manifestflow-worker-tg/abc,containerName=worker,containerPort=8080""
+
+# Diagnose a stuck deployment from service events
+aws ecs describe-services --cluster manifestflow --services manifestflow-worker \
+  --query 'services[0].events[:5]'
+# -> [
+#      ""service manifestflow-worker registered 0 targets in (target-group arn) due to unhealthy state"",
+#      ""service manifestflow-worker (port 8080) is unhealthy in target-group manifestflow-worker-tg due to (reason Health checks failed)"",
+#      ""service manifestflow-worker has started 2 tasks: task 8f1a... task 3c9b...""
+#    ]
+
+# Confirm whether tasks are stuck PENDING (placement) or cycling STOPPING (health/startup)
+aws ecs describe-tasks --cluster manifestflow --tasks 8f1a3c9b \
+  --query 'tasks[0].{status:lastStatus,stopCode:stopCode,stoppedReason:stoppedReason}'
+```
+
+## Practical Backend Scenario
+
+A load test doubles ManifestFlow's traffic, and the service scales `desired count` from 2 to 6 —
+but `running count` stalls at 3, with the other 3 tasks stuck `PENDING`. `describe-services`'
+events array names the cause directly: ""unable to place a task because no container instance met
+all of its requirements"" — the private-app subnet's available IP address pool is nearly exhausted
+because `awsvpc` mode assigns each task its own ENI and IP, and the subnet was originally sized for
+a handful of tasks, not the load test's burst. Separately, one of the 3 running tasks starts
+cycling — `RUNNING` for eight seconds, then `STOPPING` — and the target group's health check
+reveals why: a prior task definition change moved the container's listen port from 8080 to 8090,
+but the target group was never updated to match, so the health check on port 8080 fails against a
+container that is actually healthy and listening on 8090, and ECS treats a failed health check
+identically to a genuinely broken container. The FDE fixes both problems independently — resizing
+the private-app subnet's CIDR allocation (a change that requires care, since it affects every other
+tenant of that subnet) to relieve the IP exhaustion, and updating the target group's health-check
+port to 8090 to match the container's actual listen port — then re-runs the load test and confirms
+`running count` reaches `desired count` with zero target-group churn this time.
+
+## Practice Loop
+
+1. Deploy the worker service behind an ALB with a target group whose health-check path and port
+   deliberately do NOT match the container's actual listen port, and observe the resulting
+   service-event churn without fixing it yet.
+2. Read `describe-services`' events array and `describe-tasks`' `stoppedReason` to name the exact
+   mismatch before consulting any documentation.
+3. Fix the target-group health check to match the container's real port and path, redeploy, and
+   confirm the service reaches steady state with zero unhealthy-target events.
+4. Scale `desired count` well beyond what the subnet's available IPs can support, and read the
+   resulting placement-failure event to distinguish it from the health-check failure in step 1.
+5. Reconfigure the service's `minimumHealthyPercent`/`maximumPercent` to `100`/`200`, deploy a
+   deliberately broken revision, and confirm the service never drops below its prior running
+   capacity even though the new revision fails.
+
+## Evidence of Understanding
+
+You can diagnose a task stuck `PENDING` as a placement failure (capacity or subnet IP exhaustion)
+distinct from a task cycling `RUNNING`→`STOPPING` as a health-check or startup failure, using the
+service events array and `describe-tasks`' stop reason rather than guessing. You can configure a
+target group's health check to genuinely match a container's listening contract, and explain the
+specific silent-mismatch failure mode when the two disagree. You can set a conservative rolling
+deployment configuration that bounds capacity loss during a bad rollout, and explain the trade-off
+against the faster but riskier default.
+
+## Suggested Extension
+
+Add a CloudWatch alarm on the target group's `UnHealthyHostCount` metric with a short evaluation
+period, and wire it to the same SNS topic the CloudWatch lesson's queue-backlog alarm already uses,
+so a target-group health-check mismatch is caught by an automated alert within minutes rather than
+discovered only when a load test happens to expose it.
+",
+        "10-eks-basics" => @"# EKS Basics
+
+## Concepts Covered
+
+Lighthouse Freight Co.'s platform team, separate from the FDE's ManifestFlow work, already runs
+Kubernetes on-prem for their dispatch system and wants their next AWS workload on EKS rather than
+ECS — they know Kubernetes primitives (Pods, Deployments, Services, RBAC) already, so this lesson
+does not re-teach those; it covers what is genuinely different about running Kubernetes as an AWS
+managed service rather than a self-hosted cluster. AWS operates the control plane's availability,
+patching, and the `etcd` backing store; everything below that has historically been the customer's
+responsibility — the worker nodes' AMI, the IAM role attached to them, and add-on version
+compatibility across an upgrade — a boundary this module's core-curriculum sibling lesson already
+covers in more depth. What that lesson doesn't demonstrate is the actual mechanics of standing a
+cluster up and connecting to it: `eksctl create cluster` (or the equivalent Terraform module)
+provisions the control plane and an initial managed node group in one operation, and `aws eks
+update-kubeconfig` is what wires local `kubectl` access to it — this command does not create any
+new AWS identity, it writes a kubeconfig entry that shells out to `aws eks get-token` at
+connection time, meaning `kubectl`'s authentication is really ""whatever IAM credentials are active
+in your current AWS CLI session,"" mapped to a Kubernetes RBAC identity via the cluster's
+`aws-auth` ConfigMap (or, in newer clusters, EKS's native access-entry API) — losing or rotating
+those IAM credentials silently breaks `kubectl` access with no separate Kubernetes-level credential
+to fall back on.
+
+Pod networking is the other genuinely AWS-specific piece: the VPC CNI plugin assigns each pod a
+real routable IP address from the VPC's own CIDR range — not an overlay network's separate address
+space — by attaching secondary IP addresses to each node's ENIs (or, with prefix delegation
+enabled, allocating a `/28` prefix per ENI slot instead of one IP at a time, dramatically raising
+the pod-per-node ceiling). This is the direct EKS analog to the ECS/Fargate `awsvpc` IP-exhaustion
+failure the previous lesson demonstrated at the task level: without prefix delegation, a node's
+maximum pod count is capped by its instance type's ENI and IP-per-ENI limits, and a cluster that
+scales pod count faster than it scales node count (or that uses undersized instance types) hits
+this ceiling with pods stuck `Pending` and a scheduler event citing insufficient IP addresses,
+diagnosed the same way the ECS IP-exhaustion failure was — by reading the actual scheduler/CNI
+event rather than assuming it's a compute-capacity problem. Finally, an EKS **add-on** (the VPC
+CNI itself, CoreDNS, `kube-proxy`, the EBS CSI driver) is lifecycle-managed by AWS through the EKS
+API — `aws eks create-addon`, with AWS handling version compatibility and update orchestration —
+which is a fundamentally different operational model from installing the same logical component
+as a customer-managed Helm chart: an add-on's version and health are visible via `aws eks
+describe-addon`, while a Helm-installed equivalent's lifecycle is entirely the customer's (or FDE's)
+own responsibility to track, a distinction worth stating explicitly before assuming ""installed via
+`kubectl apply`"" and ""installed as an EKS add-on"" are operationally interchangeable.
+
+Cluster creation itself deserves one more precise distinction: `eksctl create cluster` is a
+convenience wrapper over a set of CloudFormation stacks it generates and applies on your behalf —
+one for the VPC (if you let it create one rather than pointing at existing subnets, as the
+ManifestFlow scenario does), one for the control plane, one per node group. This matters
+operationally because a failed or partially-applied `eksctl create cluster` run leaves behind real
+CloudFormation stacks that `eksctl delete cluster` needs to clean up correctly, and a customer's
+own infrastructure-as-code team will often ask whether the cluster was provisioned via `eksctl` or
+via their own Terraform/CloudFormation pipeline specifically because the two are not freely
+interchangeable after the fact — importing an `eksctl`-created cluster into a separate Terraform
+state, or vice versa, requires deliberate reconciliation, not just pointing a new tool at an
+existing cluster name.
+
+```bash
+# Create the cluster and an initial managed node group in one operation
+eksctl create cluster --name manifestflow-eks --region us-east-1 \
+  --vpc-private-subnets subnet-0a1b2c3,subnet-0d4e5f6 \
+  --nodegroup-name standard-workers --node-type m5.large \
+  --nodes 2 --nodes-min 2 --nodes-max 5 --managed
+
+# Wire local kubectl access -- this writes a kubeconfig entry, it creates no new IAM identity
+aws eks update-kubeconfig --name manifestflow-eks --region us-east-1
+kubectl get nodes
+# -> NAME                          STATUS   ROLES    AGE   VERSION
+#    ip-10-20-10-45.ec2.internal   Ready    <none>   4m    v1.29.3-eks-...
+
+# Check who kubectl currently authenticates as -- it's your active AWS CLI identity, not a separate credential
+aws sts get-caller-identity --query Arn
+kubectl auth can-i get pods --as=arn:aws:iam::111122223333:role/manifestflow-eks-admin
+
+# Confirm the VPC CNI add-on's AWS-managed version, and enable prefix delegation
+aws eks describe-addon --cluster-name manifestflow-eks --addon-name vpc-cni \
+  --query 'addon.{version:addonVersion,status:status}'
+kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true
+
+# A pod stuck Pending due to IP exhaustion -- the scheduler event names the real cause
+kubectl describe pod extraction-worker-7d9f8c-xk2p9 -n manifestflow | grep -A2 Events
+# -> Warning  FailedScheduling  ...  0/2 nodes are available: 2 Too many pods (node has reached IP address capacity)
+```
+
+## Practical Backend Scenario
+
+The platform team wants a second EKS cluster hosting a new extraction-worker deployment that
+mirrors the ECS-based one, using the Kubernetes primitives they already know. The FDE creates the
+cluster with `eksctl`, confirms `aws eks update-kubeconfig` grants `kubectl` access using the
+same IAM role the FDE's AWS CLI session is already authenticated as, and deploys the worker. A
+scale-up event pushes pod count on one `m5.large` node past what its ENI/IP allocation supports
+under the default VPC CNI configuration, and new pods sit `Pending` — `kubectl describe pod`
+surfaces ""Too many pods (node has reached IP address capacity)"" as the scheduling-failure reason,
+the same category of diagnostic evidence ECS's placement-failure events gave for subnet IP
+exhaustion, just surfaced through a different API. Rather than immediately reaching for larger
+instance types (a cost-increasing fix that side-steps the actual constraint), the FDE enables
+prefix delegation on the VPC CNI add-on, which raises the pod-per-node ceiling on the existing node
+type without changing the instance size at all, and confirms via `aws eks describe-addon` that the
+add-on's managed version supports the feature before enabling it. The platform team asks whether
+they should also install the EBS CSI driver as a Helm chart, matching their on-prem convention; the
+FDE recommends the EKS add-on instead specifically because its version compatibility with the
+cluster's own Kubernetes version is then AWS's responsibility to track, not theirs.
+
+## Practice Loop
+
+1. Create an EKS cluster with `eksctl` and confirm `aws eks update-kubeconfig` wires `kubectl`
+   access, then run `kubectl auth can-i` under two different assumed IAM roles to observe how
+   authorization changes with the underlying AWS identity.
+2. Deploy a workload and deliberately scale its pod count past what the node's default VPC CNI
+   IP allocation supports, and read the exact scheduler event naming the cause.
+3. Enable prefix delegation on the VPC CNI add-on and redeploy the same scaled workload, confirming
+   the pod-per-node ceiling has genuinely increased without changing the node's instance type.
+4. Compare `aws eks describe-addon` output for the VPC CNI against `helm list` output for a
+   customer-managed chart, and write down which one AWS handles the version-compatibility lifecycle
+   for and which one you would need to track yourself.
+5. Simulate a lost or rotated IAM credential (assume a different role with no cluster access) and
+   confirm `kubectl` access breaks immediately, with no separate Kubernetes-level credential to
+   fall back on.
+
+## Evidence of Understanding
+
+You can explain that `aws eks update-kubeconfig` wires access to an existing IAM identity rather
+than creating a new one, and that losing that IAM credential breaks `kubectl` access with no
+separate fallback. You can diagnose a pod stuck `Pending` due to VPC CNI IP exhaustion from the
+scheduler event, and fix it via prefix delegation rather than defaulting to a larger instance type.
+You can state precisely which lifecycle (AWS-managed add-on versus customer-managed Helm chart) a
+given cluster component follows, and choose the add-on path when you want AWS to own version
+compatibility.
+
+## Suggested Extension
+
+Configure EKS access entries (the newer alternative to the `aws-auth` ConfigMap) to grant the
+platform team's own IAM role `kubectl` access scoped to only the `manifestflow` namespace, and
+compare how that authorization boundary is expressed differently than it would be for a Helm-based,
+ConfigMap-driven cluster running outside AWS.
+",
+        "11-eks-advanced" => @"# EKS Advanced
+
+## Concepts Covered
+
+The platform team's EKS cluster now needs to host two genuinely different workload shapes: the
+steady-state extraction-worker Deployment, and a bursty batch job that runs Lighthouse's monthly
+customs-reconciliation report — a workload isolated on its own compute so a spike in report
+processing never competes with the worker's steady-state capacity. A **managed node group** is
+AWS-provisioned EC2 capacity behind an auto-scaling group, where you choose the instance type,
+AMI, and scaling bounds, and AWS handles the node lifecycle mechanics (draining, replacing) around
+whatever scaling policy you configure — the FDE still owns the node's actual sizing and patch
+cadence, just not the raw EC2 orchestration. A **Fargate profile** is a different compute-ownership
+model entirely: pods matching the profile's namespace/label selector run on AWS-managed, per-pod
+isolated compute with no node to patch, size, or even see via `kubectl get nodes` in the
+traditional sense — the trade-off is that Fargate pods cannot use `DaemonSet`s, cannot mount an EBS
+volume directly, and carry a different (typically higher, though workload-dependent) per-pod cost
+model than a well-utilized shared node group. Taints and tolerations are how a managed node group
+achieves the same workload isolation Fargate gives for free: tainting the batch-job node group
+`NoSchedule` and giving only the batch job's pod spec the matching toleration keeps the
+extraction-worker Deployment off that capacity entirely, without needing a separate Fargate profile
+for it.
+
+Cluster upgrades in EKS have a specific required order, and getting it backwards produces failures
+that look unrelated to the actual cause: the **control plane** must be upgraded first (`aws eks
+update-cluster-version`), because a newer node kubelet talking to an older API server is a
+supported (temporarily) configuration, while the reverse — an older control plane fielding requests
+shaped for a newer node's kubelet — is not; **add-ons** come next, since the VPC CNI, CoreDNS, and
+`kube-proxy` versions each have their own compatibility matrix against the now-upgraded control
+plane; **managed node groups** come last, replaced via a rolling node replacement that drains and
+reschedules pods onto new nodes running the upgraded kubelet — upgrading node groups before the
+control plane risks a compatibility gap the platform silently tolerates today but is not guaranteed
+to keep tolerating on a future version. Ingress in EKS is provided by the **AWS Load Balancer
+Controller** (installed as a Helm chart, notably — not an EKS add-on, since it is a community
+project rather than an AWS-first-party component), which watches Kubernetes `Ingress` objects and
+translates them into an actual ALB, target groups, and listener rules — the controller itself needs
+an IAM role (via IRSA or Pod Identity) with permission to call `elasticloadbalancing:*` and related
+EC2 APIs on the cluster's behalf, which is the specific dependency that breaks silently if that
+IAM role is ever narrowed without accounting for the controller's own needs.
+
+Cost visibility is worth naming explicitly here too, because ""advanced"" EKS operation is not only
+about correctness — a customer engagement is also judged on whether spend tracks intended usage.
+A Fargate profile's per-pod billing is transparent per workload but can add up faster than expected
+for many small, short-lived pods, since each one carries its own minimum billed vCPU/memory
+allocation regardless of how little it actually uses; a managed node group's cost is coarser-grained
+(you pay for the node whether or not it is fully utilized) but easier to reason about in aggregate
+and easier to right-size with Cluster Autoscaler or Karpenter watching aggregate utilization rather
+than per-pod usage. Tagging both compute models consistently — a `workload` tag on the Fargate
+profile's namespace and an equivalent tag on the node group — is what actually makes a customer's
+Cost Explorer view legible per workload rather than showing one undifferentiated EKS line item,
+and an FDE who sets this up during initial cluster design saves the customer from a much harder
+retroactive cost-attribution exercise later.
+
+```bash
+# A Fargate profile isolating the batch-reconciliation namespace onto per-pod compute
+cat > fargate-profile.yaml <<'EOF'
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: manifestflow-eks
+  region: us-east-1
+fargateProfiles:
+  - name: batch-reconciliation
+    selectors:
+      - namespace: batch-reconciliation
+EOF
+eksctl create fargateprofile -f fargate-profile.yaml
+
+# A tainted managed node group isolating the SAME batch workload via tolerations instead
+eksctl create nodegroup --cluster manifestflow-eks --name batch-workers \
+  --node-type c5.2xlarge --nodes 0 --nodes-min 0 --nodes-max 4 \
+  --taints batch-only=true:NoSchedule --managed
+```
+
+```yaml
+# Only this pod spec tolerates the batch-workers node group's taint
+spec:
+  tolerations:
+    - key: ""batch-only""
+      operator: ""Equal""
+      value: ""true""
+      effect: ""NoSchedule""
+  nodeSelector:
+    eks.amazonaws.com/nodegroup: batch-workers
+```
+
+```bash
+# Staged upgrade sequence: control plane, then add-ons, then node groups -- in that order
+aws eks update-cluster-version --name manifestflow-eks --kubernetes-version 1.30
+aws eks wait cluster-active --name manifestflow-eks
+
+aws eks update-addon --cluster-name manifestflow-eks --addon-name vpc-cni --addon-version v1.18.1-eksbuild.1
+aws eks update-addon --cluster-name manifestflow-eks --addon-name coredns --addon-version v1.11.1-eksbuild.9
+aws eks update-addon --cluster-name manifestflow-eks --addon-name kube-proxy --addon-version v1.30.0-eksbuild.3
+
+eksctl upgrade nodegroup --cluster manifestflow-eks --name standard-workers --kubernetes-version 1.30
+```
+
+```yaml
+# Kubernetes Ingress translated into an ALB by the AWS Load Balancer Controller
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: manifestflow-portal
+  namespace: manifestflow
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+    - host: portal.manifestflow.lighthousefreight.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: manifestflow-portal-svc
+                port:
+                  number: 80
+```
+
+## Practical Backend Scenario
+
+The FDE isolates the monthly reconciliation batch job on a Fargate profile scoped to its own
+`batch-reconciliation` namespace, since the job runs for a few hours once a month and per-pod
+Fargate billing beats paying for idle node-group capacity the rest of the time; the steady-state
+extraction worker stays on the managed node group, since it needs `DaemonSet`-based log forwarding
+Fargate does not support. A planned cluster upgrade from 1.29 to 1.30 goes through the staged
+sequence — control plane first, then the three core add-ons, then a rolling node-group
+replacement — and the FDE deliberately does not skip the add-on stage even though the cluster
+appears to function immediately after the control-plane upgrade alone, because the VPC CNI's
+compatibility matrix for 1.30 is not guaranteed by an untested older version, even one that has not
+yet visibly broken. Separately, the platform team wants a customer-facing portal exposed via
+Ingress; the FDE installs the AWS Load Balancer Controller via Helm, configures its IRSA role with
+the exact `elasticloadbalancing` and EC2 permissions AWS's own IAM policy document specifies (no
+more), and applies the Ingress manifest above — the controller reconciles it into a real ALB within
+about ninety seconds, confirmed by describing the Ingress object and reading its assigned address.
+When a well-intentioned security tightening pass later narrows the IRSA role's policy without
+checking against the controller's documented requirements, new Ingress objects silently stop
+provisioning ALBs, and the controller's own pod logs — not the Ingress object's events — are where
+the FDE finds the actual `AccessDenied` error.
+
+## Practice Loop
+
+1. Create both a Fargate profile and a tainted managed node group targeting two different
+   namespaces, deploy a workload to each, and confirm via `kubectl get pods -o wide` that each
+   landed on the compute you intended.
+2. Attempt to run a `DaemonSet` on the Fargate-profile namespace and observe the specific failure,
+   confirming the trade-off the lesson names rather than taking it on faith.
+3. Perform the staged upgrade sequence against a test cluster, and note what (if anything) already
+   appears to work correctly after only the control-plane stage, before running the add-on stage.
+4. Install the AWS Load Balancer Controller via Helm with an IRSA role scoped to its documented
+   IAM policy, apply the Ingress manifest above, and confirm an ALB is provisioned by describing
+   the Ingress object's assigned address.
+5. Deliberately narrow the controller's IRSA role by removing one required permission, apply a new
+   Ingress object, and find the resulting `AccessDenied` error in the controller's own pod logs
+   rather than the Ingress object's Kubernetes events.
+
+## Evidence of Understanding
+
+You can choose between a managed node group and a Fargate profile for a given workload based on
+its actual constraints — `DaemonSet` and EBS needs, cost shape, isolation requirement — not by
+default habit. You can sequence a cluster upgrade correctly (control plane, add-ons, node groups)
+and explain why upgrading out of order risks a compatibility gap even when nothing visibly breaks
+immediately. You can trace an Ingress object through the AWS Load Balancer Controller to the actual
+IAM identity that makes ALB provisioning possible, and diagnose a silent provisioning failure to
+the controller's own logs rather than the Ingress object's events.
+
+## Suggested Extension
+
+Add a Kubernetes `PodDisruptionBudget` to the extraction-worker Deployment before the next node-group
+upgrade rehearsal, and confirm the rolling node replacement respects it — reschedule pods only as
+fast as the budget allows rather than draining nodes at a pace that could otherwise drop the
+worker's available replica count during the upgrade window.
+",
+        "12-eks-security-and-operations" => @"# EKS Security and Operations
+
+## Concepts Covered
+
+Module 4's EKS lesson already introduced IRSA at the level of ""a ServiceAccount can assume a
+scoped IAM role instead of inheriting the node's shared role"" — the customer security team's next
+question is inevitably ""how does that actually work, mechanically, and how do I prove it to an
+auditor?"" IRSA depends on the cluster having an **OIDC identity provider** registered with IAM
+(`eksctl utils associate-iam-oidc-provider`, a one-time setup step per cluster) — EKS exposes an
+OIDC-compliant token issuer, and a ServiceAccount's projected token is a JWT that IAM can verify
+against that issuer. The IAM role a ServiceAccount assumes carries a **trust policy** whose
+condition keys are the actual enforcement mechanism worth reading closely: `sub` scopes the trust
+to one specific namespace/ServiceAccount pair (`system:serviceaccount:manifestflow:worker-sa`), and
+`aud` confirms the token was minted for STS specifically — without both conditions correctly set,
+the trust policy either grants no pod the ability to assume the role (too narrow, usually a typo in
+the `sub` condition) or, worse, allows any ServiceAccount in the cluster to assume it (too broad,
+usually a wildcarded or missing `sub` condition) — a security-relevant misconfiguration that will
+not throw an error, it will simply grant unintended access silently, exactly the class of gap a
+customer security review is designed to catch before it becomes an incident.
+
+`SecurityGroupPolicy` is the EKS-specific mechanism that gives a workload its own security group at
+the pod level, distinct from the node's shared security group — where IRSA scopes *AWS API* access
+per-workload, `SecurityGroupPolicy` scopes *network reachability* per-workload, using the VPC CNI's
+ability to attach an additional security-group-bearing ENI (branch ENI) to a specific pod matching
+the policy's selector, rather than relying on Kubernetes `NetworkPolicy` (which governs pod-to-pod
+traffic within the cluster's own network layer, not traffic that needs an actual VPC-level security
+group boundary — the RDS instance the extraction worker talks to, for instance, is outside the
+cluster and only respects security groups, not `NetworkPolicy`). Auditability closes the loop: EKS
+control-plane logging has five distinct log types (`api`, `audit`, `authenticator`, `controllerManager`,
+`scheduler`), each independently toggled and each landing in its own CloudWatch Logs log group once
+enabled — `audit` specifically records every request to the Kubernetes API server, including who
+(which IAM-mapped identity) did what (verb, resource) and when, which is the exact evidence a
+customer asking ""prove a specific `kubectl` change was made by an authorized person, not an
+attacker"" needs, and CloudWatch Logs Insights is how that evidence gets extracted quickly rather
+than grepped from raw JSON by hand.
+
+Kubernetes RBAC and IRSA answer two different questions that a security review will ask
+separately, and conflating them is a common gap: RBAC (Roles, ClusterRoles, and their bindings)
+governs what a Kubernetes identity — a user, a group, or a ServiceAccount — may do against the
+Kubernetes API itself (create a Pod, read a ConfigMap, delete a Secret object), entirely within
+the cluster's own authorization model, while IRSA governs what that same ServiceAccount's pods may
+do against AWS APIs once running, entirely outside Kubernetes' own authorization model. A
+ServiceAccount can be tightly scoped by IRSA to touch exactly one S3 bucket and simultaneously be
+bound, by a separate RBAC misconfiguration, to a ClusterRole broad enough to read every Secret in
+the cluster — the two controls do not automatically reinforce each other, and a genuinely complete
+review has to check both independently rather than assuming a narrow IRSA policy implies a narrow
+Kubernetes-level permission set, or the reverse.
+
+```bash
+# One-time setup: register the cluster's OIDC provider with IAM
+eksctl utils associate-iam-oidc-provider --cluster manifestflow-eks --approve
+
+# The IRSA trust policy: sub scopes to one namespace/ServiceAccount, aud confirms STS audience
+cat > worker-sa-trust-policy.json <<'EOF'
+{
+  ""Version"": ""2012-10-17"",
+  ""Statement"": [{
+    ""Effect"": ""Allow"",
+    ""Principal"": {
+      ""Federated"": ""arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE""
+    },
+    ""Action"": ""sts:AssumeRoleWithWebIdentity"",
+    ""Condition"": {
+      ""StringEquals"": {
+        ""oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE:sub"": ""system:serviceaccount:manifestflow:worker-sa"",
+        ""oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE:aud"": ""sts.amazonaws.com""
+      }
+    }
+  }]
+}
+EOF
+aws iam create-role --role-name manifestflow-worker-irsa --assume-role-policy-document file://worker-sa-trust-policy.json
+
+# eksctl equivalent, one command instead of the raw trust-policy JSON
+eksctl create iamserviceaccount --cluster manifestflow-eks --namespace manifestflow \
+  --name worker-sa --attach-policy-arn arn:aws:iam::111122223333:policy/manifestflow-worker-scoped \
+  --approve
+```
+
+```yaml
+# Pod-level security group -- distinct from every other pod's on the same node
+apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: worker-sg-policy
+  namespace: manifestflow
+spec:
+  podSelector:
+    matchLabels:
+      app: extraction-worker
+  securityGroups:
+    groupIds:
+      - sg-0worker9d4e2f1a
+```
+
+```bash
+# Enable control-plane audit logging (and api, for correlation)
+aws eks update-cluster-config --name manifestflow-eks --logging \
+  '{""clusterLogging"":[{""types"":[""api"",""audit""],""enabled"":true}]}'
+
+# CloudWatch Logs Insights: reconstruct who deleted a specific Secret and when
+```
+```
+fields @timestamp, user.username, verb, objectRef.namespace, objectRef.name
+| filter objectRef.resource = ""secrets"" and verb = ""delete""
+| filter objectRef.name = ""manifestflow-db-password""
+| sort @timestamp desc
+| limit 20
+```
+
+## Practical Backend Scenario
+
+The customer security team's review of the EKS deployment asks two specific questions: ""prove a pod
+can access only its assigned S3 bucket and no other AWS resource"" and ""prove an administrative
+change to the cluster is traceable to a specific person."" For the first, the FDE runs `eksctl utils
+associate-iam-oidc-provider` (confirming it wasn't already set up, since a missing OIDC provider is
+the most common reason IRSA silently fails to work at all), creates `worker-sa` with a trust policy
+scoped by both `sub` and `aud`, and demonstrates the boundary by attempting `aws s3 ls` against an
+unrelated bucket from inside the worker pod — it fails with `AccessDenied`, while the pod's actual
+assigned bucket succeeds. The FDE separately applies a `SecurityGroupPolicy` restricting the
+worker's own ENI-level reachability to exactly the RDS security group and the VPC endpoint for S3,
+confirming a different pod on the same node — one without the matching pod selector — still uses
+the node's shared, broader security group and cannot be used to prove the worker's isolation. For
+the second question, the FDE enables `api` and `audit` control-plane logging, then runs a
+controlled test: deletes and recreates a test Secret via `kubectl`, and reconstructs the exact
+change using the CloudWatch Logs Insights query above — the query returns the IAM-mapped username,
+the exact verb and resource, and the timestamp, giving the security team auditable evidence rather
+than a verbal assurance that changes are traceable.
+
+## Practice Loop
+
+1. Register the cluster's OIDC provider (if not already done) and create a ServiceAccount-scoped
+   IAM role with a trust policy whose `sub` condition names one specific namespace/ServiceAccount
+   pair — verify the exact condition key syntax before applying it.
+2. From a pod using that ServiceAccount, run one AWS CLI call against the resource it should have
+   access to (success) and one against an unrelated resource (AccessDenied), capturing both
+   outcomes as evidence.
+3. Apply a `SecurityGroupPolicy` scoping one pod's ENI to a narrow security group, and confirm a
+   different pod on the same node — lacking the matching selector — still uses the node's broader
+   shared security group.
+4. Enable `api` and `audit` control-plane logging, perform one controlled administrative change,
+   and write a CloudWatch Logs Insights query that reconstructs who made it, what verb was used,
+   and when.
+5. Deliberately misconfigure the trust policy's `sub` condition with a typo or an overly broad
+   wildcard, and observe the resulting silent failure mode (either no pod can assume the role, or
+   an unintended ServiceAccount can) rather than an explicit error.
+
+## Evidence of Understanding
+
+You can set up IRSA's actual OIDC-provider and trust-policy mechanics, not just describe the
+ServiceAccount-to-role concept, and explain precisely what the `sub` and `aud` condition keys
+enforce and how each fails silently when misconfigured. You can scope a pod's network reachability
+with `SecurityGroupPolicy`, distinct from the node's shared security group and distinct from
+Kubernetes `NetworkPolicy`'s different enforcement layer. You can enable the specific EKS
+control-plane log types needed for an audit trail and extract a reconstructed, attributable
+timeline from CloudWatch Logs Insights rather than asserting traceability without evidence.
+
+## Suggested Extension
+
+Write a scheduled EventBridge rule that runs a Logs Insights query for any `delete` verb against
+`secrets` or `clusterrolebindings` resources in the audit log and publishes a match to the same SNS
+topic this module's CloudWatch alarms already use, turning the manual investigation query into a
+standing detection rule rather than something run only after an incident is already suspected.
+",
+        "13-microservices-on-aws-project" => @"# Microservices on AWS Project
+
+## Concepts Covered
+
+A service boundary is a decision about ownership, not just a network hop: each service in
+DispatchWorks — `booking-service`, `settlement-service`, `notification-service` — owns its own
+database schema, and no service ever queries another service's tables directly, even when they run
+in the same VPC and the same RDS instance would technically permit it. This ""write your own table""
+discipline is what lets Lighthouse's three teams release independently, because a schema migration
+in `settlement-service` can never break `booking-service` at the database level — only through the
+API contract the two services actually agree on, which is a much smaller, more reviewable surface
+than ""whatever columns happen to exist in the shared table today."" Discovery between services
+running on ECS Fargate uses **Service Connect**, which registers each service under an internal DNS
+name in a private namespace (`booking-service.dispatchworks.internal`) — this is different from
+routing every internal call through the public-facing Application Load Balancer, which would mean
+internal traffic leaves and re-enters the VPC boundary unnecessarily and depends on the ALB's own
+availability for calls that never needed to touch it.
+
+The choice between a synchronous and an asynchronous boundary follows directly from whether the
+caller actually needs an answer before it can proceed. `booking-service` calls
+`settlement-service`'s `/estimate` endpoint synchronously, with a short connect timeout and a
+shorter overall request timeout, because a booking confirmation page needs *some* settlement figure
+immediately — but the call carries a fallback: if the timeout fires, the booking still completes
+with `estimatedSettlement = PENDING`, rather than failing the entire booking because one downstream
+call was slow. Settlement completion, by contrast, is asynchronous: `settlement-service` publishes
+a `SETTLEMENT_COMPLETED` event to an SNS topic once the real settlement finishes (independent of
+whether the earlier estimate call succeeded, timed out, or was skipped), and `notification-service`
+consumes it from its own SQS queue subscribed to that topic — a boundary that tolerates
+`notification-service` being briefly unavailable, since SQS holds the message until it is
+processed, something a synchronous call could never do. A correlation ID, generated once at
+`booking-service`'s edge and propagated as an `X-Correlation-Id` header on the synchronous call and
+as a message attribute on the published event, is what lets an engineer reconstruct one booking's
+full path across three independently deployed services and two different delivery mechanisms from
+CloudWatch Logs alone.
+
+```bash
+# Each service is its own ECS Fargate service under Service Connect —
+# internal DNS discovery, not a shared load balancer hop for internal traffic.
+aws ecs create-service --cluster dispatchworks --service-name booking-service \
+  --task-definition booking-service:7 --desired-count 2 --launch-type FARGATE \
+  --network-configuration ""awsvpcConfiguration={subnets=[subnet-0priv1,subnet-0priv2],securityGroups=[sg-0booking4a5b],assignPublicIp=DISABLED}"" \
+  --service-connect-configuration '{
+    ""enabled"": true,
+    ""namespace"": ""dispatchworks.internal"",
+    ""services"": [{""portName"": ""http"", ""discoveryName"": ""booking-service"",
+                   ""clientAliases"": [{""port"": 8080, ""dnsName"": ""booking-service.dispatchworks.internal""}]}]
+  }'
+
+# settlement-service publishes completion events; notification-service subscribes via its
+# own SQS queue with a filter policy so it only receives the event type it cares about.
+aws sns create-topic --name settlement-completed
+aws sqs create-queue --queue-name notification-inbox
+aws sns subscribe --topic-arn arn:aws:sns:us-east-1:111122223333:settlement-completed \
+  --protocol sqs --notification-endpoint arn:aws:sqs:us-east-1:111122223333:notification-inbox \
+  --attributes '{""FilterPolicy"": ""{\""eventType\"": [\""SETTLEMENT_COMPLETED\""]}""}'
+```
+
+```java
+// booking-service calling settlement-service SYNCHRONOUSLY for an estimate only.
+// A hard timeout plus a fallback keep a slow dependency from blocking the booking itself.
+HttpClient settlementClient = HttpClient.newBuilder()
+    .connectTimeout(Duration.ofMillis(300))
+    .build();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create(""http://booking-service.dispatchworks.internal:8080/estimate""))
+    .header(""X-Correlation-Id"", correlationId)
+    .timeout(Duration.ofMillis(800))
+    .GET().build();
+try {
+    var response = settlementClient.send(request, HttpResponse.BodyHandlers.ofString());
+    booking.setEstimatedSettlement(parseEstimate(response.body()));
+} catch (HttpTimeoutException e) {
+    booking.setEstimatedSettlement(Estimate.PENDING); // booking proceeds; settlement resolves async
+}
+```
+
+## Practical Backend Scenario
+
+Lighthouse wants freight bookings, carrier settlement, and dispatcher notifications released by
+three separate teams without losing the ability to trace one booking end to end. The FDE builds
+`booking-service` with a synchronous, timeout-bounded call to `settlement-service` for a settlement
+estimate at booking time, and an asynchronous SNS-to-SQS event from `settlement-service` to
+`notification-service` once real settlement completes. To prove the design survives a real failure,
+the FDE injects a 3-second artificial delay into `settlement-service`'s `/estimate` handler while
+running a load test against `booking-service`: with the 800ms timeout and `PENDING` fallback in
+place, every booking still completes successfully, just with a deferred settlement figure, and the
+correlation ID on one sampled booking is traced from `booking-service`'s request log, through the
+timeout event, to the eventual `SETTLEMENT_COMPLETED` message and `notification-service`'s log
+entry — proving the asynchronous path recovers independently of the synchronous one's outcome.
+
+## Practice Loop
+
+1. Build `booking-service` and `settlement-service` as separate ECS Fargate services under Service
+   Connect, each with its own database schema, and implement the synchronous `/estimate` call with
+   an explicit connect timeout and request timeout.
+2. Wire the asynchronous boundary: an SNS topic for `SETTLEMENT_COMPLETED`, an SQS queue for
+   `notification-service` subscribed with a filter policy on `eventType`, and a consumer that logs
+   the message.
+3. Inject an artificial delay into `settlement-service`'s `/estimate` handler that exceeds the
+   configured timeout, run a fixed batch of bookings against `booking-service`, and count how many
+   bookings completed successfully with `estimatedSettlement = PENDING` versus how many would have
+   blocked or failed without the timeout and fallback in place.
+4. Generate a correlation ID at `booking-service`'s edge, propagate it through the synchronous call
+   header and the published event's message attribute, and trace one specific booking's correlation
+   ID across all three services' CloudWatch Logs entries.
+5. Review each service's data access code and confirm none of the three services executes a query
+   against another service's database schema — flag and fix any direct cross-service table access
+   you find.
+
+## Evidence of Understanding
+
+You can justify a synchronous versus asynchronous boundary choice by whether the caller needs an
+immediate answer, and you can implement a timeout with a fallback that keeps a slow synchronous
+dependency from blocking an otherwise-completable operation. You can wire an SNS-to-SQS event
+boundary with a filter policy so a consumer receives only the event types it needs, and you can
+propagate a correlation ID across both delivery mechanisms to trace one business transaction
+end to end. You can demonstrate, under an injected dependency delay, that the system degrades
+gracefully rather than failing outright, and can prove that no service directly queries another
+service's database.
+
+## Suggested Extension
+
+Add a fourth service, `carrier-rate-service`, that `settlement-service` calls synchronously for the
+actual settlement calculation, and give `settlement-service` a circuit breaker (open after 5
+consecutive timeouts, half-open retry after 30 seconds) so a persistently failing `carrier-rate-
+service` stops accumulating blocked threads in `settlement-service` rather than retrying every
+request against a dependency already known to be down.
+",
+        "14-microservices-project-phase-2" => @"# Microservices Project: Phase 2
+
+## Concepts Covered
+
+Lesson 13's `settlement-service` had a quiet bug: it wrote the settlement record to its own
+database, then published the `SETTLEMENT_COMPLETED` event to SNS as a separate, second step. If the
+process crashes between those two operations — after the database commit, before the publish call
+succeeds — the settlement is recorded but `notification-service` never learns about it, and a
+dispatcher never gets notified. This is the **dual-write problem**: two independent operations
+(a database write and a message publish) that need to happen together but have no shared
+transaction, so any interruption between them leaves the system in an inconsistent state that no
+retry of either operation alone can fix. The **transactional outbox pattern** solves this by making
+the event publication part of the same database transaction as the business write: instead of
+calling SNS directly, `settlement-service` inserts a row into an `outbox_events` table in the same
+transaction that writes the settlement record, and a separate poller (or a Debezium-style
+change-data-capture stream) reads unpublished outbox rows and publishes them to SNS, marking each
+row published only after the SNS call succeeds. Because the settlement write and the outbox insert
+are one atomic transaction, ""settlement recorded but event never queued for publish"" becomes
+structurally impossible — the worst case is ""event queued for publish but not yet published,""
+which the poller simply retries.
+
+The receiving side needs its own guarantee, because SNS-to-SQS delivery is **at-least-once**, not
+exactly-once: a message can be delivered twice (a consumer that processes a message successfully
+but crashes before deleting it from the queue will see that same message redelivered). An
+**idempotent consumer** handles this by recording each processed message's unique ID in a
+`processed_events` table before acting on it, inside the same transaction as the side effect — if
+the same message arrives again, the insert into `processed_events` fails on a unique-constraint
+violation, and the consumer skips reprocessing rather than sending a duplicate notification. A
+message that fails processing repeatedly (a malformed payload, a downstream dependency that is
+permanently down) needs a **dead-letter queue (DLQ)**: after a configured `maxReceiveCount`, SQS
+moves the message to a separate DLQ instead of redelivering it forever, which turns ""one bad
+message blocking the entire queue"" into ""one bad message sitting in a DLQ waiting for a human to
+inspect it, while the rest of the queue keeps flowing."" For deployment safety, a **canary**
+release — sending a small percentage of traffic to the new revision and watching a specific
+CloudWatch alarm (elevated 5xx rate, elevated p99 latency) before promoting to 100% — catches a bad
+deployment against a small blast radius, whereas a full rollout exposes every request to a
+regression the moment it deploys; the trade-off is that a canary takes longer to fully roll out and
+requires the alarm threshold to be tuned precisely enough to catch a real regression without
+false-triggering on normal variance.
+
+```sql
+-- Transactional outbox: the settlement write and the event insert commit atomically
+BEGIN;
+INSERT INTO settlements (id, booking_id, amount_cents, status)
+  VALUES ('stl_8f2a', 'bkg_1c3d', 48900, 'COMPLETED');
+INSERT INTO outbox_events (id, event_type, payload, published)
+  VALUES ('evt_9b1e', 'SETTLEMENT_COMPLETED',
+          '{""settlementId"":""stl_8f2a"",""bookingId"":""bkg_1c3d"",""amountCents"":48900}', false);
+COMMIT;
+-- A separate poller reads WHERE published = false, calls sns:Publish, then sets published = true
+```
+
+```java
+// Idempotent consumer: the unique-constraint insert is the deduplication mechanism itself
+@Transactional
+void handle(SettlementCompletedEvent event) {
+    boolean firstTimeSeen = processedEventsRepo.tryInsert(event.getMessageId()); // unique constraint on message_id
+    if (!firstTimeSeen) {
+        log.info(""Duplicate delivery of {}, skipping"", event.getMessageId());
+        return; // already processed — do NOT send a second notification
+    }
+    dispatcherAlertService.notify(event.getBookingId(), event.getAmountCents());
+}
+```
+
+```bash
+# DLQ after 5 failed delivery attempts — the malformed message stops blocking the live queue
+aws sqs set-queue-attributes --queue-url https://sqs.us-east-1.amazonaws.com/111122223333/notification-inbox \
+  --attributes '{""RedrivePolicy"": ""{\""deadLetterTargetArn\"":\""arn:aws:sqs:us-east-1:111122223333:notification-inbox-dlq\"",\""maxReceiveCount\"":\""5\""}""}'
+
+# Canary deployment: 10% of traffic to the new task set, halted automatically if 5xx alarm fires
+aws cloudwatch put-metric-alarm --alarm-name notification-service-canary-5xx \
+  --namespace ManifestFlow/DispatchWorks --metric-name 5xxCount --statistic Sum \
+  --period 60 --evaluation-periods 2 --threshold 5 --comparison-operator GreaterThanThreshold \
+  --alarm-actions arn:aws:sns:us-east-1:111122223333:deployment-rollback-topic
+```
+
+## Practical Backend Scenario
+
+A production incident exposes the dual-write bug directly: `settlement-service` crashes
+immediately after committing a settlement record but before its SNS publish call completes,
+leaving a real settlement with no corresponding notification ever sent to the dispatcher, discovered
+only when Lighthouse manually reconciles settlement totals against dispatcher acknowledgments a week
+later. The FDE implements the transactional outbox pattern so the settlement write and the outbox
+insert commit together, and a poller handles publishing with its own retry logic. Separately, a
+transient SQS redelivery causes `notification-service` to receive the same `SETTLEMENT_COMPLETED`
+message twice; without the idempotent-consumer check, this would have sent the dispatcher two
+notifications for one settlement. With the `processed_events` unique-constraint guard in place, the
+second delivery is detected and skipped, and the FDE confirms this by deliberately re-delivering a
+message and verifying only one notification was ever actually sent.
+
+## Practice Loop
+
+1. Add an `outbox_events` table to `settlement-service`'s schema, rewrite the settlement-completion
+   code path so the settlement write and the outbox insert happen in one transaction, and build a
+   poller that publishes unpublished rows to SNS and marks them published only after the SNS call
+   succeeds.
+2. Add a `processed_events` table with a unique constraint on message ID to `notification-service`,
+   and rewrite its consumer to insert-then-act, skipping any message whose ID insert fails on the
+   constraint.
+3. Deliberately kill `settlement-service`'s process between the outbox insert and the poller's next
+   run, restart it, and count how many settlements are missing their published event afterward —
+   the diagnostic answer must be zero, since the poller picks up any unpublished row on restart.
+4. Manually re-deliver one already-processed SQS message to `notification-service` and verify
+   exactly one notification was sent in total, not two, using the `processed_events` table as
+   evidence.
+5. Configure the DLQ redrive policy and the canary CloudWatch alarm above, deploy a deliberately
+   broken revision of `notification-service` behind the canary, and confirm the alarm fires and
+   halts promotion before 100% of traffic reaches the broken revision.
+
+## Evidence of Understanding
+
+You can explain the dual-write problem and implement the transactional outbox pattern so a database
+write and its corresponding event publication cannot become inconsistent from a mid-process crash.
+You can build an idempotent consumer using a processed-message ledger and demonstrate, by forcing a
+duplicate delivery, that it sends the side effect exactly once despite at-least-once delivery
+semantics. You can configure a dead-letter queue so a permanently failing message stops blocking
+the live queue, and you can compare a canary deployment's smaller blast radius against a full
+rollout's faster completion for a given regression risk.
+
+## Suggested Extension
+
+Add a consumer-driven contract test between `booking-service` and `settlement-service` that fails
+the build if `settlement-service`'s `/estimate` response shape changes in a way `booking-service`
+does not expect, and explain why this test belongs in `settlement-service`'s own CI pipeline rather
+than only in `booking-service`'s.
+",
+        "15-aws-security-identity-and-network" => @"# AWS Security: Identity and Network
+
+## Concepts Covered
+
+An IAM policy grants permission along four dimensions, and a security review that checks only one
+of them — usually just `Action` — misses most of the actual risk. `Effect` is `Allow` or `Deny`;
+`Action` names the specific API calls (`s3:GetObject`, not just ""S3 access""); `Resource` scopes
+which specific ARNs the action applies to, and a `Resource: ""*""` alongside a broad action is the
+single most common overprivilege pattern an FDE finds in an early prototype; `Condition` narrows the
+grant further by context — the calling principal's source IP, whether the request used TLS, a
+specific tag on the target resource — and is what turns ""this role can read this bucket"" into ""this
+role can read this bucket, but only over TLS, and only for objects tagged for its own tenant.""
+A **trust policy** (the `AssumeRolePolicyDocument` attached to a role) is a completely separate
+control from the role's permission policy: the trust policy decides *who* can assume the role at
+all (which principal — a specific IAM user, a specific service, a specific external account with a
+specific external ID), while the permission policy decides *what* the role can do once assumed —
+conflating the two is a common error, because a role with a narrow permission policy but an
+overly-broad trust policy (e.g., trusting an entire AWS account rather than one specific role
+within it) can still be assumed by far more principals than intended. A **permission boundary** adds
+a third, independent ceiling: it is a policy attached to a user or role that caps the *maximum*
+permissions that identity's own policies can ever grant, regardless of how permissive those
+policies are — useful specifically when an automated process creates roles on a customer's behalf
+(a self-service provisioning pipeline) and the customer wants a hard guarantee that no role it
+creates can ever exceed a defined ceiling, even if the pipeline's own policy-generation logic has a
+bug.
+
+On the network side, a **VPC endpoint** replaces a broad, internet-routed (or NAT-Gateway-routed)
+path to an AWS service with a private, in-VPC path scoped to exactly that service. A **Gateway
+endpoint** (available for S3 and DynamoDB only) adds a route-table entry that sends traffic for that
+service's IP ranges directly within the VPC, with no ENI and no additional hourly cost; an
+**Interface endpoint** (available for most other AWS services, including Secrets Manager and KMS)
+places an ENI with a private IP inside your subnet, the same PrivateLink mechanism used for
+cross-account service exposure. Either way, traffic to that AWS service never traverses the NAT
+Gateway or the public internet at all, which matters for two reasons beyond cost: it removes an
+entire class of egress-filtering bypass (a compromised instance that would otherwise reach any
+public S3 bucket over the NAT Gateway can be restricted, via the endpoint policy, to only your own
+account's buckets), and it means a private subnet with no NAT Gateway route at all can still reach
+the AWS services it needs — collapsing the network's actual internet-reachable surface to zero for
+that workload, not just to ""whatever the security group happens to allow.""
+
+```json
+// BEFORE: the first prototype's actual policy — broad action, broad resource, no condition
+{
+  ""Version"": ""2012-10-17"",
+  ""Statement"": [
+    { ""Effect"": ""Allow"", ""Action"": ""s3:*"", ""Resource"": ""*"" },
+    { ""Effect"": ""Allow"", ""Action"": ""secretsmanager:*"", ""Resource"": ""*"" }
+  ]
+}
+```
+
+```json
+// AFTER: scoped to exactly what manifestflow-worker-role needs, with a TLS condition
+{
+  ""Version"": ""2012-10-17"",
+  ""Statement"": [
+    {
+      ""Effect"": ""Allow"",
+      ""Action"": [""s3:GetObject"", ""s3:PutObject""],
+      ""Resource"": ""arn:aws:s3:::manifestflow-manifests/*"",
+      ""Condition"": { ""Bool"": { ""aws:SecureTransport"": ""true"" } }
+    },
+    {
+      ""Effect"": ""Allow"",
+      ""Action"": ""secretsmanager:GetSecretValue"",
+      ""Resource"": ""arn:aws:secretsmanager:us-east-1:111122223333:secret:manifestflow/textract-api-key-*""
+    }
+  ]
+}
+```
+
+```json
+// Trust policy: only the deploy pipeline's role in THIS account can assume manifestflow-worker-role
+{
+  ""Version"": ""2012-10-17"",
+  ""Statement"": [{
+    ""Effect"": ""Allow"",
+    ""Principal"": { ""AWS"": ""arn:aws:iam::111122223333:role/deploy-pipeline-role"" },
+    ""Action"": ""sts:AssumeRole"",
+    ""Condition"": { ""StringEquals"": { ""sts:ExternalId"": ""manifestflow-2026"" } }
+  }]
+}
+```
+
+```bash
+# Replace the NAT-Gateway-routed path to Secrets Manager with a private Interface endpoint
+aws ec2 create-vpc-endpoint --vpc-id vpc-0a1b2c3d4e5f60789 \
+  --service-name com.amazonaws.us-east-1.secretsmanager --vpc-endpoint-type Interface \
+  --subnet-ids subnet-0priv1 subnet-0priv2 --security-group-ids sg-0endpoint1a2b
+
+# Gateway endpoint for S3 — a route-table entry, no ENI, no hourly cost
+aws ec2 create-vpc-endpoint --vpc-id vpc-0a1b2c3d4e5f60789 \
+  --service-name com.amazonaws.us-east-1.s3 --vpc-endpoint-type Gateway \
+  --route-table-ids rtb-private-app-1a
+```
+
+## Practical Backend Scenario
+
+ManifestFlow's extraction worker needs to read one specific S3 bucket and fetch one specific
+Secrets Manager secret (the Textract API key). The first prototype, written under deadline pressure,
+attaches an IAM role with `s3:*`/`Resource: *` and `secretsmanager:*`/`Resource: *` — the ""admin
+key"" pattern the skeleton describes, expressed here as an over-scoped role rather than a literal
+long-lived access key, since the actual prototype already used role-based auth but never scoped the
+policy. A customer security review flags it in minutes: the worker could read or write any bucket
+in the account, and read any secret, including ones belonging to unrelated services. The FDE
+rewrites the policy to the scoped version above, adds a trust policy restricting who can assume the
+role at all, and replaces the worker's NAT-Gateway-routed calls to S3 and Secrets Manager with VPC
+endpoints — so even a fully compromised worker process has no network path to any AWS service
+outside these two specific endpoints, and no IAM permission beyond these two specific resources.
+
+## Practice Loop
+
+1. Pull the current `manifestflow-worker-role` policy and mark every statement whose `Action` or
+   `Resource` is a wildcard (`*`), then write down, for each one, exactly which specific action and
+   resource the worker code actually calls.
+2. Rewrite the policy to the scoped version, adding the `aws:SecureTransport` condition on the S3
+   statements, and attach a trust policy that names the specific deploy-pipeline role rather than
+   trusting the account as a whole.
+3. Run `aws iam simulate-principal-policy` against the new policy for one allowed action
+   (`s3:GetObject` on the manifests bucket) and one action that should now be denied
+   (`s3:DeleteBucket`), and record both results as your evidence the scoping actually took effect.
+4. Create the S3 Gateway endpoint and the Secrets Manager Interface endpoint, remove the worker
+   subnet's NAT Gateway route entirely, and confirm the worker can still read the bucket and fetch
+   the secret with zero route to the public internet.
+5. Document a break-glass emergency-access path (a separate, tightly-scoped role requiring MFA and
+   logged via CloudTrail) for the case where the scoped policy turns out to be missing a permission
+   an on-call engineer needs during an incident.
+
+## Evidence of Understanding
+
+You can review an IAM policy along all four dimensions — Effect, Action, Resource, and Condition —
+and identify a `Resource: ""*""` alongside a broad action as the specific overprivilege pattern to
+flag first. You can design a trust policy and a permission boundary as two independently enforced
+limits, one controlling who can assume a role and the other capping what any of that identity's own
+policies can ever grant. You can replace a NAT-Gateway-routed path to an AWS service with a VPC
+endpoint and demonstrate, with a route-table check, that the resulting private subnet has zero
+route to the public internet while still reaching the services it needs.
+
+## Suggested Extension
+
+Attach a permission boundary to `deploy-pipeline-role` itself, capping the maximum permissions any
+role it creates on Lighthouse's behalf can ever have, and write the one IAM policy statement that
+would let the pipeline create new scoped worker roles freely while guaranteeing none of them can
+ever be granted `iam:*` or `s3:*`/`Resource:*`, even by a future bug in the pipeline's own
+policy-generation code.
+",
+        "16-aws-security-data-and-detection" => @"# AWS Security: Data and Detection
+
+## Concepts Covered
+
+Protecting data at rest with KMS is only as strong as what is allowed to bypass it, which is why
+the enforcement belongs in the **bucket policy**, not only in application code's own encryption
+call. A bucket policy statement can deny any `PutObject` that does not carry
+`x-amz-server-side-encryption: aws:kms` and any request at all that did not arrive over TLS — this
+is a resource-level control that holds regardless of which client, script, or misconfigured tool
+attempts the upload, whereas relying on ""the application always sets the encryption header"" is a
+promise that breaks the moment someone runs `aws s3 cp` by hand or a new integration forgets the
+header. Envelope encryption itself follows the same shape covered for cross-account BYOK elsewhere
+in this curriculum, but the mechanism that matters most operationally for a regulated customer is
+**key rotation and scope**: a customer-managed KMS key (not the AWS-managed default) lets you
+control the rotation schedule, restrict which principals can use the key via the key policy, and —
+critically — revoke access to all data encrypted under that key by disabling or scheduling deletion
+of the key itself, which is a data-level kill switch no amount of IAM policy tightening on the
+application role alone can replicate.
+
+**GuardDuty** is a managed threat-detection service that continuously analyzes VPC Flow Logs, DNS
+query logs, and CloudTrail management and S3 data events, and produces findings without you writing
+any detection logic yourself — each finding carries a `type` (a structured taxonomy, e.g.
+`UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration`), a `severity` score (a low score often
+means reconnaissance-shaped activity worth noting but not paging on; a high score means the finding
+matches a pattern GuardDuty associates with active compromise), and the specific resource and
+principal involved. The judgment an FDE needs is distinguishing what a finding actually asserts:
+`Recon:IAMUser/TorIPCaller` means a call was made from a Tor exit node — worth investigating, not
+necessarily an active breach — while `Exfiltration:S3/ObjectRead.Unusual` means GuardDuty's model
+detected an S3 read pattern (volume, timing, source) that deviates sharply from that principal's
+historical baseline, a materially more urgent signal. GuardDuty findings are strongest paired with
+**CloudTrail S3 data events**, which are off by default (unlike CloudTrail's always-on management
+events) because of their volume and cost, and must be explicitly enabled per bucket — once enabled,
+a GuardDuty finding naming a specific object gives you the alert, and the corresponding CloudTrail
+data event for that same object and time window gives you the exact principal, source IP, and
+whether the call succeeded, which is what turns ""GuardDuty flagged something"" into an actual,
+attributable incident timeline.
+
+```json
+// Bucket policy: deny any upload that is not TLS, and any upload not using the customer-managed KMS key
+{
+  ""Version"": ""2012-10-17"",
+  ""Statement"": [
+    {
+      ""Sid"": ""DenyInsecureTransport"",
+      ""Effect"": ""Deny"", ""Principal"": ""*"", ""Action"": ""s3:*"",
+      ""Resource"": [""arn:aws:s3:::manifestflow-manifests"", ""arn:aws:s3:::manifestflow-manifests/*""],
+      ""Condition"": { ""Bool"": { ""aws:SecureTransport"": ""false"" } }
+    },
+    {
+      ""Sid"": ""DenyUnencryptedObjectUploads"",
+      ""Effect"": ""Deny"", ""Principal"": ""*"", ""Action"": ""s3:PutObject"",
+      ""Resource"": ""arn:aws:s3:::manifestflow-manifests/*"",
+      ""Condition"": {
+        ""StringNotEquals"": { ""s3:x-amz-server-side-encryption"": ""aws:kms"" }
+      }
+    }
+  ]
+}
+```
+
+```bash
+# Enable CloudTrail S3 data events for the sensitive manifests bucket only (off by default — volume/cost)
+aws cloudtrail put-event-selectors --trail-name manifestflow-org-trail \
+  --event-selectors '[{
+    ""ReadWriteType"": ""All"", ""IncludeManagementEvents"": true,
+    ""DataResources"": [{""Type"": ""AWS::S3::Object"", ""Values"": [""arn:aws:s3:::manifestflow-manifests/""]}]
+  }]'
+```
+
+```json
+// A representative GuardDuty finding — worth reading field by field
+{
+  ""type"": ""Exfiltration:S3/ObjectRead.Unusual"",
+  ""severity"": 8.0,
+  ""resource"": {
+    ""s3BucketDetails"": [{""name"": ""manifestflow-manifests""}],
+    ""accessKeyDetails"": {""principalId"": ""AROAEXAMPLE:manifestflow-worker-role"", ""userType"": ""AssumedRole""}
+  },
+  ""service"": {
+    ""action"": {
+      ""awsApiCallAction"": {
+        ""api"": ""GetObject"", ""callerType"": ""Remote IP"",
+        ""remoteIpDetails"": {""ipAddressV4"": ""198.51.100.77"", ""country"": {""countryName"": ""Unknown""}}
+      }
+    },
+    ""count"": 214
+  },
+  ""title"": ""Unusual volume of GetObject calls against manifestflow-manifests by manifestflow-worker-role""
+}
+```
+
+```bash
+# Correlate the finding's object-level activity against CloudTrail data events for the exact window
+aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=ResourceName,AttributeValue=manifestflow-manifests \
+  --start-time 2026-08-31T09:00:00Z --end-time 2026-08-31T10:00:00Z \
+  --query 'Events[].{Time:EventTime,User:Username,Event:EventName,Source:SourceIPAddress}'
+```
+
+## Practical Backend Scenario
+
+Lighthouse's security review asks two direct questions: how are customs manifests encrypted, and
+how would an unusual download be detected. The FDE answers the first by enabling the bucket policy
+above (denying non-TLS traffic and any upload not using the customer-managed KMS key) and confirms
+the key's rotation and access are controlled through its own key policy, not just the worker role's
+IAM permissions. For the second, GuardDuty is already enabled account-wide, but S3 data events for
+`manifestflow-manifests` were not — the FDE enables them specifically for this bucket, then
+generates a controlled test signal: from an unused development credential, the FDE calls
+`GetObject` 200 times in under a minute against the manifests bucket, well outside
+`manifestflow-worker-role`'s normal access pattern. GuardDuty produces an
+`Exfiltration:S3/ObjectRead.Unusual` finding within minutes, and the corresponding CloudTrail data
+events — now that they are enabled — confirm the exact API calls, the source IP, and the specific
+objects read, giving the security team a full, attributable timeline rather than only GuardDuty's
+summary.
+
+## Practice Loop
+
+1. Classify the manifests bucket's contents (customs data, PII-adjacent) and write the bucket
+   policy above, denying non-TLS traffic and any upload not using the customer-managed KMS key.
+2. Attempt an upload with `aws s3 cp` using default (unencrypted) settings and confirm it is
+   denied by the bucket policy itself, not merely flagged by a linter or application-level check.
+3. Enable CloudTrail S3 data events for this one bucket only (not account-wide, given the
+   volume/cost trade-off the lesson names), and generate the controlled `GetObject` burst described
+   in the scenario.
+4. Retrieve the resulting GuardDuty finding, and identify its `type`, `severity`, and the
+   specific principal and IP it names, distinguishing whether this finding's language matches
+   reconnaissance or active exfiltration.
+5. Run the CloudTrail `lookup-events` query for the same time window and object, and write the
+   one-paragraph incident timeline combining the GuardDuty finding's summary with CloudTrail's
+   per-call detail — actor, timestamp, action, and source IP.
+
+## Evidence of Understanding
+
+You can write an S3 bucket policy that denies non-TLS and non-KMS-encrypted uploads and explain why
+this control belongs at the bucket-policy layer rather than depending on application code always
+setting the right header. You can read a GuardDuty finding's `type` and `severity` fields to
+distinguish a reconnaissance-shaped signal from one GuardDuty associates with active exfiltration.
+You can enable CloudTrail S3 data events for one specific bucket, understand why they are off by
+default elsewhere, and combine a GuardDuty finding with the matching CloudTrail data events into an
+attributable incident timeline naming actor, time, action, and source IP.
+
+## Suggested Extension
+
+Add an EventBridge rule that triggers a Lambda function automatically when a GuardDuty finding of
+severity 7 or higher targets `manifestflow-manifests`, and have that function immediately revoke
+the implicated principal's active sessions — write the one sentence explaining why this automated
+first response should still require a human to confirm before permanently disabling the principal,
+rather than doing that step automatically too.
+",
+        "17-aws-security-hands-on" => @"# AWS Security Hands-on
+
+## Concepts Covered
+
+A security review's output is only useful if it distinguishes three genuinely different claims:
+**implemented** (the control exists — a policy is attached, an endpoint is created), **tested**
+(the control was actually exercised and observed to hold — a denied-flow test timed out as
+expected, a scoped IAM policy actually rejected the out-of-scope action under
+`simulate-principal-policy`), and **residual risk** (a gap the team knows about, has not closed,
+and has consciously accepted for a stated reason, with a named owner and a target date). Conflating
+""implemented"" with ""tested"" is the specific failure the DispatchWorks review below finds:
+`notification-service`'s role was encrypted correctly and had a reasonable-looking policy attached,
+but nobody had ever actually attempted the denied action to confirm the policy held — it turned out
+to still carry a stale, unused `s3:*` statement from an earlier iteration that the ""policy looks
+fine"" review missed and only a `simulate-principal-policy` run against every listed action would
+have caught. **IAM Access Analyzer** automates part of this: it continuously evaluates every
+resource-based policy and role-trust-policy in the account against what it can prove about external
+or cross-account access, and reports specific findings (a role trust policy that grants access to an
+external principal, a bucket policy that is more permissive than its own analysis expected) — using
+its findings as evidence in a review is stronger than a manual read-through, because Access Analyzer
+is checking the policy's actual logical implications, not just its apparent intent.
+
+An end-to-end incident simulation exercises detection, containment, and verification as three
+distinct, ordered steps, and a review that only tests one of them has not actually proven the
+incident path works. **Detection**: a deliberately generated signal (a credential used from an
+unexpected source, an unusual `GetObject` volume) must actually produce a GuardDuty finding within
+a reasonable window — if it does not, the detection layer is broken regardless of how good the
+IAM policy looks. **Containment**: the response — typically revoking the compromised principal's
+active sessions via `aws sts` or, for a long-lived key, deactivating it via `aws iam
+update-access-key` — must actually stop further access, not just look like it did; the only way to
+know is to attempt the same action again immediately afterward and confirm it now fails.
+**Verification**: CloudTrail is the evidence that containment held — a `lookup-events` query for
+the compromised principal, run for the period after containment, should show either nothing or a
+string of `AccessDenied` errors, and a single successful call in that window means containment
+did not actually work and the review is not finished. The final artifact a customer-facing review
+produces is not a list of fixes — it is a short, specific defense of sequencing: which finding was
+fixed first and why, which was accepted as residual risk and why, and what evidence (not
+assertion) backs each claim, because a customer's own security team will ask exactly these
+questions and ""we fixed everything"" is never itself a credible answer.
+
+```bash
+# Access Analyzer finding — a stale statement the manual review missed
+aws accessanalyzer list-findings --analyzer-arn arn:aws:access-analyzer:us-east-1:111122223333:analyzer/dispatchworks-analyzer \
+  --filter '{""status"": {""eq"": [""ACTIVE""]}}' \
+  --query 'findings[].{Resource:resource,Action:action,IsPublic:isPublic,Condition:condition}'
+# -> [{""Resource"": ""arn:aws:s3:::dispatchworks-audit-exports"", ""Action"": [""s3:*""],
+#      ""IsPublic"": false, ""Condition"": {}}]
+#    ^ notification-service-role's stale s3:* statement, unscoped by any Condition — a manual read caught none of this
+
+# End-to-end incident simulation: compromise a credential, detect, contain, verify
+aws sts get-caller-identity --profile compromised-test-cred
+# 1) DETECT — trigger an unusual access pattern, confirm GuardDuty produces a finding within minutes
+aws guardduty list-findings --detector-id d0abc123 \
+  --finding-criteria '{""Criterion"": {""resource.accessKeyDetails.principalId"": {""Eq"": [""AIDAEXAMPLECOMPROMISED""]}}}'
+
+# 2) CONTAIN — revoke the compromised role's active sessions
+aws iam put-role-policy --role-name notification-service-role --policy-name deny-all-emergency \
+  --policy-document '{""Version"":""2012-10-17"",""Statement"":[{""Effect"":""Deny"",""Action"":""*"",""Resource"":""*""}]}'
+
+# 3) VERIFY — the same call that worked before containment must now fail
+aws s3 ls s3://dispatchworks-audit-exports --profile compromised-test-cred
+# -> An error occurred (AccessDenied) when calling the ListObjectsV2 operation
+```
+
+## Practical Backend Scenario
+
+Lighthouse's security team reviews DispatchWorks before general rollout and finds a familiar gap:
+`notification-service-role` is KMS-encrypted correctly and its policy ""looks fine"" in a manual
+read, but the team has never actually attempted a denied action against it. Running Access
+Analyzer surfaces the stale `s3:*` statement above — a leftover from an early prototype iteration
+that the manual review missed entirely, over-privileging the role to every object in an unrelated
+audit-exports bucket. The FDE fixes the policy, then runs the full incident simulation: using a
+disposable test credential standing in for the same role, the FDE generates an access pattern
+GuardDuty flags within four minutes, contains it by attaching an explicit deny-all emergency
+policy, and verifies with a repeated `aws s3 ls` call that the same action that worked pre-
+containment now returns `AccessDenied`. The final review presents Lighthouse with three columns —
+implemented, tested, residual risk — rather than a single ""done"" checklist, and names one accepted
+residual risk explicitly: `booking-service`'s development environment still uses a broader IAM
+policy than production, accepted because the environment has no production data and the fix is
+scheduled for the next sprint, not because it was overlooked.
+
+## Practice Loop
+
+1. Run `aws accessanalyzer list-findings` against every role in the DispatchWorks account and
+   list every finding naming a wildcard action or an unexpected external principal, cross-checking
+   each one against what that role's owning service actually calls.
+2. Fix the highest-risk finding (the stale `s3:*` statement) by removing it, then re-run
+   `simulate-principal-policy` for the specific action the role previously had and confirm it is
+   now denied.
+3. Diagnostic: for every control in the review, mark it implemented, tested, or residual risk —
+   count how many controls were previously assumed ""done"" but had never actually been tested, since
+   this count is the review's central finding.
+4. Run the three-step incident simulation (detect via GuardDuty, contain via the deny-all policy,
+   verify via a repeated denied call) against a disposable test credential, and time how long
+   detection took from the triggering action to the GuardDuty finding appearing.
+5. Write the one-page findings summary with the three-column implemented/tested/residual-risk
+   table, naming an explicit owner and target date for every residual-risk row.
+
+## Evidence of Understanding
+
+You can run a security review that distinguishes implemented, tested, and residual-risk controls,
+using IAM Access Analyzer findings as evidence rather than a manual policy read-through, and you
+can name a specific case where ""looks fine"" and ""actually tested"" produced different answers. You
+can simulate a credential-compromise incident through detection, containment, and verification as
+three distinct steps, and prove containment held by showing the exact same action fails after your
+response that succeeded before it. You can present a security review's findings as a defensible
+sequencing decision — what was fixed first, what was accepted as residual risk and why, with a
+named owner — rather than an unqualified ""it's secure"" claim.
+
+## Suggested Extension
+
+Schedule the Access Analyzer scan and the three-column implemented/tested/residual-risk review as
+a recurring monthly job (an EventBridge-triggered Lambda that runs the scan and posts a summary to
+a security review channel), and explain why a security review that only happens once, at launch, is
+insufficient for a system that keeps shipping new services and IAM roles after that first review.
+",
         _ => null
     };
 
