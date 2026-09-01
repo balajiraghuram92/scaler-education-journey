@@ -69,9 +69,9 @@ cd /home/rbalaji/scaler-education-journey
 git log --oneline -3
 sed -n '/GetAuthoredFdeLessonContent/,/^    };/p' api/Data/FdeCurriculumSeedData.cs | grep -oP '"\K[0-9]{2}-[a-z0-9-]+(?=")' | wc -l
 ```
-As of the latest working tree: **104 authored lesson cases** are in `GetAuthoredFdeLessonContent`,
-and `app/src/data/lessonInteractions.js` has 18 `java-spring-lld` + 104 `fde-curriculum` keys =
-122 total.
+As of the latest working tree: **116 authored lesson cases** are in `GetAuthoredFdeLessonContent`,
+and `app/src/data/lessonInteractions.js` has 18 `java-spring-lld` + 116 `fde-curriculum` keys =
+134 total.
 
 | # | Module | Slug | Lessons | Status |
 |---|---|---|---|---|
@@ -84,10 +84,11 @@ and `app/src/data/lessonInteractions.js` has 18 `java-spring-lld` + 104 `fde-cur
 | 6 | Agentic Systems & Enterprise Integrations | `agentic-systems-integrations` | 11/11 | ✅ Done (Phases 13-14) |
 | 7 | Application Engineering, Security & Reliability | `application-security-reliability` | 12/12 | ✅ Done (Phases 15-16 — MODULE COMPLETE) |
 | 8 | System Design, Capstone & Hiring Readiness | `system-design-capstone` | 14/14 | ✅ Done (Phases 17-19 — MODULE COMPLETE) |
-| — | Elective: Containerization/K8s | `elective-containerization-orchestration` | 0/17 | ❌ Not started (out of scope unless user asks) |
-| — | Elective: AWS Multi-Region | `elective-aws-multi-region-cloud-deep-dive` | 0/31 | ❌ Not started (out of scope unless user asks) |
+| — | Elective: Containerization/K8s | `elective-containerization-orchestration` | 12/17 | 🟡 In progress (Phases 20 & 21 done; Phase 22 L13-17 pending) |
+| — | Elective: AWS Multi-Region | `elective-aws-multi-region-cloud-deep-dive` | 0/17 | ❌ Not started |
+| — | Elective: Storage, Networking & Reliability | `elective-storage-networking-reliability` | 0/14 | ❌ Not started |
 
-**Total applied: 104 of 104 core curriculum lessons (100% COMPLETE). The entire FDE core curriculum is now fully authored, verified, and wired into the application.**
+**Total applied: 116 authored lessons (104 core [100% complete] + 12 elective lessons).**
 
 ---
 
@@ -116,6 +117,17 @@ infra topics more than the conceptual core modules were).
 
 Dispatched 2 subagents at a time (throttled after an earlier 4-parallel dispatch hit the session
 rate limit) — see progress notes below as each wave completes.
+
+**Wave 2 (Phases 22, 23) hit the rate limit mid-run** — both agents had already written their
+`-content.md` files before failing on the API call that would have produced the `-prompt.md`
+files. Claude verified both content files directly (43 MCQs for Phase 22, 55 for Phase 23, all
+4-option/answer-key-clean) and wrote the two missing `-prompt.md` files by hand from the
+established template, rather than re-running the agents. **Phase 22 (`elective-
+containerization-orchestration` lessons 13-17, COMPLETES that module at 17/17) and Phase 23
+(`elective-aws-multi-region-cloud-deep-dive` lessons 1-6) are both fully authored and ready to
+apply.** Prerequisite counts: Phase 22 needs 116 cases/134 keys before it (after Phases 20-21);
+Phase 23 needs 121 cases/139 keys before it (after Phases 20-22, i.e. the full Containerization/
+K8s elective applied).
 
 ---
 

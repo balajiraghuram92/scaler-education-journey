@@ -235,4 +235,19 @@
 - [x] **Sub-task 32.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
 - [x] **Sub-task 32.5**: Update task tracker and provide final Docker Compose / SQL verification steps across all 104 lessons.
 
+## Phase 33: FDE Elective Pipeline — Containerization & Orchestration (Lessons 1-6 of 17) (Completed)
+- [x] **Sub-task 33.1**: Ingest 6 Lesson chapter bodies for `elective-containerization-orchestration` (Lessons 1-6) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 33.2**: Wire 12 Concept Checks (2 per lesson) and 39 Practice Questions across all 6 lessons (51 total MCQs, including 6 code-block MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 33.3**: Confirm architecture diagrams are omitted for Lessons 1-6 per §8a inclusion test criteria.
+- [x] **Sub-task 33.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 33.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+## Phase 34: FDE Elective Pipeline — Containerization & Orchestration (Lessons 7-12 of 17) (Completed)
+- [x] **Sub-task 34.1**: Ingest 6 Lesson chapter bodies for `elective-containerization-orchestration` (Lessons 7-12) into `api/Data/FdeCurriculumSeedData.cs` (`GetAuthoredFdeLessonContent`).
+- [x] **Sub-task 34.2**: Wire 12 Concept Checks (2 per lesson) and 41 Practice Questions across all 6 lessons (53 total MCQs, including 6 code-block MCQs) into `app/src/data/lessonInteractions.js`.
+- [x] **Sub-task 34.3**: Add architecture diagram for Lesson 10 (`10-kubernetes-architecture`) modeling the 6-actor control-plane to worker handoff path.
+- [x] **Sub-task 34.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
+- [x] **Sub-task 34.5**: Update task tracker and provide Docker Compose / SQL verification steps.
+
+
 

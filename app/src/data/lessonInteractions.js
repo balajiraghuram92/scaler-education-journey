@@ -16559,6 +16559,1785 @@ const lessonInteractions = {
       }
     ]
   },
+  'fde-curriculum/elective-containerization-orchestration/01-docker-introduction': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-01-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — NAMESPACES VS CGROUPS',
+        question:
+          'A container is started with a 64MB memory ceiling and its own process tree, but still ends up on the same physical CPU cores and can still be seen (with the right host tooling) from outside the container. Which pairing of mechanism to responsibility is correct?',
+        options: [
+          { id: 'a', label: 'A', text: 'Namespaces control what the process can see (its own PID tree, network view); cgroups control what it can use (the memory ceiling)' },
+          { id: 'b', label: 'B', text: 'Cgroups control what the process can see; namespaces control what it can use' },
+          { id: 'c', label: 'C', text: 'Both namespaces and cgroups are purely about memory limiting, with different syntax' },
+          { id: 'd', label: 'D', text: 'Namespaces and cgroups are two names for the same underlying kernel feature' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson draws this line explicitly: namespaces are about visibility (PID tree, network interfaces, mounts), cgroups are about resource consumption ceilings enforced by the kernel.',
+        incorrectExplanation:
+          'The lesson draws this line explicitly: namespaces are about visibility (PID tree, network interfaces, mounts), cgroups are about resource consumption ceilings enforced by the kernel.',
+        hint: 'The lesson draws this line explicitly: namespaces are about visibility (PID tree, network interfaces, mounts), cgroups are about resource consumption ceilings enforced by the kernel.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-01-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — `--PID=HOST` TRADE-OFF',
+        question:
+          'Per the Suggested Extension, running `docker run --rm --pid=host alpine ps aux` shows the container the host\'s own full process list, unlike a normal container run. What does this demonstrate about namespace isolation?',
+        options: [
+          { id: 'a', label: 'A', text: '`--pid=host` is required for any container that needs to run more than one process' },
+          { id: 'b', label: 'B', text: '`--pid=host` disables the container\'s own PID namespace, letting it see (and, with the right privileges, potentially signal) every process on the host — namespace isolation is a configurable boundary, not an unconditional guarantee' },
+          { id: 'c', label: 'C', text: '`--pid=host` only affects network namespace behavior, not the process tree' },
+          { id: 'd', label: 'D', text: 'Alpine-based images ignore `--pid` flags entirely due to their minimal init system' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This extension is designed to show that namespace isolation is a deliberate, removable boundary — `--pid=host` opts a container out of PID namespace isolation, exposing the host\'s real process tree, which is exactly the kind of flag a security review should flag if present without justification.',
+        incorrectExplanation:
+          'This extension is designed to show that namespace isolation is a deliberate, removable boundary — `--pid=host` opts a container out of PID namespace isolation, exposing the host\'s real process tree, which is exactly the kind of flag a security review should flag if present without justification.',
+        hint: 'This extension is designed to show that namespace isolation is a deliberate, removable boundary — `--pid=host` opts a container out of PID namespace isolation, exposing the host\'s real process tree, which is exactly the kind of flag a security review should flag if present without justification.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-01-mcq-01',
+        question:
+          'Which statement most accurately describes what a Docker container is, relative to the host it runs on?',
+        options: [
+          { id: 'a', label: 'A', text: 'A lightweight virtual machine that boots its own kernel but shares the host\'s hardware drivers' },
+          { id: 'b', label: 'B', text: 'An ordinary Linux process restricted by namespaces (what it can see) and cgroups (what it can use), sharing the host kernel with every other container' },
+          { id: 'c', label: 'C', text: 'A statically compiled binary that requires no kernel features from the host at all' },
+          { id: 'd', label: 'D', text: 'A separate physical partition of the host\'s disk that Docker mounts as a chroot jail' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that a container is not a lightweight VM — it is a kernel-restricted process, isolated by namespaces and bounded by cgroups, on a kernel shared with the host and every neighboring container.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-01-mcq-02',
+        question:
+          'Every `docker` command you type on a workstation suddenly hangs, including `docker ps`. Per the lesson\'s description of the client/daemon architecture, what does this most likely indicate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The specific container you were about to inspect has crashed' },
+          { id: 'b', label: 'B', text: '`dockerd`, the daemon the `docker` CLI client talks to, is hung or unresponsive — since every client command routes through it, all commands hang together, not just one' },
+          { id: 'c', label: 'C', text: 'Your shell\'s `PATH` no longer includes the `docker` binary' },
+          { id: 'd', label: 'D', text: 'A namespace collision between two unrelated containers' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson calls this out specifically: the `docker` CLI is a thin client to `dockerd`, so a hung daemon manifests as every command hanging, not a per-command failure — a diagnostic signature worth recognizing.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-01-mcq-03',
+        question:
+          'Per the lesson, which of the following is explicitly a problem Docker does NOT solve by itself?',
+        options: [
+          { id: 'a', label: 'A', text: 'Packaging an application\'s runtime and dependencies into one portable artifact' },
+          { id: 'b', label: 'B', text: 'Deciding which of several machines should run a given container, and restarting it automatically on a different host if that machine fails' },
+          { id: 'c', label: 'C', text: 'Producing an image that runs identically on any host with a compatible Docker daemon' },
+          { id: 'd', label: 'D', text: 'Giving a container its own filesystem view distinct from the host\'s' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson lists multi-host scheduling, restart-on-failure, service discovery, and coordinated rollout as orchestration\'s job, not Docker\'s — this is the exact gap the rest of the module addresses with Kubernetes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-01-mcq-04',
+        question:
+          'Why did `pip install -r requirements.txt` fail on Vantage\'s ops engineer\'s machine when it had always worked on the FDE\'s laptop?',
+        options: [
+          { id: 'a', label: 'A', text: '`requirements.txt` was missing from the zipped source tree' },
+          { id: 'b', label: 'B', text: 'The FDE\'s laptop had system libraries (PostgreSQL client headers) and a Python version installed from unrelated prior work that were never captured as explicit dependencies anywhere in the repository' },
+          { id: 'c', label: 'C', text: 'PostgreSQL cannot be installed on any machine other than the original development laptop' },
+          { id: 'd', label: 'D', text: 'The ops engineer used a different version of `pip` than the FDE' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s point is exactly this: implicit, undocumented host assumptions (installed two years ago, for an unrelated project) silently made the laptop\'s environment "work" in a way that was never actually written down or reproducible elsewhere.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-01-mcq-05',
+        question:
+          'Given the command and output above, run inside a container, what does the reported PID of `1` demonstrate about the container\'s PID namespace?',
+        codeBlock: '$ docker run --rm alpine sh -c \'echo $; cat /proc/1/comm\'\n1\nsh',
+        options: [
+          { id: 'a', label: 'A', text: 'The container has its own PID namespace, in which its first process is numbered 1, regardless of what PID that same process holds from the host\'s point of view' },
+          { id: 'b', label: 'B', text: 'The `alpine` image is broken because a normal process should never be PID 1' },
+          { id: 'c', label: 'C', text: 'Docker always runs exactly one process per container, so PID 1 is guaranteed by definition rather than by the namespace mechanism' },
+          { id: 'd', label: 'D', text: 'The host machine itself was rebooted immediately before this command ran' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is Practice Loop step 3\'s diagnostic: the container\'s own PID namespace numbers its first process 1 independent of the host\'s actual process table, making the isolation concrete rather than asserted.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-01-mcq-06',
+        question:
+          'Practice Loop step 4 has you run the same container with and without `--memory=64m`, then inspect `HostConfig.Memory` for each. What is this step actually verifying?',
+        options: [
+          { id: 'a', label: 'A', text: 'That the container\'s application code runs faster with a memory limit set' },
+          { id: 'b', label: 'B', text: 'That the cgroup-based memory ceiling is recorded and enforced per-container, not as a global, shared setting across every container on the host' },
+          { id: 'c', label: 'C', text: 'That `alpine` requires at least 64MB of memory to start at all' },
+          { id: 'd', label: 'D', text: 'That `docker inspect` only works on containers that were started with an explicit memory flag' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The step exists to make the per-container cgroup ceiling concrete: one run shows a recorded limit, the other shows none, proving the setting is per-container rather than host-wide.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-containerization-orchestration/02-docker-images-and-containers': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-02-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — IMAGE LAYERS VS THE WRITABLE CONTAINER LAYER',
+        question:
+          'What is the structural relationship between a Docker image and a running container built from it?',
+        options: [
+          { id: 'a', label: 'A', text: 'A container is a full copy of the image\'s filesystem, independent of the image after it starts' },
+          { id: 'b', label: 'B', text: 'A container adds one writable layer on top of the image\'s read-only layers via a union filesystem; the image\'s layers themselves are never modified' },
+          { id: 'c', label: 'C', text: 'An image is generated dynamically each time a container starts, from the container\'s current filesystem state' },
+          { id: 'd', label: 'D', text: 'Images and containers are two names for the same object at different points in Docker\'s release history' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit: a container stacks exactly one writable layer on the image\'s read-only layers, and every runtime write lands there, never touching the underlying image.',
+        incorrectExplanation:
+          'The lesson is explicit: a container stacks exactly one writable layer on the image\'s read-only layers, and every runtime write lands there, never touching the underlying image.',
+        hint: 'The lesson is explicit: a container stacks exactly one writable layer on the image\'s read-only layers, and every runtime write lands there, never touching the underlying image.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-02-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — WHY A TAG ALONE IS NOT REPRODUCIBLE',
+        question:
+          'Why does the lesson argue that a tag like `ticket-api:1.4.2` is not, by itself, a reliable way to reproduce an exact build?',
+        options: [
+          { id: 'a', label: 'A', text: 'Tags are limited to 8 characters, so version information is frequently truncated' },
+          { id: 'b', label: 'B', text: 'A tag is a mutable, movable pointer — nothing prevents the same tag from being silently rebuilt and re-pushed with different underlying content later' },
+          { id: 'c', label: 'C', text: 'Docker deletes tags automatically after 90 days for storage reasons' },
+          { id: 'd', label: 'D', text: 'Tags cannot be pulled from a private registry, only digests can' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s point is specifically about mutability: a tag can be repointed at new content at any time, which is exactly why the incident scenario needed the recorded digest, not the tag.',
+        incorrectExplanation:
+          'The lesson\'s point is specifically about mutability: a tag can be repointed at new content at any time, which is exactly why the incident scenario needed the recorded digest, not the tag.',
+        hint: 'The lesson\'s point is specifically about mutability: a tag can be repointed at new content at any time, which is exactly why the incident scenario needed the recorded digest, not the tag.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-02-mcq-01',
+        question:
+          'Given this command and output, what does the returned value let you do that the tag `ticket-api:1.4.2` alone does not guarantee?',
+        codeBlock: '$ docker inspect --format=\'{{index .RepoDigests 0}}\' ticket-api:1.4.2\nticket-api@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        options: [
+          { id: 'a', label: 'A', text: 'Pull or reference this exact image content later, unaffected by any future rebuild that reuses the same tag' },
+          { id: 'b', label: 'B', text: 'Automatically rebuild the image from its original Dockerfile, since the digest encodes the build instructions' },
+          { id: 'c', label: 'C', text: 'Determine which Dockerfile instruction produced the largest layer' },
+          { id: 'd', label: 'D', text: 'Guarantee the image will run identically on a different CPU architecture' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The digest is a content hash of this exact manifest — referencing it by digest is immune to the tag being repointed at different content later, which is the whole reason the incident-response scenario relies on it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-02-mcq-02',
+        question:
+          'In the Practical Backend Scenario, why couldn\'t the support team just pull `ticket-api:latest` to reproduce the build that was live during the 02:14 UTC incident?',
+        options: [
+          { id: 'a', label: 'A', text: '`latest` tags cannot be pulled from a private registry under any circumstances' },
+          { id: 'b', label: 'B', text: '`latest` had been rebuilt three times since the incident, and nothing guarantees any of those later rebuilds are byte-identical to what was actually running at 02:14 UTC' },
+          { id: 'c', label: 'C', text: 'The incident occurred before `ticket-api` had ever been tagged `latest`' },
+          { id: 'd', label: 'D', text: 'PostgreSQL connection strings are embedded in the `latest` tag and change on every pull' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the scenario\'s central point: a tag drifts over time as new builds are pushed under it, so only the recorded digest from the actual deployment log guarantees the exact build content.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-02-mcq-03',
+        question:
+          'Practice Loop step 3 has you write a file inside a running container (with no volume mounted) and then run `docker diff` on it before removing the container. What does `docker diff`\'s output represent?',
+        options: [
+          { id: 'a', label: 'A', text: 'The difference between two separate image tags built from the same Dockerfile' },
+          { id: 'b', label: 'B', text: 'The filesystem changes present in the container\'s writable layer relative to its base image — additions, modifications, and deletions the container made at runtime' },
+          { id: 'c', label: 'C', text: 'A byte-level diff between the container\'s memory usage before and after the write' },
+          { id: 'd', label: 'D', text: 'The set of Dockerfile instructions that were cache-invalidated during the most recent build' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`docker diff` reports exactly the writable-layer changes a container has made since it started — which is why the file from step 3 shows up there and nowhere in the image\'s own layers.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-02-mcq-04',
+        question:
+          'Practice Loop step 4 has you remove the container from step 3 and confirm the file you wrote is genuinely gone. Why does removing the container also remove that file?',
+        options: [
+          { id: 'a', label: 'A', text: '`docker rm` triggers a scheduled garbage-collection job that runs a few minutes later' },
+          { id: 'b', label: 'B', text: 'The file existed only in the container\'s writable layer, which is deleted along with the container itself; it was never part of the image\'s own persistent layers' },
+          { id: 'c', label: 'C', text: '`docker rm` deletes the entire image, not just the container instance' },
+          { id: 'd', label: 'D', text: 'Files written without an explicit `chmod` are automatically excluded from the writable layer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct operational consequence of the writable-layer mechanism: anything not placed in a volume disappears when the container that wrote it is removed, because that is exactly what the writable layer is.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-02-mcq-05',
+        question:
+          'Practice Loop step 1 builds `ticket-api` twice under different tags, with one intentional code change between builds. Per the mechanism this lesson describes, which layers would the second build most likely reuse from the first build\'s cache?',
+        options: [
+          { id: 'a', label: 'A', text: 'Every layer up to and including the one built from the last Dockerfile instruction that is identical to the first build, in order, before the changed instruction' },
+          { id: 'b', label: 'B', text: 'No layers at all, since any code change anywhere invalidates the entire build from scratch' },
+          { id: 'c', label: 'C', text: 'Only the final `COPY . .` layer, since that always changes least often' },
+          { id: 'd', label: 'D', text: 'All layers, since Docker caches builds by tag name rather than by layer content' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states the caching rule precisely: a layer is reused only if it and every instruction above it in the Dockerfile are byte-identical to a prior build — reuse holds up to the first point of divergence, then stops.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-02-mcq-06',
+        question:
+          'Practice Loop step 2 has you run `docker history ticket-api:1.4.2` to identify the `pip install` layer versus the final `COPY . .` layer. What is the practical reason for learning to read this output?',
+        options: [
+          { id: 'a', label: 'A', text: '`docker history` is required before every `docker run`, or the container refuses to start' },
+          { id: 'b', label: 'B', text: 'Being able to attribute image size and layer boundaries to specific Dockerfile instructions is what lets you reason about cache reuse and image bloat concretely, instead of guessing which instruction is expensive' },
+          { id: 'c', label: 'C', text: 'It reveals the exact CPU time each build step consumed on the build machine' },
+          { id: 'd', label: 'D', text: 'It shows which layers were pulled from a remote registry versus built locally, which is unrelated to the Dockerfile\'s instructions' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Mapping layers to instructions is the diagnostic skill this step builds — it turns "the image feels big" into "this specific instruction produced this specific layer size," which is what later Dockerfile-authoring work depends on.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-containerization-orchestration/03-building-your-own-docker-image': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-03-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — ARG VS ENV',
+        question:
+          'A Dockerfile needs a value known only at build time (a build number passed via `--build-arg`) and a separate value that the running container\'s application should be able to read via its environment. Which instruction is correct for each?',
+        options: [
+          { id: 'a', label: 'A', text: 'Use `ENV` for both — `ARG` cannot hold string values' },
+          { id: 'b', label: 'B', text: 'Use `ARG` for the build-time-only value, and `ENV` for the value that must also be available inside the running container' },
+          { id: 'c', label: 'C', text: 'Use `ARG` for both — `ENV` is deprecated in favor of `ARG`' },
+          { id: 'd', label: 'D', text: 'The distinction is purely stylistic; both instructions behave identically at build time and runtime' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`ARG` values exist only during the build and are not present in the running container unless explicitly copied into an `ENV`; `ENV` values are baked into the image and available at runtime.',
+        incorrectExplanation:
+          '`ARG` values exist only during the build and are not present in the running container unless explicitly copied into an `ENV`; `ENV` values are baked into the image and available at runtime.',
+        hint: '`ARG` values exist only during the build and are not present in the running container unless explicitly copied into an `ENV`; `ENV` values are baked into the image and available at runtime.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-03-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — ENTRYPOINT AND CMD COMPOSING',
+        question:
+          'A Dockerfile has `ENTRYPOINT ["python"]` and `CMD ["-m", "ticket_api"]`. What does `docker run ticket-api -m ticket_worker` actually execute inside the container?',
+        options: [
+          { id: 'a', label: 'A', text: '`python -m ticket_api -m ticket_worker`, since CMD arguments are always appended, never replaced' },
+          { id: 'b', label: 'B', text: '`python -m ticket_worker`, since the arguments passed to `docker run` after the image name override CMD\'s default arguments while ENTRYPOINT stays fixed' },
+          { id: 'c', label: 'C', text: 'The command fails, since ENTRYPOINT cannot be combined with a separate CMD' },
+          { id: 'd', label: 'D', text: '`python` alone, ignoring both CMD and the docker run arguments' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson describes exactly this composition: ENTRYPOINT is the fixed command, CMD supplies default arguments that a `docker run` command line overrides, not appends to.',
+        incorrectExplanation:
+          'The lesson describes exactly this composition: ENTRYPOINT is the fixed command, CMD supplies default arguments that a `docker run` command line overrides, not appends to.',
+        hint: 'The lesson describes exactly this composition: ENTRYPOINT is the fixed command, CMD supplies default arguments that a `docker run` command line overrides, not appends to.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-03-mcq-01',
+        question:
+          'Why does the lesson recommend `WORKDIR /app` over `RUN cd /app && ...` for setting a Dockerfile\'s working directory?',
+        options: [
+          { id: 'a', label: 'A', text: 'Each `RUN` instruction is its own shell invocation, so a `cd` inside one `RUN` does not persist to the next `RUN`; `WORKDIR` sets the directory for every subsequent instruction reliably' },
+          { id: 'b', label: 'B', text: '`cd` is not a valid command inside any Docker build context, regardless of instruction' },
+          { id: 'c', label: 'C', text: '`WORKDIR` is faster to execute than `cd` at the shell level' },
+          { id: 'd', label: 'D', text: '`RUN cd` instructions are not cached, unlike `WORKDIR`' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this precisely: each `RUN` is a fresh shell, so a `cd` there has no effect on later instructions, while `WORKDIR` persists across the rest of the Dockerfile.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-03-mcq-02',
+        question:
+          'Given this `CMD` instruction, written in shell form, what process actually becomes PID 1 inside the container, and what is the consequence?',
+        codeBlock: 'CMD python app.py',
+        options: [
+          { id: 'a', label: 'A', text: '`python app.py` becomes PID 1 directly, identical in behavior to exec form' },
+          { id: 'b', label: 'B', text: '`/bin/sh` becomes PID 1, with the Python process as its child; `/bin/sh` does not forward a `SIGTERM` to that child by default, so the application never sees the termination signal' },
+          { id: 'c', label: 'C', text: 'The container fails to start, since shell form is not valid Dockerfile syntax' },
+          { id: 'd', label: 'D', text: 'Docker automatically converts shell form to exec form at build time, so there is no runtime difference' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s central mechanism: shell form wraps the command in `/bin/sh -c`, putting the shell at PID 1 and leaving signal forwarding to the shell, which does not happen automatically — exactly what breaks graceful shutdown in the scenario.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-03-mcq-03',
+        question:
+          'Why did the naive `ticket-api` Dockerfile bake the FDE\'s local `.env` file, containing a real database password, into an image layer?',
+        options: [
+          { id: 'a', label: 'A', text: '`COPY . .` always ignores hidden files (those starting with `.`) unless told otherwise' },
+          { id: 'b', label: 'B', text: 'With no `.dockerignore` file, `COPY . .` copies everything in the build context, including `.env`, into the image; the file becomes part of a layer the moment it is copied, regardless of whether the application ever reads it' },
+          { id: 'c', label: 'C', text: 'Docker automatically injects any local `.env` file into every image as a convenience feature' },
+          { id: 'd', label: 'D', text: '`pip install` reads and re-exports environment files by default' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Without a `.dockerignore`, `COPY . .` has no way to know `.env` should be excluded — it copies the entire build context by default, and once a file is in a layer, `docker history` can expose it even if it\'s later deleted in a subsequent instruction.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-03-mcq-04',
+        question:
+          'Practice Loop step 3 has you search `docker history --no-trunc`\'s output for a known local password value. What does finding it there prove that simply knowing "`.env` wasn\'t excluded" does not?',
+        options: [
+          { id: 'a', label: 'A', text: 'That the password is currently valid and could be used to log in to production' },
+          { id: 'b', label: 'B', text: 'A concrete, verifiable confirmation that the secret actually made it into a built image layer — not just a theoretical risk from a missing `.dockerignore`, but proof it happened in this specific build' },
+          { id: 'c', label: 'C', text: 'That `pip install` failed during this particular build' },
+          { id: 'd', label: 'D', text: 'The exact line number of the `.env` file where the password is stored' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This step exists to make the risk visceral and countable rather than asserted — actually finding the value in a layer is the diagnostic proof the lesson\'s Practice Loop convention calls for.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-03-mcq-05',
+        question:
+          'What does declaring `HEALTHCHECK` directly in the Dockerfile provide that running the same `curl` command manually from outside the container would not?',
+        options: [
+          { id: 'a', label: 'A', text: 'It makes the application itself run faster by pre-warming its caches' },
+          { id: 'b', label: 'B', text: 'The liveness check becomes part of the image itself, so any tooling running the image — Compose, a bare `docker run`, or later Kubernetes — inherits a working health signal without reinventing one per deployment target' },
+          { id: 'c', label: 'C', text: 'It replaces the need for the application to expose a `/health` endpoint at all' },
+          { id: 'd', label: 'D', text: 'It is required syntax; a Dockerfile without `HEALTHCHECK` fails to build' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson frames `HEALTHCHECK` as portable, image-level metadata — the health signal travels with the image rather than being reinvented by whatever tool happens to run it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-03-mcq-06',
+        question:
+          'Practice Loop step 5 times `docker stop` against containers from both the naive and fixed Dockerfiles. What result would confirm the exec-form fix actually worked?',
+        options: [
+          { id: 'a', label: 'A', text: 'The fixed image\'s container exits almost immediately, while the naive image\'s container waits out the full grace period before being force-killed' },
+          { id: 'b', label: 'B', text: 'Both containers exit at exactly the same speed, since `docker stop`\'s grace period is a fixed, image-independent setting' },
+          { id: 'c', label: 'C', text: 'The fixed image\'s container takes longer to stop, since exec form adds extra signal-handling overhead' },
+          { id: 'd', label: 'D', text: 'Neither container ever stops cleanly, since `SIGTERM` is not supported inside containers at all' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the observable proof of the mechanism: exec form lets the app receive SIGTERM directly and exit promptly, while shell form\'s un-forwarded signal means the app never reacts until SIGKILL arrives at the end of the grace period.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-03-mcq-07',
+        question:
+          'Per the Suggested Extension, a Dockerfile declares `ARG VERSION` followed by `ENV APP_VERSION=$VERSION`, and the image is built with `docker build --build-arg VERSION=1.5.0`. Why is this pattern necessary if the running container needs to read `APP_VERSION` from its environment?',
+        options: [
+          { id: 'a', label: 'A', text: '`ARG` values are automatically available as environment variables inside the running container, so the `ENV` line is redundant' },
+          { id: 'b', label: 'B', text: '`ARG` values exist only during the build and are not present in the running container by themselves; explicitly assigning the `ARG` value to an `ENV` variable is what makes it available at runtime' },
+          { id: 'c', label: 'C', text: '`docker build --build-arg` sets environment variables directly on the host, bypassing the Dockerfile entirely' },
+          { id: 'd', label: 'D', text: '`ENV` variables cannot reference `ARG` values under any circumstances' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exactly the ARG-vs-ENV distinction applied concretely: the build-time-only ARG must be explicitly bridged into an ENV for the value to survive into the running container.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-containerization-orchestration/04-images-and-containers-deep-dive': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-04-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — WHAT PID 1 DOES NOT AUTOMATICALLY GET',
+        question:
+          'Why doesn\'t a container\'s application process, running as PID 1, automatically behave like a normal system\'s `init`/`systemd` process?',
+        options: [
+          { id: 'a', label: 'A', text: 'The kernel does not retroactively grant special init behaviors (zombie reaping, default signal handling for unregistered signals) to whatever process happens to hold PID 1 — those behaviors belong to actual init software, not to the PID number itself' },
+          { id: 'b', label: 'B', text: 'Docker explicitly disables all signal handling for any process running as PID 1' },
+          { id: 'c', label: 'C', text: 'PID 1 is reserved and containers are never actually allowed to run application code as PID 1' },
+          { id: 'd', label: 'D', text: 'Only processes started with `sudo` inside a container can act as a true init process' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is precise here: PID 1\'s special behaviors come from being real init software, not from the PID number — a container\'s ENTRYPOINT process is ordinary application code that happens to hold that number.',
+        incorrectExplanation:
+          'The lesson is precise here: PID 1\'s special behaviors come from being real init software, not from the PID number — a container\'s ENTRYPOINT process is ordinary application code that happens to hold that number.',
+        hint: 'The lesson is precise here: PID 1\'s special behaviors come from being real init software, not from the PID number — a container\'s ENTRYPOINT process is ordinary application code that happens to hold that number.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-04-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — 137 VS 143',
+        question:
+          'What is the specific difference in meaning between exit code 137 and exit code 143?',
+        options: [
+          { id: 'a', label: 'A', text: '137 means the application crashed; 143 means it exited cleanly with no signal involved' },
+          { id: 'b', label: 'B', text: '137 (128+9) means the process was force-killed with SIGKILL; 143 (128+15) means the process received SIGTERM and exited in response to it, without necessarily being forcibly killed afterward' },
+          { id: 'c', label: 'C', text: 'They are two different encodings of the same underlying signal, chosen arbitrarily by the container runtime' },
+          { id: 'd', label: 'D', text: '137 applies only to worker containers; 143 applies only to web-facing containers' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is exact signal arithmetic: 128 + signal number. SIGKILL is signal 9 (137), SIGTERM is signal 15 (143) — one is a hard kill, the other is the terminate-request the process actually responded to.',
+        incorrectExplanation:
+          'This is exact signal arithmetic: 128 + signal number. SIGKILL is signal 9 (137), SIGTERM is signal 15 (143) — one is a hard kill, the other is the terminate-request the process actually responded to.',
+        hint: 'This is exact signal arithmetic: 128 + signal number.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-04-mcq-01',
+        question:
+          'Per the lesson, which situation specifically calls for adding `tini` as a container\'s real PID 1?',
+        options: [
+          { id: 'a', label: 'A', text: 'Any container at all, regardless of what its main process does, as an unconditional best practice' },
+          { id: 'b', label: 'B', text: 'A main process that spawns its own child processes (e.g. shelling out to a subprocess) without explicitly reaping them, since without a real init at PID 1 those children can become unreaped zombies' },
+          { id: 'c', label: 'C', text: 'Only containers that expose an HTTP port' },
+          { id: 'd', label: 'D', text: 'Only containers running as a non-root user' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson ties `tini`\'s value specifically to the zombie-reaping problem, which only arises when the main process forks children it doesn\'t reap itself — not a blanket recommendation for every image.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-04-mcq-02',
+        question:
+          'Given this output, what does exit code 137 combined with `OOMKilled: true` tell you, precisely?',
+        codeBlock: '$ echo $?\n137\n$ docker inspect worker --format=\'{{.State.OOMKilled}}\'\ntrue',
+        options: [
+          { id: 'a', label: 'A', text: 'The application raised an unhandled Python exception' },
+          { id: 'b', label: 'B', text: 'The process was killed by signal 9 (SIGKILL, since 137 = 128 + 9), and specifically because the kernel\'s OOM killer terminated it for exceeding its cgroup memory ceiling, not because of a `docker stop` timeout' },
+          { id: 'c', label: 'C', text: 'The container exited cleanly with a warning' },
+          { id: 'd', label: 'D', text: 'The process received SIGTERM and shut down gracefully in response' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '137 alone only tells you SIGKILL happened; `OOMKilled: true` is what disambiguates an OOM kill from a `docker stop` grace-period SIGKILL, exactly as the lesson describes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-04-mcq-03',
+        question:
+          'In the scenario, why did the on-call FDE initially assume the worker had crashed on bad input, when the actual cause was different?',
+        options: [
+          { id: 'a', label: 'A', text: 'The deployment log showed exit code 1, which is conventionally associated with input validation failures' },
+          { id: 'b', label: 'B', text: 'Exit code 137 alone does not distinguish an OOM kill from other causes of SIGKILL; only checking `OOMKilled` via `docker inspect` revealed the worker had exceeded its 256MB memory ceiling while resizing an unusually large image' },
+          { id: 'c', label: 'C', text: 'The worker\'s logs were deleted before the FDE could review them' },
+          { id: 'd', label: 'D', text: 'PostgreSQL rejected the worker\'s connection due to a credential mismatch' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the scenario\'s point precisely: a bare 137 invites a guess, and only the explicit `OOMKilled` check turns the guess into a confirmed diagnosis of a memory-ceiling breach, not an application bug.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-04-mcq-04',
+        question:
+          'A Dockerfile sets `ENV DATABASE_URL=postgres://localhost/dev`, and the container is started with `docker run -e DATABASE_URL=postgres://prod-db/app ticket-api`. Which value does the running application actually see?',
+        options: [
+          { id: 'a', label: 'A', text: '`postgres://localhost/dev`, since the image-baked default always wins' },
+          { id: 'b', label: 'B', text: '`postgres://prod-db/app`, since a value passed at `docker run` (or Compose service level) overrides the image\'s baked-in default' },
+          { id: 'c', label: 'C', text: 'Both values are concatenated into a single string' },
+          { id: 'd', label: 'D', text: 'Neither value is used; the application must read a separate config file' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson states the practical precedence rule directly: `docker run`/Compose-level values beat whatever the image baked in as a default, which is exactly what lets one image run correctly in both staging and production.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-04-mcq-05',
+        question:
+          'Practice Loop steps 1 and 2 have you watch for a `<defunct>` zombie entry in `ps aux` without `tini`, then confirm it disappears with `tini` added. What does the disappearance specifically prove?',
+        options: [
+          { id: 'a', label: 'A', text: 'That `tini` made the worker\'s image-resize subprocess run faster' },
+          { id: 'b', label: 'B', text: 'That `tini`, now running as the real PID 1, is correctly reaping the child processes the worker spawns — the exact mechanism the zombie accumulation problem was missing without it' },
+          { id: 'c', label: 'C', text: 'That the worker no longer spawns any subprocesses at all' },
+          { id: 'd', label: 'D', text: 'That the worker\'s memory ceiling was the actual cause of the zombie processes' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This diagnostic step directly confirms the mechanism claimed in Concepts Covered: with `tini` as PID 1, reaping happens correctly, which is observable as the zombie no longer persisting.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-04-mcq-06',
+        question:
+          'Practice Loop step 4 has you run `docker stop` on a healthy worker and compare its exit code to step 3\'s memory-limited run. What result would you expect if both fixes from this lesson are correctly understood?',
+        options: [
+          { id: 'a', label: 'A', text: 'Step 3 (memory-limited) shows 137 with `OOMKilled: true`; step 4 (`docker stop`) shows 143, since the process received and responded to SIGTERM rather than being force-killed by the OOM killer' },
+          { id: 'b', label: 'B', text: 'Both steps should show identical exit codes, since any container termination is functionally the same event' },
+          { id: 'c', label: 'C', text: 'Step 4 should also show `OOMKilled: true`, since `docker stop` always exceeds the memory ceiling' },
+          { id: 'd', label: 'D', text: 'Step 3 should show 143 and step 4 should show 137, the reverse of the correct mapping' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the exact contrast the Practice Loop is built to demonstrate: two different causes of container death produce two distinguishable, correctly-attributable exit codes.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-04-mcq-07',
+        question:
+          'Per the Suggested Extension, why does streaming the image-resize step instead of loading the full file into memory fix the recurring OOM kill, rather than simply raising the memory ceiling indefinitely?',
+        options: [
+          { id: 'a', label: 'A', text: 'Raising the memory ceiling is architecturally impossible in Docker past a fixed maximum' },
+          { id: 'b', label: 'B', text: 'Raising the ceiling only postpones the same failure for a larger future upload; reducing the worker\'s actual peak memory usage (by never holding a full-resolution copy in memory) fixes the root cause rather than moving the threshold' },
+          { id: 'c', label: 'C', text: 'Streaming makes the resize operation itself run in a separate container automatically' },
+          { id: 'd', label: 'D', text: '`docker inspect` refuses to report `OOMKilled` for containers with a memory ceiling above 512MB' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This extension is designed to push past the reflexive "raise the limit" fix toward the actually durable one — reducing real peak memory usage, since any fixed ceiling can eventually be exceeded by a large enough input.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-containerization-orchestration/05-docker-volumes': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-05-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — NAMED VOLUME VS BIND MOUNT',
+        question:
+          'What is the key structural difference between a named volume and a bind mount?',
+        options: [
+          { id: 'a', label: 'A', text: 'A named volume is always faster to read from than a bind mount' },
+          { id: 'b', label: 'B', text: 'A named volume\'s actual storage location is managed and resolved by Docker itself, addressed only by name; a bind mount maps a specific, already-known host path directly into the container' },
+          { id: 'c', label: 'C', text: 'Bind mounts persist data across container recreation, while named volumes do not' },
+          { id: 'd', label: 'D', text: 'Named volumes can only be used with PostgreSQL containers' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson draws this distinction precisely: Docker owns the name-to-location mapping for a named volume, while a bind mount ties the container to a specific, pre-known host path.',
+        incorrectExplanation:
+          'The lesson draws this distinction precisely: Docker owns the name-to-location mapping for a named volume, while a bind mount ties the container to a specific, pre-known host path.',
+        hint: 'The lesson draws this distinction precisely: Docker owns the name-to-location mapping for a named volume, while a bind mount ties the container to a specific, pre-known host path.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-05-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — WHY BIND MOUNTS BREAK PORTABILITY',
+        question:
+          'Why does the lesson argue a bind mount is the wrong tool for a service\'s actual application data, even though it works fine on the machine where it was first configured?',
+        options: [
+          { id: 'a', label: 'A', text: 'Bind mounts are deprecated and will be removed from a future Docker release' },
+          { id: 'b', label: 'B', text: 'A bind mount ties the container to one specific host\'s filesystem layout, which breaks the moment the container is scheduled onto a different machine that doesn\'t have that exact path' },
+          { id: 'c', label: 'C', text: 'Bind mounts cannot be made read-only under any circumstances' },
+          { id: 'd', label: 'D', text: 'Bind mounts silently corrupt data larger than 1GB' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific objection is portability: a hardcoded host path assumption is exactly what breaks when the container later runs somewhere else, which a named volume\'s Docker-managed indirection avoids.',
+        incorrectExplanation:
+          'The lesson\'s specific objection is portability: a hardcoded host path assumption is exactly what breaks when the container later runs somewhere else, which a named volume\'s Docker-managed indirection avoids.',
+        hint: 'The lesson\'s specific objection is portability: a hardcoded host path assumption is exactly what breaks when the container later runs somewhere else, which a named volume\'s Docker-managed indirection avoids.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-05-mcq-01',
+        question:
+          'Why did every technician-uploaded photo disappear when Vantage\'s ops team ran `docker rm -f ticket-api` during a routine deploy?',
+        options: [
+          { id: 'a', label: 'A', text: 'The deploy script explicitly issued a `DELETE FROM uploads` command against the database' },
+          { id: 'b', label: 'B', text: '`/data/uploads` was never mounted to a volume, so every uploaded file was written only into the old container\'s writable layer, which was destroyed the instant that container was removed' },
+          { id: 'c', label: 'C', text: '`docker rm -f` always deletes the underlying image along with the container' },
+          { id: 'd', label: 'D', text: 'The new image version, `ticket-api:1.5.0`, used a different upload path than `1.4.2`' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This directly connects Lesson 2\'s writable-layer mechanism to this lesson\'s fix: without a volume mount, uploads live only in the writable layer, which is removed with the container.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-05-mcq-02',
+        question:
+          'The lesson argues the correct fix is not "be more careful about when you run `docker rm`" but decoupling the data\'s lifecycle from any one container\'s lifecycle. Why is this framing more robust?',
+        options: [
+          { id: 'b', label: 'B', text: '"Be more careful" depends on every future operator remembering a rule with no structural enforcement; mounting the data onto a named volume makes the correct behavior (data survives container recreation) true by construction, regardless of who runs the recreate command' },
+          { id: 'a', label: 'A', text: '`docker rm -f` is a deprecated command that should never be used for any reason' },
+          { id: 'c', label: 'C', text: 'Named volumes prevent `docker rm -f` from being run at all while data exists inside them' },
+          { id: 'd', label: 'D', text: 'Careful operators never make mistakes, so the framing is purely stylistic' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s underlying design principle: a structural fix (decoupled lifecycle via a volume) is robust to operator error in a way a procedural rule ("be careful") never is.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-05-mcq-03',
+        question:
+          'Why does this backup command run a separate, throwaway `alpine` container that mounts the same volume, rather than executing the `tar` command inside `ticket-api`\'s own running container?',
+        codeBlock: '$ docker run --rm \\\n    -v ticket-uploads:/data:ro \\\n    -v "$(pwd)":/backup \\\n    alpine tar czf /backup/uploads-backup-$(date +%F).tar.gz -C /data .',
+        options: [
+          { id: 'a', label: 'A', text: '`alpine` is required because `tar` cannot run inside a Python-based image' },
+          { id: 'b', label: 'B', text: 'Any container that mounts the same named volume can read its contents; using a disposable one avoids installing backup tooling into the production image and avoids interfering with the service container\'s own process' },
+          { id: 'c', label: 'C', text: '`docker run --rm` is the only flag combination that can mount a volume as read-only' },
+          { id: 'd', label: 'D', text: '`ticket-api`\'s container does not have permission to read its own mounted volume' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Since a volume is addressable by name from any container, a throwaway utility container is the cleanest way to read it for backup purposes without bloating or touching the actual service container.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-05-mcq-04',
+        question:
+          'Practice Loop step 2 has you repeat the failure-reproduction sequence with `-v ticket-uploads:/data/uploads` added, this time on both the old and the recreated container. What specifically confirms the fix worked?',
+        options: [
+          { id: 'a', label: 'A', text: 'The recreated container starts faster than the original' },
+          { id: 'b', label: 'B', text: 'The test attachment uploaded to the old container is still present after the old container is removed and a fresh one, mounting the same volume, is started' },
+          { id: 'c', label: 'C', text: 'The image size shrinks after adding the volume mount' },
+          { id: 'd', label: 'D', text: '`docker ps` shows the container\'s status as "healthy" instead of "running"' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the direct before/after proof: the same volume attached to a new container after the old one is removed retains the earlier data, which is exactly what step 1\'s reproduction showed failing without the mount.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-05-mcq-05',
+        question:
+          'Per the Suggested Extension, what is the actual difference in behavior between `docker compose down` and `docker compose down -v`?',
+        options: [
+          { id: 'a', label: 'A', text: '`down -v` only affects bind mounts, not named volumes' },
+          { id: 'b', label: 'B', text: '`docker compose down` removes containers and networks but keeps named volumes by default; `docker compose down -v` also removes those named volumes, permanently deleting their contents' },
+          { id: 'c', label: 'C', text: '`down -v` runs in verbose mode and produces more log output, but behaves identically otherwise' },
+          { id: 'd', label: 'D', text: '`docker compose down` deletes named volumes; `down -v` preserves them' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the exact distinction the extension is designed to make concrete by testing both — `-v` is the flag that actually escalates from "recreate containers" to "also destroy the persisted data."'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-05-mcq-06',
+        question:
+          'Practice Loop step 5 adds a read-only bind-mounted config file the ops team needs to hand-edit on the host, while uploads stay on a named volume. What justifies this split, per the lesson\'s framework?',
+        options: [
+          { id: 'a', label: 'A', text: 'A human needs to directly read and edit the config file on the host filesystem, which is exactly what a bind mount is for; the uploads need portable, Docker-managed storage that isn\'t tied to one host\'s path layout, which is exactly what a named volume is for' },
+          { id: 'b', label: 'B', text: 'Config files must always use bind mounts and data files must always use named volumes, as an unconditional Docker rule' },
+          { id: 'c', label: 'C', text: 'Read-only files can only be attached via bind mounts, never via named volumes' },
+          { id: 'd', label: 'D', text: 'The split is arbitrary; either mechanism would work identically for both use cases' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s decision criterion is not the file\'s type but who needs direct access and whether portability matters — a human editing on the host favors a bind mount, application data needing portability favors a named volume.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-containerization-orchestration/06-docker-networking-deep-dive': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-06-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — DEFAULT BRIDGE VS USER-DEFINED BRIDGE',
+        question:
+          'What is the practical difference between the default `bridge` network and a user-defined bridge network for container-to-container communication?',
+        options: [
+          { id: 'a', label: 'A', text: 'A user-defined bridge network runs Docker\'s embedded DNS, letting containers reach each other by container name; the default bridge does not, leaving containers pinned to IP addresses that can change on restart' },
+          { id: 'b', label: 'B', text: 'The default bridge network is faster because it skips DNS resolution entirely, by design' },
+          { id: 'c', label: 'C', text: 'User-defined bridge networks are only available in Docker Swarm mode, not plain `docker run`' },
+          { id: 'd', label: 'D', text: 'There is no functional difference; the naming is purely cosmetic' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit: the embedded DNS server that resolves container names is scoped to user-defined networks, not the default bridge, which is exactly why the default bridge produces brittle, IP-pinned setups.',
+        incorrectExplanation:
+          'The lesson is explicit: the embedded DNS server that resolves container names is scoped to user-defined networks, not the default bridge, which is exactly why the default bridge produces brittle, IP-pinned setups.',
+        hint: 'The lesson is explicit: the embedded DNS server that resolves container names is scoped to user-defined networks, not the default bridge, which is exactly why the default bridge produces brittle, IP-pinned setups.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-06-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — EXPOSE VS PUBLISH',
+        question:
+          'A Dockerfile contains `EXPOSE 8080`, but the container is started with plain `docker run ticket-api` (no `-p` flag). Is port 8080 reachable from the host machine?',
+        options: [
+          { id: 'a', label: 'A', text: 'Yes, `EXPOSE` alone is sufficient to publish a port to the host' },
+          { id: 'b', label: 'B', text: 'No — `EXPOSE` is documentation only; only `-p`/`--publish` (or Compose\'s `ports:`) actually makes a container port reachable from the host' },
+          { id: 'c', label: 'C', text: 'Yes, but only if the container is also on the default bridge network' },
+          { id: 'd', label: 'D', text: 'It depends on whether the image\'s base is Alpine or Debian' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s central distinction: `EXPOSE` documents intent for humans and tooling, while actual host reachability requires an explicit publish flag — no publish flag means no host reachability, regardless of `EXPOSE`.',
+        incorrectExplanation:
+          'This is the lesson\'s central distinction: `EXPOSE` documents intent for humans and tooling, while actual host reachability requires an explicit publish flag — no publish flag means no host reachability, regardless of `EXPOSE`.',
+        hint: 'This is the lesson\'s central distinction: `EXPOSE` documents intent for humans and tooling, while actual host reachability requires an explicit publish flag — no publish flag means no host reachability, regardless of `EXPOSE`.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-06-mcq-01',
+        question:
+          'Given this output, what does the absence of any line for `ticket-db` tell you?',
+        codeBlock: '$ docker port ticket-api\n8080/tcp -> 0.0.0.0:8080\n$ docker port ticket-db\n(no output)',
+        options: [
+          { id: 'a', label: 'A', text: '`ticket-db` has no published ports at all — it is reachable only from other containers on its shared Docker network, not from the host or outside world' },
+          { id: 'b', label: 'B', text: '`ticket-db` is not currently running' },
+          { id: 'c', label: 'C', text: '`ticket-db`\'s image failed to declare an `EXPOSE` instruction, which is required for `docker port` to report anything' },
+          { id: 'd', label: 'D', text: '`docker port` only works for containers started via Compose, not plain `docker run`' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          '`docker port` reports actual published mappings; no output means no `-p` flag was used for that container, meaning no host-level reachability, consistent with the scenario\'s intended design.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-06-mcq-02',
+        question:
+          'In the scenario, what specific change made `ticket-db` reachable from outside Vantage\'s office network, when it had never needed to be?',
+        options: [
+          { id: 'a', label: 'A', text: '`ticket-api` was moved onto a different Docker network than `ticket-db`' },
+          { id: 'b', label: 'B', text: 'An engineer added `ports: ["5432:5432"]` to the `ticket-db` Compose service for local debugging, which published the database port to the host, and the change was never removed before shipping to shared staging' },
+          { id: 'c', label: 'C', text: 'The default `bridge` network was used instead of a user-defined one' },
+          { id: 'd', label: 'D', text: '`EXPOSE 5432` was added to the database\'s Dockerfile' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s root cause is precisely the publish flag, not the network topology or `EXPOSE` — `ticket-api` never needed a published `ticket-db` port to reach it over the shared Docker network.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-06-mcq-03',
+        question:
+          'The lesson argues that "only the edge service ever gets a `ports:` entry" would have made the scenario\'s mistake structurally impossible. Why is this stronger than "remember to remove debug ports before merging"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Docker technically enforces a maximum of one published port per Compose file, so the policy is redundant' },
+          { id: 'b', label: 'B', text: 'A policy that never grants internal-only services a `ports:` entry in the first place removes the failure mode entirely, rather than depending on every future engineer remembering to reverse a temporary change before it ships' },
+          { id: 'c', label: 'C', text: '`ports:` entries automatically expire after 24 hours in Compose, making the concern moot' },
+          { id: 'd', label: 'D', text: '"Remember to remove it" and the structural policy are functionally identical in practice' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This mirrors the same structural-fix-over-procedural-discipline argument from Lesson 5: a rule that makes a mistake impossible by construction is more reliable than one that depends on remembering to undo a temporary change.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-06-mcq-04',
+        question:
+          'Per the lesson\'s diagnostic method, in what order should you check network attachment, target-side listening, and caller-side reachability when `ticket-api` can\'t reach `ticket-db`?',
+        options: [
+          { id: 'a', label: 'A', text: 'First confirm both containers are on the same network, then confirm the target is actually listening inside its own namespace, then confirm reachability from the caller\'s side — isolating which layer fails before assuming the cause' },
+          { id: 'b', label: 'B', text: 'The order does not matter; any single check is sufficient to diagnose the failure' },
+          { id: 'c', label: 'C', text: 'Always start by restarting both containers before running any diagnostic command' },
+          { id: 'd', label: 'D', text: 'Check caller-side reachability first, since it is the only check that ever actually reveals the cause' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson lays out this exact sequence and explains why: working through the layers in order isolates whether the fault is network attachment, application binding, or reachability, rather than guessing at all three simultaneously.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-06-mcq-05',
+        question:
+          'Practice Loop step 2 has you attempt a direct host-to-database connection on port 5432 with neither port published, and expect it to be refused. What does a successful refusal specifically confirm?',
+        options: [
+          { id: 'a', label: 'A', text: 'That `ticket-db`\'s application crashed and is not running at all' },
+          { id: 'b', label: 'B', text: 'That with no `-p` flag published for `ticket-db`, the host genuinely has no path to reach it — proving the "no publish, no host reachability" rule rather than just asserting it' },
+          { id: 'c', label: 'C', text: 'That the user-defined network was created with the wrong subnet' },
+          { id: 'd', label: 'D', text: 'That PostgreSQL requires authentication before accepting any connection, unrelated to Docker networking' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This diagnostic step exists to make the EXPOSE/publish rule concrete: attempting and failing to connect from the host is direct evidence of the boundary the lesson describes, not just a repeated assertion of it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-06-mcq-06',
+        question:
+          'Per the Suggested Extension, `ticket-db` is attached to both `ticket-net` and `admin-net`, while `ticket-api` stays on `ticket-net` only. Why does `ticket-api` still fail to reach anything on `admin-net`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Network membership is its own isolation boundary, independent of any one container\'s other memberships — being on `ticket-net` gives `ticket-api` reachability only within `ticket-net`, not transitively through `ticket-db`\'s separate membership in `admin-net`' },
+          { id: 'b', label: 'B', text: '`ticket-db` being on two networks automatically merges them into one for every other container' },
+          { id: 'c', label: 'C', text: '`admin-net` requires a published port to be reachable from any container, unlike `ticket-net`' },
+          { id: 'd', label: 'D', text: 'This configuration is not actually possible; a container can only join one network at a time' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This extension demonstrates that network membership is per-container and non-transitive — a container bridging two networks does not grant reachability between all members of both networks, only between its own two memberships.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-06-mcq-07',
+        question:
+          'For a deployment with one public-facing API and one internal-only database, which port-publishing setup matches the lesson\'s recommended pattern?',
+        options: [
+          { id: 'a', label: 'A', text: 'Publish both the API\'s and the database\'s ports, since more visibility makes debugging easier' },
+          { id: 'b', label: 'B', text: 'Publish only the API\'s port with `-p`; leave the database unpublished, reachable only via the shared user-defined network and Docker\'s embedded DNS' },
+          { id: 'c', label: 'C', text: 'Publish neither port, and instead rely solely on `EXPOSE` in both Dockerfiles' },
+          { id: 'd', label: 'D', text: 'Publish only the database\'s port, since the API can always reach it directly without any network configuration' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s stated pattern: only the edge service needs a host-published port; internal services reach each other over the shared network without ever needing one.'
+      }
+    ]
+  },
+  'fde-curriculum/elective-containerization-orchestration/07-hardening-the-docker-environment-devsecops': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-07-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — SBOM VS VULNERABILITY SCANNER',
+        question:
+          'How does the lesson distinguish the job of `syft` from the job of `grype` in the hardening workflow?',
+        options: [
+          { id: 'a', label: 'A', text: '`syft` scans for vulnerabilities and `grype` generates the SBOM' },
+          { id: 'b', label: 'B', text: '`syft` generates the structured package inventory (the SBOM); `grype` checks that inventory (or the image directly) against a CVE database and reports findings by severity' },
+          { id: 'c', label: 'C', text: 'They perform the same function and are used interchangeably' },
+          { id: 'd', label: 'D', text: '`syft` only works on Alpine-based images, and `grype` only works on Debian-based images' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names the two-tool pipeline explicitly: inventory generation, then vulnerability lookup against that inventory.',
+        incorrectExplanation:
+          'Syft is an SBOM generator that inventories packages; Grype is a vulnerability scanner that evaluates that inventory against known CVE feeds.',
+        hint:
+          'One tool creates a structured manifest of what is inside the image; the other checks that manifest against vulnerability databases.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-07-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — REACHABILITY AND RISK ACCEPTANCE',
+        question:
+          'In the Practical Backend Scenario, why did the FDE write a documented exception for the CRITICAL CVE in `cryptography` instead of blocking the release?',
+        options: [
+          { id: 'a', label: 'A', text: 'CRITICAL findings never need to be addressed if the base image was recently updated' },
+          { id: 'b', label: 'B', text: 'The customer\'s security lead does not have authority to approve release exceptions' },
+          { id: 'c', label: 'C', text: '`routeplanner`\'s code never reaches the vulnerable function, and the container already runs non-root with capabilities dropped — the finding\'s severity rating describes the package in the abstract, not whether it is reachable in this specific runtime configuration' },
+          { id: 'd', label: 'D', text: '`grype` reported the finding as a false positive, so no further action was required' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The lesson\'s central point about scanning is that severity and reachability are separate questions — a documented, reasoned exception is legitimate when the vulnerable path is genuinely unreachable, not a shortcut around every CRITICAL finding.',
+        incorrectExplanation:
+          'Review the reachability vs scanner severity discussion; package vulnerability in the abstract does not equal exploitability when the affected code is never executed and capabilities are dropped.',
+        hint:
+          'Consider whether severity in the abstract guarantees exploitability when the vulnerable function is never invoked and capabilities are dropped.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-07-mcq-01',
+        question:
+          'The lesson argues that setting `USER` inside the Dockerfile is a stronger fix than running the container with `docker run --user 1000:1000`. Why?',
+        options: [
+          { id: 'a', label: 'A', text: '`docker run --user` is not supported by most container runtimes' },
+          { id: 'b', label: 'B', text: 'A Dockerfile `USER` line travels with the image itself, so the non-root constraint holds no matter who runs the container later; a runtime flag can be silently omitted by whoever runs it next' },
+          { id: 'c', label: 'C', text: '`--user` only works for images built from Alpine, not Debian-based images' },
+          { id: 'd', label: 'D', text: 'Setting `USER` in the Dockerfile is required before a `HEALTHCHECK` instruction will work' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s specific point is about durability of the constraint — baking it into the image means it can\'t be dropped at run time the way a flag can be forgotten.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-07-mcq-02',
+        question:
+          'What is the effect of running a container with `--cap-drop=ALL --cap-add=NET_BIND_SERVICE`?',
+        options: [
+          { id: 'a', label: 'A', text: 'It disables networking entirely except for binding a single named port' },
+          { id: 'b', label: 'B', text: 'It removes all default Linux kernel capabilities (roughly 40 for a root process) except the one explicitly re-added, narrowing what a compromised process inside the container could do even with root privileges' },
+          { id: 'c', label: 'C', text: 'It makes the container filesystem read-only' },
+          { id: 'd', label: 'D', text: 'It forces the container to run as a non-root user' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Capabilities are a distinct control from filesystem writability or UID — the lesson is explicit that this flag narrows the kernel-level grants held by the process, not the filesystem or the user identity.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-07-mcq-03',
+        question:
+          'In the lesson\'s hardened `routeplanner` Dockerfile, what is the purpose of the multi-stage `builder` stage?',
+        codeBlock: 'FROM python:3.12-slim AS builder\nWORKDIR /build\nCOPY requirements.txt .\nRUN pip install --no-cache-dir --target=/build/deps -r requirements.txt\n\nFROM python:3.12-slim\n...\nCOPY --from=builder /build/deps /usr/local/lib/python3.12/site-packages',
+        options: [
+          { id: 'a', label: 'A', text: 'It resolves dependencies in an isolated stage so build-time tooling and caches never make it into the final image, keeping the shipped image smaller and its attack surface narrower' },
+          { id: 'b', label: 'B', text: 'It runs the application\'s test suite before the final image is built' },
+          { id: 'c', label: 'C', text: 'It is required so the final image can run as a non-root user' },
+          { id: 'd', label: 'D', text: 'It generates the image\'s SBOM automatically as part of the build' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Multi-stage builds separate dependency resolution from the runtime image; only the resolved `deps` directory is copied forward, not `pip`\'s cache or any build tooling.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-07-mcq-04',
+        question:
+          'What does an SBOM (software bill of materials) contain?',
+        options: [
+          { id: 'a', label: 'A', text: 'A list of every CVE currently affecting the image, ranked by severity' },
+          { id: 'b', label: 'B', text: 'A structured, machine-readable inventory of every package and library baked into the image, down to specific versions' },
+          { id: 'c', label: 'C', text: 'A signed cryptographic hash proving who built the image' },
+          { id: 'd', label: 'D', text: 'A record of every container that has ever run from this image in production' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson defines the SBOM as an inventory (what\'s inside), distinct from the scan report (what\'s vulnerable) that a tool like `grype` produces by checking the inventory against a CVE database.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-07-mcq-05',
+        question:
+          'Why does the lesson argue a customer\'s admission policy should trust an image digest rather than a tag like `routeplanner:latest`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Digests are required by the Docker CLI and tags are being deprecated' },
+          { id: 'b', label: 'B', text: 'A tag is mutable and can point to a different image tomorrow than it does today, so trusting it means trusting whoever last pushed to that tag rather than a specific, reviewed artifact' },
+          { id: 'c', label: 'C', text: 'Tags cannot be pulled from a private registry' },
+          { id: 'd', label: 'D', text: 'A digest is shorter and therefore faster to type in a deployment manifest' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Immutability is the property that matters — a digest always resolves to the exact same content, while a tag is just a movable pointer.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-07-mcq-06',
+        question:
+          'Why does the lesson pair `--read-only` with an explicit `--tmpfs /tmp` mount rather than leaving the container fully read-only?',
+        options: [
+          { id: 'a', label: 'A', text: '`--read-only` alone would prevent the container from starting at all' },
+          { id: 'b', label: 'B', text: 'Some processes need scratch space to function; `--tmpfs` grants writability only to a memory-backed, ephemeral directory, so a compromised process still cannot persist a backdoor into the image\'s own filesystem' },
+          { id: 'c', label: 'C', text: '`--tmpfs` is required for the container to bind any network port' },
+          { id: 'd', label: 'D', text: '`--read-only` only applies to the image layers, not the container\'s writable layer, so `--tmpfs` is redundant' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scoped tmpfs exception preserves the functional need for scratch space while denying persistence — anything written there disappears when the container exits.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-07-mcq-07',
+        question:
+          'The lesson states that root inside a container "lets them read any file in the container and, if the runtime is misconfigured, sometimes reach the host." What does this imply about container isolation as a security boundary?',
+        options: [
+          { id: 'a', label: 'A', text: 'Container isolation makes the in-container user identity irrelevant to security' },
+          { id: 'b', label: 'B', text: 'Container isolation is not an absolute guarantee; a misconfigured runtime can allow a root process inside a container to affect the host, so non-root is a defense-in-depth measure, not a redundant one' },
+          { id: 'c', label: 'C', text: 'Root inside a container is always equivalent to root on the host, regardless of runtime configuration' },
+          { id: 'd', label: 'D', text: 'Only Kubernetes clusters, not standalone Docker, are exposed to this risk' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s phrasing is deliberately conditional ("if the runtime is misconfigured, sometimes reach the host") — non-root is one layer of defense among several, not a claim that isolation is worthless without it.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-containerization-orchestration/08-industry-standard-container-hardening-demo': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-08-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — AUDITABLE CI SECURITY GATES',
+        question:
+          'According to the lesson, what specifically makes a CI security gate auditable rather than an ad hoc judgment call?',
+        options: [
+          { id: 'a', label: 'A', text: 'It runs automatically on every pull request without human review' },
+          { id: 'b', label: 'B', text: 'The block/allow policy threshold is written down explicitly, so anyone can read it and predict the outcome for a given scan result before the pipeline runs' },
+          { id: 'c', label: 'C', text: 'It uses `grype` specifically rather than any other scanning tool' },
+          { id: 'd', label: 'D', text: 'It generates an SBOM in CycloneDX format rather than SPDX' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Auditability comes from the explicit, written policy threshold — a predictable rule anyone can apply, not from automation or tool choice alone.',
+        incorrectExplanation:
+          'Auditability requires an explicit, written policy threshold so that any reviewer can independently predict the outcome from scan results.',
+        hint:
+          'Auditability stems from having clear, explicit written policy thresholds rather than relying on unwritten ad-hoc discretion.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-08-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — FALSE POSITIVE VS ACCEPTED RISK',
+        question:
+          'The lesson calls conflating a "false positive" with an "accepted risk" the most common mistake an FDE makes under time pressure. What is the actual distinction between the two?',
+        options: [
+          { id: 'a', label: 'A', text: 'A false positive means the scanner\'s finding is provably wrong for this specific image (with evidence, like a distro changelog); an accepted risk means the finding is real but judged unreachable or acceptable, which requires a reachability argument and a named owner' },
+          { id: 'b', label: 'B', text: 'A false positive is always a HIGH-severity finding, while an accepted risk is always CRITICAL' },
+          { id: 'c', label: 'C', text: 'An accepted risk requires no documentation, while a false positive must be reported to the vendor' },
+          { id: 'd', label: 'D', text: 'There is no meaningful distinction; both terms describe the same outcome' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit that both outcomes result in "the build is allowed to proceed," which is exactly why it\'s tempting to conflate them — but they require different evidence and different documentation.',
+        incorrectExplanation:
+          'A false positive requires evidence that the scanner is factually wrong (e.g. backported patch); an accepted risk acknowledges a real CVE with a documented reachability argument.',
+        hint:
+          'A false positive requires proof that the scanner is factually wrong (e.g. backported distro fix), while an accepted risk acknowledges a real CVE with a documented reachability rationale.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-08-mcq-01',
+        question:
+          'In the lesson\'s CI workflow, what happens if `grype sbom:sbom.json --fail-on critical` finds a HIGH-severity vulnerability but no CRITICAL ones?',
+        codeBlock: '      - name: Scan and gate\n        run: |\n          grype sbom:sbom.json --fail-on critical --output table',
+        options: [
+          { id: 'a', label: 'A', text: 'The pipeline step fails, because any non-LOW finding blocks the build' },
+          { id: 'b', label: 'B', text: 'The pipeline step succeeds and the build proceeds, because `--fail-on critical` only fails the step on findings at or above CRITICAL severity' },
+          { id: 'c', label: 'C', text: 'The build is paused and a human must manually approve it before continuing' },
+          { id: 'd', label: 'D', text: '`grype` automatically escalates the HIGH finding to CRITICAL if it is left unaddressed for more than 24 hours' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          '`--fail-on critical` sets the exit-code threshold explicitly at CRITICAL; anything below that severity does not fail the step, matching the lesson\'s example policy (block CRITICAL, warn on HIGH).'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-08-mcq-02',
+        question:
+          'In the Practical Backend Scenario, why did the pre-hardening `routeplanner` image fail the CI security gate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The image had no SBOM generated at all' },
+          { id: 'b', label: 'B', text: 'It carried a CRITICAL finding for a root-owned `setuid` binary left over from the full `python:3.12` base image' },
+          { id: 'c', label: 'C', text: 'The Dockerfile failed to build due to a missing dependency' },
+          { id: 'd', label: 'D', text: 'The image exceeded a maximum size limit enforced by the pipeline' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario names the specific finding — a CRITICAL result tied to the un-hardened base image — as the cause of the block, not a build failure or a missing SBOM.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-08-mcq-03',
+        question:
+          'Why was the OpenSSL HIGH finding on the hardened image classified as a false positive rather than an accepted risk?',
+        options: [
+          { id: 'a', label: 'A', text: 'HIGH-severity findings are always classified as false positives by convention' },
+          { id: 'b', label: 'B', text: 'The FDE decided it was low-risk without checking any further evidence' },
+          { id: 'c', label: 'C', text: 'The Debian base image\'s changelog showed the actual fix had been backported without bumping the version string the scanner keys on, meaning the scanner\'s finding was provably wrong for this specific image' },
+          { id: 'd', label: 'D', text: 'The finding disappeared automatically after the SBOM was regenerated' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The scenario\'s specific evidence — a backported fix the scanner\'s version check doesn\'t detect — is exactly the kind of provable-wrongness the lesson requires before calling something a false positive.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-08-mcq-04',
+        question:
+          'What does the lesson say a release decision document must name for it to be genuinely reproducible by a teammate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Only the final pass/fail outcome' },
+          { id: 'b', label: 'B', text: 'The specific finding, its classification (false positive or accepted risk) with supporting evidence, and the exact scan output and policy version used' },
+          { id: 'c', label: 'C', text: 'A summary of every CVE ever found in the project\'s history' },
+          { id: 'd', label: 'D', text: 'The name of the engineer who approved the release, with no further detail' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit about the components needed for reconstruction: the finding, its classification with evidence, and the exact artifacts (scan output, policy version) used to reach the verdict.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-08-mcq-05',
+        question:
+          'Why does the demo run both the pre-hardening and post-hardening images through the same CI gate rather than only showing the final, passing image?',
+        options: [
+          { id: 'a', label: 'A', text: 'It gives the platform team concrete before-and-after evidence that the gate actually functions as a control — catching a real problem in one case and passing a genuinely improved image in the other' },
+          { id: 'b', label: 'B', text: 'Running two builds is required by the `grype` tool itself' },
+          { id: 'c', label: 'C', text: 'The pre-hardening image is needed to generate the SBOM for the post-hardening image' },
+          { id: 'd', label: 'D', text: 'It doubles the number of CVEs the scanner is able to detect' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'A gate that always passes proves nothing; the scenario\'s point is demonstrating the gate actually discriminates between a vulnerable and a hardened build.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-08-mcq-06',
+        question:
+          'According to the lesson, who decides the block/allow policy threshold used by the CI security gate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The scanning tool itself, based on its default configuration' },
+          { id: 'b', label: 'B', text: 'Whichever engineer runs the pipeline that day' },
+          { id: 'c', label: 'C', text: 'The customer\'s security team, as an explicit, written policy decision — not something a scanner decides on its own' },
+          { id: 'd', label: 'D', text: 'It is fixed permanently at build time and cannot be changed later' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'The lesson is explicit that the threshold is a customer-owned policy decision, distinct from whatever a scanner reports by default.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-08-mcq-07',
+        question:
+          'After classifying the OpenSSL finding as a false positive, the FDE re-runs the scan to confirm the suppression is "scoped to that one CVE ID only." Why does this step matter?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is required to regenerate the SBOM after every scan' },
+          { id: 'b', label: 'B', text: 'A suppression rule written too broadly could silently hide a genuinely new, unrelated finding introduced in a later build, defeating the purpose of the gate' },
+          { id: 'c', label: 'C', text: 'It confirms the CI pipeline has network access to the vulnerability database' },
+          { id: 'd', label: 'D', text: 'It is only necessary when the finding severity is CRITICAL, not HIGH' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A suppression scoped only to the specific CVE ID preserves the gate\'s ability to catch any new, different finding — a loosely-scoped suppression rule is a common way security gates quietly stop working.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-containerization-orchestration/09-introduction-to-orchestration': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-09-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — IMPERATIVE COMMANDS VS DESIRED STATE',
+        question:
+          'What is the core difference the lesson draws between running `docker run` commands and declaring desired state to an orchestrator?',
+        options: [
+          { id: 'a', label: 'A', text: '`docker run` is a one-time instruction with no ongoing opinion about what should happen next; declared desired state is continuously enforced by a control loop that keeps acting until the declaration is true, indefinitely' },
+          { id: 'b', label: 'B', text: '`docker run` cannot start more than one container at a time, while orchestrators can' },
+          { id: 'c', label: 'C', text: 'Declared desired state requires writing YAML, while `docker run` requires writing a shell script — the underlying behavior is otherwise identical' },
+          { id: 'd', label: 'D', text: 'Orchestrators only support declarative configuration for stateless services, never for containers with persistent state' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s central conceptual claim is about ongoing enforcement versus a one-time action, not about syntax or container count.',
+        incorrectExplanation:
+          'Imperative commands execute a one-time instruction; declared desired state is continuously maintained by an active reconciliation control loop.',
+        hint:
+          'Imperative commands execute once and have no ongoing opinion; declarative desired state creates a continuous reconciliation loop.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-09-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PREMATURE ORCHESTRATION',
+        question:
+          'The lesson argues that reaching for an orchestrator before certain problems exist is "adding real operational complexity... against no evidenced need." What kind of customer scenario does the lesson say genuinely does not need an orchestrator yet?',
+        options: [
+          { id: 'a', label: 'A', text: 'One container and one Redis instance on a single host, with no autoscaling requirement and acceptable downtime during a deploy' },
+          { id: 'b', label: 'B', text: 'Any customer running more than one container, regardless of scale or traffic pattern' },
+          { id: 'c', label: 'C', text: 'A customer whose containers are written in a compiled language rather than an interpreted one' },
+          { id: 'd', label: 'D', text: 'A customer who has already purchased AWS support' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names the specific shape — single host, no autoscaling need, acceptable manual-restart downtime — as the case where Docker Compose remains the correct, boring tool.',
+        incorrectExplanation:
+          'When single-host setups with static workloads and tolerance for brief deploy downtime exist, simpler tools like Docker Compose avoid unnecessary operational complexity.',
+        hint:
+          'A single-host setup with static workloads and tolerance for brief deploy downtime does not justify orchestrator control-plane overhead.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-09-mcq-01',
+        question:
+          'What are the four steps of the reconciliation loop as described in the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'Build, test, deploy, monitor' },
+          { id: 'b', label: 'B', text: 'Observe actual state, compare against desired state, take the smallest action that closes the gap, repeat' },
+          { id: 'c', label: 'C', text: 'Schedule, provision, scale, terminate' },
+          { id: 'd', label: 'D', text: 'Request, authenticate, authorize, respond' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names this exact loop as the mechanism behind reconciliation — a repeated, never-ending cycle, not a build/deploy pipeline.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-09-mcq-02',
+        question:
+          'In the Practical Backend Scenario, why did traffic keep routing to a dead target for eleven minutes after the EC2 host was replaced?',
+        options: [
+          { id: 'a', label: 'A', text: 'Kubernetes was already in use but misconfigured' },
+          { id: 'b', label: 'B', text: 'Nothing in the plain-Docker setup automatically noticed the container was gone or updated the manually-maintained load-balancer target group; a human had to notice the alert and act' },
+          { id: 'c', label: 'C', text: 'The Redis container had crashed, not the `routeplanner` container' },
+          { id: 'd', label: 'D', text: 'The deploy script had a syntax error that prevented it from running at all' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s point is specifically about the absence of automated detection and reconciliation — the setup had no mechanism to notice or self-heal on its own.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-09-mcq-03',
+        question:
+          'The lesson insists a decision to adopt orchestration should be "traceable to specific operational facts, not to Kubernetes being the more sophisticated-sounding technology." What is this argument an application of, drawn from elsewhere in the FDE curriculum?',
+        options: [
+          { id: 'a', label: 'A', text: 'The RAG evaluation discipline of measuring retrieval precision before tuning generation' },
+          { id: 'b', label: 'B', text: 'The seam-versus-generality judgment call — adopting real complexity only against an evidenced need, not a speculative or preference-driven one' },
+          { id: 'c', label: 'C', text: 'The discovery call\'s four-pass structure for uncovering stakeholder pain points' },
+          { id: 'd', label: 'D', text: 'The incident postmortem\'s blameless-language convention' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson explicitly names this as the same judgment call used for any architecture decision: complexity should be adopted against an evidenced need, not preference.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-09-mcq-04',
+        question:
+          'How does the lesson define the service discovery problem that orchestration solves?',
+        options: [
+          { id: 'a', label: 'A', text: 'Discovering which container image version is currently deployed' },
+          { id: 'b', label: 'B', text: 'Giving a set of interchangeable replicas one stable address that survives any individual replica being replaced, instead of hardcoding a container\'s current IP somewhere' },
+          { id: 'c', label: 'C', text: 'Finding which host in a cluster has the most available memory' },
+          { id: 'd', label: 'D', text: 'Automatically generating API documentation for a running service' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s definition centers on address stability across replica churn, not documentation or resource discovery.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-09-mcq-05',
+        question:
+          'The lesson states that "a `Deployment` object is not a one-time instruction, it is a standing promise the system keeps enforcing." What does this mean in practice?',
+        options: [
+          { id: 'a', label: 'A', text: 'A `Deployment` can only be created once per cluster and cannot be updated afterward' },
+          { id: 'b', label: 'B', text: 'After a `Deployment` is submitted, the system continuously works to keep the actual running state matching it, reacting to drift (a crashed pod, a lost node) without needing the command to be re-issued' },
+          { id: 'c', label: 'C', text: 'A `Deployment` guarantees zero downtime for every rollout regardless of configuration' },
+          { id: 'd', label: 'D', text: '`Deployment` objects are stored only in memory and are lost on any control-plane restart' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the reconciliation concept applied specifically to the `Deployment` object — the promise is enforced continuously, not fulfilled once.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-09-mcq-06',
+        question:
+          'Per the Practice Loop\'s step 4, why might Redis or Postgres reasonably stay as simpler, managed components rather than being containerized and orchestrated alongside `routeplanner`?',
+        options: [
+          { id: 'a', label: 'A', text: 'Kubernetes cannot run stateful workloads under any circumstances' },
+          { id: 'b', label: 'B', text: 'If a managed equivalent (a managed Redis or RDS instance) already provides the durability, backup, and failover guarantees the orchestrator would otherwise need to be configured to provide, containerizing and orchestrating them adds operational complexity without a matching evidenced benefit' },
+          { id: 'c', label: 'C', text: 'Redis and Postgres are not available as container images' },
+          { id: 'd', label: 'D', text: 'Only stateless services are permitted to run inside a `Deployment`' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This continues the lesson\'s operational-need framing: orchestrate what needs orchestration\'s specific guarantees, and let a managed service absorb operational concerns it already handles well.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-containerization-orchestration/10-kubernetes-architecture': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-10-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — API SERVER ACCEPTANCE VS SCHEDULING',
+        question:
+          'In the Practical Backend Scenario, why did the API server accept the `routeplanner` Deployment manifest without complaint, even though the Pod later failed to schedule?',
+        options: [
+          { id: 'a', label: 'A', text: 'The API server does not validate manifests before accepting them' },
+          { id: 'b', label: 'B', text: 'The manifest was syntactically and semantically valid Kubernetes YAML — acceptance only checks that the object is well-formed and authorized, which says nothing about whether the scheduler will later find a node with enough capacity' },
+          { id: 'c', label: 'C', text: 'Acceptance always guarantees the Pod will schedule successfully; this scenario is an edge case that should not normally occur' },
+          { id: 'd', label: 'D', text: 'The API server delegated validation entirely to the scheduler in this case' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson\'s key distinction is that acceptance, scheduling, and readiness are three separate checkpoints — a valid manifest can still fail to schedule for resource reasons unrelated to its validity.',
+        incorrectExplanation:
+          'The API server validates manifest syntax and schema authorization; it does not evaluate whether nodes currently have available allocatable resources.',
+        hint:
+          'The API server validates schema syntax and authorization; it does not evaluate whether worker nodes currently have allocatable capacity.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-10-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — PENDING VS RUNNING-NOT-READY',
+        question:
+          'The lesson distinguishes a Pod stuck `Pending` from a Pod `Running` but never `Ready`. What is the practical difference in where you should look to debug each?',
+        options: [
+          { id: 'a', label: 'A', text: '`Pending` almost always points to the scheduler failing to find a fit (a control-plane concern); `Running` but not `Ready` almost always points to a failing readiness probe on the node itself (a node/application-level concern)' },
+          { id: 'b', label: 'B', text: 'Both failure modes are always caused by the same underlying issue — insufficient node memory' },
+          { id: 'c', label: 'C', text: '`Pending` is caused by the kubelet, while `Running` but not `Ready` is caused by the scheduler' },
+          { id: 'd', label: 'D', text: 'There is no meaningful distinction; both should be debugged by restarting the Deployment' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the lesson\'s explicit closing distinction: knowing which failure domain you\'re in — control plane versus node — determines where to look first.',
+        incorrectExplanation:
+          'Pending indicates a control-plane placement issue evaluated by the scheduler, while Running but not Ready indicates failing container probes on the worker node.',
+        hint:
+          'Pending indicates an unassigned node in the scheduler domain, while Running but not Ready indicates failing readiness probes on the assigned worker node.'
+      }
+    ],
+    architecture: {
+      id: 'lesson-fde-elective-containerization-orchestration-10-k8s-request-path',
+      eyebrow: 'Kubernetes Request Path & Component Ownership',
+      boundaryLabel: 'Control Plane vs Worker Node Execution Boundary',
+      boundaryText:
+        'kubectl apply submits a declarative manifest to the API server, which validates and writes to etcd as the sole state store. Decoupled controllers and the scheduler asynchronously reconcile desired state before the worker node kubelet directs the container runtime.',
+      nodes: [
+        {
+          id: 'kubectl-client',
+          label: 'kubectl apply',
+          subtext: 'Serializes manifest to JSON and sends declarative HTTP REST request',
+          kind: 'input'
+        },
+        {
+          id: 'api-server-etcd',
+          label: 'kube-apiserver & etcd Store',
+          subtext: 'Authenticates, authorizes, schema-validates, and durably records object in etcd (sole writer)',
+          kind: 'boundary',
+          highlighted: true
+        },
+        {
+          id: 'deployment-controller',
+          label: 'Deployment & ReplicaSet Controllers',
+          subtext: 'Watches API server, reconciles desired replicas, and writes unscheduled Pod objects',
+          kind: 'service'
+        },
+        {
+          id: 'kube-scheduler',
+          label: 'kube-scheduler',
+          subtext: 'Evaluates node capacity, affinity, and taints; writes node assignment back to API server',
+          kind: 'service'
+        },
+        {
+          id: 'kubelet-agent',
+          label: 'Kubelet Worker Agent',
+          subtext: 'Watches assigned Pods on local node; delegates container execution via CRI',
+          kind: 'adapter'
+        },
+        {
+          id: 'container-runtime',
+          label: 'Container Runtime & Pod Container',
+          subtext: 'containerd pulls image, initializes pause container namespace, and executes workload',
+          kind: 'output'
+        }
+      ]
+    },
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-10-mcq-01',
+        question:
+          'The moment `kubectl apply -f deployment.yaml` returns "deployment.apps/routeplanner created," what has actually happened, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'The API server has validated and durably written the Deployment object to `etcd`; nothing has been scheduled and no container is running yet' },
+          { id: 'b', label: 'B', text: 'The Pod has already been scheduled to a node and its container image is being pulled' },
+          { id: 'c', label: 'C', text: 'The kubelet on every node has received and is now processing the new object' },
+          { id: 'd', label: 'D', text: 'The scheduler has already evaluated node fit and assigned the Pod' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit that API-server acceptance is only a durable write — scheduling and container startup are later, separate steps owned by different components.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-10-mcq-02',
+        question:
+          'Per the lesson\'s request path, which component creates the `ReplicaSet` object, and which creates the individual `Pod` objects?',
+        options: [
+          { id: 'a', label: 'A', text: 'The Deployment controller creates the ReplicaSet; the ReplicaSet controller creates the Pods' },
+          { id: 'b', label: 'B', text: 'The scheduler creates both the ReplicaSet and the Pods' },
+          { id: 'c', label: 'C', text: 'The API server creates both directly, without any controller involvement' },
+          { id: 'd', label: 'D', text: 'The kubelet on each node creates its own Pod objects once it receives a Deployment update' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson traces this as two distinct controllers acting in sequence, each watching for its own object kind and creating the next layer down.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-10-mcq-03',
+        question:
+          'According to the lesson, what does the scheduler do once it finds the best-fitting node for a Pod?',
+        options: [
+          { id: 'a', label: 'A', text: 'It connects directly to that node\'s container runtime to start the container' },
+          { id: 'b', label: 'B', text: 'It writes the node assignment back to the API server as a Pod update, without ever touching the node itself directly' },
+          { id: 'c', label: 'C', text: 'It notifies the kubelet on every node in the cluster simultaneously' },
+          { id: 'd', label: 'D', text: 'It creates a new ReplicaSet scoped to that specific node' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scheduler\'s action is an API-server write, consistent with the lesson\'s rule that only the API server ever writes to `etcd` and every component interacts through it.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-10-mcq-04',
+        question:
+          'Given this `kubectl describe pod` output, what is the specific cause of the Pod remaining `Pending`?',
+        codeBlock: 'Events:\n  Type     Reason            Age   From               Message\n  ----     ------            ----  ----               -------\n  Warning  FailedScheduling  8s    default-scheduler   0/3 nodes are available:\n                                                         3 Insufficient memory.',
+        options: [
+          { id: 'a', label: 'A', text: 'The scheduler evaluated all 3 nodes and found none had enough allocatable memory to satisfy the Pod\'s resource request' },
+          { id: 'b', label: 'B', text: 'The container image failed to pull from the registry' },
+          { id: 'c', label: 'C', text: 'A readiness probe is failing on all 3 nodes' },
+          { id: 'd', label: 'D', text: 'The API server rejected the Deployment manifest as invalid' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The event is emitted by `default-scheduler` specifically and names "Insufficient memory" across all 3 nodes — a scheduling-fit failure, not an image-pull or readiness-probe issue, both of which would show a different Reason.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-10-mcq-05',
+        question:
+          'When you run `kubectl get pods` and see a live status like `Running`, where does that information actually come from?',
+        options: [
+          { id: 'a', label: 'A', text: '`kubectl` connects directly to each node and asks the container runtime for status' },
+          { id: 'b', label: 'B', text: 'Each node\'s kubelet reports the Pod\'s status back to the API server, which persists it to `etcd`; `kubectl get pods` reads that reported state through the API server, not by asking nodes directly' },
+          { id: 'c', label: 'C', text: 'The scheduler polls every node continuously and forwards status to `kubectl`' },
+          { id: 'd', label: 'D', text: 'Status is computed client-side by `kubectl` based on how long ago the Pod was created' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This reinforces the lesson\'s core architectural fact — the API server is the sole intermediary, and `kubectl` always reads through it, never talking to nodes directly.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-10-mcq-06',
+        question:
+          'What is the specific division of labor between the scheduler and the kubelet once a Pod has an assigned node?',
+        options: [
+          { id: 'a', label: 'A', text: 'The scheduler starts the container; the kubelet only monitors it afterward' },
+          { id: 'b', label: 'B', text: 'The scheduler\'s job ends at assigning the node; the kubelet, watching for Pods assigned to its own node, is the component that actually talks to the container runtime to pull the image and start the container' },
+          { id: 'c', label: 'C', text: 'Both the scheduler and the kubelet independently start the container, and whichever succeeds first wins' },
+          { id: 'd', label: 'D', text: 'The kubelet assigns the node, and the scheduler starts the container' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that these are two distinct responsibilities — assignment (scheduler) and execution (kubelet via the container runtime) — owned by different components.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-10-mcq-07',
+        question:
+          'After lowering the memory request to `512Mi` and reapplying, the FDE watches the Pod transition from `Pending` to `ContainerCreating` to `Running`. Why does observing this specific sequence of transitions confirm the diagnosis, rather than just checking the final `Running` state?',
+        options: [
+          { id: 'a', label: 'A', text: 'Watching the transition through `ContainerCreating` confirms the scheduler successfully found a node this time — if the fix hadn\'t addressed the actual scheduling constraint, the Pod would have stayed `Pending` and never reached `ContainerCreating` at all' },
+          { id: 'b', label: 'B', text: 'The final `Running` state alone is always sufficient confirmation; watching intermediate states is unnecessary' },
+          { id: 'c', label: 'C', text: '`ContainerCreating` indicates the API server rejected and reprocessed the manifest' },
+          { id: 'd', label: 'D', text: 'The sequence of transitions has no diagnostic value beyond showing the Pod eventually started' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Seeing the specific state the previous attempt never reached (`ContainerCreating`, which only follows successful scheduling) is what verifies the scheduling constraint, specifically, was the problem that got fixed.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-containerization-orchestration/11-kubernetes-pod-deep-dive': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-11-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — LIVENESS VS READINESS PROBE BEHAVIOR',
+        question:
+          'What is the difference in consequence between a failing liveness probe and a failing readiness probe?',
+        options: [
+          { id: 'a', label: 'A', text: 'A failing liveness probe causes the kubelet to kill and restart the container; a failing readiness probe only removes the Pod from a Service\'s routable endpoints, without restarting anything' },
+          { id: 'b', label: 'B', text: 'Both cause the same restart behavior; the only difference is which HTTP path is checked' },
+          { id: 'c', label: 'C', text: 'A failing readiness probe kills the container, while a failing liveness probe only removes it from Service endpoints' },
+          { id: 'd', label: 'D', text: 'A failing liveness probe deletes the entire Pod permanently, with no automatic replacement' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states this distinction directly — restart for liveness, traffic removal (not restart) for readiness — and calls confusing the two a common misconfiguration.',
+        incorrectExplanation:
+          'Liveness probe failures trigger container restarts by the kubelet; readiness probe failures remove the Pod from Service endpoint routing without restarts.',
+        hint:
+          'Liveness probes restart unresponsive containers; readiness probes control inclusion in Service endpoint routing.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-11-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — POD EPHEMERALITY AND STATE PLACEMENT',
+        question:
+          'In the Practical Backend Scenario, why did the in-progress route-optimization job\'s state disappear when the Pod was evicted during a node drain?',
+        options: [
+          { id: 'a', label: 'A', text: '`fluent-bit` deleted the file before shipping it' },
+          { id: 'b', label: 'B', text: 'The state was written to the sidecar container\'s local disk (effectively the Pod\'s `emptyDir`), and a Pod has no durable identity — its replacement is a brand-new Pod with a new name, new IP, and a fresh, empty `emptyDir`, not the same Pod resuming' },
+          { id: 'c', label: 'C', text: 'The node drain corrupted the cluster\'s etcd store' },
+          { id: 'd', label: 'D', text: 'Redis was down at the time of the node drain, so the state could not be persisted anywhere' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This is the lesson\'s central warning about Pod ephemerality — anything written to an `emptyDir` or the container\'s own writable layer does not survive Pod replacement.',
+        incorrectExplanation:
+          'Pods have no persistent identity; replacements created by ReplicaSets get new names, new IPs, and empty emptyDir volumes.',
+        hint:
+          'Pods are ephemeral; replacements get new names, new IPs, and empty emptyDir volumes. Durable state must live in external stores or PersistentVolumes.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-11-mcq-01',
+        question:
+          'What does the hidden "pause" container do, and why does its existence explain why containers in the same Pod can reach each other over `localhost`?',
+        options: [
+          { id: 'a', label: 'A', text: 'It holds open the Pod\'s shared Linux network namespace (and IPC namespace) that every other container in the Pod joins, so containers in the same Pod are genuinely sharing one network namespace at the kernel level, not communicating over a virtual network' },
+          { id: 'b', label: 'B', text: 'It is a load balancer that routes traffic between containers in the Pod' },
+          { id: 'c', label: 'C', text: 'It runs the application\'s health checks on behalf of the other containers' },
+          { id: 'd', label: 'D', text: 'It is a legacy component with no function in modern Kubernetes versions' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names the pause container\'s specific mechanism — holding the shared namespace open — as the reason `localhost` communication works between containers in one Pod.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-11-mcq-02',
+        question:
+          'Given this snippet from the `routeplanner` Pod spec, what happens if the application takes 25 seconds to become ready to serve `/healthz` after the container starts?',
+        codeBlock: 'livenessProbe:\n  httpGet: { path: /healthz, port: 8080 }\n  initialDelaySeconds: 15\n  periodSeconds: 20',
+        options: [
+          { id: 'a', label: 'A', text: 'The kubelet\'s first liveness check fires at 15 seconds, before the app is ready, likely fails, and — if this pattern repeats each subsequent 20-second period faster than the app actually finishes starting — the container gets killed and restarted in a self-inflicted crash loop' },
+          { id: 'b', label: 'B', text: 'Nothing happens; `initialDelaySeconds` guarantees the probe will not fail regardless of application startup time' },
+          { id: 'c', label: 'C', text: 'The Pod is immediately marked `Pending` and never scheduled' },
+          { id: 'd', label: 'D', text: '`periodSeconds: 20` means the probe only ever runs once, 20 seconds after the container starts' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is exactly the probe-induced crash loop the lesson describes — an `initialDelaySeconds` shorter than actual startup time causes premature liveness failures and restarts.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-11-mcq-03',
+        question:
+          'Why does the lesson recommend an init container for "waiting for Redis to become reachable" rather than a retry loop written into `routeplanner`\'s own application startup code?',
+        options: [
+          { id: 'a', label: 'A', text: 'An init container runs to completion before the main container starts at all, keeping setup-ordering logic (a concern about Pod lifecycle) separate from the application\'s own responsibility, and the main container\'s status reporting isn\'t muddied by startup-retry state' },
+          { id: 'b', label: 'B', text: 'Application code is technically incapable of implementing retry loops' },
+          { id: 'c', label: 'C', text: 'Init containers run concurrently with the main container, so they finish faster' },
+          { id: 'd', label: 'D', text: 'Kubernetes forbids any form of retry logic inside application code' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson frames this as a separation-of-concerns argument: the init container\'s guaranteed completion-before-start behavior is the mechanism, not a technical restriction on application code.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-11-mcq-04',
+        question:
+          'What determines whether a Pod is evicted first under node memory pressure, according to the lesson\'s QoS class explanation?',
+        options: [
+          { id: 'a', label: 'A', text: 'The Pod\'s age — older Pods are always evicted first' },
+          { id: 'b', label: 'B', text: 'Its QoS class, derived from its resource requests and limits: `BestEffort` Pods (no requests or limits at all) are evicted before `Burstable`, and `Guaranteed` Pods (requests equal to limits) are evicted last' },
+          { id: 'c', label: 'C', text: 'Whether the Pod has a sidecar container attached' },
+          { id: 'd', label: 'D', text: 'The number of restarts the Pod has already had' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson names the three QoS classes and their derivation directly, and states the eviction order explicitly: `BestEffort` first, `Guaranteed` last.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-11-mcq-05',
+        question:
+          'If `routeplanner` listens on port 8080 and its `fluent-bit` sidecar also needs to expose a diagnostics endpoint, what constraint does the lesson say applies?',
+        options: [
+          { id: 'a', label: 'A', text: 'Kubernetes automatically remaps conflicting ports between containers in the same Pod' },
+          { id: 'b', label: 'B', text: 'The two containers share the Pod\'s single IP and network namespace, so `fluent-bit` must listen on a distinct port from 8080 — there is no port isolation between containers in the same Pod the way there is between separate Pods' },
+          { id: 'c', label: 'C', text: 'Only one container per Pod may expose any port at all' },
+          { id: 'd', label: 'D', text: 'Sidecar containers are prohibited from listening on any network port' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'This follows directly from the shared-network-namespace mechanism — one IP, one port space, so distinct ports are required, with no automatic remapping.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-11-mcq-06',
+        question:
+          'How does the lesson say you can tell a crash loop is caused by liveness-probe misconfiguration rather than an actual application crash?',
+        options: [
+          { id: 'a', label: 'A', text: '`kubectl describe pod` shows an escalating `RESTARTS` count paired with `Liveness probe failed` events, a distinct, diagnosable pattern from an application-originated crash' },
+          { id: 'b', label: 'B', text: 'There is no way to distinguish the two; both require the same fix' },
+          { id: 'c', label: 'C', text: 'A probe-induced crash loop never appears in `kubectl describe pod` output at all' },
+          { id: 'd', label: 'D', text: 'Application crashes always show a `FailedScheduling` event, while probe failures never do' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson names the specific diagnostic signal — `Liveness probe failed` events alongside rising `RESTARTS` — as what makes this pattern identifiable rather than mysterious.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-11-mcq-07',
+        question:
+          'When `routeplanner` and `fluent-bit` both mount the Pod\'s `request-log` `emptyDir` volume, what is actually true about what each container sees?',
+        options: [
+          { id: 'a', label: 'A', text: 'Each container gets its own independent copy of the volume, synced periodically' },
+          { id: 'b', label: 'B', text: 'Both containers are mounting the same underlying directory — a write by one is immediately visible to the other, with no network hop involved, because it is genuinely one shared directory, not two separate ones' },
+          { id: 'c', label: 'C', text: 'Only the container that declares the volume first can write to it; the other can only read metadata' },
+          { id: 'd', label: 'D', text: '`emptyDir` volumes cannot be mounted into more than one container in the same Pod' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson states this precisely: a Pod-level volume mounted into two containers is the same underlying directory, which is the mechanism that makes the sidecar log-shipping pattern work.'
+      }
+    ]
+  },
+
+  'fde-curriculum/elective-containerization-orchestration/12-replicasets-deployments-and-sidecars': {
+    conceptChecks: [
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-12-concept-check-01',
+        eyebrow: 'CONCEPT CHECK 01 — ROLLING UPDATE MECHANISM',
+        question:
+          'Per the lesson, what does a "rolling" update concretely consist of at the ReplicaSet level?',
+        options: [
+          { id: 'a', label: 'A', text: 'All old Pods are deleted simultaneously, then all new Pods are created at once' },
+          { id: 'b', label: 'B', text: 'A Deployment creates a brand-new ReplicaSet for the new template and scales it up gradually while scaling the old ReplicaSet down in step, governed by `maxSurge` and `maxUnavailable`, so the two ReplicaSets briefly coexist' },
+          { id: 'c', label: 'C', text: 'A single ReplicaSet has its Pods updated one at a time in place, without any new ReplicaSet being created' },
+          { id: 'd', label: 'D', text: 'The Deployment pauses all traffic until every new Pod is confirmed healthy' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson defines rolling update as a controlled, gradual handoff between two coexisting ReplicaSets, not an atomic swap or in-place Pod mutation.',
+        incorrectExplanation:
+          'A rolling update creates a new ReplicaSet and scales it up while scaling the old ReplicaSet down in step, governed by surge and unavailable constraints.',
+        hint:
+          'A rolling update manages concurrent scaling between a new ReplicaSet and the old ReplicaSet according to surge and unavailable constraints.'
+      },
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-12-concept-check-02',
+        eyebrow: 'CONCEPT CHECK 02 — MAXUNAVAILABLE AND ROLLOUT SAFETY',
+        question:
+          'In the Practical Backend Scenario, why did `routeplanner` never actually go down for customers despite the v2 rollout failing?',
+        options: [
+          { id: 'a', label: 'A', text: 'Kubernetes automatically rolled back to v1 the instant the first Pod crashed' },
+          { id: 'b', label: 'B', text: 'With `maxUnavailable: 0`, the Deployment controller refused to scale down any old, healthy v1 Pods until new Pods proved ready, so all 3 remaining v1 Pods kept serving all customer traffic while the rollout stalled' },
+          { id: 'c', label: 'C', text: '`routeplanner` has no customer-facing traffic during a rollout by design' },
+          { id: 'd', label: 'D', text: 'The broken v2 Pod was, coincidentally, never selected by the load balancer' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The `maxUnavailable: 0` configuration is exactly what prevents capacity loss during a failed rollout — old Pods are only removed once new ones are confirmed ready.',
+        incorrectExplanation:
+          'With maxUnavailable: 0, the Deployment controller maintains all old replicas until new ones pass readiness checks, preserving customer traffic during stalls.',
+        hint:
+          'With maxUnavailable: 0, old pods remain serving traffic because failing new pods never reach Ready status to trigger scale-down.'
+      }
+    ],
+    practiceQuestions: [
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-12-mcq-01',
+        question:
+          'Why does the lesson say a bare `ReplicaSet`, without a `Deployment` managing it, is a poor tool for rolling out a new application version deliberately?',
+        options: [
+          { id: 'a', label: 'A', text: 'Editing a ReplicaSet\'s Pod template does not touch existing Pods — only newly created ones pick up the change, so there is no controlled, gradual mechanism for replacing the running version' },
+          { id: 'b', label: 'B', text: 'ReplicaSets cannot run more than one replica at a time' },
+          { id: 'c', label: 'C', text: 'A ReplicaSet automatically deletes all its Pods the moment its template is edited' },
+          { id: 'd', label: 'D', text: 'ReplicaSets do not support readiness probes' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson is explicit: a ReplicaSet\'s job is only maintaining a count against a template, with no concept of a previous version or a controlled transition — that\'s exactly the gap a Deployment fills.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-12-mcq-02',
+        question:
+          'Given this `kubectl rollout status` output, what does it tell you about the current state of the Deployment?',
+        codeBlock: '$ kubectl rollout status deployment/routeplanner\nWaiting for deployment "routeplanner" rollout to finish:\n2 out of 4 new replicas have been updated...\nerror: deployment "routeplanner" exceeded its progress deadline',
+        options: [
+          { id: 'a', label: 'A', text: 'The rollout is stalled — only 2 of 4 replicas have successfully transitioned to the new revision, and the Deployment has exceeded its configured progress deadline without completing' },
+          { id: 'b', label: 'B', text: 'The rollout has completed successfully with 2 replicas remaining on the old version by design' },
+          { id: 'c', label: 'C', text: 'The Deployment has been deleted and needs to be recreated' },
+          { id: 'd', label: 'D', text: 'All 4 replicas are running the new revision, but 2 have failed their liveness probes' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The output states explicitly that only 2 of 4 have updated and the progress deadline was exceeded — a stalled, incomplete rollout, not a successful or intentional partial state.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-12-mcq-03',
+        question:
+          'What does `kubectl rollout undo` actually do mechanically, per the lesson?',
+        options: [
+          { id: 'a', label: 'A', text: 'It deletes the Deployment and recreates it from a backup snapshot' },
+          { id: 'b', label: 'B', text: 'It scales a previous, retained ReplicaSet back up and the current one down — the exact same mechanism as a forward rollout, run in reverse' },
+          { id: 'c', label: 'C', text: 'It reverts every Pod\'s container image individually, in place, without touching any ReplicaSet' },
+          { id: 'd', label: 'D', text: 'It requires the original manifest file to be reapplied manually before it can proceed' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson is explicit that rollback is not a special-cased operation — it\'s the same scale-up/scale-down mechanism as a forward rollout, applied to the previous ReplicaSet.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-12-mcq-04',
+        question:
+          'According to the lesson, what determines whether the Deployment controller considers a new Pod during a rollout "successfully updated"?',
+        options: [
+          { id: 'a', label: 'A', text: 'The new container process starting, regardless of application-level health' },
+          { id: 'b', label: 'B', text: 'The new Pod actually passing its readiness probe, not merely its container starting' },
+          { id: 'c', label: 'C', text: 'The Pod being scheduled to a node, regardless of its running state' },
+          { id: 'd', label: 'D', text: 'A fixed timer elapsing after the container image is pulled' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The lesson states rollout health is judged by readiness-probe success, not merely by containers starting — this is why a `CrashLoopBackOff` Pod correctly stalls the rollout instead of being counted as done.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-12-mcq-05',
+        question:
+          'The lesson states a sidecar adding 100Mi of memory per replica means a 20-replica Deployment needs 2Gi more memory purely for sidecars. Why does the lesson also say a rollout of that same Deployment needs proportionally more capacity headroom during the surge window?',
+        options: [
+          { id: 'a', label: 'A', text: 'Each `maxSurge` Pod created during the rollout also carries the sidecar, so the extra memory requirement applies to every surge Pod as well as every steady-state replica, not just the base 20' },
+          { id: 'b', label: 'B', text: '`maxSurge` Pods never include sidecar containers, so no additional headroom is actually needed' },
+          { id: 'c', label: 'C', text: 'Sidecars are only instantiated after a rollout completes, so they don\'t affect surge capacity' },
+          { id: 'd', label: 'D', text: 'The sidecar\'s memory requirement only applies once, regardless of replica or surge count' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson\'s point is that the sidecar\'s footprint multiplies across every Pod the ReplicaSet creates, including temporary surge Pods during a rollout, not just the steady-state replica count.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-12-mcq-06',
+        question:
+          'Given this `kubectl rollout history` output, what does revision 1 represent, and why is it still available to roll back to even though revision 2 is the currently deployed version?',
+        codeBlock: '$ kubectl rollout history deployment/routeplanner\nREVISION  CHANGE-CAUSE\n1         kubectl apply --record (image sha256:3f9c...)\n2         kubectl apply --record (image sha256:8a21...)',
+        options: [
+          { id: 'a', label: 'A', text: 'Revision 1 is the previous, working ReplicaSet and Pod template; the Deployment keeps every old ReplicaSet it created around, scaled to zero, specifically as revision history, which is what makes rolling back to it possible' },
+          { id: 'b', label: 'B', text: 'Revision 1 is a snapshot of the entire cluster state, unrelated to `routeplanner` specifically' },
+          { id: 'c', label: 'C', text: 'Revision numbers are cosmetic labels with no connection to any retained ReplicaSet' },
+          { id: 'd', label: 'D', text: 'Revision 1 no longer exists once revision 2 is deployed; the history is purely a log with nothing to roll back to' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The lesson states directly that old ReplicaSets are kept, scaled to zero, as revision history — this retained state is what rollback actually operates on, not just a log entry.'
+      },
+      // LLM_GENERATED
+      {
+        id: 'lesson-fde-elective-containerization-orchestration-12-mcq-07',
+        question:
+          'In the Practical Backend Scenario, why did the FDE use `kubectl rollout undo --to-revision=1` rather than manually reapplying the previous manifest file to fix the stalled rollout?',
+        options: [
+          { id: 'a', label: 'A', text: 'Manually reapplying a manifest is technically impossible once a rollout has started' },
+          { id: 'b', label: 'B', text: '`rollout undo` operates on the exact retained ReplicaSet from revision 1, removing any risk of guessing the wrong image tag or reconstructing a manifest from memory, and uses the same well-understood scale-up/scale-down mechanism as any other rollout' },
+          { id: 'c', label: 'C', text: 'Reapplying an old manifest would delete the Deployment object entirely' },
+          { id: 'd', label: 'D', text: '`kubectl apply` cannot be used more than twice on the same Deployment' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'The scenario\'s point is precision and speed — the retained ReplicaSet removes any need to guess or reconstruct the previous state by hand, and the mechanism is identical to a normal rollout.'
+      }
+    ]
+  }
 };
 
 export function getLessonInteractions(courseSlug, moduleSlug, lessonSlug) {

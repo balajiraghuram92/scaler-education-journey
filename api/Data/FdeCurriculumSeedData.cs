@@ -3955,6 +3955,1029 @@ Ask a peer or mentor to pick the one artifact from your portfolio they would fol
 
 **This lesson completes Module 8 — ""8. System Design, Capstone & Hiring Readiness"" (14/14 lessons) and, with it, the entire FDE core curriculum — all 8 numbered modules plus the Prerequisite module.**
 ",
+        "01-docker-introduction" => @"# Docker Introduction
+
+## Concepts Covered
+
+A container is not a lightweight virtual machine, even though it is often introduced that way. A VM virtualizes hardware and boots its own kernel; a container is an ordinary Linux process that the kernel has restricted using three independent mechanisms — namespaces, control groups (cgroups), and a union filesystem — so that it perceives its own process tree, network stack, hostname, and filesystem while actually running on the same shared kernel as the host and every other container next to it. Namespaces control what a process can *see*: the PID namespace gives a containerized process its own view of process IDs starting at 1, the network namespace gives it its own network interfaces and routing table, the mount namespace gives it its own filesystem view. Cgroups control what a process can *use*: CPU shares, memory ceilings, block I/O bandwidth, all enforced by the kernel, not by the containerized process cooperating. Because the kernel is shared, a container is fundamentally cheaper to start than a VM (no second kernel to boot) but also fundamentally less isolated than a VM — a kernel vulnerability or a misconfigured capability can cross the container boundary in a way a hypervisor boundary is designed to resist.
+
+The Docker daemon (`dockerd`) is a long-running background process that does the actual work of applying namespaces and cgroups, building images, and managing container lifecycle; the `docker` command you type is a thin client that talks to the daemon over a local socket (or, unusually, over a remote API). This client/daemon split matters operationally: `docker` commands do not have to run as the same user or even on the same host as `dockerd`, and a hung or slow daemon manifests as every `docker` command hanging, not as a per-command failure. Docker solves *packaging* — it captures an application, its runtime, its dependencies, and its filesystem assumptions into one portable, versioned artifact that runs identically wherever a compatible Docker daemon exists. It does not, by itself, solve *orchestration* — deciding which of several machines should run a given container, restarting a container that dies, discovering one service's address from another, or rolling out a new version across many hosts without downtime. Those are the problems Kubernetes exists to solve, later in this module; conflating ""I containerized my app"" with ""my app is production-ready across a fleet of machines"" is the single most common category error this module exists to correct.
+
+```bash
+# The client/daemon split, made visible
+$ docker version
+Client: Docker Engine - Community
+ Version:           27.3.1
+ API version:       1.47
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          27.3.1
+  Containerd:       1.7.22
+
+# The host's own kernel and process view, for contrast
+$ uname -r
+6.8.0-generic
+$ ps -p 1 -o comm=
+systemd
+
+# A container's process view — namespaced, not the host's
+$ docker run --rm alpine ps aux
+PID   USER     TIME  COMMAND
+    1 root      0:00 ps aux        # PID 1 inside the container, not on the host
+
+# A cgroup memory ceiling, enforced by the kernel, not the app
+$ docker run --rm --memory=64m alpine sh -c 'cat /sys/fs/cgroup/memory.max'
+67108864                            # 64MB, in bytes — the kernel's own accounting
+```
+
+## Practical Backend Scenario
+
+Vantage Utilities' pilot service, `ticket-api`, works perfectly on the FDE's laptop: Python 3.12, a locally running PostgreSQL 16, and a `pip install -r requirements.txt` that happened to succeed because the laptop already had `libpq-dev` installed from an unrelated project two years ago. When the FDE hands a zipped source tree to Vantage's ops engineer, `pip install` fails on `psycopg2` because the ops engineer's machine has Python 3.9 and no PostgreSQL client headers at all — an assumption about the host environment that was never written down anywhere, because it never needed to be while the app only ever ran on one laptop. The fix is not a longer README of manual setup steps; it is packaging `ticket-api` and its exact runtime dependencies into a Docker image that Vantage's ops engineer can run with one command, on any machine with Docker installed, regardless of what Python version or system libraries that machine happens to already have.
+
+## Practice Loop
+
+1. Run `python3 --version` and `pip show psycopg2` on your own machine, and list every assumption `ticket-api`'s current setup silently depends on (Python version, system libraries, environment variables) that is not captured in any file in the repository.
+2. Pull and run a small existing image — `docker run --rm python:3.12-slim python3 -c ""import sys; print(sys.version)""` — and confirm the reported Python version is the image's, not your host's, proving the container carries its own runtime.
+3. Run `docker run --rm alpine sh -c 'echo $; cat /proc/1/comm'` and compare the reported PID to what `ps` shows for the same process on your host — this diagnostic makes ""the container has its own PID namespace"" concrete instead of asserted.
+4. Run the same container twice with `--memory=64m` and without any memory flag, and use `docker inspect --format='{{.HostConfig.Memory}}'` on each to confirm the cgroup limit is actually recorded per-container.
+5. Write a one-paragraph handoff note listing exactly what a container guarantees for Vantage's ops engineer (a fixed runtime and dependency set) versus what it does not guarantee (which machine it runs on, what happens if that machine reboots, how a second instance would discover the first) — this becomes the reason this module continues past Docker into orchestration.
+
+## Evidence of Understanding
+
+You can explain what a container isolates (process view, network view, filesystem view, resource ceilings) using the specific kernel mechanisms responsible (namespaces, cgroups) rather than a VM analogy. You can distinguish the `docker` client from the `dockerd` daemon and explain why a hung daemon affects every command rather than one. You can state, with a concrete example, which operational problems (multi-host scheduling, restart-on-failure, service discovery, coordinated rollout) Docker does not solve by itself, and why that gap is what orchestration exists to close.
+
+## Suggested Extension
+
+Run `docker run --rm --pid=host alpine ps aux` and compare its output to a normal `docker run --rm alpine ps aux` — explain, using the PID namespace mechanism from this lesson, exactly what changed and why `--pid=host` is a meaningful isolation trade-off, not just a flag.
+",
+        "02-docker-images-and-containers" => @"# Docker Images and Containers
+
+## Concepts Covered
+
+An image is a read-only, layered filesystem plus metadata (the command to run, exposed ports, default environment) captured in a manifest. Each instruction in a Dockerfile that modifies the filesystem produces one layer, identified by a content hash of that layer's contents; `docker build` reuses a previously built layer whenever an earlier instruction and everything above it in the Dockerfile are byte-identical to a prior build, which is the mechanism layer-caching relies on. A tag (`ticket-api:1.4.2`, or the mutable `ticket-api:latest`) is a human-friendly, movable pointer at a specific image ID — nothing stops two different builds from both being tagged `latest`, or from `1.4.2` being silently rebuilt and re-pushed with different contents than what a teammate pulled an hour earlier. A digest (`sha256:e3b0c4...`) is the actual content hash of the image manifest itself — it is what you pin when ""the exact same build, byte for byte"" is the requirement, not ""whatever a mutable tag currently points to.""
+
+A container is a running (or stopped) instance of an image, with one additional writable layer stacked on top of the image's read-only layers using a union filesystem (typically `overlayfs`). Every file the container process creates, modifies, or deletes at runtime happens in that writable layer; the underlying image layers are never touched, which is exactly what lets many containers share one image's layers on disk without one container's writes affecting another's, or the image itself. This has a direct operational consequence: anything written only to the writable layer — a log file, a cached computation, an uploaded file saved to a path nobody mounted a volume onto — disappears the moment `docker rm` removes that container, because the writable layer is removed with it. This is not a bug to work around with careful cleanup ordering; it is the entire point of the design, and the correct response (durable state belongs in a volume, covered in Lesson 5, not in the container's writable layer) follows directly from understanding this mechanism rather than memorizing it as a rule. Promoting a *build* from staging to production should mean promoting the exact same image — by digest — rather than rebuilding from the same Dockerfile a second time and hoping the result is identical; a rebuild can silently differ if a base image was updated, an unpinned dependency resolved to a new version, or the build machine's clock or `apt` mirror state differed between runs.
+
+```bash
+# Build and tag the image
+$ docker build -t ticket-api:1.4.2 .
+[+] Building 34.2s (11/11) FINISHED
+ => [internal] load build definition from Dockerfile
+ => [3/6] COPY requirements.txt .
+ => [4/6] RUN pip install --no-cache-dir -r requirements.txt
+ => [6/6] COPY . .
+ => exporting to image
+ => => writing image sha256:7a9f3c1e8b42...
+ => => naming to docker.io/library/ticket-api:1.4.2
+
+# The tag and its digest
+$ docker images ticket-api
+REPOSITORY   TAG      IMAGE ID       CREATED         SIZE
+ticket-api   1.4.2    7a9f3c1e8b42   4 seconds ago   214MB
+
+$ docker inspect --format='{{index .RepoDigests 0}}' ticket-api:1.4.2
+ticket-api@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+# Pin the exact build for a reproducible rollback
+$ docker pull registry.vantage.internal/ticket-api@sha256:e3b0c442...
+```
+
+## Practical Backend Scenario
+
+Two weeks after go-live, Vantage's ops engineer opens an incident: `ticket-api` returned 500s for eleven minutes starting at 02:14 UTC. The support team needs to reproduce the exact build that was running at that timestamp — not ""whatever `ticket-api:latest` currently points to,"" since `latest` has been rebuilt three times since then and none of those rebuilds are guaranteed byte-identical to what was actually deployed. Because the CI pipeline tags every build with both a semantic version (`1.4.2`) and pushes its digest to the deployment log, the FDE looks up the digest recorded at 02:14 UTC and runs `docker pull registry.vantage.internal/ticket-api@sha256:e3b0c442...` — pulling the exact image that was live during the incident, with no ambiguity about what ""1.4.2"" meant at that particular moment, since the tag alone could have pointed at different content before and after a later rebuild.
+
+## Practice Loop
+
+1. Build `ticket-api` twice from the same Dockerfile with two different tags (`1.4.2` and `1.4.3-test`), and run `docker images` to see both listed with different image IDs despite one intentional code change between builds.
+2. Run `docker history ticket-api:1.4.2` and identify which layer corresponds to the `pip install` instruction and which corresponds to the final `COPY . .`.
+3. Start a container from the image, write a file inside it that no volume is mounted onto, then run `docker diff <container>` before removing it — count exactly how many filesystem changes are visible in the writable layer versus the image's own layers, which stay untouched.
+4. Remove the container with `docker rm -f`, then attempt to find the file you wrote in step 3 anywhere on the host or in the image — confirm it is genuinely gone, not just hidden.
+5. Record both the tag and the digest for your final build, and write one sentence explaining which one you would give to a teammate who needs to reproduce this exact build in six months, and why.
+
+## Evidence of Understanding
+
+You can distinguish an image's read-only, content-addressed layers from a running container's single writable layer, and demonstrate with `docker diff` exactly what a container adds on top of its image. You can explain why a mutable tag is not a reliable reproducibility guarantee and pin an exact build using its digest instead. You can trace a container's lifecycle from `docker run` through `docker rm` and identify precisely the point at which any state written only to the writable layer is lost.
+
+## Suggested Extension
+Run `docker history --no-trunc ticket-api:1.4.2` and identify one layer you could remove or combine with an earlier instruction to reduce the image's total layer count, without changing what the final image contains.
+",
+        "03-building-your-own-docker-image" => @"# Building Your Own Docker Image
+
+## Concepts Covered
+
+A Dockerfile is a sequence of instructions, and each one has a distinct, non-interchangeable job, even though several of them could technically be faked with `RUN`. `FROM` picks the base image and, with it, the base's own vulnerability surface and package manager — a build starting `FROM python:3.12` inherits Debian's full package set (a compiler, `apt`, shell utilities) even if the application never uses any of them, while `FROM python:3.12-slim` trims that down deliberately. `WORKDIR` sets the working directory for every instruction after it (creating the directory if it does not exist), which is more reliable than `RUN cd some/path && ...`, since a `cd` inside one `RUN` does not persist to the next `RUN` — each `RUN` instruction is its own shell invocation. `COPY` moves files from the build context (the directory you pass to `docker build`, by default the current directory) into the image; `ARG` defines a build-time-only variable available during the build but not inside the running container, while `ENV` defines a variable baked into the image and available at runtime too — using `ARG` for a value like a build-time version tag and `ENV` for a runtime configuration default is a distinction worth getting right, not an interchangeable pair.
+
+`ENTRYPOINT` and `CMD` both define what runs when the container starts, but they compose: `ENTRYPOINT` is the fixed command, `CMD` supplies default arguments to it that `docker run` can override, and the two are commonly written together (`ENTRYPOINT [""python"", ""-m"", ""ticket_api""]` with no `CMD`, or `ENTRYPOINT [""python""]` with `CMD [""-m"", ""ticket_api""]` so a caller can swap the module). Both instructions accept two syntactic forms with materially different runtime behavior: exec form (`CMD [""python"", ""app.py""]`, a JSON array) runs the process directly as PID 1, while shell form (`CMD python app.py`) wraps it in `/bin/sh -c ""python app.py""`, making `/bin/sh` PID 1 and the actual application process a *child* of the shell. This is not a stylistic preference — a signal Docker sends to PID 1 (a `SIGTERM` on `docker stop`) reaches `/bin/sh` in shell form, and `/bin/sh` does not forward that signal to its child by default, meaning the application never sees the termination signal it might need to shut down cleanly, a mechanism this module's next lesson goes into in more depth. `HEALTHCHECK` lets an image declare its own liveness probe as part of the image itself (`HEALTHCHECK CMD curl -f http://localhost:8080/health || exit 1`), so any tooling that runs the image — Docker Compose, a bare `docker run`, or later, Kubernetes — inherits a working health signal without having to reinvent one per deployment target.
+
+```dockerfile
+# Dockerfile for ticket-api
+FROM python:3.12-slim AS builder
+WORKDIR /app
+
+# Dependency manifest copied first: this layer only invalidates
+# when requirements.txt itself changes, not on every code edit.
+COPY requirements.txt .
+RUN pip install --no-cache-dir --target=/deps -r requirements.txt
+
+FROM python:3.12-slim
+WORKDIR /app
+RUN useradd --create-home --uid 1000 appuser
+COPY --from=builder /deps /usr/local/lib/python3.12/site-packages
+
+# Application code copied last: changes here reuse every layer above.
+COPY . .
+
+USER appuser
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# Exec form: the app process becomes PID 1 directly, so it
+# receives SIGTERM from `docker stop` without a shell in between.
+ENTRYPOINT [""python"", ""-m"", ""ticket_api""]
+```
+
+```text
+# .dockerignore — keeps the build context small and secrets out of any layer
+.git
+__pycache__/
+*.pyc
+.env
+tests/
+.pytest_cache/
+```
+
+## Practical Backend Scenario
+
+The first `ticket-api` Dockerfile the FDE writes is a single, undifferentiated block: `FROM python:3.12`, `COPY . .` immediately, then `RUN pip install -r requirements.txt`, with `CMD python -m ticket_api` in shell form and no `.dockerignore` at all. It builds and runs, but three things are wrong the moment Vantage's ops engineer tries to operate it: every source-code edit invalidates the dependency-install layer because `COPY . .` runs before `pip install`, so every rebuild reinstalls every dependency from scratch; the build context silently includes a local `.env` file with the FDE's own PostgreSQL password, which ends up baked into an image layer that a `docker history` on the shipped image would reveal; and when the ops engineer runs `docker stop ticket-api`, the container takes the full 10-second grace period and gets `SIGKILL`ed every time, because the shell-form `CMD` puts `/bin/sh` at PID 1, and `/bin/sh` never forwards the `SIGTERM` to the actual Python process underneath it. Rewriting the Dockerfile with the dependency-manifest-first ordering, a `.dockerignore` excluding `.env`, and exec-form `ENTRYPOINT` fixes all three at once, for the reasons named above — none of the three requires extra code, only reordering and syntax that were already available.
+
+## Practice Loop
+
+1. Write the naive single-block Dockerfile described above (no `.dockerignore`, `COPY . .` before `pip install`, shell-form `CMD`), build it, and time the build.
+2. Make one code-only change (a comment) and rebuild, recording how many layers the cache reused — confirm the dependency-install step reran even though `requirements.txt` did not change.
+3. Run `docker history --no-trunc` on the naive image and search its layers for the string `.env` or a known local password value — count how many layers contain it, confirming the exact leak the scenario describes.
+4. Rewrite the Dockerfile with the manifest-first ordering, a `.dockerignore` excluding `.env`, `USER appuser`, and exec-form `ENTRYPOINT`; rebuild and repeat step 2's code-only-change timing, recording the improvement.
+5. Run `docker stop` against a container started from each image (naive and fixed) and time how long each takes to actually exit, confirming the exec-form image stops immediately while the shell-form image waits out the full grace period before being killed.
+
+## Evidence of Understanding
+
+You can write a Dockerfile that uses `FROM`, `WORKDIR`, `COPY`, `RUN`, `ARG`/`ENV`, `EXPOSE`, `ENTRYPOINT`/`CMD`, and `HEALTHCHECK` each for their distinct purpose, rather than collapsing everything into `RUN`. You can explain, and demonstrate with `docker stop` timing, why exec-form `ENTRYPOINT` is required for a container's main process to actually receive `SIGTERM`. You can order instructions and write a `.dockerignore` so that a code-only change rebuilds in seconds and no local secret is ever copied into the build context in the first place.
+
+## Suggested Extension
+Add a build-time `ARG VERSION` that gets baked into an `ENV APP_VERSION` inside the image (via `ARG VERSION` followed by `ENV APP_VERSION=$VERSION`), and confirm `docker run ticket-api:latest env | grep APP_VERSION` reports it while `docker build --build-arg VERSION=1.5.0` is the only place that value is ever set.
+",
+        "04-images-and-containers-deep-dive" => @"# Images and Containers Deep Dive
+
+## Concepts Covered
+
+Being PID 1 inside a container is not the same as being an ordinary process, and Lesson 3's exec-form fix does not fully solve this by itself. On a normal Linux system, PID 1 is `init` (or `systemd`), a process specifically designed to reap zombie child processes and to run default signal handlers for signals it hasn't explicitly registered a handler for. A container's PID 1, by contrast, is whatever your `ENTRYPOINT` names — your application code, not an init system — and the kernel does not retroactively grant it `init`'s special behaviors just because it happens to hold PID 1. Two concrete consequences follow: if your application never registers a `SIGTERM` handler, the *default* kernel action for `SIGTERM` (terminate the process) still applies, so a naive Python app without an explicit `signal.signal(SIGTERM, handler)` call does actually stop on `docker stop` — but only abruptly, with no chance to flush a buffer or finish an in-flight request, which is different from *ignoring* the signal. Second, and less obvious: if your application spawns child processes of its own (a shell script that forks a subprocess, for instance) and does not explicitly wait for and reap them, those children can become zombies that nothing ever cleans up, because there's no real `init` at PID 1 to do that reaping automatically. This second problem is why a minimal init wrapper like `tini` (`ENTRYPOINT [""tini"", ""--"", ""python"", ""-m"", ""ticket_api""]`) is the standard fix for any image whose main process forks children — `tini` becomes PID 1 instead, correctly reaps zombies, and forwards signals to your actual application as its own child.
+
+Exit codes are a compact, standardized signal worth reading precisely rather than treating a nonzero code as an undifferentiated ""it failed."" `0` means clean exit; a small positive number (`1`, `2`) usually means the application itself raised an unhandled exception or called `sys.exit(1)`; `137` is `128 + 9`, meaning the process was killed by signal 9 (`SIGKILL`) — which for a container almost always means either the Docker daemon forcibly killed it after the stop grace period expired, or the kernel's OOM killer terminated it for exceeding its cgroup memory ceiling; `143` is `128 + 15`, meaning it received `SIGTERM` and actually exited in response to it (not necessarily gracefully, just that the signal reached and stopped the process) rather than being force-killed. `docker inspect --format='{{.State.OOMKilled}}'` disambiguates the two most common causes of `137` directly, rather than leaving you to guess between ""ran over its memory limit"" and ""took too long to shut down after SIGTERM."" Environment-variable precedence follows a fixed, memorizable order from least to most specific: a Dockerfile's `ENV` sets an image-baked default; `docker run -e VAR=value` (or Compose's `environment:` key) overrides it at container-start time; and an `env_file` entry, depending on the exact tool, typically sits between those two — the practical rule that matters operationally is that anything specified at `docker run` or Compose service level always beats whatever the image itself baked in as a default, which is precisely the mechanism that lets the same image run with different database URLs in staging and production without being rebuilt.
+
+```bash
+# PID 1 has no special init behavior unless you provide it
+$ docker run --rm ticket-api ps aux
+PID   USER     COMMAND
+    1 appuser  python -m ticket_api      # the app itself, not an init process
+
+# Reading an exit code precisely
+$ docker run --rm --memory=64m ticket-api-worker
+$ echo $?
+137
+$ docker inspect ticket-api-worker --format='{{.State.OOMKilled}}'
+true    # confirms this 137 was the kernel OOM killer, not docker stop's SIGKILL
+
+$ docker stop ticket-api           # sends SIGTERM, waits 10s, then SIGKILL
+$ docker inspect ticket-api --format='{{.State.ExitCode}}'
+143     # the app received SIGTERM and exited in response to it
+
+# tini as PID 1, correctly forwarding signals and reaping children
+ENTRYPOINT [""tini"", ""--"", ""python"", ""-m"", ""ticket_api""]
+```
+
+## Practical Backend Scenario
+
+Vantage's rollout process restarts `ticket-api`'s background worker container during every deploy. The worker, which processes photo-attachment uploads by shelling out to `subprocess.run` for image resizing, starts leaving zombie processes behind after several days of uptime — `ps aux` inside the container slowly accumulates `[resize] <defunct>` entries, because the worker's own Python process is PID 1 and never explicitly reaps the children it spawns, and there is no real init process present to do it automatically. Separately, during one deploy the worker is killed mid-task and the deployment log shows exit code `137`; the on-call FDE initially assumes this is an unhandled crash, but `docker inspect --format='{{.State.OOMKilled}}'` on the stopped container returns `true` — the worker actually exceeded its 256MB memory ceiling while resizing an unusually large uploaded photo, not crashed on bad input as first assumed. Both problems trace back to the same root cause treated two different ways: the zombie-process issue is fixed by adding `tini` as the actual PID 1 (`ENTRYPOINT [""tini"", ""--"", ""python"", ""-m"", ""worker""]`), and the OOM issue is fixed not by ""handling the crash better"" in application code but by either raising the memory ceiling to match the worker's real peak usage or downsizing images in a streaming fashion that never holds a full-resolution copy in memory at once.
+
+## Practice Loop
+
+1. Run `ticket-api`'s worker container without `tini`, have it spawn a child `subprocess` that exits, and run `ps aux` inside the container repeatedly to watch a `<defunct>` zombie entry accumulate and never clear.
+2. Add `tini` as the entrypoint wrapper, repeat step 1, and confirm the zombie no longer appears — `tini` is reaping it.
+3. Run the worker with `--memory=64m` against a workload you know will exceed that ceiling, then run `docker inspect --format='{{.State.ExitCode}} {{.State.OOMKilled}}'` and record both values, confirming `137` plus `OOMKilled: true` together, not just the exit code alone.
+4. Run `docker stop` against a healthy worker and inspect its exit code, confirming `143` — then compare this to step 3's `137` to build a habit of distinguishing the two by more than ""the container died.""
+5. Set the same environment variable (`DATABASE_URL`) in the Dockerfile's `ENV`, then override it with `docker run -e DATABASE_URL=...`, and confirm inside the running container which value actually won, verifying the precedence rule rather than assuming it.
+
+## Evidence of Understanding
+
+You can explain why a container's PID 1 does not automatically get an `init` process's zombie-reaping and default-signal behavior, and when adding `tini` as the real PID 1 is warranted (any image whose main process forks children it does not explicitly reap). You can read exit codes 137 and 143 precisely, and use `docker inspect`'s `OOMKilled` field to disambiguate a memory-limit kill from a `docker stop`-driven `SIGKILL`, rather than treating any container death as an undifferentiated crash. You can predict which value wins when the same environment variable is set in a Dockerfile's `ENV` and overridden at `docker run` or Compose level, and demonstrate it rather than assume it.
+
+## Suggested Extension
+Reduce the worker's memory ceiling until it reliably OOM-kills on a normal-sized (not unusually large) upload, then rewrite the image-resize step to stream the file instead of loading it fully into memory, and confirm the same ceiling no longer triggers `OOMKilled: true` for the same workload.
+",
+        "05-docker-volumes" => @"# Docker Volumes
+
+## Concepts Covered
+
+A named volume (`docker volume create ticket-uploads`) is storage Docker manages entirely on the host's behalf, at a location the daemon controls (typically under `/var/lib/docker/volumes/`), addressed only by name — you do not need to know or care about the host path to use one. A bind mount (`docker run -v $(pwd)/config:/etc/ticket-api`) instead maps a specific, already-existing host path directly into the container, which is the right tool when a human on the host needs to edit the file directly (local development config, a certificate the host's own tooling also manages) but the wrong tool for a service's actual data directory, since a bind mount ties the container to one specific host's filesystem layout in a way that breaks the moment the container is scheduled onto a different machine. Named volumes are the portable choice precisely because *Docker* owns the mapping from name to location, not the Dockerfile or the person running `docker run` — the same `docker run -v ticket-uploads:/data/uploads` command works on any host, because ""where `ticket-uploads` actually lives"" is a detail the volume driver resolves, not something baked into the command itself.
+
+This is the twelve-factor ""processes are stateless, backing services are attached resources"" boundary applied literally to a container's own filesystem: everything a container writes without an explicit volume mount lands in its writable layer, discussed in Lesson 2, and is destroyed with the container; everything that must survive a container being stopped, removed, and recreated — a Postgres data directory, uploaded attachment files, a Redis append-only file — has to live in a named volume or an external, managed data store, not in the container's own filesystem at all. Ownership matters as much as location: a named volume attached to `ticket-api`'s container is, from the ops team's perspective, owned and lifecycled by whatever creates and mounts it, and its backup responsibility does not disappear just because Docker is managing where the bytes physically sit — someone still has to define and test the backup and restore path, since `docker volume rm` deletes it as completely and irreversibly as any other filesystem deletion. Backing up a named volume does not require stopping the container that uses it for read access, but it does require care about consistency: backing up a live Postgres data directory by simply `tar`-ing its volume while the database is actively writing to it can capture a filesystem-level, not transaction-level, consistent snapshot, which is why the backup pattern below uses a throwaway container that mounts the *same* volume rather than reaching into the running service's own container.
+
+```bash
+# Create and inspect a named volume
+$ docker volume create ticket-uploads
+ticket-uploads
+
+$ docker volume inspect ticket-uploads
+[
+    {
+        ""Name"": ""ticket-uploads"",
+        ""Driver"": ""local"",
+        ""Mountpoint"": ""/var/lib/docker/volumes/ticket-uploads/_data"",
+        ""Scope"": ""local""
+    }
+]
+
+# Attach it to the running service
+$ docker run -d --name ticket-api \
+    -v ticket-uploads:/data/uploads \
+    -p 8080:8080 ticket-api:1.4.2
+
+# Bind mount for config a human needs to edit directly
+$ docker run -d --name ticket-api \
+    -v ticket-uploads:/data/uploads \
+    --mount type=bind,source=""$(pwd)/config"",target=/etc/ticket-api,readonly \
+    -p 8080:8080 ticket-api:1.4.2
+
+# Back up the volume with a throwaway container — does not touch ticket-api
+$ docker run --rm \
+    -v ticket-uploads:/data:ro \
+    -v ""$(pwd)"":/backup \
+    alpine tar czf /backup/uploads-backup-$(date +%F).tar.gz -C /data .
+
+# Restore into a fresh (or the same) volume
+$ docker run --rm \
+    -v ticket-uploads:/data \
+    -v ""$(pwd)"":/backup \
+    alpine tar xzf /backup/uploads-backup-2026-08-15.tar.gz -C /data
+```
+
+## Practical Backend Scenario
+
+Vantage's dispatchers use `ticket-api`'s technician-facing upload feature to attach photos to a field-service ticket, saved to `/data/uploads` inside the container. During a routine deploy, the ops team runs `docker rm -f ticket-api && docker run ... ticket-api:1.5.0` to pick up the new version — and every photo any technician had ever uploaded is gone, because `/data/uploads` was never mounted to a volume; it was writing directly into the old container's writable layer the entire time, which was destroyed the instant `docker rm -f` ran. The fix is not ""be more careful about when you run `docker rm`"" — it is moving `/data/uploads` onto a named volume (`ticket-uploads`) so the data's lifecycle is decoupled from any one container's lifecycle entirely; recreating the container for a deploy then genuinely means only the application code changes, while `-v ticket-uploads:/data/uploads` on the new container's `docker run` command reattaches the exact same underlying storage, uploads intact, with zero copying or migration required.
+
+## Practice Loop
+
+1. Reproduce the failure: run `ticket-api` without a volume mount, upload a test attachment, `docker rm -f` the container, start a fresh one from the same image, and confirm the attachment is genuinely gone.
+2. Create the named volume `ticket-uploads` and rerun the same sequence with `-v ticket-uploads:/data/uploads` on both the old and the recreated container, confirming the attachment survives this time.
+3. Count exactly how many bytes exist under the volume's `Mountpoint` on the host (`sudo du -sh $(docker volume inspect ticket-uploads --format='{{.Mountpoint}}')`) before and after an upload, to confirm the data is really landing on the host-managed volume location, not somewhere else.
+4. Back up the volume using the throwaway-container pattern above without stopping `ticket-api`, then delete a test file from inside the volume and restore from the backup to confirm the restore path actually works, not just the backup step.
+5. Add a bind-mounted, read-only config file for a setting the ops team needs to hand-edit on the host, and explain in one sentence why this setting is a bind mount while the uploads are a named volume.
+
+## Evidence of Understanding
+
+You can choose between a named volume, a bind mount, and no persistence at all for a given piece of container state, justified by who needs to read or edit it directly and whether it needs to be portable across hosts. You can back up and restore a named volume's contents using a throwaway container that mounts the same volume, without stopping the volume's owning service any longer than the backup itself takes. You can state, for any given container recreation, exactly what survives (anything in a mounted volume) and what does not (anything in the writable layer alone), and explain why decoupling data lifecycle from container lifecycle is the actual fix, not operational carefulness.
+
+## Suggested Extension
+Configure `ticket-api`'s Postgres dependency to use a named volume for its data directory as well, then run a full `docker compose down && docker compose up` cycle and confirm the database's data survives, distinguishing `docker compose down` (containers removed, named volumes kept by default) from `docker compose down -v` (which also removes volumes) by testing both.
+",
+        "06-docker-networking-deep-dive" => @"# Docker Networking Deep Dive
+
+## Concepts Covered
+
+By default, `docker run` attaches a new container to the default `bridge` network, a single flat network where every container can reach every other container by IP, but not by any predictable name — the default bridge does not run Docker's embedded DNS server, which is why relying on it for multi-container communication tends to produce brittle setups pinned to IP addresses that change on every restart. A user-defined bridge network (`docker network create ticket-net`) fixes this: any container started with `--network ticket-net` can reach any other container on that same network by its container name (or Compose service name) as a DNS hostname, resolved by Docker's embedded DNS server running inside the network's own scope — `ticket-api` can `curl http://ticket-db:5432` and get a real connection, not because `ticket-db` is a magic reserved word, but because that is literally the container's `--name` on the same user-defined network. A second, entirely separate user-defined network gives you actual network-level isolation: a container attached only to `ticket-net` genuinely cannot reach a container that exists only on a different network, `admin-net`, which is the mechanism (not a firewall rule bolted on afterward) behind restricting which services can talk to which.
+
+`EXPOSE` in a Dockerfile is documentation, not enforcement — it tells a human (and tools like `docker inspect`) which port the containerized application listens on, but it does not, by itself, make that port reachable from the host or from any other network. Actual host reachability is controlled entirely by the `-p` (or `--publish`) flag on `docker run`, or the `ports:` key in a Compose file: `-p 8080:80` maps host port 8080 to the container's port 80, and without an explicit `-p`, no container port — `EXPOSE`d or not — is reachable from the host at all, only from other containers on the same Docker network. This is exactly the distinction that separates an internal service (a database, an internal admin API) that should never leave the container network from an edge service (the public-facing API) that legitimately needs a host-published port; accidentally adding a `-p` to a service that should have stayed internal-only is the single most common way a service intended to be private ends up reachable from outside the host. Diagnosing ""my API can't reach my database"" is a layered question, not a single check: confirm both containers are actually on the same user-defined network (`docker network inspect ticket-net`), confirm the target container's application is actually listening inside its own namespace (`docker exec ticket-db netstat -tlnp`), then confirm reachability from the caller's side (`docker exec ticket-api nc -zv ticket-db 5432`) — working through these in order isolates whether the problem is network attachment, the target application not binding correctly, or something in between, rather than guessing at all three simultaneously.
+
+```bash
+# A private network for ticket-api and its database
+$ docker network create ticket-net
+
+$ docker run -d --name ticket-db --network ticket-net \
+    -e POSTGRES_PASSWORD=devpassword postgres:16
+
+# ticket-api joins the same network and reaches ticket-db by name —
+# note: NOT published to the host, so it's unreachable from outside
+$ docker run -d --name ticket-api --network ticket-net \
+    -e DATABASE_URL=postgres://ticket-db:5432/tickets \
+    ticket-api:1.4.2
+
+# Only the edge service is published to the host
+$ docker run -d --name ticket-api --network ticket-net \
+    -e DATABASE_URL=postgres://ticket-db:5432/tickets \
+    -p 8080:8080 ticket-api:1.4.2
+
+# Confirm what's actually reachable from outside the host
+$ docker port ticket-api
+8080/tcp -> 0.0.0.0:8080
+$ docker port ticket-db
+# (no output — nothing published; only reachable inside ticket-net)
+
+# Diagnose ""API can't reach DB"" layer by layer
+$ docker network inspect ticket-net --format='{{range .Containers}}{{.Name}} {{end}}'
+ticket-api ticket-db
+$ docker exec ticket-db netstat -tlnp | grep 5432
+tcp6  0  0  :::5432  :::*  LISTEN  1/postgres
+$ docker exec ticket-api nc -zv ticket-db 5432
+ticket-db (172.19.0.3:5432) open
+```
+
+## Practical Backend Scenario
+
+Vantage's `docker-compose.yml` for staging defines `ticket-api` and `ticket-db` as two services on the same Compose-managed network, and `ticket-api` reaches `ticket-db` by its service name without incident. During a rushed fix for a local testing issue, an engineer adds `ports: [""5432:5432""]` to the `ticket-db` service so they can connect a local GUI database client directly — and forgets to remove it before the change ships to the shared staging environment, which happens to sit on a network reachable from outside Vantage's office. The database, which was never intended to be reachable from anywhere but `ticket-api` itself, is now listening on the public internet with only its default password protecting it, discovered only when a routine external port scan flags it. The fix is not ""remember to remove debug ports before merging"" as a hope; it is treating `ports:` (a published, host-reachable port) as categorically different from container-to-container reachability on the shared network — `ticket-db` never needed a published port at all for `ticket-api` to reach it, since Docker's embedded DNS and the shared network already provided that, and a policy of ""only the edge service gets a `ports:` entry, ever"" would have made this specific mistake structurally impossible rather than just discouraged.
+
+## Practice Loop
+
+1. Create a user-defined network and start `ticket-db` and `ticket-api` on it without publishing either port, then confirm `ticket-api` can reach `ticket-db` by name using `docker exec ticket-api nc -zv ticket-db 5432`.
+2. Attempt to connect to `ticket-db` from your host machine directly (outside any container) on port 5432, and confirm the connection is refused — nothing is published, so nothing is reachable from outside.
+3. Publish `ticket-api`'s port with `-p 8080:8080` only, and count exactly which of the two containers `docker port` reports as reachable from the host — this diagnostic makes the EXPOSE-vs-publish distinction concrete rather than asserted.
+4. Reproduce the scenario's mistake deliberately: add `-p 5432:5432` to `ticket-db` as well, confirm it is now reachable from the host, then remove it and confirm the exposure is gone again.
+5. Diagnose a deliberately broken setup (start `ticket-api` on a *different* network than `ticket-db`) using the three-step layered method — network attachment, target listening, caller reachability — and identify which layer fails first.
+
+## Evidence of Understanding
+
+You can explain why `EXPOSE` alone never makes a port reachable from the host, and that only `-p`/`--publish` (or Compose's `ports:`) does, with `docker port` as the audit tool for what is actually published on a running deployment. You can attach containers to a user-defined bridge network and use Docker's embedded DNS to let them reach each other by name, without publishing any port that only needs to be reachable internally. You can diagnose an unreachable service by checking network attachment, target-side listening, and caller-side reachability in that order, rather than guessing at which of the three failed.
+
+## Suggested Extension
+Add a second, separate network (`admin-net`) for a hypothetical internal admin container, attach `ticket-db` to both `ticket-net` and `admin-net`, but keep `ticket-api` on `ticket-net` only — confirm `ticket-api` still cannot reach anything on `admin-net`, demonstrating that network membership, not just port publication, is an independent isolation boundary.
+",
+        "07-hardening-the-docker-environment-devsecops" => @"# Hardening the Docker Environment (DevSecOps)
+
+## Concepts Covered
+
+A container's attack surface is everything present inside it that an attacker who gets code
+execution could use, and the naive Dockerfile maximizes that surface by default: it runs as root
+because no `USER` line ever changes that, it ships a full Debian or Ubuntu base with a shell, a
+package manager, and every build tool still installed, and its filesystem is writable everywhere
+because nothing ever says otherwise. None of this is malicious — it is simply what you get when a
+Dockerfile is written to make the build succeed and nothing else. Hardening is the deliberate
+process of removing everything that isn't required for the container's one job, because every
+tool left inside is a tool an attacker inherits for free the moment they get a foothold: a shell
+lets them explore, a package manager lets them install more tools, root lets them read any file
+in the container and, if the runtime is misconfigured, sometimes reach the host. `docker run
+--user 1000:1000` forces a container to run as a named non-root UID even if the image itself
+never set one, but this is a weaker, ops-time fix — the correct place to fix it is in the
+Dockerfile with a dedicated `USER` line, so the constraint travels with the image and cannot be
+silently dropped by whoever runs it next. `--cap-drop=ALL --cap-add=NET_BIND_SERVICE` (only if
+the process genuinely needs to bind a privileged port) narrows the kernel capabilities the
+container process holds from the roughly 40 Linux grants a root process gets by default down to
+exactly the ones named — `CAP_SYS_ADMIN`, `CAP_NET_RAW`, and the rest stay denied even if the
+process is somehow compromised. `--read-only` with an explicit `--tmpfs /tmp` for the one
+directory that genuinely needs to be writable means a compromised process cannot write a
+persistent backdoor into the image's own filesystem, only into memory-backed scratch space that
+disappears when the container exits.
+
+The second half of hardening is supply-chain integrity, not just runtime restriction: an SBOM
+(software bill of materials) is a structured, machine-readable inventory of every package and
+library baked into an image — every OS package, every Python or Node dependency, down to a
+specific version — generated by a tool like `syft` and typically emitted as a CycloneDX or SPDX
+JSON document. It matters because a CVE announcement names a package and a version range, and
+without an SBOM you cannot answer ""are we affected?"" for a fleet of images without re-scanning
+each one from scratch; with one, it's a lookup. A vulnerability scanner (`trivy`, `grype`) reads
+that inventory (or scans the image directly) against a CVE database and reports findings by
+severity, but a scanner's severity rating is about the vulnerable package in the abstract, not
+about whether the vulnerability is actually reachable in this image's specific runtime
+configuration — a CRITICAL finding in a library your application never calls, running as
+non-root with the vulnerable syscall path denied by a dropped capability, may be a documented,
+risk-accepted exception rather than a release blocker, and part of an FDE's job during a customer
+security review is writing that exception down with its reasoning, not silently ignoring the scan
+or blindly blocking every release on any CRITICAL finding regardless of exploitability.
+Provenance and signed promotion close the loop: a mutable tag like `routeplanner:latest` can point
+to a different image tomorrow than it does today, so a customer's admission policy that trusts
+`latest` is trusting whoever last pushed to that tag, not a specific, reviewed artifact — pinning
+and admitting by immutable digest (`routeplanner@sha256:3f9c...`), ideally signed with a tool like
+`cosign` so the digest's origin is verifiable, is what actually lets a customer's platform team
+say ""this exact, reviewed build is what's running,"" the same guarantee image-layer immutability
+gave you inside a single build, now extended across the promotion pipeline.
+
+```dockerfile
+# routeplanner/Dockerfile — hardened
+FROM python:3.12-slim AS builder
+WORKDIR /build
+COPY requirements.txt .
+RUN pip install --no-cache-dir --target=/build/deps -r requirements.txt
+
+FROM python:3.12-slim
+RUN groupadd -r routeplanner && useradd -r -g routeplanner -u 10001 routeplanner \
+    && apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=builder /build/deps /usr/local/lib/python3.12/site-packages
+COPY --chown=routeplanner:routeplanner . .
+USER 10001
+EXPOSE 8080
+ENTRYPOINT [""python"", ""-m"", ""uvicorn"", ""app.main:app"", ""--host"", ""0.0.0.0"", ""--port"", ""8080""]
+```
+
+## Practical Backend Scenario
+
+Northwind Fulfillment's security team runs a pre-handoff review of `routeplanner` and flags three
+findings in the same report: the image's Dockerfile has no `USER` line, so the FastAPI process
+runs as UID 0 inside the container; the base image is `python:3.12` (the full image, with `apt`,
+`gcc`, and a shell present) rather than `python:3.12-slim`; and a `grype` scan against the image's
+generated SBOM turns up a CRITICAL CVE in a transitively-pulled `cryptography` package version
+that `routeplanner` itself never imports directly. The FDE rebuilds the Dockerfile with a
+dedicated non-root user and a slim base, re-scans, and confirms the CVE is still present (a
+transitive dependency, not something a base-image swap alone fixes) — but writes a documented
+exception noting the vulnerable code path is in an unused optional feature of the `cryptography`
+package, the container runs non-root with capabilities dropped, and the fix ships in the next
+scheduled dependency bump, which the customer's security lead signs off on as an accepted,
+time-boxed risk rather than a release blocker.
+
+## Practice Loop
+
+1. Add a dedicated non-root `USER` to the `routeplanner` Dockerfile and rebuild the image, then run `docker run --rm routeplanner id` to confirm the process UID is no longer 0.
+2. Swap the base image from `python:3.12` to `python:3.12-slim`, rebuild, and compare `docker images` output for both tags to measure the size reduction.
+3. Generate an SBOM with `syft routeplanner:hardened -o cyclonedx-json > sbom.json` and run `grype sbom:sbom.json`, counting how many findings are CRITICAL, HIGH, and MEDIUM before deciding what to act on.
+4. Pick the one CRITICAL finding, determine whether `routeplanner`'s code actually reaches the vulnerable function, and write a one-paragraph accepted-risk exception if it does not.
+5. Run the hardened image with `--read-only --cap-drop=ALL --tmpfs /tmp` and confirm the application still starts and serves a request, adjusting the tmpfs mount if the app needs additional scratch space.
+
+## Evidence of Understanding
+
+You can rebuild a Dockerfile to run as a dedicated non-root user with a read-only root filesystem
+and a minimal capability set, and state precisely what each restriction removes from an
+attacker's reach. You can generate an SBOM and read a vulnerability scan's severity output, and
+you can distinguish a finding that must block a release from one that is a legitimate,
+documented, risk-accepted exception based on reachability, not scanner severity alone. You can
+explain why a customer's admission policy should trust an immutable, ideally signed digest rather
+than a mutable tag.
+
+## Suggested Extension
+
+Add a `HEALTHCHECK` instruction to the hardened Dockerfile and wire a CI step that fails the build
+if `grype`'s exit code reports any new CRITICAL finding not already present in a checked-in
+exceptions file.
+",
+        "08-industry-standard-container-hardening-demo" => @"# Industry-Standard Container Hardening Demo
+
+## Concepts Covered
+
+A hardening review that lives only in one engineer's head is not a repeatable process — the
+customer's platform team needs a demo they can rerun themselves, with the same tools, against the
+next release, and get a comparable answer without needing the original FDE in the room. That
+requirement shapes what ""industry-standard"" means here: not a one-off manual audit, but a small,
+automated pipeline stage that runs the same checks on every build and produces the same kind of
+evidence every time. A CI security gate is the mechanism: a pipeline step that builds the image,
+runs a scanner against it, and fails the build if the result crosses a defined policy threshold —
+for example, ""block on any CRITICAL finding with a known fix available; warn but allow on HIGH;
+ignore LOW and MEDIUM unless explicitly flagged."" The threshold itself is a policy decision a
+customer's security team owns, not something a scanner decides on its own, and writing it down
+explicitly (rather than leaving ""block or allow"" as an ad hoc judgment call each time) is what
+makes the gate auditable — anyone can read the policy and predict the outcome for a given scan
+result before the pipeline even runs.
+
+The harder skill in this lesson is reviewing a specific finding rather than trusting the gate's
+verdict blindly in either direction. A scanner reports a finding as a ""false positive"" only when
+it is provably wrong — the CVE database entry doesn't actually apply to how this package is
+compiled or configured in this image, a case a tool like `grype` sometimes gets wrong for
+distro-patched packages that backport a fix without bumping the version string the scanner keys
+on. That is different from a finding that is real but not exploitable in this deployment, which is
+a risk-acceptance decision, not a false-positive determination — conflating the two is the single
+most common mistake an FDE makes under time pressure, because both outcomes end with ""the build is
+allowed to proceed,"" and it's tempting to label anything inconvenient a false positive without
+actually checking the distro's patch metadata. A release decision document exists precisely to
+force that distinction onto paper: it names the specific finding, states which category it falls
+into (false positive with evidence, or accepted risk with a reachability argument and an owner),
+and links the exact scan output and policy version used, so a teammate reviewing it six months
+later can reconstruct the reasoning without re-running the investigation from scratch.
+
+```yaml
+# .github/workflows/image-scan.yml — CI security gate
+name: container-security-gate
+on: [pull_request]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t routeplanner:${{ github.sha }} .
+      - name: Generate SBOM
+        run: syft routeplanner:${{ github.sha }} -o cyclonedx-json=sbom.json
+      - name: Scan and gate
+        run: |
+          grype sbom:sbom.json --fail-on critical --output table
+```
+
+## Practical Backend Scenario
+
+Northwind's platform team asks for a short demo before signing off on `routeplanner`'s release
+process: build the image before and after last week's hardening changes, run both through the CI
+gate, and show one real finding reviewed end to end. The FDE runs the pre-hardening image through
+the pipeline — it fails, blocked on a CRITICAL finding for a root-owned `setuid` binary left over
+from the full `python:3.12` base image. The hardened image passes the CRITICAL gate but produces a
+HIGH warning for an OpenSSL version string the scanner flags; checking the base image's changelog
+shows Debian backported the actual fix without bumping the version Trivy keys on, so the FDE marks
+it a genuine false positive with the changelog link as evidence, re-runs the scan to confirm the
+suppression is scoped to that one CVE ID only, and publishes a one-page release decision the
+platform team can read without asking a follow-up question.
+
+## Practice Loop
+
+1. Write a CI-style pipeline step (as a shell script or a GitHub Actions job) that builds
+   `routeplanner`, generates its SBOM, and gates the build on any CRITICAL finding.
+2. Run the pipeline against the pre-hardening and post-hardening image tags and record the two
+   pass/fail outcomes side by side.
+3. For the one HIGH finding that survives hardening, check the base image's distro changelog or
+   advisory page to determine whether the fix was actually backported — count how many minutes
+   this verification step takes versus simply suppressing the finding.
+4. Classify the finding as either a genuine false positive (with the changelog link as evidence)
+   or an accepted risk (with a reachability argument and an owner), never both.
+5. Publish a one-page release decision naming the finding, its classification, the evidence, and
+   the policy threshold applied, written so a teammate could reproduce the same verdict without
+   asking you a question.
+
+## Evidence of Understanding
+
+You can wire an automated CI stage that builds an image, generates its SBOM, scans it, and fails
+the build against an explicit, written policy threshold. You can distinguish a genuine false
+positive (provably wrong scanner output, backed by distro changelog evidence) from an accepted
+risk (a real but unreachable finding), and you never label a finding a false positive without that
+evidence. You can write a short release decision document that a teammate can audit and reproduce
+without access to you or the original investigation.
+
+## Suggested Extension
+
+Add a second gate tier that fails the build on any finding without either a documented false-positive
+suppression or a linked accepted-risk entry, so an unreviewed HIGH or CRITICAL finding can never
+silently pass through the pipeline by omission.
+",
+        "09-introduction-to-orchestration" => @"# Introduction to Orchestration
+
+## Concepts Covered
+
+A `docker run` command or a `docker-compose.yml` file describes containers imperatively: you tell
+the Docker daemon to start these specific containers, with these specific settings, right now. That
+model works cleanly for a single host running a small, static set of services, but it has no
+opinion about what should happen next — if a container's process crashes, if the host it's running
+on disappears, or if traffic to one service triples while another sits idle, nothing in plain
+Docker notices or reacts. An operator has to notice the container is down, run `docker run` again,
+figure out which host has capacity, update whatever DNS entry or load-balancer config pointed at
+the old instance, and repeat that manually every time it happens again. Orchestration is the
+answer to exactly this gap: instead of issuing one-time imperative commands, you declare desired
+state — ""run 3 replicas of `routeplanner`, each needing 256Mi of memory, exposed as one stable
+service address"" — to a system that continuously reconciles that declaration against what is
+actually running, and keeps doing so indefinitely, not just at the moment you submitted it.
+Reconciliation is a control loop: observe actual state, compare it against desired state, take the
+smallest action that closes the gap, and repeat, forever, without a human re-triggering it. This is
+the single conceptual shift that makes everything downstream in Kubernetes make sense — a
+`Deployment` object is not a one-time instruction, it is a standing promise the system keeps
+enforcing.
+
+That reconciliation loop only becomes valuable once several problems appear together, and it's
+worth being precise about which ones, because reaching for an orchestrator before any of them
+exist is adding real operational complexity (a control plane, new failure modes, a steeper learning
+curve for the team taking over the system after handoff) against no evidenced need — the same
+seam-versus-generality judgment call an FDE makes about any architecture decision. The problems
+that justify it: scheduling (deciding which of several hosts has capacity for a new container,
+instead of a human picking one by hand), service discovery (giving a set of interchangeable
+replicas one stable address that survives any individual replica being replaced, instead of
+hardcoding a container's current IP somewhere), rolling deployment (replacing running instances
+with a new version gradually, watching health as you go, instead of stopping everything and hoping
+the new version starts cleanly), and self-healing (replacing a crashed or unresponsive container
+automatically, instead of waiting for a human to notice an alert). A customer running one
+`routeplanner` container and one Redis container on a single EC2 instance, with no autoscaling
+requirement and acceptable downtime during a deploy, genuinely does not need an orchestrator yet —
+Docker Compose is the right, boring tool for that shape of problem. The same customer, once they
+have a worker fleet that must survive a host being replaced, traffic that swings 5x between
+business hours and overnight, and multiple services that need to find each other without hardcoded
+IPs, has crossed into orchestration territory, and the decision should be traceable to those
+specific operational facts, not to Kubernetes being the more sophisticated-sounding technology.
+
+```bash
+# What ""manual orchestration"" looks like without a scheduler —
+# an operator re-running this by hand every time a host disappears
+$ ssh worker-03 'docker run -d --name routeplanner-3 \
+    -e REDIS_HOST=redis.internal \
+    -e DB_HOST=postgres.internal \
+    routeplanner@sha256:3f9c...'
+$ curl -sf http://worker-03:8080/health || echo ""still not healthy, retry""
+# ...and then update the load balancer's target group by hand
+```
+
+## Practical Backend Scenario
+
+Northwind Fulfillment's `routeplanner` deployment currently runs as three `docker run` containers
+on two EC2 hosts, started by a deploy script an engineer runs by hand, with a manually-maintained
+load-balancer target group pointing at their fixed IPs. During a regional AWS maintenance window,
+one host is terminated and replaced; nothing restarts `routeplanner`'s container on the new host
+automatically, the load balancer keeps sending a third of traffic to a dead target for eleven
+minutes until an on-call engineer notices the alert, SSHes into the new host, and re-runs the
+deploy script by hand. The FDE lists every manual step that incident required — noticing the host
+was gone, picking a new host with capacity, starting the container with the right environment
+variables, updating the load-balancer target — and maps each one to a Kubernetes capability
+(self-healing, the scheduler, a `Deployment`, a `Service`) that would have closed the same gap
+without a human in the loop, and uses that mapping, not a general preference for Kubernetes, to
+justify moving `routeplanner` onto it.
+
+## Practice Loop
+
+1. List every manual operation the current `routeplanner` deploy script and on-call runbook
+   require a human to perform (starting a container, choosing a host, updating the load balancer,
+   restarting after a crash).
+2. For each manual operation from step 1, name the orchestration capability that would replace it
+   (scheduling, self-healing, service discovery, rolling deployment) and which specific
+   Kubernetes object provides it.
+3. Time or count how many minutes the eleven-minute incident actually cost in degraded traffic,
+   and compare it against how quickly a reconciliation loop checking every few seconds would have
+   noticed and replaced the missing container.
+4. Identify which of the current three services (`routeplanner`, Redis, Postgres) genuinely needs
+   orchestration's scheduling and self-healing first, and which could reasonably stay as a
+   simpler, managed component (a managed Redis or RDS instance) instead of being containerized
+   and orchestrated at all.
+5. Write a one-paragraph justification for adopting Kubernetes that cites only the specific
+   operational facts from this incident and the traffic-variance requirement — not a general
+   claim that Kubernetes is more modern or more scalable in the abstract.
+
+## Evidence of Understanding
+
+You can list the manual operations a plain-Docker deployment requires from a human and map each
+one to the specific orchestration capability that replaces it. You can explain desired-state
+reconciliation as a continuous control loop — observe, compare, act, repeat — distinct from a
+one-time imperative command, and state why that shift is what makes self-healing and rolling
+deployment possible. You can justify a decision to adopt orchestration by citing a specific,
+evidenced operational need rather than a general technology preference.
+
+## Suggested Extension
+
+Write the equivalent one-paragraph justification for the opposite decision — a customer scenario
+where adopting Kubernetes would be premature complexity — naming the specific operational facts
+(single host, no traffic variance, acceptable manual restart) that would make Docker Compose the
+correct call instead.
+",
+        "10-kubernetes-architecture" => @"# Kubernetes Architecture
+
+## Concepts Covered
+
+Every Kubernetes cluster splits into a control plane (the API server, `etcd`, the scheduler, and a
+set of controllers) and worker nodes (each running a `kubelet` and a container runtime), and the
+one fact worth memorizing before debugging anything is that the API server is the single component
+that ever writes to `etcd`; every other piece of the system — the scheduler, every controller, the
+`kubelet` on every node — talks to cluster state exclusively through the API server's REST
+interface, never touching `etcd` directly. This lesson does not re-derive that reconciliation model
+in depth; it focuses on the mechanics of what actually happens, command by command, when you submit
+one manifest. Run `kubectl apply -f deployment.yaml` and the `kubectl` client serializes your YAML
+to JSON and sends an HTTP request to the API server, which authenticates you, authorizes the
+request, validates the object against its schema, and — if it passes — writes the object to `etcd`
+and returns success. At that exact point, nothing has been scheduled and no container is running;
+the API server has only durably recorded what you asked for. The Deployment controller, running as
+a separate control-loop process watching the API server for `Deployment` objects, notices the new
+object, and creates a `ReplicaSet` object (also just written to the API server, also not yet
+running anything). The ReplicaSet controller then notices the ReplicaSet is short of its desired
+replica count and creates the requested number of `Pod` objects — still just API objects, still
+unscheduled, each with no `nodeName` set.
+
+The scheduler is a distinct control loop that watches specifically for Pods with no assigned node,
+evaluates a fit — does any node have enough allocatable CPU and memory (`resources.requests` on the
+Pod's containers), does the Pod's node affinity or taint tolerations allow it there, are the
+volumes it needs available in that node's zone — and, for the best-fitting node, writes the node
+assignment back to the API server as a Pod update, again never touching the node itself directly.
+Only now does the target node's `kubelet` — an agent running on every worker node, watching the API
+server for Pods assigned to its own node specifically — see the new assignment, and it is the
+kubelet, not the scheduler or the API server, that actually talks to the container runtime (via the
+Container Runtime Interface, `containerd` in most modern clusters) to pull the image and start the
+container. The kubelet then reports the Pod's status — running, ready, failed — back to the API
+server, which is how `kubectl get pods` shows you live state: it is not asking every node directly,
+it is reading what each node's kubelet last reported into `etcd` via the API server. A Pod stuck
+`Pending` almost always means the scheduler could not find a fit (check `kubectl describe pod` for
+a `FailedScheduling` event naming the specific constraint); a Pod `Running` but never `Ready` almost
+always means the kubelet started the container but a readiness probe is failing, which is a node
+and application-level problem, not a control-plane one — knowing which of these two failure
+domains you're in before you start debugging saves you from looking at the wrong logs.
+
+```bash
+$ kubectl apply -f routeplanner-deployment.yaml
+deployment.apps/routeplanner created
+
+$ kubectl get pods -l app=routeplanner
+NAME                            READY   STATUS    RESTARTS   AGE
+routeplanner-7d9f8b6c4d-2xk9p   0/1     Pending   0          8s
+
+$ kubectl describe pod routeplanner-7d9f8b6c4d-2xk9p
+...
+Events:
+  Type     Reason            Age   From               Message
+  ----     ------            ----  ----               -------
+  Warning  FailedScheduling  8s    default-scheduler   0/3 nodes are available:
+                                                         3 Insufficient memory.
+
+$ kubectl get nodes -o custom-columns=NAME:.metadata.name,ALLOC-MEM:.status.allocatable.memory
+NAME       ALLOC-MEM
+node-a     1948Mi
+node-b     1948Mi
+node-c     1948Mi
+```
+
+## Practical Backend Scenario
+
+An FDE deploys `routeplanner` to Northwind's new cluster, and `kubectl get pods` shows the Pod
+sitting in `Pending` for several minutes, never transitioning to `Running`. The FDE runs `kubectl
+describe pod` and reads a `FailedScheduling` event stating `0/3 nodes are available: 3 Insufficient
+memory` — the manifest's `resources.requests.memory` was set to `2Gi` per replica, copied from a
+larger customer's production values without adjusting for this cluster's three small `t3.medium`
+nodes, each with only about 1948Mi of allocatable memory after system reservations. The Deployment
+was accepted by the API server without complaint — the manifest is syntactically and semantically
+valid Kubernetes YAML — and a `ReplicaSet` and `Pod` object were created successfully; the failure
+is entirely in the scheduler's fit evaluation, a distinct step the API server's acceptance says
+nothing about. The FDE lowers the memory request to `512Mi`, matching what the FastAPI process
+actually uses under Northwind's traffic, reapplies, and watches the same Pod transition from
+`Pending` to `ContainerCreating` to `Running` within seconds, confirming the diagnosis by watching
+which specific state transition finally unblocked.
+
+## Practice Loop
+
+1. Draw the full request path for `kubectl apply -f deployment.yaml`, labeling each arrow with the
+   specific component that owns that step (API server validation, `etcd` write, Deployment
+   controller, ReplicaSet controller, scheduler, kubelet, container runtime).
+2. Deploy `routeplanner` with a memory request deliberately set higher than any node's allocatable
+   capacity, and confirm the Pod enters `Pending`.
+3. Run `kubectl describe pod` and count how many nodes the `FailedScheduling` event says were
+   unavailable and for what specific reason — this is the diagnostic step that turns ""it's stuck""
+   into a specific, actionable cause.
+4. Correct the memory request to a realistic value, reapply, and use `kubectl get pods -w` to
+   watch the exact sequence of status transitions from `Pending` through to `Running`.
+5. Explain, in one sentence per component, which of the API server, scheduler, or kubelet would
+   be responsible if the same Pod instead got stuck in `Running` but never reached `Ready`.
+
+## Evidence of Understanding
+
+You can trace a `kubectl apply` request through the API server, `etcd`, the Deployment and
+ReplicaSet controllers, the scheduler, and the kubelet to a running container, naming which
+component owns each specific step. You can read `kubectl describe pod` events to diagnose a
+scheduling failure and distinguish it from a node-level readiness failure. You can explain why the
+API server accepting a manifest says nothing about whether the workload will actually be
+schedulable or ready, because acceptance, scheduling, and readiness are three genuinely separate
+checkpoints owned by three different components.
+
+## Suggested Extension
+
+Add a node with more allocatable memory to the same cluster (or simulate it by lowering another
+Pod's request to free capacity) and use `kubectl get events --sort-by=.lastTimestamp` to watch the
+scheduler retry and succeed against the new capacity without you resubmitting the manifest.
+",
+        "11-kubernetes-pod-deep-dive" => @"# Kubernetes Pod Deep Dive
+
+## Concepts Covered
+
+A Pod is the smallest unit Kubernetes schedules and manages — never a single container — and the
+mechanism behind that is worth naming precisely: every Pod is created with a hidden ""pause""
+container first, whose only job is to hold open a Linux network namespace and (depending on
+configuration) an IPC namespace that every other container in the Pod then joins. This is why
+containers in the same Pod can reach each other over `localhost` — they are, at the kernel level,
+sharing one network namespace, not communicating over a virtual network the way containers on
+different hosts would. It also means a Pod's IP address belongs to the Pod as a whole, not to any
+individual container in it, and every container in the Pod must therefore claim distinct ports if
+they both listen — there is no port isolation between containers in the same Pod the way there is
+between separate Pods. Volumes declared at the Pod level follow the same sharing rule: a Pod-level
+`emptyDir` volume mounted into two containers is genuinely the same underlying directory, visible
+to both, which is precisely what makes a sidecar pattern possible — one container can write a file
+that the other reads, with no network hop involved. An init container runs to completion before
+any regular container in the Pod starts, sequentially if there are several, and is the correct
+place for a setup step that must finish first (waiting for a dependency to become reachable,
+running a database migration, fetching a config file) rather than baking that logic into the main
+application's own startup path.
+
+Two probes govern a Pod's health independently and produce different consequences on failure, and
+confusing them is one of the most common Kubernetes misconfigurations: a liveness probe answers ""is
+this container still working, or should it be killed and restarted,"" and a failing liveness probe
+causes the kubelet to kill and restart the container in place — useful for a deadlocked process that
+is still technically running but will never recover on its own. A readiness probe answers ""should
+this Pod currently receive traffic,"" and a failing readiness probe does not restart anything; it
+only removes the Pod from the set of endpoints a Service routes traffic to, which is the correct
+response to a container that is temporarily busy (loading a large model, warming a cache) rather
+than actually broken. Configuring a liveness probe with the same shallow check as readiness, or
+with too short an `initialDelaySeconds`, is a common cause of a crash loop entirely of the probe's
+own making: the container is killed for being ""unhealthy"" before it ever finished starting, gets
+restarted, is killed again at the same point, and repeats — `kubectl describe pod` shows this
+pattern as an escalating `RESTARTS` count with `Liveness probe failed` events, distinct from an
+application crash, which is what makes this diagnosable rather than mysterious. A Pod's QoS class
+— `Guaranteed` (requests equal limits on every container), `Burstable` (requests set but below
+limits, or only some containers have both), or `BestEffort` (no requests or limits at all) — is
+derived automatically from these values and determines eviction priority under node memory
+pressure: `BestEffort` Pods are evicted first, `Guaranteed` last. Finally, a Pod is ephemeral by
+design: it has no durable identity of its own, and if a Pod dies, its replacement — created by the
+ReplicaSet controller — gets a new name, a new IP, and a fresh `emptyDir`. Anything that must
+survive that replacement (a database, an uploaded file, a session token) must live in a
+PersistentVolume or an external store, never inside the Pod's own writable layer or `emptyDir`.
+
+```yaml
+# routeplanner-pod-spec.yaml — excerpt showing init container + sidecar
+apiVersion: v1
+kind: Pod
+metadata:
+  name: routeplanner
+spec:
+  initContainers:
+    - name: wait-for-redis
+      image: busybox:1.36
+      command: ['sh', '-c', 'until nc -z redis-svc 6379; do sleep 2; done']
+  containers:
+    - name: routeplanner
+      image: routeplanner@sha256:3f9c...
+      ports: [{ containerPort: 8080 }]
+      resources:
+        requests: { cpu: ""250m"", memory: ""512Mi"" }
+        limits: { cpu: ""500m"", memory: ""512Mi"" }
+      livenessProbe:
+        httpGet: { path: /healthz, port: 8080 }
+        initialDelaySeconds: 15
+        periodSeconds: 20
+      readinessProbe:
+        httpGet: { path: /ready, port: 8080 }
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      volumeMounts:
+        - name: request-log
+          mountPath: /var/log/routeplanner
+    - name: log-shipper
+      image: fluent-bit:3.1
+      volumeMounts:
+        - name: request-log
+          mountPath: /var/log/routeplanner
+          readOnly: true
+  volumes:
+    - name: request-log
+      emptyDir: {}
+```
+
+## Practical Backend Scenario
+
+Northwind adds a `fluent-bit` log-shipping sidecar to the `routeplanner` Pod so request logs reach
+their centralized logging platform without the application code knowing anything about it: both
+containers mount the same `emptyDir` volume, `routeplanner` writes to it, `fluent-bit` tails and
+ships it, and both processes reach each other's exposed diagnostics port over `localhost` because
+they share the Pod's one network namespace. During rollout, an engineer new to the team assumes the
+Pod is effectively a small, semi-permanent VM and starts writing an in-progress route-optimization
+job's intermediate state to a file on the sidecar's own local disk rather than to Redis. The Pod is
+evicted during a routine node drain for a cluster upgrade; its replacement Pod, created fresh by
+the ReplicaSet controller, has a new name, a new IP, and an empty `emptyDir` — the in-progress job's
+state is gone, and the customer notices a route optimization silently restart from scratch. The FDE
+traces the loss to the false assumption of Pod durability, moves the job state to Redis (which
+already exists in the architecture and survives Pod replacement), and adds a one-line comment in
+the manifest explaining why `emptyDir` is unsuitable for anything the customer needs to survive a
+Pod restart.
+
+## Practice Loop
+
+1. Write the Pod spec's `initContainers` entry that waits for Redis to become reachable before the
+   main `routeplanner` container starts, and explain why this logic belongs in an init container
+   rather than a retry loop inside the application's own startup code.
+2. Add the `fluent-bit` sidecar and a shared `emptyDir` volume, and verify with `kubectl exec` into
+   each container that both can see the same file written by the other.
+3. Deliberately misconfigure the liveness probe's `initialDelaySeconds` to be shorter than the
+   application's actual startup time, deploy, and count how many restarts `kubectl get pods` shows
+   in the first two minutes — this makes the self-inflicted crash loop visible rather than
+   theoretical.
+4. Fix the `initialDelaySeconds`, redeploy, and confirm restarts stop while `kubectl describe pod`
+   still shows the correct number of successful readiness checks.
+5. Identify every piece of state in the current Pod spec (log files, job progress, cached data) and
+   classify each as safe to lose on Pod replacement or requiring an external store, then move
+   anything misclassified.
+
+## Evidence of Understanding
+
+You can write a Pod spec with an init container and a sidecar sharing a network namespace and a
+volume, and explain precisely what ""shared"" means at the kernel level — one network namespace, the
+same underlying directory for a shared volume. You can configure liveness and readiness probes
+correctly and predict which one causes a restart versus a traffic-removal on failure, and you can
+diagnose a probe-induced crash loop from its `RESTARTS` pattern in `kubectl describe pod`. You can
+explain why a Pod has no durable identity of its own and correctly identify which state in a given
+manifest must live outside it.
+
+## Suggested Extension
+
+Add a second sidecar that also needs the shared log volume read-only, and update the Pod's resource
+requests so the whole Pod's QoS class remains `Burstable` rather than silently dropping to
+`BestEffort` because the new container has no requests set.
+",
+        "12-replicasets-deployments-and-sidecars" => @"# ReplicaSets, Deployments, and Sidecars
+
+## Concepts Covered
+
+A `ReplicaSet` is a control loop with exactly one job: keep a specified number of Pods matching a
+label selector running, creating replacements the instant the observed count drops below the
+desired count, and deleting the excess if it rises above. It has no concept of a previous version —
+if you edit a ReplicaSet's Pod template, existing Pods are untouched; only newly created ones (to
+replace a deleted one, for instance) pick up the change, which makes a bare ReplicaSet a poor tool
+for rolling out a new application version deliberately. A `Deployment` sits one layer above a
+ReplicaSet specifically to solve that gap: a Deployment owns one or more ReplicaSets (never Pods
+directly) and manages a rollout by creating a brand-new ReplicaSet for the new Pod template, scaling
+it up gradually while scaling the old ReplicaSet down in step, governed by `maxSurge` (how many
+extra Pods beyond the desired count are allowed during the transition) and `maxUnavailable` (how
+many of the desired count are allowed to be missing) — this is what ""rolling"" means concretely, not
+a single atomic swap but a controlled, gradual handoff between two ReplicaSets that briefly coexist.
+Every old ReplicaSet a Deployment created is kept around, scaled to zero, as revision history
+(`kubectl rollout history deployment/routeplanner`), which is what makes `kubectl rollout undo`
+possible: rolling back means scaling a previous ReplicaSet back up and the current one down — the
+exact same mechanism as a forward rollout, run in reverse, not a special-cased operation.
+
+A rollout's health is judged by the new ReplicaSet's Pods actually passing their readiness probes,
+not merely by the new containers starting — if the new Pods hit `CrashLoopBackOff` or never pass
+readiness, the Deployment controller keeps `maxUnavailable` old Pods alive rather than tearing them
+down, so a failed rollout does not, by itself, take the service down; it stalls in a mixed state
+with some traffic still served by the last-known-good version, which is precisely the property that
+makes `kubectl rollout undo` a safe, reversible operation rather than a scramble. Adding a sidecar
+to a Deployment's Pod template changes this calculation directly: a sidecar container adds its own
+image pull time and its own resource requests to every single Pod the ReplicaSet creates, so a
+lightweight `fluent-bit` sidecar that adds 15 seconds to image pull and 100Mi of memory per replica
+means a Deployment running 20 replicas now needs 2Gi of memory it didn't before, purely for
+sidecars, and a rollout of that Deployment now needs proportionally more capacity headroom during
+the surge window (`maxSurge` Pods, each carrying the sidecar too) before it can complete. None of
+this makes a sidecar the wrong choice — request tracing or centralized logging genuinely benefits
+from the shared-namespace pattern the previous lesson covered — but the cost is not free, and an
+FDE sizing a cluster or setting a rollout's `maxSurge`/`maxUnavailable` needs to account for the
+sidecar's footprint multiplied across every replica and every surge Pod, not just the primary
+container's.
+
+```yaml
+# routeplanner-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: routeplanner
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels: { app: routeplanner }
+  template:
+    metadata:
+      labels: { app: routeplanner }
+    spec:
+      containers:
+        - name: routeplanner
+          image: routeplanner@sha256:8a21...   # v2 — new revision
+          readinessProbe:
+            httpGet: { path: /ready, port: 8080 }
+            periodSeconds: 5
+```
+
+```bash
+$ kubectl rollout status deployment/routeplanner
+Waiting for deployment ""routeplanner"" rollout to finish:
+2 out of 4 new replicas have been updated...
+error: deployment ""routeplanner"" exceeded its progress deadline
+
+$ kubectl rollout history deployment/routeplanner
+REVISION  CHANGE-CAUSE
+1         kubectl apply --record (image sha256:3f9c...)
+2         kubectl apply --record (image sha256:8a21...)
+
+$ kubectl rollout undo deployment/routeplanner --to-revision=1
+deployment.apps/routeplanner rolled back
+```
+
+## Practical Backend Scenario
+
+Northwind ships `routeplanner` v2 with a database-driven feature that reads a new column the
+migration hasn't actually run yet in this environment; the Deployment's rolling update starts,
+`maxSurge: 1, maxUnavailable: 0` (zero tolerance for capacity loss during rollout), and the first
+new-revision Pod hits `CrashLoopBackOff` on the missing column, never passing its readiness probe.
+Because `maxUnavailable: 0`, the Deployment controller refuses to scale down any old, healthy v1
+Pods until the new ones prove ready — the rollout stalls with 3 old Pods still serving all customer
+traffic and one broken new Pod cycling restarts, and `routeplanner` never actually goes down for
+Northwind's users despite the failed deploy. The FDE runs `kubectl rollout status` to confirm the
+stall, `kubectl rollout history` to see revision 1 (the working image) still recorded, and `kubectl
+rollout undo --to-revision=1` to scale the old ReplicaSet back to 4 and the broken one to 0 — the
+exact same mechanism as the original rollout, run in reverse — restoring full capacity in under a
+minute without anyone hand-editing a manifest or guessing which image tag was previously live.
+
+## Practice Loop
+
+1. Deploy `routeplanner` v1 as a 4-replica Deployment with `maxSurge: 1, maxUnavailable: 0`, and
+   confirm with `kubectl get rs` that exactly one ReplicaSet exists, scaled to 4.
+2. Push a v2 image with a deliberately broken readiness probe (pointing at a path that 404s) and
+   apply the updated Deployment, then watch `kubectl get pods` to see the mixed state of old and
+   new Pods.
+3. Count how many old v1 Pods remain serving traffic during the stalled rollout, and confirm via
+   `kubectl get endpoints routeplanner` that none of the broken v2 Pods are in the Service's
+   endpoint list — this measures the actual customer-facing impact, which should be zero.
+4. Run `kubectl rollout undo deployment/routeplanner --to-revision=1` and time how long it takes
+   for `kubectl get rs` to show the original ReplicaSet back at 4 replicas and the broken one at 0.
+5. Add a `fluent-bit` sidecar to the Pod template, redeploy, and compare the new rollout's
+   pull-time and peak memory usage (base replicas plus `maxSurge` Pods, each now carrying the
+   sidecar) against the pre-sidecar numbers from step 1.
+
+## Evidence of Understanding
+
+You can explain why a Deployment owns a ReplicaSet rather than Pods directly, and what
+`maxSurge`/`maxUnavailable` concretely control during a rolling update. You can force a rollout to
+fail, read `kubectl rollout status` and `kubectl rollout history` to understand the stalled state,
+and roll back with `kubectl rollout undo` rather than reapplying an old manifest by hand. You can
+measure a sidecar's added pull-time and memory cost per replica and per surge Pod, and state
+whether that cost is acceptable against the behavior the sidecar adds.
+
+## Suggested Extension
+
+Change `maxUnavailable` from `0` to `1` on the same Deployment, force the same broken rollout, and
+compare how much capacity is actually lost during the stall versus the zero-tolerance configuration
+— then state which setting Northwind should use for a customer-facing service versus an internal
+batch worker.
+",
         _ => null
     };
 
