@@ -56,6 +56,7 @@ export async function apiClient(endpoint, options = {}) {
     headers: requestHeaders,
     body: body && typeof body === 'object' && !(body instanceof FormData) ? JSON.stringify(body) : body,
     signal,
+    credentials: rest.credentials || 'include',
     ...rest,
   };
 
@@ -157,6 +158,53 @@ export const api = {
     toggleTask: (id) => apiClient(`/api/tasks/${id}/toggle`, { method: 'PUT' }),
     getCourses: () => apiClient('/api/courses'),
     getChapterBySlug: (slug) => apiClient(`/api/chapters/${slug}`),
+  },
+
+  // Authentication & Session Endpoints
+  auth: {
+    signup: (email, password, displayName) =>
+      apiClient('/api/auth/signup', { method: 'POST', body: { email, password, displayName } }),
+    login: (email, password) =>
+      apiClient('/api/auth/login', { method: 'POST', body: { email, password } }),
+    totpEnrollStart: (challengeId) =>
+      apiClient('/api/auth/totp/enroll/start', { method: 'POST', body: { challengeId } }),
+    totpEnrollConfirm: (challengeId, code) =>
+      apiClient('/api/auth/totp/enroll/confirm', { method: 'POST', body: { challengeId, code } }),
+    totpVerify: (challengeId, code) =>
+      apiClient('/api/auth/totp/verify', { method: 'POST', body: { challengeId, code } }),
+    logout: () =>
+      apiClient('/api/auth/logout', { method: 'POST' }),
+    me: () =>
+      apiClient('/api/auth/me', { method: 'GET' }),
+  },
+
+  // Admin User Management Endpoints
+  admin: {
+    getUsers: (status) =>
+      apiClient(`/api/admin/users${status ? `?status=${encodeURIComponent(status)}` : ''}`, { method: 'GET' }),
+    approveUser: (id) =>
+      apiClient(`/api/admin/users/${id}/approve`, { method: 'POST' }),
+    rejectUser: (id, reason) =>
+      apiClient(`/api/admin/users/${id}/reject`, { method: 'POST', body: { reason } }),
+    resetTotp: (id) =>
+      apiClient(`/api/admin/users/${id}/reset-totp`, { method: 'POST' }),
+    getUsageToday: () =>
+      apiClient('/api/admin/usage/today', { method: 'GET' }),
+    getUsageByUser: () =>
+      apiClient('/api/admin/usage/by-user', { method: 'GET' }),
+  },
+
+  // Lesson-Scoped AI Chat Endpoints
+  chat: {
+    createConversation: (lessonId, title) =>
+      apiClient('/api/chat/conversations', { method: 'POST', body: { lessonId, title } }),
+    sendMessage: (conversationId, content, clientRequestId) =>
+      apiClient(`/api/chat/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        body: { content, clientRequestId }
+      }),
+    getMessages: (conversationId) =>
+      apiClient(`/api/chat/conversations/${conversationId}/messages`, { method: 'GET' }),
   }
 };
 

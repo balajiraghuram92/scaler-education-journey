@@ -1,13 +1,20 @@
 using Docker.DotNet;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using StudyTracker.Api.Data;
 using StudyTracker.Api.Endpoints;
 using StudyTracker.Api.Models;
 using StudyTracker.Api.Options;
 using StudyTracker.Api.Services;
+using StudyTracker.Api.Services.Auth;
+using StudyTracker.Api.Services.Email;
 using StudyTracker.Api.Services.Exercises;
 using StudyTracker.Api.Services.Reconciliation;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,6 +107,76 @@ builder.Services.AddScoped<AzureLabsReconciler>();
 builder.Services.AddScoped<AtlasReadingReconciler>();
 builder.Services.AddScoped<ReconciliationEngine>();
 
+// Auth & Email Services DI
+builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOptions.SectionName));
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
+builder.Services.Configure<LlamaApiOptions>(builder.Configuration.GetSection(LlamaApiOptions.SectionName));
+builder.Services.Configure<BudgetOptions>(builder.Configuration.GetSection(BudgetOptions.SectionName));
+builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+builder.Services.AddSingleton<TotpSecretProtector>();
+builder.Services.AddSingleton<ITotpService, TotpService>();
+builder.Services.AddScoped<IEmailNotificationService, SmtpEmailNotificationService>();
+builder.Services.AddScoped<BudgetGuardService>();
+builder.Services.AddHttpClient<LlamaApiClient>();
+
+// JWT Bearer Authentication & Admin Policy
+var jwtSecret = builder.Configuration["Auth:JwtSigningKey"];
+if (string.IsNullOrWhiteSpace(jwtSecret))
+{
+    if (builder.Environment.IsProduction())
+    {
+        throw new InvalidOperationException("Production configuration error: Auth:JwtSigningKey must be set.");
+    }
+
+    // Local-dev-only convenience: a fresh random key each process start — never a fixed string.
+    // Sessions will not survive a dev restart; that is intentional and fine.
+    jwtSecret = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+    Console.WriteLine("WARNING: Auth:JwtSigningKey not configured — using an ephemeral random dev-only key. Set Auth__JwtSigningKey for any shared or persistent environment.");
+    builder.Configuration["Auth:JwtSigningKey"] = jwtSecret;
+}
+var jwtIssuer = builder.Configuration["Auth:JwtIssuer"] ?? builder.Configuration["Auth:Issuer"] ?? builder.Configuration["Jwt:Issuer"] ?? "neuralascent";
+var jwtAudience = builder.Configuration["Auth:JwtAudience"] ?? builder.Configuration["Auth:Audience"] ?? builder.Configuration["Jwt:Audience"] ?? "neuralascent-app";
+var cookieName = builder.Configuration["Auth:CookieName"] ?? builder.Configuration["Jwt:CookieName"] ?? "na_auth";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.TryGetValue(cookieName, out var cookieToken) && !string.IsNullOrWhiteSpace(cookieToken))
+            {
+                context.Token = cookieToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
+
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
     options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
@@ -111,7 +188,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowVite", policy =>
     {
         var frontendUrl = builder.Configuration["frontend_url"];
-        var allowedOrigins = new List<string> { "http://localhost:5173" };
+        var allowedOrigins = new List<string> { "http://localhost:5173", "http://127.0.0.1:5173" };
 
         if (!string.IsNullOrWhiteSpace(frontendUrl))
         {
@@ -120,14 +197,28 @@ builder.Services.AddCors(options =>
 
         policy.WithOrigins(allowedOrigins.ToArray())
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
+});
+
+// Rate Limiting (10 requests / 15 minutes for Auth endpoints)
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("AuthPolicy", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromMinutes(15);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
 var app = builder.Build();
 
 // ---------------------------------------------------------
-// CLI Execution Modes: --migrate, --seed-reference-data, --reconcile-content
+// CLI Execution Modes: --migrate, --seed-reference-data, --seed-admin, --reconcile-content
 // ---------------------------------------------------------
 if (args.Contains("--migrate"))
 {
@@ -164,6 +255,72 @@ if (args.Contains("--seed-reference-data") || args.Contains("--seed"))
     catch (Exception ex)
     {
         logger.LogError(ex, "[CLI] Reference data seeding failed critically.");
+        Environment.ExitCode = 1;
+        return 1;
+    }
+}
+
+if (args.Contains("--seed-admin"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+
+        if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+        {
+            logger.LogError("[CLI] --seed-admin requires ADMIN_EMAIL and ADMIN_PASSWORD environment variables.");
+            Environment.ExitCode = 1;
+            return 1;
+        }
+
+        logger.LogInformation("[CLI] Seeding administrator user '{Email}'...", adminEmail);
+        var passwordHash = Pbkdf2PasswordHasher.Hash(adminPassword, out var salt, out var iterations);
+
+        var normalizedEmail = adminEmail.Trim().ToLowerInvariant();
+        var existing = await db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+
+        if (existing != null)
+        {
+            existing.PasswordHash = passwordHash;
+            existing.PasswordSalt = salt;
+            existing.PasswordIterations = iterations;
+            existing.Role = "Admin";
+            existing.Status = "Approved";
+            existing.TotpEnabled = false;
+            existing.TotpSecretEncrypted = null;
+            existing.LastAcceptedTotpCounter = null;
+            logger.LogInformation("[CLI] Updated existing account to Approved Admin with reset TOTP.");
+        }
+        else
+        {
+            var admin = new AppUser
+            {
+                Email = normalizedEmail,
+                PasswordHash = passwordHash,
+                PasswordSalt = salt,
+                PasswordIterations = iterations,
+                Role = "Admin",
+                Status = "Approved",
+                DisplayName = "System Administrator",
+                CreatedAt = DateTime.UtcNow,
+                DecidedAt = DateTime.UtcNow,
+                TotpEnabled = false
+            };
+            db.Users.Add(admin);
+            logger.LogInformation("[CLI] Created new Approved Admin user.");
+        }
+
+        await db.SaveChangesAsync();
+        logger.LogInformation("[CLI] Administrator seeded successfully.");
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "[CLI] Administrator seeding failed critically.");
         Environment.ExitCode = 1;
         return 1;
     }
@@ -242,6 +399,19 @@ using (var scope = app.Services.CreateScope())
     {
         logger.LogWarning(ex, "Startup database verification warning in Development mode: {Message}", ex.Message);
     }
+
+    if (app.Environment.IsProduction())
+    {
+        var authOptions = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AuthOptions>>().Value;
+        if (string.IsNullOrWhiteSpace(authOptions.JwtSigningKey) || Encoding.UTF8.GetByteCount(authOptions.JwtSigningKey) < 32)
+        {
+            throw new InvalidOperationException("Production configuration error: Auth:JwtSigningKey must be set with at least 32 bytes.");
+        }
+        if (string.IsNullOrWhiteSpace(authOptions.TotpEncryptionKey))
+        {
+            throw new InvalidOperationException("Production configuration error: Auth:TotpEncryptionKey must be set.");
+        }
+    }
 }
 
 // ---------------------------------------------------------
@@ -292,6 +462,13 @@ if (app.Environment.IsDevelopment())
 
 // Apply CORS
 app.UseCors("AllowVite");
+
+// Rate Limiting
+app.UseRateLimiter();
+
+// Authentication & Authorization Pipeline
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Apply API Key security
 app.Use(async (context, next) =>
@@ -1377,6 +1554,9 @@ app.MapPost("/api/chapters/map", async (MapChapterRequest req, StudyTrackerConte
 app.MapV2Endpoints();
 app.MapImportEndpoints();
 app.MapExerciseEndpoints();
+app.MapAuthEndpoints();
+app.MapAdminEndpoints();
+app.MapChatEndpoints();
 
 app.Run();
 return 0;

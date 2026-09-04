@@ -8,18 +8,53 @@ import ChapterReader from './pages/ChapterReader';
 import CurriculumImporter from './pages/CurriculumImporter';
 import ChaptersIndex from './pages/ChaptersIndex';
 import LearningPathDetail from './pages/LearningPath/LearningPathDetail';
+import AuthPage from './pages/AuthPage';
+import AdminDashboard from './pages/AdminDashboard';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 function App() {
   return (
     <BrowserRouter>
       <ErrorBoundary title="Application Route Error">
-        <Routes>
-          {/* Root — redirects to Chapters */}
-          <Route
-            path="/"
-            element={<Navigate to="/chapters" replace />}
-          />
+        <AuthProvider>
+          <Routes>
+            {/* Root — redirects to Chapters */}
+            <Route
+              path="/"
+              element={<Navigate to="/chapters" replace />}
+            />
+
+            {/* Authentication Routes */}
+            <Route
+              path="/login"
+              element={
+                <Layout>
+                  <AuthPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/signup"
+              element={<Navigate to="/login" replace />}
+            />
+
+            {/* Administrative User Approval Dashboard */}
+            <Route
+              path="/admin"
+              element={<Navigate to="/admin/users" replace />}
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <Layout>
+                  <ProtectedRoute requireAdmin>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                </Layout>
+              }
+            />
 
           {/* Chapters / curriculum entry point */}
           <Route
@@ -157,6 +192,7 @@ function App() {
             element={<Navigate to="/chapters" replace />}
           />
         </Routes>
+        </AuthProvider>
       </ErrorBoundary>
     </BrowserRouter>
   );

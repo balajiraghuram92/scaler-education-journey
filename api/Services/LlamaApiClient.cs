@@ -1,0 +1,210 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using StudyTracker.Api.Options;
+
+namespace StudyTracker.Api.Services;
+
+public sealed record LlamaCompletionResult(
+    string ReplyContent,
+    int PromptTokens,
+    int CompletionTokens,
+    bool UsageEstimated,
+    decimal EstimatedCostUsd,
+    int LatencyMs
+);
+
+public sealed record ChatPromptMessage(
+    string Role,
+    string Content
+);
+
+public class LlamaApiClient
+{
+    private readonly HttpClient _httpClient;
+    private readonly LlamaApiOptions _options;
+    private readonly ILogger<LlamaApiClient> _logger;
+    private readonly IHostEnvironment _env;
+
+    public LlamaApiClient(
+        HttpClient httpClient,
+        IOptions<LlamaApiOptions> options,
+        ILogger<LlamaApiClient> logger,
+        IHostEnvironment env)
+    {
+        _httpClient = httpClient;
+        _options = options.Value;
+        _logger = logger;
+        _env = env;
+
+        var baseUrl = !string.IsNullOrWhiteSpace(_options.BaseUrl)
+            ? _options.BaseUrl
+            : "https://api.llama.com/v1/";
+        
+        if (!baseUrl.EndsWith("/"))
+        {
+            baseUrl += "/";
+        }
+
+        _httpClient.BaseAddress = new Uri(baseUrl);
+        _httpClient.Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds > 0 ? _options.TimeoutSeconds : 30);
+
+        if (!string.IsNullOrWhiteSpace(_options.ApiKey))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
+        }
+    }
+
+    public async Task<LlamaCompletionResult> GenerateCompletionAsync(
+        IReadOnlyList<ChatPromptMessage> messages,
+        CancellationToken ct = default)
+    {
+        var sw = Stopwatch.StartNew();
+
+        var promptBuilder = new StringBuilder();
+        var apiMessages = new List<object>();
+        foreach (var m in messages)
+        {
+            apiMessages.Add(new { role = m.Role, content = m.Content });
+            promptBuilder.Append(m.Content).Append('\n');
+        }
+
+        var fullPromptText = promptBuilder.ToString();
+
+        // If API key is not configured, provide a helpful mock response in development
+        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+        {
+            if (_env.IsProduction())
+            {
+                throw new InvalidOperationException("LlamaApi:ApiKey is not configured.");
+            }
+
+            sw.Stop();
+            var mockReply = "Hello! The Meta Llama API key is currently not configured on this instance. Please configure `LlamaApi:ApiKey` in appsettings or `LlamaApi__ApiKey` in environment variables.";
+            var (mockPromptTokens, mockCompTokens, mockEst) = EstimateTokens(fullPromptText, mockReply);
+            var mockCost = CalculateCost(mockPromptTokens, mockCompTokens);
+
+            return new LlamaCompletionResult(
+                ReplyContent: mockReply,
+                PromptTokens: mockPromptTokens,
+                CompletionTokens: mockCompTokens,
+                UsageEstimated: mockEst,
+                EstimatedCostUsd: mockCost,
+                LatencyMs: (int)sw.ElapsedMilliseconds
+            );
+        }
+
+        var requestBody = new
+        {
+            model = !string.IsNullOrWhiteSpace(_options.Model) ? _options.Model : "Llama-4-Maverick-17B-128E-Instruct-FP8",
+            messages = apiMessages,
+            temperature = 0.7
+        };
+
+        var jsonContent = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json");
+
+        try
+        {
+            using var response = await _httpClient.PostAsync("chat/completions", jsonContent, ct);
+            sw.Stop();
+
+            var responseJson = await response.Content.ReadAsStringAsync(ct);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Llama API call failed with status {StatusCode}: {Response}", response.StatusCode, responseJson);
+                throw new InvalidOperationException($"Llama API error: {(int)response.StatusCode} {response.ReasonPhrase}");
+            }
+
+            using var doc = JsonDocument.Parse(responseJson);
+            var root = doc.RootElement;
+
+            string replyText = string.Empty;
+            if (root.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
+            {
+                var firstChoice = choices[0];
+                if (firstChoice.TryGetProperty("message", out var messageProp) &&
+                    messageProp.TryGetProperty("content", out var contentProp))
+                {
+                    replyText = contentProp.GetString() ?? string.Empty;
+                }
+            }
+
+            var (promptTokens, completionTokens, usageEstimated) = TryParseUsage(root, fullPromptText, replyText);
+            var estimatedCostUsd = CalculateCost(promptTokens, completionTokens);
+
+            return new LlamaCompletionResult(
+                ReplyContent: replyText,
+                PromptTokens: promptTokens,
+                CompletionTokens: completionTokens,
+                UsageEstimated: usageEstimated,
+                EstimatedCostUsd: estimatedCostUsd,
+                LatencyMs: (int)sw.ElapsedMilliseconds
+            );
+        }
+        catch (Exception ex) when (ex is not InvalidOperationException)
+        {
+            sw.Stop();
+            _logger.LogError(ex, "Exception encountered communicating with Llama API");
+            throw;
+        }
+    }
+
+    private (int PromptTokens, int CompletionTokens, bool IsEstimated) TryParseUsage(
+        JsonElement root,
+        string promptText,
+        string replyText)
+    {
+        try
+        {
+            if (root.TryGetProperty("usage", out var usage))
+            {
+                var hasPrompt = usage.TryGetProperty("prompt_tokens", out var pProp) && pProp.TryGetInt32(out var pVal) && pVal >= 0;
+                var hasComp = usage.TryGetProperty("completion_tokens", out var cProp) && cProp.TryGetInt32(out var cVal) && cVal >= 0;
+
+                if (hasPrompt && hasComp)
+                {
+                    return (pVal, cVal, false);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed parsing token usage from Llama API response; using character-based fallback estimation.");
+        }
+
+        _logger.LogWarning("Token usage missing or malformed in Llama API response. Falling back to character estimation.");
+        return EstimateTokens(promptText, replyText);
+    }
+
+    private static (int PromptTokens, int CompletionTokens, bool IsEstimated) EstimateTokens(string promptText, string replyText)
+    {
+        // Character fallback estimation: ceil(chars / 4.0)
+        var promptTokens = (int)Math.Ceiling((promptText?.Length ?? 0) / 4.0);
+        var completionTokens = (int)Math.Ceiling((replyText?.Length ?? 0) / 4.0);
+
+        if (promptTokens <= 0) promptTokens = 1;
+        if (completionTokens <= 0) completionTokens = 1;
+
+        return (promptTokens, completionTokens, true);
+    }
+
+    private decimal CalculateCost(int promptTokens, int completionTokens)
+    {
+        var inputCost = (promptTokens * _options.PricePerMillionInputTokensUsd) / 1_000_000m;
+        var outputCost = (completionTokens * _options.PricePerMillionOutputTokensUsd) / 1_000_000m;
+        return decimal.Round(inputCost + outputCost, 6);
+    }
+}

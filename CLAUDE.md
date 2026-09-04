@@ -64,3 +64,15 @@ Word count tiers:
 SOURCE_TYPE convention (for MCQs and exercises in lesson `.md` files):
 - `FROM_MATERIAL` — sourced from provided reference material
 - `LLM_GENERATED` — added independently by the LLM
+
+---
+
+## AI-VERTICAL vs AI-INTEGRATION — SCOPE BOUNDARY (set 2026-09-04)
+
+Neuralascent has two separate "AI" tracks. Do not conflate them.
+
+1. **AI vertical (curriculum content)** — a learning vertical/course on the site about AI/LLM engineering topics (e.g. the Model Economics Matrix / RAG eval-harness portfolio project). This content is **authored entirely by hand by the user**. Claude must never generate a Local-LLM or Gemini prompt to write, seed, or edit AI-vertical lesson content, and must not treat pasted AI-vertical project descriptions as a request to produce seed-data prompts. Claude's role here is limited to reading/organizing notes (e.g. under `info/.notes/`) if asked — never producing content-generation prompts for it.
+
+2. **AI integration (site infrastructure)** — actual AI/LLM plumbing built into the running app itself (e.g. the learner-facing tutoring chatbot described in `info/.notes/Chatbot-implementation/references/neuralascent-chatbot-hld-dotnet.md`). This is infrastructure work in `api/` (.NET) and `app/` (React), and **is** in scope for the Local-LLM/Gemini prompt workflow described above — read the relevant files, then produce a copy-paste-ready prompt exactly as for any other API/frontend change.
+
+Rule of thumb: if the change would touch `api/Data/*SeedData.cs` or lesson `.md`/content authoring for an AI-topic vertical → hand-authored, no prompt. If the change touches `api/Endpoints`, `api/Services`, `api/Models`, `api/Options`, `api/Program.cs`, `app/src/**`, `docker-compose*.yml`, or `appsettings*.json` to add AI-provider plumbing (e.g. Gemini client, chat endpoints, config) → normal prompt workflow applies.

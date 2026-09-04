@@ -44,6 +44,10 @@ public class StudyTrackerContext : DbContext
     public DbSet<LearningActivity> LearningActivities { get; set; } = null!;
     public DbSet<KnowledgeThreadStep> KnowledgeThreadSteps { get; set; } = null!;
     public DbSet<MigrationReconciliation> MigrationReconciliations { get; set; } = null!;
+    public DbSet<AppUser> Users { get; set; } = null!;
+    public DbSet<MfaChallenge> MfaChallenges { get; set; } = null!;
+    public DbSet<ChatConversation> ChatConversations { get; set; } = null!;
+    public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -476,6 +480,86 @@ public class StudyTrackerContext : DbContext
                 .HasDatabaseName("ux_migration_reconciliation_identity");
             entity.HasIndex(mr => new { mr.MigrationKey, mr.Status })
                 .HasDatabaseName("ix_migration_reconciliation_status");
+        });
+
+        // 20. Users (Authentication & Authorization)
+        modelBuilder.Entity<AppUser>(entity =>
+        {
+            entity.ToTable("app_users", t =>
+            {
+                t.HasCheckConstraint("ck_app_users_role", "role IN ('User', 'Admin')");
+                t.HasCheckConstraint("ck_app_users_status", "status IN ('PendingApproval', 'Approved', 'Rejected', 'Disabled')");
+            });
+            entity.HasKey(u => u.Id);
+            entity.HasIndex(u => u.Email)
+                .IsUnique()
+                .HasDatabaseName("ix_app_users_email");
+            entity.HasOne(u => u.DecidedByUser)
+                .WithMany()
+                .HasForeignKey(u => u.DecidedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 21. MFA Challenges (TOTP Second Factor)
+        modelBuilder.Entity<MfaChallenge>(entity =>
+        {
+            entity.ToTable("mfa_challenges", t =>
+            {
+                t.HasCheckConstraint("ck_mfa_challenges_purpose", "purpose IN ('Enrollment', 'Login')");
+            });
+            entity.HasKey(c => c.Id);
+            entity.HasIndex(c => c.UserId)
+                .HasDatabaseName("ix_mfa_challenges_user_id");
+            entity.HasIndex(c => c.ExpiresAt)
+                .HasDatabaseName("ix_mfa_challenges_expires_at");
+            entity.HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 22. Chat Conversations
+        modelBuilder.Entity<ChatConversation>(entity =>
+        {
+            entity.ToTable("chat_conversations");
+            entity.HasKey(c => c.Id);
+            entity.HasIndex(c => c.UserId)
+                .HasDatabaseName("ix_chat_conversations_user_id");
+            entity.HasIndex(c => c.LessonId)
+                .HasDatabaseName("ix_chat_conversations_lesson_id");
+            entity.HasIndex(c => c.UpdatedAt)
+                .HasDatabaseName("ix_chat_conversations_updated_at");
+
+            entity.HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.Lesson)
+                .WithMany()
+                .HasForeignKey(c => c.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // 23. Chat Messages
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.ToTable("chat_messages", t =>
+            {
+                t.HasCheckConstraint("ck_chat_messages_role", "role IN ('system', 'user', 'assistant')");
+            });
+            entity.HasKey(m => m.Id);
+            entity.HasIndex(m => m.ConversationId)
+                .HasDatabaseName("ix_chat_messages_conversation_id");
+            entity.HasIndex(m => m.CreatedAt)
+                .HasDatabaseName("ix_chat_messages_created_at");
+            entity.HasIndex(m => m.ClientRequestId)
+                .HasDatabaseName("ix_chat_messages_client_request_id");
+
+            entity.HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

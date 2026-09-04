@@ -291,8 +291,41 @@
 - [x] **Sub-task 40.4**: Confirm `app/src/data/lessonExerciseAssociations.js` remains unchanged (no coding exercises in this phase).
 - [x] **Sub-task 40.5**: Update task tracker and provide final Docker Compose / SQL verification steps across all 152 authored lessons.
 
+## Phase 41: Authentication Infrastructure & Administrator User Governance (Completed)
+- [x] **Sub-task 41.1**: Add `Microsoft.AspNetCore.Authentication.JwtBearer` (8.0.28) package reference to `api/StudyTracker.Api.csproj`.
+- [x] **Sub-task 41.2**: Implement `AppUser` entity model with snake_case column mappings, role/status constraints, and `DbSet<AppUser> Users` in `StudyTrackerContext.cs`.
+- [x] **Sub-task 41.3**: Add sealed DTO records (`SignupRequest`, `LoginRequest`, `RejectUserRequest`, `UserDto`) in `api/Models/AuthDtos.cs`.
+- [x] **Sub-task 41.4**: Implement zero-external-dependency PBKDF2 password hashing service (`Rfc2898DeriveBytes.Pbkdf2`) and constant-time verification.
+- [x] **Sub-task 41.5**: Implement provider-agnostic SMTP notification service (`SmtpEmailNotificationService`) with safe logging fallback.
+- [x] **Sub-task 41.6**: Implement JWT token generation and cookie-based extraction with `AllowCredentials()` CORS policy in `Program.cs`.
+- [x] **Sub-task 41.7**: Add minimal-API endpoints (`/api/auth/signup`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`, `/api/admin/users`, `/api/admin/users/{id}/approve`, `/api/admin/users/{id}/reject`) with RFC 7807 problem details.
+- [x] **Sub-task 41.8**: Seed initial system administrator account in `DbSeeder.cs` (`admin@neuralascent.local`).
+- [x] **Sub-task 41.9**: Create EF Core schema migration `20260904103000_AddAppUsersTable.cs` and update model snapshot.
+- [x] **Sub-task 41.10**: Implement Frontend client credentials support (`client.js`), `AuthContext`, `ProtectedRoute`, Warm Editorial `AuthPage.jsx`, and `AdminDashboard.jsx`.
+- [x] **Sub-task 41.11**: Add comprehensive unit tests in `AuthAndUserManagementTests.cs`.
 
+## Phase 42: Mandatory Time-Based One-Time Password (TOTP) Second-Factor Authentication (Completed)
+- [x] **Sub-task 42.1**: Extend `AppUser` entity with `totp_secret_encrypted`, `totp_enabled`, and `last_accepted_totp_counter`.
+- [x] **Sub-task 42.2**: Implement `MfaChallenge` entity (`mfa_challenges` table) with 5-minute expiry, purpose check constraint (`'Enrollment'`, `'Login'`), attempt tracking, and cascade delete on `AppUser`.
+- [x] **Sub-task 42.3**: Implement zero-dependency AES-GCM secret encryption wrapper `TotpSecretProtector` with 12-byte random nonces and 16-byte authentication tags.
+- [x] **Sub-task 42.4**: Implement RFC 6238 TOTP engine `TotpService` with 20-byte cryptographically random secrets, RFC 4648 unpadded Base32 encoding, Google Authenticator/Authy `otpauth://` URI generation, RFC 4226 dynamic truncation HMAC-SHA1 codes, and counter-based replay attack protection.
+- [x] **Sub-task 42.5**: Configure ASP.NET Core Fixed Window Rate Limiter policy (`"AuthPolicy"`, 10 req/min) on sensitive auth endpoints.
+- [x] **Sub-task 42.6**: Refactor `POST /api/auth/login` to return single-purpose `challengeId` and withhold JWT session cookie until 2FA completes.
+- [x] **Sub-task 42.7**: Implement `POST /api/auth/totp/enroll/start`, `POST /api/auth/totp/enroll/confirm`, and `POST /api/auth/totp/verify` with brute-force lockout (burn challenge after 5 failures).
+- [x] **Sub-task 42.8**: Create EF Core database schema migration `20260904111500_AddTotpMfaChallenges.cs` and update `StudyTrackerContextModelSnapshot.cs`.
+- [x] **Sub-task 42.9**: Update Docker Compose environment variables with `Auth__TotpEncryptionKey`.
+- [x] **Sub-task 42.10**: Update frontend API client (`api.auth.totpEnrollStart`, `totpEnrollConfirm`, `totpVerify`), `AuthContext`, Warm Editorial 2-step setup and verification UI in `AuthPage.jsx`, and custom styles in `AuthPage.css`.
+- [x] **Sub-task 42.11**: Add unit tests in `TotpServiceTests.cs`, `TotpSecretProtectorTests.cs`, and `AuthAndUserManagementTests.cs`.
 
-
-
-
+## Phase 43: Consolidated Auth Hardening, Offline QR, Admin Operations & Lesson-Scoped AI Chat ($2/day Hard Cap) (Completed)
+- [x] **Sub-task 43.1**: Password Hashing & Sanitation — Updated PBKDF2 default iterations to 210,000; removed default admin seeding from `DbSeeder.cs`; implemented `--seed-admin` CLI command in `api/Program.cs` reading from `ADMIN_EMAIL`/`ADMIN_PASSWORD` env vars.
+- [x] **Sub-task 43.2**: Auth & Rate Limiter Hardening — Implemented enumeration protection on signup; updated `"AuthPolicy"` rate limiter window to 10 req / 15 min; unified JWT cookie name to `na_auth` with 12h lifetime.
+- [x] **Sub-task 43.3**: Admin Operations & TOTP Reset — Enforced fresh DB caller check (`LoadApprovedAdminAsync`) on every admin endpoint; added `POST /api/admin/users/{id}/reset-totp` with emergency SQL recovery documentation; added `GET /api/admin/usage/today` and `GET /api/admin/usage/by-user`.
+- [x] **Sub-task 43.4**: Sustainability & Notifications — Added required sustainability notice to `SmtpEmailNotificationService.cs` approval emails.
+- [x] **Sub-task 43.5**: Chat Models & Budget Guard — Created `ChatConversation`, `ChatMessage`, and DTOs; registered DbSets and entity constraints in `StudyTrackerContext.cs`; implemented `BudgetGuardService` enforcing $2.00/day aggregate spend cap and 500 requests/day volume backstop.
+- [x] **Sub-task 43.6**: Llama API Client — Implemented direct `HttpClient` Llama API integration with 30s timeout, isolated `TryParseUsage` with character fallback estimation (`ceil(chars/4.0)`), and lesson-grounded prompt assembly.
+- [x] **Sub-task 43.7**: Chat Endpoints — Implemented `POST /api/chat/conversations`, `POST /api/chat/conversations/{id}/messages` (with idempotency, budget checks, lesson grounding, and history context), and `GET /api/chat/conversations/{id}/messages`.
+- [x] **Sub-task 43.8**: Database Migrations — Created EF Core migration `20260904120000_AddChatTables.cs` and Designer file; updated `StudyTrackerContextModelSnapshot.cs`.
+- [x] **Sub-task 43.9**: Frontend Offline QR Code & Admin Operations — Integrated `qrcode` for client-side offline QR code rendering in `AuthPage.jsx`; added Reset TOTP action and AI compute budget tracking card in `AdminDashboard.jsx`.
+- [x] **Sub-task 43.10**: Floating Chat Widget — Implemented `ChatWidget.jsx` and `ChatWidget.css` using Warm Editorial Knowledge Atlas design tokens; integrated `<ChatWidget lessonId={chapter?.id} />` in `ChapterReader.jsx`.
+- [x] **Sub-task 43.11**: Security & Fail-Fast Hardening — Eliminated hardcoded fallback keys in `Program.cs`, `JwtTokenService.cs`, and `TotpSecretProtector.cs` with ephemeral dev keys and production fail-fast `InvalidOperationException`; restored `${VAR:?VAR must be set}` validation in `docker-compose.yml`; gated Llama API mock fallback behind non-production in `LlamaApiClient.cs`.

@@ -12,6 +12,7 @@ import { LoadingState, ErrorState, DevFixturesBanner } from '../components/commo
 import { markLearningPathOpened } from '../utils/recentLearningPaths';
 import './ChapterReader.css';
 import '../components/learning/learning-interactions.css';
+import ChatWidget from '../components/common/ChatWidget';
 
 function slugifyHeading(value, usedIds) {
   const base = value
@@ -588,6 +589,8 @@ export default function ChapterReader() {
           </div>
         </aside>
       </div>
+
+      <ChatWidget lessonId={chapter?.id} lessonTitle={chapter?.title} />
     </div>
   );
 }

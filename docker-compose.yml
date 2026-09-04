@@ -56,6 +56,23 @@ services:
 
       API_KEY: ${API_KEY:?API_KEY must be set}
 
+      Auth__JwtSigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set (32+ random bytes, e.g. `openssl rand -base64 32`)}
+      Auth__TotpEncryptionKey: ${TOTP_ENCRYPTION_KEY:?TOTP_ENCRYPTION_KEY must be set (32 random bytes, base64: openssl rand -base64 32)}
+      Smtp__Host: ${SMTP_HOST:?SMTP_HOST must be set}
+      Smtp__User: ${SMTP_USER:?SMTP_USER must be set}
+      Smtp__Pass: ${SMTP_PASS:?SMTP_PASS must be set}
+      Email__SmtpHost: ${SMTP_HOST:?SMTP_HOST must be set}
+      Email__SmtpPort: ${SMTP_PORT:-587}
+      Email__SmtpUsername: ${SMTP_USER:?SMTP_USER must be set}
+      Email__SmtpPassword: ${SMTP_PASS:?SMTP_PASS must be set}
+      LlamaApi__ApiKey: ${LLAMA_API_KEY:?LLAMA_API_KEY must be set}
+      LlamaApi__BaseUrl: ${LLAMA_BASE_URL:-https://api.llama.com/v1/}
+      LlamaApi__Model: ${LLAMA_MODEL:-Llama-4-Maverick-17B-128E-Instruct-FP8}
+      LlamaApi__PricePerMillionInputTokensUsd: ${LLAMA_PRICE_INPUT:-0}
+      LlamaApi__PricePerMillionOutputTokensUsd: ${LLAMA_PRICE_OUTPUT:-0}
+      Budget__DailyCapUsd: ${BUDGET_DAILY_CAP_USD:-2.00}
+      Budget__MaxDailyRequests: ${BUDGET_MAX_DAILY_REQUESTS:-500}
+
       ExerciseExecution__ExercisesRoot: /app/exercises
       ExerciseExecution__WorkspaceRoot: /tmp/studytracker-exercises
       ExerciseExecution__RunnerImage: ${EXERCISE_RUNNER_IMAGE:-neuralascent-java-runner:dev}
