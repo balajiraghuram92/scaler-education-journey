@@ -57,7 +57,7 @@ services:
       API_KEY: ${API_KEY:?API_KEY must be set}
 
       Auth__JwtSigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set (32+ random bytes, e.g. `openssl rand -base64 32`)}
-      Auth__TotpEncryptionKey: ${TOTP_ENCRYPTION_KEY:?TOTP_ENCRYPTION_KEY must be set (32 random bytes, base64: openssl rand -base64 32)}
+      Auth__TotpEncryptionKey: "${TOTP_ENCRYPTION_KEY:?TOTP_ENCRYPTION_KEY must be set (32 random bytes, base64: openssl rand -base64 32)}"
       Smtp__Host: ${SMTP_HOST:?SMTP_HOST must be set}
       Smtp__User: ${SMTP_USER:?SMTP_USER must be set}
       Smtp__Pass: ${SMTP_PASS:?SMTP_PASS must be set}
