@@ -205,6 +205,45 @@ export const api = {
       }),
     getMessages: (conversationId) =>
       apiClient(`/api/chat/conversations/${conversationId}/messages`, { method: 'GET' }),
+  },
+
+  // Localization Lab Endpoints (Owner Side)
+  localization: {
+    getProjects: () => apiClient('/api/localization/projects'),
+    getProject: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}`),
+    getStrings: (slug, locale) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/strings?locale=${encodeURIComponent(locale)}`),
+    updateTranslation: (slug, stringId, locale, targetText) =>
+      apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/strings/${stringId}/translations/${encodeURIComponent(locale)}`, { method: 'PUT', body: { targetText } }),
+    getWorkflow: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow`),
+    addWorkflowStep: (slug, body) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow/steps`, { method: 'POST', body }),
+    reorderWorkflowStep: (slug, stepId, direction) =>
+      apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow/steps/${stepId}/reorder`, { method: 'POST', body: { direction } }),
+    runWorkflowStep: (slug, stepId) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow/steps/${stepId}/run`, { method: 'POST' }),
+    deleteWorkflowStep: (slug, stepId) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow/steps/${stepId}`, { method: 'DELETE' }),
+    getSnapshots: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/snapshots`),
+    cutSnapshot: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/snapshots`, { method: 'POST' }),
+    getMarketplaceOverview: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/marketplace`),
+    postToMarketplace: (slug, locale) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/marketplace/${encodeURIComponent(locale)}/post`, { method: 'POST' }),
+    getBids: (jobId) => apiClient(`/api/localization/marketplace/jobs/${jobId}/bids`),
+    awardBid: (jobId, bidId) => apiClient(`/api/localization/marketplace/jobs/${jobId}/bids/${bidId}/award`, { method: 'POST' }),
+    approveSubmission: (jobId) => apiClient(`/api/localization/marketplace/jobs/${jobId}/approve`, { method: 'POST' }),
+    sendBackForRevision: (jobId) => apiClient(`/api/localization/marketplace/jobs/${jobId}/send-back`, { method: 'POST' }),
+    getProviderHealth: () => apiClient('/api/localization/provider-health'),
+    simulateOutage: (provider) => apiClient(`/api/localization/provider-health/${provider}/simulate-outage`, { method: 'POST' }),
+    resolveOutage: (provider) => apiClient(`/api/localization/provider-health/${provider}/resolve`, { method: 'POST' }),
+  },
+
+  // Vendor Portal Endpoints (Vendor Side)
+  vendorPortal: {
+    getRoster: () => apiClient('/api/localization/vendor/roster'),
+    getOpenJobs: (vendorId) => apiClient(`/api/localization/vendor/${vendorId}/open-jobs`),
+    submitBid: (vendorId, jobId, proposedPrice, note) =>
+      apiClient(`/api/localization/vendor/${vendorId}/jobs/${jobId}/bids`, { method: 'POST', body: { proposedPrice, note } }),
+    getAwardedJobs: (vendorId) => apiClient(`/api/localization/vendor/${vendorId}/awarded-jobs`),
+    getJobStrings: (jobId) => apiClient(`/api/localization/vendor/jobs/${jobId}/strings`),
+    updateJobString: (jobId, stringId, targetText) =>
+      apiClient(`/api/localization/vendor/jobs/${jobId}/strings/${stringId}`, { method: 'PUT', body: { targetText } }),
+    submitJob: (jobId) => apiClient(`/api/localization/vendor/jobs/${jobId}/submit`, { method: 'POST' }),
   }
 };
 

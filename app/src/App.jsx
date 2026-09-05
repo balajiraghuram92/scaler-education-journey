@@ -14,6 +14,15 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
+// Localization Lab Pages
+import LocalizationStrings from './pages/Localization/LocalizationStrings';
+import LocalizationWorkflow from './pages/Localization/LocalizationWorkflow';
+import LocalizationSnapshots from './pages/Localization/LocalizationSnapshots';
+import LocalizationMarketplace from './pages/Localization/LocalizationMarketplace';
+import LocalizationBidReview from './pages/Localization/LocalizationBidReview';
+import VendorOpenJobs from './pages/Localization/Vendor/VendorOpenJobs';
+import VendorMyJob from './pages/Localization/Vendor/VendorMyJob';
+
 function App() {
   return (
     <BrowserRouter>
@@ -124,6 +133,58 @@ function App() {
                 <LabProjects />
               </Layout>
             }
+          />
+
+          {/* Localization Lab — Owner Routes */}
+          <Route
+            path="/lab-projects/localization"
+            element={
+              <Layout>
+                <LocalizationStrings />
+              </Layout>
+            }
+          />
+          <Route
+            path="/lab-projects/localization/workflow"
+            element={
+              <Layout>
+                <LocalizationWorkflow />
+              </Layout>
+            }
+          />
+          <Route
+            path="/lab-projects/localization/snapshots"
+            element={
+              <Layout>
+                <LocalizationSnapshots />
+              </Layout>
+            }
+          />
+          <Route
+            path="/lab-projects/localization/marketplace"
+            element={
+              <Layout>
+                <LocalizationMarketplace />
+              </Layout>
+            }
+          />
+          <Route
+            path="/lab-projects/localization/marketplace/:jobId/bids"
+            element={
+              <Layout>
+                <LocalizationBidReview />
+              </Layout>
+            }
+          />
+
+          {/* Localization Lab — Vendor Portal Routes (Unwrapped, No Main Layout) */}
+          <Route
+            path="/lab-projects/localization/vendor"
+            element={<VendorOpenJobs />}
+          />
+          <Route
+            path="/lab-projects/localization/vendor/jobs/:jobId"
+            element={<VendorMyJob />}
           />
 
           {/* Dedicated Reading Map */}

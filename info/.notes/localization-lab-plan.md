@@ -114,6 +114,25 @@ generic composite would.
 - Provider Health panel scaffolding begins (latency/error tracking for the one
   real external provider now in play)
 
+**Phase 2.5 — Vendor Marketplace** (confirmed 2026-09-05 — second interview
+centerpiece, parallel human-translation track alongside AI/MT)
+- Full spec: [localization-lab-marketplace-flow.md](localization-lab-marketplace-flow.md)
+- Depends only on Phase 1 (Orchestrator action framework) and Phase 2 (credit
+  ledger) — does NOT depend on Phase 3's QPS/MT Optimize
+- New Orchestrator action type: "Post to Marketplace" (per project+locale)
+- Vendor roster (seeded), MarketplaceJob + Bid entities, full job/bid state
+  machine (Draft → Open → Awarded → InProgress → SubmittedForReview →
+  Approved/NeedsRevision → Closed)
+- Owner-side: Marketplace tab (locale overview), Post-to-Marketplace drawer,
+  side-by-side bid review list; submission review reuses the existing Strings
+  table/drawer filtered by locale
+- Vendor-side: separate locked-scope portal (vendor picker, Open Jobs board,
+  bid submission form, "My Jobs" workspace scoped to only the awarded job's
+  strings — no Orchestrator/Snapshots/other-locale visibility)
+- Settlement via the same credit ledger as AI/MT, tagged `source: Marketplace`
+  vs `source: AI`, enabling a direct cost-comparison story
+- Must be complete (depth-first) before starting Phase 3
+
 **Phase 3 — AI Vertical** (the interview centerpiece)
 - LLM provider adapter (reuse `LlamaApiClient.cs` pattern) as another Orchestrator
   action type
@@ -236,6 +255,37 @@ All three finishing-detail choices are now locked (confirmed 2026-09-05).
 - 20 total Gemini concept-image prompts across two rounds (10 divergent
   metaphors, then 10 finishing-detail variations on the locked hybrid) — all
   given directly in chat, not saved to a file yet.
+
+## Vendor marketplace (added 2026-09-05)
+
+A second parallel track — a freelance-style vendor marketplace, reconstructing
+the real "developers post work, translators bid per-language" model from the
+Unity ES project — is now specced in full in
+[localization-lab-marketplace-flow.md](localization-lab-marketplace-flow.md).
+Entities, job/bid state machines, owner-side screens, and a separate
+locked-scope vendor portal are all defined there. **Confirmed 2026-09-05**: it now sits as Phase 2.5 in the roadmap below,
+after Google MT + Credits and before the AI Vertical. No mockups exist for it
+yet — see the flow doc's §8 for the 6 screens still needed.
+
+## Remaining Phase 1 screens + Phase 3 UI surface (added 2026-09-05)
+
+Two more design docs now cover the screens that weren't specced yet:
+- [localization-lab-workflow-snapshots-flow.md](localization-lab-workflow-snapshots-flow.md)
+  — the Workflow tab (config-driven Orchestrator, up/down reorder, inline
+  last-run status per step) and the Snapshots tab (whole-project-only Build
+  Snapshot cuts, row-detail drawer with the immutable manifest).
+- [localization-lab-ai-vertical-flow.md](localization-lab-ai-vertical-flow.md)
+  — Phase 3's UI surface: a Provider Health slide-out panel (with Simulate
+  Outage) from a top-nav icon, a QPS column in the Strings table, Auto-Routing's
+  "Needs Review" state replacing the dot-track (not a 5th dot), and a tenant
+  switcher + live/fallback toggle added to the **global** top nav now, ahead of
+  Phase 3 actually being built.
+
+**Important:** the nav-bar addition (tenant switcher, live/fallback toggle,
+Provider Health icon) means the already-approved Strings/drawer reference
+image is superseded on that one point — every owner-side screen mocked from
+here on needs the new nav cluster, and the original Strings image should
+eventually be regenerated to match before it's used as a build reference.
 
 ## Status
 

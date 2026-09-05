@@ -58,6 +58,9 @@ public static class DbSeeder
         // 8. Seed Concept Chapters, Code Comparisons, Diagrams & Notes (Panel D)
         ChapterSeedData.Seed(db);
 
+        // 9. Seed Localization Lab (Phase 1, 2, 2.5, 3 Demo Data)
+        LocalizationSeedData.Seed(db);
+
         // Save all changes
         db.SaveChanges();
         

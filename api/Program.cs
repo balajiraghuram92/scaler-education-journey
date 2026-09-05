@@ -4,12 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StudyTracker.Api.Data;
 using StudyTracker.Api.Endpoints;
+using StudyTracker.Api.Endpoints.Localization;
 using StudyTracker.Api.Models;
+using StudyTracker.Api.Models.Localization;
 using StudyTracker.Api.Options;
 using StudyTracker.Api.Services;
 using StudyTracker.Api.Services.Auth;
 using StudyTracker.Api.Services.Email;
 using StudyTracker.Api.Services.Exercises;
+using StudyTracker.Api.Services.Localization;
 using StudyTracker.Api.Services.Reconciliation;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -121,6 +124,22 @@ builder.Services.AddSingleton<ITotpService, TotpService>();
 builder.Services.AddScoped<IEmailNotificationService, SmtpEmailNotificationService>();
 builder.Services.AddScoped<BudgetGuardService>();
 builder.Services.AddHttpClient<LlamaApiClient>();
+
+// Localization Lab Options & Services DI
+builder.Services.Configure<GoogleTranslateOptions>(builder.Configuration.GetSection(GoogleTranslateOptions.SectionName));
+builder.Services.AddHttpClient<GoogleTranslateProviderService>();
+builder.Services.AddScoped<ITranslationProvider>(sp => sp.GetRequiredService<GoogleTranslateProviderService>());
+builder.Services.AddScoped<IQualityScorer, QpsScoringService>();
+builder.Services.AddScoped<MtOptimizeService>();
+builder.Services.AddScoped<AutoRoutingService>();
+builder.Services.AddScoped<CreditLedgerService>();
+builder.Services.AddScoped<LocalizationProjectService>();
+builder.Services.AddScoped<LocalizationStringService>();
+builder.Services.AddScoped<WorkflowService>();
+builder.Services.AddScoped<SnapshotService>();
+builder.Services.AddScoped<MarketplaceService>();
+builder.Services.AddScoped<VendorPortalService>();
+builder.Services.AddScoped<ProviderHealthService>();
 
 // JWT Bearer Authentication & Admin Policy
 var jwtSecret = builder.Configuration["Auth:JwtSigningKey"];
@@ -1555,6 +1574,10 @@ app.MapPost("/api/chapters/map", async (MapChapterRequest req, StudyTrackerConte
 app.MapV2Endpoints();
 app.MapImportEndpoints();
 app.MapExerciseEndpoints();
+app.MapLocalizationEndpoints();
+app.MapMarketplaceEndpoints();
+app.MapVendorPortalEndpoints();
+app.MapProviderHealthEndpoints();
 app.MapAuthEndpoints();
 app.MapAdminEndpoints();
 app.MapChatEndpoints();

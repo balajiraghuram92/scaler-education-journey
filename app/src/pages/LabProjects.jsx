@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { Terminal } from 'lucide-react';
 import { api } from '../api/client';
 import { LoadingState, ErrorState, EmptyState, DevFixturesBanner } from '../components/common/StateViews';
@@ -25,8 +26,8 @@ function getDevFixtures() {
         title: 'Lab B — Unity Localization & Asset Delivery Platform',
         description: 'High-throughput internationalization asset pipeline with low-latency CDN synchronization.',
         lessons: [
-          { id: 3, title: 'Localization Pipeline & Dynamic String Table Sync', estimatedMinutes: 40, difficulty: 'Intermediate', isCompleted: false },
-          { id: 4, title: 'Asset Bundle Streaming & Version Negotiation', estimatedMinutes: 50, difficulty: 'Advanced', isCompleted: false }
+          { id: 3, title: 'Localization Pipeline & Dynamic String Table Sync', estimatedMinutes: 40, difficulty: 'Intermediate', isCompleted: false, path: '/lab-projects/localization' },
+          { id: 4, title: 'Asset Bundle Streaming & Version Negotiation', estimatedMinutes: 50, difficulty: 'Advanced', isCompleted: false, path: '/lab-projects/localization' }
         ]
       }
     ]
@@ -174,35 +175,50 @@ export default function LabProjects() {
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {mod.lessons?.map((les) => (
-                    <div key={les.id} style={{
-                      padding: '1rem',
-                      border: '1px solid #F3F4F6',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      backgroundColor: '#FAFAFA'
-                    }}>
-                      <div>
-                        <div style={{ fontWeight: '600', color: 'var(--color-ink, #1F2937)' }}>{les.title}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted, #6B7280)', marginTop: '0.2rem' }}>
-                          ⏱ {les.estimatedMinutes} min • {les.difficulty}
-                        </div>
-                      </div>
-                      <span style={{
-                        fontSize: '0.8rem',
-                        fontWeight: '600',
-                        color: 'var(--color-sage, #2C5E55)',
-                        backgroundColor: '#FFF',
-                        border: '1px solid var(--color-border-subtle, #E2DDD5)',
-                        padding: '0.3rem 0.75rem',
-                        borderRadius: '4px'
+                  {mod.lessons?.map((les) => {
+                    const destination = les.path || (mod.title?.includes('Lab B') || mod.id === 2 ? '/lab-projects/localization' : null);
+                    const content = (
+                      <div style={{
+                        padding: '1rem',
+                        border: '1px solid #F3F4F6',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: '#FAFAFA',
+                        transition: 'border-color 0.15s ease',
+                        cursor: destination ? 'pointer' : 'default'
                       }}>
-                        Sandbox Ready
-                      </span>
-                    </div>
-                  ))}
+                        <div>
+                          <div style={{ fontWeight: '600', color: 'var(--color-ink, #1F2937)' }}>{les.title}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted, #6B7280)', marginTop: '0.2rem' }}>
+                            ⏱ {les.estimatedMinutes} min • {les.difficulty}
+                          </div>
+                        </div>
+                        <span style={{
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          color: 'var(--color-sage, #2C5E55)',
+                          backgroundColor: '#FFF',
+                          border: '1px solid var(--color-border-subtle, #E2DDD5)',
+                          padding: '0.3rem 0.75rem',
+                          borderRadius: '4px'
+                        }}>
+                          {destination ? 'Launch Sandbox →' : 'Sandbox Ready'}
+                        </span>
+                      </div>
+                    );
+
+                    return destination ? (
+                      <Link key={les.id} to={destination} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        {content}
+                      </Link>
+                    ) : (
+                      <div key={les.id}>
+                        {content}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>

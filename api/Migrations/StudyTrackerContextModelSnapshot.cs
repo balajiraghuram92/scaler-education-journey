@@ -2241,6 +2241,638 @@ namespace StudyTracker.Api.Migrations
 
                     b.Navigation("Conversation");
                 });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.BuildSnapshot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Config")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("config");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("LocalizationRevision")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("localization_revision");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("SnapshotIdentifier")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("snapshot_identifier");
+
+                    b.Property<string>("SourceRevision")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("source_revision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_build_snapshots_project_id");
+
+                    b.ToTable("localization_build_snapshots", (string)null);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("BuildSnapshots")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.BuildSnapshotLocaleCount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApprovedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("approved_count");
+
+                    b.Property<int>("BuildSnapshotId")
+                        .HasColumnType("integer")
+                        .HasColumnName("build_snapshot_id");
+
+                    b.Property<string>("LocaleCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("locale_code");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuildSnapshotId")
+                        .HasDatabaseName("ix_localization_build_snapshot_locale_counts_snapshot_id");
+
+                    b.ToTable("localization_build_snapshot_locale_counts", (string)null);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.BuildSnapshot", "BuildSnapshot")
+                        .WithMany("LocaleCounts")
+                        .HasForeignKey("BuildSnapshotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BuildSnapshot");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.LedgerEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<int?>("RelatedMarketplaceJobId")
+                        .HasColumnType("integer")
+                        .HasColumnName("related_marketplace_job_id");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("source");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_ledger_entries_project_id");
+
+                    b.HasIndex("RelatedMarketplaceJobId")
+                        .HasDatabaseName("ix_localization_ledger_entries_job_id");
+
+                    b.ToTable("localization_ledger_entries", (string)null);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("LedgerEntries")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.MarketplaceJob", "RelatedMarketplaceJob")
+                        .WithMany()
+                        .HasForeignKey("RelatedMarketplaceJobId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Project");
+
+                    b.Navigation("RelatedMarketplaceJob");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.LocalizationLocale", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("LocaleCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("locale_code");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_locales_project_id");
+
+                    b.ToTable("localization_locales", (string)null);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("Locales")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.LocalizationProject", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("slug");
+
+                    b.Property<string>("SourceLocale")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("source_locale");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_localization_projects_slug");
+
+                    b.ToTable("localization_projects", (string)null);
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.LocalizationString", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("key");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("SourceText")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source_text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_strings_project_id");
+
+                    b.ToTable("localization_strings", (string)null);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("Strings")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.LocalizationTranslation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("LocaleCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("locale_code");
+
+                    b.Property<bool>("NeedsReview")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("needs_review");
+
+                    b.Property<int?>("QpsScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("qps_score");
+
+                    b.Property<string>("Stage")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("stage");
+
+                    b.Property<int>("StringId")
+                        .HasColumnType("integer")
+                        .HasColumnName("string_id");
+
+                    b.Property<string>("TargetText")
+                        .HasColumnType("text")
+                        .HasColumnName("target_text");
+
+                    b.Property<string>("TranslationSource")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("translation_source");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StringId", "LocaleCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_localization_translations_string_id_locale_code");
+
+                    b.ToTable("localization_translations", (string)null);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationString", "String")
+                        .WithMany("Translations")
+                        .HasForeignKey("StringId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("String");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.MarketplaceBid", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MarketplaceJobId")
+                        .HasColumnType("integer")
+                        .HasColumnName("marketplace_job_id");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("note");
+
+                    b.Property<decimal>("ProposedPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("proposed_price");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<int>("VendorId")
+                        .HasColumnType("integer")
+                        .HasColumnName("vendor_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MarketplaceJobId")
+                        .HasDatabaseName("ix_localization_marketplace_bids_job_id");
+
+                    b.HasIndex("VendorId")
+                        .HasDatabaseName("ix_localization_marketplace_bids_vendor_id");
+
+                    b.ToTable("localization_marketplace_bids", (string)null);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.MarketplaceJob", "MarketplaceJob")
+                        .WithMany("Bids")
+                        .HasForeignKey("MarketplaceJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.Vendor", "Vendor")
+                        .WithMany("Bids")
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MarketplaceJob");
+
+                    b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.MarketplaceJob", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("approved_at");
+
+                    b.Property<DateTime?>("AwardedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("awarded_at");
+
+                    b.Property<int?>("AwardedVendorId")
+                        .HasColumnType("integer")
+                        .HasColumnName("awarded_vendor_id");
+
+                    b.Property<string>("LocaleCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("locale_code");
+
+                    b.Property<DateTime?>("PostedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("posted_at");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("StringCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("string_count");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<decimal>("SuggestedPriceHigh")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("suggested_price_high");
+
+                    b.Property<decimal>("SuggestedPriceLow")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("suggested_price_low");
+
+                    b.Property<int>("WordCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("word_count");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AwardedVendorId")
+                        .HasDatabaseName("ix_localization_marketplace_jobs_vendor_id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_marketplace_jobs_project_id");
+
+                    b.ToTable("localization_marketplace_jobs", (string)null);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.Vendor", "AwardedVendor")
+                        .WithMany("AwardedJobs")
+                        .HasForeignKey("AwardedVendorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("MarketplaceJobs")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AwardedVendor");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.ProviderHealthSnapshot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CircuitState")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("circuit_state");
+
+                    b.Property<decimal>("ErrorRatePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("error_rate_percent");
+
+                    b.Property<int>("P50LatencyMs")
+                        .HasColumnType("integer")
+                        .HasColumnName("p50_latency_ms");
+
+                    b.Property<int>("P99LatencyMs")
+                        .HasColumnType("integer")
+                        .HasColumnName("p99_latency_ms");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("provider");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("localization_provider_health", (string)null);
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.Vendor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Languages")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("languages");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<decimal>("Rating")
+                        .HasPrecision(3, 1)
+                        .HasColumnType("numeric(3,1)")
+                        .HasColumnName("rating");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("localization_vendors", (string)null);
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.WorkflowStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("action");
+
+                    b.Property<string>("ConditionExpression")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("condition_expression");
+
+                    b.Property<DateTime?>("LastRunAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_run_at");
+
+                    b.Property<string>("LastRunOutcome")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("last_run_outcome");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer")
+                        .HasColumnName("order");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("trigger");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_workflow_steps_project_id");
+
+                    b.ToTable("localization_workflow_steps", (string)null);
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("WorkflowSteps")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
 #pragma warning restore 612, 618
         }
     }
