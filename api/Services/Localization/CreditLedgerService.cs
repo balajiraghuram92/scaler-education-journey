@@ -72,8 +72,8 @@ public class CreditLedgerService
         decimal low = Math.Round(rawLow / 5m, MidpointRounding.AwayFromZero) * 5m;
         decimal high = Math.Round(rawHigh / 5m, MidpointRounding.AwayFromZero) * 5m;
 
-        if (low < 5m && wordCount > 0) low = 5m;
-        if (high < low) high = low;
+        if (low < 5m) low = 5m;
+        if (high < low + 15m) high = low + 15m;
 
         return Task.FromResult((low, high));
     }

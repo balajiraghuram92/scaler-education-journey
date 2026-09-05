@@ -47,7 +47,58 @@ public static class LocalizationSeedData
         var strDoor = new LocalizationString { ProjectId = project.Id, Key = "hud.alert.doorajar", SourceText = "Door ajar", CreatedAt = now.AddDays(-25) };
         var strGear = new LocalizationString { ProjectId = project.Id, Key = "hud.gear.reverse", SourceText = "Reverse gear engaged", CreatedAt = now.AddDays(-25) };
 
+        var additionalStrings = new List<LocalizationString>
+        {
+            // ~18 Short UI Labels (2-4 words each)
+            new() { ProjectId = project.Id, Key = "hud.gear.park", SourceText = "Park gear selected", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.gear.neutral", SourceText = "Neutral gear active", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.gear.drive", SourceText = "Drive gear engaged", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.tire.frontleft", SourceText = "Front left tire", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.tire.frontright", SourceText = "Front right tire", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.tire.rearleft", SourceText = "Rear left tire", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.tire.rearright", SourceText = "Rear right tire", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.media.play", SourceText = "Resume media playback", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.media.pause", SourceText = "Pause audio playback", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.media.next", SourceText = "Skip next track", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.media.volume", SourceText = "Adjust volume level", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.climate.fanspeed", SourceText = "Fan speed setting", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.climate.autoclimate", SourceText = "Automatic climate control", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.settings.brightness", SourceText = "Display screen brightness", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.settings.language", SourceText = "Select system language", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.nav.recalculating", SourceText = "Recalculating navigation route", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.nav.arrived", SourceText = "Destination reached ahead", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.battery.low", SourceText = "Low battery level", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.battery.fastcharge", SourceText = "Fast charging active", CreatedAt = now.AddDays(-25) },
+
+            // ~14 Medium Warning/Status Messages (8-16 words each)
+            new() { ProjectId = project.Id, Key = "hud.warning.enginetemp", SourceText = "Engine coolant temperature high. Reduce speed and stop vehicle safely when convenient.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.warning.tirepressure", SourceText = "Low tire pressure detected in rear left tire. Please inspect and reinflate promptly.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.assist.lanedeparture", SourceText = "Lane departure alert: Unintended drift detected. Please keep both hands firmly on steering wheel.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.assist.forwardcollision", SourceText = "Forward collision warning: Obstacle detected directly ahead. Apply emergency braking immediately.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.assist.blindspot", SourceText = "Blind spot alert: Vehicle detected in adjacent blind zone. Do not change travel lanes.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.sensor.parkingrear", SourceText = "Rear ultrasonic parking sensors active. Obstacle detected within three feet of rear bumper.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.connect.bluetooth", SourceText = "Driver smartphone paired successfully over wireless Bluetooth. Audio streaming and hands-free calls ready.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.nav.tollroad", SourceText = "Approaching toll road plaza in two miles. Move into open electronic transponder lane.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.system.otaavailable", SourceText = "New system software update is ready for installation. Park vehicle and connect to Wi-Fi.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.service.oilchange", SourceText = "Engine oil and filter change recommended within the next five hundred driving miles.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.service.brakewear", SourceText = "Front brake pad wear limit reached. Schedule maintenance inspection with authorized dealer promptly.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.assist.adaptivecruise", SourceText = "Adaptive cruise control enabled. Following distance set to three vehicle lengths ahead.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.alert.tractioncontrol", SourceText = "Electronic traction control engaged. Slippery road conditions detected on current roadway surface.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.alert.washerfluid", SourceText = "Windshield washer fluid reservoir is low. Please refill with recommended washer fluid.", CreatedAt = now.AddDays(-25) },
+
+            // ~8 Longer Instructional/Legal Strings (80-120 words each)
+            new() { ProjectId = project.Id, Key = "hud.legal.assistdisclaimer", SourceText = "Driver assistance systems, including adaptive cruise control, lane centering, and forward collision mitigation, are supplemental conveniences designed to support safe vehicle operation. These automated features do not replace an attentive driver or sound operational judgment. You must keep both hands on the steering wheel, monitor surrounding traffic conditions continuously, and remain prepared to resume manual vehicle control at any moment. Adverse weather, severe road glare, degraded pavement markings, and sensor contamination can impair system reliability. The vehicle operator remains fully responsible for safe driving and compliance with all motor vehicle traffic safety laws.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.legal.dataprivacy", SourceText = "Connected vehicle services collect and transmit real-time telemetry data, including precise geographic location, operational diagnostics, trip durations, and driving performance indicators, to secure cloud servers. This information is utilized solely to enhance navigation accuracy, deliver remote diagnostic troubleshooting, facilitate emergency roadside response, and improve safety systems. You may manage data transmission preferences, request data export, or revoke cloud analytics permissions at any time through the privacy settings menu. Anonymous technical diagnostics may continue to be collected to fulfill statutory compliance, warranty administration, and mandatory automotive recall obligations.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.legal.appstoreterms", SourceText = "Access to and use of third-party downloadable applications through the Auroraline In-Vehicle Digital Marketplace is governed by these Terms of Use and individual application developer licensing agreements. Certain applications may require active subscription services, supplementary cellular data connectivity, or paired mobile device integration to function properly. Applications must never be operated while driving if doing so causes driver distraction or creates safety hazards. Auroraline assumes no liability for external software errors, unauthorized in-app payment transactions, third-party content availability, or intermittent service disruptions caused by telecommunications network outages.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.legal.otaconsent", SourceText = "Over-the-air software updates provide essential vehicle enhancements, operating system upgrades, security patches, and regulatory compliance adjustments. During installation, the vehicle must be safely parked in a secure location with the transmission in Park and the engine completely turned off. Select safety-critical electronic systems and drive functionality may be temporarily disabled while updates are applied. Do not attempt to operate the vehicle until the installation progress bar finishes and the infotainment display indicates successful completion. Failure to install mandatory firmware updates in a timely manner may impact warranty coverage and vehicle operations.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.legal.sosfeature", SourceText = "The Automated Emergency Assistance SOS feature automatically initiates a hands-free voice call to emergency dispatch personnel whenever vehicle crash sensors register severe collision impact or airbag deployment. If occupants cannot respond verbally, vehicle location coordinates, travel direction, and impact severity telemetry are automatically transmitted to first responders. You may also initiate an emergency voice call manually by pressing and holding the overhead SOS button for three consecutive seconds. Emergency dispatch services depend on active mobile cellular network coverage and global positioning satellite reception in your operational territory.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.legal.teendriver", SourceText = "The Teen Driver and Valet Monitoring configuration enables primary account holders to establish customized driving constraints, including maximum vehicle speed governors, audio volume limits, and mandatory seatbelt audio mutes. When activated, the system records comprehensive driving telemetry, including severe braking instances, forward collision alerts, high-speed travel events, and stability control interventions. A detailed driving report card is generated and accessible through the connected mobile application following each completed trip. These monitoring capabilities encourage safe, disciplined driving behaviors and reinforce responsible operational habits for newly licensed secondary operators.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.legal.roadsideassist", SourceText = "Auroraline 24/7 Roadside Assistance provides prompt, professional emergency support for flat tires, unexpected mechanical breakdowns, high-voltage battery depletion, lockouts, and emergency towing services. When requested via the in-vehicle head-up display or connected smartphone application, your exact GPS coordinates, vehicle identification number, and current system diagnostics are automatically dispatched to the nearest authorized roadside assistance provider. Service availability, tow mileage allowances, and reimbursement coverage vary based on vehicle warranty terms and active membership tier. Emergency roadside services are subject to local traffic safety regulations, hazardous weather restrictions, and regional service provider availability.", CreatedAt = now.AddDays(-25) },
+            new() { ProjectId = project.Id, Key = "hud.legal.telemetrydisclosure", SourceText = "This vehicle continuously records diagnostic trouble codes, component temperatures, braking pressure histories, battery charge cycles, and powertrain efficiency metrics. Telemetry records are stored in non-volatile onboard electronic control modules and intermittently synchronized with engineering monitoring databases during service visits and secure wireless sessions. Collected diagnostic telemetry is utilized by automotive service technicians and development engineers to investigate unexpected component failures, design resilient hardware revisions, and refine onboard energy management algorithms. No biometric voice recordings or passenger visual imagery are ever captured or preserved as part of standard engineering telemetry datasets.", CreatedAt = now.AddDays(-25) }
+        };
+
         context.LocalizationStrings.AddRange(strSpeed, strFuel, strNav, strTemp, strDoor, strGear);
+        context.LocalizationStrings.AddRange(additionalStrings);
         context.SaveChanges();
 
         // 4. Seed de-DE Translations
@@ -141,16 +192,25 @@ public static class LocalizationSeedData
         context.SaveChanges();
 
         // 8. Seed Marketplace Jobs & Bids
+        // Keep formula in sync with CreditLedgerService.EstimatePriceBandAsync
+        var allStrings = context.LocalizationStrings.Where(s => s.ProjectId == project.Id).ToList();
+        var totalStringCount = allStrings.Count;
+        var totalWordCount = allStrings.Sum(s => s.SourceText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
+        var seedPriceLow = Math.Round(totalWordCount * 0.145m / 5m, MidpointRounding.AwayFromZero) * 5m;
+        var seedPriceHigh = Math.Round(totalWordCount * 0.19m / 5m, MidpointRounding.AwayFromZero) * 5m;
+        if (seedPriceLow < 5m) seedPriceLow = 5m;
+        if (seedPriceHigh < seedPriceLow + 15m) seedPriceHigh = seedPriceLow + 15m;
+
         // de-DE: Awarded to Maria Fischer
         var jobDe = new MarketplaceJob
         {
             ProjectId = project.Id,
             LocaleCode = "de-DE",
             Status = "Awarded",
-            StringCount = 6,
-            WordCount = 1240,
-            SuggestedPriceLow = 180m,
-            SuggestedPriceHigh = 240m,
+            StringCount = totalStringCount,
+            WordCount = totalWordCount,
+            SuggestedPriceLow = seedPriceLow,
+            SuggestedPriceHigh = seedPriceHigh,
             AwardedVendorId = vendorMaria.Id,
             PostedAt = now.AddDays(-5),
             AwardedAt = now.AddDays(-2)
@@ -175,10 +235,10 @@ public static class LocalizationSeedData
             ProjectId = project.Id,
             LocaleCode = "ja-JP",
             Status = "Open",
-            StringCount = 6,
-            WordCount = 1240,
-            SuggestedPriceLow = 180m,
-            SuggestedPriceHigh = 240m,
+            StringCount = totalStringCount,
+            WordCount = totalWordCount,
+            SuggestedPriceLow = seedPriceLow,
+            SuggestedPriceHigh = seedPriceHigh,
             PostedAt = now.AddDays(-3)
         };
         context.LocalizationMarketplaceJobs.Add(jobJa);
@@ -219,10 +279,10 @@ public static class LocalizationSeedData
             ProjectId = project.Id,
             LocaleCode = "fr-FR",
             Status = "SubmittedForReview",
-            StringCount = 6,
-            WordCount = 1240,
-            SuggestedPriceLow = 180m,
-            SuggestedPriceHigh = 240m,
+            StringCount = totalStringCount,
+            WordCount = totalWordCount,
+            SuggestedPriceLow = seedPriceLow,
+            SuggestedPriceHigh = seedPriceHigh,
             AwardedVendorId = vendorMaria.Id,
             PostedAt = now.AddDays(-7),
             AwardedAt = now.AddDays(-4),
@@ -248,10 +308,10 @@ public static class LocalizationSeedData
             ProjectId = project.Id,
             LocaleCode = "es-ES",
             Status = "Approved",
-            StringCount = 6,
-            WordCount = 1240,
-            SuggestedPriceLow = 180m,
-            SuggestedPriceHigh = 240m,
+            StringCount = totalStringCount,
+            WordCount = totalWordCount,
+            SuggestedPriceLow = seedPriceLow,
+            SuggestedPriceHigh = seedPriceHigh,
             AwardedVendorId = vendorElena.Id,
             PostedAt = now.AddDays(-10),
             AwardedAt = now.AddDays(-6),

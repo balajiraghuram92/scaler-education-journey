@@ -128,7 +128,7 @@ public class MarketplaceService
             ? untranslatedStrings.Sum(s => s.SourceText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length)
             : project.Strings.Sum(s => s.SourceText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
 
-        if (wordCount == 0) wordCount = 1240; // Default fallback word count for demo consistency
+        if (wordCount == 0) wordCount = 50; // Minimal non-zero fallback if every string in this locale is already translated
 
         var (low, high) = await _creditLedgerService.EstimatePriceBandAsync(wordCount, ct);
 

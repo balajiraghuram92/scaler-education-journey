@@ -319,7 +319,7 @@ public class WorkflowService
                         var low = Math.Round(wordCount * 0.145m / 5m, MidpointRounding.AwayFromZero) * 5m;
                         var high = Math.Round(wordCount * 0.19m / 5m, MidpointRounding.AwayFromZero) * 5m;
                         if (low < 5m) low = 5m;
-                        if (high < low) high = low;
+                        if (high < low + 15m) high = low + 15m;
 
                         var job = new MarketplaceJob
                         {
