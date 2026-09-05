@@ -29,10 +29,6 @@ public static class LocalizationEndpoints
         group.MapGet("/{slug}/workflow", GetWorkflow)
             .WithName("GetLocalizationWorkflow");
 
-        group.MapPOST("/steps", AddWorkflowStep)
-            .WithName("AddLocalizationWorkflowStep")
-            .MapGroup("/{slug}/workflow");
-
         group.MapPost("/{slug}/workflow/steps", AddWorkflowStep)
             .WithName("AddLocalizationWorkflowStepPost");
 

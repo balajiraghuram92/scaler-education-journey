@@ -221,7 +221,7 @@ public static class ChatEndpoints
                 .Where(n => n.LessonId == conversation.Lesson.Id)
                 .OrderBy(n => n.OrderIndex)
                 .Take(5)
-                .Select(n => n.Content)
+                .Select(n => n.ContentBody)
                 .ToListAsync(ct);
 
             if (lessonNotes.Count > 0)

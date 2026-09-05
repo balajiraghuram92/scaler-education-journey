@@ -171,8 +171,10 @@ public class LlamaApiClient
         {
             if (root.TryGetProperty("usage", out var usage))
             {
-                var hasPrompt = usage.TryGetProperty("prompt_tokens", out var pProp) && pProp.TryGetInt32(out var pVal) && pVal >= 0;
-                var hasComp = usage.TryGetProperty("completion_tokens", out var cProp) && cProp.TryGetInt32(out var cVal) && cVal >= 0;
+                int pVal = 0;
+                int cVal = 0;
+                var hasPrompt = usage.TryGetProperty("prompt_tokens", out var pProp) && pProp.TryGetInt32(out pVal) && pVal >= 0;
+                var hasComp = usage.TryGetProperty("completion_tokens", out var cProp) && cProp.TryGetInt32(out cVal) && cVal >= 0;
 
                 if (hasPrompt && hasComp)
                 {
