@@ -32,6 +32,9 @@ public static class LocalizationEndpoints
         group.MapPost("/{slug}/workflow/steps", AddWorkflowStep)
             .WithName("AddLocalizationWorkflowStepPost");
 
+        group.MapPut("/{slug}/workflow/steps/{stepId:int}", UpdateWorkflowStep)
+            .WithName("UpdateLocalizationWorkflowStep");
+
         group.MapPost("/{slug}/workflow/steps/{stepId:int}/reorder", ReorderWorkflowStep)
             .WithName("ReorderLocalizationWorkflowStep");
 
@@ -176,6 +179,33 @@ public static class LocalizationEndpoints
         catch (Exception ex)
         {
             return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error adding workflow step.", ex.Message);
+        }
+    }
+
+    private static async Task<IResult> UpdateWorkflowStep(
+        string slug,
+        int stepId,
+        UpdateWorkflowStepRequest request,
+        WorkflowService workflowService,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        try
+        {
+            var updated = await workflowService.UpdateStepAsync(slug, stepId, request, ct);
+            return Results.Ok(updated);
+        }
+        catch (LocalizationProjectNotFoundException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Project not found.", ex.Message);
+        }
+        catch (WorkflowStepNotFoundException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Workflow step not found.", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error updating workflow step.", ex.Message);
         }
     }
 

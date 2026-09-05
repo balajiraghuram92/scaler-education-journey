@@ -52,6 +52,19 @@ export default function VendorOpenJobs() {
     return days > 0 ? days : 1;
   };
 
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'SubmittedForReview':
+        return 'Submitted for Review';
+      case 'InProgress':
+        return 'In Progress';
+      case 'NeedsRevision':
+        return 'Needs Revision';
+      default:
+        return status; // 'Not Posted', 'Open', 'Awarded', 'Approved', 'Closed', 'Draft' are already correctly spaced
+    }
+  };
+
   return (
     <VendorPortalShell selectedVendorId={selectedVendorId} onSelectVendor={setSelectedVendorId}>
       {/* 8.1 Header */}
@@ -110,7 +123,7 @@ export default function VendorOpenJobs() {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-sage, #2C5E55)' }}>
-                          Status: {job.status}
+                          Status: {getStatusLabel(job.status)}
                         </span>
                         <span style={{ fontSize: '0.85rem', fontFamily: 'monospace', fontWeight: '700', color: 'var(--color-ink, #1F2937)' }}>
                           {job.localeCode}

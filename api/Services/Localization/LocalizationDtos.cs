@@ -52,6 +52,12 @@ public sealed record AddWorkflowStepRequest(
     string? ConditionExpression
 );
 
+public sealed record UpdateWorkflowStepRequest(
+    string? Trigger,
+    string Action,
+    string? ConditionExpression
+);
+
 public sealed record ReorderWorkflowStepRequest(
     string Direction
 );

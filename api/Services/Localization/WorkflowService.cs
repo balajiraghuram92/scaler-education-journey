@@ -101,6 +101,42 @@ public class WorkflowService
         );
     }
 
+    public async Task<WorkflowStepDto> UpdateStepAsync(string projectSlug, int stepId, UpdateWorkflowStepRequest request, CancellationToken ct = default)
+    {
+        var project = await _db.LocalizationProjects
+            .FirstOrDefaultAsync(p => p.Slug == projectSlug, ct);
+
+        if (project == null)
+        {
+            throw new LocalizationProjectNotFoundException(projectSlug);
+        }
+
+        var step = await _db.LocalizationWorkflowSteps
+            .FirstOrDefaultAsync(w => w.Id == stepId && w.ProjectId == project.Id, ct);
+
+        if (step == null)
+        {
+            throw new WorkflowStepNotFoundException(stepId);
+        }
+
+        step.Trigger = string.IsNullOrWhiteSpace(request.Trigger) ? "On Manual Click" : request.Trigger;
+        step.Action = request.Action;
+        step.ConditionExpression = request.ConditionExpression;
+
+        await _db.SaveChangesAsync(ct);
+
+        return new WorkflowStepDto(
+            step.Id,
+            step.ProjectId,
+            step.Order,
+            step.Trigger,
+            step.Action,
+            step.ConditionExpression,
+            step.LastRunAt,
+            step.LastRunOutcome
+        );
+    }
+
     public async Task ReorderStepAsync(string projectSlug, int stepId, string direction, CancellationToken ct = default)
     {
         var project = await _db.LocalizationProjects

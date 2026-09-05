@@ -66,6 +66,19 @@ export default function LocalizationMarketplace() {
     }
   };
 
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'SubmittedForReview':
+        return 'Submitted for Review';
+      case 'InProgress':
+        return 'In Progress';
+      case 'NeedsRevision':
+        return 'Needs Revision';
+      default:
+        return status; // 'Not Posted', 'Open', 'Awarded', 'Approved', 'Closed', 'Draft' are already correctly spaced
+    }
+  };
+
   return (
     <LocalizationShell activeTab="marketplace">
       <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -146,7 +159,7 @@ export default function LocalizationMarketplace() {
                         fontWeight: isBold ? '700' : '500'
                       }}
                     >
-                      {row.status}
+                      {getStatusLabel(row.status)}
                     </td>
                     <td style={{ padding: '0.85rem 1.25rem', fontWeight: '600', color: 'var(--color-ink, #1F2937)' }}>
                       {row.suggestedPriceLow} – {row.suggestedPriceHigh} Credits

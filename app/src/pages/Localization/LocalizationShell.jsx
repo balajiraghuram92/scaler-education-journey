@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Activity, ExternalLink } from 'lucide-react';
+import { Activity, ExternalLink } from 'lucide-react';
 import { api } from '../../api/client';
 import ProviderHealthPanel from '../../components/Localization/ProviderHealthPanel';
 
@@ -76,27 +76,8 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
           zIndex: 100
         }}
       >
-        {/* Left: Brand logo & wordmark */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <Link
-            to="/"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              textDecoration: 'none',
-              color: 'var(--color-ink, #1F2937)',
-              fontWeight: '700',
-              fontFamily: 'var(--font-serif, "Newsreader", serif)',
-              fontSize: '1.1rem'
-            }}
-          >
-            <img src="/favicon.svg" alt="Neuralascent Logo" style={{ width: '22px', height: '22px' }} />
-            <span>Neuralascent</span>
-          </Link>
-
-          <span style={{ color: 'var(--color-border-subtle, #E2DDD5)', fontSize: '1.1rem' }}>|</span>
-
+        {/* Left: Feature label only — global site logo already renders in the page's <Layout> above this bar */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--color-sage, #2C5E55)' }}>
             Localization Engineering Lab
           </span>
@@ -217,37 +198,6 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
           >
             <span>Vendor Portal</span>
             <ExternalLink size={12} />
-          </Link>
-
-          {/* (d) User avatar from Navbar */}
-          <Link
-            to="/profile"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              textDecoration: 'none',
-              color: 'var(--color-ink, #1F2937)'
-            }}
-            title="View Profile & Certifications"
-          >
-            <span style={{ fontSize: '0.8rem', fontWeight: '500', color: 'var(--color-ink-muted, #6B7280)' }}>
-              Raghuram Balaji
-            </span>
-            <div
-              style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-sage, #2C5E55)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#FFFFFF'
-              }}
-            >
-              <User size={15} />
-            </div>
           </Link>
         </div>
       </nav>

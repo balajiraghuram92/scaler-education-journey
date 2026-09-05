@@ -74,6 +74,21 @@ export default function LocalizationWorkflow() {
     }
   };
 
+  const handleUpdateStep = async (step, updates) => {
+    const prevStep = { ...step };
+    setSteps((prev) => prev.map((s) => (s.id === step.id ? { ...s, ...updates } : s)));
+    try {
+      await api.localization.updateWorkflowStep(projectSlug, step.id, {
+        trigger: updates.trigger !== undefined ? updates.trigger : step.trigger,
+        action: updates.action !== undefined ? updates.action : step.action,
+        conditionExpression: updates.conditionExpression !== undefined ? updates.conditionExpression : step.conditionExpression
+      });
+    } catch (err) {
+      setSteps((prev) => prev.map((s) => (s.id === step.id ? prevStep : s)));
+      setStepNotice({ stepId: step.id, type: 'error', message: err.message || 'Failed to update workflow step.' });
+    }
+  };
+
   const handleRun = async (stepId) => {
     setRunningStepId(stepId);
     setStepNotice(null);
@@ -162,15 +177,16 @@ export default function LocalizationWorkflow() {
                       </label>
                       <select
                         value={step.trigger}
-                        disabled
+                        onChange={(e) => handleUpdateStep(step, { trigger: e.target.value })}
                         style={{
                           padding: '0.4rem 0.75rem',
                           borderRadius: '6px',
                           border: '1px solid var(--color-border-subtle, #E2DDD5)',
-                          backgroundColor: '#F9FAFB',
+                          backgroundColor: '#FFFFFF',
                           color: 'var(--color-ink, #1F2937)',
                           fontSize: '0.85rem',
-                          fontWeight: '500'
+                          fontWeight: '500',
+                          cursor: 'pointer'
                         }}
                       >
                         <option value="On Manual Click">On Manual Click</option>
@@ -184,15 +200,16 @@ export default function LocalizationWorkflow() {
                       </label>
                       <select
                         value={step.action}
-                        disabled
+                        onChange={(e) => handleUpdateStep(step, { action: e.target.value })}
                         style={{
                           padding: '0.4rem 0.75rem',
                           borderRadius: '6px',
                           border: '1px solid var(--color-border-subtle, #E2DDD5)',
-                          backgroundColor: '#F9FAFB',
+                          backgroundColor: '#FFFFFF',
                           color: 'var(--color-ink, #1F2937)',
                           fontSize: '0.85rem',
-                          fontWeight: '600'
+                          fontWeight: '600',
+                          cursor: 'pointer'
                         }}
                       >
                         {ALL_ACTIONS.map((a) => (

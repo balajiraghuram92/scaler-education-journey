@@ -216,6 +216,8 @@ export const api = {
       apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/strings/${stringId}/translations/${encodeURIComponent(locale)}`, { method: 'PUT', body: { targetText } }),
     getWorkflow: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow`),
     addWorkflowStep: (slug, body) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow/steps`, { method: 'POST', body }),
+    updateWorkflowStep: (slug, stepId, body) =>
+      apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow/steps/${stepId}`, { method: 'PUT', body }),
     reorderWorkflowStep: (slug, stepId, direction) =>
       apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow/steps/${stepId}/reorder`, { method: 'POST', body: { direction } }),
     runWorkflowStep: (slug, stepId) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow/steps/${stepId}/run`, { method: 'POST' }),
