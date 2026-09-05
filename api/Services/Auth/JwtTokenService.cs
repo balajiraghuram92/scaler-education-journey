@@ -14,25 +14,9 @@ public class JwtTokenService : IJwtTokenService
 {
     private readonly AuthOptions _options;
 
-    public JwtTokenService(IOptions<AuthOptions> authOptions, IOptions<JwtOptions>? jwtOptions = null)
+    public JwtTokenService(IOptions<AuthOptions> authOptions)
     {
-        var auth = authOptions?.Value ?? new AuthOptions();
-        var jwt = jwtOptions?.Value;
-
-        if (string.IsNullOrWhiteSpace(auth.JwtSigningKey) && !string.IsNullOrWhiteSpace(jwt?.SecretKey))
-        {
-            auth.JwtSigningKey = jwt.SecretKey;
-        }
-        if (string.IsNullOrWhiteSpace(auth.JwtIssuer) && !string.IsNullOrWhiteSpace(jwt?.Issuer))
-        {
-            auth.JwtIssuer = jwt.Issuer;
-        }
-        if (string.IsNullOrWhiteSpace(auth.JwtAudience) && !string.IsNullOrWhiteSpace(jwt?.Audience))
-        {
-            auth.JwtAudience = jwt.Audience;
-        }
-
-        _options = auth;
+        _options = authOptions.Value;
     }
 
     public string GenerateToken(AppUser user)

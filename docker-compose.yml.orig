@@ -1,0 +1,154 @@
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: studytracker-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-studytracker}
+      POSTGRES_USER: ${POSTGRES_USER:-studyuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+
+    command:
+      - postgres
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - max_connections=50
+      - -c
+      - work_mem=4MB
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - backend-net
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-studyuser} -d ${POSTGRES_DB:-studytracker}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  api:
+    image: ${IMAGE_API:-ghcr.io/balajiraghuram92/scaler-education-journey-api}:${IMAGE_TAG:-latest}
+    container_name: studytracker-api
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:5000:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+
+      ConnectionStrings__DefaultConnection: >-
+        Host=database;
+        Port=5432;
+        Database=${POSTGRES_DB:-studytracker};
+        Username=${POSTGRES_USER:-studyuser};
+        Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+
+      API_KEY: ${API_KEY:?API_KEY must be set}
+
+      Auth__JwtSigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set (32+ random bytes, e.g. `openssl rand -base64 32`)}
+      Auth__TotpEncryptionKey: ${TOTP_ENCRYPTION_KEY:?TOTP_ENCRYPTION_KEY must be set (32 random bytes, base64: openssl rand -base64 32)}
+<<<<<<< Updated upstream
+      Smtp__Host: ${SMTP_HOST:?SMTP_HOST must be set}
+      Smtp__User: ${SMTP_USER:?SMTP_USER must be set}
+      Smtp__Pass: ${SMTP_PASS:?SMTP_PASS must be set}
+      Email__SmtpHost: ${SMTP_HOST:?SMTP_HOST must be set}
+      Email__SmtpPort: ${SMTP_PORT:-587}
+      Email__SmtpUsername: ${SMTP_USER:?SMTP_USER must be set}
+      Email__SmtpPassword: ${SMTP_PASS:?SMTP_PASS must be set}
+      LlamaApi__ApiKey: ${LLAMA_API_KEY:?LLAMA_API_KEY must be set}
+=======
+      Smtp__Host: ${SMTP_HOST:-}
+      Smtp__User: ${SMTP_USER:-}
+      Smtp__Pass: ${SMTP_PASS:-}
+      Email__SmtpHost: ${SMTP_HOST:-}
+      Email__SmtpPort: ${SMTP_PORT:-587}
+      Email__SmtpUsername: ${SMTP_USER:-}
+      Email__SmtpPassword: ${SMTP_PASS:-}
+      LlamaApi__ApiKey: ${LLAMA_API_KEY:-}
+>>>>>>> Stashed changes
+      LlamaApi__BaseUrl: ${LLAMA_BASE_URL:-https://api.llama.com/v1/}
+      LlamaApi__Model: ${LLAMA_MODEL:-Llama-4-Maverick-17B-128E-Instruct-FP8}
+      LlamaApi__PricePerMillionInputTokensUsd: ${LLAMA_PRICE_INPUT:-0}
+      LlamaApi__PricePerMillionOutputTokensUsd: ${LLAMA_PRICE_OUTPUT:-0}
+      Budget__DailyCapUsd: ${BUDGET_DAILY_CAP_USD:-2.00}
+      Budget__MaxDailyRequests: ${BUDGET_MAX_DAILY_REQUESTS:-500}
+
+      ExerciseExecution__ExercisesRoot: /app/exercises
+      ExerciseExecution__WorkspaceRoot: /tmp/studytracker-exercises
+      ExerciseExecution__RunnerImage: ${EXERCISE_RUNNER_IMAGE:-neuralascent-java-runner:dev}
+      ExerciseExecution__DockerEndpoint: unix:///var/run/docker.sock
+      ExerciseExecution__MavenCacheVolume: ${EXERCISE_MAVEN_CACHE_VOLUME:-neuralascent-maven-cache}
+
+    depends_on:
+      database:
+        condition: service_healthy
+
+    networks:
+      backend-net:
+        aliases:
+          - studytracker-api
+          - api
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost:8080/health || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  app:
+    image: ${IMAGE_APP:-ghcr.io/balajiraghuram92/scaler-education-journey-app}:${IMAGE_TAG:-latest}
+    container_name: studytracker-app
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+
+    environment:
+      API_KEY: ${API_KEY:?API_KEY must be set}
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+
+    depends_on:
+      api:
+        condition: service_healthy
+
+    networks:
+      - backend-net
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost/ || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  postgres_data:
+    name: scaler_postgres_data
+
+networks:
+  backend-net:
+    name: scaler_backend_net
+    driver: bridge

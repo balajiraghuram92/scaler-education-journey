@@ -133,15 +133,15 @@ public class AuthAndUserManagementTests
     [Fact]
     public void JwtTokenService_GenerateToken_ContainsExpectedClaims()
     {
-        var jwtOptions = Options.Create(new JwtOptions
+        var authOptions = Options.Create(new AuthOptions
         {
-            SecretKey = "Test_Secret_Key_For_Unit_Testing_32_Bytes_Long!",
-            Issuer = "TestIssuer",
-            Audience = "TestAudience",
-            ExpirationDays = 1
+            JwtSigningKey = "Test_Secret_Key_For_Unit_Testing_32_Bytes_Long!",
+            JwtIssuer = "TestIssuer",
+            JwtAudience = "TestAudience",
+            JwtExpiryMinutes = 1440
         });
 
-        var jwtService = new JwtTokenService(jwtOptions);
+        var jwtService = new JwtTokenService(authOptions);
 
         var user = new AppUser
         {

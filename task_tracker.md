@@ -329,3 +329,5 @@
 - [x] **Sub-task 43.9**: Frontend Offline QR Code & Admin Operations — Integrated `qrcode` for client-side offline QR code rendering in `AuthPage.jsx`; added Reset TOTP action and AI compute budget tracking card in `AdminDashboard.jsx`.
 - [x] **Sub-task 43.10**: Floating Chat Widget — Implemented `ChatWidget.jsx` and `ChatWidget.css` using Warm Editorial Knowledge Atlas design tokens; integrated `<ChatWidget lessonId={chapter?.id} />` in `ChapterReader.jsx`.
 - [x] **Sub-task 43.11**: Security & Fail-Fast Hardening — Eliminated hardcoded fallback keys in `Program.cs`, `JwtTokenService.cs`, and `TotpSecretProtector.cs` with ephemeral dev keys and production fail-fast `InvalidOperationException`; restored `${VAR:?VAR must be set}` validation in `docker-compose.yml`; gated Llama API mock fallback behind non-production in `LlamaApiClient.cs`.
+- [x] **Sub-task 43.12**: Decouple JwtTokenService & Neutralize JwtOptions — Removed redundant `JwtOptions` merge logic from `JwtTokenService.cs` making `AuthOptions` the single source of truth; set `JwtOptions.SecretKey = string.Empty` eliminating the last hardcoded fallback secret in the codebase.
+

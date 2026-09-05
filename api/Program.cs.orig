@@ -1,0 +1,1851 @@
+using Docker.DotNet;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using StudyTracker.Api.Data;
+using StudyTracker.Api.Endpoints;
+using StudyTracker.Api.Models;
+using StudyTracker.Api.Options;
+using StudyTracker.Api.Services;
+using StudyTracker.Api.Services.Auth;
+using StudyTracker.Api.Services.Email;
+using StudyTracker.Api.Services.Exercises;
+using StudyTracker.Api.Services.Reconciliation;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddDbContext<StudyTrackerContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        var dbHost = builder.Configuration["DATABASE_HOST"] ?? "database";
+        var dbPort = builder.Configuration["DATABASE_PORT"] ?? "5432";
+        var dbName = builder.Configuration["DATABASE_NAME"] ?? "studytracker";
+        var dbUser = builder.Configuration["DATABASE_USER"] ?? "studyuser";
+        var dbPass = builder.Configuration["DATABASE_PASSWORD"] ?? builder.Configuration["POSTGRES_PASSWORD"];
+
+        if (!string.IsNullOrWhiteSpace(dbPass))
+        {
+            connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass}";
+        }
+    }
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        if (builder.Environment.IsProduction())
+        {
+            throw new InvalidOperationException("Production database connection configuration is missing.");
+        }
+        connectionString = "Host=localhost;Database=studytracker;Username=studyuser;Password=studyuserpass";
+    }
+
+    options.UseNpgsql(connectionString);
+});
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddProblemDetails();
+
+builder.Services.AddOptions<ExerciseExecutionOptions>()
+    .BindConfiguration(ExerciseExecutionOptions.SectionName)
+    .PostConfigure(options =>
+    {
+        if (string.IsNullOrWhiteSpace(options.ExercisesRoot))
+        {
+            options.ExercisesRoot = Path.Combine(builder.Environment.ContentRootPath, "exercises");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.WorkspaceRoot))
+        {
+            options.WorkspaceRoot = Path.Combine(Path.GetTempPath(), "studytracker-exercises");
+        }
+    })
+    .Validate(options => !string.IsNullOrWhiteSpace(options.RunnerImage), "Exercise runner image is required.")
+    .Validate(options => !string.IsNullOrWhiteSpace(options.DockerEndpoint), "Docker endpoint is required.")
+    .Validate(options => options.MaxConcurrentExecutions > 0, "MaxConcurrentExecutions must be positive.")
+    .Validate(options => options.MaxFileBytes > 0 && options.MaxSubmissionBytes >= options.MaxFileBytes, "Exercise submission limits are invalid.")
+    .Validate(options => options.MaxOutputBytes > 0 && options.MaxExecutionSeconds > 0, "Exercise execution limits are invalid.")
+    .ValidateOnStart();
+
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExerciseExecutionOptions>>().Value;
+    return new DockerClientConfiguration(new Uri(options.DockerEndpoint), defaultTimeout: TimeSpan.FromSeconds(30)).CreateClient();
+});
+
+builder.Services.AddSingleton<IExerciseRepository, ExerciseRepository>();
+builder.Services.AddSingleton<ExerciseMetadataService>();
+builder.Services.AddSingleton<ExerciseSolutionService>();
+builder.Services.AddSingleton<ExerciseSubmissionValidator>();
+builder.Services.AddSingleton<ExerciseWorkspaceBuilder>();
+builder.Services.AddSingleton<SurefireResultParser>();
+builder.Services.AddSingleton<ExerciseExecutionClassifier>();
+builder.Services.AddSingleton<IExerciseRunner, LocalDockerExerciseRunner>();
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ExerciseExecutionOptions>>().Value;
+    return new SemaphoreSlim(options.MaxConcurrentExecutions, options.MaxConcurrentExecutions);
+});
+builder.Services.AddScoped<ExerciseService>();
+
+// Phase 4 Services & Reconciliation Engine DI
+builder.Services.AddScoped<ProgressService>();
+builder.Services.AddScoped<LearningPathQueryService>();
+builder.Services.AddScoped<AtlasQueryService>();
+builder.Services.AddScoped<ReadingMapService>();
+builder.Services.AddScoped<CurriculumImportService>();
+builder.Services.AddScoped<JavaReconciler>();
+builder.Services.AddScoped<FdeReconciler>();
+builder.Services.AddScoped<AzureLabsReconciler>();
+builder.Services.AddScoped<AtlasReadingReconciler>();
+builder.Services.AddScoped<ReconciliationEngine>();
+
+// Auth & Email Services DI
+builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOptions.SectionName));
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
+builder.Services.Configure<LlamaApiOptions>(builder.Configuration.GetSection(LlamaApiOptions.SectionName));
+builder.Services.Configure<BudgetOptions>(builder.Configuration.GetSection(BudgetOptions.SectionName));
+builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+builder.Services.AddSingleton<TotpSecretProtector>();
+builder.Services.AddSingleton<ITotpService, TotpService>();
+builder.Services.AddScoped<IEmailNotificationService, SmtpEmailNotificationService>();
+builder.Services.AddScoped<BudgetGuardService>();
+builder.Services.AddHttpClient<LlamaApiClient>();
+
+// JWT Bearer Authentication & Admin Policy
+<<<<<<< Updated upstream
+var jwtSecret = builder.Configuration["Auth:JwtSigningKey"];
+if (string.IsNullOrWhiteSpace(jwtSecret))
+{
+    if (builder.Environment.IsProduction())
+    {
+        throw new InvalidOperationException("Production configuration error: Auth:JwtSigningKey must be set.");
+    }
+
+    // Local-dev-only convenience: a fresh random key each process start — never a fixed string.
+    // Sessions will not survive a dev restart; that is intentional and fine.
+    jwtSecret = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+    Console.WriteLine("WARNING: Auth:JwtSigningKey not configured — using an ephemeral random dev-only key. Set Auth__JwtSigningKey for any shared or persistent environment.");
+    builder.Configuration["Auth:JwtSigningKey"] = jwtSecret;
+}
+=======
+var jwtSecret = builder.Configuration["Auth:JwtSigningKey"]
+    ?? builder.Configuration["JWT_SIGNING_KEY"]
+    ?? builder.Configuration["Jwt:SecretKey"]
+    ?? "Neuralascent_Secure_Development_Secret_Key_2026_AtLeast32Bytes!";
+>>>>>>> Stashed changes
+var jwtIssuer = builder.Configuration["Auth:JwtIssuer"] ?? builder.Configuration["Auth:Issuer"] ?? builder.Configuration["Jwt:Issuer"] ?? "neuralascent";
+var jwtAudience = builder.Configuration["Auth:JwtAudience"] ?? builder.Configuration["Auth:Audience"] ?? builder.Configuration["Jwt:Audience"] ?? "neuralascent-app";
+var cookieName = builder.Configuration["Auth:CookieName"] ?? builder.Configuration["Jwt:CookieName"] ?? "na_auth";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.TryGetValue(cookieName, out var cookieToken) && !string.IsNullOrWhiteSpace(cookieToken))
+            {
+                context.Token = cookieToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVite", policy =>
+    {
+        var frontendUrl = builder.Configuration["frontend_url"];
+        var allowedOrigins = new List<string> { "http://localhost:5173", "http://127.0.0.1:5173" };
+
+        if (!string.IsNullOrWhiteSpace(frontendUrl))
+        {
+            allowedOrigins.Add(frontendUrl.TrimEnd('/'));
+        }
+
+        policy.WithOrigins(allowedOrigins.ToArray())
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+// Rate Limiting (10 requests / 15 minutes for Auth endpoints)
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("AuthPolicy", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromMinutes(15);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
+var app = builder.Build();
+
+// ---------------------------------------------------------
+// CLI Execution Modes: --migrate, --seed-reference-data, --seed-admin, --reconcile-content
+// ---------------------------------------------------------
+if (args.Contains("--migrate"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        logger.LogInformation("[CLI] Executing database schema migration (--migrate)...");
+        await db.Database.MigrateAsync();
+        logger.LogInformation("[CLI] Database schema migration completed successfully.");
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "[CLI] Database schema migration failed critically.");
+        Environment.ExitCode = 1;
+        return 1;
+    }
+}
+
+if (args.Contains("--seed-reference-data") || args.Contains("--seed"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        logger.LogInformation("[CLI] Executing reference data seeding (--seed-reference-data)...");
+        DbSeeder.Initialize(db);
+        logger.LogInformation("[CLI] Reference data seeding completed successfully.");
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "[CLI] Reference data seeding failed critically.");
+        Environment.ExitCode = 1;
+        return 1;
+    }
+}
+
+if (args.Contains("--seed-admin"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+
+        if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+        {
+            logger.LogError("[CLI] --seed-admin requires ADMIN_EMAIL and ADMIN_PASSWORD environment variables.");
+            Environment.ExitCode = 1;
+            return 1;
+        }
+
+        logger.LogInformation("[CLI] Seeding administrator user '{Email}'...", adminEmail);
+        var passwordHash = Pbkdf2PasswordHasher.Hash(adminPassword, out var salt, out var iterations);
+
+        var normalizedEmail = adminEmail.Trim().ToLowerInvariant();
+        var existing = await db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+
+        if (existing != null)
+        {
+            existing.PasswordHash = passwordHash;
+            existing.PasswordSalt = salt;
+            existing.PasswordIterations = iterations;
+            existing.Role = "Admin";
+            existing.Status = "Approved";
+            existing.TotpEnabled = false;
+            existing.TotpSecretEncrypted = null;
+            existing.LastAcceptedTotpCounter = null;
+            logger.LogInformation("[CLI] Updated existing account to Approved Admin with reset TOTP.");
+        }
+        else
+        {
+            var admin = new AppUser
+            {
+                Email = normalizedEmail,
+                PasswordHash = passwordHash,
+                PasswordSalt = salt,
+                PasswordIterations = iterations,
+                Role = "Admin",
+                Status = "Approved",
+                DisplayName = "System Administrator",
+                CreatedAt = DateTime.UtcNow,
+                DecidedAt = DateTime.UtcNow,
+                TotpEnabled = false
+            };
+            db.Users.Add(admin);
+            logger.LogInformation("[CLI] Created new Approved Admin user.");
+        }
+
+        await db.SaveChangesAsync();
+        logger.LogInformation("[CLI] Administrator seeded successfully.");
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "[CLI] Administrator seeding failed critically.");
+        Environment.ExitCode = 1;
+        return 1;
+    }
+}
+
+if (args.Contains("--reconcile-content"))
+{
+    using var scope = app.Services.CreateScope();
+    var engine = scope.ServiceProvider.GetRequiredService<ReconciliationEngine>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var scopeArg = "all";
+        var scopeIdx = Array.IndexOf(args, "--scope");
+        if (scopeIdx >= 0 && scopeIdx + 1 < args.Length)
+        {
+            scopeArg = args[scopeIdx + 1];
+        }
+
+        var mode = ReconciliationExecutionMode.DryRun;
+        if (args.Contains("--apply")) mode = ReconciliationExecutionMode.Apply;
+        else if (args.Contains("--verify")) mode = ReconciliationExecutionMode.Verify;
+
+        logger.LogInformation("[CLI] Executing Reconciliation Engine (Scope: {Scope}, Mode: {Mode})...", scopeArg, mode);
+        var reports = await engine.ExecuteAsync(new ReconciliationOptions { Scope = scopeArg, Mode = mode });
+        logger.LogInformation("[CLI] Reconciliation completed with {Count} reports.", reports.Count);
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "[CLI] Reconciliation failed critically.");
+        Environment.ExitCode = 1;
+        return 1;
+    }
+}
+
+// ---------------------------------------------------------
+// Startup Database Readiness Verification (Fail-Fast in Production)
+// ---------------------------------------------------------
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<StudyTrackerContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        logger.LogInformation("Verifying database connectivity and schema readiness on startup...");
+        var canConnect = db.Database.CanConnect();
+        if (!canConnect)
+        {
+            if (app.Environment.IsProduction())
+            {
+                throw new InvalidOperationException("Cannot connect to the production database.");
+            }
+            logger.LogWarning("Database is not reachable in development mode.");
+        }
+        else
+        {
+            var pendingMigrations = db.Database.GetPendingMigrations().ToList();
+            if (pendingMigrations.Count > 0)
+            {
+                var msg = $"Database schema has {pendingMigrations.Count} pending migrations. Run application with '--migrate' CLI flag before starting web service.";
+                if (app.Environment.IsProduction())
+                {
+                    logger.LogError("Production schema mismatch: {Message}", msg);
+                    throw new InvalidOperationException(msg);
+                }
+                logger.LogWarning("Development database warning: {Message}", msg);
+            }
+            else
+            {
+                logger.LogInformation("Database connectivity and schema verified. 0 pending migrations.");
+            }
+        }
+    }
+    catch (Exception ex) when (!app.Environment.IsProduction())
+    {
+        logger.LogWarning(ex, "Startup database verification warning in Development mode: {Message}", ex.Message);
+    }
+
+    if (app.Environment.IsProduction())
+    {
+        var authOptions = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AuthOptions>>().Value;
+        if (string.IsNullOrWhiteSpace(authOptions.JwtSigningKey) || Encoding.UTF8.GetByteCount(authOptions.JwtSigningKey) < 32)
+        {
+            throw new InvalidOperationException("Production configuration error: Auth:JwtSigningKey must be set with at least 32 bytes.");
+        }
+        if (string.IsNullOrWhiteSpace(authOptions.TotpEncryptionKey))
+        {
+            throw new InvalidOperationException("Production configuration error: Auth:TotpEncryptionKey must be set.");
+        }
+    }
+}
+
+// ---------------------------------------------------------
+// Middleware: Correlation ID & Centralized Problem Details
+// ---------------------------------------------------------
+app.Use(async (context, next) =>
+{
+    var correlationId = context.Request.Headers["x-correlation-id"].FirstOrDefault() ?? Guid.NewGuid().ToString("N");
+    context.TraceIdentifier = correlationId;
+    context.Response.Headers["x-correlation-id"] = correlationId;
+
+    try
+    {
+        await next(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Unhandled exception on {Method} {Path} (CorrelationId: {CorrelationId})",
+            context.Request.Method, context.Request.Path, correlationId);
+
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/problem+json";
+
+            var problem = new
+            {
+                type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                title = "An internal error occurred processing your request.",
+                status = 500,
+                detail = app.Environment.IsDevelopment() ? ex.Message : "Internal server error. Please refer to traceId for support.",
+                instance = context.Request.Path.Value,
+                traceId = correlationId
+            };
+
+            await context.Response.WriteAsJsonAsync(problem);
+        }
+    }
+});
+
+// Configure Swagger in Development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+// Apply CORS
+app.UseCors("AllowVite");
+
+// Rate Limiting
+app.UseRateLimiter();
+
+// Authentication & Authorization Pipeline
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Apply API Key security
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/health") ||
+        context.Request.Path.StartsWithSegments("/swagger") ||
+        context.Request.Method == "OPTIONS")
+    {
+        await next(context);
+        return;
+    }
+
+    var expectedApiKey = builder.Configuration["api_key"] ?? builder.Configuration["API_KEY"];
+    if (string.IsNullOrWhiteSpace(expectedApiKey))
+    {
+        if (app.Environment.IsProduction())
+        {
+            app.Logger.LogError("API key is not configured in production environment.");
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/problem+json";
+            await context.Response.WriteAsJsonAsync(new
+            {
+                type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                title = "Internal Server Error",
+                status = 500,
+                detail = "API key configuration is required in production.",
+                instance = context.Request.Path.Value,
+                traceId = context.TraceIdentifier
+            });
+            return;
+        }
+
+        // Allow unauthenticated access only in non-production development testing
+        await next(context);
+        return;
+    }
+
+    if (!context.Request.Headers.TryGetValue("x-api-key", out var extractedApiKey) || extractedApiKey != expectedApiKey)
+    {
+        context.Response.StatusCode = 401;
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            type = "https://tools.ietf.org/html/rfc7235#section-3.1",
+            title = "Unauthorized",
+            status = 401,
+            detail = "Invalid or missing API Key.",
+            instance = context.Request.Path.Value,
+            traceId = context.TraceIdentifier
+        });
+        return;
+    }
+
+    await next(context);
+});
+
+// ---------------------------------------------------------
+// Health Check Endpoints: /health/live, /health/ready, /health
+// ---------------------------------------------------------
+app.MapGet("/health/live", () =>
+    Results.Ok(new {
+        status = "Live",
+        timestamp = DateTime.UtcNow
+    }))
+    .WithName("HealthLiveCheck");
+
+app.MapGet("/health/ready", async (StudyTrackerContext db, ILogger<Program> logger) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (!canConnect)
+        {
+            return Results.Json(new {
+                status = "Unhealthy",
+                database = "Disconnected",
+                error = "Database connection unavailable",
+                timestamp = DateTime.UtcNow
+            }, statusCode: 503);
+        }
+
+        var pendingMigrations = (await db.Database.GetPendingMigrationsAsync()).ToList();
+        if (pendingMigrations.Count > 0)
+        {
+            return Results.Json(new {
+                status = "Unhealthy",
+                database = "Connected",
+                error = "Pending database migrations exist",
+                pendingMigrations = pendingMigrations,
+                timestamp = DateTime.UtcNow
+            }, statusCode: 503);
+        }
+
+        var appliedMigrations = (await db.Database.GetAppliedMigrationsAsync()).ToList();
+        return Results.Ok(new {
+            status = "Ready",
+            database = "Connected",
+            appliedMigrationsCount = appliedMigrations.Count,
+            timestamp = DateTime.UtcNow
+        });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Readiness health check failed.");
+        return Results.Json(new {
+            status = "Unhealthy",
+            error = "Database readiness check encountered an error",
+            timestamp = DateTime.UtcNow
+        }, statusCode: 503);
+    }
+}).WithName("HealthReadyCheck");
+
+// /health kept as backward-compatible alias to readiness
+app.MapGet("/health", async (StudyTrackerContext db, ILogger<Program> logger) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (!canConnect)
+        {
+            return Results.Json(new { status = "Unhealthy", database = "Disconnected" }, statusCode: 503);
+        }
+
+        var pendingMigrations = (await db.Database.GetPendingMigrationsAsync()).ToList();
+        if (pendingMigrations.Count > 0)
+        {
+            return Results.Json(new {
+                status = "Unhealthy",
+                database = "Connected",
+                error = "Pending database migrations exist",
+                pendingCount = pendingMigrations.Count
+            }, statusCode: 503);
+        }
+
+        return Results.Ok(new { status = "Healthy", database = "Connected", timestamp = DateTime.UtcNow });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Health check database connection failed.");
+        return Results.Json(new { status = "Unhealthy", error = "Database connection error" }, statusCode: 503);
+    }
+}).WithName("HealthCheck");
+
+app.MapGet("/", () => "StudyTracker API is running. Use /health for service health.");
+
+// ==========================================
+// 1. VERTICALS & TASKS ENDPOINTS (Base & Dynamic)
+// ==========================================
+
+app.MapGet("/api/verticals", async (StudyTrackerContext db) =>
+    await db.Verticals.AsNoTracking().Include(v => v.Tasks).ToListAsync())
+    .WithName("GetVerticals");
+
+app.MapGet("/api/verticals/{id:int}", async (int id, StudyTrackerContext db) =>
+{
+    var vertical = await db.Verticals.AsNoTracking()
+        .Include(v => v.Tasks)
+        .FirstOrDefaultAsync(v => v.Id == id);
+
+    return vertical != null ? Results.Ok(vertical) : Results.NotFound();
+})
+.WithName("GetVerticalById");
+
+app.MapPost("/api/verticals", async (CreateVerticalRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Name))
+    {
+        return Results.BadRequest(new { message = "Name is required." });
+    }
+
+    var vertical = new StudyVertical
+    {
+        Name = req.Name,
+        Description = req.Description ?? string.Empty
+    };
+
+    db.Verticals.Add(vertical);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/verticals/{vertical.Id}", vertical);
+})
+.WithName("CreateVertical");
+
+app.MapPost("/api/verticals/ingest", async (IngestRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.MarkdownContent))
+    {
+        return Results.BadRequest(new { message = "Markdown content is required." });
+    }
+
+    var parsedTasks = ParseMarkdownToTasks(req.MarkdownContent);
+
+    if (req.VerticalId.HasValue && req.VerticalId.Value > 0)
+    {
+        var vertical = await db.Verticals
+            .Include(v => v.Tasks)
+            .FirstOrDefaultAsync(v => v.Id == req.VerticalId.Value);
+
+        if (vertical == null)
+        {
+            return Results.NotFound(new { message = $"Vertical with ID {req.VerticalId} not found." });
+        }
+
+        if (!string.IsNullOrWhiteSpace(req.Name))
+        {
+            vertical.Name = req.Name;
+        }
+        if (req.Description != null)
+        {
+            vertical.Description = req.Description;
+        }
+
+        // Clear existing tasks and re-add parsed tasks
+        db.Tasks.RemoveRange(vertical.Tasks);
+
+        foreach (var task in parsedTasks)
+        {
+            vertical.Tasks.Add(task);
+        }
+
+        await db.SaveChangesAsync();
+        return Results.Ok(vertical);
+    }
+    else
+    {
+        var vertical = new StudyVertical
+        {
+            Name = string.IsNullOrWhiteSpace(req.Name) ? "New Vertical" : req.Name,
+            Description = req.Description ?? string.Empty
+        };
+
+        foreach (var task in parsedTasks)
+        {
+            vertical.Tasks.Add(task);
+        }
+
+        db.Verticals.Add(vertical);
+        await db.SaveChangesAsync();
+
+        return Results.Created($"/api/verticals/{vertical.Id}", vertical);
+    }
+})
+.WithName("IngestVerticalMarkdown");
+
+app.MapPut("/api/tasks/{id:int}/toggle", async (int id, StudyTrackerContext db, ProgressService progressService) =>
+{
+    var task = await db.Tasks.FindAsync(id);
+    if (task == null)
+    {
+        return Results.NotFound();
+    }
+
+    var result = await progressService.SetTaskCompletionAsync(id, !task.IsCompleted);
+    if (!result.Success)
+    {
+        return Results.BadRequest(new { error = result.Error });
+    }
+
+    var updatedTask = await db.Tasks.FindAsync(id);
+    return Results.Ok(updatedTask);
+})
+.WithName("ToggleTask");
+
+// ==========================================
+// 2. COURSES & CURRICULUM ENDPOINTS (Hierarchical)
+// ==========================================
+
+app.MapGet("/api/courses", async (StudyTrackerContext db) =>
+{
+    var courses = await db.Courses.AsNoTracking()
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Problems)
+        .OrderBy(c => c.OrderIndex)
+        .ToListAsync();
+
+    var dtos = courses.Select(c =>
+    {
+        var allLessons = c.Modules.SelectMany(m => m.Lessons).ToList();
+        var allProblems = allLessons.SelectMany(l => l.Problems).ToList();
+        var totalLessons = allLessons.Count;
+        var completedLessons = allLessons.Count(l => l.IsCompleted);
+        var totalProblems = allProblems.Count;
+        var completedProblems = allProblems.Count(p => p.IsCompleted);
+        var progressPercent = totalLessons > 0 ? (int)Math.Round((double)completedLessons / totalLessons * 100) : 0;
+
+        var moduleDtos = c.Modules.OrderBy(m => m.OrderIndex).Select(m =>
+        {
+            var mLessons = m.Lessons.OrderBy(l => l.OrderIndex).ToList();
+            var mTotal = mLessons.Count;
+            var mCompleted = mLessons.Count(l => l.IsCompleted);
+            var mProgress = mTotal > 0 ? (int)Math.Round((double)mCompleted / mTotal * 100) : 0;
+
+            return new ModuleSummaryDto(
+                m.Id,
+                m.CourseId,
+                m.Slug,
+                m.Title,
+                m.Description,
+                m.Badge,
+                m.OrderIndex,
+                mTotal,
+                mCompleted,
+                mProgress,
+                mLessons.Select(l => new LessonSummaryDto(
+                    l.Id,
+                    l.ModuleId,
+                    l.Slug,
+                    l.Title,
+                    l.Description,
+                    l.LectureNumber,
+                    l.ClassDate,
+                    l.HorstmannRef,
+                    l.EstimatedMinutes,
+                    l.IsCompleted,
+                    l.OrderIndex,
+                    l.Problems.Count
+                )).ToList()
+            );
+        }).ToList();
+
+        return new CourseSummaryDto(
+            c.Id,
+            c.Slug,
+            c.Title,
+            c.Description,
+            c.OrderIndex,
+            c.VerticalId,
+            totalLessons,
+            completedLessons,
+            totalProblems,
+            completedProblems,
+            progressPercent,
+            moduleDtos
+        );
+    }).ToList();
+
+    return Results.Ok(dtos);
+})
+.WithName("GetCourses");
+
+app.MapGet("/api/courses/{slugOrId}", async (string slugOrId, StudyTrackerContext db) =>
+{
+    var query = db.Courses.AsNoTracking()
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Problems);
+
+    Course? course = null;
+    if (int.TryParse(slugOrId, out int id))
+    {
+        course = await query.FirstOrDefaultAsync(c => c.Id == id);
+    }
+    else
+    {
+        course = await query.FirstOrDefaultAsync(c => c.Slug == slugOrId);
+    }
+
+    if (course == null) return Results.NotFound(new { message = "Course not found." });
+
+    var allLessons = course.Modules.SelectMany(m => m.Lessons).ToList();
+    var allProblems = allLessons.SelectMany(l => l.Problems).ToList();
+    var totalLessons = allLessons.Count;
+    var completedLessons = allLessons.Count(l => l.IsCompleted);
+    var totalProblems = allProblems.Count;
+    var completedProblems = allProblems.Count(p => p.IsCompleted);
+    var progressPercent = totalLessons > 0 ? (int)Math.Round((double)completedLessons / totalLessons * 100) : 0;
+
+    var moduleDtos = course.Modules.OrderBy(m => m.OrderIndex).Select(m =>
+    {
+        var mLessons = m.Lessons.OrderBy(l => l.OrderIndex).ToList();
+        var mTotal = mLessons.Count;
+        var mCompleted = mLessons.Count(l => l.IsCompleted);
+        var mProgress = mTotal > 0 ? (int)Math.Round((double)mCompleted / mTotal * 100) : 0;
+
+        return new ModuleSummaryDto(
+            m.Id,
+            m.CourseId,
+            m.Slug,
+            m.Title,
+            m.Description,
+            m.Badge,
+            m.OrderIndex,
+            mTotal,
+            mCompleted,
+            mProgress,
+            mLessons.Select(l => new LessonSummaryDto(
+                l.Id,
+                l.ModuleId,
+                l.Slug,
+                l.Title,
+                l.Description,
+                l.LectureNumber,
+                l.ClassDate,
+                l.HorstmannRef,
+                l.EstimatedMinutes,
+                l.IsCompleted,
+                l.OrderIndex,
+                l.Problems.Count
+            )).ToList()
+        );
+    }).ToList();
+
+    var result = new CourseSummaryDto(
+        course.Id,
+        course.Slug,
+        course.Title,
+        course.Description,
+        course.OrderIndex,
+        course.VerticalId,
+        totalLessons,
+        completedLessons,
+        totalProblems,
+        completedProblems,
+        progressPercent,
+        moduleDtos
+    );
+
+    return Results.Ok(result);
+})
+.WithName("GetCourseBySlugOrId");
+
+// ==========================================
+// 3. LESSONS ENDPOINTS
+// ==========================================
+
+app.MapGet("/api/lessons/{id:int}", async (int id, StudyTrackerContext db) =>
+{
+    var lesson = await db.Lessons.AsNoTracking()
+        .Include(l => l.Module)
+            .ThenInclude(m => m!.Course)
+        .Include(l => l.Problems.OrderBy(p => p.OrderIndex))
+        .Include(l => l.Resources.OrderBy(r => r.OrderIndex))
+        .FirstOrDefaultAsync(l => l.Id == id);
+
+    if (lesson == null) return Results.NotFound(new { message = "Lesson not found." });
+
+    var dto = new LessonDetailDto(
+        lesson.Id,
+        lesson.ModuleId,
+        lesson.Module?.Title ?? string.Empty,
+        lesson.Module?.CourseId ?? 0,
+        lesson.Module?.Course?.Title ?? string.Empty,
+        lesson.Slug,
+        lesson.Title,
+        lesson.Description,
+        lesson.LectureNumber,
+        lesson.ClassDate,
+        lesson.ContentBody,
+        lesson.HorstmannRef,
+        lesson.EstimatedMinutes,
+        lesson.IsCompleted,
+        lesson.OrderIndex,
+        lesson.Problems.Select(p => new ProblemSummaryDto(
+            p.Id,
+            p.LessonId,
+            p.Slug,
+            p.Title,
+            p.Difficulty,
+            p.PackageName,
+            p.TestClassName,
+            p.ProblemStatement,
+            p.RequirementsBody,
+            p.WorkedExample,
+            p.Hints,
+            p.IsCompleted,
+            p.OrderIndex
+        )).ToList(),
+        lesson.Resources.Select(r => new LessonResourceDto(
+            r.Id,
+            r.LessonId,
+            r.ResourceType,
+            r.Title,
+            r.ContentBody,
+            r.OrderIndex
+        )).ToList()
+    );
+
+    return Results.Ok(dto);
+})
+.WithName("GetLessonById");
+
+app.MapPost("/api/lessons", async (CreateLessonRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.Slug))
+    {
+        return Results.BadRequest(new { message = "Title and Slug are required." });
+    }
+
+    var moduleExists = await db.Modules.AnyAsync(m => m.Id == req.ModuleId);
+    if (!moduleExists)
+    {
+        return Results.BadRequest(new { message = "Invalid ModuleId." });
+    }
+
+    var lesson = new Lesson
+    {
+        ModuleId = req.ModuleId,
+        Slug = req.Slug.Trim().ToLowerInvariant(),
+        Title = req.Title.Trim(),
+        Description = req.Description ?? string.Empty,
+        LectureNumber = req.LectureNumber,
+        ClassDate = req.ClassDate ?? DateTime.UtcNow.ToString("yyyy-MM-dd"),
+        ContentBody = req.ContentBody ?? string.Empty,
+        HorstmannRef = req.HorstmannRef ?? string.Empty,
+        EstimatedMinutes = req.EstimatedMinutes ?? 45,
+        OrderIndex = req.OrderIndex ?? 0
+    };
+
+    db.Lessons.Add(lesson);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/lessons/{lesson.Id}", lesson);
+})
+.WithName("CreateLesson");
+
+app.MapPut("/api/lessons/{id:int}", async (int id, UpdateLessonRequest req, StudyTrackerContext db) =>
+{
+    var lesson = await db.Lessons.FindAsync(id);
+    if (lesson == null) return Results.NotFound();
+
+    if (!string.IsNullOrWhiteSpace(req.Title)) lesson.Title = req.Title;
+    if (req.Description != null) lesson.Description = req.Description;
+    if (req.ContentBody != null) lesson.ContentBody = req.ContentBody;
+    if (req.HorstmannRef != null) lesson.HorstmannRef = req.HorstmannRef;
+    if (req.EstimatedMinutes.HasValue) lesson.EstimatedMinutes = req.EstimatedMinutes.Value;
+    if (req.IsCompleted.HasValue) lesson.IsCompleted = req.IsCompleted.Value;
+    lesson.UpdatedAt = DateTime.UtcNow;
+
+    await db.SaveChangesAsync();
+    return Results.Ok(lesson);
+})
+.WithName("UpdateLesson");
+
+app.MapPatch("/api/lessons/{id:int}/progress", async (int id, StudyTrackerContext db) =>
+{
+    var lesson = await db.Lessons.FindAsync(id);
+    if (lesson == null) return Results.NotFound();
+
+    lesson.IsCompleted = !lesson.IsCompleted;
+    lesson.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new ToggleProgressResponse(lesson.Id, lesson.IsCompleted, $"Lesson status toggled to {(lesson.IsCompleted ? "Completed" : "Pending")}"));
+})
+.WithName("ToggleLessonProgress");
+
+// ==========================================
+// 4. PROBLEMS ENDPOINTS
+// ==========================================
+
+app.MapGet("/api/problems/{id:int}", async (int id, StudyTrackerContext db) =>
+{
+    var p = await db.Problems.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+    if (p == null) return Results.NotFound();
+
+    var dto = new ProblemSummaryDto(
+        p.Id,
+        p.LessonId,
+        p.Slug,
+        p.Title,
+        p.Difficulty,
+        p.PackageName,
+        p.TestClassName,
+        p.ProblemStatement,
+        p.RequirementsBody,
+        p.WorkedExample,
+        p.Hints,
+        p.IsCompleted,
+        p.OrderIndex
+    );
+    return Results.Ok(dto);
+})
+.WithName("GetProblemById");
+
+app.MapPost("/api/problems", async (CreateProblemRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.Slug))
+    {
+        return Results.BadRequest(new { message = "Title and Slug are required." });
+    }
+
+    var lessonExists = await db.Lessons.AnyAsync(l => l.Id == req.LessonId);
+    if (!lessonExists)
+    {
+        return Results.BadRequest(new { message = "Invalid LessonId." });
+    }
+
+    var problem = new Problem
+    {
+        LessonId = req.LessonId,
+        Slug = req.Slug.Trim().ToLowerInvariant(),
+        Title = req.Title.Trim(),
+        Difficulty = req.Difficulty ?? "Warm-up",
+        PackageName = req.PackageName ?? string.Empty,
+        TestClassName = req.TestClassName ?? string.Empty,
+        ProblemStatement = req.ProblemStatement ?? string.Empty,
+        RequirementsBody = req.RequirementsBody ?? string.Empty,
+        WorkedExample = req.WorkedExample ?? string.Empty,
+        Hints = req.Hints ?? string.Empty,
+        OrderIndex = req.OrderIndex ?? 0
+    };
+
+    db.Problems.Add(problem);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/problems/{problem.Id}", problem);
+})
+.WithName("CreateProblem");
+
+app.MapPatch("/api/problems/{id:int}/progress", async (int id, StudyTrackerContext db) =>
+{
+    var problem = await db.Problems.FindAsync(id);
+    if (problem == null) return Results.NotFound();
+
+    problem.IsCompleted = !problem.IsCompleted;
+    problem.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new ToggleProgressResponse(problem.Id, problem.IsCompleted, $"Problem status toggled to {(problem.IsCompleted ? "Completed" : "Pending")}"));
+})
+.WithName("ToggleProblemProgress");
+
+// ==========================================
+// 5. KNOWLEDGE ATLAS ENDPOINTS
+// ==========================================
+
+app.MapGet("/api/knowledge-atlas", async (StudyTrackerContext db) =>
+{
+    var domains = await db.KnowledgeDomains.AsNoTracking()
+        .OrderBy(d => d.OrderIndex)
+        .ToListAsync();
+
+    var domainDtos = domains.Select(d => new DomainSummaryDto(
+        d.Id,
+        d.Slug,
+        d.Name,
+        d.Code,
+        d.Description,
+        d.Icon,
+        d.ColorHex,
+        d.OrderIndex
+    )).ToList();
+
+    var concepts = await db.KnowledgeConcepts.AsNoTracking()
+        .Include(c => c.DomainConnections)
+            .ThenInclude(dc => dc.Domain)
+        .Include(c => c.Prerequisites)
+            .ThenInclude(cp => cp.PrerequisiteConcept)
+        .Include(c => c.OutgoingRelations)
+            .ThenInclude(cr => cr.TargetConcept)
+        .Include(c => c.NextLessons.OrderBy(nl => nl.OrderIndex))
+        .OrderBy(c => c.OrderIndex)
+        .ToListAsync();
+
+    var conceptDtos = concepts.Select(c => new ConceptSummaryDto(
+        c.Id,
+        c.Slug,
+        c.Title,
+        c.SubLabel,
+        c.Summary,
+        c.Description,
+        c.Difficulty,
+        c.Icon,
+        c.EstimatedHours,
+        c.OrderIndex,
+        c.DomainConnections.Select(dc => dc.Domain?.Slug ?? string.Empty).Where(s => !string.IsNullOrEmpty(s)).ToList(),
+        c.Prerequisites.Select(p => new ConceptPrerequisiteItemDto(
+            p.PrerequisiteConcept?.Title ?? "Prerequisite",
+            p.Status
+        )).ToList(),
+        c.OutgoingRelations.Select(r => r.TargetConcept?.Title ?? "Related Concept").ToList(),
+        c.NextLessons.Select(nl => nl.LessonTitle).ToList()
+    )).ToList();
+
+    var connections = await db.DomainConceptConnections.AsNoTracking()
+        .Include(dc => dc.Domain)
+        .Include(dc => dc.Concept)
+        .OrderBy(dc => dc.OrderIndex)
+        .ToListAsync();
+
+    var connectionDtos = connections
+        .Where(dc => dc.Domain != null && dc.Concept != null)
+        .Select(dc => new KnowledgeConnectionDto(
+            dc.Domain!.Slug,
+            dc.Concept!.Slug,
+            dc.RelevanceWeight,
+            dc.IsPrimary
+        )).ToList();
+
+    return Results.Ok(new KnowledgeAtlasDto(domainDtos, conceptDtos, connectionDtos));
+})
+.WithName("GetKnowledgeAtlas");
+
+// ==========================================
+// 6. READING MAP ENDPOINTS (Panel B: Progress / Reading Map)
+// ==========================================
+
+app.MapGet("/api/reading-map", async (StudyTrackerContext db) =>
+{
+    var items = await db.ReadingMapItems.AsNoTracking()
+        .OrderBy(i => i.OrderIndex)
+        .ToListAsync();
+
+    var activities = await db.ReadingActivityLogs.AsNoTracking()
+        .OrderBy(a => a.OrderIndex)
+        .ToListAsync();
+
+    var threads = await db.KnowledgeThreads.AsNoTracking()
+        .OrderBy(t => t.OrderIndex)
+        .ToListAsync();
+
+    var mapDto = (string cat) => items
+        .Where(i => string.Equals(i.Category, cat, StringComparison.OrdinalIgnoreCase))
+        .Select(i => new ReadingMapItemDto(i.Id, i.Category, i.Title, i.SubText, i.IsCompleted, i.OrderIndex))
+        .ToList();
+
+    var activityDtos = activities.Select(a => new DailyActivityDto(a.Id, a.DayLabel, a.ActivityCount, a.OrderIndex)).ToList();
+
+    var threadDtos = threads.Select(t => new KnowledgeThreadDto(
+        t.Id,
+        t.Domain,
+        t.RawPath,
+        t.RawPath.Split('→').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList(),
+        t.OrderIndex
+    )).ToList();
+
+    var result = new ReadingMapDto(
+        mapDto("ReadThisWeek"),
+        mapDto("Revisited"),
+        mapDto("Deferred"),
+        mapDto("Lists"),
+        mapDto("Prerequisites"),
+        activityDtos,
+        threadDtos
+    );
+
+    return Results.Ok(result);
+})
+.WithName("GetReadingMap");
+
+app.MapPatch("/api/reading-map/items/{id:int}/toggle", async (int id, StudyTrackerContext db) =>
+{
+    var item = await db.ReadingMapItems.FindAsync(id);
+    if (item == null) return Results.NotFound();
+
+    item.IsCompleted = !item.IsCompleted;
+    item.UpdatedAt = DateTime.UtcNow;
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new ReadingMapItemDto(item.Id, item.Category, item.Title, item.SubText, item.IsCompleted, item.OrderIndex));
+})
+.WithName("ToggleReadingMapItem");
+
+app.MapPost("/api/reading-map/items", async (CreateReadingItemRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.Category))
+    {
+        return Results.BadRequest(new { message = "Category and Title are required." });
+    }
+
+    var maxOrder = await db.ReadingMapItems
+        .Where(i => i.Category.ToLower() == req.Category.ToLower())
+        .Select(i => (int?)i.OrderIndex)
+        .MaxAsync() ?? 0;
+
+    var item = new ReadingMapItem
+    {
+        Category = req.Category.Trim(),
+        Title = req.Title.Trim(),
+        SubText = req.SubText?.Trim(),
+        OrderIndex = req.OrderIndex ?? (maxOrder + 1),
+        IsCompleted = false
+    };
+
+    db.ReadingMapItems.Add(item);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/reading-map/items/{item.Id}", new ReadingMapItemDto(item.Id, item.Category, item.Title, item.SubText, item.IsCompleted, item.OrderIndex));
+})
+.WithName("CreateReadingMapItem");
+
+// ==========================================
+// 7. CHAPTERS & EDITORIAL READING ENDPOINTS (Panel D)
+// ==========================================
+
+// GET /api/chapters — List all available chapters with module hierarchy and reading times
+app.MapGet("/api/chapters", async (
+    string? vertical,
+    string? course,
+    string? module,
+    StudyTrackerContext db) =>
+{
+    var query = db.Courses.AsNoTracking()
+        .Include(c => c.Vertical)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Problems)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Resources)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.CodeComparisons)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Diagrams)
+        .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+                .ThenInclude(l => l.Notes)
+        .OrderBy(c => c.OrderIndex)
+        .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(course))
+    {
+        query = query.Where(c => c.Slug == course);
+    }
+    if (!string.IsNullOrWhiteSpace(vertical))
+    {
+        query = query.Where(c => c.Vertical != null && c.Vertical.Name.ToLower().Contains(vertical.ToLower()));
+    }
+
+    var courseEntities = await query.ToListAsync();
+
+    var allLessons = courseEntities.SelectMany(c => c.Modules.SelectMany(m => m.Lessons)).ToList();
+    var totalChapters = allLessons.Count;
+    var completedChapters = allLessons.Count(l => l.IsCompleted);
+    var totalReadingTimeMinutes = allLessons.Sum(l => l.EstimatedMinutes > 0 ? l.EstimatedMinutes : 15);
+    var totalWords = allLessons.Sum(l => CountWords(l.ContentBody));
+
+    var courseDtos = courseEntities.Select(c =>
+    {
+        var modules = c.Modules.OrderBy(m => m.OrderIndex).AsEnumerable();
+        if (!string.IsNullOrWhiteSpace(module))
+        {
+            modules = modules.Where(m => m.Slug == module);
+        }
+
+        var moduleDtos = modules.Select(m =>
+        {
+            var lessons = m.Lessons.OrderBy(l => l.OrderIndex).ToList();
+            var mChapters = lessons.Select(l =>
+            {
+                var fullSlug = $"{c.Slug}/{m.Slug}/{l.Slug}";
+                var wordCount = CountWords(l.ContentBody);
+                return new ChapterSummaryDto(
+                    l.Id,
+                    l.Slug,
+                    fullSlug,
+                    l.Title,
+                    l.Description,
+                    l.LectureNumber,
+                    l.EstimatedMinutes,
+                    wordCount,
+                    l.Difficulty ?? "Intermediate",
+                    l.IsCompleted,
+                    l.OrderIndex,
+                    c.Slug,
+                    c.Title,
+                    c.Vertical?.Name,
+                    m.Slug,
+                    m.Title,
+                    m.Badge,
+                    l.Problems.Count,
+                    l.Resources.Count,
+                    l.CodeComparisons.Count > 0,
+                    l.Diagrams.Count > 0,
+                    l.Notes.Count
+                );
+            }).ToList();
+
+            var mTotalTime = mChapters.Sum(x => x.ReadingTimeMinutes);
+            var mCompleted = mChapters.Count(x => x.IsCompleted);
+
+            return new ModuleWithChaptersDto(
+                m.Id,
+                m.Slug,
+                m.Title,
+                m.Description,
+                m.Badge,
+                m.OrderIndex,
+                mChapters.Count,
+                mCompleted,
+                mTotalTime,
+                mChapters
+            );
+        }).ToList();
+
+        var cTotalChapters = moduleDtos.Sum(m => m.TotalChapters);
+        var cCompletedChapters = moduleDtos.Sum(m => m.CompletedChapters);
+        var cTotalTime = moduleDtos.Sum(m => m.TotalReadingTimeMinutes);
+
+        return new CourseWithChaptersDto(
+            c.Id,
+            c.Slug,
+            c.Title,
+            c.Description,
+            c.VerticalId,
+            c.Vertical?.Name,
+            cTotalChapters,
+            cCompletedChapters,
+            cTotalTime,
+            moduleDtos
+        );
+    }).ToList();
+
+    return Results.Ok(new ChapterHierarchyDto(
+        totalChapters,
+        completedChapters,
+        totalReadingTimeMinutes,
+        totalWords,
+        courseDtos
+    ));
+})
+.WithName("GetChaptersList");
+
+// GET /api/chapters/{slug} — Retrieve chapter by slug or composite slug
+app.MapGet("/api/chapters/{slug}", async (string slug, StudyTrackerContext db) =>
+{
+    return await BuildChapterDetailResponse(slug, null, null, db);
+})
+.WithName("GetChapterBySlug");
+
+// GET /api/chapters/{verticalOrCourseSlug}/{moduleSlug}/{lessonSlug} — Hierarchical chapter lookup
+app.MapGet("/api/chapters/{verticalOrCourseSlug}/{moduleSlug}/{lessonSlug}", async (
+    string verticalOrCourseSlug,
+    string moduleSlug,
+    string lessonSlug,
+    StudyTrackerContext db) =>
+{
+    return await BuildChapterDetailResponse(lessonSlug, moduleSlug, verticalOrCourseSlug, db);
+})
+.WithName("GetChapterByPath");
+
+// POST /api/chapters/{id:int}/notes — Add personal note or marginalia
+app.MapPost("/api/chapters/{id:int}/notes", async (int id, CreateChapterNoteRequest req, StudyTrackerContext db) =>
+{
+    var lesson = await db.Lessons.FindAsync(id);
+    if (lesson == null) return Results.NotFound(new { message = "Chapter/Lesson not found." });
+
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.ContentBody))
+    {
+        return Results.BadRequest(new { message = "Title and ContentBody are required." });
+    }
+
+    var maxOrder = await db.LessonNotes
+        .Where(n => n.LessonId == id)
+        .Select(n => (int?)n.OrderIndex)
+        .MaxAsync() ?? 0;
+
+    var note = new LessonNote
+    {
+        LessonId = id,
+        NoteType = string.IsNullOrWhiteSpace(req.NoteType) ? "FieldNote" : req.NoteType.Trim(),
+        AnchorSection = req.AnchorSection?.Trim(),
+        Title = req.Title.Trim(),
+        ContentBody = req.ContentBody.Trim(),
+        OrderIndex = req.OrderIndex ?? (maxOrder + 1),
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    db.LessonNotes.Add(note);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/chapters/{id}/notes/{note.Id}", new ChapterNoteDto(
+        note.Id,
+        note.NoteType,
+        note.AnchorSection,
+        note.Title,
+        note.ContentBody,
+        note.OrderIndex,
+        note.UpdatedAt
+    ));
+})
+.WithName("CreateChapterNote");
+
+// POST /api/chapters/map — Map & Ingest a New Curriculum Chapter
+app.MapPost("/api/chapters/map", async (MapChapterRequest req, StudyTrackerContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.MarkdownContent))
+    {
+        return Results.BadRequest(new { message = "Title and MarkdownContent are required." });
+    }
+
+    var domainName = string.IsNullOrWhiteSpace(req.Domain) ? "Backend" : req.Domain.Trim();
+    var moduleTitle = string.IsNullOrWhiteSpace(req.ModuleName) ? "Backend Architecture" : req.ModuleName.Trim();
+    var lessonTitle = req.Title.Trim();
+    var slug = string.IsNullOrWhiteSpace(req.Slug)
+        ? Regex.Replace(lessonTitle.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-')
+        : req.Slug.Trim().ToLowerInvariant();
+
+    // 1. Find or create Course / Domain Vertical
+    var course = await db.Courses.Include(c => c.Modules).FirstOrDefaultAsync(c => c.Title.ToLower().Contains(domainName.ToLower()) || c.Slug == domainName.ToLower());
+    if (course == null)
+    {
+        course = await db.Courses.FirstOrDefaultAsync(c => c.Slug == "java-spring-lld")
+            ?? await db.Courses.FirstOrDefaultAsync();
+    }
+
+    if (course == null)
+    {
+        course = new Course
+        {
+            Slug = "backend-systems",
+            Title = domainName,
+            Description = $"{domainName} curriculum and architectural patterns.",
+            OrderIndex = 1
+        };
+        db.Courses.Add(course);
+        await db.SaveChangesAsync();
+    }
+
+    // 2. Find or create CourseModule
+    var moduleSlug = Regex.Replace(moduleTitle.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
+    var courseModule = await db.Modules.Include(m => m.Lessons)
+        .FirstOrDefaultAsync(m => m.CourseId == course.Id && (m.Title.ToLower() == moduleTitle.ToLower() || m.Slug == moduleSlug));
+
+    if (courseModule == null)
+    {
+        var maxModuleOrder = await db.Modules.Where(m => m.CourseId == course.Id).Select(m => (int?)m.OrderIndex).MaxAsync() ?? 0;
+        courseModule = new CourseModule
+        {
+            CourseId = course.Id,
+            Slug = moduleSlug,
+            Title = moduleTitle,
+            Description = $"Module for {moduleTitle}",
+            Badge = "Module",
+            OrderIndex = maxModuleOrder + 1
+        };
+        db.Modules.Add(courseModule);
+        await db.SaveChangesAsync();
+    }
+
+    // 3. Find or create Lesson
+    var existingLesson = await db.Lessons.Include(l => l.CodeComparisons).Include(l => l.Resources)
+        .FirstOrDefaultAsync(l => l.ModuleId == courseModule.Id && (l.Slug == slug || l.Title.ToLower() == lessonTitle.ToLower()));
+
+    if (existingLesson != null)
+    {
+        existingLesson.Title = lessonTitle;
+        existingLesson.Description = req.Description ?? existingLesson.Description;
+        existingLesson.ContentBody = req.MarkdownContent;
+        existingLesson.Difficulty = req.Difficulty ?? "Intermediate";
+        existingLesson.EstimatedMinutes = req.EstimatedMinutes ?? 45;
+        existingLesson.UpdatedAt = DateTime.UtcNow;
+    }
+    else
+    {
+        var maxLessonOrder = await db.Lessons.Where(l => l.ModuleId == courseModule.Id).Select(l => (int?)l.OrderIndex).MaxAsync() ?? 0;
+        existingLesson = new Lesson
+        {
+            ModuleId = courseModule.Id,
+            Slug = slug,
+            Title = lessonTitle,
+            Description = req.Description ?? string.Empty,
+            LectureNumber = maxLessonOrder + 1,
+            ClassDate = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+            ContentBody = req.MarkdownContent,
+            Difficulty = req.Difficulty ?? "Intermediate",
+            EstimatedMinutes = req.EstimatedMinutes ?? 45,
+            OrderIndex = maxLessonOrder + 1,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        db.Lessons.Add(existingLesson);
+    }
+
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/chapters/{slug}", new {
+        id = existingLesson.Id,
+        slug = existingLesson.Slug,
+        title = existingLesson.Title,
+        domain = domainName,
+        module = moduleTitle,
+        message = "Chapter mapped and stored successfully."
+    });
+})
+.WithName("MapCurriculumChapter");
+
+// Map Phase 4 & 4B Redesigned Endpoints
+app.MapV2Endpoints();
+app.MapImportEndpoints();
+app.MapExerciseEndpoints();
+app.MapAuthEndpoints();
+app.MapAdminEndpoints();
+app.MapChatEndpoints();
+
+app.Run();
+return 0;
+
+// Helper method for assembling ChapterDetailDto
+async Task<IResult> BuildChapterDetailResponse(
+    string lessonSlug,
+    string? moduleSlug,
+    string? courseOrVerticalSlug,
+    StudyTrackerContext db)
+{
+    var query = db.Lessons.AsNoTracking()
+        .Include(l => l.Module)
+            .ThenInclude(m => m!.Course)
+                .ThenInclude(c => c!.Vertical)
+        .Include(l => l.Problems.OrderBy(p => p.OrderIndex))
+        .Include(l => l.Resources.OrderBy(r => r.OrderIndex))
+        .Include(l => l.CodeComparisons.OrderBy(c => c.OrderIndex))
+        .Include(l => l.Diagrams.OrderBy(d => d.OrderIndex))
+        .Include(l => l.Notes.OrderBy(n => n.OrderIndex))
+        .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(moduleSlug) && !string.IsNullOrWhiteSpace(courseOrVerticalSlug))
+    {
+        query = query.Where(l => l.Slug == lessonSlug &&
+                                l.Module != null && l.Module.Slug == moduleSlug &&
+                                l.Module.Course != null && (l.Module.Course.Slug == courseOrVerticalSlug ||
+                                                          (l.Module.Course.Vertical != null && l.Module.Course.Vertical.Name.ToLower() == courseOrVerticalSlug.ToLower())));
+    }
+    else
+    {
+        query = query.Where(l => l.Slug == lessonSlug);
+    }
+
+    var lesson = await query.FirstOrDefaultAsync();
+
+    if (lesson == null)
+    {
+        // Try fallback search if user provided compound full slug like "oop-foundations/03-oop-2-access-modifiers-encapsulation"
+        if (lessonSlug.Contains('/'))
+        {
+            var parts = lessonSlug.Split('/');
+            var actualLessonSlug = parts[^1];
+            lesson = await db.Lessons.AsNoTracking()
+                .Include(l => l.Module)
+                    .ThenInclude(m => m!.Course)
+                        .ThenInclude(c => c!.Vertical)
+                .Include(l => l.Problems.OrderBy(p => p.OrderIndex))
+                .Include(l => l.Resources.OrderBy(r => r.OrderIndex))
+                .Include(l => l.CodeComparisons.OrderBy(c => c.OrderIndex))
+                .Include(l => l.Diagrams.OrderBy(d => d.OrderIndex))
+                .Include(l => l.Notes.OrderBy(n => n.OrderIndex))
+                .FirstOrDefaultAsync(l => l.Slug == actualLessonSlug);
+        }
+
+        if (lesson == null) return Results.NotFound(new { message = $"Chapter '{lessonSlug}' not found." });
+    }
+
+    var course = lesson.Module?.Course;
+    var module = lesson.Module;
+    var courseSlug = course?.Slug ?? "curriculum";
+    var currentModuleSlug = module?.Slug ?? "general";
+    var fullSlug = $"{courseSlug}/{currentModuleSlug}/{lesson.Slug}";
+
+    // Fetch sibling chapters in the same module
+    var siblingLessons = await db.Lessons.AsNoTracking()
+        .Where(l => l.ModuleId == lesson.ModuleId)
+        .OrderBy(l => l.OrderIndex)
+        .Select(l => new { l.Id, l.Slug, l.Title, l.EstimatedMinutes, l.IsCompleted, l.OrderIndex })
+        .ToListAsync();
+
+    var siblingDtos = siblingLessons.Select(s => new ChapterNavDto(
+        s.Id,
+        s.Slug,
+        $"{courseSlug}/{currentModuleSlug}/{s.Slug}",
+        s.Title,
+        module?.Title ?? string.Empty,
+        s.EstimatedMinutes,
+        s.IsCompleted
+    )).ToList();
+
+    var currentIndex = siblingLessons.FindIndex(s => s.Id == lesson.Id);
+    ChapterNavDto? prevChapter = currentIndex > 0 ? siblingDtos[currentIndex - 1] : null;
+    ChapterNavDto? nextChapter = currentIndex >= 0 && currentIndex < siblingDtos.Count - 1 ? siblingDtos[currentIndex + 1] : null;
+
+    // Fetch Linked Knowledge Concepts (Synaptic mesh)
+    var linkedConceptLinks = await db.ConceptNextLessons.AsNoTracking()
+        .Where(cnl => cnl.LessonId == lesson.Id || cnl.LessonSlug == lesson.Slug)
+        .Select(cnl => cnl.ConceptId)
+        .ToListAsync();
+
+    var linkedConcepts = await db.KnowledgeConcepts.AsNoTracking()
+        .Include(c => c.DomainConnections)
+            .ThenInclude(dc => dc.Domain)
+        .Include(c => c.Prerequisites)
+            .ThenInclude(p => p.PrerequisiteConcept)
+        .Where(c => linkedConceptLinks.Contains(c.Id) ||
+                    c.Slug.ToLower() == lesson.Slug.ToLower() ||
+                    lesson.Title.ToLower().Contains(c.Title.ToLower()))
+        .ToListAsync();
+
+    var directConceptDtos = linkedConcepts.Select(c => new ConnectedConceptDto(
+        c.Id,
+        c.Slug,
+        c.Title,
+        c.Summary,
+        c.Difficulty,
+        c.Icon,
+        c.DomainConnections.Select(dc => dc.Domain?.Name ?? string.Empty).Where(s => !string.IsNullOrEmpty(s)).ToList()
+    )).ToList();
+
+    var prerequisites = linkedConcepts.SelectMany(c => c.Prerequisites).Select(p => new ConceptPrerequisiteItemDto(
+        p.PrerequisiteConcept?.Title ?? "Prerequisite Topic",
+        p.Status
+    )).DistinctBy(p => p.Name).ToList();
+
+    var nextTopics = await db.ConceptNextLessons.AsNoTracking()
+        .Where(cnl => linkedConceptLinks.Contains(cnl.ConceptId) && cnl.LessonSlug != lesson.Slug)
+        .Select(cnl => cnl.LessonTitle)
+        .Distinct()
+        .ToListAsync();
+
+    var interchangeDomains = linkedConcepts.SelectMany(c => c.DomainConnections)
+        .Select(dc => dc.Domain?.Name ?? string.Empty)
+        .Where(s => !string.IsNullOrEmpty(s))
+        .Distinct()
+        .ToList();
+
+    var conceptConnections = new ChapterConceptConnectionsDto(
+        directConceptDtos,
+        prerequisites,
+        nextTopics,
+        interchangeDomains
+    );
+
+    var codeComparisons = lesson.CodeComparisons.Select(c => new CodeComparisonDto(
+        c.Id,
+        c.Title,
+        c.Description,
+        c.BeforeLabel,
+        c.BeforeLanguage,
+        c.BeforeCode,
+        c.AfterLabel,
+        c.AfterLanguage,
+        c.AfterCode,
+        c.Explanation,
+        c.OrderIndex
+    )).ToList();
+
+    var diagrams = lesson.Diagrams.Select(d => new ChapterDiagramDto(
+        d.Id,
+        d.Title,
+        d.Caption,
+        d.DiagramType,
+        d.SvgContent,
+        d.DiagramSpecJson,
+        d.OrderIndex
+    )).ToList();
+
+    var notes = lesson.Notes.Select(n => new ChapterNoteDto(
+        n.Id,
+        n.NoteType,
+        n.AnchorSection,
+        n.Title,
+        n.ContentBody,
+        n.OrderIndex,
+        n.UpdatedAt
+    )).ToList();
+
+    if (!string.IsNullOrWhiteSpace(lesson.HorstmannRef) && !notes.Any(n => n.NoteType == "HorstmannRef"))
+    {
+        notes.Add(new ChapterNoteDto(
+            0,
+            "HorstmannRef",
+            "Core Reading",
+            "Horstmann Core Java Reference",
+            lesson.HorstmannRef,
+            0,
+            lesson.UpdatedAt
+        ));
+    }
+
+    var result = new ChapterDetailDto(
+        lesson.Id,
+        lesson.Slug,
+        fullSlug,
+        lesson.Title,
+        lesson.Description,
+        lesson.LectureNumber,
+        lesson.ClassDate,
+        lesson.EstimatedMinutes > 0 ? lesson.EstimatedMinutes : 45,
+        CountWords(lesson.ContentBody),
+        lesson.Difficulty ?? "Intermediate",
+        lesson.IsCompleted,
+        lesson.OrderIndex,
+        lesson.ContentBody,
+        lesson.HorstmannRef,
+        new ChapterCourseInfoDto(course?.Id ?? 0, courseSlug, course?.Title ?? "Course", course?.VerticalId, course?.Vertical?.Name),
+        new ChapterModuleInfoDto(module?.Id ?? 0, currentModuleSlug, module?.Title ?? "Module", module?.Description ?? string.Empty, module?.Badge ?? "Module", module?.OrderIndex ?? 0),
+        codeComparisons,
+        diagrams,
+        notes,
+        conceptConnections,
+        lesson.Problems.Select(p => new ProblemSummaryDto(
+            p.Id,
+            p.LessonId,
+            p.Slug,
+            p.Title,
+            p.Difficulty,
+            p.PackageName,
+            p.TestClassName,
+            p.ProblemStatement,
+            p.RequirementsBody,
+            p.WorkedExample,
+            p.Hints,
+            p.IsCompleted,
+            p.OrderIndex
+        )).ToList(),
+        lesson.Resources.Select(r => new LessonResourceDto(
+            r.Id,
+            r.LessonId,
+            r.ResourceType,
+            r.Title,
+            r.ContentBody,
+            r.OrderIndex
+        )).ToList(),
+        prevChapter,
+        nextChapter,
+        siblingDtos
+    );
+
+    return Results.Ok(result);
+}
+
+// Utility: Word Count
+static int CountWords(string? text)
+{
+    if (string.IsNullOrWhiteSpace(text)) return 0;
+    return text.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
+}
+
+
+// Helper Function
+List<StudyTask> ParseMarkdownToTasks(string markdown)
+{
+    var tasks = new List<StudyTask>();
+    if (string.IsNullOrWhiteSpace(markdown)) return tasks;
+
+    var lines = markdown.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+    string currentModule = "General";
+
+    var headerRegex = new Regex(@"^##\s+(.+)$");
+    var taskRegex = new Regex(@"^- \[([ xX])\]\s+(.+)$");
+
+    foreach (var rawLine in lines)
+    {
+        var line = rawLine.Trim();
+        var headerMatch = headerRegex.Match(line);
+        if (headerMatch.Success)
+        {
+            currentModule = headerMatch.Groups[1].Value.Trim();
+            continue;
+        }
+
+        var taskMatch = taskRegex.Match(line);
+        if (taskMatch.Success)
+        {
+            bool isCompleted = taskMatch.Groups[1].Value.Equals("x", StringComparison.OrdinalIgnoreCase);
+            string title = taskMatch.Groups[2].Value.Trim();
+            tasks.Add(new StudyTask
+            {
+                Title = title,
+                IsCompleted = isCompleted,
+                Module = currentModule
+            });
+        }
+    }
+
+    return tasks;
+}
+
+public record CreateVerticalRequest(string Name, string? Description);
+public record IngestRequest(int? VerticalId, string? Name, string? Description, string MarkdownContent);
+
+public partial class Program { }
