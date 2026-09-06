@@ -1,0 +1,696 @@
+Good morning, good evening all of you guys. Can you confirm if you can see me, hear me as well as you should be able to see my screen where um probably it's a blank good mountainish thing for you.
+0:1313 secondsPerfect. Uh as expected um the numbers are pretty low. Not happy with it. But let's anyway continue uh with this case.
+0:2323 secondsSo but I request to uh have more attendance. the attendance have dropped more than 50%. That's what it sounds like right now. Okay. So, let's start.
+0:3535 secondsDo you recall what we had done in the last session? If you recall in the last session, I basically have talked more on
+0:4545 secondsthe agent side, right? So I have talked about what is agent and if you also
+0:5252 secondsrecall I left it as an open problem for all of you calling out that if you
+0:5959 secondsremember in that agent problem I had called a function very much explicitly
+1:061 minute, 6 secondsright so it's a function being called explicitly in this case and I promised
+1:131 minute, 13 secondsyou that now in today class I am going to bring agents where you will see that I will not be calling function
+1:211 minute, 21 secondsexplicitly and I also promised you that it is going to be a more easier version
+1:291 minute, 29 secondsversion of it that is what I will be going up guys just quickly confirm you are all able to see my screen and the notebook where I'm writing all this
+1:371 minute, 37 secondsright just confirm okay I think one learner have this called out so maybe what you can do you can just rejoin or something looks like then the issues at
+1:451 minute, 45 secondsyour Now, so that's one part. Now also what I will do from this agent, I will help you
+1:531 minute, 53 secondsunderstand how you can have multiple function calls.
+1:581 minute, 58 secondsOkay. So this also I even promised you in the last class that I will show you without you giving any explicit name of
+2:062 minutes, 6 secondsthe function. you will be able to see how it will be able to make an explicit multiple calls and that's going to be
+2:142 minutes, 14 secondsvery very interesting. So let's understand how this whole ecosystem work and I will follow the same approach today. Uh we'll answer all the questions
+2:232 minutes, 23 secondsat the end so that um you have the full clarity. Meanwhile in middle if I see a major concern coming up over the chat I
+2:312 minutes, 31 secondswill keep answering up. Okay. So same process is what we will be following up in this case. Now let's move on and
+2:402 minutes, 40 secondsunderstand how this thing will work. Now I will come to the code in some time but before I take you to the code let me
+2:482 minutes, 48 secondsfirst show you how the syntax and everything is going to look like now in order to work into this case what
+2:562 minutes, 56 secondsI'm going to do is I am going to use grock everybody remember grock our old friend what was the advantage of
+3:043 minutes, 4 secondsgrock can anybody quickly recall for me what was the advantage of grock why I'm calling it as a good friend
+3:123 minutes, 12 secondsfree vala key right so it's all free vala key which is going to work in this case so what I will do in this case is I
+3:213 minutes, 21 secondsam going to be importing the same lang okay uh and I am going to show you also
+3:283 minutes, 28 secondsthe latest version of langchain today by the way this version of langchain is not even in lot of books it's a latest
+3:353 minutes, 35 secondsversion uh which I'm going to show you uh across uh I think one learner is
+3:423 minutes, 42 secondscontinuously facing issue in not able to see me just try with different browser that is what I would request because since it's working for everyone I'm
+3:503 minutes, 50 secondsassuming it's working maybe delete your cookies and all that it would also help okay now so lang chain is what we will
+3:583 minutes, 58 secondsbe going up with this uh definitely if you will use open reader and all it will cost you okay so I have also talked about it in the last session but I'm not
+4:064 minutes, 6 secondsgoing to go into depth of it now what I will be doing in today's session also I I will be using grock so that I will be
+4:144 minutes, 14 secondsable to show you that what we will do and again with grock I will use something called as llama but I will give you code that in case if you want
+4:224 minutes, 22 secondsto use gemini open AI you can make it work okay so that function I will show you in that format once you will have
+4:314 minutes, 31 secondsthe key and everything the first thing what I will do I will write a function okay let's call this function as let's
+4:394 minutes, 39 secondssay get weather function Now what is going to be this function? I have just hardcoded it. Okay, I will just say that
+4:474 minutes, 47 secondsokay this function will just return that the temperature at your city in whatever name you will give is 8 28° C. Why I'm
+4:554 minutes, 55 secondsgoing to do that? Because right now my goal is to show you the power of agentic AI. Okay, so that's one thing. Now you
+5:025 minutes, 2 secondswill say Shivang what's different in this even you showed us this thing in the last class. Hold on. Now I will show you what I do.
+5:105 minutes, 10 secondsNow second level what I will do is I will use a function called as create
+5:175 minutes, 17 secondsagent. Now this is something I have not done it in the last class. Okay. Now in this createore agent what I will do is I
+5:265 minutes, 26 secondswill simply say that okay let's say model is equal to let's say whatever like llama. Okay. So I will pass that
+5:335 minutes, 33 secondsit's going to be llama. I am going to pass my two. So let's start with single function. Then I will expand the same thing for multiple function. So I will
+5:415 minutes, 41 secondspass my tools. So let's say in this tools I will say that okay you are get weather function. Again right now I'm just
+5:485 minutes, 48 secondstelling that what all tools I have available. What all functions I have available. Okay nothing else more than that. And then I will have my system prompt.
+5:595 minutes, 59 secondsNow in this system prompt maybe I will write hey you are a helpful assistant.
+6:046 minutes, 4 secondsYou can use the available tool whenever you want to always uh state the final result very clearly and com uh and
+6:126 minutes, 12 secondsbasically do it completely into your answers. Okay. So that's let's say I just told something random. Okay. Now so
+6:206 minutes, 20 secondsthat's one part. Now I will close this after that. So my system prompt will also be ready. Now in this part I am
+6:286 minutes, 28 secondsonly saying that I have an agent where I'm going to use you this LLM model and I'm saying that I have these these
+6:356 minutes, 35 secondsfunctions available with me. Nothing more nothing less. Now what I will do further to this now I will I I want to
+6:466 minutes, 46 secondsinvoke this function and during the invoke time I don't want to tell that which tool I have to use.
+6:546 minutes, 54 secondsThat is the main part right if you remember in the last class I clearly called out the function there but now I
+7:007 minutesdon't want to tell it and remember when you will write get weather function you have to write in comments in detail that
+7:077 minutes, 7 secondswhat this function do right if you recall this I will show you all this function running so don't worry about this part so what I will do now I am
+7:167 minutes, 16 secondsgoing to now call up my function so let's call this let's say as agent okay
+7:227 minutes, 22 secondsso I and simply say okay agent dot and I am going to invoke invoke means go and
+7:307 minutes, 30 secondsexecute what is that execution part I want to do I will simply say here okay what is my message now in my message I
+7:387 minutes, 38 secondswill be calling the role so let's say your role is going to be uh as a user you are asking a question right so you
+7:467 minutes, 46 secondswill just call it out okay I have a role which is going to be a user role and you will also be passing question to this
+7:547 minutes, 54 secondsright so your content will have a question so question could be how is the weather in luckno okay how is weather in lucknau or something that I will pass
+8:038 minutes, 3 secondsnow you will notice can you notice in this agent invoke have I told anywhere that okay use this function
+8:138 minutes, 13 secondsno I am no way telling this so what it should do it should be telling me that yes your function which you are
+8:218 minutes, 21 secondsexecuting it will automatically figure out that it's going to be a tool call and from that tool call it will be calling this get weather function and that is what I will show you.
+8:328 minutes, 32 secondsYou will also find something more interesting in this case. You will also do this that when I am going to be
+8:418 minutes, 41 secondscalling out something like uh let's say who wrote the book LLM. Now in that case
+8:508 minutes, 50 secondsit will try to it will not do a tool call. It is going to just go ahead and going to give the answer from the normal
+8:588 minutes, 58 secondsgeneric LLM case. Okay. So that is what I will do. So I got a very interesting answer from one of the learner and he
+9:069 minutes, 6 secondssaid Shivang agent should reply it's too extremely hot. Okay. So let me change that for his wish. Okay. But before that
+9:169 minutes, 16 secondslet me make this bigger so that you all can see it properly.
+9:239 minutes, 23 secondsAwesome. First thing can you all see this code where I'm saying that I'm going to call uh I'm importing langen I
+9:339 minutes, 33 secondsmay want to see that what is the version of langchain I can do that I think it's 1.3 or something now after that I'm going to do the loadenv
+9:429 minutes, 42 secondsthis part all of you are well aware so I'm not going to for this now remember I promised you this part I will be using grock key but in case if you have any
+9:519 minutes, 51 secondsother provider let's say if you have gro I am going to use gro. So that's why I have hardcoded to gro. So then it's going to go in provider as grock. It
+9:599 minutes, 59 secondswill choose the model as llama and it will pick up my gro API key from the env file which I have already shown you.
+10:0710 minutes, 7 secondsOkay. Now once this is done it will load this file. In case if you have set up in your env file let's say gemini the key
+10:1610 minutes, 16 secondschange this provider to Gemini. If you have if you want to play with open AI put this provider as open AI. So now you
+10:2410 minutes, 24 secondsknow how to change the code. By the way, why I'm showing you this? Because in production when we write code which I will also show you after some time in
+10:3210 minutes, 32 secondsproduction I am uh basically this is how the code are written.
+10:3810 minutes, 38 secondsOkay, because I never know maybe it's possible tomorrow I want to change my model I want to update things. In those
+10:4610 minutes, 46 secondscases we keep that leverage with us that in case if you want to play around something we will do that. Okay. Now, so
+10:5510 minutes, 55 secondshere we just loaded the key. Now this key is getting loaded up in the OS environment. All this is simple sublank,
+11:0211 minutes, 2 secondsright? So I am not going to go ahead with this. Um okay. Now somebody's asking that can you
+11:0911 minutes, 9 secondsexplain the API key? This I think we covered in depth in the last two classes. Can everybody confirm
+11:1711 minutes, 17 secondsabout the API key? We covered this in depth in last two classes. So I'm not going to repeat it because again it will it will take a I think if I'm not wrong I spended almost half an hour on this.
+11:2811 minutes, 28 secondsSo in thev we just keep this variable next. Okay that is what I will just say even how to generate also part I have
+11:3611 minutes, 36 secondscovered. Okay just watch that recording I have covered each and everything even going to those portals showing that how exactly it works. Please follow that.
+11:4511 minutes, 45 secondsOkay now for now let's assume it exist.
+11:4811 minutes, 48 secondsOkay. So that we don't end up wasting time uh across repeating thing that's the only thing. Now let's look at this.
+11:5511 minutes, 55 secondsSo once this is done and I am just printing that what's my provider and all that. Let's come to the main part. Can
+12:0212 minutes, 2 secondsyou see this get weather? I will pass a city name to it. Let's say Lacno, Bangalore, whatever I want to pass on.
+12:1112 minutes, 11 secondsAnd can you notice I'm giving a detailed function on this. Hey get the current weather for the given city. Yes, idle
+12:1912 minutes, 19 secondscase. This should give a tool call to weather API. But here I just hardcoded it. Okay, I just hardcoded it. Somebody
+12:2712 minutes, 27 secondssaid that Shibbang make it too hot. So let me mark it as too hot. Too hot to run.
+12:3412 minutes, 34 secondsOkay, I hope you're happy now. Yes.
+12:3912 minutes, 39 secondsOkay. So I just make it too hot. Then I'm going to build an agent. So in the agent as
+12:4712 minutes, 47 secondsyou can see I'm only going to say create agent function which I already explained you. Now here I'm passing model. What is this model? This model is nothing but in
+12:5612 minutes, 56 secondsour case it's going to be llama and all that. If if even if I want to hardcode there I could have done it. Not a problem. Now so I'm going to settle this
+13:0513 minutes, 5 secondsmodel is equal to llama. Now I'm just telling here how what all functions this agent have availability with. nothing
+13:1413 minutes, 14 secondsmore than that. So I'm just saying that okay this agent have availability with this this functions. So I said okay you are get weather. Then remember I said
+13:2213 minutes, 22 secondssystem prompt I will write. So I'm here saying that you are a helpful assistant.
+13:2613 minutes, 26 secondsUse the available tool whenever you need. Always state the final results clearly and completely in your answer.
+13:3313 minutes, 33 secondsRight? Same thing which I explained you earlier. Now once this is done then after that I am going to ask question.
+13:4013 minutes, 40 secondsSo I'm going to do all this with a function so that it's easy to manage. So like for example if I say what is the weather like in New York? Okay. what is
+13:4913 minutes, 49 secondsthe weather like in New York? So in that case, let me just save it first and then I will come back and explain this code also. So let's say if I just say Python
+13:5813 minutes, 58 secondsB do this. Firstly, it's telling me that okay, what's the version of lang chain and blah blah. Let me make this bigger to us. Okay, now see this one. So it's
+14:0814 minutes, 8 secondsgoing to say what's the version of lang chain provider is gro model is this and I just printed few things there. That is what you see. Now I'm saying what is the
+14:1614 minutes, 16 secondsweather like in New York. Now this ask function which I will explain you in some time. It's going to go and give a
+14:2414 minutes, 24 secondscall to my function. And notice even I'm I'm doing this printing in detail. So I'm saying it's a tool call first. So tool call it will be able to catch and
+14:3214 minutes, 32 secondsit will say okay I have to go for a get weather function and city is going to be New York. And what's a tool result? My
+14:4014 minutes, 40 secondstool result is the weather in New York is sunny. I think it have not saved it. Wait, let me save this file first.
+14:4914 minutes, 49 secondsOtherwise, it should have said it's hot, right? So, looks like it's not saving for some reason. Give me a minute. Now, it should work.
+15:0015 minutesSo, let me come here and run it again.
+15:0815 minutes, 8 secondsCan you see? Now, it's giving me the answer. The weather in New York is too hot to handle 28°C.
+15:1615 minutes, 16 secondssame thing which I just changed in front of you and then so it it basically is the tool result what it will return and the answer is this right it's just that
+15:2515 minutes, 25 secondsthese two I have done to make it more verbose means just to show you how exactly it looks like okay now
+15:3315 minutes, 33 secondsdefinitely a question which is already coming over the chat or you guys are asking Shiva also show me how this happen live right it's very simple there
+15:4115 minutes, 41 secondsare APIs available in market which can make you fetch the live data Now how to do that? I will show you all
+15:4815 minutes, 48 secondsthis. Don't worry. AB today goal for me is just like in last class my goal was not to show you this thing running
+15:5515 minutes, 55 secondsautomonously but just to give you an idea about agent. Today my goal is just to show you how multi- aents how
+16:0216 minutes, 2 secondsmultiple functions it can catch. That's it. Okay. And then I will make it slowly more and more advanced as and when we
+16:0916 minutes, 9 secondswill keep on going ahead to the further sessions. Okay. Perfect. So now let's move on. So in this case like the
+16:1616 minutes, 16 secondscurrent weather in the New York is 28° C and blah blah right. So let's let's come back and see this ask function in this
+16:2416 minutes, 24 secondscase see this. So my ask function is going to do this. So it's going to take the question the question I'm asking
+16:3116 minutes, 31 secondslike hey tell me the weather of New York and then I have also written down bool as true show steps basically me be more
+16:3916 minutes, 39 secondsverbose for me because I marked it as true. So keep telling me that which tool call you did what's the tool answer I got. So you can see here I am saying
+16:4816 minutes, 48 secondsagent.invoke remember I showed you in the whiteboard agent.invoke and here I'm going to say message and in this message I'm saying
+16:5716 minutes, 57 secondsthat as a user ask a question. What is the question? This question which where I said what is the weather looking like in New York and you can see it's going
+17:0517 minutes, 5 secondsto print the question first which it's doing here. Right. And once this question is printed now it's going to show me step. Why show step? Because
+17:1417 minutes, 14 secondsthis was boolean as set as true by default. Now so what it's doing here now notice there were two outputs which we
+17:2217 minutes, 22 secondsgot. One is tool call and second is tool result. Let's see how it worked. So the first thing what it will do is this
+17:3017 minutes, 30 secondsmessage type because when you have given a message remember in the last class we learned that it's a human message and
+17:3717 minutes, 37 secondswhen the chat GPT respond it's a AI message everybody remember this we discussed this in the last class so is
+17:4517 minutes, 45 secondsthis message going to be of AI type yes and is this message going to be a tool
+17:5217 minutes, 52 secondscall and this have agent have automatically figured out I have to do a function call I have to do a function call to do this work. So that's why it's
+18:0018 minutesa tool call. Yes, it's a tool call. So then when it's the case then it just going to say okay if it's a tool call then which tool name I am going to get
+18:1018 minutes, 10 secondshere. So for example this is just printed tool called so you can see this is what got printed as it is and then
+18:1718 minutes, 17 secondsI'm saying TC name. What do you mean by this TC? TC is just an object where the function name is going to be there. So it just going to print the function
+18:2518 minutes, 25 secondsname. Can you see this is this function name? So this TC name is going to return me what is my function name? What is
+18:3318 minutes, 33 secondsthis tool call function name which I'm executing here and what are the argument of that tool call. So in this case my
+18:4018 minutes, 40 secondsargument is going to be citys as simple as this. Now after it it's a
+18:4818 minutes, 48 secondsAI message which is done because remember it's a for loop which will continue to run. So then it will be next time it will say okay now is it a tool
+18:5618 minutes, 56 secondstype yes and then it will just say that okay my tool result is whatever this function have returned for me so that's
+19:0419 minutes, 4 secondswhy you are seeing this output and that's it this is how you can basically do a function call let me make a small
+19:1119 minutes, 11 secondschange now okay I will say ask uh what is scalar dot content just
+19:1919 minutes, 19 secondsreturn what exactly is going to be your final output so if If you print the object, it will return you multiple metadata. If you remember, I showed you
+19:2619 minutes, 26 secondsalso in the first class that what all metadata return. And now in that metadata, this is just one metadata part
+19:3319 minutes, 33 secondswhich is the final output. Okay. Now, so let's say if I say what is uh scalar
+19:4019 minutes, 40 secondscompany. Okay. Let's say I ask something random. Now, do you think this second one should call a tool call?
+19:5019 minutes, 50 secondsDo you think it should do a tool call?
+19:5219 minutes, 52 secondsBoom. So let me go ahead and save this file. Okay. So let me save
+20:0020 minutesthis file. And now let me run this again.
+20:0720 minutes, 7 secondsSo you can see here now. So see this portion it when I when I ask what is scalar company? Can you see there is no
+20:1520 minutes, 15 secondstool called nothing. Here if you recall there were tool called tool result. But here there is no tool called nothing.
+20:2120 minutes, 21 secondsWhy? Because there's no tool where I'm explaining all this thing. Is everybody clear how this work? Now
+20:2920 minutes, 29 secondsno direct function calling is what I have done. I have kept it very simple. I just basically have uh done a tool call.
+20:3920 minutes, 39 secondsWhen it was able to find the function, the first priority for this tool will be going to look at a tool. If it do not find a tool, it will give a generic
+20:4620 minutes, 46 secondsanswer. Right? That's what it did in a what is scalar company. Perfect. If this part is clear, now let's move to the
+20:5420 minutes, 54 secondssecond part of the code. And in this code, what I will do is I will make you show multiple tool calls running up with
+21:0221 minutes, 2 secondsme. So this is going to be fun. Okay, it's going to be superbly fun. Now, so what I will do in this case, let's go
+21:1021 minutes, 10 secondsahead one by one. So in this case, I am going to again import lang chain. All same, no difference. Blank chain
+21:1921 minutes, 19 secondsversion. All same, no difference. I'm going to load my environment. All same, no difference. Again, the same provider.
+21:2621 minutes, 26 secondsYes. So, it's going to be rock uh in itself. Now, again once I have loaded all this key, I just printed out who's
+21:3421 minutes, 34 secondsthe provider, what's the model and blah blah. Nothing else here. Now, in this case, just hold on, just hold on. Few interesting questions are on board, but
+21:4321 minutes, 43 secondshold on. Now so let's see the first function get weather firstly can you notice my city is what I am passing same
+21:5221 minutes, 52 secondsfunction yes so my weather in the whatever city is sunny and this this this I have also written one more
+22:0022 minutesfunction add in this add function if if let's say I
+22:0722 minutes, 7 secondsgive you two number and it says that add these two numbers together then this tool should get automatically called.
+22:1622 minutes, 16 secondsOkay, let's move to the next one. I have also written one more function multiply and as you can see I've defined the
+22:2322 minutes, 23 secondsdescription here multiply two numbers together. So in this case it will take these two variables and we'll return this. Okay, all good till now. Awesome.
+22:3422 minutes, 34 secondsThen after that one more function get population where I will pass a city let's say Bangalore or something and then it is going to I have just
+22:4222 minutes, 42 secondshardcoded it okay I don't want to give anything right now I don't want to make anything fancy I hardcoded let's say if you ask for Bangalore it will give you
+22:5122 minutes, 51 seconds13 million okay so this is a key value pair which I have written for you and it will return citylower in case if we do
+22:5822 minutes, 58 secondsnot found the city it will say I don't have the population data for the city for example let's say if I would have asked for luck now city population it
+23:0523 minutes, 5 secondswould have said I don't have the population data column okay now can you all notice then I have created a
+23:1323 minutes, 13 secondsvariable called as tools and inside that I have told it that okay these are the functions which you have available with
+23:2023 minutes, 20 secondsyou okay now let's go ahead now in this create agent I am just passing that tools variable
+23:2823 minutes, 28 secondsthe list of all the functions either you can directly hardcode it here or I have written it above doesn't matter it's
+23:3523 minutes, 35 secondsjust a variable now I'm saying in this model no difference system prompt is the same no difference with this right now
+23:4423 minutes, 44 secondslet's move on again I will do a ask function so again let's go to ask function so you see this what is the
+23:5123 minutes, 51 secondsweather like in New York it should go and do a tool call yes what is 25 * 4
+23:5823 minutes, 58 secondsshould it do a tool call of multiply yes what What is 137 + 568 tool call of
+24:0624 minutes, 6 secondsadd function what is the population of Bangalore tool call for Bangalore function what's the weather in Tokyo and
+24:1324 minutes, 13 secondswhat is 12 * 12 can I say in this case there will be two tool calls one will be for weather thing and second will be
+24:2224 minutes, 22 secondsthat basically what is multiply function so two tool calls last one who wrote the
+24:2924 minutes, 29 secondsplay Romeo and Juliet what do you think this tool call which tool call
+24:3724 minutes, 37 secondsno tool call right so there will be no tool call so first let's run this and then we will go to the code same thing we will follow what we did in the last session so that it's easy there's no
+24:4624 minutes, 46 secondsShakespeare tool now somebody's saying shan shakes tool which shakes tool I did
+24:5124 minutes, 51 secondsnot created it okay now python ap next
+25:0125 minutes, 1 secondoops I did something messy. What is that mess? Let me fix it. Not a problem.
+25:1025 minutes, 10 secondsLet me check.
+25:1225 minutes, 12 secondsUh back game. py document for jump in this file runner.
+25:2925 minutes, 29 secondsAcha you're saying that multiply function I have not given one second should not be the case I ran it just before the class it's there
+25:3825 minutes, 38 secondshere also it's there just give me a minute just give me a minute I already have this code with me
+25:4825 minutes, 48 secondsbecause I ran this just before this class
+25:5625 minutes, 56 secondsthere's nothing special about it this should definitely Unless and until So where it Yes, correct. Correct. Hold on.
+26:0726 minutes, 7 secondsOh, it's very very crucial. But let me first fix this because that's more crucial for me.
+26:1326 minutes, 13 secondsLet me just save it once. I hope that there is no issue because of that.
+26:2226 minutes, 22 secondsLet's see this time once again. Ah, this time I tried. I really don't know what happened. I just did a control s. So
+26:2926 minutes, 29 secondslooks like uh I might have done some change.
+26:3426 minutes, 34 secondsOkay, let's let's see this. What is the weather like in bank in New York, right?
+26:4026 minutes, 40 secondsCan you now notice that in this case it did a tool call which is get weather and the argument is New York. Yes. Then
+26:4826 minutes, 48 secondsafter that tool result the weather in New York is sunny 28° C. Yeah, because I hardcoded it. Then what is 25 * 4? Again
+26:5826 minutes, 58 secondsit did a tool call. So it called multiply function. I got the result also. Then what is 137 + 568? Can you
+27:0727 minutes, 7 secondssee it have correctly identified the add function on its own? Yes. And it basically gave the output. See this part. What is the population of
+27:1527 minutes, 15 secondsBangalore? Can you see it called correctly uh the get population and then it returned the tool result which is 13
+27:2227 minutes, 22 secondsbillion. Yes. Now afterwards the what's the weather in Tokyo and what is 12 time fells. Can you see it did two tool calls?
+27:3227 minutes, 32 secondsYes that is what you are even thinking of and it give two tool results also for both the tool calls. Yes. Then after
+27:4027 minutes, 40 secondsthat who wrote the play Romeo and Juliet? Can you see there is no tool call?
+27:4627 minutes, 46 secondsYes. Perfect. Now I could see some questions question. How how it was able to do that? Is it come some keyword? No.
+27:5527 minutes, 55 secondsRemember when you are giving these questions, it is going to go and look in the tool what is the descriptions you
+28:0328 minutes, 3 secondshave given. If this description what the function is doing is matching with what type of question you have asked. That's
+28:1128 minutes, 11 secondshow it kind of map that it's a tool call.
+28:1528 minutes, 15 secondsGetting it everyone now that it is that comment is very crucial. You remove the commit and try to run it. It will not work. it will not be able to identify
+28:2328 minutes, 23 secondsanything. Okay. So it's all the thing is automatically being identified because I have already told hey you have all these
+28:3228 minutes, 32 secondstools available with you. So it will go and check every function what you will write. What does this function do? What does this function do? What does this
+28:3928 minutes, 39 secondsfunction do? And then look at your question and that question it will map that which function it's mapping and based on that it will say that okay
+28:4728 minutes, 47 secondswhether I have to do a tool call. If nothing matches up it will do its own answer.
+28:5328 minutes, 53 secondsClear everyone? Now I hope everybody got an idea how it's working now. Okay. Now let's see the ask function. We haven't
+29:0029 minutesyet looked at it. Right. Now in this case look at this. In the ask function I'm passing the question. I'm saying show steps. That's why it was showing
+29:0829 minutes, 8 secondsthe step. Again look at this is the main line agent.invoke. I'm saying as a user ask a question. And then this code is
+29:1629 minutes, 16 secondsexactly same. I'm simply saying if you are a AI message then say that tool call what is the name of the function what is
+29:2329 minutes, 23 secondsthe argument if it's a tool response then tool result and return me whatever response I got that's it right this is
+29:3229 minutes, 32 secondshow it will work yes it's a lang chain framework job if you if your mind is thinking shank what if I start changing
+29:4029 minutes, 40 secondsit to synonyms and all that try that try that on your own okay try that on your
+29:4729 minutes, 47 secondson that what is what AI is nothing but AI message is it a human message AI
+29:5429 minutes, 54 secondsmessage so when a chat GPT response it's a AI message we discussed this in class two so that's why it will match that
+30:0230 minutes, 2 secondsit's a AI message and when it's a tool response then it will map with this l because it is running in a for loop yes
+30:1030 minutes, 10 secondsit's a thinking step correct because it have to go and map Okay. Uh yes, I've already answered this
+30:2030 minutes, 20 secondswhen somebody asked is it going to look at specific keyword? No, I said it will look at the description of the function what you have given.
+30:2830 minutes, 28 secondsOkay. H if you don't provide the comments, it will not work. Simple. And think about it. Do you think it should work?
+30:3730 minutes, 37 secondsDo you think it should work guys? No.
+30:3930 minutes, 39 secondsRight? It should not work. So that is why it is not working. is I hope everybody got a now a better picture how this tool calls and everything works.
+30:5030 minutes, 50 secondsOkay, let me do one thing.
+30:5330 minutes, 53 secondsI am going to give you this code. I'm going to give you maybe 5 minutes. Go over this. Try to understand that what
+31:0331 minutes, 3 secondsthis whole function is doing. If you have the environment ready, if you are practicing what I've given, try to run it. I'm not going to answer if you are
+31:1031 minutes, 10 secondssaying that it's going to throw me an error and all that because there are too many people right now. Try this after the class. If you still get stuck, you know the way. Reach out to TS. They will
+31:1931 minutes, 19 secondsassist you with this case. But at least you will look at the code and try to understand what this is doing overall because after that you will have a better understanding. Is that fine?
+31:2931 minutes, 29 secondsShould I give you Okay, give me a minute for this.
+31:3931 minutes, 39 secondsSo once I will upload it, my team will just provide you the link. So give me a minute.
+32:3032 minutes, 30 secondsSo you will see either a chat from me or from my team uh because I've given it to them. Um they will also be putting it
+32:3832 minutes, 38 secondsover the chat notice board also. Uh can you all look at it?
+32:4532 minutes, 45 secondsUh and confirm me it's working. My team must have given you a link on this.
+32:5232 minutes, 52 secondsOkay. So I'm giving you 5 minutes for this exercise. 5 minute fully concentrate on the code and try to see
+33:0133 minutes, 1 secondevery line what it is doing. Okay? So that you understand this well. First look at B.Y. Because it's a single
+33:0933 minutes, 9 secondsfunction thing. Once you get it, go to A.Y. And like I said, if you already have the environment ready with you and if you have a gro key and all being set
+33:1833 minutes, 18 secondsup, go ahead and even uh feel free to use this. Okay, I can also give one more
+33:2633 minutes, 26 secondsa this is fine good enough for now. Go ahead and look at the code only look at the code for now. Don't try to run it.
+33:3333 minutes, 33 secondsThat would be my suggestion because you don't have requirements for txt file. So uh because you need a lchain and all
+33:3933 minutes, 39 secondsthat part as well. Okay. So see you back in 5 minutes. Go through it completely.
+33:4533 minutes, 45 secondsPlease do not sit
+39:3439 minutes, 34 secondsOkay, perfect. So for all of you are saying that oh I need to install line chain and all. Huh?
+39:4139 minutes, 41 secondsObviously I already told you right now in this five minutes you should have just spended in understanding the code running part. You can do it later once I
+39:4939 minutes, 49 secondswill give you complete code files. But is everybody clear till this point?
+39:5539 minutes, 55 secondsOkay. I hope now you gain slightly better confidence that what exactly it do. Now go back and play around with
+40:0240 minutes, 2 secondsthis code. I'm pretty sure there might be some curiosity like somebody said tell me about minus one thing and all that. That's plain blank Python. Play
+40:1240 minutes, 12 secondswith that. Do few more things when you will get the requirement. PHT file and see what it will happen. Main thing for
+40:1940 minutes, 19 secondsme here is to give you context how agent work. So now if somebody will ask you that whether you understand how agents
+40:2840 minutes, 28 secondswork I hope you will be able to give that answer right that okay building agent is not something very complicated
+40:3640 minutes, 36 secondsI know I have told you very basic thing by now we will do lot of complex thing going forward but at least you got a highle pulse that okay this is not
+40:4440 minutes, 44 secondsdifficult I can do it okay now so let's move on to the other thing so this is a requirement of txt file which I have to
+40:5340 minutes, 53 secondsgive you later. That's what the reason it was not running. If you set it up, it will anyway start working for you. Now let's move to second part. Somebody was
+41:0241 minutes, 2 secondswaiting anxiously for Shivank. Where is that HTML file? So now that HTML file will come up. Okay. So now what I'm
+41:1041 minutes, 10 secondsgoing to do is I'm going to start with something called as rack. So today we
+41:1741 minutes, 17 secondsare going to start on rack ecosystem and that's going to be very very interesting. We will see how exactly we
+41:2441 minutes, 24 secondscan make rag work and what it exactly do.
+41:3241 minutes, 32 secondsYes, it gives the system promp to the model.
+41:4341 minutes, 43 secondsCan you all see my screen where you should be able to see an interesting sub file in front of you
+41:5141 minutes, 51 secondswhich is by the way this uh HTML file will span for two classes not for just today it will span for today class as
+41:5841 minutes, 58 secondswell as for your next class and then in the next class there might be few things extra and in the next class we will be
+42:0542 minutes, 5 secondsbuilding a project exactly like how some people and build their companies and that will be on rat. Okay. So we will uh see exactly how exactly that works.
+42:1742 minutes, 17 secondsOkay. Uh there's a question there's a gap. Okay. Let's take it later. Now let's see this. So what happens?
+42:2842 minutes, 28 secondsUm do all of you remember this case when I told you in class number one what happened with Air Canada?
+42:3642 minutes, 36 secondsSo what happened with Air Canada was that Air Canada they had a chatbot and in that chatbot they responded to
+42:4542 minutes, 45 secondscustomers that yes we do have a refund policy and then those customers went in and sued their Canada and then basically
+42:5242 minutes, 52 secondsthe court said that chatbot is your employee so basically you have to pay the refund. Yes, that's what happened
+42:5942 minutes, 59 secondswith Air Canada. Now what was exactly that issue about because what happened
+43:0643 minutes, 6 secondsLLM was uh not able to LLM had no data about it. It was it just went it in a
+43:1443 minutes, 14 secondsgeneral scenarios and generally what happens when most of the companies have different policy. So it learned that and it gave a generic answer but it's
+43:2343 minutes, 23 secondsdifferent for different companies right every company have different customer policies. For example, in scalar when
+43:3043 minutes, 30 secondsyou are inside scalar I can if I say what is PSP? Your PSP is 80. Will all of you be be able to understand it?
+43:4243 minutes, 42 secondsPSP come on. Two people said no. Three people said no. Come on.
+43:4743 minutes, 47 secondsPSP problem solving percentage. You will be able to understand that how many problems you solved and all that. You
+43:5443 minutes, 54 secondssee a dashboard where you see all that part.
+43:5843 minutes, 58 secondsOr if I say uh business case or if I say how much marks you got in this but these are very specific scalar related
+44:0644 minutes, 6 secondscontext. Now if I ask the same question to LLM that tell me my PSP do you think
+44:1244 minutes, 12 secondsLLM will have answer one person have very nicely given an
+44:2144 minutes, 21 secondsanswer. uh it will think that it's a PlayStation and it will it will start answering a gaming console or anything
+44:2944 minutes, 29 secondspossible right so the thing is outside what do not know this so what is the solution then I have right so one
+44:3844 minutes, 38 secondssolution is I can keep creating functions but do you think in functions I should be able to hardcode all of that if the data is small do that but what if
+44:4744 minutes, 47 secondsmy data is larger then I need a database to keep that database will be called as rack.
+44:5644 minutes, 56 secondsNow when I say rack, you may say Shivank how this is different from Oracle database, MySQL database which we have already learned at some point of time.
+45:0745 minutes, 7 secondsThere is going to be a difference.
+45:0945 minutes, 9 secondsSo this DB have some properties and this property is majorly called as
+45:1745 minutes, 17 secondssemantic similarity and we will discuss about what do you mean by semantic similarity once I will
+45:2645 minutes, 26 secondsbe explaining this concept. So basically if I look at this diagram right I love
+45:3345 minutes, 33 secondsdiagrams that's why I've done this. If if I look at this diagram, can you see I have mango, banana, grape? Can I say
+45:4245 minutes, 42 secondsthey are having a similar property somehow? They're all fruits.
+45:4645 minutes, 46 secondsYes. Similarly, if I say tiger, cat, dog, can I say they will be having a similar property? Yes. Then similarly,
+45:5545 minutes, 55 secondsif I say queen or king, similar property? Yes. So what it is doing is in
+46:0346 minutes, 3 secondsthe coordinate system it will try to place let me try to make this bigger.
+46:1146 minutes, 11 secondsOkay I hope this is good enough now. So what it will do it will try to place similar things nearby in the coordinate system.
+46:2246 minutes, 22 secondsHow it works let me give you a small idea okay so that you get a context what it do. So I hope all of you can see my
+46:3246 minutes, 32 secondswhiteboard now. Okay. So let me take up a movie name. So what it do is let's say
+46:4046 minutes, 40 secondsif I give you a movie name. So currently which is the uh movie which is running.
+46:4546 minutes, 45 secondsI think there's a movie running welcome to jungle right? Welcome to jungle.
+46:5646 minutes, 56 secondsOkay. Now, so what it do is it convert welcome to jungle to set of numbers.
+47:0347 minutes, 3 secondsOkay. So set of numbers could be 0.8, 0.2, 0.1,
+47:1047 minutes, 10 seconds0.5, da da da da, 0.9 something like this. Right? Now you what's the size? The size we will
+47:1947 minutes, 19 secondsdiscuss in some time. Maybe it's let's say 100 size. Just giving an example.
+47:2547 minutes, 25 secondsNow I am I'm pretty sure you must must be thinking Shiva what is this numbers right I will come to it.
+47:3247 minutes, 32 secondsSo what is going to happen is these numbers basically the model learns somehow how that learns there is a
+47:3847 minutes, 38 secondsconcept called as NLP natural language processing where it use something called as neural
+47:4547 minutes, 45 secondsnetwork okay by the way neural network I'm not telling you now but I will see if you guys will continue to come in and
+47:5447 minutes, 54 secondsdo not drop too much of attendance I have even uh this in mind that I want to show you how you can build and LLM model from scratch.
+48:0548 minutes, 5 secondsOkay. Now if you want to learn that then I have to teach you what is neural network but that's a later part. Let's let's
+48:1348 minutes, 13 secondsjust suspect that there is something which exist and what it do it learns these numbers through neural network.
+48:1948 minutes, 19 secondsThen neural network will work something like this. Let's say 0.8 denotes let's say something called as comedy and it
+48:2748 minutes, 27 secondswill internally know this. You will not know this. So it have given comedy as 0.8. I have not seen this movie but I
+48:3448 minutes, 34 secondsheard that it's a comedy movie right maybe 0.2 denotes that how much
+48:4148 minutes, 41 secondspercentage of this have action inside it. How many of you have watched this movie by the way? So that you can confirm me whatever I'm saying is correct or wrong.
+48:5348 minutes, 53 secondsquite less paper maybe 0.1 might be denoting that okay is it a
+49:0449 minutes, 4 secondsuh adventure or something like that right maybe 0.9 is denoting whether it have a kumar inside it
+49:1249 minutes, 12 secondsright so it will learn some of the component like this now let's talk about another movie um
+49:2049 minutes, 20 secondslet's take another movie let's say bullaya Now tell me if this bully I have to
+49:3049 minutes, 30 secondslearn was bully also comedy was this also comedy movie yes so can I
+49:3849 minutes, 38 secondssay that this score at this index because zerooth index denotes comedy this will also be high can I say this is
+49:4449 minutes, 44 secondslet's say 0.82 82 yes so it is going to be committed then afterwards is bunda having action
+49:5249 minutes, 52 secondsno so can I say this will also be low let's say 0.21 into one it's going to have action maybe this part was talking
+50:0250 minutes, 2 secondsabout something right and same way there are other things now in the last whether this also have a kumar if I talk about bublaya one yes so can I say this might
+50:1150 minutes, 11 secondsbe 0.95 yes this also have aar so if two objects which are very similar to each other can
+50:2050 minutes, 20 secondsI say their coordinates will also be very very close to each each other.
+50:2850 minutes, 28 secondsYes, their coordinates will also be very very close to each other. So if I plot this, I know it's a n dimensional so it will not be able to plot. But let's
+50:3650 minutes, 36 secondsimagine if it's a two-dimensional. So in that case, can I say that bulba and the second movie which is welcome to jungle
+50:4450 minutes, 44 secondsthese two will be closer to each other in the coordinate system.
+50:4950 minutes, 49 secondsYes, it will be closer. Now I hope if I take you back to this diagram are you able to understand how they're closer.
+50:5750 minutes, 57 secondsThis is called as semantic similarity clear
+51:0651 minutes, 6 secondsit's very easy concept this is what exactly is semantic similarity so if somebody ask you how semantic similarity work you can do that huh you can plot
+51:1451 minutes, 14 secondseach and everything definitely not you cannot plot in 2D dimension but you can plot it for example let's say if I give
+51:2351 minutes, 23 secondsyou these coordinates 100 comma uh 200 let's say this is my coordinate
+51:3051 minutes, 30 secondsfor the first one and let's say second one is 101 comma uh 199 tell me oh sorry
+51:3951 minutes, 39 secondssorry sorry sorry sorry sorry sorry
+51:3951 minutes, 39 secondssorry sorry sorry sorry sorry sorry
+51:4751 minutes, 47 secondsgive me the distance between them will it be closer or not
+51:5551 minutes, 55 secondsyes everybody know right how to get the ukidian distance x1 - x2 whole square + y1 - y2 whole square so we will do
+52:0552 minutes, 5 secondssomething like this right 100 - 101 square with 200 - 199 square right so
+52:1352 minutes, 13 secondssome number will come so this distance will be lesser right in those case but we don't use this walla ukidian distance
+52:2152 minutes, 21 secondswe use something called as cosine similarity now I'm not going to go into detail of this for now. Okay, this will come
+52:2852 minutes, 28 secondslater. But just to give you an idea how cosine similarity works. If two points are going to be closer to each other,
+52:3652 minutes, 36 secondsthen in that case, can I say this angle theta will be lesser for them?
+52:4352 minutes, 43 secondsThe angle between them will be closer right if two points are closer to each other. This if we calculate, we call this as cosine similarity.
+52:5452 minutes, 54 secondsOkay? in I'm just keeping it simple layman terms for now I'm not keeping it complex so that you understand that okay
+53:0153 minutes, 1 secondthis is another method to compute distances so just like ukidian distance will come out to be smaller in this case cosine similarity will also be
+53:0953 minutes, 9 secondsaccordingly okay I will come back to it so what we do if this theta angle is smaller the cosine similarity value will
+53:1753 minutes, 17 secondsbe higher two of the points are more similar to each
+53:2453 minutes, 24 secondsIf cosine similarity number comes out to be higher.
+53:3053 minutes, 30 secondsSo theta small cosine similarity high as simple as this. Okay. So this is what it will be doing. So we are going to look
+53:3853 minutes, 38 secondsfor higher cosine similarity. If we are looking for similar two things just like
+53:4553 minutes, 45 secondsin this example I said grape and banana are similar in nature. So in this case the cosine similarity for this will be
+53:5353 minutes, 53 secondshigher or in other words I can say that theta angle between them should be lower. Okay simple perfect. So this is
+54:0154 minutes, 1 secondwhat we will do simple now it's basically cos 0 you know
+54:0754 minutes, 7 secondsknow this right cos 0 cos 20 cos 180 so basically this might have a higher number and all that. So basically this
+54:1654 minutes, 16 secondsis we will be looking at a formula from that formula we compute all this dot product and all that but so it's it's
+54:2354 minutes, 23 secondsall sorry I don't know why I'm skipping this huh I was just telling so this you know this part right cos 0 cos 90 cos
+54:3354 minutes, 33 seconds180 agree so the value keep changing right across with that so if if it's co
+54:4154 minutes, 41 secondszero maybe this value could be accordingly higher or Okay. Yes. Yes. And there's a formula
+54:4854 minutes, 48 secondsfor that. I'm going to come to it what exactly how this formula looks like. For now, I'm just keeping it in a layman term so that you understand first of all
+54:5654 minutes, 56 secondsthe concept. I haven't even started that yet. I'm just telling you a few of the very basic simple thing so that you
+55:0355 minutes, 3 secondsunderstand that what exactly is the case here. Okay. Now and everything including this math I'm going to cover. So you
+55:1255 minutes, 12 secondsneed not worry about oh shak how I will remember this is just understand in a lay manner now but this part is clear
+55:2055 minutes, 20 secondsnow to everyone intuitively intuitively I'm not saying fully clear intuitively clear how this is working
+55:3055 minutes, 30 secondsawesome so in class two we already learned about agent that how they could act but like I
+55:3855 minutes, 38 secondssaid it do not know about your data For example for scalar it do not know what is PSP in generic what it do not know
+55:4655 minutes, 46 secondswhat is PSP. So today we will fix that through rack and we will be building system by the way this is going to come
+55:5455 minutes, 54 secondsin your next class not in today class where uh I don't know how many of you have seen this uh PDF application
+56:0256 minutes, 2 secondsnowadays if you go to acrobate reader it will say that uh if you have a PDF in front of you you ask any question from it will be able to explain you the
+56:1156 minutes, 11 secondsdetails about that have you noticed this yes we are going to build exact same application
+56:1956 minutes, 19 secondsSo that you will be able to give in fact this is going to be very helpful for you. What you can do after that all the
+56:2656 minutes, 26 secondsclass notes which I give you now you put it like a rack system create a rack system and I will tell you all the
+56:3256 minutes, 32 secondsthings free of cost. So you can use uh rack of chromma or something. I will use chroma fs and all that. Uh so you can
+56:4256 minutes, 42 secondsuse the free of va thing and you can put all your nodes into the rack. I will explain you how you can put all the things there including your IP YB and
+56:5156 minutes, 51 secondseverything. Once you put that then after that let's say you want to revise any topic or you want to understand some example let's say you say that hey what
+57:0057 minutesexample Shivank have given for this it will be inside your rack ask the question it will give you answers don't
+57:0657 minutes, 6 secondsyou think that will be awesome yes so that's the idea I hope all of you
+57:1357 minutes, 13 secondshave used companion of scalar h it will read everything I will show you a lot of examples
+57:2257 minutes, 22 secondsBut companion yes now tell me don't you think then companion must be doing something similar
+57:3057 minutes, 30 secondsyes I'm not saying exactly fully similar there are a lot of things which in companion but I hope all of you are able to relate now how companion must be
+57:3757 minutes, 37 secondsworking so we must have put or use some part of the rag for it right we have put our context there so whenever the
+57:4557 minutes, 45 secondscompanion you ask any question the companion basically go to my rag ecosystem system from there it retrieves the data and gives you the response.
+57:5557 minutes, 55 secondsOkay. So a lot of things around you you are already using it just that you have you're not even thinking through that's it. So let's move on.
+58:0558 minutes, 5 secondsSo the first part we what we are going to learn in fact what we have already done that uh your agent have two
+58:1558 minutes, 15 secondsproblems. We have done about agent in the first half and in the agent we have uh learned that okay you can write
+58:2258 minutes, 22 secondsfunctions and all that but still you do not know anything about the data unless and until you hardcoded there right for
+58:2858 minutes, 28 secondsexample if your company some specific policy like for example whether you have
+58:3558 minutes, 35 secondsrefund policy or not whether uh some terminologies related to your company like BSP they do not know about it so in
+58:4458 minutes, 44 secondsthat case if we do not know it will start h hallucinating just like what it did with air Canada so what it did with
+58:5258 minutes, 52 secondsair Canada it do not knew the answer it just went and looked at a generic thing that what generally companies do and it
+58:5958 minutes, 59 secondsgave a generic answer that's going to be very very risky so today class we are going to fix that not in today class completely because it's just the
+59:0759 minutes, 7 secondsstarting but huh by next class we are going to fix this so let's see how exactly we kind of play with Now let me give you another example.
+59:1759 minutes, 17 secondsOkay, if you see what we have learned by now that how model was able to choose a tool. In fact, it's not in the last
+59:2459 minutes, 24 secondsclass. We did it today. How it was choosing the tool. Today the tool is your own library. So what I'm going to
+59:3159 minutes, 31 secondsteach you in the second half is going to be how you will be able to use this as a data set completely. And then your tool
+59:4059 minutes, 40 secondsthe function call which you were doing that will go to the rack system and give the answer just like how it was reaching to function and giving the answer now it
+59:4859 minutes, 48 secondswill go to my rag ecosystem get the answer get the data from there that is what it will do. So think of rag it will
+59:5559 minutes, 55 secondsexactly treat intuitively you can treat rag like your functions as simple as this. So that is what we
+1:00:041 hour, 4 secondswill be doing right. So we will see exactly uh how to basically play around and get all those responses. And I hope
+1:00:111 hour, 11 secondsall of you got the answer by now that why I teach first agents. I told you how agent even if I have multiple functions
+1:00:191 hour, 19 secondsit was able to give me response and now I'm going to wrap. I could have started with raph first but and that's what you
+1:00:261 hour, 26 secondswill see most of the books do but that's become confusing. I want you to know agent first. This is agent. Now from
+1:00:331 hour, 33 secondsthis agent you can play around so many things. I will slowly it gives me the possibility now to make the things complex slowly for you right because
+1:00:421 hour, 42 secondsultimately you should know that how to build all this product end to end for yourself. Okay so I could see that one or two people have already written me
+1:00:501 hour, 50 secondsout that give me a small break. It's okay we can do that now. Uh but till this point everybody clear? I hope there's no confusion running.
+1:01:001 hour, 1 minuteAwesome. So let's do one thing. Let's connect after a break. Okay. Um how we will see how the agent will work and all
+1:01:081 hour, 1 minute, 8 secondsthat. Hold on for this. But for now, let's have a break and we will come back and continue with this. So be back in next 5 minutes.
+1:06:201 hour, 6 minutes, 20 secondsOkay, I hope everybody is back. Uh there's a question on that in class 2 we did something like chatbot. What's the difference? Chatbot was different from
+1:06:281 hour, 6 minutes, 28 secondsthis agent. There is no relation of that chatbot with this agent. By the way, that was AI message, human message. How
+1:06:361 hour, 6 minutes, 36 secondsyou can keep appending and keep on talking with the LLM model. I did not that part itself is not called as agent.
+1:06:441 hour, 6 minutes, 44 secondsOkay. Now now let's go back to this. So see this component what all we are going to cover. So we will understand now what
+1:06:521 hour, 6 minutes, 52 secondsis rack again very quickly what we have done in the first half. What is the rack mental model in one picture I will give you that idea. What is embeddings?
+1:07:021 hour, 7 minutes, 2 secondsEmbeddings are nothing but these numbers which I showed you but I will talk more in detail. Then some chunking uh very
+1:07:091 hour, 7 minutes, 9 secondsimportant step without this you can't build any good architecture per rack then you will be building 30 lines of
+1:07:161 hour, 7 minutes, 16 secondsrack some live coding I will make you do uh how you can make it better and so on now let's see this
+1:07:251 hour, 7 minutes, 25 secondsso firstly why rack exist I have already explained you number one problem I have already explained you what how it
+1:07:331 hour, 7 minutes, 33 secondshallucinate right so air Canada was an example for it. If I don't have the private or internal data, for example,
+1:07:411 hour, 7 minutes, 41 secondsPSP, then I need RA knowledge cutff. LLM models are not trained for today. LLM models are was trained long time back.
+1:07:531 hour, 7 minutes, 53 secondsNow you might be thinking Shbam but if I ask my claude, hey tell me that what's the weather of today? It's give me immediate answer. Can you tell me why?
+1:08:081 hour, 8 minutes, 8 secondsCan you tell me why? Yes, it's doing a tool call.
+1:08:151 hour, 8 minutes, 15 secondsIt's doing a tool calls there. So, it is also connected with Google search APIs and all that. So, when you run on cloud
+1:08:231 hour, 8 minutes, 23 secondslot of times notice it it keeps on giving comments. Notice that what it says it will say okay I don't have that answer let me go and search from the
+1:08:311 hour, 8 minutes, 31 secondstool. user is asking for uh current weather. Have you noticed this kind of messages coming from cloud or charge GPD?
+1:08:391 hour, 8 minutes, 39 secondsSo it's basically doing those calls. Now you can understand what it's doing actually. Okay. So when these models say
+1:08:461 hour, 8 minutes, 46 secondsright that we have you can do agentic work. This is what they mean by this because internally it's doing all that automatically.
+1:08:541 hour, 8 minutes, 54 secondsSo then it's basically doing a tool call and giving you the response. So the problem is these models who are who were
+1:09:011 hour, 9 minutes, 1 secondtrained one year two year back now they don't have the decent information unless and until somebody have given me a tool for that basically the clot team have
+1:09:091 hour, 9 minutes, 9 secondsgiven a tool for that then it's fine but in case clot team have not given a tool for that and something latest comes up then you're gone
+1:09:171 hour, 9 minutes, 17 secondsright then you're gone if it's not there in Google search it it's gone case so that's what is the second problem that's
+1:09:251 hour, 9 minutes, 25 secondswhy we need rack no site ations. This is a very important problem. So generally in today world we can't trust anything
+1:09:331 hour, 9 minutes, 33 secondsright. So what happens is like if if let's say when the rack is giving answer if along with that answer it can also
+1:09:401 hour, 9 minutes, 40 secondssay that hey you know what this answer I got from this documentation for example let's say if you ask a question uh what
+1:09:491 hour, 9 minutes, 49 secondsis my num what is my leave policy now that leave policy depends on company to company. What if you ask this question
+1:09:571 hour, 9 minutes, 57 secondsand it gives a illustrated answer. You don't know that right? So how about it tells you that okay this is the answer and this is the cited source from which
+1:10:061 hour, 10 minutes, 6 secondsI'm giving you this response. This is the company HR policy of leave policy from where I gave you the response. In
+1:10:131 hour, 10 minutes, 13 secondsfact, how many of you have noticed this that lot of times when claude gives the answer, it give you source.
+1:10:271 hour, 10 minutes, 27 secondsSo that is also it automatically doing.
+1:10:301 hour, 10 minutes, 30 secondsSo this is something which rack can do for you. But a plain LLM model which we were doing through code cannot do. Okay.
+1:10:371 hour, 10 minutes, 37 secondsSo there you need to take care. See when you are working in claude now that environment of claude or chatgptt.com
+1:10:441 hour, 10 minutes, 44 secondsall the tools and all are made available by them but when you're writing code then those tools automatically are not
+1:10:511 hour, 10 minutes, 51 secondsavailable to you at that time you need to have your own functions to work on it. Okay so that is what it will do.
+1:11:011 hour, 11 minutes, 1 secondSo there's an interesting question somebody said what if Shivang there are 10,000 sources so it will just try to figure out which source is most
+1:11:071 hour, 11 minutes, 7 secondsauthentic and it will give that but it will give you only one source okay how rack stores so much of data
+1:11:151 hour, 11 minutes, 15 secondsinteresting by the way it's planned already but to give you that response rag is a DB just like how Oracle DB can
+1:11:241 hour, 11 minutes, 24 secondsgive you lot of data it can store all of that similarly it's a DB so there are multiple DBs what we have in again. So
+1:11:311 hour, 11 minutes, 31 secondsif you want uh Chromma DB or FireSDB which is open source then it's uh very
+1:11:381 hour, 11 minutes, 38 secondslimited. Let me show you. In fact I must have this somewhere.
+1:11:471 hour, 11 minutes, 47 secondsNot here. It should be there somewhere.
+1:11:571 hour, 11 minutes, 57 secondsI have kept it where it is gone. Okay.
+1:12:081 hour, 12 minutes, 8 secondsOkay. I'm not getting it right now, but it's there somewhere for sure. It's there. I need to search it up. So, uh if
+1:12:151 hour, 12 minutes, 15 secondsI basically tell you, I've I put on basically all the different different uh DB, but I can explain you right away also. So basically in that DB case what
+1:12:241 hour, 12 minutes, 24 secondshappens is like for example if you're using Croad DB it's free of cost definitely it's not going to be the best right because it's free of cost. So if
+1:12:321 hour, 12 minutes, 32 secondsyou are just creating PC's so then you can keep uh data size equivalent to hardest size what you have available on
+1:12:401 hour, 12 minutes, 40 secondsyour laptop but in case if you are let's say uh you want to scale then cloud
+1:12:481 hour, 12 minutes, 48 secondsprovides lot of drag DB for example pine cone now pine cone you don't need to worry about operation and all that lot of
+1:12:561 hour, 12 minutes, 56 secondspeople use pine cone by the way lot of companies use that so that pine cone is something which you can use and that pine cone is uh like for scalability
+1:13:041 hour, 13 minutes, 4 secondsit's very very good I can just show you very quickly in pine code even I have used this in the past so you can see pine code the vector DB to build
+1:13:131 hour, 13 minutes, 13 secondsknowledgeable AI so then you have to pay some cost you can see there's a pricing part for it you have to pay some cost in
+1:13:201 hour, 13 minutes, 20 secondsthis case but pine cone is like very good like it will it will it's a rack system you can see this is give agent context and all right because it it
+1:13:291 hour, 13 minutes, 29 secondsstore the data like fast retrieval accurate results, lower cost, patent seconds. So you can see all these big
+1:13:361 hour, 13 minutes, 36 secondscompanies uses it. Pine code that's why I said it's a very famous one. Even Fox is it this is a very good company. Okay.
+1:13:431 hour, 13 minutes, 43 secondsHeights and cloud it's available as a part of cloud ecosystem and you can very easily use it. You have to just install
+1:13:511 hour, 13 minutes, 51 secondsit like a plug-in and can start using that. But pine cone is like you can keep indefinite whatever number of things you want to keep. So when it comes to
+1:13:591 hour, 13 minutes, 59 secondsenterprise then companies go for things like pine cone. Pine cone is not the only one but I just showed you because I have myself used this. Okay. Now let's move on.
+1:14:101 hour, 14 minutes, 10 secondsSo this is one part. Now I will beh walking you over. I've already explained you that what is this rack do and all
+1:14:171 hour, 14 minutes, 17 secondsthat. Now all these companies notion AI, Glean, Perplexity, Intercom Finance,
+1:14:251 hour, 14 minutes, 25 secondsCursor, Chat GPT, Search, they all internally are using pine core.
+1:14:331 hour, 14 minutes, 33 secondsSo these all are keeping their data into this including chat GPT. That's the reason you saw this here right you can see even here I think it will come even
+1:14:421 hour, 14 minutes, 42 secondsCisco. I think they must have written open AI because that's a big name.
+1:14:451 hour, 14 minutes, 45 secondsAnybody have noticed that already open AI? Let me refresh. It should come.
+1:14:531 hour, 14 minutes, 53 secondsYou can see right open AI. So open AI when you write query there in chatgpt.com.
+1:15:001 hour, 15 minutesSo when it have to use those uh data set the latest data they keep on storing inside a rag that rag is nothing but
+1:15:081 hour, 15 minutes, 8 secondspine cone for them. So even charge GPT at the back end pay that cost.
+1:15:141 hour, 15 minutes, 14 secondsSo it's that famous that imagine that these LLM models are using pine cone. Okay. Now coming back to this.
+1:15:221 hour, 15 minutes, 22 secondsSo all these big companies are doing this. So main thing here to understand what this rag ecosystem will do for me.
+1:15:311 hour, 15 minutes, 31 secondsThink of it as a library. Okay. So now if I have to let's say uh search a book for you, right? Or if I have to search a
+1:15:391 hour, 15 minutes, 39 secondsquestion uh from a book which is pretty thick book as in this example 800page book in that case if you have to start
+1:15:471 hour, 15 minutes, 47 secondsguessing it will be wrong right but what if I can give you from that book the most relevant three pages from where you
+1:15:561 hour, 15 minutes, 56 secondscan get your answer then will it be easy for me to extract and create my answer if I just tell you that okay out of
+1:16:031 hour, 16 minutes, 3 secondsthese 800 pages these are the three pages you can just read that and you are good to go. Then you can create your own
+1:16:101 hour, 16 minutes, 10 secondsanswer. This is what rag also do. So rag will not give you that okay take this
+1:16:171 hour, 16 minutes, 17 seconds800 page book. It will say out of this 800 page let me make the smaller smaller chunks. This is called as chunks
+1:16:251 hour, 16 minutes, 25 secondsbasically smaller smaller chunks. Let's say page one is one chunk. Page two is another chunk. Page three is another chunk. So it will give you chunk and from that chunk it will say okay page
+1:16:341 hour, 16 minutes, 34 secondstwo, page three, page four have the answer what you're asking.
+1:16:371 hour, 16 minutes, 37 secondsgo and search. Now LLM can do the job because now LLM only need to read these three pages and from those three pages it will be able to give the response.
+1:16:461 hour, 16 minutes, 46 secondsNow your question should be Shivak how we will identify those three pages I will explain you those three pages if
+1:16:531 hour, 16 minutes, 53 secondsyou want me to answer right now also it's a cosine similarity part which I already gave you one hint okay so cosine
+1:17:011 hour, 17 minutes, 1 secondsimilarity is what we will keep doing from the question and that cosine similarity will help me to get those three pages which are the best three
+1:17:081 hour, 17 minutes, 8 secondspages and then from those three pages I need to further get my response okay this is an analogy which I have
+1:17:161 hour, 17 minutes, 16 secondsbasically just explained you. So what it will do? So you are you have given a question it will go and try to find out
+1:17:241 hour, 17 minutes, 24 secondsthe chunks. Now everybody is able to understand what you mean by chunk small section of the book. So I don't want the whole data all together. I want small
+1:17:321 hour, 17 minutes, 32 secondssmall section then it will uh stuff all of those chunks. Let's say three chunks
+1:17:391 hour, 17 minutes, 39 secondsI got top three chunks. I will stuff it into the prompt that give me the answer from these three chunks. and then the LLM will be doing the job because from
+1:17:481 hour, 17 minutes, 48 secondsthree pages giving me the answer is more easier for me to do that and the answer is going to get out along with the source citation. So it will say that
+1:17:571 hour, 17 minutes, 57 secondsokay these from these three pages I am giving you this answer think in this way let's say your company
+1:18:041 hour, 18 minutes, 4 secondshave a huge HR policy doc now you are asking a question tell me about a leave policy
+1:18:121 hour, 18 minutes, 12 secondsnow in that leave policy it will be available in some two three chunks how it must have divided so it will let's
+1:18:191 hour, 18 minutes, 19 secondssay the HR policy have 1,000 page out of thousand page maybe only two pages might have the leave policy So it will figure
+1:18:271 hour, 18 minutes, 27 secondsout the top pages which match with my question and that will happen with the cosign
+1:18:341 hour, 18 minutes, 34 secondssimilarity. Then those two pages it will pass it to LLM model. LLM model will read those two pages and whatever
+1:18:411 hour, 18 minutes, 41 secondsquestions you have asked from the reading it will give you the response and once it is giving you the response it will also site that okay from this
+1:18:501 hour, 18 minutes, 50 secondspage number two and page number three where I saw the leave policy I am giving you this response. Is everyone clear now?
+1:18:581 hour, 18 minutes, 58 secondsOkay. So this is what I do. Now there's an interesting question which came up.
+1:19:051 hour, 19 minutes, 5 secondsQuestion is Shivang. Then why companies use chat uh chatbot for such queries?
+1:19:101 hour, 19 minutes, 10 secondsYou guys answer don't you think that chatbot is connected with the rag only then?
+1:19:191 hour, 19 minutes, 19 secondsYes.
+1:19:241 hour, 19 minutes, 24 secondsSo that chatbot have to connect with rag only. Chatbot is what? It's just a user interface just like how we are creating
+1:19:321 hour, 19 minutes, 32 secondsour grado all the time. So chatbot is also doing the user interface for me.
+1:19:381 hour, 19 minutes, 38 secondsThat user interface is but connected with the rag ecosystem. That is the main context. There was another question.
+1:19:451 hour, 19 minutes, 45 secondsShiva why cosign civility? You yourself think and tell me. If my question is tell me about the leaf policy. See as a
+1:19:541 hour, 19 minutes, 54 secondshuman if I ask you go and tell me what's a leave policy and this is the HR doc what you will do will you read every
+1:20:011 hour, 20 minutes, 1 secondpage or will you just try to look at okay which page is sounding similar to my question what you will do
+1:20:101 hour, 20 minutes, 10 secondsyou will only read the page which have my related question right agree you will not start looking at read from line to
+1:20:181 hour, 20 minutes, 18 secondsline everything you will start try to find which section might have my answer Right. So don't you think that's a similar thing which cosine similarity
+1:20:261 hour, 20 minutes, 26 secondswill also do given your question for which I will have those numbers which we call it as embedding. Then this book chunks those chunks will also have some
+1:20:351 hour, 20 minutes, 35 secondsnumbers. So these numbers it will try to match whether they are equal or not.
+1:20:411 hour, 20 minutes, 41 secondsWhether they are close or not right exact similar to you will not get whether they are close or not. That is what it will do.
+1:20:501 hour, 20 minutes, 50 secondsclear everyone what exactly is happening now okay whoever asked that question perfect now there's another question
+1:20:571 hour, 20 minutes, 57 secondsShivan what where and why we are keeping in Pyon it's a rack DB now just like how you have Oracle DB MySQL DB similarly if
+1:21:061 hour, 21 minutes, 6 secondsyou're keeping the data where you're keeping the conversion of numbers with the embeddings which I explained you
+1:21:131 hour, 21 minutes, 13 secondsright where I said uh welcome to jungle movies getting converted to these numbers so along with the data you have
+1:21:201 hour, 21 minutes, 20 secondsto keep numbers. So where which DB I keep that DB is nothing but called as spine core.
+1:21:271 hour, 21 minutes, 27 secondsOkay because if you have a large data then you need to store in something which is more reliable for you where you can scale this.
+1:21:361 hour, 21 minutes, 36 secondsOkay.
+1:21:381 hour, 21 minutes, 38 secondsHuh? You can you can you can switch uh huh it will always do semantic but not mandatory.
+1:21:461 hour, 21 minutes, 46 secondsI will teach you there is something called as BM25 very famous one. So I will also explain you where it use what.
+1:21:591 hour, 21 minutes, 59 secondsAnother question. One last question. Let me pick up before I move on. Explain me again the chunking part.
+1:22:071 hour, 22 minutes, 7 secondsAbby. I haven't gone to that step. So wait for it maybe 5 minutes. In 5 minute
+1:22:141 hour, 22 minutes, 14 secondsit will come. Okay. Now but I hope remaining people have got this. What do you mean by chunking? Intuitively what is chunking? I hope everybody have got
+1:22:221 hour, 22 minutes, 22 secondsit. It's the division of your data set into smaller smaller part. That's it.
+1:22:281 hour, 22 minutes, 28 secondsLet's say if I give you whole pizza and I say eat it. Now eating the pizza all together. Is it easy?
+1:22:371 hour, 22 minutes, 37 secondsIs it easy to consume the whole pizza?
+1:22:401 hour, 22 minutes, 40 secondsNo. So what you do? You cut it into small small parts and then you pick up that small slice and then start eating.
+1:22:491 hour, 22 minutes, 49 secondsBut cutting it does this make pizzas as something else? Is it making pizza as burger? No. Right. Pizza is still pizza.
+1:23:001 hour, 23 minutesBut I divided it so that it's easy for me to consume. I hope now at least you got the context.
+1:23:081 hour, 23 minutes, 8 secondsSo dividing into small small part so that it's easy for me to search.
+1:23:131 hour, 23 minutes, 13 secondsThat is what we will do exactly in this case. Correct. Correct. Now, so now in this case, uh I have already told you
+1:23:221 hour, 23 minutes, 22 secondsfirst we will do indexing. What do you mean by indexing? Firstly, I will make chunks small parts. Once I will make
+1:23:301 hour, 23 minutes, 30 secondssmall small parts for every part I will do an encoding. Encoding means those numbers. Welcome to jungle numbers. So you will be converting into numbers.
+1:23:411 hour, 23 minutes, 41 secondsThen the second is querying. So when I when I ask a question from chatbot hey what is my uh leaf policy then at that
+1:23:491 hour, 23 minutes, 49 secondstime the question it will first convert into those numbers and then do a cosign similarity to check whether it's uh
+1:23:581 hour, 23 minutes, 58 secondswhich which chunk is closer to my question what I have asked that is what it will do okay so this is
+1:24:051 hour, 24 minutes, 5 secondshow it plays around now so this is what we will play and now the embeddings part I have already explained but let me give
+1:24:141 hour, 24 minutes, 14 secondsyou a picture now what should be the size of those number list like I said right it the earlier was I said 0.9
+1:24:221 hour, 24 minutes, 22 secondscomma 0.2 0.8 8. But what should be the size of that list? The different models
+1:24:311 hour, 24 minutes, 31 secondshave created different different embeddings for it. Some keep it of 384 size. Some keep it of 768 size. Some
+1:24:401 hour, 24 minutes, 40 secondskeep it of 3,72 size. So once we will go deeper into it, we will understand more on this part.
+1:24:471 hour, 24 minutes, 47 secondsBut every company have tried to come up with this embedding with different different sizes. Okay. So that is what
+1:24:551 hour, 24 minutes, 55 secondsthey have done. Now let me explain you something interesting here. Firstly let's see this.
+1:25:031 hour, 25 minutes, 3 secondsThe math for this embedding is very very interesting. Superbly interesting. If I
+1:25:101 hour, 25 minutes, 10 secondsshow you this part king will have some numbers. Man will have some numbers.
+1:25:181 hour, 25 minutes, 18 secondsWoman will have some numbers. Firstly everybody agree on this. Let's say king will have numbers 1.9A 6.2 7.5 comma
+1:25:271 hour, 25 minutes, 27 secondssomething something something. Similarly man will also have some numbers. So let's say 5.5 6.2 7.8 or whatever. Then
+1:25:371 hour, 25 minutes, 37 secondswoman will have some number. If you do this interesting math okay let's say king minus man plus
+1:25:441 hour, 25 minutes, 44 secondswoman. These numbers I just put down and just adding up and subtracting them.
+1:25:491 hour, 25 minutes, 49 secondsWhat do you think should be the generic English answer?
+1:26:011 hour, 26 minutes, 1 secondPerfect. Less people have answered but answered. Can I say it's queen?
+1:26:071 hour, 26 minutes, 7 secondsYes. So you will notice that when I will do the math the number output what you will get that number output will be equivalent to queen word.
+1:26:201 hour, 26 minutes, 20 secondsLet me show you. See king minus man plus woman. So this embedding math is so interesting.
+1:26:281 hour, 26 minutes, 28 secondsBy the way you will also learn later how to do that math. For now it's just intuitive understanding. When you will go to that maths part. So you will see
+1:26:361 hour, 26 minutes, 36 secondsthis is so interesting math that when you will start doing this whatever we think in English the math will add up to that.
+1:26:451 hour, 26 minutes, 45 secondsYes context. That's what I said right.
+1:26:491 hour, 26 minutes, 49 secondsuh where I said this part that okay uh welcome to jungle movie I told you that index number zero the number is not
+1:26:561 hour, 26 minutes, 56 secondssomething random it will denote something let's say it will denote that it's a comedica number then the last index thing which I said I said maybe
+1:27:041 hour, 27 minutes, 4 secondsthis is denoting that it's a kumar number okay so every number have some meaning so that math will get added like
+1:27:141 hour, 27 minutes, 14 secondsthis similarly let's say if I say Paris minus France plus India is equal to Delhi. Tell me is it making sense?
+1:27:261 hour, 27 minutes, 26 secondsYes. Read this. Tokyo minus Japan plus Germany is equal to Berlin. Making sense?
+1:27:341 hour, 27 minutes, 34 secondsYes. Walking minus walk plus run is equal to running. Making sense? Yes.
+1:27:421 hour, 27 minutes, 42 secondsNow, so this is what happens. Let me tell you second thing then. So let's say if you are moving from vector king to
+1:27:501 hour, 27 minutes, 50 secondsqueen then in similar format can I say you are moving from man to woman also
+1:27:571 hour, 27 minutes, 57 secondsright? Similar way Paris to France similarly we are moving from India to Delhi
+1:28:041 hour, 28 minutes, 4 secondsbanana to grapes and then aeroplane is going to be very far because aeroplane have no relation with this right. So this is how it is going to work. So this
+1:28:131 hour, 28 minutes, 13 secondsis just again this simulations which I created is to give you that intuitive visualization nothing else I have not even taught you math yet okay correct
+1:28:231 hour, 28 minutes, 23 secondsit's just searching that that's it now so this is what the first part
+1:28:301 hour, 28 minutes, 30 secondsnow let's move on to the next thing which is uh I already told you whenever it have to map that what is similar to
+1:28:391 hour, 28 minutes, 39 secondswhat so we always use something called as cosine similarity the number cosine similarity will be always between minus1
+1:28:471 hour, 28 minutes, 47 secondsto + one so if if let's say number comes out to be 0.7 0.8 remember I told you if
+1:28:541 hour, 28 minutes, 54 secondscosine similarity is higher that means the angle between them is smaller everybody remember that that means those points are closer to
+1:29:031 hour, 29 minutes, 3 secondseach other so that is it means so let's say if I say 0.7 0.8.9 1.0 0 that means they are very similar
+1:29:111 hour, 29 minutes, 11 secondsand if the number is like 0.3 0.2 0.1 they're barely related. If it is a negative factor they are dissimilar.
+1:29:201 hour, 29 minutes, 20 secondsThat is how we should be reading these things. Okay. Now let me show you now how this looks like.
+1:29:281 hour, 29 minutes, 28 secondsSo let's say I have just given some of the part. Let's say a cat is sleeping on the couch. A second question is a kitten
+1:29:351 hour, 29 minutes, 35 secondsis napping on the sofa. Tell me are these two sentences sounding similar or not?
+1:29:441 hour, 29 minutes, 44 secondsYes. Cosine similarity for these two sentences should be high or not.
+1:29:491 hour, 29 minutes, 49 secondsYes. So you can see cosine similarity 0.88.
+1:29:541 hour, 29 minutes, 54 secondsSimilarly I read I love programming. I enjoy coding. Now tell me in this case also both of them cosine similarity should be high. Yes, you can see 0.86.
+1:30:051 hour, 30 minutes, 5 seconds86. Now see flight to Mumbai, plane to Bombay. Now this is where rack can get
+1:30:131 hour, 30 minutes, 13 secondsconfused. So I wanted to show you this case also. So you can see it's still a decent number but maybe if the data do
+1:30:221 hour, 30 minutes, 22 secondsnot have like Mumbai or Mombay being defined inside it then it's going to be a problem. So you can see it's still a decent high thing but not too high.
+1:30:311 hour, 30 minutes, 31 secondsRight? Similarly related concept I am hungry I want food so we got this I love programming I hate vegetable can you see
+1:30:391 hour, 30 minutes, 39 secondsthey are completely unrelated yes that's why you can see cosine
+1:30:471 hour, 30 minutes, 47 secondssimilarity to be too low now the stock market crash or cat is sleeping
+1:30:541 hour, 30 minutes, 54 secondscompletely unrelated so in that case my cosign solarity is 0.05 05 there's a question question is is this uh rat
+1:31:031 hour, 31 minutes, 3 secondshallucinating tell me is that the case you you yourself think and tell me it will create set of numbers for this it
+1:31:121 hour, 31 minutes, 12 secondswill create set of numbers for this will those number will be completely different properties numbers
+1:31:191 hour, 31 minutes, 19 secondsyes because they will be completely different numbers that means the points will be very very far from each other so don't you think in that case my theta
+1:31:271 hour, 31 minutes, 27 secondsangle will increase. If theta angle will increase, will my cosine similarity will go down? Yes, I hope now you got the
+1:31:351 hour, 31 minutes, 35 secondsanswer. Okay, this is how you should be thinking. Ragg is nowhere hallucinating.
+1:31:401 hour, 31 minutes, 40 secondsIt is just calculating those numbers and those numbers are doing the magic for you. That's it. Got it? So, this is how
+1:31:481 hour, 31 minutes, 48 secondsif rag start hallucinating then why we need rag, right? Think in this way now.
+1:31:531 hour, 31 minutes, 53 secondsBut I haven't still taught you everything about rag. So, it will slowly keep coming. I I'm going to make sure that you understand these topics one by
+1:32:001 hour, 32 minutesone first. Now let's look at the first code on this so that you have an idea how this works.
+1:32:101 hour, 32 minutes, 10 secondsSo see this uh I am going to load the sentence transformer by sentence transformer. There inside sentence
+1:32:181 hour, 32 minutes, 18 secondstransformer I have a model which can give me these numbers. See that's the interesting part. You don't need to calculate all these numbers on your own.
+1:32:251 hour, 32 minutes, 25 secondsBy the way, if you know NLP, in NLP uh basically through neural network, we basically create all this embedding
+1:32:341 hour, 32 minutes, 34 secondsnumbers. But for now, I'm not going into that. Okay, I am just keeping it simple for now. So now here you can see I'm
+1:32:411 hour, 32 minutes, 41 secondsjust going to load this and through this I can get numbers. For example, if I say model.inccode and if I give this a CL cat is sleeping
+1:32:491 hour, 32 minutes, 49 secondson a couch. So then this encode function is going to go ahead and it's going to give me a set of numbers for this
+1:32:581 hour, 32 minutes, 58 secondsparticular whole sentence. And if I'm printing the first five numbers, this is how it is going to look like.
+1:33:051 hour, 33 minutes, 5 secondsSimple. So this is only showing you that okay, it's working. Now if you're thinking that what is this? This is a model name. This model name is going to
+1:33:141 hour, 33 minutes, 14 secondshelp you to give embeddings. Remember I told you that there are different embedding techniques.
+1:33:191 hour, 33 minutes, 19 secondsEvery embedding technique can give you different different numbers. Remember I told you that some embedding techniques can give you 384 size. Some embedding
+1:33:271 hour, 33 minutes, 27 secondstechnique can give you 1036 car size and so on. So there are different techniques from which you can generate your numbers. So this is one of it which is
+1:33:361 hour, 33 minutes, 36 secondsopen source. So I'm using that. Okay. So it's a open source library which I'm using to get my number list means to get
+1:33:441 hour, 33 minutes, 44 secondsmy embeddings. Similarly, open AI embedding is there but they charge. If you use open AI embedding, it's very
+1:33:511 hour, 33 minutes, 51 secondsgood embedding. Only thing is they charge you for that because you will do an API call and open AI will say hey give me money for this. I give you
+1:33:591 hour, 33 minutes, 59 secondsnumbers for this sentence. Okay. So here I decided to keep the free open source thing.
+1:34:051 hour, 34 minutes, 5 secondsNow similarly if I say a cat is sleeping on the couch, can I get the number for it using this encode function?
+1:34:151 hour, 34 minutes, 15 secondsYes. Then a kitten is napping on the sofa. Can I get the number from this sentence? Yes. And then after that I'm
+1:34:231 hour, 34 minutes, 23 secondsdoing a cosine similarity. This is the formula for cosine similarity which you don't need to worry right now. Okay. So this is cosine similarity formula. And
+1:34:321 hour, 34 minutes, 32 secondsthen I'm getting this output. Now everybody is able to make out how this number was coming.
+1:34:421 hour, 34 minutes, 42 secondsYes. So it must have done the dot encode part of it. It must have done the dot encode part of this. Got both the
+1:34:501 hour, 34 minutes, 50 secondsnumbers and then it just went in and created cosine similarity for this using this formula. Okay. Yes, even numpy have
+1:34:591 hour, 34 minutes, 59 secondsthis for now. I'm not going into all this for now. I'm just keeping it very simple so that you understand the concept and then you are getting the
+1:35:061 hour, 35 minutes, 6 secondssimilarity. So this app which I created this is exact the application for it. Clear everyone?
+1:35:151 hour, 35 minutes, 15 secondsOkay, very simple s code which I did this. So again let me explain and this time let me explain it on this case here. So here let me go to embedding py.
+1:35:261 hour, 35 minutes, 26 secondsSo what I did this embedding py firstly it's a open-source model which I used
+1:35:331 hour, 35 minutes, 33 secondswhy because I want to create those embedding numbers. So you can see it's free it's fast and it give me the number
+1:35:401 hour, 35 minutes, 40 secondssize of 384. Okay. So I'm going to use the free value open source thing. So it is being present in sentence transformer
+1:35:471 hour, 35 minutes, 47 secondsthing. Now once it is done now this model which you created basically this free model I'm just saying that okay
+1:35:551 hour, 35 minutes, 55 secondsthis model encode function encode function just basically take a sentence and give you these numbers. So I'm passing a cat is sleeping on a couch
+1:36:041 hour, 36 minutes, 4 secondsgive me the numbers for this. So it will give you the size 384 for it.
+1:36:081 hour, 36 minutes, 8 secondsNow somebody's asking what is 384? Can you all answer this?
+1:36:141 hour, 36 minutes, 14 secondsRemember I already covered this part when I said let's say if I say bullaya bullaya movie. So I told you for this
+1:36:221 hour, 36 minutes, 22 secondspart let's say it will generate some numbers. So let's say it's 0.9 comma 0.5 comma something something
+1:36:311 hour, 36 minutes, 31 secondssomething. So what should be the size of this list? This is 384.
+1:36:381 hour, 36 minutes, 38 secondsGot the answer? Okay. So this is 384 size. So this 384 I'm just printing the first five. That's why you are seeing
+1:36:461 hour, 36 minutes, 46 secondsthe first five. That's it. Then afterwards I'm saying that okay if I'm giving you two sentence the first sentence is a cat is sleeping on the
+1:36:541 hour, 36 minutes, 54 secondscouch. Second sentence is a kitten is napping on the sofa. I'm going to get numbers for both the cases and then I'm figuring out the cosine similarity and I'm printing that cosine similar number.
+1:37:041 hour, 37 minutes, 4 secondsSo let me execute this code also for you. Python wedding.
+1:37:181 hour, 37 minutes, 18 secondsSo it's loading the model.
+1:37:251 hour, 37 minutes, 25 secondsThis is the cosine similarity what we got. Okay, this is just printing the 384 size dimensions and blah blah. But this is the cosine similarity.
+1:37:361 hour, 37 minutes, 36 secondsOkay. Now I'm just using cosine similarity of function for now. Okay.
+1:37:391 hour, 37 minutes, 39 secondsWithout going into detail that y dot product and not all that. Okay.
+1:37:451 hour, 37 minutes, 45 secondsHuh. Definitely if you have more dimension it have more information.
+1:37:501 hour, 37 minutes, 50 secondsOkay. Perfect. But I hope everybody got a high level good idea what is embedding
+1:37:561 hour, 37 minutes, 56 secondshow it's calculated through code and what exactly this might be doing at a very high level if I think about
+1:38:031 hour, 38 minutes, 3 secondschunking and all that clear now since we have played around this I
+1:38:141 hour, 38 minutes, 14 secondsalready explained you this is free opensource model which we are using now by the way just one more thing all this
+1:38:211 hour, 38 minutes, 21 secondsmodel there is something called as hugging face which I will explain to you in more detail in your future classes.
+1:38:291 hour, 38 minutes, 29 secondsThink of hugging face like your GitHub.
+1:38:321 hour, 38 minutes, 32 secondsOkay, it have almost all the models being available here.
+1:38:381 hour, 38 minutes, 38 secondsSo even your encoding models your every dam model is available here. So we can directly source anything which we want.
+1:38:471 hour, 38 minutes, 47 secondsFor example, text generation models, PyTorch, TensorFlow, everything is available. So, some model you need permissions, some models you need to
+1:38:551 hour, 38 minutes, 55 secondspay, some models are free from working because it's a community inside that community people have kept their models
+1:39:021 hour, 39 minutes, 2 secondsand all that. So from this place only when I basically uh said here that okay
+1:39:101 hour, 39 minutes, 10 secondsI'm going to from sentence transformer import sentence transformer this is actually calling this hugging face in
+1:39:171 hour, 39 minutes, 17 secondsfact have you all noticed when I ran this code when I ran this code it it it said something it said you are sending a
+1:39:261 hour, 39 minutes, 26 secondsunauthenticated request to HF hub HF means hugging face hub please set the HF HF token which we will
+1:39:351 hour, 39 minutes, 35 secondsdo in the later classes. So basically it's saying that because it's a unauthenticated request you are directly going to that page and taking that model
+1:39:441 hour, 39 minutes, 44 secondsI am allowing you up to some free cost up to some level but after that if you want to have more tokens from me then
+1:39:521 hour, 39 minutes, 52 secondsyou need to login and get that. Have you noticed this? If chat GPT is not logged in, maybe if you ask one question, it will answer you.
+1:40:011 hour, 40 minutes, 1 secondSecond question, it will say, "Hey, login, your token is over uh login." Have you noticed that? And when you login, it
+1:40:091 hour, 40 minutes, 9 secondsgives you more tokens to work on. It's the same thing. Okay. So, everything what you're noticing here, it's
+1:40:161 hour, 40 minutes, 16 secondsbasically going and taking the data from your hugging face only. So we will be extensively using hugging face
+1:40:241 hour, 40 minutes, 24 secondsthroughout the course. Even we can deploy your things into hugging face.
+1:40:291 hour, 40 minutes, 29 secondsFor example, if I take you to the spaces, you can see so many people have created so many interesting applications
+1:40:371 hour, 40 minutes, 37 secondsand they make it available for free for users to pick up and work. Okay. So you can go and check it out. It's it's very
+1:40:451 hour, 40 minutes, 45 secondsinteresting. Uh like Facebook bypass to somebody upgraded. uh I don't know basically a lot of things people might
+1:40:521 hour, 40 minutes, 52 secondshave done here right unlimited OCR open mythos uh then uh some van 2.2 2
+1:40:591 hour, 40 minutes, 59 secondsthing jama web GPU kernel right uh these are trending apps basically what you're seeing here even textile v2 version so
+1:41:081 hour, 41 minutes, 8 secondslot of interesting like video generation things people must have done text generation people must have done language translation related things lot
+1:41:161 hour, 41 minutes, 16 secondsof people must have done so uh for example if I just open this right I'm not sure whether it's working or not
+1:41:241 hour, 41 minutes, 24 secondsbecause some spaces are waste some spaces are really good so you can see this is like uh they giving you some app
+1:41:311 hour, 41 minutes, 31 secondsyou can give some English to Spanish you can give your things say translate it will give you your answers small app somebody must have created but made it
+1:41:391 hour, 41 minutes, 39 secondsavailable for the end users right so that's how it works some apps are not great some apps are good MCP is
+1:41:461 hour, 41 minutes, 46 secondsdifferent I will come to MCP later it's it's like a USB drive for all the uh tools and agent anyway so uh basically
+1:41:561 hour, 41 minutes, 56 secondshere you can play around with lot of things We will come to it later so that you can understand how it works. You can see it's also built with gradio only.
+1:42:031 hour, 42 minutes, 3 secondsThat's why I pulled up gradio because gradio is getting used at uh lot many plus lot of people use gradio to create easy easy things like this.
+1:42:131 hour, 42 minutes, 13 secondsOkay. So we will come back and play with this but this is very interesting even I will make you deploy some of the places.
+1:42:201 hour, 42 minutes, 20 secondsSo what I will make you do is I will make you deploy here um on your hugging phase. So in this hugging phase you can put your applications and then post over
+1:42:291 hour, 42 minutes, 29 secondsLinkedIn okay so that you can showcase that okay now you are building something which is available online publicly for
+1:42:361 hour, 42 minutes, 36 secondsanyone to use so we will go to that state so don't worry about this part but I hope till
+1:42:451 hour, 42 minutes, 45 secondsthis point everybody clear okay that's more important for me this is what I wanted to cover today so we have started
+1:42:521 hour, 42 minutes, 52 secondswith agents we saw how agent with multiple ical functions work. Then we moved to rag. We had just started it and
+1:42:591 hour, 42 minutes, 59 secondswe understood that what how rag ecosystem works. We understood what is embedding, what is cosign similarity, why we do chunking, right? And we
+1:43:091 hour, 43 minutes, 9 secondshaven't yet discussed that how we do chunks. We will discuss that in your next class. But I hope till this point
+1:43:171 hour, 43 minutes, 17 secondseverybody got the context how it is floating around for you.
+
+Sync to video time

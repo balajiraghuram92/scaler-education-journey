@@ -1,0 +1,854 @@
+
+Search transcript
+
+0:000 secondsHey everyone, can you all confirm if you can quickly uh see me out, hear me out as well as you should be able to see the screen as well.
+0:099 secondsPerfect. Really good to see all of you.
+0:1212 secondsUm so uh today's session I believe we have discussed across that we will be
+0:1919 secondsinfusing lot of AI and that is what I'm going to put in. I I know I missed to share the screen. I'm just doing that
+0:2626 secondsright away and I hope now it should be fine. Can you all confirm that it should
+0:3333 secondsbe all good? Awesome. So, um let me first talk about why I am doing this
+0:4040 secondssession and what is going to be the agenda in this case and what if you miss it. Okay. So, I will be talking from all
+0:4848 secondsthe references to you so that you have a good idea. So number one u as all of you might have seen my video in the past
+0:5858 secondswhere I called out specifically that um basically now if you look at the job market things have changed drastically.
+1:061 minute, 6 secondsWhat I mean by this the job market is looking for AI as a basic knowledge. For
+1:141 minute, 14 secondsexample, if you now something uh if you do not know ABCD, right? Or if you do not know English as a language the
+1:211 minute, 21 secondschallenge which comes with this is that probably you may not be able to survive and and I believe all of you can understand that in this corporate world
+1:301 minute, 30 secondsdoesn't matter we live in India where we have our national language um lot of different regional languages and all
+1:361 minute, 36 secondsthat but still we are still have to stick with English and even right now I'm talking in English so that becomes a
+1:451 minute, 45 secondsbasic necessity right now to be able to talk or communicate in this corporate world. Similar way AI is doing the same
+1:541 minute, 54 secondsjob. What I mean by this AI altogether is also going to do the same thing that it is becoming a basic fundamental
+2:022 minutes, 2 secondsrequirement. Even if it is written in your JD or not written in your JD doesn't matter it is all being asked now in interviews.
+2:132 minutes, 13 secondsIf you have written something in your CV then they would be shortlisting you more even if it's not written in JD still
+2:212 minutes, 21 secondsthey expect you to write something in your JD aspect as well which means there are lot of uh requirements which are
+2:292 minutes, 29 secondsgoing to keep pushing up in fact we have also seen now jobs which are only asking
+2:362 minutes, 36 secondsquestions on AI so there is a big fundamental shift which have happened now due to all this change we started
+2:442 minutes, 44 secondswith a new curriculum which is basically called as scalo 3.0 Z I hope all of you have already gone through the website.
+2:532 minutes, 53 secondsYou might be seeing lot of changes which is now coming across in this and with the similar lens we have changed that
+3:013 minutes, 1 secondbut what about old students we have never promised you AI but uh is it something that we should only teach you what we have promised you definitely no
+3:103 minutes, 10 secondsright as scalar entity we are committed to ensure that if there is anything running in the market today it's AI
+3:173 minutes, 17 secondstomorrow something else also comes up it's our responsibility to ensure that you become relevant for this job market
+3:253 minutes, 25 secondsand not only for the new job roles but also across in your current company that's become important. So that is the
+3:333 minutes, 33 secondsreason this session is planned. This is not going to be one session calling it out. This is going to be a series of sessions. Most likely all the sessions I
+3:423 minutes, 42 secondswill be taking up for you guys. Uh mostly it will happen over weekends. uh we can discuss together if you feel that
+3:503 minutes, 50 secondswe can increase the frequency u all of that we can also have a call together not today maybe at a later pace but make
+3:593 minutes, 59 secondssure that you join the frequency of this session could be weekly it could be bi-weekly we can even plan that up so that I know you have already three
+4:084 minutes, 8 secondsclasses running up but trust me guys this is going to be the most critical component you would not like to miss I could have even conducted it as a
+4:164 minutes, 16 secondsseparate module But the problem with that approach is that your course length will increase. So I am ready to take that pain that I am personally going to
+4:234 minutes, 23 secondscome up ensuring that I provide you all the relevant topics. At the same time I need just one assistance from all of you
+4:314 minutes, 31 secondsthat you also are ready to take a small pain of coming over this weekend and ensuring that you're joining this session and going across with this.
+4:394 minutes, 39 secondsOkay. Uh so this is going to be the kind of agenda which is going to run up. Now
+4:464 minutes, 46 secondsuh before I move on let me quickly talk about what all things we are going to do in this sessions. So we will be starting
+4:544 minutes, 54 secondsfrom very basic fundamental of LLMs your generative AI topics. We will move to agentic AI. They will build systems
+5:035 minutes, 3 secondswhich you can put it in production whether it's going to be your multi- aent solutions whether it's going to be
+5:115 minutes, 11 secondsuh uh coming across any uh sort of interesting projects which are running from industry we are going to do all of
+5:185 minutes, 18 secondsthat as well okay so we will be walking over end to end of AI and there will be lot of connection with your current
+5:265 minutes, 26 secondsfoundations which I will also be covering for you Okay. So with this let me quickly introduce myself. I know few
+5:335 minutes, 33 secondsof you already know me out but let me quickly introduce myself. Uh this is Shivank. I basically head the whole
+5:405 minutes, 40 secondsinstructions part in scalog. Um I basically am responsible for anything which is related to your curriculum your
+5:485 minutes, 48 secondsoutcome perspective or your instructors any sort of issues which means your once you have joined in in scalar till the
+5:565 minutes, 56 secondstime you go out of scalar is something is my responsibility um before this my education I have done
+6:036 minutes, 3 secondsfrom IT Chennai I have basically worked across um my first company was Oracle where I co-ounded a particular product
+6:126 minutes, 12 secondsIt's currently working on top of the OCI which is their Oracle cloud infrastructure. Um it's used currently by millions of users every day. Deals with pabytes of data in every few hours.
+6:246 minutes, 24 secondsU then I moved to InMobi. My previous company was Microsoft where I work in the capacity of senior engineering dedo.
+6:316 minutes, 31 secondsI was leading multiple teams which included AI teams, engineering teams, DevOps teams and QA teams across because it was an end toend product which I was
+6:396 minutes, 39 secondsresponsible for. During my tenure, I have learned a lot in terms of uh ensuring that whatever uh when things
+6:496 minutes, 49 secondsbreak on scale especially when I talk about Microsoft journey I have deal with things where we were dealing with billions of users the QPS were really
+6:576 minutes, 57 secondsreally high. So I have learned it by burning my hands across doing lot of mistakes and now I'm in scalar from
+7:047 minutes, 4 secondspretty good time now almost going to be four years in scalar um and basically overall after 16 years of industry
+7:127 minutes, 12 secondsexperience I basically decided to do this part where I can probably create my own clone as much as possible. So that's the reason I'm part of the system.
+7:217 minutes, 21 secondsPerfect. Now I hope with this everybody's excited to start this particular journey. Can I get a quick
+7:297 minutes, 29 secondsthumbs up on this? Now only one request guys. This session will have lot of technical things. Okay. So my request
+7:377 minutes, 37 secondswould be that I want to keep the topic only related to what we are going through. I don't want the things to be
+7:447 minutes, 44 secondsdeviated on something else. For example, I saw a question Shivan tell me about the job pipeline and all that. Let's let's talk about that maybe at a
+7:527 minutes, 52 secondsseparate way not in the classroom because that might uh derail the whole purpose. Number two is going to be uh
+8:018 minutes, 1 secondensuring on this part that all the questions keep it only in the question tab. My team is also sitting with me.
+8:108 minutes, 10 secondsThey will be answering lot of your questions over the chat box and closing your questions as well. Okay. At the end
+8:178 minutes, 17 secondsI will be pulling up lot of your questions as well. So I will be also doing that across uh ensuring that you
+8:258 minutes, 25 secondsget all the knowledge uh across at the end. Whatever is the relevant question okay uh irrelevant question probably I
+8:328 minutes, 32 secondswill not be taking it up just calling it out my team might also not be taking it up. Now if you're sitting in this session you should not worry about
+8:408 minutes, 40 secondsprerequisites and all that because again I'm seeing questions around that because we have only placed people in the
+8:468 minutes, 46 secondssession who fulfill these prerequisite which means you should have done some programming language because that is
+8:548 minutes, 54 secondssomething which is going to be required other than that there is no other requirement in this case. Okay. So just
+9:019 minutes, 1 seconduh calling it out across and u let's move on and only keep in the question tab the relevant question guys. Don't
+9:089 minutes, 8 secondskeep anything irrelevant. Now uh one more interesting and important thing for all of you.
+9:169 minutes, 16 secondsTo be honest, it's very important that you all uh do things and can showcase it
+9:269 minutes, 26 secondsby building a profile and push it towards your brand building which should be happening over your LinkedIn or so
+9:349 minutes, 34 secondson. So what will happen in today's session as well? I am going to make you build one or two projects. Okay, I will
+9:429 minutes, 42 secondstry to build two if the time permits. If the time do not permits at least one we will do and the project which you will
+9:499 minutes, 49 secondsbuild even today is going to be almost equivalent to some real world project. I
+9:569 minutes, 56 secondswill show you that also which means in class one itself there will be lot of activities which is going to happen from the project perspective. Now what's
+10:0510 minutes, 5 secondsgoing to be my way approach towards this?
+10:0910 minutes, 9 secondsSo the first approach would be once we build the project I want all of you to
+10:1610 minutes, 16 secondsuh publish it over the LinkedIn I will guide you how to do that okay so that you can do this slowly we will also
+10:2410 minutes, 24 secondsbuild your GitHub portfolio okay this will not happen in today's session but we will also be pushing
+10:3110 minutes, 31 secondsthings across towards your GitHub portfolio so that your GitHub itself becomes your CV so slowly we will make
+10:3910 minutes, 39 secondsprojects complex and complex and that is what you will start showcasing to your peers. Uh I will give you hashtags what
+10:4710 minutes, 47 secondsyou can kind of post. Please do that. uh there will be lot of activities which I will make you do across in this so that
+10:5510 minutes, 55 secondsit should not only appear to you that okay you are learning learning but it's also going to be that okay you are able to showcase something relevant and which
+11:0411 minutes, 4 secondswill make your LinkedIn profile probably uh easil seen by recruiters and all that because that's another goal which I want
+11:1111 minutes, 11 secondsall of you to follow up now to start with this let me quickly share my LinkedIn profile with all of you give me
+11:1911 minutes, 19 secondsa connect because I would prefer when you will be loading it up, you should be able to tag
+11:2711 minutes, 27 secondsme up. Uh so
+11:4011 minutes, 40 secondsyou should be able to see my LinkedIn profile either from me or from my team have shared with you. uh you can check
+11:4811 minutes, 48 secondsit out the link and you can send me a hi or whatever don't worry I will respond
+11:5511 minutes, 55 secondsback I generally respond back to almost everything which comes in try my best so uh but you should definitely be joining
+12:0312 minutes, 3 secondsbecause there will be two few activities which we will do with this part and I will also be ensuring that I give you some visibility with this particular
+12:1212 minutes, 12 secondsaction perfect so let's move on with this I I hope everybody's excited now to start this particular journey which is
+12:2112 minutes, 21 secondsgoing to start with your AI board. Now I'm going to give you pretty good detailed notes which my team have
+12:2912 minutes, 29 secondscreated. So you need not worry about Shivank how will I get nodes, how will I get code, all of that section you need
+12:3612 minutes, 36 secondsnot worry of. Now um what my request from all of you would be to make sure
+12:4412 minutes, 44 secondsthat you give me full focus firstly you should not be joining this session from mobile or anything join only from laptop
+12:5112 minutes, 51 secondsif you have done that mistake please immediately login from your laptop why I'm saying this because there might be few activities and I don't want any of
+13:0113 minutes, 1 secondyou to miss out on this part okay that's one item number two is Um make sure that
+13:0913 minutes, 9 secondsif you can have maybe a pen or paper with you that would be great because what you can also end up doing in that
+13:1513 minutes, 15 secondscases you should be able to uh maybe able to take up few of the things notes wise whatever I'm speaking of that's
+13:2513 minutes, 25 secondssomething which would help you out right so definitely try to do that so that you do not face issue across and your focus
+13:3213 minutes, 32 secondsstays across on this case so let's start with this case and Here we go. So what you are going to do in today's session?
+13:4113 minutes, 41 secondsOkay, I'm seeing a lot of questions coming. Will I get recording? Is it recorded? No, it's live.
+13:4813 minutes, 48 secondsYou will get recording. Why are you worrying about that? You are already part of scalar ecosystem. So you should be aware of it recording. So you get by
+13:5513 minutes, 55 secondsdefault. So you don't need to worry. But my strong recommendation is please if you are doing this session try to come
+14:0314 minutes, 3 secondsin the class because trust me there is no better substitute of doing the live classroom session in comparison to what
+14:1014 minutes, 10 secondsyou can do on your own. Okay. So let me give you the first part what we will be doing.
+14:1614 minutes, 16 secondsAI what we are going to build today do not require to have any PhD.
+14:2414 minutes, 24 secondsOkay. You need not require any maths big big knowledge for doing today's session.
+14:3014 minutes, 30 secondsWherever it's required I will teach you up. You don't need to know even any machine learning or deep learning or NLP sort of backgrounds.
+14:4014 minutes, 40 secondsjust to keep things simple for you. Um I basically just am telling you up you need not worry about it but I will try
+14:4814 minutes, 48 secondsmy best that within this session I will make you do at least two projects okay if not two I will at least do one
+14:5614 minutes, 56 secondsproject and that's going to be pretty exciting part so let's start what we are going to learn so my first goal would be
+15:0415 minutes, 4 secondsto make you understand that why we are even talking about AI right why this is exploding right
+15:1315 minutes, 13 secondsBecause if if you ask me honestly AI is not here right now AI is there from last 70 years but what have changed number
+15:2115 minutes, 21 secondstwo what exactly this LLM is we are talking about LLM geni too many keywords
+15:2815 minutes, 28 secondsbut what exactly this is number three what is the trick behind this magic how
+15:3515 minutes, 35 secondsthis work right uh so there is something called as self-supervised learning and basically that part I will be talking
+15:4215 minutes, 42 secondsabout what they do then you will be learning um what you can actually build from these foundation models what you
+15:5115 minutes, 51 secondsalready have and then what is AI engineering how it differs from the ML engineering then I will make you code
+15:5915 minutes, 59 secondsnow when I will make you code there are some tokens required I will talk about it that how you can do it free of cost
+16:0616 minutes, 6 secondsalso and if you want to invest money you can also do that so I will give you both the options ions completely up to you how you want to do it and then we will
+16:1416 minutes, 14 secondsmove towards your projects and those projects you have to push it towards your LinkedIn. I will give you a way how
+16:2116 minutes, 21 secondsyou should do that and push that talking about what you have built on day one of your AI learning itself. Nothing could
+16:2916 minutes, 29 secondsbe better than this. Okay, given that you are learning this from uh uh basically from the team of experts right
+16:3716 minutes, 37 secondsnow this whole content is created basically I am working in this AI field from my very start of my career. uh so I
+16:4416 minutes, 44 secondswill give you lot of knowledge lot of insight from my personal experience so that you not only learn from something
+16:5216 minutes, 52 secondswhich sounds theoretical but it's also should sound that okay this is something if if if let's say somebody with a two or three or four year experience
+17:0017 minutesstanding in front of you if he uh talks with you he will feel that you already have experience in this area that's going to be one way how I will approach
+17:0817 minutes, 8 secondsthis so like I said AI is 70 year old system what we already have so why we
+17:1717 minutes, 17 secondsare talking now it is so old why companies every company if I open my LinkedIn everybody's talking about the
+17:2317 minutes, 23 secondssame thing right what have exactly changed so what have changed is that the
+17:3017 minutes, 30 secondsway how you can build application on using AI that have changed now
+17:3717 minutes, 37 secondsespecially after the introduction of this LLM models your chat GPT your plot your grog and all of that. Now, so let
+17:4717 minutes, 47 secondsme give you a timeline what in fact have started happening across. So if if I tell you around 1950s
+17:5417 minutes, 54 secondsto nu almost close to 2000 era if I talk about that era um it is majorly AI being
+18:0318 minutes, 3 secondsworking more like a research lab. It was more like a research. So it was not at all like getting used too much. uh in
+18:1218 minutes, 12 secondsfact there were a lot of winter era and so on. So a lot of things with that then what happened there was a famous paper
+18:1918 minutes, 19 secondswhich came in 2017. So before this it was still going on uh basically lot of machine learning deep learning
+18:2618 minutes, 26 secondsapplications was getting pushed up but in 2017 there was a paper on transformers and don't worry I will teach you this okay that how it works
+18:3518 minutes, 35 secondsnot today but it will come later. Now this transformers led us towards the AI era
+18:4418 minutes, 44 secondswhich made it so much focal today that we are talking only
+18:5118 minutes, 51 secondsabout AI. If you look at all the layoffs everybody say because of AI layoffs are happen. So I don't want you to be the part of this ecosystem where people are
+19:0019 minutesgetting laid off. I want you to be the part of system who are staying in that company of where companies are still hiring for. So this have introduced this
+19:0819 minutes, 8 secondsAI era and in fact if you ask me after this paper around 2022 chat GPT got
+19:1519 minutes, 15 secondslaunched. So this was the first one how the whole industry started and after
+19:2219 minutes, 22 secondsthis we have never looked back. A lot of companies popped in uh basically your claude your um basically there are so
+19:3019 minutes, 30 secondsmany like Gemini came in quite late but yes they have also joined the party and doing pretty well on top of it and now is all these products are sitting on top
+19:3919 minutes, 39 secondsof it right so this is what is happening now let me give you an interesting pointer why companies are looking for
+19:4619 minutes, 46 secondsfolks who know AI it's all about if earlier there was a guy who can do and
+19:5219 minutes, 52 secondssolve the problem in 6 plus month 6 plus month maybe using a data warehouse and all that. Now a person can solve it in a single afternoon.
+20:0520 minutes, 5 secondsI can tell you my own team because I work closely with product team and tech team uh and we daily invest so much of time on the AI products which we have
+20:1420 minutes, 14 secondswithin scalar ecosystem. Now we are building things across so quickly that
+20:2120 minutes, 21 secondswe can't even imagine what was the pace earlier. We can't even think about going back. So we are able to build things very quickly with this part. And I will
+20:3020 minutes, 30 secondsalso be talking about some of the products which we are building in the classroom as well. So that you get a good pulse that what's basically are
+20:3820 minutes, 38 secondsthose things and how you can also build it right because that's what my tech team and all do. So lot of those knowledge will come in. So two big shift
+20:4620 minutes, 46 secondshave happened in this era. Okay, two big shifts. What are those two big shifts?
+20:5120 minutes, 51 secondsThe first one the model which we are talking about earlier what used to happen. So in the ML era, so when I say
+20:5820 minutes, 58 secondsML era, I'm talking about the machine learning era and all that. In the machine learning era, we were talking about okay, whether this email is spam or non-spam, right? Something like this.
+21:1121 minutes, 11 secondsBut today, you don't need to train your ecosystem at all. You don't need data and all that. But in fact, you can do
+21:1921 minutes, 19 secondslot of other things with this. It's not just this kind of classification problem. uh but we were like we will be able to do so many things like you can
+21:2721 minutes, 27 secondseven summarize something by the way today you will do something like summarization you can translate from one language to other language you can write
+21:3421 minutes, 34 secondscodes that become defacto today like lot of jobs are getting lost due to that if you do not know this right so lot of
+21:4121 minutes, 41 secondsthings you can do that with the help of a brain called as LLM models okay now second part was I also noticed
+21:5121 minutes, 51 secondssomebody was asking in media bank as per you which is the best LLM model and so on right so basically if you ask me honestly every LLM model have its own
+22:0122 minutes, 1 secondstrength and I will also be talking about where GPT have strength where plot have strength where other things have
+22:0822 minutes, 8 secondsstrength now this is basically nothing but your large language model okay and we will discuss more about it but as far
+22:1722 minutes, 17 secondsas you know what is claude what is chat GPT what is perplexity and so on. This is
+22:2722 minutes, 27 secondsbut nothing but called as LLM. Okay, I hope everybody understood now when I use this keyword LLM what exactly it means.
+22:3622 minutes, 36 secondsOkay, but what exactly this large language model do? Hold on for a few minutes. I will come to this as well.
+22:4322 minutes, 43 secondsNow with this what have just happened with this LLM box what have started happening is now we have removed the
+22:5122 minutes, 51 secondsbarrier of kind of knowing things in detail you don't need to know this machine learning and all that but with a
+22:5922 minutes, 59 secondsvery simple API now what do you mean by API you can just go ahead and just ask a question to chart GPT and it will help
+23:0723 minutes, 7 secondsyou answer that so with a very simple way you will be able to get a response and get the things done. something like
+23:1523 minutes, 15 secondsearlier days if you have to have food you need to cook it in the kitchen and only there was no other option but from
+23:2223 minutes, 22 secondslast few years don't you think Swiggy and Zamato have make our life easy we can just go ahead tap say that order
+23:3023 minutes, 30 secondsthis food there is an API which goes hit to it and we get the response so that when I say API relate with that system
+23:3723 minutes, 37 secondsnow which is what exactly have AI have also done so AI is also making your life
+23:4423 minutes, 44 secondssimpler from this perspective. Now if I ask right now in this room what might
+23:5423 minutes, 54 secondsyou might be taking let's say uh earlier maybe a week's time to solve the problem which you can probably solve now in a
+24:0224 minutes, 2 secondsminute or few minutes let's say any answer anybody have is there anyone who have already kind of
+24:1124 minutes, 11 secondstried solving this using AI made himself effective in whatever Okay.
+24:1724 minutes, 17 secondsNo, no. I I'm not asking whether you can. I'm saying is there any example which you can give me where you are earlier take you used to
+24:2624 minutes, 26 secondstake lot of time but now you take lesser time.
+24:3024 minutes, 30 secondsPerfect. I can see very interesting answers. Even I did not expect it. Some people are saying I am using email box now I'm replying through AI.
+24:4024 minutes, 40 secondsGreat job. I also somebody said I do refund processing with this. Perfect. So even I heard somebody saying I am using open claw to write lot of things for me.
+24:5024 minutes, 50 secondsPerfect. Great. Great. So a lot of good answers. So you lot of you are already doing it. So there's nothing like you are not using it across. You are already
+24:5924 minutes, 59 secondskind of doing and using this part. Now what is this LLM model right? Because somebody have asked this question from
+25:0625 minutes, 6 secondsme. What is this LLM model and what exactly you do? So let me take you to
+25:1425 minutes, 14 secondschat GPT. Give me a minute. Okay. I hope all of you can see my screen with a chat GPT in front of you. Yes. If I ask right
+25:2325 minutes, 23 secondsnow that explain me LLM model. Let's see what's going to happen.
+25:3125 minutes, 31 secondsAs soon I ask this question. Can you notice it is generating a new answer for me?
+25:3825 minutes, 38 secondsYes. Is this answer existing somewhere?
+25:4125 minutes, 41 secondsJust like in Google search we used to do. See in Google search when you write something what is LLM? What it will do?
+25:4625 minutes, 46 secondsIt will give you links. Those links are already available in the market. But what happened here? It is generating a
+25:5325 minutes, 53 secondsnew answer and it's giving to you. So let's say if I say uh hey explain me LLM
+25:5925 minutes, 59 secondslike I am 5 year old kid. explain this for uh a longer duration.
+26:1126 minutes, 11 secondsUh I want article to be longer. I just wrote something. Okay. Now notice what
+26:1926 minutes, 19 secondshappened. Look at it closely. Can you notice when it's answering it is giving you word by word? It is not giving every
+26:2626 minutes, 26 secondsanswer altogether. Have you noticed this part all of you? It is giving you word by word. It is going ahead one by one
+26:3426 minutes, 34 secondsand keep on moving it. So you know what happened when it have written hide a then it have to know that what is the
+26:4226 minutes, 42 secondsnext word I have to write and that's where your prediction it is doing it is basically trying to predict that what
+26:4926 minutes, 49 secondsshould be my next word which I should write and once it will finish that by the way I use the wrong statement right now it is not word actually it's tokens
+26:5926 minutes, 59 secondsbut I will come back to it what do you mean by token but so what it is doing as soon as it have written ask the model Then it must have predicted the next
+27:0627 minutes, 6 secondsword should be two. Then it will predict that the next word is guess. Then it will predict that the next word is fully stop and enter key. That is how it is
+27:1627 minutes, 16 secondsworking. So it that's why you never see anything coming up all together. Even if I ask anything else uh hey do you know
+27:2527 minutes, 25 secondsabout scalar? Look at this. Look at this.
+27:3227 minutes, 32 secondsCan you see it is again giving you the answer one by one word. It is predicting
+27:3827 minutes, 38 secondsthe next token. So think of token for a word for now though it's a wrong thing but I will come back to it in a minute.
+27:4527 minutes, 45 secondsBut I hope you got the idea what this model do what this LLM basically do. Now how it is able to do that is going to be
+27:5427 minutes, 54 secondsan interesting thing. So let's come back to it and try to understand that part. Give me a minute.
+28:0228 minutes, 2 secondsNow so let's see what have happened. So I can see there are questions around Shivank how it is different from ML and
+28:0928 minutes, 9 secondsso on. Uh Shivank how it is able to predict so accurately all these answers you will get it. Just have some patience
+28:1628 minutes, 16 secondswith me. You will have all the answers coming on your way. Remember we have just started the session and we have
+28:2428 minutes, 24 secondsspended maybe another last 15 20 minutes on the technical topic. Yes. So let's see what is going to happen here. So
+28:3328 minutes, 33 secondslarge language model which is called as LLM what it do? It is going to predict
+28:3928 minutes, 39 secondsthe next chunk of text. That is what it is doing for you. Whether you're chatting, whether you're coding, whether
+28:4728 minutes, 47 secondsyou are writing summaries, it is all going to just predict some next chunk of text. That is what I just showed you up.
+28:5528 minutes, 55 secondsNow in fact have you all seen this that when you go over your WhatsApp and try to write something it automatically
+29:0329 minutes, 3 secondsstart telling you that probably these three words you might want to write. Have you noticed this part?
+29:1029 minutes, 10 secondsYes. All of you must have seen that part. That is what basically is exactly happening in your LLM also. It is also
+29:1729 minutes, 17 secondstrying to do autocomp completion. Now on a similar note, I was using a term called as token, right? What is this?
+29:2729 minutes, 27 secondsWhat is this token all about? For explaining you token, let me show you up my notebook.
+29:4329 minutes, 43 secondsGive me a minute so that I can open it up.
+29:5729 minutes, 57 secondsSo I will use quite a lot of simulations which I will give you also. So you need not worry about shank how will I get it and so on. Can you all see my screen
+30:0530 minutes, 5 secondshaving a very beautiful diagram in front of you? Yes. Let's see this. So let's say if I write AI engineering is
+30:1530 minutes, 15 secondssurprisingly approachable right now. Now what it will do if you count the number of characters here there are 44
+30:2230 minutes, 22 secondscharacters. Now what it will do is it will give you token. So what do you mean by token? Okay. You want me to zoom in?
+30:3030 minutes, 30 secondsLet me do that. I hope this is good enough. Okay. Now so what it will do whatever terms are like small or maybe
+30:4030 minutes, 40 secondsmake sense it will just say that okay AI is one token. Then engineering word it have divided into smaller three words or
+30:4830 minutes, 48 secondsthree tokens. So like it it know that there is something called as in then it knows that there is something called as near then it also knows that it is there is something called asing.
+31:0031 minutesSo that's why can you notice it have divided into three tokens engineering.
+31:0531 minutes, 5 secondsNow then after that you can see is this one token surprisingly word is also being broken into an smaller smaller
+31:1331 minutes, 13 secondswords. So you can see s then ricey then English. Now you may ask shank then is it fixed? No every company have created
+31:2231 minutes, 22 secondstheir own style of token. For example, let's say maybe it's possible that Claude might be doing ENG as one token
+31:3131 minutes, 31 secondsinstead of saying NG and then maybe they would have said I N E is another token could be possible. So every company
+31:4031 minutes, 40 secondscreated their own style of tokens and you can see even approachable is also being done. So let's say I can change
+31:4731 minutes, 47 secondsthis hello from Shivang Agraal. Can you notice what it
+31:5331 minutes, 53 secondsjust did? Hello is one token. From is another token. Shivank sounds to be a new word for it. So it divided into two
+32:0132 minutes, 1 secondparts. Shiv and ank. And then you can also see that I have agra and I have also one. Right? Now what have just
+32:1032 minutes, 10 secondsstarted happening with this? The companies charge you depending on number of tokens what you have used. So for
+32:1932 minutes, 19 secondsexample, have you heard when you go to these models, they say that for 1 million token, we will charge you let's say $1, right? So I hope now you should
+32:2832 minutes, 28 secondsbe able to relate what do you mean by tokenization in this case. So the token is really really very important that uh
+32:3632 minutes, 36 secondshow it works. In fact, I'm not sure if you are hearing this news recently.
+32:4032 minutes, 40 secondsThere are a lot of uh basically companies where they have started saying that oh we are using too much of token
+32:4832 minutes, 48 secondscost we will not be able to survive right even Uber have done that Microsoft have done that I was also reading some
+32:5532 minutes, 55 secondsarticles very recently where the they're talking about companies are increasing their token cost right slowly they're increasing their
+33:0433 minutes, 4 secondstoken cost so that's another problem which is happening so that is what now you can relate when Somebody will tell you that okay based on the token it is
+33:1233 minutes, 12 secondshappening what is the meaning of it so it doesn't mean it doesn't mean that one word is one token as I've told you
+33:2133 minutes, 21 secondsshivank is broken into two different token shiv is one token ank is another token that is how it is working perfect
+33:2933 minutes, 29 secondsclear everyone now so I hope everybody got a good idea how it works now there I I I could see some people are asking shu
+33:3733 minutes, 37 secondsbut I noticed that the chat GP GP to all are free now huh up to some token limit it is free have you all noticed you use
+33:4733 minutes, 47 secondsthat GPT for long after that it's a upgrade have you all noticed that it is not free
+33:5533 minutes, 55 secondsforever only some part they want to give you free part and then they say upgrade
+34:0234 minutes, 2 secondsotherwise you can't use me so that is what happens claude and all are more notorious they say they they if you pay them a big amount still they said very
+34:1134 minutes, 11 secondsless token they give you to work on so that's another problem on this now so let's move back and I hope everybody got
+34:1934 minutes, 19 secondsthe token part now so let's move to another thing um so
+34:2634 minutes, 26 secondswhat is then going to happen see I tell you generally you will notice that one token this is not a rule as such but
+34:3534 minutes, 35 secondsone token think of it as 3/4 of the word generally this is the case or or in
+34:4334 minutes, 43 secondsother words generally I've seen that one token length is like four characters I'm not saying this is a must it could be
+34:5034 minutes, 50 secondspossible that one token could be of five character also or maybe three character also but mostly you will notice that one
+34:5734 minutes, 57 secondstoken size will be equal to four characters and after that you will see that it's broken up and all that so that is what it have done okay so it now what
+35:0635 minutes, 6 secondshave happened because they have token Now the tokens is of limited size. So generally like they have 100k tokens or
+35:1435 minutes, 14 secondssomething which is available with them across. So there this is the common chunks which they keep on using to work on. Later you will also see the
+35:2235 minutes, 22 secondsadvantage or the benefits of these tokens coming up as well. No it's not very hard in fact to track all this
+35:3035 minutes, 30 secondsbecause they are predefined tokens. So they are predefined tokens. So that's why it's not a big problem. In fact, the shorter the token, company will make
+35:3835 minutes, 38 secondsmore and more money. In fact, that's also one notorious thing which is happening these at this time era. Lot of companies what they have done, they are
+35:4735 minutes, 47 secondsnot increasing the price but what they started doing, they started saying that we will reduce the size of the word to
+35:5535 minutes, 55 secondstoken. For example, let's say if somebody have written shivank now one way is that I can say token is shift
+36:0236 minutes, 2 secondsplus ankh. So I am paying for only two tokens right now. Correct? Now another way of Shivang could also be that maybe
+36:1236 minutes, 12 secondsshe is one token, VA is another token and K another token. Can you see my cost increased?
+36:2236 minutes, 22 secondsYes, my cost increased. This is one another way how companies are creating problems. Okay, now let's move on. Now
+36:3236 minutes, 32 secondslet me uh because there are a lot of questions popping up. I just want to give a small call out in this case. See you can trust me on this. All of your
+36:4036 minutes, 40 secondsquestions will get answered as in when you will go up. For example, I could see there's a question Shivank how transformers is going to then predict if
+36:4836 minutes, 48 secondsI have to talk in tokens problem is I haven't even reached to that state.
+36:5236 minutes, 52 secondsRight? So all your most of your questions will get answered by the end of it. Still if you're getting too much
+37:0037 minutescurious remember I told you have a pen and paper with you have a pen and paper write it down please write it down
+37:0737 minutes, 7 secondswhatever your question is go back read the session once again you will most likely get your answer and try some
+37:1537 minutes, 15 secondscuriosity as well when I say try some curiosity or already work learning in chat GPT error now so maybe go and just
+37:2337 minutes, 23 secondssearch that okay let me search how the tokenization work in plot Let me search how the token ID work in Gemini and you
+37:3037 minutes, 30 secondsit will take you to a page play with that toasa you have to try that is something is one expectation I want to place sir
+37:3937 minutes, 39 secondsotherwise you will feel shang you have not clear my curiosity that's the reason I put everything in the question tab for all of you the reason is because if I
+37:4737 minutes, 47 secondsanswer all the curiosity curiosity now in two hours we will be able to finish only by this much is everybody aligned with this part that of work you need to
+37:5737 minutes, 57 secondsJust write it down and even look at it at your own like I said about token example. Try it out. You will get all the answers before this series end.
+38:0538 minutes, 5 secondsThat's my promise. But few things could jump. For example, if I start explaining how tokenizer will predict token. The problem is oh sorry transformers will predict token. People will get confused.
+38:1538 minutes, 15 secondsShivan started talking about transformer. He have never explained what is transformer. Right? So maybe you know it others may not know it. So I
+38:2338 minutes, 23 secondswill prefer to skip that question. Okay perfect. So let's move on. So we have now understood this thing.
+38:3038 minutes, 30 secondsOne more interesting thing. Let me tell you a very openly. What happens if I ask you don't you think English is the most used language or the internet world?
+38:4238 minutes, 42 secondsThere could be some websites in Hindi, some website in French, French, some in Tamil but most of it in English. So what
+38:5038 minutes, 50 secondshave happened? This whole data got trained based on English.
+38:5738 minutes, 57 secondsSo the AI have learned all these activities using English only. Now what's the problem? If it's AI is learning from English, then what's the
+39:0539 minutes, 5 secondsproblem? So the thing is for English there are limited number of words, limited number of tokens possible and so
+39:1139 minutes, 11 secondson. So they were able to define this well because the lot of training data was also available for them. But the
+39:1939 minutes, 19 secondsproblem is since Hindi and all is very less if in fact if I'm not wrong Hindi is less than 1% of the overall internet words. So the challenge with this is
+39:2839 minutes, 28 secondsthey have very lesser data on these cases. So chat GPD claude the foundation bigger models they have not concentrated
+39:3639 minutes, 36 secondsmuch on this. Now due to this what will happen? Let's say you are building a project. I'm telling you this because I've seen this problem in with one of
+39:4439 minutes, 44 secondsthe uh company. So that's why I'm calling it out. So if you're building let's say a project for your company now
+39:5139 minutes, 51 secondslet's say what you did you used for English you were getting cost for the same data set what you are asking or to
+39:5839 minutes, 58 secondsdo the air work let's say $100 okay now what you did you are building in charge GPT but you're using Hindi now okay if
+40:0640 minutes, 6 secondsyou're using Hindi or Tamil or French or some other language you will notice the bill can shoot to even $300 or $500
+40:1540 minutes, 15 secondsbecause If let's say if I have to write let's say shivank shivank this is a small word but still shivank you know
+40:2440 minutes, 24 secondsthis can create even more tokens in comparison to your English language because it will break very very minute
+40:3240 minutes, 32 secondsthis is a small word I wrote let's say shivanga I'm just writing something so that you
+40:4140 minutes, 41 secondscan understand so maybe what it can do it will say this is one token it may say This is another token. This may say this
+40:4840 minutes, 48 secondsis another token. It may say this is another token. This may say this is another token. But in English maybe the
+40:5640 minutes, 56 secondsold word could have been broken into two tokens. But in Hindi you can see I end up creating five tokens for it.
+41:0341 minutes, 3 secondsSo when you are creating application for other languages be really really mindful about this part because your token cost
+41:1241 minutes, 12 secondsis real and for any other language other than in English you have to pay. Now what could be a solution because you may say what if I have to build an app
+41:2041 minutes, 20 secondsaround it. So there are a lot of companies in India or there are localization localization part of it.
+41:2741 minutes, 27 secondsFor example there's a bat AI Indian government is investing in. Have you heard about Serb? They are also
+41:3441 minutes, 34 secondsinvesting building uh GPT kind of thing with respect to your uh Hindi language.
+41:4041 minutes, 40 secondsSo you should be looking for uh language which other models which are very specific to that part. So please make
+41:4741 minutes, 47 secondssure that you do this everybody clear now that what's happening here? Okay. So that's something be very mindful because I know some companies end up doing such
+41:5641 minutes, 56 secondsmistakes. Now in LLM model there is one something very interesting. Okay. Um so
+42:0342 minutes, 3 secondswhat happens is that in fact how LLM model works. Let me give you a very interesting example. By the way there was me while I'm sharing there was a
+42:1142 minutes, 11 secondsquestion then how Germany understand my Hindi when I speak in Hindi to Gemini.
+42:1642 minutes, 16 secondsNow you yourself tell me though I could have said that you can write it down and think yourself but just to give you an answer.
+42:2542 minutes, 25 secondsThink yourself. Have I said that chargy do not understand Hindi?
+42:3242 minutes, 32 secondsHave I said this at any place that charge GPT claw they don't understand?
+42:3642 minutes, 36 secondsNo. What could be the problem then? If they are if you are giving Hindi to do something don't you think your token cost will increase? That's the only
+42:4542 minutes, 45 secondsthing which will happen. Yes. So I never said that models cannot understand other language. problem is you will end up
+42:5242 minutes, 52 secondsspending extra that you need to be mindful of. Now let's come back to this.
+42:5842 minutes, 58 secondsCan you all see this barista example in front of you? Yes, all of you can see now. Perfect.
+43:0743 minutes, 7 secondsSee this part. The barista handed me a hot cup of what could be the word out of these four?
+43:1643 minutes, 16 secondsTea or coffee or bicycle or sadness? Coffee. Yes, sadness.
+43:2543 minutes, 25 secondsFew people are interesting. They're saying like no, I want sadness from barista because they are expensive
+43:3243 minutes, 32 secondsmaybe. Right. Fine. So barista handed me a cup of coffee, right? I can click on it. You can see that it's looking around
+43:4043 minutes, 40 secondsthe same. So now if you look at this what's basically have happened is the how you were able to answer this the
+43:4943 minutes, 49 secondsreason you were able to answer this is because this is the common statement you might have seen when you even read uh
+43:5843 minutes, 58 secondsinternet or even when your friends talk to you right I'm not saying that tea or some other thing do not happen but most of the people when they think about
+44:0644 minutes, 6 secondsbarista they talk about coffee so let's say over the internet If this statement is present at one lakh places, one lakh
+44:1644 minutes, 16 secondsplaces then in that case don't you think LLM can read all those one lakh places and
+44:2444 minutes, 24 secondscan learn from that that if somebody is writing this much then the next token should be coffee. Everyone agree?
+44:3344 minutes, 33 secondsSo don't you think internet have so much of data with them that from that data it can very easily pull off all the data
+44:4244 minutes, 42 secondscan learn through it and can now it have learned enough it it just like you have mugged up a book okay now imagine they
+44:5144 minutes, 51 secondshave mugged up the whole Wikipedia whole ecosystem whatever is present in fact this became so stagnant that when
+44:5844 minutes, 58 secondsthey were like scrapping all the internet data lot of companies changed changed their policy. They said you can't scrap us and they said if you want
+45:0645 minutes, 6 secondsto scrap us give us money that's how company have charged them. Okay, otherwise they were like doing
+45:1245 minutes, 12 secondseverything uh on this part. So that is something how we were same thing basically was the case here.
+45:2045 minutes, 20 secondsSo they were like learning from millions and billions of records but from that it have basically now a able to understand
+45:2745 minutes, 27 secondsthat what could be the possible next word. Example, if I just change the statement and say the sky is sky sky sky
+45:3645 minutes, 36 secondsis dash what will be your answer blue I thought somebody will say that
+45:4345 minutes, 43 secondssky is red sky is black sometime it's black also no red but don't you think in most of the cases it is going to be blue
+45:5145 minutes, 51 secondsword coming up yes that's the point so what happens let me let me give you an example now so let me explain you something interesting Okay, this is a very important concept.
+46:0146 minutes, 1 secondI need your full attention here. So let's say in English words if let's say there are thousand places where the
+46:1046 minutes, 10 secondsstatement was written sky is now at few places it might have been written as
+46:1846 minutes, 18 secondsblue at few places it might be written as something else just give me a minute
+46:2646 minutes, 26 secondsokay so let's say in thousand places can I say at least In 70 statements or 700
+46:3546 minutes, 35 secondsstatements it will be written as that sky is blue. Agree everyone?
+46:4146 minutes, 41 secondsYes. Can I say that maybe in 100 places it might be written as the sky is black.
+46:4946 minutes, 49 secondsAgree. Maybe at some other places there could be other answers also like for example a lot of you were answering as well that sky is the limit right? Huh?
+46:5846 minutes, 58 secondsOr somebody said that sky is the Indian 2020 captain right or the sky is cloudy.
+47:0447 minutes, 4 secondsSo there could be other ones as well. So don't you think then we can talk in terms of probabilities that if it is 700 times out of thousand can I say it's 70%
+47:1347 minutes, 13 secondsblue it's uh maybe 10% black and maybe there are some other percentages. Agree everyone
+47:2147 minutes, 21 secondsI hope this part is clear that how this is working now. So what basically I'm trying to go to from this is so there is
+47:2947 minutes, 29 secondssomething called as if I always answer is sky is blue means I want to pick up the highest probability then what you
+47:3847 minutes, 38 secondscan do is there when you will write code there is a term called as temperature it will come when I will go to coding
+47:4647 minutes, 46 secondsand all for now don't worry about it if I keep the temperature value to zero so what it will generally do in that case
+47:5347 minutes, 53 secondswhichever word let's say if I'm saying sky is and after that whichever is the highest probability kind of that one
+48:0048 minuteswill get outputed so it will say sky is blue but if I increase the value of
+48:0848 minutes, 8 secondstemperature so generally the temperature value can go from 0 to two so let's say if I make it to two then all these terms
+48:1648 minutes, 16 secondscould also become like equally weighted then it can give any of the random output from here so few of Have you
+48:2548 minutes, 25 secondstried this that lot of times you want to go very innovative in innovative solution from GPT and so on. In that
+48:3248 minutes, 32 secondscase if you just change this temperature value you will notice that it will not be always fixed towards the highest
+48:3948 minutes, 39 secondsprobability. It may give even other answers. Now other answers there is a way to how to handle that. We will discuss it when I take you to the code.
+48:4848 minutes, 48 secondsBut I hope all of you got this that how chat GPT answer. If I want fixed answer, highest probability answer, keep the
+48:5548 minutes, 55 secondstemperature as zero. Otherwise, keep increasing the temperature. You will see that even the other words will keep coming into picture. So, sometimes it
+49:0349 minutes, 3 secondsmay answer you sky is pink as well. So, don't get surprised by that because that's how your uh GPTs are being
+49:1149 minutes, 11 secondstrained. Clear everyone? Now, perfect. Now, so let me show you small example around it.
+49:3049 minutes, 30 secondsPerfect. Ah, it's a user input. Can you see this example? So, let's say I ask the question, I love building things in
+49:3949 minutes, 39 secondsprogramming language. Now don't you think most of the people may say Python especially in the AI world
+49:4749 minutes, 47 secondsyes so that's why you see if my temperature is zero Python is returned irrespective of anything why because Python was like most of the people have
+49:5649 minutes, 56 secondsin the training data while writing on the text have done this but notice as and when I keep on increasing this can
+50:0350 minutes, 3 secondsyou see now Python is only going to get printed 97.4% 4% of that time JavaScript people are liking also maybe if I move
+50:1150 minutes, 11 secondsthis to two can you notice now now even other languages can get like you can say I love building things in bananas also I
+50:2050 minutes, 20 secondsdon't know what is this programming language but huh clear everyone now what is the role of temperature
+50:2750 minutes, 27 secondsperfect so I hope everybody got the temperature part by the way all this will come in coding I'm just trying to make sure that you understand this
+50:3450 minutes, 34 secondsconcept first perfect Let's move on to the next step. So we have understood now what exactly is temperature, what
+50:4250 minutes, 42 secondsexactly are LLM models and so on. So the highest value of temperature is true. So you can play around with this also more
+50:4950 minutes, 49 secondsoften. Now this type of learning what LLM do is called as selfsupervised learning where what is happening it have
+50:5850 minutes, 58 secondslearned from all the text available over internet and it understood how to predict the next word or next tokens coming from this part. Okay. So that is
+51:0751 minutes, 7 secondswhat is happening. Uh people who are thinking that from where I'm showing all this, these are your notes which I will be giving you. Okay. These are going to
+51:1551 minutes, 15 secondsbe your nodes. Now so we understood now how exactly it works. But there is a problem. You know what? What's the
+51:2251 minutes, 22 secondsproblem? Problem is that LLM can hallucinate very well. Let me give you an example. For example, let's say um in
+51:3251 minutes, 32 secondsfact this happened with very famous company called as Air Canada.
+51:3851 minutes, 38 secondsOkay. So basically what this guy did was he went to Air Canada chatbot and over chatbot the user asked a question that
+51:4651 minutes, 46 secondshey uh do you have a refund policy okay for uhment or something right? So it
+51:5451 minutes, 54 secondsasked for a specific case. Now what happens? Most of the companies provide let's say the refund policy. Okay. So
+52:0252 minutes, 2 secondsthey have the refund policy for this. So what it have done LLM have learned from all over the internet that maybe Indico
+52:1052 minutes, 10 secondsmaybe air India they are providing the uh bement refund policy. But this Air Canada do not have any refund policy.
+52:2052 minutes, 20 secondsThey don't have at all any refund policy. But what happened when the user asked the question what about the refund policy for government what end up
+52:2752 minutes, 27 secondshappening the chat GPT thought that okay I learned from the data and yes refund policy is there for it so it answered
+52:3452 minutes, 34 secondsyes I have a refund policy now for air Canada so it's a problem right because they don't they never had
+52:4252 minutes, 42 secondsit right now in fact this guy sued air Canada and then air Canada have to pay
+52:4952 minutes, 49 secondsso this is the kind of problem what can happen means LLM can very confidently
+52:5552 minutes, 55 secondscreate wrong answers okay so that you need to be very mindful
+53:0353 minutes, 3 secondsof this is called as hallucination so if you hear this term you will basically see this part and by the way
+53:1053 minutes, 10 secondswe will learn how to fix this so don't worry about this part okay perfect everybody clear till this point as well
+53:1853 minutes, 18 secondsI'm going very slow guys because this is just the starting session And I want to make sure that everybody get the things well.
+53:2653 minutes, 26 secondsAll these LLM models we also call this as foundation models. Okay. So this is basically also called as foundation
+53:3453 minutes, 34 secondsmodel. Let me take you to one more interesting screenshot. Now see this section. If you look at this part
+53:4353 minutes, 43 secondselastication repeat. Okay. Elication is nothing but where LLM is confidently making answer. For example, let's say I
+53:4953 minutes, 49 secondsuh you are faking in your CV that I know AI. Okay, you have not learned from Shivankaral and you are still faking to a recruiter that you know AI. Now
+53:5853 minutes, 58 secondssomebody asked you a question. Explain me L model. You said I have seen the movie Data that movie was great. Uh Shah
+54:0654 minutes, 6 secondsRuk Khan have played a very good actor role inside it. Very confidently you answered me this. Can you see this is a wrong answer? Can I call it as
+54:1554 minutes, 15 secondshallucination that you hallucinated in front of that interviewer? That's the thing. Okay. So, this is how it works.
+54:2154 minutes, 21 secondsBy the way, this is a true thing. I don't know if you know it. Uh in our UP board because I'm from UP board. Uh in
+54:2954 minutes, 29 secondscollege copies, they basically lot of students go and write songs and they get marks also. Sometimes teacher learn
+54:3754 minutes, 37 secondsproperly. Anyway, fine. Can you all see my diagram here which is text, image, audio and so on. Yes. So basically here
+54:4654 minutes, 46 secondslet's say you the foundation model is nothing but chat GPT cloud blah blah blah and so on. So what is happening if you're only typing text then this is a
+54:5554 minutes, 55 secondsnormal foundation model. But let's say if in the model you can pass image also you can pass audio also. For example, have you noticed you can click on the
+55:0255 minutes, 2 secondsaudio option of chat GPT and can talk to him. So it can understand your audio.
+55:0755 minutes, 7 secondsYou can even provide plus button and give image. Yes. So that's an audio.
+55:1255 minutes, 12 secondsEven you can provide video and then it's giving you some output. So this is also called as multimodel means a model a
+55:1955 minutes, 19 secondschat GPT model which can take all type of inputs text image video any type of
+55:2655 minutes, 26 secondsthings. Okay. Definitely it will consume more tokens that you need to definitely can make out from this that it can consume any number of tokens around us.
+55:3555 minutes, 35 secondsNow if you ask me honestly what kind of roles this uh GPTs are making much more uh things around like in coding it is
+55:4355 minutes, 43 secondsgetting used a lot for example copilot cursor and so on you can also see in writing there are tools like Jasper
+55:5155 minutes, 51 secondsnotion AI by the way this is the same notes which you will get for you guys so do not worry about that okay how will I remember all this the same note is what
+55:5855 minutes, 58 secondsI will give you this is I have created before your class my team have spended a lot of hours for it so just to make sure that you have the beautiful notes you need not worry about anything.
+56:0856 minutes, 8 secondsMidjourney is a very famous company.
+56:1056 minutes, 10 secondsThey became billiond dollar company uh playing with this images and video. Uh basically you can go to midjourney and say I hey make me stand near to a tiger.
+56:2056 minutes, 20 secondsIt will make you stand and you will feel that you are sitting near to tiger.
+56:2456 minutes, 24 secondsOkay. In education kigo even scalar is creating lot of AI products by the way.
+56:2856 minutes, 28 secondsUh so we are fully AI native company ourself. In fact, some of the products I will show you. Like I said, chat GPD
+56:3656 minutes, 36 secondsinterpf aggregation uh this is going to be today project which we will do. Data organization is a classification
+56:4456 minutes, 44 secondsproblem. This is also solved using chat GPT and then even agents and workflow is also getting used which we will do all
+56:5156 minutes, 51 secondsof these part in today class. Okay. Now you will notice that these are the products which are heavily used like GitHub copilot is a very famous tool.
+56:5956 minutes, 59 secondsPerplexity is for searching. Khan Academy is for tutoring. Um even there is something called as Clara support
+57:0757 minutes, 7 secondswhich is a AI model getting used and there is a product called as Harvey for legal systems. Even there are much many but I just showed you few of it so that basically you understand this part.
+57:1857 minutes, 18 secondsOkay. Now so what is going to happen is uh with this let me now take you towards how we will be writing code and so on.
+57:2857 minutes, 28 secondsSo let me quickly because uh you need not do it today but if you want to just have the things installed and all feel
+57:3557 minutes, 35 secondsfree to do that during the break time as well but not mandatory for you to do so for now. So there are two tools which I
+57:4257 minutes, 42 secondsuse generally. Okay, one is called as uh VS code.
+57:4857 minutes, 48 secondsOkay, very famous one Visual Studio Code. If you go here, you can just download it. Double click. Next, next.
+57:5757 minutes, 57 secondsGet installed. Very simple to install.
+58:0058 minutesThere's nothing inside it. VS Code is it looks like this. Okay. Second, I love using it is called as curs.
+58:0958 minutes, 9 secondsSo I can also show you I think it's tried to open my cursor because I already have this uh probably uh installed.
+58:1858 minutes, 18 secondsSo let me take you to the website.
+58:2158 minutes, 21 secondsThis is also beautiful one. I will use both of these tools uh basically in your work. Even clot code is the you want you
+58:2858 minutes, 28 secondscan use it. I use clot code in within the part of VS code itself. Okay. I will also explain you how to use that. All of this will come. So no need to worry
+58:3658 minutes, 36 secondsabout it. I am okay even if it takes 50 sessions for me to complete this.
+58:4258 minutes, 42 secondsI don't mind. But I will ensure that after this session nobody can beat you in AI knowledge.
+58:5058 minutes, 50 secondsYou just have to promise that you will join all the sessions. Okay. So let's see this part. So this is your uh this part. You can just go and download this.
+58:5958 minutes, 59 secondsYou can see this download button here and basically you can download and play with this thing. Perfect. So this is how
+59:0659 minutes, 6 secondsthe whole uh uh cursor or this part you can just basically download and install.
+59:1159 minutes, 11 secondsSo I can explain you what basically going to happen here. How your VS code and all will look like. So give me a minute.
+59:3059 minutes, 30 secondsGive me a minute guys.
+59:3859 minutes, 38 secondsLet me share my full screen now so that you can see it.
+59:5559 minutes, 55 secondsCan you all see my screen? Ah, they can do. So, this is how your cursor looks like. Okay. So let's say you can just
+1:00:021 hour, 2 secondsclick on open project and play with this part. I will explain you once I take you here. But just wanted to give you an idea how this looks like. Okay. So this
+1:00:101 hour, 10 secondsis one part. Let me also show you VS code. How VS code looks like. This is how your VS code looks like.
+1:00:181 hour, 18 secondsOkay. I know currently you might be thinking that what is this? So let me show you how you can work inside that.
+1:00:241 hour, 24 secondsFor example, I can go to uh open folder.
+1:00:291 hour, 29 secondsOkay. uh if I take you to the open folder and I basically take you towards
+1:00:361 hour, 36 secondscode class and in code class I have written lot of code which basically I will be using in today's session for
+1:00:421 hour, 42 secondsyou. uh let's say if I click on open okay so if I do this can you see this
+1:00:491 hour, 49 secondsfile coming up right so all this files basically got open for you now what you will do as a starting point because this I open just
+1:00:581 hour, 58 secondsthe existing project for you what I can do let's say I can say open folder okay uh I can come to document I can say uh
+1:01:061 hour, 1 minute, 6 secondscode class I can create a new folder let's say I can say let's say uh first
+1:01:131 hour, 1 minute, 13 secondsclass click create it's a first class folder empty folder which I created and click open so you will see it will
+1:01:201 hour, 1 minute, 20 secondscreate something like this okay everybody clear now how to uh open a project once you have the VS code
+1:01:281 hour, 1 minute, 28 secondsperfect second thing what you need to do is by the way all these things will be written in your node so don't need to worry about this part you can see on the
+1:01:361 hour, 1 minute, 36 secondsleft hand side this extension button yes click on that from here you need to install First of all, Python. So you can click on Python.
+1:01:451 hour, 1 minute, 45 secondsUh you will see this Python from Microsoft. So for me it is already installed. So you can see install button for me. But for you it will be first
+1:01:531 hour, 1 minute, 53 secondstime install button which you need to do. Second is you need to go for Jupyter notebook. So Jupiter this one this is also from Microsoft.
+1:02:041 hour, 2 minutes, 4 secondsThere will be an install button. Click on that and it will install the Jupyter notebook also for you. Okay. So this is another part which you should definitely
+1:02:121 hour, 2 minutes, 12 secondsinstall just to make sure that you are able to play with this. Then after that in case if you want to install let's say cursor inside it you can also do that.
+1:02:211 hour, 2 minutes, 21 secondsUh even you have open AI and clot things also here.
+1:02:261 hour, 2 minutes, 26 secondsUh even you can see even codex and all these things are there. Codex is from open AI. I will come to it later. Right now you don't need it. Okay. So for now I I'm basically not going into all this.
+1:02:361 hour, 2 minutes, 36 secondsFirstly everybody clear? Yes. Yes.
+1:02:391 hour, 2 minutes, 39 secondsPython extension just no only Python is more than enough.
+1:02:441 hour, 2 minutes, 44 secondsSo this is the part how we will play around the this notebook. Now what I will do if I want to create any file and
+1:02:521 hour, 2 minutes, 52 secondswork on it. What is our system? I will go can you see this new file? I just went into a new folder right I said new
+1:03:001 hour, 3 minutesfile. Now if I do this let me make it bigger. Give me a minute.
+1:03:121 hour, 3 minutes, 12 secondsIs this good enough now? Okay. Now, so you can see new file from here. New file. If I click on it, you can write
+1:03:201 hour, 3 minutes, 20 secondsnow any file. For example, I can say a.py. So any Python file you create like this. Now you can do whatever you want.
+1:03:261 hour, 3 minutes, 26 secondsSo for example, you can say print uh shivank agraal.
+1:03:321 hour, 3 minutes, 32 secondsLet's say if I do this and I save this file.
+1:03:361 hour, 3 minutes, 36 secondsSo then I can also do one thing. Can you see this new terminal now right? You can click on this new terminal and once you
+1:03:441 hour, 3 minutes, 44 secondsare here you can say run python dot a.py. Can you see it is printing shivankar while for you? Till this point everybody clear what we just did?
+1:03:561 hour, 3 minutes, 56 secondsAwesome.
+1:03:581 hour, 3 minutes, 58 secondsSo this is how we will be able to set up and by the way you can just follow the notes which I will give you or you can even watch out the recording that will
+1:04:061 hour, 4 minutes, 6 secondsbe a better way for you to understand all these items very easily. Awesome. So this is good. Now we have understood
+1:04:121 hour, 4 minutes, 12 secondsthat how exactly this whole uh thing of setup works. Now in the second half I will be walking you through your
+1:04:211 hour, 4 minutes, 21 secondsprojects. Okay. So I will make you set up few things play around with that and so on. But before you go on a break uh
+1:04:291 hour, 4 minutes, 29 secondswe will be let me show you very quickly just one item if you want you can set it up not mandatory. So basically you can see something called as grock gro key.
+1:04:401 hour, 4 minutes, 40 secondsOkay so what happens gro key is one place from where you see if you use openai cloud and all that now they will charge you they're not free of cost but
+1:04:491 hour, 4 minutes, 49 secondsgro is having all the opensource model with inside it. So you can use lot of things free of cost. So let's say if you type drop key and click on this API key.
+1:05:001 hour, 5 minutesOkay, click on this API key. You have to login. I am already logged in by chance.
+1:05:051 hour, 5 minutes, 5 secondsYou have to login and you can say create key. Okay, you can say okay no expiration required and all that. So let me give it a name. For example, I can say Shivank one and click on submit.
+1:05:171 hour, 5 minutes, 17 secondsSo what it will end up doing for you? Let it open.
+1:05:221 hour, 5 minutes, 22 secondsSo can you see this key? You have to copy it. Okay, once it uh make sure that you have to copy and remove uh because
+1:05:301 hour, 5 minutes, 30 secondsonce you are done remove this done, you will not be able to do anything after that. Okay, so you have to make sure that you copy it, copy it and I will
+1:05:381 hour, 5 minutes, 38 secondstell you how to use it later. But this key is very very important to play around and this is free of cost. Even if you are using my key, only problem would
+1:05:461 hour, 5 minutes, 46 secondsbe that you can use it but there's a limit to this key. it will just stop working for some time. Okay. So it's better you create your own key and play
+1:05:551 hour, 5 minutes, 55 secondswith that. There is another way like if I have to let's say do the same thing for other platform. For example, I can say platform.openai.com.
+1:06:041 hour, 6 minutes, 4 secondsOkay. So here also there's a key you have to just log into it. So you can see uh API key. Once you create the API key
+1:06:131 hour, 6 minutes, 13 secondsyou can say create new secret key and it will create a secret key for you. Right?
+1:06:181 hour, 6 minutes, 18 secondsYou have to just make sure you copy that key because otherwise it will not work.
+1:06:221 hour, 6 minutes, 22 secondsOnly thing is if you are using open AI or claude you need to pay. So you need to make sure that at that time you need
+1:06:301 hour, 6 minutes, 30 secondsto basically put some credit card amount which you can do it from your profile when you create an account itself and then you will be able to do this.
+1:06:381 hour, 6 minutes, 38 secondsMinimum amount which openai required is $5 up front. So $5 is what you need to invest in case if you want to play with
+1:06:451 hour, 6 minutes, 45 secondsopen AI. Okay. Grock is going to be free up to some limit it is free. Okay. So means you can do the complete course in
+1:06:531 hour, 6 minutes, 53 secondsGrock just calling it off. So you will have no problem. And inside Grock it says there are multiple models which we
+1:07:001 hour, 7 minuteswill play with. So in case during the break time you want to play with it feel free to do all that so that you will be able to at least do something and
+1:07:081 hour, 7 minutes, 8 secondsbasically take care of it. No $1 million token cost is very less. That is $0.1
+1:07:161 hour, 7 minutes, 16 secondssomething. Just check it out. There's some pricing. So $5 have lot of you can do this course three times and $5.
+1:07:261 hour, 7 minutes, 26 secondsOkay. So that's how it is. Now open also do kind of same but open you need to pay even I will teach you open rout by the way at one place I will bring it up.
+1:07:371 hour, 7 minutes, 37 secondsPerfect. So before we go on a break just want to have a quick pulse check so that I know that I'm not blabbering uh in the
+1:07:441 hour, 7 minutes, 44 secondswhole session. Uh I hope everybody's enjoying the session. Is everybody able to follow me up? Give me a thumbs up.
+1:07:521 hour, 7 minutes, 52 secondsI hope everybody is able to follow me up my speed my analogies whatever I'm using you are able to understand me well you're enjoying AI that's more important
+1:08:001 hour, 8 minutesfor me. I hope you have learned something new that okay this is what LM is this is how it works at least some high level. We have just talked 1 hour
+1:08:081 hour, 8 minutes, 8 secondsnot much but at least in 1 hour I hope you got this right. How many session do we need? I'm suspecting close to 25 30 sessions but even if it require more I don't mind it.
+1:08:191 hour, 8 minutes, 19 secondsOkay sure. So let's have a small break.
+1:08:221 hour, 8 minutes, 22 secondsLet's do one thing. Let's be back in next 5 minute at your watch. So uh come back quickly and then we will spend
+1:08:301 hour, 8 minutes, 30 secondsanother 45 minutes or so. We will build lot of things and at that time we will also uh once we build all these things
+1:08:371 hour, 8 minutes, 37 secondswe will also make sure that uh u while building we will build some projects which you have to do as a LinkedIn activity today. Okay, perfect. See you in next 5 minute, guys.
+1:13:481 hour, 13 minutes, 48 secondsOkay. Are you back?
+1:13:521 hour, 13 minutes, 52 secondsAwesome. I hope few of you are able to set up rock and all. I see one or two people are saying not able to sign up.
+1:13:581 hour, 13 minutes, 58 secondsUh just use Google account or something you will be able to sign up. Just try on different browser in case if you're facing issue. Okay. So with this let's
+1:14:081 hour, 14 minutes, 8 secondsstart the first project. Okay. Hi you can share it over the GitHub and all that. So don't worry about all this.
+1:14:151 hour, 14 minutes, 15 secondsThat's why the reason we are playing with this part. So give me a minute.
+1:14:291 hour, 14 minutes, 29 secondsJust give me a minute guys. I need to set up my screen properly so that you
+1:14:371 hour, 14 minutes, 37 secondsall are able to play with this
+1:14:511 hour, 14 minutes, 51 secondsassignments. Yes, there will be assignments maybe not for today's session but for later sessions because today's session you already have lot of
+1:14:581 hour, 14 minutes, 58 secondsthings to set up and all. That's the only difference. Okay. So let's start with the first part of the day. Remember
+1:15:071 hour, 15 minutes, 7 secondsyou had a key which you created from grock. So the first thing which you need to do let me share my screen again.
+1:15:161 hour, 15 minutes, 16 secondsGive me a minute.
+1:15:301 hour, 15 minutes, 30 secondsSo for this part okay I hope all of you can see my screen also
+1:15:381 hour, 15 minutes, 38 secondsall good. Awesome. So now what I will do with this the first thing which I will
+1:15:461 hour, 15 minutes, 46 secondsdo here is I will click on this new file again and I will say env file that's a very important file. Okay without this
+1:15:551 hour, 15 minutes, 55 secondsyou will not be able to do anything. So that you have to keep in mind. So, env is a place where you can keep this key
+1:16:021 hour, 16 minutes, 2 secondsand it will stay hidden. Otherwise, if you write the key directly to your code and if it gets stolen, you will be in
+1:16:091 hour, 16 minutes, 9 secondstrouble. Somebody can misuse it and they can anyway grock is free. So, no charge.
+1:16:141 hour, 16 minutes, 14 secondsBut what if let's say you have an open AI key then it will be a problem. Right?
+1:16:181 hour, 16 minutes, 18 secondsNow, what you will do further? So, what you will do is the key which you have got right the gro key which you have
+1:16:261 hour, 16 minutes, 26 secondsgot. So, let me quickly use that. So this is the key which I have created. So what I will do
+1:16:331 hour, 16 minutes, 33 secondsI will save it like grock API key is equal to no space nothing no
+1:16:411 hour, 16 minutes, 41 secondsdouble embedded commas I just pasted that key afterwards. So the key which I copied from there I pasted it here.
+1:16:491 hour, 16 minutes, 49 secondsThat's it. Okay. So once I have done this I can save this file. This is another mistake which a lot of people do. they don't save the files and then they think why it's not working. Okay.
+1:16:591 hour, 16 minutes, 59 secondsNow some guy have told a very interesting story but let's come back to it. Now how
+1:17:061 hour, 17 minutes, 6 secondsit works further on this. So in order to work on this firstly I need to import some of the libraries. Let me do that.
+1:17:131 hour, 17 minutes, 13 secondsSo what I will do let me come to a.py let me remove all this now and I will do one thing. I will say import OS from
+1:17:221 hour, 17 minutes, 22 secondsopen AI import open AI though open AI actually I don't need it for this case so I could have removed this but it's
+1:17:301 hour, 17 minutes, 30 secondsokay from env import load env why why I need this part this is open env where I'm doing this why I'm doing this load
+1:17:381 hour, 17 minutes, 38 secondsenv because I need to load the key from the environment so this is required only for that okay now what is the next thing
+1:17:461 hour, 17 minutes, 46 secondsI need to do now what What I will do is I need to basically uh give me a second.
+1:17:561 hour, 17 minutes, 56 secondsHuh? So what I will do now in this case I will be going ahead and playing with some a model called as llama model.
+1:18:051 hour, 18 minutes, 5 secondsOkay. So this is llama model. Llama model is created by meta and they have made it open source. So let me explain you what is going to happen with this
+1:18:141 hour, 18 minutes, 14 secondscase. So look at this. So here I am going to say client what is this client which I'm creating up. So before I
+1:18:231 hour, 18 minutes, 23 secondscreate this client I will write a wrapper. Wrapper of what? Wrapper of open. And I will explain you what is the
+1:18:301 hour, 18 minutes, 30 secondsreason for doing this. See every company came up with their own style of function
+1:18:371 hour, 18 minutes, 37 secondsnames. Now imagine that for every company you need to remember the function name. Is it going to be tricky?
+1:18:431 hour, 18 minutes, 43 secondsYes. Now open AI use this function name client. chat dot completion dotcreate.
+1:18:521 hour, 18 minutes, 52 secondsSo what is this? This is only open AI related. Now the thing is if I have to use cloud then there's a different function. If I have to use gro then I
+1:19:001 hour, 19 minuteshave to use different function. So then what openai said don't worry what you can do this client which you have created here that client object you can
+1:19:091 hour, 19 minutes, 9 secondscreate as a wrapper on top of openi. So let's say here you can see I am using grock API key. What is grock API key?
+1:19:161 hour, 19 minutes, 16 secondsRemember inv file I have created this this one. Now so what I did I just came to this gro api key. I am saying that
+1:19:241 hour, 19 minutes, 24 secondshey load the key which is present from there and this is the common base URL.
+1:19:291 hour, 19 minutes, 29 secondsThis will never change. So you are saying that api.gro grog.com open aai. So what will happen? It is
+1:19:361 hour, 19 minutes, 36 secondssaying fine you are using grog which is okay with me. I am putting a wrapper on top of you of open AI. Now you can use
+1:19:441 hour, 19 minutes, 44 secondseven open AI syntax and I have no problem.
+1:19:481 hour, 19 minutes, 48 secondsThat is what it's doing. Even Gemini you can do that. Even claude you can do that for any model. You can create a wrapper
+1:19:551 hour, 19 minutes, 55 secondson top of it. What you need to do a change let's say it's a cloud model then you just need to put claw cookie here.
+1:20:031 hour, 20 minutes, 3 secondsIf you put the clot key and put it as a wrapper of open AAI then you can use the syntax of open AI itself. You don't need
+1:20:121 hour, 20 minutes, 12 secondsto remember all the different different ones. Now why I'm doing this the use the reason I am using this is because this is how corporate works. You will see in
+1:20:211 hour, 20 minutes, 21 secondsindustry this is how everybody is writing their code. Okay. Now these are this is the standard syntax. Nothing
+1:20:291 hour, 20 minutes, 29 secondswill change from it. Okay. I am not talking about lang chain and all today.
+1:20:321 hour, 20 minutes, 32 secondsThis will come in the next session. We am just starting with very basic how you can talk with these keys. Now what I
+1:20:391 hour, 20 minutes, 39 secondswill do in this syntax I will say what is the model I want to use? I want to use the model called as llama. Now how
+1:20:471 hour, 20 minutes, 47 secondswill I get this? You can go to gro there is a place called as models and can see that which I will show you in some time.
+1:20:531 hour, 20 minutes, 53 secondsOkay. So for now I'm using llama model of 3.3 version. This is a free opensource model. So nothing to you need to worry of. Let's look at this part
+1:21:021 hour, 21 minutes, 2 secondsnow. So now you can see in the messages I'm doing two things. I'm saying role as system and I'm saying role as user. What
+1:21:101 hour, 21 minutes, 10 secondsis role as system and role as user? Role as system basically means you are telling that hey gro model this I this is the way I want you to behave.
+1:21:221 hour, 21 minutes, 22 secondsOkay, for example, I'm going to tell to my grock model, hey Grock model, you are a witty travel guide.
+1:21:301 hour, 21 minutes, 30 secondsSo what will happen? The gro will behave in that way. And now with the user, I'm writing my own query which I want grock to solve. For example, I went to chat
+1:21:381 hour, 21 minutes, 38 secondsGPT and I said what is L model? So that is my user query. So here I'm saying suggest one thing to do in Bangalore because I'm sitting in Bangalore.
+1:21:481 hour, 21 minutes, 48 secondsOkay. So this is what I will do here.
+1:21:501 hour, 21 minutes, 50 secondsNow so there were some questions what is base URL and all I already said base URL is nothing but this is a common URL this
+1:21:581 hour, 21 minutes, 58 secondswill not change for you this is to build a wrapper for open AI and here basically you are just writing this up api.gro.com
+1:22:051 hour, 22 minutes, 5 secondsgrock.com and/openai which means for openai I want the support of openai syntax for the grock model that is what
+1:22:141 hour, 22 minutes, 14 secondsI'm saying now grock is a place where there are different models one of the model name is called as llama this is from meta and that's a name of the model
+1:22:231 hour, 22 minutes, 23 secondsjust like chat GPT is one model just like claude is another model just like some other models are there similarly llama is one model which is free open
+1:22:321 hour, 22 minutes, 32 secondssource for you okay so now Once we have done this and by the way you will not change anything in this syntax. It has
+1:22:381 hour, 22 minutes, 38 secondsto stay as it is. Okay. Now so again calling it out gro is a umbrella. Inside gro you have multiple free models.
+1:22:501 hour, 22 minutes, 50 secondsUnderstood everyone. Llama is one of the model present inside gro. Just like scalar have multiple instructors.
+1:23:001 hour, 23 minutesShivant is one of the instructor inside it. So for example in today class you saw the instructor name allocated to you
+1:23:071 hour, 23 minutes, 7 secondsis Shivang Agraal but for your regular session the instructor name could be different. Similarly here for the
+1:23:161 hour, 23 minutes, 16 secondscurrent work which I'm doing I want Llama model to be used which is the open source model.
+1:23:221 hour, 23 minutes, 22 secondsOkay for now everybody clear for now I'm not going into 70 billion8 billion question because that will come later.
+1:23:291 hour, 23 minutes, 29 secondsOkay. Now, and the reason we are using open AI wrapper because I don't want to remember all the different syntaxes for
+1:23:371 hour, 23 minutes, 37 secondsdifferent different models. Otherwise, for every model, I have to remember a different syntax. So, we should not be doing this. Okay. Now, so with this part
+1:23:461 hour, 23 minutes, 46 secondsonce I have written this and I saved this thing, I saved this. Now, if I run this Python A.Py, see what going to happen?
+1:23:581 hour, 23 minutes, 58 secondsWhat just happened? Give me a minute.
+1:24:041 hour, 24 minutes, 4 secondsI think something did not got save properly. That's one problem here.
+1:24:211 hour, 24 minutes, 21 secondsUh give me a minute. Give me a minute.
+1:24:231 hour, 24 minutes, 23 secondsHuh? So I tell you a problem. Somebody have rightly pointed out. I am not printing anything. So I need to print right? So let's say I will say print
+1:24:321 hour, 24 minutes, 32 secondsresponse. So I did not print it. You can see it also started saying dot choice0 message. I will come to it later. But if
+1:24:401 hour, 24 minutes, 40 secondsI only execute this thing. Okay. So if I only execute this thing and execute this
+1:24:471 hour, 24 minutes, 47 secondspart. Let's see. Awesome. So there are so many things it printed, right? It's hard to read because it's saying that oh the name of this is this. which is the
+1:24:561 hour, 24 minutes, 56 secondsfinished uh reason what is the index at which what is sitting up you can see at what time it's got created what is the model I'm using it is also printing so
+1:25:041 hour, 25 minutes, 4 secondsmany of the metadata but what I am interested in I am interested in this part this part this answer which I have
+1:25:141 hour, 25 minutes, 14 secondsgot when in Bangalore in fact you can see this content right inside content I'm getting this right so I want to pull
+1:25:211 hour, 25 minutes, 21 secondsup only this part so how will I get it this content is present also inside this choice Can you see inside this choice this content is sitting right? So that's why you are seeing something like this.
+1:25:331 hour, 25 minutes, 33 secondsSo if I do a tag you can see this. So response dot choice go to message and go to uh from there content and it will
+1:25:421 hour, 25 minutes, 42 secondsonly print what we need. If I do this now and run my model Python A. py see the clear everyone?
+1:25:531 hour, 25 minutes, 53 secondsYes. how it considered role as user because you have given it in the code itself. So when you write user this is means your question this question I am
+1:26:021 hour, 26 minutes, 2 secondsasking just like in chat GPT I said what is available similarly here I'm saying that suggest one thing to do in Bangalore so that's my question so
+1:26:101 hour, 26 minutes, 10 secondswhenever I am going to ask any question that is going to be the role of user okay that's a standard syntax which we need to follow now similarly role as
+1:26:191 hour, 26 minutes, 19 secondssystem if I let's say if I change it up right let's say I say you are a uh rude travel guide.
+1:26:301 hour, 26 minutes, 30 secondsOkay. So now let's say if I change this and see what's going to happen. So if I do this and let me clear this.
+1:26:401 hour, 26 minutes, 40 secondsAnd now let me run this. See the output.
+1:26:431 hour, 26 minutes, 43 secondsIf you insist on visiting Bangalore, I suppose you should go to Lalb. It's not like you have better things to do. And
+1:26:501 hour, 26 minutes, 50 secondsone of the most decent spot in city. See it's calling Bangalore as chaotic city and all that. Can you see it's returning our root response?
+1:26:591 hour, 26 minutes, 59 secondsYes. So this is how you can make your system behave differently. So you can also say hey you are a
+1:27:071 hour, 27 minutes, 7 secondsfunny uh joker. Let's see now what will happen.
+1:27:171 hour, 27 minutes, 17 secondsWhy it's giving me internet.
+1:27:241 hour, 27 minutes, 24 secondsOkay, fine. Let me save it.
+1:27:351 hour, 27 minutes, 35 secondsMaybe I say tell me a joke. Okay, I changed the question also. And now if I change this and run this part. Let's see. Can you
+1:27:431 hour, 27 minutes, 43 secondssee it is giving me now a joke instead of whatever I'm asking. Okay. Yes. This is called a system props. Everyone clear
+1:27:521 hour, 27 minutes, 52 secondsnow? I hope everybody got a good context how it works.
+1:27:561 hour, 27 minutes, 56 secondsOkay, free of cost key. You can set it up in your part and play with this. Now let's go to the second one.
+1:28:061 hour, 28 minutes, 6 secondsNow somebody asked a very good question. He said Shivan can you say that can you ask a joke for Bangalore? It will say it's a
+1:28:141 hour, 28 minutes, 14 secondstraffic city or something. So let's let's move on. Okay. So let's say openai. py. So why I'm doing this?
+1:28:211 hour, 28 minutes, 21 secondsbecause I want to show you now that uh for the open AI key part if I want to create something how I can even do that.
+1:28:291 hour, 28 minutes, 29 secondsSo give me a minute.
+1:28:391 hour, 28 minutes, 39 secondsSo this file let me bring the code and don't worry about syntax and all. I will give you all the code later. So don't worry about it. Just enjoy the class understand everything what's happening.
+1:28:501 hour, 28 minutes, 50 secondsCan you notice now there's a change here I'm saying client is equal to open AI am I writing any wrapper now
+1:28:581 hour, 28 minutes, 58 secondsif I want to directly talk with open AI I can even do this directly open see here I have to write wrapper and all I have to give this wrapper all the detail
+1:29:061 hour, 29 minutes, 6 secondsinside it here I'm able to create direct object notice what I'm doing can you see this is exactly same client chatcomp
+1:29:131 hour, 29 minutes, 13 secondscompletion create same syntax I only change the model name GPT -4- and mini right and you can see even the message
+1:29:221 hour, 29 minutes, 22 secondsand everything is same you are a witty travel kite suggest one place to do in Bangalore right and I'm returning the same what is only going to change for me
+1:29:301 hour, 29 minutes, 30 secondsis in my env file I need to define my key
+1:29:371 hour, 29 minutes, 37 secondsso I am making sure that I'm writing in such a way that you will not be able to understand anything
+1:29:461 hour, 29 minutes, 46 secondsokay you can see it's half cut key for you but It's okay. Anyway, I will delete all these keys. So, if you're copying also, it's of no use.
+1:29:561 hour, 29 minutes, 56 secondsOkay. Now, so this is the thing for OpenAI. Now, if I run this clear
+1:30:061 hour, 30 minutes, 6 secondsPython open AI py file. Okay, I did some mistake here. Ah, what is the mistake?
+1:30:161 hour, 30 minutes, 16 secondsLet me quickly see. Open import. I think I need to install.
+1:30:271 hour, 30 minutes, 27 secondsLet me close this unnecessary. It is asking me to install all this.
+1:30:381 hour, 30 minutes, 38 secondsNo, renaming should not be a problem. It's okay. Let me create this.
+1:30:431 hour, 30 minutes, 43 secondsLet me also set up Okay, let me also make sure that this is
+1:30:531 hour, 30 minutes, 53 secondsrunning. Now you can see it started installing in the environment right now. I can go ahead and do this.
+1:31:061 hour, 31 minutes, 6 secondsStill throwing something. Give me a minute. Okay, let me fix this first. Did it read the key initially? Yes. Let me
+1:31:131 hour, 31 minutes, 13 secondsin fact change the name just to make sure that it's not creating problem for me.
+1:31:191 hour, 31 minutes, 19 secondsRename open fireplace to refactory. This is fine.
+1:31:311 hour, 31 minutes, 31 secondsIn fact, this is also a problem I believe. Give me a minute.
+1:31:361 hour, 31 minutes, 36 secondsRename pen.
+1:31:431 hour, 31 minutes, 43 secondsOkay. Okay. So once I have done this I control save
+1:31:511 hour, 31 minutes, 51 secondsand let me make sure that these two are installed.
+1:31:581 hour, 31 minutes, 58 secondsSome people are suggesting very other good names also which is also fine.
+1:32:061 hour, 32 minutes, 6 secondsIf you run this it will install. Now I can just say python open.
+1:32:141 hour, 32 minutes, 14 secondspy hopefully it should work.
+1:32:181 hour, 32 minutes, 18 secondsIt is hitting now the open. Can you see it answered? Yes. Perfect. Now file name
+1:32:261 hour, 32 minutes, 26 secondscould be a problem because actually I gave the name as open AI and this also is open AI. So it might have conflicted.
+1:32:331 hour, 32 minutes, 33 secondsOkay. I could see one question. I just was answering that. Everyone clear now with the first code which we have just
+1:32:391 hour, 32 minutes, 39 secondswritten how to play with uh your open AI.
+1:32:441 hour, 32 minutes, 44 secondsAwesome. Should we create our first project then?
+1:32:491 hour, 32 minutes, 49 secondsYes. It'll be interesting. Awesome. So let's play with this first project and
+1:32:561 hour, 32 minutes, 56 secondslet's play what we will do with this case. Give me a minute. So for making it work I will be using something called as gradio.
+1:33:071 hour, 33 minutes, 7 secondsOkay. So I will be using something called as gradio. Why gradio? Gradio is one of the way how you can get UI
+1:33:151 hour, 33 minutes, 15 secondswithout knowing any front end. Very simple to use. Okay we will spend lot of time on graduate. Today my goal is to
+1:33:231 hour, 33 minutes, 23 secondsmake you build some project. That's the reason I want to show you a gradu now.
+1:33:281 hour, 33 minutes, 28 secondsSo what I will do in this case I will be creating a file called as summarizer. So
+1:33:341 hour, 33 minutes, 34 secondsfor now doing this part let me show you already a code which I have with me.
+1:33:411 hour, 33 minutes, 41 secondsGive me a minute.
+1:33:531 hour, 33 minutes, 53 secondsYes we are creating exactly liked Can you all see my screen?
+1:34:041 hour, 34 minutes, 4 secondsYes, perfect. Now let me show you some of the interesting projects. So the project is here you go. So what we will
+1:34:131 hour, 34 minutes, 13 secondsdo at the first level I have written a summarizer. So what the summarizer will do? Uh so I'm just uploading it. This is
+1:34:201 hour, 34 minutes, 20 secondssimple. See this part. What is my system prompt I will give when I will go in the chat. Okay, I'm saying you analyze the
+1:34:271 hour, 34 minutes, 27 secondscontent of a website and give a short friendly summary, ignore navigation menus, respond in markdown. Markdown is
+1:34:351 hour, 34 minutes, 35 secondsjust a way how you give the output. So what you are saying if I give you any website, you should be able to return me
+1:34:431 hour, 34 minutes, 43 secondsup a summary of that website. Okay, this is simple. Now, now you say that you are
+1:34:501 hour, 34 minutes, 50 secondswriting a function and what this function will do for you, this function will fetch website content part for you.
+1:34:591 hour, 34 minutes, 59 secondsNow, where we have written this, I've written already a file. Okay, I have already written a file. Keep it as a blackbox for now because this is a simple Python code. There's nothing
+1:35:071 hour, 35 minutes, 7 secondsabout OpenAI. So, what this fetch website content is going to do if I give a URL to it, it will go to that website.
+1:35:151 hour, 35 minutes, 15 secondsIt will use something called as beautiful. So and from there it is going to just read the whole text present
+1:35:221 hour, 35 minutes, 22 secondsinside that website that it will do. So it is like a scrapper. So if I let's say go to scalar.com it will scrap the whole
+1:35:301 hour, 35 minutes, 30 secondswebsite of scalar.com and will give me the text in my code. That is what it do.
+1:35:361 hour, 35 minutes, 36 secondsEven I have got this code from chatgptt okay I created this code from chatgptt.
+1:35:411 hour, 35 minutes, 41 secondsI said give me a scrapper code. It gave it. So I just used it as it is. So for now don't worry about this code because this is nothing related to AI part. This
+1:35:491 hour, 35 minutes, 49 secondsis the simple coding where you can use stat GPT to get all this part. Now this crapper py function I'm calling here
+1:35:571 hour, 35 minutes, 57 secondsclears everyone. So let's say if I pass a function URL let's say www.scaler.com then in that case it will just fetch
+1:36:051 hour, 36 minutes, 5 secondsthis. Now a natural question which should be hitting your mind shang do I need to know all the programming language? No not really. If you know
+1:36:121 hour, 36 minutes, 12 secondsbasic programming by the way in this session if you're sitting I'm expecting that you know programming language. It could be any programming language but you know programming language. So that's
+1:36:211 hour, 36 minutes, 21 secondsone thing. Okay. Now in case if you know programming language can you talk to GPT and get your Python codes very easily.
+1:36:301 hour, 36 minutes, 30 secondsYes. Now second thing Python sounds like English. It's such an easy programming language.
+1:36:371 hour, 36 minutes, 37 secondsSo you need not worry about it. Now so look at this part. So I have written this summarizer function. What the summarizer function will do? It is
+1:36:451 hour, 36 minutes, 45 secondscalling this to load the data. Then can you see this is exactly the same way how I have written the last code also. Yes.
+1:36:531 hour, 36 minutes, 53 secondsSo I'm using GPT 40 mini. I am saying system prompt uh as a system behave like this. You analyze the content of a
+1:37:021 hour, 37 minutes, 2 secondswebsite and all and you have said that give it in a friendly summary way. Then you say that role as user content as
+1:37:101 hour, 37 minutes, 10 secondssummarize this website. So you as a user you are saying that hey summarize this website. What is the website? The website which you will give as an input
+1:37:181 hour, 37 minutes, 18 secondsuser. So this website clear everyone. So whatever URL you have given that all the data of that URL will get stored in this
+1:37:251 hour, 37 minutes, 25 secondswebsite variable and that it will go and summarize for you. Okay. This is what it will do. Now definitely it is not a
+1:37:331 hour, 37 minutes, 33 secondsfoolproof code to work on every website because there could be limitations but I just want to show you a demo that how
+1:37:401 hour, 37 minutes, 40 secondsyou can go to any page let's say it could be a research paper right which is present over the internet you can give that link and say hey summarize this
+1:37:481 hour, 37 minutes, 48 secondsresearch paper for me it will do that for you it's such a useful functionality right and then in the end you are saying
+1:37:551 hour, 37 minutes, 55 secondsresponse choice and blah blah blah right so this is what basically we are going to do here And this function name is called as summarize function which we
+1:38:031 hour, 38 minutes, 3 secondshave written. Now I created one more file called as app py. What I'm going to do in app py remember I've written the
+1:38:111 hour, 38 minutes, 11 secondssummarize function here. This summarize function I will call from app.py. Why I'm doing so? Because I need now gradio.
+1:38:191 hour, 38 minutes, 19 secondsI will explain you what gradio do in a very short term for now and later we will go in depth of it. Import gradio as gr. Now notice what I will do. create a
+1:38:291 hour, 38 minutes, 29 secondsgradu interface means create a UI for me where you need to execute this function summarize. Now in that case firstly in
+1:38:381 hour, 38 minutes, 38 secondsthe graduate create a text box. Notice I am not giving any HTML. I'm saying create a text box. In that text box you
+1:38:461 hour, 38 minutes, 46 secondscan pass the website URL. Your output should be the output which you will get from the summarize function. Okay.
+1:38:531 hour, 38 minutes, 53 secondsBecause this function will get executed and then the output will come. So it is saying that in the markdown format markdown is nothing but in the website
+1:39:001 hour, 39 minutesformat give me the output in the summary and the title of this website is this launch this as soon as you say launch
+1:39:081 hour, 39 minutes, 8 secondsthis notice what going to happen and by the way guys I'm clearly calling out please keep this as a black box for now python
+1:39:161 hour, 39 minutes, 16 secondsappi see this uh what just happened
+1:39:221 hour, 39 minutes, 22 secondsimport gradio no module called gradio Okay, I need to also install this.
+1:39:311 hour, 39 minutes, 31 secondsLet me install it.
+1:39:381 hour, 39 minutes, 38 secondsBy the way, there's a very interesting question from a learner. I will just address that. Somebody said, I can directly go to chat GPT UI and can do
+1:39:451 hour, 39 minutes, 45 secondsall this. Now, why I need to learn all this? Good question. Tell me one this part. You can do that as a user. If you
+1:39:531 hour, 39 minutes, 53 secondsare going and joining a company let's say AI you went in as a AI engineer and you are asked to build a product on top of these foundation models do you think
+1:40:021 hour, 40 minutes, 2 secondsthen that product will be doing all this have you seen companion by the way of scalar you must have given test and all
+1:40:101 hour, 40 minutes, 10 secondsthat yes now tell me the companion product don't you think sit sitting on top of LLM models yes by the way we will
+1:40:171 hour, 40 minutes, 17 secondslearn how to build that it is sitting on top of LLM models now that LLM models do you think on top of it I have to build
+1:40:241 hour, 40 minutes, 24 secondssomething can I do that on chat GPD directly no right that's why you need to learn on this because we are making you
+1:40:311 hour, 40 minutes, 31 secondsbuild AI engineer now can you see this gave me out this have installed once it
+1:40:391 hour, 40 minutes, 39 secondshave installed I can execute this let's see this
+1:40:511 hour, 40 minutes, 51 secondsit is taking time that means the OpenAI is working. No, it said that no module name as this
+1:41:001 hour, 41 minutesopen AI. I need to also install OpenAI then installed Open AI.
+1:41:091 hour, 41 minutes, 9 secondsOkay, now I hope everything should work.
+1:41:131 hour, 41 minutes, 13 secondsHow many things it will fail? Uh now it is saying trace back call from
+1:41:201 hour, 41 minutes, 20 secondssummarizer import summarize. I should have put the requirements txt.
+1:41:261 hour, 41 minutes, 26 secondsIt's my mistake but it's okay. It's okay. Uh no module named request.
+1:41:341 hour, 41 minutes, 34 secondsGive me a second. Where is this request getting called? Here. So we need to also install this Okay, let me let me ask you a question.
+1:41:481 hour, 41 minutes, 48 secondsWhenever you get stuck something like this, what we should do? How we fix it?
+1:41:531 hour, 41 minutes, 53 secondsBecause right now if I answer you directly enough, then you will not realize that when you will get how you will fix it. Stack Overflow. No, what
+1:42:011 hour, 42 minutes, 1 secondyou should do? Ask AI only. Yes. See, I can just right away go and fix it. But I
+1:42:081 hour, 42 minutes, 8 secondsjust want to show you that what you should do. Let's say you get an error.
+1:42:121 hour, 42 minutes, 12 secondsDo not panic. That's number one. Now you need to go to your browser
+1:42:201 hour, 42 minutes, 20 secondsbecause since you're learning this, I realize that it's good that you should know this also. Right now let's say you
+1:42:261 hour, 42 minutes, 26 secondscan go to your chat GPT okay and give that installation error. Just say that oh I'm getting this error. It will just
+1:42:341 hour, 42 minutes, 34 secondstell you okay you have to fix this. Can you see this is such a simple thing the way we were doing it up. Yes. So I just
+1:42:421 hour, 42 minutes, 42 secondsneed to come back and say pip install this. Similarly, somebody said I need to install beautiful soap also. Correct?
+1:42:511 hour, 42 minutes, 51 secondsOtherwise I would have got error. Thanks for pointing that out. Let me also install this. Now if I go back to this hopefully now it should work.
+1:43:031 hour, 43 minutes, 3 secondsLet me share my full screen again.
+1:43:081 hour, 43 minutes, 8 secondsOkay. You can see this now. Okay. So I did nothing. I just have done this installation only pip install request.
+1:43:161 hour, 43 minutes, 16 secondsYou can see this as the first one.
+1:43:181 hour, 43 minutes, 18 secondsSecond I did pip install beautiful soap and then afterwards I executed the Python file. Once I executed the Python
+1:43:261 hour, 43 minutes, 26 secondsfile, can you see this local URL and public URL?
+1:43:301 hour, 43 minutes, 30 secondsYes. Now this is the public URL what you have. So let's say if you click on it.
+1:43:381 hour, 43 minutes, 38 secondsBy the way, this stays open for uh 72 hours.
+1:43:441 hour, 43 minutes, 44 secondsIt's not following. Okay, let me copy this.
+1:43:501 hour, 43 minutes, 50 secondsOkay, once you go there, you can click on this and it might take some time
+1:43:571 hour, 43 minutes, 57 secondssometimes to host up, but it should show you.
+1:44:021 hour, 44 minutes, 2 secondsMeanwhile, this is opening up. Let me go to python.org or something. So this is a good page. Maybe I will ask it to
+1:44:101 hour, 44 minutes, 10 secondsanalyze this. Can you see this is giving me a gr.extbox.
+1:44:141 hour, 44 minutes, 14 secondsYes. Let me copy this and say submit. It will take some time by the way. And you will see in the markdown it will give me a summary of this. Awesome.
+1:44:251 hour, 44 minutes, 25 secondsIn the first sec, can you see this is the output in the first hour itself. In the two hours itself you builded your
+1:44:341 hour, 44 minutes, 34 secondsfirst project. Don't you think it looks lovely?
+1:44:391 hour, 44 minutes, 39 secondsYes. This sounds so good that you have built two projects in front just right away. I'm giving you this link for you
+1:44:481 hour, 44 minutes, 48 secondsto play later. So feel free to play on this part. Uh now let me do another thing. Okay you can search. Maybe my
+1:44:561 hour, 44 minutes, 56 secondsteam have given you the link. Can we create custom UR? You can you can we will even learn that we will do CI/CD deployment everything later. For now I'm
+1:45:031 hour, 45 minutes, 3 secondskeeping it very simple. So this is the first project we built. Let's go to the second project even a better project than this. How many of you know about
+1:45:121 hour, 45 minutes, 12 secondsthis arena AI because I haven't taught this right that how it is doing underneath that you will learn later.
+1:45:231 hour, 45 minutes, 23 secondsIf you don't know this is a very famous website. What you can do you can say uh let's say you can say in battle mode you can even select models let's say you can
+1:45:321 hour, 45 minutes, 32 secondssay the one model I want is clot second is GPT 5.2 to and I ask what is L1?
+1:45:381 hour, 45 minutes, 38 secondsOkay. And I execute this. What it will do? Let me sign in quickly.
+1:45:511 hour, 45 minutes, 51 secondsEverything got signed out.
+1:46:051 hour, 46 minutes, 5 secondsOkay, see this output.
+1:46:091 hour, 46 minutes, 9 secondsCan you see it started giving me two outputs? Yes, it started giving me two outputs. One is
+1:46:161 hour, 46 minutes, 16 secondsfrom clot, second is from GPT. That is what it is doing here now. So once it have done this, same thing we will
+1:46:251 hour, 46 minutes, 25 secondscreate. Same thing we will create. So let's do that. It's going to be very interesting how you can build a product
+1:46:321 hour, 46 minutes, 32 secondswhich is present there very famous exactly in the first day of your AI learning. So let's go here. So what I
+1:46:381 hour, 46 minutes, 38 secondswill do for this part I have created some code. For example, if I go to arena py. So here what I'm doing I am writing
+1:46:461 hour, 46 minutes, 46 secondsa code called as battle. In this case I will write a prompt which will go like that prompt will take up like what is llm. Now I'm saying your role is this.
+1:46:571 hour, 46 minutes, 57 secondsRole is this and uh your content is prompt and you can see it is saying the first model I have taken it as openi
+1:47:041 hour, 47 minutes, 4 secondsmodel which is GPT 40 mini and second model I'm taking it as llama which is I have taken from grock. Okay. So both I
+1:47:111 hour, 47 minutes, 11 secondshave created and I want to see the output. Now for making it happen I am going to my arena
+1:47:191 hour, 47 minutes, 19 secondsapp. py and what I will do here I am basically saying arena py I'm getting both the client key notice groth client
+1:47:271 hour, 47 minutes, 27 secondsI am creating a wrapper everybody clear yes now when you go to ask function here
+1:47:351 hour, 47 minutes, 35 secondsyou are saying that okay go ahead create a model whatever it's asking you for can you see this is exactly the same code we are already seeing from many times
+1:47:431 hour, 47 minutes, 43 secondsnothing new and then it's saying that okay go and execute this right nothing new only thing is I'm creating some gradio function. I'm not explaining you
+1:47:511 hour, 47 minutes, 51 secondsright now about that because gradio we will learn later in detail. But if you have done this, let's come out of this.
+1:48:001 hour, 48 minutesAnd now let me show you arena app.
+1:48:121 hour, 48 minutes, 12 secondsNotice what it will do.
+1:48:141 hour, 48 minutes, 14 secondsNotice what it will do. It have executed this Copy this part. I will come back to code
+1:48:221 hour, 48 minutes, 22 secondsonce again. But I want to quickly show you that how it looks like.
+1:48:371 hour, 48 minutes, 37 secondsPerfect. So let's say now I say what is LM? And I say battle. Go ahead and fight. So model A is your open AI model.
+1:48:461 hour, 48 minutes, 46 secondsModel B is your groka model. Notice the output.
+1:48:521 hour, 48 minutes, 52 secondsYes, you see the output coming up exactly the same way what arena.AI is doing. I can even give thumbs up, thumbs down that okay, I like this. So let's
+1:49:011 hour, 49 minutes, 1 secondsay when you did that, it said you voted model A. Now I have not created a backend system for it to store the slide or the slide, but I hope you got the
+1:49:081 hour, 49 minutes, 8 secondsidea. Yes. So arena is a product which is already available. I just created a
+1:49:161 hour, 49 minutes, 16 secondsduplicate arena thing by writing the code. Gradio is for getting this UI.
+1:49:231 hour, 49 minutes, 23 secondsOkay. So this is what we have done in this case. Perfect. Awesome. So you have just created your second project. I have
+1:49:321 hour, 49 minutes, 32 secondsto still go back to the code and explain you a few things. But don't you think day one you have already created so many
+1:49:401 hour, 49 minutes, 40 secondsinteresting things right now before I take you to anything else
+1:49:481 hour, 49 minutes, 48 secondsbefore I go back to the code one small activity which I want all of you to do take a screenshot of this okay take a
+1:49:561 hour, 49 minutes, 56 secondsscreenshot for this maybe you can uh if you want you can even uh open this link at your end put that Now let me show you
+1:50:051 hour, 50 minutes, 5 secondswhich I want you all of you to do. One second.
+1:50:101 hour, 50 minutes, 10 secondsSo I want remember I told you I want you to create a personal brand or something.
+1:50:151 hour, 50 minutes, 15 secondsNow I will even give you a sheet which you can use across to play with this.
+1:50:201 hour, 50 minutes, 20 secondsBut once you have done this maybe go ahead and create something like
+1:50:271 hour, 50 minutes, 27 secondsthis. I just built and shipped my first AI project on day one. Give it any
+1:50:341 hour, 50 minutes, 34 secondswebsite URL and it had you a clean summary. If you want to do it for Arena, write that. Mind-blowing part. It is
+1:50:411 hour, 50 minutes, 41 secondsbasically just grab the paste text, ask the LLM. Maybe if you're creating for Arena, do that. Then a few weeks ago, I
+1:50:491 hour, 50 minutes, 49 secondsassumed a PhD or a month of studies required to create that. Turns out it needs a curiosity and that's the real unlocking. I'm learning it from maybe
+1:50:571 hour, 50 minutes, 57 secondsyou can tag me as per your wish I will make sure that if I get some interesting ones I will reshare I have lot of followers so you will get some
+1:51:051 hour, 51 minutes, 5 secondsvisibility from even the recruiters that's why it could be good and then tag like #AI engineering #buildpublic
+1:51:151 hour, 51 minutes, 15 secondsmaybe # AI hashcaler also you can do so that lot of folks are following scalar so you will get lot of visibility on
+1:51:231 hour, 51 minutes, 23 secondsscalar point as Well, right need not mandatory be the same thing. This is just a way. Otherwise, if all of you
+1:51:311 hour, 51 minutes, 31 secondswill put the same thing, it will not look good. So, you should create your own thing. Post it on your LinkedIn.
+1:51:401 hour, 51 minutes, 40 secondsOkay. I want to see some of the LinkedIn posts coming up at a later part. I am even sharing this template with all of you. You can play with this later or if you want to do it now, you can do so.
+1:51:501 hour, 51 minutes, 50 secondsBut trust me if you do that this will slowly create visibility on your LinkedIn. It will not happen on day one but once we will reach to the last class
+1:51:591 hour, 51 minutes, 59 secondsand you have shown lot of project like this including your GitHub links you see the game change for you. Okay. So that's
+1:52:071 hour, 52 minutes, 7 secondssomething which I want all of you to do that after the session also you can do it or if you have time you can do it now completely your call but write in your
+1:52:161 hour, 52 minutes, 16 secondsown words that will be better. you already have my LinkedIn profile so you can tag me so that like I said if I get
+1:52:231 hour, 52 minutes, 23 secondstime I will also keep on reposting your post lot of times randomly so that you get more and more visibility from my followers
+1:52:321 hour, 52 minutes, 32 secondsokay let me go back to the code now so let's see what all going to happen
+1:52:381 hour, 52 minutes, 38 secondsh you can just follow the recording to create the projects don't worry about it so what we have done here now look at
+1:52:451 hour, 52 minutes, 45 secondsthis part so I said sorry what I it here. Here you go. So let's see what we have done here. Firstly, I created a
+1:52:531 hour, 52 minutes, 53 secondsopen AI. No wrapper required. Grock wrapper required. Can you all explain me why the wrapper is required?
+1:53:021 hour, 53 minutes, 2 secondsWhy the wrapper is required? To keep the syntax same. Very good.
+1:53:061 hour, 53 minutes, 6 secondsEverybody clear on this part? Syntax keeping is very important. I want to keep the same syntax. That's the reason
+1:53:121 hour, 53 minutes, 12 secondswe are using the gro open. Then I'm writing a function ask what it is doing.
+1:53:181 hour, 53 minutes, 18 secondsIt is going ahead in the chat completion create and then it is saying that go and create a prompt for me. So that prompt I
+1:53:261 hour, 53 minutes, 26 secondswill give it as an input for the ask whatever is going to come and then I'm giving the output. What is the model?
+1:53:321 hour, 53 minutes, 32 secondsSometime I will give gro sometime I will pass open. So depending on the model coming in it will go and execute this thing. Then you can see in the bottle
+1:53:401 hour, 53 minutes, 40 secondsfunction battle function I'm putting a ask function. What is ask? this function here I'm saying first time hey go and
+1:53:481 hour, 53 minutes, 48 secondsexecute my open AI client what is open AI client the open AI part so you are saying open AI client what is the model you are using in it GPT4 mini the way we
+1:53:571 hour, 53 minutes, 57 secondshave done that I am also passing my prompt and then ask again like gra the client llama 3.3 that's a second output
+1:54:061 hour, 54 minutes, 6 secondswhat you saw there right now then you can vote function this is just to have the uh gradle which I'm not going into
+1:54:141 hour, 54 minutes, 14 secondsfor now because this is simple grattle which is creating let's say the button and all that so that is what it have done for you but this part this simple
+1:54:231 hour, 54 minutes, 23 secondspart of the code was doing the whole story for you now you may have some valid question for open to shibbank I
+1:54:311 hour, 54 minutes, 31 secondswill get charged what I can do for this so let me show you even for that so what you can do you can go to grock gro you can go to this.
+1:54:441 hour, 54 minutes, 44 secondsOkay. Now you can see this website, explore it or you can if you can directly want to check it up, you can say gro models.
+1:54:531 hour, 54 minutes, 53 secondsSo you can go here and you can see all these model nets. So for example, even grock have GPT models also.
+1:55:031 hour, 55 minutes, 3 secondsSo GPD 2.0 and are free. So there are lot of models which they have. You can even take the models from here. You can
+1:55:101 hour, 55 minutes, 10 secondssee the name here, right? Llama 3.1 8 billion instant llama 3.3 70 billion versatile you can just copy the name
+1:55:171 hour, 55 minutes, 17 secondsfrom here and can play with them some model have some payment also so just uh take the one which are free of cost and
+1:55:251 hour, 55 minutes, 25 secondsplay with them okay so that's the how you can get the model second way Gemini provides you API key free of cost for
+1:55:341 hour, 55 minutes, 34 secondssome tokens so you can also go and say Gemini key Okay. So you can go and create Gemini
+1:55:431 hour, 55 minutes, 43 secondskey from here. You can to just get started. Go login inside it and create the key the same way we upgraded for OpenAI. So Gemini is from Google. Very good model. Latest model you can use.
+1:55:531 hour, 55 minutes, 53 secondsOnly thing is there is a limit in this key. But you can also use Gemini to also use it free of cost. For Gemini also you
+1:56:021 hour, 56 minutes, 2 secondscan use a wrapper the way we learned Grock. Clear everyone on this.
+1:56:081 hour, 56 minutes, 8 secondsOkay. Can I expect everyone to follow few things now once the session will get over you will get all the notes you will
+1:56:161 hour, 56 minutes, 16 secondsget the all the project code go and immediately create it post over LinkedIn
+1:56:231 hour, 56 minutes, 23 secondsdo not forget that I have already given you the LinkedIn profile as well add me to the LinkedIn so that I start seeing
+1:56:301 hour, 56 minutes, 30 secondsyour post throughout the course whatever you are doing so that I can uh reshare it or sometimes you will see that I I'll
+1:56:381 hour, 56 minutes, 38 secondscreate lot of videos which will also come over LinkedIn and you can even read and go through that. So a lot of new AI
+1:56:451 hour, 56 minutes, 45 secondsthings which are coming in the market I keep on posting about it. So you will also get all the updates from that.
+1:56:511 hour, 56 minutes, 51 secondsOkay. So a lot of things from my profile you can get at the same time keep building your profile that's more
+1:56:581 hour, 56 minutes, 58 secondsimportant. Okay. Once you do it, I will make you do GitHub profile, LinkedIn profile, everything up so that by the
+1:57:051 hour, 57 minutes, 5 secondsend of this series, you have everything what you need to achieve this output. Perfect.
+1:57:121 hour, 57 minutes, 12 secondsNow I hope everybody of you have enjoyed this session. Uh just want to get a quick thumbs up if Scala 3.0 is same.
+1:57:201 hour, 57 minutes, 20 secondsOkay. So if people were asking that what is Scala 3.0, how this is different, it's same. I am going to cover everything from scratch. Connect you
+1:57:271 hour, 57 minutes, 27 secondswith your curriculum. Everything we will do. This is the first session. Remember that.
+
+Sync to video time

@@ -1,0 +1,921 @@
+Hey uh good morning, good evening to all of you guys. Can you all quickly confirm if you can see me hear me as well as you
+6:536 minutes, 53 secondsshould be able to see my screen where uh the most interesting topic of the day which is uh going to be rack ecosystem.
+7:047 minutes, 4 secondsOkay. So uh definitely this session will have some dependency uh which is going to be from all the previous session because there was a question around it.
+7:147 minutes, 14 secondsUm at the same time uh there will also be after this I will tell you what I'm going to cover uh because I have
+7:237 minutes, 23 secondssomething very interesting in mind for you uh which I will be going forward with. So uh let me in fact give you an
+7:317 minutes, 31 secondsidea what we are going to go u and let me address few pointers also which were coming up on this side. So first is um
+7:407 minutes, 40 secondswhen we were doing uh these topics till now one of the thing which was
+7:487 minutes, 48 secondscontinuously coming up was Shivank uh fine I have covered this much how I can
+7:567 minutes, 56 secondsstart applying number one number two do I need to go with open AI that's one
+8:038 minutes, 3 secondsthing uh number three is deployment part. Now deployment first is supposed
+8:118 minutes, 11 secondsto come later so I'm not much worried about it. So this anyway we will see at the later stage. Now talking about the
+8:198 minutes, 19 secondsmain pointer for you is um which is open AI key to start with open AI key. See I am using
+8:288 minutes, 28 secondsintentionally because this gives me a better results. Okay. Now one of my
+8:348 minutes, 34 secondssuggestion strong suggestion would be if see you can work with grog it's it's completely fine there is no issue with
+8:428 minutes, 42 secondsthis case okay um but at the same time my another suggestion would be that if
+8:508 minutes, 50 secondsyou can it will hardly take you to complete the whole course in maximum $2 maximum
+8:588 minutes, 58 secondsso you can very easily do that but at least you will see some good results Now on you if you want to pick and go
+9:059 minutes, 5 secondswith Grock only it's fine because if you're choosing something free you have to be aware that it's it's not going to
+9:139 minutes, 13 secondsbe as good as uh something else right um so that's one part so definitely the
+9:209 minutes, 20 secondsresults will come output will come but they may not be as great so that's why open AI key is kind of preferred you can
+9:289 minutes, 28 secondsalso look at uh gamma G E M A. Okay, that's another part which you can again
+9:369 minutes, 36 secondspull up. Uh this is also very much kind of lightweight model. You can use GMA. It's almost like claw
+9:459 minutes, 45 secondsmodel. This is what people claim for this. It it gives pretty good results.
+9:509 minutes, 50 secondsYeah, even Kim is a good model by the way. You can also pick up Gimme. Kimmy Kim is also a good one. So that is
+9:589 minutes, 58 secondssomething which I would prefer. If you want you can go with. So that's number one at result point which I want to go
+10:0410 minutes, 4 secondsfor. But again it will not charge you more than $2 or $3 if you are going with
+10:1210 minutes, 12 secondsopen AI key. Okay. So let's say if you're going with open AI key and you want to just like how I'm running in the
+10:1910 minutes, 19 secondsclassroom and playing with the part, it will not charge you more than $2.
+10:2510 minutes, 25 secondsNow I am also going to take a slightly different route. When I say different route, it doesn't mean we are getting
+10:3310 minutes, 33 secondsdiverted from AI. We are still sticking to it. But what I am also going to showcase you is how in the real industry
+10:4110 minutes, 41 secondsthese things works. Okay. So are companies also using the OpenAI model or cloud model only?
+10:5210 minutes, 52 secondsNot mandatory. Okay. um they are up to some extent but what happens is they are
+10:5910 minutes, 59 secondsalso using the frameworks like for example we using lang chain right now right I want you to get introduced with
+11:0811 minutes, 8 secondsanother framework which is on sitting on top of cloud okay so that's another framework which I also want to pull up
+11:1711 minutes, 17 secondshere so it's feasible that you will be having some uh aspect related to that maybe in
+11:2611 minutes, 26 secondsupcoming few classes I will be introducing this now only thing is that you need to set up that at your end uh I
+11:3511 minutes, 35 secondswill be using AWS by the way because that's the most famous they are being affinated with open AI that's going to
+11:4111 minutes, 41 secondsbe the part but the goal would be to make sure that uh you understand the AWS
+11:5011 minutes, 50 secondsframework uh understand even MCP and everything what it works because I saw one or two questions on what about MCP.
+11:5711 minutes, 57 secondsSo we are not missing any topic. Okay, topic will be there. I will still keep covering everything with Lchain but we
+12:0412 minutes, 4 secondswill also be covering the stuff which are also getting used into the uh industry side. So that will be another
+12:1312 minutes, 13 secondsthing. Now for that what you all need to do is uh make sure that you all set up an AWS account.
+12:2112 minutes, 21 secondsNow, if you're setting it first time, uh it is going to they will give you free credits, a lot of free credits. Okay?
+12:2912 minutes, 29 secondsSo, I believe those free credits should be good enough. See, I'm using a paid account, so I'm not sure what all things they have. Uh but it's it's going to uh
+12:4012 minutes, 40 secondsbe free most likely for all of you. It should not be costly, but it's just that you need to get an account ready for it.
+12:4612 minutes, 46 secondsNow, that's one request. Uh I think yes you might need a credit card to just set up but that doesn't matter you will
+12:5412 minutes, 54 secondsstill get the free credit if you're creating a new account as far as you have not used their uh credit free of
+13:0113 minutes, 1 secondcost before then they will allocate some free credits to you that should be more than enough what they can pick up okay
+13:0913 minutes, 9 secondsbecause that billing will be maximum also by the way $4 or something not more than that so that will be and they
+13:1713 minutes, 17 secondsprovide easily more than $100 credit free of cost. So more than enough for you to work on this. Okay. So play with
+13:2613 minutes, 26 secondsthose items. See again uh you have to think from this perspective. U you can
+13:3413 minutes, 34 secondscontinue even watching the recording and can you will be good with it right? It's it's no of no problem. See I I tell you myself right when I learn and create
+13:4313 minutes, 43 secondsprojects around this models uh lot of times I do experiments uh for my project work and for that I I just I don't think
+13:5213 minutes, 52 secondsabout $2 or $3 bill for myself. I I just go ahead and put my personal credit card and kind of go with it because the
+13:5913 minutes, 59 secondslearning which I get right that is unmatchable because once I get to know I can train my team in office that okay
+14:0614 minutes, 6 secondslet's use this it's very powerful and so on so a lot of benefits is what happens in this case right so these are the few
+14:1414 minutes, 14 secondspointers I want to call out so that you are aware that where we are going to lead to from here uh so that you are
+14:2114 minutes, 21 secondsaware of uh some interesting stuff which you may not even get
+14:2814 minutes, 28 secondseasily anywhere that's going okay so uh that's basically one announcement in fact not one I think I I gave already
+14:3614 minutes, 36 secondsthree four announcement so these were few announcements which I wanted to make uh so that we can play around with this
+14:4314 minutes, 43 secondsnow talking about the frequency of class and all this you can take up offline because this is not in my handal
+14:5314 minutes, 53 secondsOkay. Now, so let's move on. By the way, I saw one very interesting uh comment.
+14:5914 minutes, 59 secondsSomebody said, "Shan, what is blank chain framework?" Tell me one thing.
+15:0415 minutes, 4 secondsHave we learned this in class two itself? All of you confirm this please.
+15:1615 minutes, 16 secondsHey, we learned. Somebody said no.
+15:1815 minutes, 18 secondsEither you missed class two or something else is a problem. Lang we are already done.
+15:2715 minutes, 27 secondsSo second question was Shivang please don't skip this MC P don't miss Lang
+15:3315 minutes, 33 secondswhen I said I'm going to miss this. See if these kind of requests will come up right I can stick to lantern I'm fine to
+15:4215 minutes, 42 secondsfinish one thing and in fact I will end up finishing the class earlier I will be more happy right but is it going to help
+15:5015 minutes, 50 secondsyou no right so when I did not called out I'm going to skip anything I'm saying I want to add something extra so
+15:5815 minutes, 58 secondsthat you get an idea that what industry you so pick that now why to worry about okay this This is not a train.
+16:0816 minutes, 8 secondsOkay. So let's let's move on. H this is class 4. But I tell you what is the case. I had planned this in class 3.
+16:1616 minutes, 16 secondsIt's just that since your batch was running slightly slower pace I couldn't finish in the last class all the topics
+16:2316 minutes, 23 secondsand that's the reason I have to basically uh this you are seeing in this part is class three itself. Okay. No.
+16:3116 minutes, 31 secondsOkay. I'm not going to take any other question with respect to Shivang. Please add this. Please do this. Is that okay with everyone
+16:4016 minutes, 40 secondsbecause I'm still seeing those questions. Shivang lama index. Shivang this part but XY Z. Shivang please cover
+16:4716 minutes, 47 secondsthis. Fine. I'm not going to answer this for now. Now let's move on. So first thing we have already started on rag.
+16:5816 minutes, 58 secondsI will give a very quick review of this but definitely last class is mandatory.
+17:0417 minutes, 4 secondsWhy I'm saying this? Because I spended 50 minutes on rack topic already. Okay.
+17:1117 minutes, 11 secondsSo if you haven't joined the last few classes, you have to go back and watch the recordings first. There is no other
+17:1817 minutes, 18 secondsway. You have to finish them up. Now let's move on and quickly see the rack.
+17:2517 minutes, 25 secondsAnd like I said, I'm going to be quick for the first 50 minutes for a topic which I already covered. So what I
+17:3317 minutes, 33 secondsexplained here was if you notice I explained that how the vector space looks like with this
+17:4117 minutes, 41 secondsdiagram in front of you. So as you can see uh here the things are like banana, mango, grape. Can you see a commonalities between them?
+17:5417 minutes, 54 secondsYes. So that's why they will be closer into my coordinate system. That's point number one. Point number two, if you see
+18:0318 minutes, 3 secondstiger, cat, dog, they will also be closer to each other. Yes. Now, do you remember when I was teaching you this
+18:1218 minutes, 12 secondstopic, I told you how the dimensions also kind of come up. Yes. How the dimensions also come up. So when I say
+18:2118 minutes, 21 secondsdimension also come up um I explain you with an example of movie and what I told
+18:2918 minutes, 29 secondsyou in that movie case let's say if I talk about a movie durand so then I told you that how much action will be there
+18:3718 minutes, 37 secondsin that so let's say 0.8 how much comedy is there inside it let's say 0.2 It's not a comedy movie. How much uh
+18:4618 minutes, 46 secondspatriotism is there? Maybe 0.9 and so on. Agree everyone. So what we used to do if there is a similar movie to this,
+18:5618 minutes, 56 secondsdon't you think their coordinate system will also be closer to that? Yes. So those portions is what exactly we
+19:0419 minutes, 4 secondsdiscussed about the rag model that what it do? It basically convert this grape let's say with some property giving some
+19:1319 minutes, 13 secondsnumbers to each and by that logic it is going to be uh basically the fruits
+19:2119 minutes, 21 secondswhich are similar to each other or fruits category itself they will come closer into my coordinate system. I spended a very good time explaining all
+19:2919 minutes, 29 secondsthe logic behind it. So I'm not going into that in more detail but yes I hope from a revision perspective you all must be able to recall this.
+19:3819 minutes, 38 secondsNow second thing is also around what we have done. We have also understood that
+19:4719 minutes, 47 secondswhy we needed rag right. The problem with LRM was firstly it is not trained
+19:5619 minutes, 56 secondson the latest data. Number one problem if your company have something very specific
+20:0420 minutes, 4 secondsthen also will not know. Do you remember I took an example of PSP?
+20:1220 minutes, 12 secondsYes. Like for example, if I talk about scalar PSP, now this PSP keyword is only related to scalar.
+20:2020 minutes, 20 secondsThis is not related to outside word. So definitely then LLM model will not even be aware of it. And if you ask PSP to
+20:2820 minutes, 28 secondsLLM it may either hallucinate also very high probability of it hallucinating because it will feel that it it will go and search over internet will find some
+20:3620 minutes, 36 secondsPSP random word and will provide it to right yes it was related to air Canada case and all that so that is reason we
+20:4420 minutes, 44 secondshave to go with rack now there is an interesting question okay the question is is the rack going to replace cellular
+20:5420 minutes, 54 secondsby the way we discussed this in detail in the last class. Okay. Now you guys tell me is it the case?
+21:0921 minutes, 9 secondsPerfect. So I'm very happy that most of you knows this answer. It is not a replacement at all.
+21:1821 minutes, 18 secondsLLM taking help from RAG to get an output.
+21:2521 minutes, 25 secondsThen LLM is going to reframe that answer for you.
+21:3121 minutes, 31 secondsGot it? That is what it will do. So it is going to reframe my answer. It is not a replacement of it. Which means your LLM and rag have to work together.
+21:4521 minutes, 45 secondsIt's just that now LLM is not responsible for searching something.
+21:5021 minutes, 50 secondsIt's a rag responsibility for searching, giving the result to LLM. Then LLM is framing the answer for you. Think in this way.
+22:0022 minutesLet's say I ask LLM, hey, for the student Satish, I'm just taking a random. By the way, we already
+22:0922 minutes, 9 secondshave a Satish type learner who asks I think this question. So that's why I took his name probably, but it's just a random name. So let's say Satish give me
+22:1922 minutes, 19 secondsthe PSP and attendance for uh Satish.
+22:2522 minutes, 25 secondsNow let's say if if it hits a DB can it give me an answer? Let's say PSP of Satish is uh 100 and attendance is 80.
+22:3322 minutes, 33 secondsCan I get that answer two numbers from it? Doesn't matter whatever DB it is. It could be a rag DB, it could be a normal DB, whatever. Now when LLM will take
+22:4222 minutes, 42 secondsthat now let's say I am looking for the answer from Sat.
+22:4622 minutes, 46 secondsthe LLM will not respond okay PSP 80 uh attendance 100 or whatever right so it it's not going to give this answer what
+22:5422 minutes, 54 secondsLLM will do LLM will start acting as a smart buyer so LLM will respond hey I
+23:0123 minutes, 1 secondlooked at the result Satish PSP is 100 and at 80 seems like he is a very
+23:0823 minutes, 8 secondsproactive learner now tell me is it now a better help from L&M because LM is adding that humanistic thing for me very
+23:1723 minutes, 17 secondswell right it's not giving me a raw answer from the DB it is adding something interesting on top of it that's what is the difference okay I
+23:2623 minutes, 26 secondshope now there is no confusion on this side that what exactly these systems do now let's move on to the another part so
+23:3523 minutes, 35 secondswhat we are going to do today uh in fact this we have already seen in the last session and this I have already explained as well that why rack exists
+23:4423 minutes, 44 secondsbecause aluminum models were trained some time back. Uh your private data like PSP is not available to LLM models.
+23:5023 minutes, 50 secondsIt can very well hallucinate and there is no citation. Can anybody recall for me what was citation?
+24:1324 minutes, 13 secondsPerfect. References.
+24:1624 minutes, 16 secondsSo references if I look at is around um basically references is more like
+24:2424 minutes, 24 secondslet's say I want to know in which do from what documentation I have pulled up this and I'm showing you this response.
+24:3324 minutes, 33 secondsThat's one part. So this is basically your no citation I guess. Okay. So uh that's one part. So this is basically
+24:4224 minutes, 42 secondswhat rack kind of provides you. Now let's move on and I have also kind of gone through this in some detail where
+24:5024 minutes, 50 secondswe have discussed about rack in one simple picture. Uh we have seen that okay you asked a question it will try to
+24:5924 minutes, 59 secondssearch a relevant chunk. Can anybody quickly recall for me what is chunking here?
+25:1325 minutes, 13 secondspizza slice. Very happy to see that all of you remember this. So what happens is in let's say you uploaded your company
+25:2225 minutes, 22 secondsHR policy once you have uploaded the company HR policy what's end up going to happen in
+25:3025 minutes, 30 secondsthis case is that your HR policy could be very big. Now if I have to search from that huge HR
+25:3825 minutes, 38 secondspolicy it's not going to add any value for me right because it's pretty huge to be taken care of. So what rack system do
+25:4725 minutes, 47 secondsis it create chunks small small chunks it breaks this into smaller smaller
+25:5325 minutes, 53 secondsparts and then keep inside it because what happens now my searching become lot
+26:0026 minuteseasier in this case. So this is what it being followed in this case. Okay. So that is basically your uh searching part
+26:0926 minutes, 9 secondsthat finding those relevant chunks where my answer exist. So for example let's say there is a policy doc where it is
+26:1526 minutes, 15 secondswritten from scalar that okay your PSP should be uh minimum 60% plus your attendant should be greater than 70% plus to be eligible for this expedite.
+26:2726 minutes, 27 secondsSo in that case the document could be huge but that particular section is what I'm looking let's say hey can you tell me what was the policy related to uh my
+26:3626 minutes, 36 secondsPSP and attendance. So it will not go and look at the whole document. It will search for the chunks. It could be in two chunks breaking up or it could be in
+26:4426 minutes, 44 secondsone chunk breaking up whatever the case is but it will search for the chunk which are going to be relevant for me.
+26:5226 minutes, 52 secondsOkay. So that's one part which basically is important here. So it will search for that relevant chunk. Then once I get all
+27:0127 minutes, 1 secondthe chunk, it will combine them together and then it will go to my LLM box just like I said, right? Let's say Satish PSP
+27:1027 minutes, 10 secondsis 80, attendance is 100. So then it's reaching to LLM and LLM is framing the answer around the data and you are getting it.
+27:1927 minutes, 19 secondsEverybody clear on all the steps? Okay.
+27:2227 minutes, 22 secondsSo this is an important factor. I will discuss more on chunking in sometime. So don't worry about it in today class only.
+27:3027 minutes, 30 secondsSo what all we did this is important phase one. Phase one we are going to do indexing. What do you mean by indexing?
+27:3927 minutes, 39 secondsYou are reading your whole PDF or doc whatever it is. You are going to break it into small small chunks. Then you
+27:4727 minutes, 47 secondswill turn each chunk into number. Can anybody tell me what you mean by converting into numbers?
+28:0528 minutes, 5 secondsVery good. Converting into embeddings which we have already discussed. Once you have converted into embeddings, you will store into vector DB. So today we will discuss in vector DB in detail.
+28:1728 minutes, 17 secondsSo there are multiple vector DBs like chroma DB, fires DB and there are many more. So we will be storing all this
+28:2528 minutes, 25 secondsinto a vector DB and once we store into vector DB but basically then this is what your storage kind of looks like. So
+28:3428 minutes, 34 secondsthis is a phase one which we call it as indexing. Let's go to phase two.
+28:4028 minutes, 40 secondsWhen I go to phase two, your this is a querying part. So let's say I ask a question. Hey, can you tell me the PSP
+28:4728 minutes, 47 secondsand attendance for learner satish? So what it will do? Don't you think that question I need to first convert to embedding also?
+29:0229 minutes, 2 secondsYes, it need to convert into my embeddings because once that question get convert to embeddings then only I can go and do a cosine similarity.
+29:1029 minutes, 10 secondsRight? Otherwise how will I do cosine similarity? So then only it will go to my rack DB and basically the vector DB
+29:1829 minutes, 18 secondsand search that okay what are the cosine similar things across with it. So that's why you see this turn the question into embedding numbers find the nearest
+29:2629 minutes, 26 secondschunks in the database means it will search the cosine similarity. There are other methods also by the way cosine similarity just the most simple way.
+29:3429 minutes, 34 secondsThen once you will get that you will put all the relevant chunks output which are similar to it into your prompt. Right?
+29:4229 minutes, 42 secondsAnd then LLM is going to answer that.
+29:4529 minutes, 45 secondsClear everyone? What are these two phases? I hope now you're getting more better clarity of how this works.
+29:5329 minutes, 53 secondsNow let's move on to another part embeddings when words become coordinates.
+30:0530 minutes, 5 secondsSo what exactly is this? I have already explained. Okay. Um by the way there's one more but one request guys please
+30:1430 minutes, 14 secondspost all the question only in the public chat not in the private chat because when I start answering let's say anybody
+30:2030 minutes, 20 secondsquestion answer you may feel key what question Shivank have picked up that will be a confusion so let me anyway call out the question so vector DB is a
+30:2930 minutes, 29 secondscloud or a local DB both okay so both the case so when I go to pine cone and all that they are AW
+30:3830 minutes, 38 secondsspecific by the way this I also also have in my plan set to teach it so that you have an idea with a demo that how
+30:4630 minutes, 46 secondsgood those stores are to be honest they're very good okay in comparison to what he uses the open source chroma and
+30:5530 minutes, 55 secondsall of free open source so there are limitations with chromb chromb you can't uh basically do much to
+31:0531 minutes, 5 secondsbe honest because chromb is uh something which you cannot scale to a high number
+31:1331 minutes, 13 secondsof queries for a very small set let's say 10k queries and all if it came confidently it can handle that after that it will crash okay so good for a
+31:2231 minutes, 22 secondsdemo purpose but not good for if you're planning to put this in production never put chroma DB or something in production by the way I've already seen a few folks
+31:3131 minutes, 31 secondsdoing that mistake in coming so don't do that now so let's come back to it so So
+31:3931 minutes, 39 secondsembeddings I already explained you that converting into numbers that's what we will do then embedding is a list of numbers a vector that capture the
+31:4731 minutes, 47 secondsbeginning of the piece of the text we already discussed how it convert what it do we have already seen that and similar
+31:5531 minutes, 55 secondsnumbers means they should be closer in the dimensional space so let me explain you one more thing remember embedding
+32:0432 minutes, 4 secondssize can change I gave you the example of movie where I said maybe I have 10 features so the size of the embedding
+32:1132 minutes, 11 secondswill be 10 maybe somebody increased it so it's going to be 20 50 384 so
+32:1832 minutes, 18 secondssimilarly these are a dimension size being kept by different providers okay
+32:2432 minutes, 24 secondsso like 384 768 3072 you can even change that as per your wish so more the
+32:3132 minutes, 31 secondsdimension don't you think that we are talking about more features than Yes. So then more information in that.
+32:4232 minutes, 42 secondsSo that's good. But then don't do you think your cosign similarity will become more and more extensive also because then you need to have more dimension.
+32:5032 minutes, 50 secondsYou will do more calculations. Right? So you have a trade-off.
+32:5632 minutes, 56 secondsNow hi when the size will increase keep that in mind you will say shaman what's the size 384 versus 1024 how much some
+33:0333 minutes, 3 secondsbyes but when you work on the real ecosystem don't you think that small bite for
+33:1033 minutes, 10 secondsmillions of users can turn into GBs or terabytes yes so you need to be mindful about this
+33:1933 minutes, 19 secondsthat how you plan all this as well okay So,
+33:3133 minutes, 31 secondsokay, just give me one minute.
+34:1034 minutes, 10 secondsOkay. Now, so I have already explained you now this part and gave you the reference of dimensions. Now look at this. This is interesting one.
+34:2234 minutes, 22 secondsKing minus man.
+34:2434 minutes, 24 secondsSimilarly woman if I include then will it be a king or queen? Queen. So the way this embeddings
+34:3434 minutes, 34 secondscomes up you will notice lot of interesting outputs coming up in a dimension space like English keywords will match to each other quite a lot.
+34:4434 minutes, 44 secondsThen tell me this automatically came in Paris minus France plus India which is
+34:5234 minutes, 52 secondsgoing to be Delhi. Tokyo minus uh Japan is going to be your uh Berlin. Walking minus walk plus run is equal to run.
+35:0535 minutes, 5 secondsNow so this is one part and I already showed you even this where you can see if this
+35:1335 minutes, 13 secondsis related then these two are also related. Similarly France and Paris is related then India and Delhi is also
+35:2035 minutes, 20 secondsrelated. Now let's move on to the other section of the table. In fact, remember this also demo I showed you up all of you.
+35:3135 minutes, 31 secondsYes, I already shown you that if I give two sentence if they're closer the cosine similarity will also be similar.
+35:3835 minutes, 38 secondsHave we seen this code? Just confirm me on this part.
+35:4135 minutes, 41 secondsThis code I think we have already seen where I explained you that let's say if I have a transformer which I even talked about hugging face.
+35:5235 minutes, 52 secondsSo in hugging face I told you that okay there are models there are embeddings which already exist. For example let's
+35:5935 minutes, 59 secondssay this is one embedding all mini LM L6B2. This is of 384 dimension by default provided by this provider
+36:0636 minutes, 6 secondsitself. So if I use this and I give a statement to this, it will convert this statement to 384 size dimension. And
+36:1436 minutes, 14 secondsonce it will do, I can just say model.inccode. What is model? Model is nothing but all mini LMA model. So
+36:2236 minutes, 22 secondsmodel.inccode and I pass to it, it will give me that 384 dimension number and then I can do a cosine. By the way, this
+36:3036 minutes, 30 secondsis the formula for cosensility. You need not worry about it for now because we are not going into deep into maths. But
+36:3836 minutes, 38 secondsjust think that there is a cosine similarity formula exist which we have just put down and it is going to give me
+36:4636 minutes, 46 secondsan output. That's it. So this number is exactly what you were seeing here. Okay. Now for the whole sentence.
+36:5536 minutes, 55 secondsSo this is one important part. And now let's move on to the next thing.
+37:0337 minutes, 3 secondsHow do we actually get an embedding? Okay, so we have already seen this part.
+37:0837 minutes, 8 secondsI already talked about this model. By the way, there are some other models.
+37:1237 minutes, 12 secondsThe bigger model you go for, more expensive it can become.
+37:1837 minutes, 18 secondsNow when it will come to production, you should not be using the free val embedding models unless and until you
+37:2537 minutes, 25 secondsare using PC's. So for example, I have used this quite a lot. text embedding - 3 - small even there's a large version
+37:3437 minutes, 34 secondsof it but small version works for me some paid version will be there because this belongs to open AI so if you have the open AI key with you you can just
+37:4337 minutes, 43 secondsreplace this basically this model name from here with this model name and it will start working for you only thing is
+37:5137 minutes, 51 secondsthen it will cost you but the results will be great like the rack retrieval will be great for you so that will be
+37:5737 minutes, 57 secondsone part okay Now uh okay there's a question why you have
+38:0538 minutes, 5 secondsdone this two times because remember here also we run this two times just to see there will be an embedding for this
+38:1238 minutes, 12 secondsthere will be an embedding for this it will do a cosine similarity for both same thing we did now embedding for this embedding for this calculated the cosine
+38:2038 minutes, 20 secondssimilarity and got the got the answer now so this is one part And let's move
+38:2938 minutes, 29 secondson to the next. So uh definitely if you have a bigger size of mitting it will have a much better quality that will
+38:3738 minutes, 37 secondsalways be there. So now let's see chunking part. This is important and one of the very critical thing which
+38:4638 minutes, 46 secondsget asked in interview. So I need your full attention on this.
+38:5038 minutes, 50 secondsSo in this particular case the first part the this encoding is called this chunking is called as fixed size. So
+38:5938 minutes, 59 secondsremember I told you that if I give you a full dock you can convert it to small small chunks. Yes. So now we will learn
+39:0839 minutes, 8 secondswhat are the different type of chunks chunking which exists with us and what we can use right depending on your use case you will plan that. Now look at
+39:1739 minutes, 17 secondsthis. First is your fixed size check. So if I gave you this example uh and I told you that okay Bangalore overview tech
+39:2639 minutes, 26 secondsindustry and so on. So what happen is let's say once you say that I want my chunk size to be let's say 86 or
+39:3339 minutes, 33 secondswhatever. So what it will do it will just go and say that okay let's say if it stop here at 80 keywords it will say
+39:4039 minutes, 40 secondsthis is chunk one. Let's say if it stops here at this keyword it will say it's chunk two. Can you see a problem?
+39:5239 minutes, 52 secondsCan you all see a problem? Yes. Losing context. Can you see the words could be broken into two part?
+40:0040 minutesYes. Words could be broken into two part like Bangalura only till Bangalore U is going in the next chuck. Right? So
+40:0940 minutes, 9 secondsthat's going to be a problem. See this for the fixed chunking. I just took this part and you can see what it have done.
+40:1540 minutes, 15 secondsCan you see this T got cut off then E CH is here everybody able to catch up this what is happening in this case
+40:2540 minutes, 25 secondsso it's the most easiest chunking but it's have its own set of problems recursive is the one which is used by
+40:3240 minutes, 32 secondsdefault by lang now so let's see what exactly it will do
+40:3940 minutes, 39 secondsfor recursive part so in recursive what it will do it It will first try to divide things into let's say paragraph.
+40:5040 minutes, 50 secondsIf the paragraph is bigger than the length you have given let's say 101. So then it will go to sentence level. If
+40:5740 minutes, 57 secondssentence level is also bigger then it will try to basically have a smaller one. So see here what it will do. But
+41:0541 minutes, 5 secondswhat it will try to do recursive is slightly a smarter approach. So recursive will not stop randomly at any
+41:1441 minutes, 14 secondsword. For example, in fixed size chunking, let's say if you're talking about this, maybe it will stop here.
+41:2141 minutes, 21 secondsIt will say I'm done. This is my chunk three or whatever. But if I have to talk
+41:2841 minutes, 28 secondsabout uh recursive chunking, it will make sure that at least this one sentence comes together somehow.
+41:3541 minutes, 35 secondsOkay? Unless and until your chunk size is even smaller than that then it have no other choice. But generally we keep a
+41:4341 minutes, 43 secondsdecent size because sentence sizes are generally not very very big. So you can always set it like 500 size and at least
+41:5341 minutes, 53 secondsone sentence will have maximum 500 character right agree everyone unless you are very bad in English
+42:0042 minutesso it anyway will be having that. So if you define this well can you notice here that like for example bangalori overview
+42:0942 minutes, 9 secondsthen after that this is it coming better chunking or not see yourself
+42:1842 minutes, 18 secondsso it will not fix itself at 101 character if so let's say you can see like bangaluri overview only have 20 character it stopped fine because what
+42:2642 minutes, 26 secondsit felt was key if I move it more then the next chunk will become bad so then after that it picked the next chunk 62 character only third ch 80 character. So
+42:3442 minutes, 34 secondsit's a slightly smarter approach. So it will try to go maximum size. If it do not fit then it will reduce like
+42:4242 minutes, 42 secondsparagraph to sentences, sentences to smaller ones like this it works. So it works in that recursive approach. Now let's move to semantic.
+42:5242 minutes, 52 secondsVery interesting. So what semantic do?
+42:5542 minutes, 55 secondsSemantic is also a decent one. What it do is it read the document. LLM is smart anyway and what it do is it try to
+43:0443 minutes, 4 secondsunderstand that what topic I'm talking about. So let's say if it figures out key let's say this whole thing is talking about tech so it will keep it
+43:1343 minutes, 13 secondsinto one chunk. If this whole thing is talking about climate it will keep into one chunk.
+43:1943 minutes, 19 secondsSo it will basically divide into some meaningful part.
+43:2543 minutes, 25 secondsSo there is no fixed number of characters what you can keep. For example, when I was doing recursive, can you see I had this in my control. Uh
+43:3243 minutes, 32 secondseven when I was doing fix, I had this in my control. Can you see in semantic there is nothing like this.
+43:3943 minutes, 39 secondsOkay, sure. I think there was one request. Can I close my Slack? Done.
+43:4543 minutes, 45 secondsOkay. Now, can you see this now? It's basically going to be working on this way. Now, let's go to structure.
+43:5343 minutes, 53 secondsStructure and semantic is kind of similar but have some differences.
+43:5943 minutes, 59 secondsUh if you look at structure what it do is it looks at the headers and we'll try to keep the header into one thing
+44:0744 minutes, 7 secondstogether. Can you notice this is the exact thing happening? Benaluri overview then tech industry whole thing together then climate whole thing together then
+44:1544 minutes, 15 secondsthe food wall I think whole thing together. Can you all see this part?
+44:2044 minutes, 20 secondsYes. So that's how it keeps no size knob also here as well. Now so this is
+44:2744 minutes, 27 secondsdifferent style of chunking mostly we use recursive and that is by default. Firstly is this part everyone.
+44:3644 minutes, 36 secondsOkay. Now so that's item number one.
+44:4244 minutes, 42 secondsNow generally you should go always with recursive unless and until your application required let's say semantic search or something.
+44:5144 minutes, 51 secondsSo otherwise try to stick to maybe recursive one. It works and give you good results. Okay. Now let me tell you
+45:0045 minutesone more interesting thing. By the way this knob is not here but let me give you a reference.
+45:0745 minutes, 7 secondsSo in this case I haven't brought so there is also something called as overlap. So I have not actually brought
+45:1545 minutes, 15 secondsin my diagram by mistake uh overlap but I will explain you what the meaning of this in few minutes when I have to go to
+45:2345 minutes, 23 secondscode I'm actually going to use this u so in fact see this chunk overlap is equal to 100 first of all is this part
+45:3145 minutes, 31 secondsclear everyone yes so this is the part by the way guys who
+45:4045 minutes, 40 secondsthere are questions around shank but this output is similar to this output right it's possible I've taken a mini
+45:4745 minutes, 47 secondsexample but tell me one thing now after you have understood the concept can you
+45:5345 minutes, 53 secondsnot go back and look at uh trying for example somebody asked Shivang what will happen if I have a hierarchical thing
+46:0246 minutes, 2 secondscan you not go back and try this on your own yes all of you can do that don't you
+46:0946 minutes, 9 secondsthink that will be a better learning because I will anyway give you all the code once you get the code do the play around with the code part try with
+46:1746 minutes, 17 secondsdifferent different data set see what's happening when I change that main thing for you in the classroom should be have
+46:2546 minutes, 25 secondsI understood the concept okay this is the semantic logic this is this logic
+46:3246 minutes, 32 secondsso as far as you are able to do that we are all good with this clear everyone again Perfect.
+46:4446 minutes, 44 secondsNow, by the way, guys, I know uh somebody have given the link of the HTML, but I always strongly recommend
+46:5246 minutes, 52 secondsnot to look at the HTML while I'm teaching. Okay. Why I'm saying this is the and I don't know why this guy have also shared because I didn't ask for it.
+47:0247 minutes, 2 secondsI intentionally don't share. It's a one minute thing for me also to just upload over Google Drive and give you the link.
+47:0847 minutes, 8 secondsBut why I don't do that? You will you can yourself confirm it. At least in my previous patches but I had noticed this as soon as we do that now there is
+47:1747 minutes, 17 secondsalways a distraction. Sometimes you're busy in reading and I said something get skipped and you lose the context because
+47:2547 minutes, 25 secondsI am talking much more what is written in this doc. So if you miss that part gone I can give you a live example.
+47:3347 minutes, 33 secondsHave I even explained about chunk overlap right now?
+47:3947 minutes, 39 secondsNo. And can you see a question coming up for you asking about it?
+47:4747 minutes, 47 secondsYes. Is it a loss of attention immediately? Yes. That is what exactly I'm talking about because then you feel
+47:5447 minutes, 54 secondsoh I missed this because maybe you got distracted. It is okay. I'm not saying it's wrong. It's a humanistic nature.
+48:0148 minutes, 1 secondBut I want to keep the distraction as low as visible. So that is the reason I don't give that but since somebody have
+48:0948 minutes, 9 secondsshared it's actually uploaded in the last class but I would strongly recommend not to open it not open it
+48:1648 minutes, 16 secondswatch out for this for now because in the last class the team have uploaded but it's okay but let's focus on this what I'm teaching and then you have the
+48:2448 minutes, 24 secondsnotebook to play around after that whatever you want to do okay perfect
+48:3148 minutes, 31 secondsso by the way there's one more question how LLM is going to calculate the cosine similarity of both centers. Tell me we have written the code.
+48:4448 minutes, 44 secondsWhen you have written the cosine code itself here, don't you think your code will be responsible to do that?
+48:5448 minutes, 54 secondsYou are ultimately going to execute the code only. Now why llm have to do this for now? It's a code run. Okay. Fine.
+49:0549 minutes, 5 secondsNow let's move on.
+49:0849 minutes, 8 secondsSo let's move on on the next part.
+49:1449 minutes, 14 secondsSo let's understand what is this chunk overlap and why this is going to be interesting.
+49:2149 minutes, 21 secondsSo what happens is in fact let me now I have to take you to the whiteboard to explain you this concept.
+49:4049 minutes, 40 secondsNow look at this. All of you can see my whiteboard.
+49:4749 minutes, 47 secondsNow let's see what they will do. So in this particular piece, what happens?
+49:5149 minutes, 51 secondsLet's say if I've written uh hello this is Shivank
+50:0050 minutesteaching llm.
+50:0950 minutes, 9 secondsToday we learning
+50:1850 minutes, 18 secondsabout rag right and maybe let me just keep repeating this so that I don't need to
+50:2750 minutes, 27 secondswrite so much and so on now in this particular case if I have to do
+50:3650 minutes, 36 secondsa recursive checking and all that so what happens happens is like it it goes in a very simple format. So let's say
+50:4350 minutes, 43 secondshello this is Shivang could be one chunk right then basically there could be another chunks like for example teaching
+50:5050 minutes, 50 secondsLLM today we are learning this I'm I'm just talking about let's say if you're doing any sort of chunking this is how basically the chunking will happen
+50:5650 minutes, 56 secondscorrect this is what happens now let's say if you're doing chunking like this tell me one thing in this case can you
+51:0451 minutes, 4 secondssee an issue that maybe this chunk and this chunk will basically sound completely because they have gone into
+51:1251 minutes, 12 secondsdifferent different chunking now different different place because this is one uh data this is second data but they they will lose the context very
+51:2051 minutes, 20 secondseasily right because I don't know uh this teaching is about whom Shivank or was there something else right will this be
+51:2851 minutes, 28 secondsa problem so what overlap do is overlap say I will take a slightly smarter approach what is that smarter approach
+51:3751 minutes, 37 secondsso uh overlap says that hey How about I will anyway chunk whatever you are
+51:4551 minutes, 45 secondssaying but I will also keep some overlapping medium. What I mean by this?
+51:5051 minutes, 50 secondsLet's see. So for example, hi this is Shbang. Now from the previous chunk I when I will go to the next chunk I will
+51:5751 minutes, 57 secondsread from here. Let's say now when I go to the next chunk I will
+52:0652 minutes, 6 secondsstart reading again from maybe something previous also.
+52:1252 minutes, 12 secondsNow tell me is it a better chunking? I know the space will be slightly higher because you are taking some previous words but don't you think this way I'm
+52:2152 minutes, 21 secondsalso ensuring that at least this chunk will be able to capture what is the context being there in the last one thrown as a context. Yes, this is what
+52:2952 minutes, 29 secondsis called as overlapping. So in overlapping we say you can go till last 100 characters when I said chunk overlap is equal to 100. You can go till last
+52:3852 minutes, 38 seconds100 character and can also include this in this chunk. Clear everyone now.
+52:4552 minutes, 45 secondsOkay. Now I hope all of the person who was asking this question explain me what is chunk overlap. You got the answer for your question.
+52:5452 minutes, 54 secondsYes. So anyway the chunks will be converted to embedding right without that what's the point?
+53:0153 minutes, 1 secondNow so let's move on to your code. Give me a minute.
+53:1453 minutes, 14 secondsSo for this part I am going to open some code
+53:2053 minutes, 20 secondsand we'll explain you something interesting. Sorry guys.
+53:3953 minutes, 39 secondsCan you all see my screen now? Because it I think it gave me some laptop issue when I was trying to do this.
+53:5353 minutes, 53 secondsOkay, this is one question. It's a very basic question, but I still want to take it up. The question is Shivan earlier I
+54:0054 minutesthought sentence should be converted to abetting now you're saying chunk should be converted to abetting I'm confused now can you tell me
+54:1054 minutes, 10 secondswhich one should I chunk sentence chunk we looked at one diagram I clearly told
+54:1854 minutes, 18 secondsyou that chunk see sentence was just a way to explain you at that time but it's going to be definitely this part right
+54:2754 minutes, 27 secondsokay Now coming back to this look at this code called as chunk. py look at this now there's need your full attention now.
+54:3654 minutes, 36 secondsSo if you see this code it is like from lang import recursive uh characters text
+54:4454 minutes, 44 secondssplitter and I am giving a long document like overview. Can you see this is the same code which I showed you in the uh HTML also.
+54:5754 minutes, 57 secondsYes. Now look at this recursive character splitter I have called out. So I'm using recursive chunking and I'm saying chunk size should be 80 and
+55:0655 minutes, 6 secondsoverlap size is 10. I just randomly took it I think. Let me make it small because otherwise
+55:1455 minutes, 14 secondsuh I think 80 and 10 is also
+55:2355 minutes, 23 secondsso I it's unnecessary sometime I am I'm basically not happy with this AI you
+55:3255 minutes, 32 secondsknow what it's trying to do I am writing 80 it's saying no no no no you should say 800 you know why because it's seeing the sin comment
+55:4055 minutes, 40 secondsso it's saying no no no make it 800 only it's forcing me to do that now so once I did this now you can see splitter dots
+55:4955 minutes, 49 secondssplit text uh which is your this splitter split text split text is just a function just like how I showed you encoding and then you said your long
+55:5855 minutes, 58 secondsdocument. Okay, so this is your your long document. Once you pass this and print, let me show you how this work.
+56:0756 minutes, 7 secondsPython chunk.
+56:1656 minutes, 16 secondsBy the way, there's a question recursive character splitter is a uh algorithm.
+56:2056 minutes, 20 secondsTell me, have we just discussed about recursive chunking?
+56:2756 minutes, 27 secondsIt's the same thing. Okay, it's the same thing. Don't get confused by this part.
+56:3156 minutes, 31 secondsNow it's giving me length of this chunks, right? You can see I have 11 chunks which it is creating for me.
+56:3956 minutes, 39 secondsOkay, now let me also say print of chunks.
+56:5056 minutes, 50 secondsOkay, let's say if I do this now see this. So 11 chunks but you can
+57:0157 minutes, 1 secondsee this this is your chunk one this is a chunk two sorry this is chunk two
+57:0857 minutes, 8 secondschunk three chunk four and so on right so uh basically this is how the output part is going to come for you but
+57:1657 minutes, 16 secondseverybody got the clarity now how this whole thing is working in the code look at the code part first
+57:2357 minutes, 23 secondsokay so that is what it will do you can see Okay. So, uh this is basically how the
+57:3157 minutes, 31 secondschunking kind of take up now. So, basically what it will do, it takes always a smarter approach for overlapping. Wherever it feels that it
+57:4057 minutes, 40 secondshave missed out or see if the whole parames together then it will not worry about it. But if the same sentence got broken into two, it will immediately pull up from the previous overlap.
+57:5057 minutes, 50 secondsUnderstood? So that's why I said see this city city and anyway going back to this. So now everybody clear on this part on the code section.
+58:0158 minutes, 1 secondHuh? Wherever you will see sentence getting broken it will go for the previous it's just a smart that's it.
+58:0858 minutes, 8 secondsSo let me go back guys. By the way, uh my expectation here would be definitely that you all will go back and
+58:1758 minutes, 17 secondsdo lot of the code on your own because here I'm explaining you the major thing which I'm planning to do but you have to
+58:2558 minutes, 25 secondsmake sure that you go back and try different things like the questions which you're asking me I am intentionally skipping up Shivan what
+58:3258 minutes, 32 secondswill happen if I do this Shivan what will try a different text play with this create hierarchies see how it's working if it's not working then there is a
+58:4058 minutes, 40 secondsproblem right so play with this I have only told you about let's say recursive text chunking maybe you say I want to try fix chunking now for the fixed
+58:4858 minutes, 48 secondschunking you can go back and just try to search for what is the API for that that's it put it here and play with this
+58:5658 minutes, 56 secondspart because unless and until you will be curious and try this stuff on your own it's useless
+59:0359 minutes, 3 secondsokay now so we have done the first part
+59:1059 minutes, 10 secondsand now let's go to this is important all of you can look at this now huh
+59:1859 minutes, 18 secondssomebody said self- learning yes it's important because if I give you the habit of spoon feeding it will help but
+59:2559 minutes, 25 secondsit will not make you good okay so let's see this section of chromp
+59:3259 minutes, 32 secondsand all this so I have already told you that one type of DB is called as Chromma DB which is
+59:4059 minutes, 40 secondsopen source. We will use this. Uh I will in fact show you Pine Cone also. Like I said it is good but it cannot scale more than this 10 million vectors.
+59:5259 minutes, 52 secondsPine cone is another one. This is uh from cloud. It's a fully managed one. You don't need to worry about anything.
+59:5959 minutes, 59 secondsIt's a very easy tool. Uh it gives one of the best results also but it's great. Okay. So be aware of that.
+1:00:081 hour, 8 secondsNow uh then the third is cordant. Okay. So this
+1:00:161 hour, 16 secondsis open source and production grade self-host you can do from the cloud. Uh I'll tell you what is this portion like
+1:00:251 hour, 25 secondsquadrant is one of the tool which is open source. So a lot of people use it. Uh because it's better than chromad.
+1:00:321 hour, 32 secondsChromma have limitations of 10 million vectors. uh but at the same time if you will put this open source towards
+1:00:401 hour, 40 secondsproduction right so you need to bring over cloud so that's where the quadrant have a good support and that is where it beats chroma so lot of companies use
+1:00:501 hour, 50 secondsthis quadrant because it's cheaper in comparison to pine cone because I'm only paying for the cloud cost in this case
+1:00:571 hour, 57 secondsand I can deal with the remaining things myself but still I will tell you pine cone is still very much preferred in industry it is very famous and can work
+1:01:051 hour, 1 minute, 5 secondson it. Okay, so this is the one like I said if you're starting with P go with Chroma. If you have a good budget and
+1:01:131 hour, 1 minute, 13 secondsyou don't want any operational headaches, go with pine cone. If you want a self-host and all that, go with quadrant dot. There's also one more uh
+1:01:201 hour, 1 minute, 20 secondsvite. So I have not used this VBA but I heard about it. Quadrant I have used so that's why I called it out. Now one more
+1:01:291 hour, 1 minute, 29 secondsthing this is slightly extra not required but I want to give you that insight.
+1:01:371 hour, 1 minute, 37 secondsNumber one see I talk about cosign similarity right similarly there is an
+1:01:431 hour, 1 minute, 43 secondsalgorithm called as hnsw hierarchical navigable small word very
+1:01:501 hour, 1 minute, 50 secondsfamous algorithm it's a 2018 algorithm now what is going to happen in this case because the algorithms which you're
+1:01:591 hour, 1 minute, 59 secondsusing right especially when you're searching there are so many chunks right millions of chunks sitting in your rap db so when you're searching it's a
+1:02:071 hour, 2 minutes, 7 secondstime-taking process. That is where this algorithm can so make your search system pretty fast. Uh it works in a graph way
+1:02:161 hour, 2 minutes, 16 secondsand it works in a login search. Login is like almost equal to binary search if you know about data structures slightly.
+1:02:251 hour, 2 minutes, 25 secondsSo it's very quick very quick. So that's the reason almost I'm not saying almost everyone but like you can see chroma is using this algorithm to search quant is
+1:02:331 hour, 2 minutes, 33 secondsusing this algorithm to search fias is using this plus one more algorithm and pine cone we don't know I don't know but
+1:02:401 hour, 2 minutes, 40 secondsI tried searching it but they have not published anywhere public key because it's proprietary to AWS that's why it's not there okay so this is just a call
+1:02:491 hour, 2 minutes, 49 secondsout so that you know this industry thing do you need to know about this algorithm HNSW no even I don't know to be honest
+1:02:571 hour, 2 minutes, 57 secondsI never tried to go inside it but I know that this algorithm get used it's faster I have never tried to implement it on my own but if I look at it it will not be
+1:03:061 hour, 3 minutes, 6 secondsvery hard I know only this much it's a graph base every vector DB love set so you should also be aware of this part
+1:03:141 hour, 3 minutes, 14 secondsokay now with this we will go to some coding exercise before this uh let me
+1:03:211 hour, 3 minutes, 21 secondspick up just one or two pointers which came over the chat there was uh one learner who said uh I have a doubt uh
+1:03:291 hour, 3 minutes, 29 secondscan we just follow the PDF steps and uh we can learn everything huh you can why not mother see the way I'm in fact uh
+1:03:391 hour, 3 minutes, 39 secondsall this uh documents which you're seeing is written by us only so what we are doing is ensuring that whatever I'm
+1:03:471 hour, 3 minutes, 47 secondsteaching almost everything should be part of this but yes there will be slightly here and there two extra things because if something comes in my what I
+1:03:561 hour, 3 minutes, 56 secondsuse in production I will keep calling out. So those part can be missed but this document is pretty detailed in the format that you can follow up after the
+1:04:051 hour, 4 minutes, 5 secondsclass peri in fact you need not watch the recording after this you can just watch this document run this more than enough for all of you in fact uh all of
+1:04:141 hour, 4 minutes, 14 secondsyou just confirm me is that the case all of you are finding with this HTML or not
+1:04:241 hour, 4 minutes, 24 secondsperfect so I hope that they got the answer because this is a good one so I just wanted to That's it.
+1:04:311 hour, 4 minutes, 31 secondsSo, uh there's one very very very interesting comment. Somebody said, "Shank, I think we need to keep all this document inside a vector DB." Go ahead.
+1:04:411 hour, 4 minutes, 41 secondsThat's a really good one. Okay. So, let's do one thing. We will come back to the coding exercise after this. Okay?
+1:04:481 hour, 4 minutes, 48 secondsAnd we will take up maybe before we go on a break, I just want to randomly pick up few more questions so that we don't have many questions at the end also. Um
+1:04:571 hour, 4 minutes, 57 secondsso there was like one question related to I think but we are hardcoding the values to the chunks. Yes. So I want to talk about this. So let me tell you one
+1:05:041 hour, 5 minutes, 4 secondsimportant thing here. See when I will go to system design I will talk about it in more detail. But just to give you a context around this
+1:05:141 hour, 5 minutes, 14 secondsso chunk size if I look at it right uh this is a hyperparameter. So what happens is you really don't know what
+1:05:221 hour, 5 minutes, 22 secondsshould be the size. You can't keep it too small or you can't keep it too big.
+1:05:281 hour, 5 minutes, 28 secondsIf you keep it too big, maybe your whole document will fall into one chunk. If you keep it too small, it will become too small and there will be multiple
+1:05:351 hour, 5 minutes, 35 secondschunks. So, you need to create a balance. Okay? And this will come by practice. If you think that you will get
+1:05:431 hour, 5 minutes, 43 secondsit immediately, no. Right? It could be 80, it could be 800, it could be 1,000.
+1:05:471 hour, 5 minutes, 47 secondsYou may have to try and see how your rag is behaving when you're giving an question at the end. Is it giving me a better output or not? Is it a relevant
+1:05:551 hour, 5 minutes, 55 secondsoutput or not? That's why you need to think because this question was coming quite a lot. So I wanted to address this. Okay. Uh overlapping required no.
+1:06:051 hour, 6 minutes, 5 secondsTell me one thing. So basically there was a question around if I am using semantic chunking do I need them overlap? Think about it. If you are
+1:06:131 hour, 6 minutes, 13 secondsusing semantic don't you think you are keeping the whole context into one together? Yes. If that is the case, don't you think then do you think any
+1:06:211 hour, 6 minutes, 21 secondssentence will break? Not at all. So not required. Think always logically. You will always get your better answers.
+1:06:301 hour, 6 minutes, 30 secondsUh okay. So this I have addressed for the
+1:06:381 hour, 6 minutes, 38 secondsrag part. So let me just pick up maybe one or two better questions.
+1:06:481 hour, 6 minutes, 48 secondsSo whatever I have addressed, I'm just closing it up. All your questions as well. By the way, there was one more question.
+1:06:551 hour, 6 minutes, 55 secondsIs chunk a token? You all answer me. Is chunka really a token?
+1:07:021 hour, 7 minutes, 2 secondsNo, chunk is not a token. That's different, right? Token was for the LM models. This is for your DB. This is not
+1:07:091 hour, 7 minutes, 9 secondsat all your token. Right? There was another question, Shivang, why can't I keep one chunk only? Why I need so many chunks? Right? Think about it. Your
+1:07:181 hour, 7 minutes, 18 secondsdocument could be in GBs. If you will keep the whole chunk as one. When you will search, it's as equal to like going through the document one by one row and
+1:07:261 hour, 7 minutes, 26 secondssearching something. Is it going to make your search faster? No. That's going to be a problem.
+1:07:341 hour, 7 minutes, 34 secondsNow there was another question I think around um is the rag only used for getting information from let's say only
+1:07:421 hour, 7 minutes, 42 secondsimages, docs, PDF. Can it be used in the core technical use cases? For example, if a chatbot for developers uh need to
+1:07:501 hour, 7 minutes, 50 secondsbe built on top of let's say some sort of API could be SOAP or REST whatever right which gets information from WSDL data saved in vector DB to answer that
+1:07:581 hour, 7 minutes, 58 secondsyes you can do even there as well but you have to really think do I really need that use case think of a use case
+1:08:051 hour, 8 minutes, 5 secondssee when I keep them in DB I am searching exact exact term thing vector DB is majorly for semantic search so
+1:08:141 hour, 8 minutes, 14 secondswhen I'm doing that do I really need semantic search? Think in this technically if you ask me yes possible
+1:08:221 hour, 8 minutes, 22 secondsbut always when you have to think like an architect right because I think the guy who have asked this question is I think an engineering leader so for your
+1:08:311 hour, 8 minutes, 31 secondscase though it will not at all be a good activity.
+1:08:361 hour, 8 minutes, 36 secondsUh okay fine. I think I took up the major
+1:08:461 hour, 8 minutes, 46 secondsquestions which I feel was something should be covered. Um by the way there was one more question. Can I use multiple chunking technique into one?
+1:08:541 hour, 8 minutes, 54 secondsGenerally we don't do technically possible but don't do that.
+1:08:591 hour, 8 minutes, 59 secondsThen is embedding oneonone or many to one? It's always one to one.
+1:09:041 hour, 9 minutes, 4 secondsOkay. more vector dimension, more token incurred and cost obviously.
+1:09:101 hour, 9 minutes, 10 secondsOkay. So now let's move back and uh maybe we can come back again
+1:09:181 hour, 9 minutes, 18 secondsuh and look at this further things after the break. I have to go through the code now and that's coding exercise we will
+1:09:251 hour, 9 minutes, 25 secondsdo after the break. By the way guys, I would strongly recommend uh like for example you all are seeing lot of questions coming over the chat, right?
+1:09:321 hour, 9 minutes, 32 secondsIf you feel you know the answer, answer it. If you are giving the wrong answer, I will catch that and correct it because this is a very good way to learn. Very
+1:09:411 hour, 9 minutes, 41 secondsgood way to learn. Okay. So maybe for example, if there's a question from student test, just write at the rate x this is your answer. This will be uh
+1:09:501 hour, 9 minutes, 50 secondsmaking you your explanability better and better. So see you back in next 5 minutes.
+1:16:301 hour, 16 minutes, 30 secondsOkay, everyone back now.
+1:16:371 hour, 16 minutes, 37 secondsPerfect. By the way, uh during the break, myself and my team were responding to some of the chats. So, you all must have got lot of chat response
+1:16:461 hour, 16 minutes, 46 secondsuh over your question tab. So you can check it out if your question is already answered. Uh it's being in detail answer there.
+1:16:541 hour, 16 minutes, 54 secondsAwesome. Now I'm I'm happy to see that there are a lot of folks who are actually helping the batchmate also. Uh
+1:17:011 hour, 17 minutes, 1 secondkudos to them. I'm noticing their uh things across. Uh happy to see this.
+1:17:081 hour, 17 minutes, 8 secondsOkay. So let's move on to the next topic which is building your rack now. Okay.
+1:17:151 hour, 17 minutes, 15 secondsSo the first thing here is if I look at indexing your document part
+1:17:241 hour, 17 minutes, 24 secondswhat is going to happen in this case look at this so let's say return policy allowed refund in 30 days of purchase shipping is free for the orders above
+1:17:321 hour, 17 minutes, 32 seconds999 and so on this is a data recursive splitter I let's say I'm going to reduce this in my code slightly 500 will be
+1:17:411 hour, 17 minutes, 41 secondsbigger I think for this so it will be let's say 50 and five so that you can see this part then splitter.create create document what this will do so
+1:17:501 hour, 17 minutes, 50 secondsthis is going to uh because I'm just saying that okay go and I'm going to use this particular object which is recursive chunking and it is going to
+1:17:591 hour, 17 minutes, 59 secondscreate chunks for me okay so basically the create document when I will pass this whole doc to it will create chunks
+1:18:061 hour, 18 minutes, 6 secondsfor from this once this will create chunk I'm saying that okay I'm going to use my embedding model because I need to
+1:18:131 hour, 18 minutes, 13 secondsconvert all these chunks into embeddings so what I will do plan I'm using chroma DB here. Can you see I'm using chroma and I have imported lang chain chroma.
+1:18:221 hour, 18 minutes, 22 secondsSo uh I will be using this part hugging face I have already loaded from document. I'm passing my chunk. I'm passing my embedder which is going to be
+1:18:311 hour, 18 minutes, 31 secondsusing this and I'm also saying that hey go and store into the chroma DB and this should be a folder for this part and
+1:18:391 hour, 18 minutes, 39 secondsthen later state I'm just checking how many chunks it have created. Okay. So if you notice in this case what it have
+1:18:461 hour, 18 minutes, 46 secondsdone I have given a document firstly it have got chunks for it once it have got chunk it have created embeddings and
+1:18:541 hour, 18 minutes, 54 secondsstored this inside my chrom at this location firstly is this part here I will run this also and show you but I hope this is clear what it doing now
+1:19:031 hour, 19 minutes, 3 secondslet's move to the second one once we did that um okay there's a question so there's a
+1:19:111 hour, 19 minutes, 11 secondsquestion sham why we are passing embedding didn't tell me Chroma DB supports multiple can support multiple embeddings or not.
+1:19:191 hour, 19 minutes, 19 secondsYes. So that's why I'm specifically telling that use this embedding.
+1:19:241 hour, 19 minutes, 24 secondsUnderstood? And once you have chosen this embedding, the same embedding should be used when the new question comes up for which you are answering. So
+1:19:311 hour, 19 minutes, 31 secondsfor example here, let's say I will ask the question now which should be a part which should be coming from this document. So let me show you for this.
+1:19:381 hour, 19 minutes, 38 secondsFor example, here you can see I'm again using hugging face embedding. Same embedding. I am saying that uh I am going to use chromb from this place
+1:19:461 hour, 19 minutes, 46 secondsbecause chromadv was storing from the last code at this place and use the embedder. Embed is nothing but the same model which I have used. So then I'm
+1:19:551 hour, 19 minutes, 55 secondsgoing to say okay for LLM I'm going to use this GPT 40 mini. You can replace it with the crop model. Now look at this
+1:20:031 hour, 20 minutes, 3 secondspart. What is this? Firstly, can anybody recall for me what is chant prompt chat prompt template?
+1:20:171 hour, 20 minutes, 17 secondsWhat is chat prompt template?
+1:20:201 hour, 20 minutes, 20 secondsYes, to fill in blanks. Class one we discussed this. So this basically is like I know my standard thing which I'm
+1:20:281 hour, 20 minutes, 28 secondsgoing to ask again and again. I only want few places where the things will change. So I don't want to repeat myself. That's why I'm creating this
+1:20:351 hour, 20 minutes, 35 secondschat prompt template. If you notice here my input will come as context. By the way in this context what I will put. So what will happen? I will ask a question.
+1:20:441 hour, 20 minutes, 44 secondsActually my question is let's say how long do I have to return something? Tell me what should be the answer from this
+1:20:511 hour, 20 minutes, 51 secondscase. How long I should have to return something?
+1:20:561 hour, 20 minutes, 56 secondsIf this question is going 30 days, right? But it have to search
+1:21:031 hour, 21 minutes, 3 secondsfrom this document. And for this demo, I've taken a small doc. But it could be a very long doc right now. But there somebody was asking why you are using
+1:21:121 hour, 21 minutes, 12 secondschat prom. Why can't I directly hardcode it? You can do that. Nobody's stopping you from that. It's just the better way of writing codes. See, technically you
+1:21:201 hour, 21 minutes, 20 secondscan achieve anything without error. But is it a right thing to do when you go are writing something production ready?
+1:21:251 hour, 21 minutes, 25 secondsKeep that in mind. Okay. If you're learning from Shivant, I will always be talking only about production thing. No
+1:21:341 hour, 21 minutes, 34 secondsfull stop. There is should be nothing more than this. Okay? Production readiness is most important critical thing because lot of people know how to
+1:21:411 hour, 21 minutes, 41 secondsbuild things at PC level. They don't know how to push the P level to production level. Do everybody agree with me? You might have heard this. You might have seen this in yours.
+1:21:521 hour, 21 minutes, 52 secondsSo in this session, we will focus only on that. So look at this now. So uh if
+1:21:591 hour, 21 minutes, 59 secondsyou notice this I will ask this question. Okay, how long do I have to search something? So what it will do?
+1:22:061 hour, 22 minutes, 6 secondsFirstly, it must have once basically this question will go on. It will do a similarity search. Similarity search
+1:22:141 hour, 22 minutes, 14 secondsfrom what? Similarity search on these chunks which I must have got because this document must have got chunked here and there. Yes. So it is going to get
+1:22:231 hour, 22 minutes, 23 secondschunked from this. Now what it will do is so when it is here it is going to now
+1:22:311 hour, 22 minutes, 31 secondsgive me uh basically similarity similarity of how much up to three similar chunks
+1:22:381 hour, 22 minutes, 38 secondsso let's say I have 11 chunks out of 11 give me the top three chunks which is giving me the maximum cosine similarity
+1:22:461 hour, 22 minutes, 46 secondsgetting it everyone so what I'm doing firstly this should get converted into numbers this numbers will get compared
+1:22:541 hour, 22 minutes, 54 secondsall the 11 chunks committing let's say if I have got 11 chunks from the doc so then all the three top cosine similarity
+1:23:021 hour, 23 minutes, 2 secondswhich I got return me those three is this part here okay so this is the first part so now I
+1:23:101 hour, 23 minutes, 10 secondsam in this context those three top chunks which I got I will put it here
+1:23:171 hour, 23 minutes, 17 secondsunderstood everyone now what it will do so that top three chunks it will put it here now this will go as an input to my LLM that you LLM I am giving you these
+1:23:261 hour, 23 minutes, 26 secondsthree chunks from these three questions please answer for this question. Now will LLM will be smart enough to be able to capture that because it no need to
+1:23:341 hour, 23 minutes, 34 secondssearch from the whole dog. It is only searching from those three important checks which my vector DB have returned me. Okay. So see this part what I will
+1:23:441 hour, 23 minutes, 44 secondsdo now. So let me go up. So here you can see I have my doc. I have defined my chunking scheme. I have basically uh put
+1:23:521 hour, 23 minutes, 52 secondsmy embedding model and I put it my chroma. This part we have seen. Now let's see this part. So when I'm asking
+1:23:591 hour, 23 minutes, 59 secondsquestion my question embedding should also happen with the same embedding model or not. Okay let me make this bigger.
+1:24:121 hour, 24 minutes, 12 secondsMy question embedding should also happen with the same embedding model. Can you see I am using the same emitting model?
+1:24:191 hour, 24 minutes, 19 secondsYes. Then I'm saying uh read from my chroma DB which you can see here. My embedder is nothing but this model
+1:24:261 hour, 24 minutes, 26 secondsembedding model. Once this is done then I'm saying my LLM model should be my GPT porom mini. You can replace it with your
+1:24:341 hour, 24 minutes, 34 secondsuh whatever you want. Then once you have done now you are creating this template and in this template like I said once I
+1:24:431 hour, 24 minutes, 43 secondswill execute this code you will see the three chunks which will come the top three chunks which I have asked my code to give that will go here and in this
+1:24:511 hour, 24 minutes, 51 secondsquestion if this question gets so basically I'm saying that hey you know what in this chat prompt template whatever I am just going to search for
+1:24:581 hour, 24 minutes, 58 secondsmy rack db the three db three once which I'm giving plus whatever the question is I'm giving you no llm now give me the
+1:25:051 hour, 25 minutes, 5 secondsperfect response. comes from this let's see let's see this function now rag answer so in this I'm passing my question what is my question this is the
+1:25:141 hour, 25 minutes, 14 secondsquestion and this question I am saying that hey go and do a similarity search similarity search for what from from my
+1:25:231 hour, 25 minutes, 23 secondsDB in my chroma DB can you see in my chroma DB where I persisted this do I have all the 11 chunks or 12 chunks
+1:25:321 hour, 25 minutes, 32 secondswhatever I've got earlier yes so those chunks basically will be searched and I need
+1:25:391 hour, 25 minutes, 39 secondsonly top three. By the way, this is also hyperparameter. You can change it with five, you can change it with six, whatever you want to. Now, once this is
+1:25:471 hour, 25 minutes, 47 secondsdone, then I'm saying that okay, I got three chunks, combine them into one.
+1:25:511 hour, 25 minutes, 51 secondsWhy? Because I want to pass this context here. So, three chunks which I got, combine them because I'm giving to LM
+1:25:581 hour, 25 minutes, 58 secondssaying that hey, these are the relevant text for you. From this text, go and answer my question. Okay. So that's why
+1:26:061 hour, 26 minutes, 6 secondsI combined this here all the regions I stitch them together and then I'm just passing my chain give me my prompt what
+1:26:131 hour, 26 minutes, 13 secondsis my prompt this pass it through a model remember lchain thing we already discussed pass it to my model and once
+1:26:211 hour, 26 minutes, 21 secondsit is done go and say chain invoke again the same lchain thing pass your context pass your question so this context is
+1:26:301 hour, 26 minutes, 30 secondsnothing but the stitched up of all the three chunks which will get passed to this context. This question will get passed to this question and that's it.
+1:26:391 hour, 26 minutes, 39 secondsYou will get your output.
+1:26:421 hour, 26 minutes, 42 secondsNow there was one question Shiva do I need to remember all this code? No, you need to remember the logic.
+1:26:531 hour, 26 minutes, 53 secondsOkay, so you need to remember the logic that's more important.
+1:26:581 hour, 26 minutes, 58 secondsSo the logic because code these days you can get it from chart GPD that's very easy.
+1:27:051 hour, 27 minutes, 5 secondsSo that's why you should not bother about mugging up this code. Now so once this is done let me show you this in the running code also.
+1:27:201 hour, 27 minutes, 20 secondsBy the way there was a question on output bar that you can do that you can try on your own. Now look at this. So
+1:27:291 hour, 27 minutes, 29 secondshere this is uh embedding val code which I already explained you wrap. py here
+1:27:371 hour, 27 minutes, 37 secondsyou go. Okay. So you can see here. So in this wrap py I am basically passing my
+1:27:441 hour, 27 minutes, 44 secondshugging face embedding all llm model. Uh I am also going to persist all this. You can see here I am passing my llm model
+1:27:531 hour, 27 minutes, 53 secondsanswer this. You can see this context getting passed. Questions getting passed, right? And I'm also going to say my questions. Can you see this is exact code which I have shown you up.
+1:28:051 hour, 28 minutes, 5 secondsYes. So this is one same code. There's nothing new which I have basically called out in this case. Uh so this is
+1:28:121 hour, 28 minutes, 12 secondsyour ramp. py which will return you the output. This is different code. Just give me a minute.
+1:28:251 hour, 28 minutes, 25 secondsHuh? So this is the other part of the code. If you recall this, this is an index. py where I said I'm giving my
+1:28:321 hour, 28 minutes, 32 secondsdocument. For this document, I'm saying that okay, you go ahead and convert into 50 chunks. I'm going to use again phase
+1:28:391 hour, 28 minutes, 39 secondsmodel and store it inside my DB. So let me first execute this index.py.
+1:28:591 hour, 28 minutes, 59 secondsPython index.py.
+1:29:081 hour, 29 minutes, 8 secondsOkay. So when you will execute this, it is sending this to again pace.
+1:29:201 hour, 29 minutes, 20 secondsIt have created eight chunks, right? If you want to print those chunks also, you can do that. Now, by the way, if you're worried about what is here, so you can
+1:29:281 hour, 29 minutes, 28 secondssee it's just getting connected with the SQLite. Can you see this is all getting stored into a binary file 01 formats? Do
+1:29:361 hour, 29 minutes, 36 secondsyou think you will be able to uh read the binary files? No, it's just the storage way of how we do that. So this we have executed but it have stored
+1:29:451 hour, 29 minutes, 45 secondsbasically here in chromb. Now the second one was rack. py. So let me execute this also.
+1:29:521 hour, 29 minutes, 52 secondsPython rag. py.
+1:29:591 hour, 29 minutes, 59 secondsLet's see this output as well.
+1:30:101 hour, 30 minutes, 10 secondsCan you see is it the correct answer?
+1:30:161 hour, 30 minutes, 16 secondsBy the way converting into it to binary have nothing to do with security. It's just storage which get reduced with this. Okay. So this is how it is giving
+1:30:241 hour, 30 minutes, 24 secondsyou the output. But clear everyone now how this is going to work. Interesting right that how we have uh uh now a
+1:30:331 hour, 30 minutes, 33 secondsworking rag system we haven't done the project yet by the way this is also in planner if we can finish it today itself
+1:30:411 hour, 30 minutes, 41 secondsbut I hope you got the idea right can we by the way folks who are asking can we do semantic search huh you can you can
+1:30:491 hour, 30 minutes, 49 secondsjust remember I gave you that as a homework try fix chunking also try semantic searching also right see which
+1:30:551 hour, 30 minutes, 55 secondsone is working better Okay. Now, so moving ahead uh and bringing you back to the screen.
+1:31:141 hour, 31 minutes, 14 secondsSo let's see that's why we use that HW thing. Now somebody asking searching will be very hard right because you're doing too much
+1:31:221 hour, 31 minutes, 22 secondsof cosigns and writing. So but that's why we have learned that technique that HW graph element.
+1:31:291 hour, 31 minutes, 29 secondsOkay. Now let's look at this. So this is just a visualization of everything which I said how long do I have to return
+1:31:361 hour, 31 minutes, 36 secondssomething. So what it must have done it have created a 384 size embedding for this question. Okay. And then similarity
+1:31:441 hour, 31 minutes, 44 secondssearch will find the nearest three chunks because the chunking have already happened. So maybe this is chunk one, this is chunk two, this is chunk three
+1:31:521 hour, 31 minutes, 52 secondswhich it figured out that sounding to be more closest. Then once this is done inside the context I will stitch these
+1:31:591 hour, 31 minutes, 59 secondsthree into one statement and put inside this context and this question I will put it here and it will go through my
+1:32:071 hour, 32 minutes, 7 secondsGPT4 mini model and it will give me the output. Clear everyone on the visualization.
+1:32:141 hour, 32 minutes, 14 secondsOkay, let's move now. Let's move to another techniques.
+1:32:201 hour, 32 minutes, 20 secondsOkay, rerank plus hybrid approach.
+1:32:251 hour, 32 minutes, 25 secondsSo let's see what exactly they do. So let me give you an end analogy. So there are two methods which are here with us.
+1:32:331 hour, 32 minutes, 33 secondsOne is called as by encoder. By the way, what is the method we were using by now was a by encoder method. Second is the
+1:32:401 hour, 32 minutes, 40 secondscross encoder. Now a lot of you who were thinking key yeah uh so many chunks are
+1:32:471 hour, 32 minutes, 47 secondsthere. There is one question embedding also. So in that case is it going to be
+1:32:551 hour, 32 minutes, 55 secondsslow or fast? Tell me one thing in your production system have you enabled parallelism generally?
+1:33:031 hour, 33 minutes, 3 secondsYes. Now if it is finding from your question for all the chunks cosine similarity can all the chunks are
+1:33:121 hour, 33 minutes, 12 secondsindependent of each other right don't you think we can do in parallel with multi- threading with multiple codes all
+1:33:191 hour, 33 minutes, 19 secondsthese chunk comparison very very quickly yes so that is one thing to keep in mind so
+1:33:281 hour, 33 minutes, 28 secondswe feel that it's slow but it's not slow okay so it's going to be really really quick in this case.
+1:33:381 hour, 33 minutes, 38 secondsSo this technique is a pie encoder.
+1:33:411 hour, 33 minutes, 41 secondsOkay, it's going to be quick because of palis. If you don't have palism then gone. Okay, but in production if you're keeping without paralism best of luck to you.
+1:33:511 hour, 33 minutes, 51 secondsOkay, second technique is called as cross encoder. So tell me one thing the way it do just cosine similarity and
+1:34:001 hour, 34 minutesgives you the output in benccoder technique.
+1:34:031 hour, 34 minutes, 3 secondsDo you think that all the outputs are going to be very relevant uh cosine similarity score?
+1:34:161 hour, 34 minutes, 16 secondsNo. Right. So let me let me put this in this way. So let's say there are multiple documentation related to co.
+1:34:231 hour, 34 minutes, 23 secondsOkay. And let's say uh there is one document somebody have just written.
+1:34:291 hour, 34 minutes, 29 secondsMaybe it's the same learner Satish who got angry and he wrote uh COVID 19 uh
+1:34:361 hour, 34 minutes, 36 secondswas very bad only this much and he said into that now let's say somebody asked the question
+1:34:441 hour, 34 minutes, 44 secondshow bad was COVID 19 don't you think the cosign similarity of this with this document which Satish have said will be
+1:34:501 hour, 34 minutes, 50 secondsthe highest but it's a pathetic answer agree everyone it is a pathetic answer
+1:34:591 hour, 34 minutes, 59 secondsbut still uh it will feel that okay this is the best answer so that's the problem right so with cosine similarity you can
+1:35:071 hour, 35 minutes, 7 secondsreach to a level but is it the perfect highest cosine similarity I can really rely on no that
+1:35:161 hour, 35 minutes, 16 secondsis where your cross encoder comes in so what happens now with this cross encoder think of it like this
+1:35:241 hour, 35 minutes, 24 secondslet's say in your company you have put a JD job description outside on a daily basis you got thousands of CV with you.
+1:35:331 hour, 35 minutes, 33 secondsOkay. Now if you only match up their CV and created a score is it going to be uh
+1:35:421 hour, 35 minutes, 42 secondsdefinitely it will be quick but do you think it's effective?
+1:35:471 hour, 35 minutes, 47 secondsNo. But still can I do this at least with my JD? I can have a comparison with my uh whatever the uh thing is like PDF
+1:35:571 hour, 35 minutes, 57 secondswhatever we have created uh with my JD with the PDF of resumeum and let's say I filter out out of thousand maybe let's
+1:36:051 hour, 36 minutes, 5 secondssay 25 people can I do that at least see I don't know those 25 people were perfect or not right but at least I can figure out quickly with the cosine
+1:36:131 hour, 36 minutes, 13 secondssimilarity my JD with this and can say top 25 candidates I got now those top 25 candidates I will not look at the cosine similarity
+1:36:221 hour, 36 minutes, 22 secondsexact thing right but definitely this could be one way now tell me what should be your next approach
+1:36:291 hour, 36 minutes, 29 secondsshould you go with cosign similarity of pro 25 or do you think it's better that your interviewer get paired with every
+1:36:361 hour, 36 minutes, 36 secondscandidate one by one and then tell that okay which is the best one in this case
+1:36:461 hour, 36 minutes, 46 secondsinterview them is a better approach now interviewer interviewing them is going to be time taking or not yes
+1:36:541 hour, 36 minutes, 54 secondscorrect so this is the technique we use always first a quick thing so that I don't need to go with the huge data
+1:37:011 hour, 37 minutes, 1 secondwhich I said is going to be just using maybe cosine similarity itself your biancoder technique and then after you got from benoder I'm not relying on the
+1:37:101 hour, 37 minutes, 10 secondscosine similarity number I am basically going to look at each and every one one by one and say that okay which is better now let me go back to sati's example
+1:37:181 hour, 37 minutes, 18 secondsagain by the way I I hope Satish who's sitting in the class don't mind this.
+1:37:221 hour, 37 minutes, 22 secondsOkay. I've just randomly picked up your name. Okay. Okay. Now I'm coming back to this. Now um
+1:37:311 hour, 37 minutes, 31 secondsthink in this way in this approach. So I have done the ben coding got my
+1:37:401 hour, 37 minutes, 40 secondsresponse. I'm not relying on cosign similarity for the top 25 but I'm going to pair. But I said let's look at Satish example.
+1:37:481 hour, 37 minutes, 48 secondsSo let's say to my LLM model okay that top output of COVID 19 came out to me which Satish have written which was key
+1:37:571 hour, 37 minutes, 57 seconds19 was really bad. Now if I give it to LLM and say my question is this and my
+1:38:031 hour, 38 minutes, 3 secondsdocument have only this will my LLM will be able to figure out that no this is not really a good doc.
+1:38:131 hour, 38 minutes, 13 secondsAm I right?
+1:38:161 hour, 38 minutes, 16 secondsSimilarly, I can go to the second wall chunk output maybe the second level whatever I got that I pass with the
+1:38:231 hour, 38 minutes, 23 secondsquestion. Don't you think my LLM could be good in comparing and telling you that okay because now I'm going oneonone just like how I'm taking oneonone
+1:38:301 hour, 38 minutes, 30 secondsinterviews. So in that case don't you think I will be able to figure out a better approach when I'm giving uh every
+1:38:381 hour, 38 minutes, 38 seconds25 candidates output with my LLM and asking the LLM you tell me what sounds to be a good output because I'm giving
+1:38:451 hour, 38 minutes, 45 secondsthe pair of questions along with my whatever chunk output I have got in those 25 ones. Yes. So what I did at the
+1:38:541 hour, 38 minutes, 54 secondsfirst level I filtered very quickly in 25 then all 25 I'm passing to my LLM one by one. Is it going to be costly? Yes.
+1:39:011 hour, 39 minutes, 1 secondIs it going to be slow? Yes. So, LLM is helping me to rank here in a way that is nothing but your crossing.
+1:39:111 hour, 39 minutes, 11 secondsClear everyone? Just give me one second.
+1:39:141 hour, 39 minutes, 14 secondsI just need
+1:40:361 hour, 40 minutes, 36 secondsOkay, bad. Sorry, I I just needed to uh kind of felt like going to washroom. So,
+1:40:441 hour, 40 minutes, 44 secondsokay. Now, look at this. So, by encoder I already talked about. Now, if you read, you can understand this better. Read the query and document separately.
+1:40:521 hour, 40 minutes, 52 secondsturns each into a vector embedding vectors then compares the two vectors with cosine similarity are you able to connect the dots
+1:41:011 hour, 41 minutes, 1 secondall of you it's just doing that cosine similarity well apart right so that encode never there and all right so this is bit we
+1:41:091 hour, 41 minutes, 9 secondsdiscussed so definitely it's going to be fast we already discussed that because you can do parallelism and all this let's look at cross encoder feeds the
+1:41:171 hour, 41 minutes, 17 secondsquery and the document into one transformer together are you getting it I am passing to my ll them because these chart GPTs are nothing but transformers
+1:41:251 hour, 41 minutes, 25 secondsright so basically you're passing your query and your documents your 25 documents one by one together and then
+1:41:341 hour, 41 minutes, 34 secondscomparing them up it's also called as reranking because here we are able to do it definitely is it going to be slow
+1:41:421 hour, 41 minutes, 42 secondsobviously slow you can't help it right so this is the thing you will have so many chance first do a buying coder
+1:41:491 hour, 41 minutes, 49 secondsquickly then reduce it to lesser candidate Then apply cost encoder. Can you see the difference of time? If this takes 10 millisecond, this take 200 millconds huge but still okay, right?
+1:42:001 hour, 42 minutesIt's still okay. This is how basically it works. To show show you example, let's say this is the output what you
+1:42:061 hour, 42 minutes, 6 secondsmust have got in terms of uh your buying coder. Let's say you run a reanker. Maybe it might have updated this. Okay.
+1:42:151 hour, 42 minutes, 15 secondsSo this is the case here. Now so uh
+1:42:221 hour, 42 minutes, 22 secondsthere's a question so in your example two you pass top three results I think will be able to filter out the one liner
+1:42:311 hour, 42 minutes, 31 secondsor use it in more efficient way to provide satisfactory answer till unless we pass only first no no no no
+1:42:381 hour, 42 minutes, 38 secondsokay let me answer this time but that's a wrong man think about it on your own so let me show you how you can do a
+1:42:451 hour, 42 minutes, 45 secondsreranking also quickly So in reanking it's a very very simple stuff. You will just call this cross encoder function
+1:42:531 hour, 42 minutes, 53 secondswhich will take care of this thing. Then you will just call out whatever the algorithm you will use for cross encoder. So this is the algorithm for
+1:43:011 hour, 43 minutes, 1 secondcross encoder and uh again in this case you will say db.similarity question and all that is it going to give you quickly
+1:43:091 hour, 43 minutes, 9 secondsyour uh by encoder part cosine similarity 25 candidates. Yes. Once that is done then you can create pairs for
+1:43:181 hour, 43 minutes, 18 secondsevery question which you have got. So basically for this question all the candidates output which I'm getting. So like this C is representing candidates you can see for seeing candidates right.
+1:43:301 hour, 43 minutes, 30 secondsSo this is going to represent candidates. So because there will be 25 chunks coming out from the benccoder outputs. So this will go one by one right. So you will say whatever the
+1:43:381 hour, 43 minutes, 38 secondsoutput of these chunks are keep taking it and then this reancher which I have created I will say predict on this pair.
+1:43:451 hour, 43 minutes, 45 secondsSo what it's going to do now it will leave it to LM to go and take it as a pair check one by one and tell me which is going to give me a better score. So
+1:43:541 hour, 43 minutes, 54 secondsit will give me scores of it just like I how I showed you here right these scores will come up. So this will create scores then you can do in the sorted fashion and get your clear everyone now.
+1:44:061 hour, 44 minutes, 6 secondsOkay. So this is the way you can do it.
+1:44:091 hour, 44 minutes, 9 secondsAgain I have put this into code also. I will upload it for you. But you have motor understood what's going to happen.
+1:44:161 hour, 44 minutes, 16 secondsNo no justification. It is just like how human works now. So let's look at this now.
+1:44:231 hour, 44 minutes, 23 secondsSometimes you need to use exact word. By the way this question was also there some time back. So I want to talk about it. This is the last topic of the day.
+1:44:311 hour, 44 minutes, 31 secondsSo focus on this part. Maybe the project we will do in the next class because project I want to spend some time over it. I don't want to rush over that project.
+1:44:411 hour, 44 minutes, 41 secondsSo let's look at this part. There is one more algorithm called as BM25. Now what is this algorithm? This is a very famous one by the way. So what happens is BM25.
+1:44:531 hour, 44 minutes, 53 secondsSo a lot of times what happens like for example if I say uh show me running shoes. So now if I have to search in
+1:45:011 hour, 45 minutes, 1 secondvector DB it will also give me a semantic search. So when I say semantic search, semantic search will go and uh
+1:45:081 hour, 45 minutes, 8 secondsit will also search for let's say marathon shoes and so on. Agreed well.
+1:45:131 hour, 45 minutes, 13 secondsSo because vector DB will look at all the similar style of things which are present inside it.
+1:45:201 hour, 45 minutes, 20 secondsBut if I talk about some questions, there may be exact keyword search type
+1:45:271 hour, 45 minutes, 27 secondsof questions. Agree me? So let's say if I'm asking about uh student ID, give me the data about the student ID. Do you
+1:45:361 hour, 45 minutes, 36 secondsthink I should do semantic search for that?
+1:45:421 hour, 45 minutes, 42 secondsIt's a exact match. So a lot of times my query could be searching the exact word also. It should not be always around
+1:45:521 hour, 45 minutes, 52 secondsjust looking at uh semantic. For example, product codes, right? model number, version numbers, student ID,
+1:46:001 hour, 46 minutesthose are the places probably you want to stick to just exact exact matching.
+1:46:061 hour, 46 minutes, 6 secondsSo if I'm asking sport shoe and if I'm using BM25, it will not be able to recognize what is your marathon shoes.
+1:46:131 hour, 46 minutes, 13 secondsOkay, that algorithm is called as BM25.
+1:46:161 hour, 46 minutes, 16 secondsIt do an exact search. No, not at all anything related to semantic. Second is
+1:46:231 hour, 46 minutes, 23 secondsa vector which we already saw. We are already well aware of it that use semantics whatever way we would done the cosine similarity.
+1:46:321 hour, 46 minutes, 32 secondsSo what we do we take an hybrid approach. Okay. So let me tell you what we do. So whenever in your vector DBs we
+1:46:421 hour, 46 minutes, 42 secondsdo all this part. So what it will do it will first uh whatever question you are asking it will send it to both
+1:46:501 hour, 46 minutes, 50 secondsalgorithm. it will send it to BM25 also and it will say BM25 you give me your top five chunks or whatever chunks I'm
+1:46:581 hour, 46 minutes, 58 secondsasking I'm also going to pass it to my vector DV semantic chunk and I will say hey you give me the top five chunk for yourself also whatever I will ask for
+1:47:071 hour, 47 minutes, 7 secondsthe names ranking for each of them now those ranks which I have got now can I take the weighted average of both the
+1:47:141 hour, 47 minutes, 14 secondsranks and can decide that which is the best Yes. Do you think this is a good
+1:47:221 hour, 47 minutes, 22 secondsapproach? Better approach because maybe my question I I don't know whether I need really a full exact searching
+1:47:291 hour, 47 minutes, 29 secondssearching or do I need basically a semantic searching in this case. So in this case an hybrid approach works really really well where I'm sending the
+1:47:381 hour, 47 minutes, 38 secondsquestion to both the sides. BM25 you give me a ranking. Uh your vector DB you give me a ranking. Semantic search you
+1:47:461 hour, 47 minutes, 46 secondsgive me a ranking. Now both the rankings I have for the chunks. Now take the weighted average of them and give a
+1:47:521 hour, 47 minutes, 52 secondsappropriate rank. So let's say your uh chunk number two let's say that it's
+1:47:591 hour, 47 minutes, 59 secondsrank one for BM25 also and it's also rank one for vector embedding case also semantic search well also don't you
+1:48:061 hour, 48 minutes, 6 secondsthink then I'm very confident that this should be on the top this should be my best chunk yes that's a confidence this hybrid
+1:48:161 hour, 48 minutes, 16 secondsapproach gives so in uh this which I said call it as weighted average is nothing but decided by this formula.
+1:48:261 hour, 48 minutes, 26 secondsOkay, don't go uh deep into it that how this formula came up and all because this is what everybody use even I use it. I have not read through the research
+1:48:351 hour, 48 minutes, 35 secondspaper how they came up with this formula. Okay, I will be honest about it. But this rank is called as reciprocal rank. So your BM25 rank place
+1:48:441 hour, 48 minutes, 44 secondsit here. Your vector val ranks you put it here and go on. Okay, this is just the formula. By the way, this number also can be changed. If you're keeping
+1:48:531 hour, 48 minutes, 53 seconds50 here, it's going to also be 50. Okay, but just that in books since they write 60, I also wrote 60. Okay, that's it.
+1:49:021 hour, 49 minutes, 2 secondsReciprocal rank is this context. Simple.
+1:49:051 hour, 49 minutes, 5 secondsNow, so once we have done, so like I said, BM25 vector and hybrid. So maybe VM25 is
+1:49:131 hour, 49 minutes, 13 secondsgiving its own rank. Vector is giving its own rank. Hybrid is going to be a combination of both the rank which will come from this particular form. Okay,
+1:49:221 hour, 49 minutes, 22 secondsclear everyone now. Perfect. I think this question was asked by somebody in middle Shiva. What about exact uh text
+1:49:291 hour, 49 minutes, 29 secondssearch? So I hope now you got the answer for this case. Awesome. So we are almost
+1:49:361 hour, 49 minutes, 36 secondsdone. So do you want me to cover the project quickly? If you say I can do that, I don't have any problem.
+1:49:451 hour, 49 minutes, 45 secondsSo let's let's do that more of it. Yes.
+1:49:481 hour, 49 minutes, 48 secondsOkay. Let's let's do that. It will hardly take 10 minutes. You can go back and practice after this. We still have 10 minutes. I did not realize that this topic will get over quickly.
+1:49:581 hour, 49 minutes, 58 secondsOkay. So let's let's do that. Okay. So let's see. I will be first building the so basically what we are going to build.
+1:50:051 hour, 50 minutes, 5 secondsLet me just first show you. So what we are going to build is let's say I will pass a HRA document policy page to it.
+1:50:121 hour, 50 minutes, 12 secondsUh and then I will ask a question through it. Okay. So I it will first index everything and I will ask some question. Let's say my question is uh uh
+1:50:221 hour, 50 minutes, 22 secondslet's say give me the TCS Q3 earning from this. So then it will just uh do all the searching and return it for you.
+1:50:311 hour, 50 minutes, 31 secondsThis is the pro. Okay. But this we will do over the gradual that is what the context is. So in this case uh what I
+1:50:411 hour, 50 minutes, 41 secondswill be doing let me go one by one. So one is PDF chat pad. In this case what you will do firstly look at this pi PDF
+1:50:501 hour, 50 minutes, 50 secondsloader. See till now I was giving the hardcoded dictionaries. Now I'm saying that hey if I want to load any PDF I can do it from here. Okay.
+1:51:001 hour, 51 minutesThat's number one. So PDF_Path I will just pass through it and it will
+1:51:061 hour, 51 minutes, 6 secondsload the data. So basically this is not properly created but notice that maybe there may be an upload button or something I will just upload it will
+1:51:151 hour, 51 minutes, 15 secondspush the PDF. So instead of writing this hardcoded thing it will be a PDF whatever thing will be okay. So that is
+1:51:231 hour, 51 minutes, 23 secondswhat we will do. Now let's go to the next part. Then is this simple? From PDF I will start creating recursive chunks.
+1:51:331 hour, 51 minutes, 33 secondsYes. Split the documents using the hugging face for all the chunks. Create the embedding for them. Okay. This is
+1:51:431 hour, 51 minutes, 43 secondswhat it will do. Okay. Now the question around is what will happen if the PDF have this blah blah blah. Can I keep it as an experiment for you to try that?
+1:51:511 hour, 51 minutes, 51 secondsOkay. Let's focus on the example.
+1:51:541 hour, 51 minutes, 54 secondsNow the answer with the retrieval part so what I will do can you see this is so simple after we have gone through it it's it will sound like such an easy
+1:52:021 hour, 52 minutes, 2 secondsthing again I'm saying this is my LM model now tell me is this exact same thing which we saw in the last code or
+1:52:091 hour, 52 minutes, 9 secondsnot yes can you see I'm passing the template I'm saying that whatever LLM output will
+1:52:171 hour, 52 minutes, 17 secondscome from searching the top three or four I will put here and question I will put here now let's see the ask question same I am asking some question here
+1:52:261 hour, 52 minutes, 26 secondswhatever I want to ask basically the question will come from here okay so I will ask some question and basically it will be like okay uh give me the
+1:52:351 hour, 52 minutes, 35 secondswhatever the question I will pass through it it will go to my chroma DB which will be this right DB option and
+1:52:431 hour, 52 minutes, 43 secondsthen we'll pass the question and give me the top four similar result yes once it will do the four chunks which I get just
+1:52:501 hour, 52 minutes, 50 secondsstitch them together we have already discussed this in the last code also once I stitch this I executed this code
+1:52:571 hour, 52 minutes, 57 secondsand it will return me not now what I'm doing now this is a gradual code I'm not going into this in detail because this
+1:53:041 hour, 53 minutes, 4 secondspart you are well aware of right because I'm just going to create some UI and all that to get this option done so let me
+1:53:111 hour, 53 minutes, 11 secondstake you to code by the way my laptop is going to die just give me a
+1:53:281 hour, 53 minutes, 28 secondsOkay.
+1:53:301 hour, 53 minutes, 30 secondsNow, no I have so this HTML file was good enough, right? Okay. Let me now take you to the code base.
+1:53:521 hour, 53 minutes, 52 secondsIf you have practiced uh how to run the code in the last task, you know already how to connect with hugging face. This
+1:53:591 hour, 53 minutes, 59 secondsis for the question somebody asked just now.
+1:54:031 hour, 54 minutes, 3 secondsOkay. So what I will do number one uh is one is PDF chat on
+1:54:111 hour, 54 minutes, 11 secondsCan you all see this is the code exactly which I showed you a pi pdf loader and all that. Let me execute this quickly.
+1:54:181 hour, 54 minutes, 18 secondsPython uh pdf chat py. So let me execute this so that it uh saves the data for me.
+1:54:291 hour, 54 minutes, 29 secondsThen afterwards in fact before this I should have done pdf chat. I did a mistake.
+1:54:421 hour, 54 minutes, 42 secondsOkay, fine. Anyway, let's see the output because I have already run it before your class. So, it will still work for you.
+1:55:051 hour, 55 minutes, 5 secondsLet it open. I will share my screen afterwards.
+1:55:171 hour, 55 minutes, 17 secondsCan you all see my screen? Right. Can you see this is the chatbot where I can ask question and this is where I can upload any PDF. Right. Now, will you be able to play with this on your own?
+1:55:281 hour, 55 minutes, 28 secondsYes. So, you can play with this uh once you have run this as well. So in this case basically you have to just upload a
+1:55:371 hour, 55 minutes, 37 secondsPDF and ask any question from that PDF it will answer you. Main thing for you would be to uh uh basically to be able
+1:55:461 hour, 55 minutes, 46 secondsto understand how to play around with this PDF. Awesome. So this is project number three right?
+1:55:541 hour, 55 minutes, 54 secondsIs this a project number three?
+1:55:561 hour, 55 minutes, 56 secondsYes. So you have already learned something awesome homework for you. My request would be
+1:56:041 hour, 56 minutes, 4 secondscan you create a lot of HTML I have given right four classes HTML you have
+1:56:121 hour, 56 minutes, 12 secondsupload it into a rack create a gradu on it upload four uh HTML together and from
+1:56:201 hour, 56 minutes, 20 secondsthose four HTML whatever you have learned till now you start asking questions explain me what is rack explain me what's the difference between
+1:56:271 hour, 56 minutes, 27 secondsby encoder and cross encoder explain me what we have HTML links is already there in the dashboard. Okay. Don't you think that
+1:56:361 hour, 56 minutes, 36 secondswill be a better project? Once you do that, upload it over your link. Will this be a better? It's like creating a course repository.
+1:56:461 hour, 56 minutes, 46 secondsSo whole scalar repository content let's say you put up slowly slowly and then you just when you go for interview before interview start asking questions.
+1:56:581 hour, 56 minutes, 58 secondsDon't you think this is interesting?
+1:57:021 hour, 57 minutes, 2 secondsfigure out. So there's a question how to do multiple uploads. Very simple. Just search for a library nothing else. So
+1:57:101 hour, 57 minutes, 10 secondsjust search that and do it. No try with PDF, try with HTML, try with different things. Play with this part. Trust me, you will have fun of your life.
+1:57:201 hour, 57 minutes, 20 secondsOkay? That's what you should be doing in this test.
+1:57:271 hour, 57 minutes, 27 secondsPerfect. So this is it for today. So we completed rag three projects. How is it feeling now?
+1:57:401 hour, 57 minutes, 40 secondsThree projects, four classes. Are you all feeling confident at least that learning something great?
+1:57:491 hour, 57 minutes, 49 secondsYes. So that's the main thing like uh you should see the value coming out.
+1:57:561 hour, 57 minutes, 56 secondsWhen I say value, you must feel that okay, I can build something which can connect with my day-to-day work. Like for example, uploading notes, creating
+1:58:031 hour, 58 minutes, 3 secondsyour own rag ecosystem for yourself. In fact, I would suggest you one more thing. How many of you have heard about something called as Anki notes? A N K I.
+1:58:121 hour, 58 minutes, 12 secondsGo and search about it. This will be very very helpful for you when you will go for placement.
+1:58:181 hour, 58 minutes, 18 secondsShort notes for every topic. Ask LLM to create an notes for you. Flash cards. Correct.
+1:58:251 hour, 58 minutes, 25 secondsOkay. So do that. By the way, your question, how about interns
+1:58:381 hour, 58 minutes, 38 secondsfor your interview preps. So upload it there and say create Anky notes for me.
+1:58:431 hour, 58 minutes, 43 secondsIt will do that. See, now you know quite a lot of things which you can use for your own studies.
+1:58:501 hour, 58 minutes, 50 secondsThen go to your company, try to figure out whatever you have learned. Can I apply somewhere to make life easy? I'm 100% sure you will be able to find use
+1:58:581 hour, 58 minutes, 58 secondscases where people are doing a lot of things manually. You say no. Let me build a rack ecosystem for you. Do that.
+1:59:061 hour, 59 minutes, 6 secondsGet a promotion and send me led do after that once you get a promotion.
+1:59:131 hour, 59 minutes, 13 secondsOkay, perfect. So this is it. Folks who don't
+1:59:211 hour, 59 minutes, 21 secondshave any questions, feel free to drop out. I am just going to pick up now questions from the question tab. So please make sure put only in the question tab. Okay, I'm not reading
+1:59:291 hour, 59 minutes, 29 secondschat. So please only put in the question tab. A quick request with so many AI models and tools uh it's getting hard as
+1:59:361 hour, 59 minutes, 36 secondsa beginner to remember what to use when could we get a one pager come back ah but after doing some classes not now no use of it for now.
+1:59:461 hour, 59 minutes, 46 secondsSo one request could it be possible to scale a team to share the topics? See I can do reish but to be honest even I don't know what I'm going to teach in the last class see what I'm doing is now
+1:59:541 hour, 59 minutes, 54 secondswith the changing trend when I say changing trend changing trend of interviews I am changing my style for example today why do you think I talked
+2:00:032 hours, 3 secondsabout AWS that you should learn even cloud frameworks because the problem was there were a lot of things which I
+2:00:102 hours, 10 secondsnoticed around that coming in interviews so I'm changing my style based on the what is happening in industry so if I
+2:00:192 hours, 19 secondsgive you that then I have to stick to it. If you're okay with it, I'm fine. But then it will be your loss.
+2:00:262 hours, 26 secondsThis is the first class I see in my calendar. Can I get previous recording?
+2:00:292 hours, 29 secondsReach out to obstain for this SNA uh for getting all this part.
+2:00:352 hours, 35 secondsUh SN you must be from AML if I'm not wrong. So that is a different series.
+2:00:412 hours, 41 secondsThis series is different. That series is different. It's just that folks who were interested from that series to join into this, they were allowed to do so. Okay,
+2:00:502 hours, 50 secondsthat will anyway happen. You will get updates for that. So that series is different.
+2:00:552 hours, 55 secondsIf WhatsApp is not there, how to connect with peers? For this, it's not there because there are multiple batches. So it's very hard for us to create it.
+2:01:062 hours, 1 minute, 6 secondsCorrect. Babra, it's a very different series that is majorly for data science books. Okay, this is uh when I say data science for complete core uh deep
+2:01:152 hours, 1 minute, 15 secondslearning machine learning pack today I saw that Google created a way instead of rag where it converts
+2:01:222 hours, 1 minute, 22 secondsdocument into which increases huh see not only Google there are a lot of many companies were doing optimization but still you need to know this part see
+2:01:302 hours, 1 minute, 30 secondswhenever you hear this term now rag is dead don't trust on this so in addition of Java background
+2:01:382 hours, 1 minute, 38 secondscompanies are asking down for AI h they're expecting you to that becoming a deacto default
+2:01:452 hours, 1 minute, 45 secondscreate some discord group for this batch people again Rama the problem like I said right this batch
+2:01:542 hours, 1 minute, 54 secondsuh basically have like 500 600 people like this so there is too many people to
+2:02:002 hours, 2 minutesbe added to this does mini LLM works with open AI key or we need to change model while practicing
+2:02:082 hours, 2 minutes, 8 secondsno it works it works I wish any reason we do not having any assignments and homework. Uh I'm giving you project now.
+2:02:162 hours, 2 minutes, 16 secondsOkay. I have a question. Which one would you guys prefer projects or assignments?
+2:02:222 hours, 2 minutes, 22 secondsBecause these are optional classes. So I don't want to push you to do those uh simple simple assignments. But don't you think projects will be better because
+2:02:302 hours, 2 minutes, 30 secondssee if you build project you have understood the whole class. In my opinion that is the case. Right? For example the project which I give you
+2:02:372 hours, 2 minutes, 37 secondsjust now right. uh create your HTML files which I'm giving you and create that report that if you learn will be far better because then you have to do
+2:02:452 hours, 2 minutes, 45 secondssome extra miles you need to go back read about first of all how to upload multiple files you have to read that uh
+2:02:512 hours, 2 minutes, 51 secondsbasically how I will pass HTML reader I I told you about PDF reader but you have to read that don't you think that will make your learning far better yes so do
+2:03:012 hours, 3 minutes, 1 seconddo that guys overall this having problem with data privacy training framework how to deal with this and create prototype
+2:03:082 hours, 3 minutes, 8 secondsM reserve SS see it depends uh you have to create PC's and show the security otherwise Microsoft copilot and all also
+2:03:162 hours, 3 minutes, 16 secondsyou can use it just that then you have to rely lot on by coding for production deployment are we deploying code in no
+2:03:242 hours, 3 minutes, 24 secondsonly in VS code I will any reason are we not having a susity answer prompt engineing is replaced by
+2:03:322 hours, 3 minutes, 32 secondsloop engine is this going I will cover but to be honest it's not the case and it's very much related with
+2:03:392 hours, 3 minutes, 39 secondsOkay, please share notes of the previous class. This was already uploaded at midnight. I have posted my last two year project on mention you. I hope if if it
+2:03:482 hours, 3 minutes, 48 secondscame to my notice for sure I was uh clicked on celebrated button.
+2:03:542 hours, 3 minutes, 54 secondsCan we have a list of problem statement where we can build rag on top of that? Abby rag is not yet override.
+2:04:022 hours, 4 minutes, 2 secondsWill LLM train itself from rag context shared with LM? No, you can create SLM models but not with rack.
+2:04:112 hours, 4 minutes, 11 secondsI have posted this. I've already answered. Where can I get the project code of the last task? It's already uploaded in a zip file.
+2:04:192 hours, 4 minutes, 19 secondsI missed the last two class. So, I couldn't understand the concept today.
+2:04:222 hours, 4 minutes, 22 secondsAlso, can you please share the resources to study? Arian just go through the take the recording from the ops team and cover that and all the notes and
+2:04:312 hours, 4 minutes, 31 secondseverything is available inside uh uh basically in the dashboard itself. So you can download it from there.
+2:04:392 hours, 4 minutes, 39 secondsWhat is FD hearing a lot? So FD requires much more than AI. AI is very important.
+2:04:442 hours, 4 minutes, 44 secondsOnce you know AI then it will be easy for FD. See I will see that if I can start a series on FD but first I have to finish the AI.
+2:04:522 hours, 4 minutes, 52 secondsI couldn't uh find the notes of the last it's already uploaded. Ishetta if you face any trouble just reach out to ops for this
+2:05:002 hours, 5 minutesfor 10 plus 15 years what could be the expectation from the candidate do we need to go through any additional no additional I will talk even about the
+2:05:072 hours, 5 minutes, 7 secondsarchitecture of these things notes again I'm same answer teaching is there any link for the course content
+2:05:162 hours, 5 minutes, 16 secondsand will be covered I already answered that in the class one and class two please watch out that I also posted my last project okay this
+2:05:242 hours, 5 minutes, 24 secondsI already answered Diva to review the previous class videos once again but the video screen is small again just inform this I got to know three force learners
+2:05:332 hours, 5 minutes, 33 secondshave this issue just reach out to the team they will fix it for you kab
+2:05:402 hours, 5 minutes, 40 secondsno discord for this right now production m system on Monday was the first class or was there any no that was the first
+2:05:472 hours, 5 minutes, 47 secondsclass again let's not talk about other cities guys it's a request let's talk only about the series because others will get confused with series we're
+2:05:552 hours, 5 minutes, 55 secondstalking about. What if I create this AI project using
+2:06:022 hours, 6 minutes, 2 secondslangj? This can help create the you can you can nobody's stopping you
+2:06:082 hours, 6 minutes, 8 secondsfrom that. Uh not a has been 10 videos not fix uh Rohan can you uh CC
+2:06:172 hours, 6 minutes, 17 secondsme please in that I'm giving you my email ID.
+2:06:292 hours, 6 minutes, 29 secondsOkay, I gave you my mail id. Can we restrict response of rack only instead of llm internet? Huh? You can you can but it will not be helpful.
+2:06:392 hours, 6 minutes, 39 secondsCan we use python for DSLR on it? Huh?
+2:06:412 hours, 6 minutes, 41 secondsYou can python you can use any programming language. Nobody will stop to search it.
+2:06:472 hours, 6 minutes, 47 secondsI want to contact scalar support from where today's ticket. It's there from dashboard sat
+2:06:542 hours, 6 minutes, 54 secondshow do you I use this for in DSML I did not get it when you say in DSML how to use you mean all this knowledge you are
+2:07:022 hours, 7 minutes, 2 secondsby default first of all need all this knowledge then analytics you will learn how to do that ish please share tool for
+2:07:092 hours, 7 minutes, 9 secondsDS also okay ish are you here no I don't think so is here today
+2:07:182 hours, 7 minutes, 18 secondsokay how can we evaluate that that we will see in the eval class come quite late also do we need to create a new
+2:07:262 hours, 7 minutes, 26 secondsfolder in VS code for project 3 yes you should aish enjoying AI class but through could get most study part it's
+2:07:342 hours, 7 minutes, 34 secondschallenging for me to understand Python code part for a pressure and Java background please right direction see for this part you can reach out to the team to get some Python lectures they
+2:07:422 hours, 7 minutes, 42 secondswill provide you some materials for it number one number two make sure that you practice well keep practicing that's the only way for
+2:07:502 hours, 7 minutes, 50 secondssome info in semantic corner in Azio cloud which one among companies are asking more on yeah uh AWS is getting
+2:07:572 hours, 7 minutes, 57 secondsasked left and right program uh you talked about the using AWS solutions are we talking about using the
+2:08:052 hours, 8 minutes, 5 secondsas a platform for application or using custom custom offering also can we start adding this skill set in our resume definitely you should your
+2:08:142 hours, 8 minutes, 14 secondsyour uh CV short listing will increase like anything where can we find a list of all these AI classes. Reach out to ops if you're not
+2:08:222 hours, 8 minutes, 22 secondsclear on this. Should we opt for any certificate to strengthen our understanding on AI? Not required. Not required. Sir, aside from your notes for
+2:08:312 hours, 8 minutes, 31 secondsthis series, can you suggest some not required? If you want to, there is a book which comes AI engineering from chip.
+2:08:392 hours, 8 minutes, 39 secondsOkay, that you can read. Nothing else.
+2:08:422 hours, 8 minutes, 42 secondsFor 14 year experience, I have starting creating agents using codex in office.
+2:08:472 hours, 8 minutes, 47 secondsHow do we utilize LinkedIn? What info should be posted on LinkedIn from the see don't post anything from your office it will be an issue only post the
+2:08:552 hours, 8 minutes, 55 secondsprojects for example today project once you create not my project create then put it and try to be toasa innovative if
+2:09:032 hours, 9 minutes, 3 secondspossible I gave you one example to try you can try it maybe your use case which is hitting your mind
+2:09:122 hours, 9 minutes, 12 secondsbeing Java developer feeling in future need to be in Python for AI give uh yes that will be true But still Java will be relevant. It's not going to go away. I'm
+2:09:212 hours, 9 minutes, 21 secondscurrently learning pine data engineering concept. However, after watching your previous lecture on engineering, I'm thinking that engineering might be better career option. Could you please
+2:09:282 hours, 9 minutes, 28 secondsguide me whether I should continue with it? No, no, no, no. You should learn both. See that foundation raid don't skip the job will be in data engineering
+2:09:372 hours, 9 minutes, 37 secondsbut they will expect you to use this AI concept in data engineering.
+2:09:412 hours, 9 minutes, 41 secondsOkay? So if you don't know both, you're gone. If you think that only AI will help you, no.
+2:09:472 hours, 9 minutes, 47 secondsOkay. Can Scala provide any resources to learn cloud as well? I will teach you enough to know about this. So, actually
+2:09:562 hours, 9 minutes, 56 secondsthat's a part of a different course itself.
+2:10:002 hours, 10 minutesSo, that's a different thing. So, that's why I'm not able to promise you anything on this. Uh for me, these classes have come.
+2:10:092 hours, 10 minutes, 9 secondsOkay. Can you make small videos for AWS credit and how much to spend on OpenAI? Uh take I will create that video.
+2:10:182 hours, 10 minutes, 18 secondsGuys, request is to keep your questions only around the class because I think 70% of the questions are not related to
+2:10:262 hours, 10 minutes, 26 secondsclass. It's very different questions. Is there a link for the course content will be provided on AI infusion?
+2:10:332 hours, 10 minutes, 33 secondsI have already answered this. Si please watch the recording. It would be better if we have all the classes at one place like we have other modules. Both classes
+2:10:412 hours, 10 minutes, 41 secondsare complete now. I think it's easier to find this. You can reach out to ops bundle how additional MLLG go are important in
+2:10:492 hours, 10 minutes, 49 secondstoday's time a lot right so LLM is costly keep determined whenever you hit an LLM API it's cost so lot of
+2:10:572 hours, 10 minutes, 57 secondsapplication don't require that so you have to keep in mind and mindful where the cost can be saved you will go with traditional ML
+2:11:052 hours, 11 minutes, 5 secondsfor me these classes have come in the advanced supervised learning no no just reach out to ops and inform them with screenshot
+2:11:122 hours, 11 minutes, 12 secondsfuture question. I know we are in good pace and proper sequence of topics already well designed and this may eventually come but was eager to curious
+2:11:192 hours, 11 minutes, 19 secondsto ask what events it will come later but it will pucker come J if the chunk with overlap there will be
+2:11:282 hours, 11 minutes, 28 secondschance of missing context huh that's why the kind of algorithm what you use for embedding is very important
+2:11:362 hours, 11 minutes, 36 secondsand that is what you will learn in system design how to take care of it uh are we covering all this in the uh There is rack, vector devices, lang
+2:11:442 hours, 11 minutes, 44 secondschain, llama index, vector db. Today we covered rack, today we covered lang chain. Last classes we covered today
+2:11:502 hours, 11 minutes, 50 secondsalso we touched upon. So yes, so can you help me related these classes
+2:11:582 hours, 11 minutes, 58 secondsto my present LLD module in second. See again think right what I just said the idea would be once you learn AI
+2:12:052 hours, 12 minutes, 5 secondsengineering all the design patterns what you're writing right now you will write with the help of these agents you will
+2:12:122 hours, 12 minutes, 12 secondscreate agents for them to get these things quickly done even your code reviews you have to write agents I haven't been able to find a zip file
+2:12:212 hours, 12 minutes, 21 secondsfor the project class again reach out to support in that case whom to connect if I face any issue reach out to support excel file can be or bring it in the next class That could be another thing.
+2:12:312 hours, 12 minutes, 31 secondsExcel file can be uploaded to get the answer. Yes. Yes. That's what figure out that what's the API for this.
+2:12:382 hours, 12 minutes, 38 secondsCan you please pin the HTML links here? I will upload in the dashboard itself.
+2:12:422 hours, 12 minutes, 42 secondsNag SWE and I want to learn ML. I had one searched how much time it takes to learn ML engineering. It said around one year.
+2:12:512 hours, 12 minutes, 51 secondsHi, it takes time. I will be honest with you. DSML and AML learners learns it. So I can tell you this. It takes time. Not one year but it takes at least 5 months for them.
+2:13:012 hours, 13 minutes, 1 secondto help deciding on chunk size and overlap what process to use. Uh no there's no process like I said it's a hit and try and in system design we will
+2:13:102 hours, 13 minutes, 10 secondslearn some technique that's the system design techniques not rap techniques what is the use of anky notes for your when you reach to interview process a
+2:13:182 hours, 13 minutes, 18 secondsquick revision pace class 2 three notes on it's uploaded and all please reach out to ops in case if you face issue can we pass library of
+2:13:272 hours, 13 minutes, 27 secondsdogs instead of one big dog you can you can that's what you need to figure out in this assignment now
+2:13:352 hours, 13 minutes, 35 secondsThis time you create that multiple dog thing. Ping me over LinkedIn and I will make sure I will answer the respond back to you.
+2:13:422 hours, 13 minutes, 42 secondsToday go we have zip function. Does it compare the search top three? Yes. Yes.
+2:13:462 hours, 13 minutes, 46 secondsBut figure out how because with HTML you have to do this. Say suppose one chunk from G2 one from vector DB is not top rank but fall in the same rank. Huh?
+2:13:552 hours, 13 minutes, 55 secondsThen it will give a lower ranking to it with the formula which I showed you. 1 divided by 60 plus something.
+2:14:012 hours, 14 minutes, 1 secondWhat will happen if a context is bigger than the huh you can keep it but again mhammed think in this way right uh when you use context window of lm it's only
+2:14:102 hours, 14 minutes, 10 secondsfor a single project but what happens when you keep in rack multiple projects could be sharing from the same rack
+2:14:172 hours, 14 minutes, 17 secondsgetting it so then basically ra become a central point for you so that context window if it is not shared across different projects then you will lose
+2:14:242 hours, 14 minutes, 24 secondsthat so example two you pass top three results I think l will be able to filter This I've already answered. So I think
+2:14:322 hours, 14 minutes, 32 secondsAmitrit you should be clear now. Are you going to plan project? No, there's nothing like that. It could be every class. It could be every few classes.
+2:14:392 hours, 14 minutes, 39 secondsDepends on where they fit. I mean while searching cosigns okay I have put LinkedIn post you didn't see it. Ganesh
+2:14:472 hours, 14 minutes, 47 secondsI look at multiple post so my previous miss apology. While searching cosignity is checked between yes correct.
+2:14:572 hours, 14 minutes, 57 secondsTo make the project for Anki nodes, we have to mention in sister prompt to make the project for anky nodes. Yes. Yes.
+2:15:032 hours, 15 minutes, 3 secondsYes. Right. Try that. Why can't we use MySQL post directly instead of because uh MySQL don't do semantic search. Now
+2:15:112 hours, 15 minutes, 11 secondsfor example in MySQL if you say it's give me a running shoe it will not search for marathon shoes for you.
+2:15:162 hours, 15 minutes, 16 secondsRemember cosign similarity that will not come into play. Please share your LinkedIn ID. Okay you don't have it.
+2:15:372 hours, 15 minutes, 37 secondsuploaded it for you in the chat box.
+2:15:412 hours, 15 minutes, 41 secondsUh can you share the working solution from the lasses? It's already uploaded.
+2:15:462 hours, 15 minutes, 46 secondsIf you're not able to find it, please reach out to us because this could be a tech issue.
+2:15:512 hours, 15 minutes, 51 secondsum in a IML course I cannot see the topics covered in upcoming modules like ML ops
+2:15:582 hours, 15 minutes, 58 secondsagents hey this is all there it's all there please just reach out to ops if you have this issue again uh it's my
+2:16:042 hours, 16 minutes, 4 secondshumble request if we can keep questions only related to the today class or maybe
+2:16:112 hours, 16 minutes, 11 secondsthe cities if you will ask me questions do you think it is going to be helpful
+2:16:192 hours, 16 minutes, 19 secondsfor others no Right. So questions I will very quickly answer or skip it is I hope that's okay guys. Okay because let's
+2:16:272 hours, 16 minutes, 27 secondskeep let's stick to the topic what you are here rather than talking about which is not even connected with lot many learners.
+2:16:362 hours, 16 minutes, 36 secondsI already have hands-on experience with SEO cloud and only a basic understanding. Would you recommend that?
+2:16:422 hours, 16 minutes, 42 secondsNo no it's okay. See s uh based on my project I have learned even OCI. Okay.
+2:16:492 hours, 16 minutes, 49 secondsSo it's good to learn different different part of the cloud ecosystem.
+2:16:542 hours, 16 minutes, 54 secondsLinkedIn I've already answered. So while extracting data from document if the document contain both images, text and table then in that scenario just try
+2:17:022 hours, 17 minutes, 2 secondsthat LMI you will be surprised to see how it works.
+2:17:072 hours, 17 minutes, 7 secondsMy first class just print the chunks then you will realize what's happening there. My first class of AI in vision please send to find resources. this you
+2:17:142 hours, 17 minutes, 14 secondsneed to reach out to uh the support team.
+2:17:192 hours, 17 minutes, 19 secondsOkay, how many questions I answered? Oh, today it's 110 questions. Perfect. So I have done now uh basically I hope it
+2:17:272 hours, 17 minutes, 27 secondsanswered all your question. If it's still skipped up uh it's fine you can reach out to later on this case but uh make sure that you're solving projects
+2:17:362 hours, 17 minutes, 36 secondsguys because if you will not do it it's not going to help. Okay, if you're using chunk or embedding then the net
+2:17:432 hours, 17 minutes, 43 secondsdeveloper where I use things but as of now I'm blank using embedding but no so again I think this I've already answered
+2:17:522 hours, 17 minutes, 52 secondsthus in the last sessions also see depending on my projects I have learned different projects so you have to learn different project if you if you will
+2:18:002 hours, 18 minutesstick to one programming language C trust me you will fail in industry or you will not be able to grow in this
+2:18:092 hours, 18 minutes, 9 secondsindustry So you today it's Python tomorrow it could be a new language you do you have to learn that yes but if you have one
+2:18:162 hours, 18 minutes, 16 secondsprogramming language for concept very strong can you pick up any other programming language easily yes
+2:18:232 hours, 18 minutes, 23 secondsthat's how you need to do this okay perfect so this is it for today guys I hope you enjoyed the rack lecture
+2:18:312 hours, 18 minutes, 31 secondswe are still not done there are lot many things going to keep coming in rack like how to build the rack pipeline and all that we will see all this across But it
+2:18:392 hours, 18 minutes, 39 secondswas a lovely session. Uh hoping you enjoy it and see you again in the next session next weekend. Thank you.

@@ -1,5 +1,12 @@
 # Neuralascent — Work Status & Resume Point
 
+> **SUPERSEDED 2026-09-06** — see
+> [SESSION-2026-09-AI-chatbot-planning-and-auth-build.md](SESSION-2026-09-AI-chatbot-planning-and-auth-build.md)
+> for the complete, up-to-date record (the auth/TOTP/chat build described below finished,
+> survived a regression scare, and is now committed to `main`; Localization Lab — Track 2
+> below — is also since completed and committed, in a different chat session). This file is
+> kept only as a historical snapshot of mid-build state; read the file above first.
+
 **Last updated:** 2026-09-04. **Purpose:** so a future session (or you) can pick this back up without re-explaining anything. Read this file first before touching any of the auth/TOTP/chat/AI-vertical work again.
 
 **Why paused now:** switching to the Localization project to make full use of Claude's 50%-extra-token offer, active through **Sept 13, 2026**. Track 1 below is functionally complete and just needs the user's own build/smoke-test pass — nothing here is blocking that switch.

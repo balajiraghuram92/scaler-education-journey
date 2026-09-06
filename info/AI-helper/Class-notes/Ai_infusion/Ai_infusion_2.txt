@@ -1,0 +1,669 @@
+Hey um very good morning good evening to all of you guys. Can you confirm if you can see me hear me as well as you should be able to see my screen.
+0:1111 secondsPerfect.
+0:1212 secondsSo I have few concerns. I will raise that in few minutes but meanwhile let me quickly recall what all things we have done over the last session.
+0:2323 secondsSo over the last session what we had done was we have understood that what is LLM model.
+0:3030 secondsWe understood how to call that LLM model. We understood how you can use
+0:3737 secondsopen AI key and all that. We also understood about how we can have wrapper
+0:4545 secondsfor other models with open AI. We also saw even grock here which you can use it
+0:5252 secondsfrom the open source community to work with and once we have done all this definitely we have also looked at tokens
+1:001 minuteall of this construct as well but further to this we have built two projects.
+1:081 minute, 8 secondsSo we spended time on building two projects which we build it using a gradio EUI which we will continue today
+1:171 minute, 17 secondsas well and using that. So one was the very simple summarize right summarize
+1:261 minute, 26 secondsone where we simply went ahead and summarized this part. Second was if you remember we discussed and build a
+1:341 minute, 34 secondsproduct itself which was arena for LLM models right so we build it this completely across with
+1:431 minute, 43 secondsit so that you will be able to solve this particular problem okay so this is what we have discussed around in this
+1:521 minute, 52 secondsparticular case now so we have seen now this whole component how it works what all things
+1:591 minute, 59 secondswe can do with this. Now we will move on to the other side of the journey which is going to be slightly harder and I've
+2:082 minutes, 8 secondsintentionally kept it harder so that you learn it better way. So today we will open up something called as lang chain.
+2:182 minutes, 18 secondsOkay by the way during the course I make cover multiple frameworks. Lang chain is one of the most famous framework right now. So I will be referring you towards
+2:272 minutes, 27 secondsthe lang chain. So lchain as soon as we will be doing across it's going to be uh
+2:342 minutes, 34 secondswe will see why lchain and why it is why it is need to be required given that we
+2:422 minutes, 42 secondshave already learned here that how to call LLM model right because it's a framework for us and we will spend time
+2:492 minutes, 49 secondsover it that how using this framework we can solve the problem okay so we will see what are the
+2:562 minutes, 56 secondsadvantages of launch and why this framework even exist.
+3:013 minutes, 1 secondThen using lang chain itself, we are going to spend time creating agents.
+3:093 minutes, 9 secondsOkay. And for learning agents, we will be creating how to create tools. Okay.
+3:143 minutes, 14 secondsSo we will see how we can exactly create tools and uh very simple small demo is
+3:223 minutes, 22 secondswhat we will do and then in the end we will create a project.
+3:283 minutes, 28 secondsSo you can say Shivan this is second class we did in the first class two projects but today also there are projects. Yes I will try my best to keep
+3:363 minutes, 36 secondsat least one or two projects every day so that you have something or the other to take away from the session. So what is going to come into project section?
+3:453 minutes, 45 secondsIn the project section we will be building a chatbot today.
+3:503 minutes, 50 secondsSo when I say a chatbot, think of the chatbot like on Amazon.com, ptm.com where when you go on the right hand
+3:593 minutes, 59 secondsside, an AI chatbot kind of opens up and you can ask questions. Definitely today our chatbot is going to be very basic using launching framework and using some
+4:074 minutes, 7 secondsagentic AI but later part it's going to become complex and complex. Okay. So that is what we are going to do.
+4:174 minutes, 17 secondsNow uh to address one or two queries which were coming up across how we can get support same way how you were doing
+4:244 minutes, 24 secondsfor your module you can even raise the query to the support we will be able to assist you with this okay so that you need not worry of then if you have not
+4:334 minutes, 33 secondsjoined the last session you [music] will find this session to be harder unless and until you have already you know
+4:404 minutes, 40 secondsslightly about LLM models or how to use this uh APIs to connect with LLM models in case if you do not have that skill
+4:494 minutes, 49 secondsset for example today I'm not going to explain like how to set up environ so today I'm not going to go into all
+4:564 minutes, 56 secondsthe section which means if that is the case which is going to happen so my suggestion would be you can drop out you
+5:055 minutes, 5 secondscan watch out completely the previous session and then you can come back for this particular session so that would be
+5:135 minutes, 13 secondsone suggestion for you in case if you have it joined. One more question which was hovering around was will are we
+5:215 minutes, 21 secondsgoing to cover this topic or that topic and so on. I would say this is class number two right to answer your question
+5:315 minutes, 31 secondsuh are we going to cover advanced things like in lang chain are we going to deep dive? Answer is yes. Are we going to go
+5:375 minutes, 37 secondsinto MCP in detail? Yes. But should you worry about all this right now? No.
+5:455 minutes, 45 secondsSo I am giving right now generic answer.
+5:485 minutes, 48 secondsMy request would be if we can probably avoid uh asking such questions for now
+5:555 minutes, 55 secondsbecause yes we will be going over everything in a AI infusion manner whatever is going to be required for
+6:036 minutes, 3 secondsyour particular course when I say for your particular course if you belong to software engineering then whatever a
+6:116 minutes, 11 secondssoftware engineer need we will make sure that it's going to be covered okay so that's going to be one section there One
+6:186 minutes, 18 secondsmore question which was around uh Shivan can you tell me what's a prerequisite for this session as far as you have completed the first session you are
+6:266 minutes, 26 secondseligible to join the second session that's a prerec now let me show you something very interesting okay give me
+6:346 minutes, 34 secondsa minute can you all see my screen which is your class two kind of getting
+6:436 minutes, 43 secondsshared okay look at this so If you see the chatbot by the way, we will be building
+6:506 minutes, 50 secondssomething like this today. Now if I ask you and remember it's just class two. So definitely there is not it's not going
+6:596 minutes, 59 secondsto be a very deeper kind of uh chatbot but the idea is to introduce you with agentic framework because today is the
+7:077 minutes, 7 secondsfirst session where we are going to move into agentic framework specifically usage of tools and functions. So let's
+7:147 minutes, 14 secondssay if in the chatbot you said how much are the shoes. So then how the chatbot have to think chatbot will look for that
+7:247 minutes, 24 secondsis there a place from where I can get the price of shoes. So let's say you have written a code the function name is
+7:337 minutes, 33 secondscalled as let's say get price where if you pass that okay you're looking for the product shoes
+7:407 minutes, 40 secondsit should return you the pricing of it and once it got once it execute that particular function by the way all of
+7:497 minutes, 49 secondsyou can see my screen right because there was one comment calling out uh I could not see a screen perfect uh if anybody's not able to see screen
+7:577 minutes, 57 secondsyou can just sign out and rejoin again it should work.
+8:018 minutes, 1 secondSo once that function get executed you will get the output and then the LLM can go ahead incorporate the wordings for
+8:108 minutes, 10 secondsyou and you can see your output now let's say you ask nice what can you do
+8:188 minutes, 18 secondsso then it will also answer you that what all it can do now if you look at this simple s snippet in front of you
+8:278 minutes, 27 secondsdon't you think when I said how much are the shoes it must look for the function but there might be maybe 100 functions
+8:358 minutes, 35 secondssitting with me and from those 100 functions it have to identify that what exactly uh which function I
+8:448 minutes, 44 secondsneed to exactly use for getting this done and even then looking for that function and executing and giving the
+8:518 minutes, 51 secondsresults to me agree everyone because I may have multiple functions written in my codebase right it's not
+8:588 minutes, 58 secondsonly this function so firstly how my LLM or whatever is going to help
+9:079 minutes, 7 secondsme figure out to that level. That's going to be my first part. We will see how exactly we enable
+9:169 minutes, 16 secondsuh our code or our agent to be able to figure out that which function is what I need to use at this particular place.
+9:249 minutes, 24 secondsSecond is if you look at the comment here, how much are the shoes? Can I call this as a human message?
+9:339 minutes, 33 secondsYes, this is a human message and whatever I am getting as a response here. Can I call it this is a AI message?
+9:449 minutes, 44 secondsYes, it's a assistant message because this part is coming from AI. It's coming from assistant not from a human angle.
+9:539 minutes, 53 secondsSo very simple s thing I'm just telling you up to start as a start on so that it's easy for you once I connect all the dots for you further. So I have quickly
+10:0310 minutes, 3 secondstold you that what all things we are going to do today. And by the way I hope all of you uh are you finding these notes helpful? I hope all of you have
+10:1010 minutes, 10 secondsseen the notes of the last session as well. Uh because my team have spent a lot of time creating lot of animations and all for you guys. So I hope uh you're finding this helpful. Great.
+10:2210 minutes, 22 secondsSo here you can see that uh basically we will be looking at that what are the things we have available with us. We
+10:2910 minutes, 29 secondswill also discuss about chain. I've already told you that what is going to be I'm going to explain in detail. I will be telling you how you can build
+10:3810 minutes, 38 secondsyour first chain code with this. There is something interesting called as memory. So problem with your open AI
+10:4610 minutes, 46 secondsmodel or cloud model or any of these LMS they are like DJI everybody have seen the movie DJI
+10:5810 minutes, 58 secondsthey come okay surprise few people have not seen they can watch it if you want to not a great movie but a decent level movie so what happened in that there is
+11:0811 minutes, 8 secondsa guy who forgets after a few minutes what is being told to to him. Similar
+11:1411 minutes, 14 secondsway LLM model is notorious with this. It don't remember. So for example, let's say I will tell to LLM model, hey, my name is Shivankwa.
+11:2611 minutes, 26 secondsAnd let's say if I ask LLM model at some different chat, what's my name? It will say uh I don't know you. Please tell me
+11:3511 minutes, 35 secondsyour name first. That's a problem. So we need to see how we can give memory. And don't you think because of the memory
+11:4311 minutes, 43 secondstoday we humans are human we are the kind of the best species it's debatable though but we are kind of best species
+11:5111 minutes, 51 secondsbecause of a brain so how about if I can give that brain to my LLM model work as well that's going to be the idea
+12:0012 minutesby the way I know some of the folks who are sitting here from data science and all as I could see over the chat they
+12:0712 minutes, 7 secondsstarted talking shank LSTM memory and all Okay, you can take that for now. But for now, keep it aside. I don't want to make
+12:1612 minutes, 16 secondsit complicated specifically for the folks who do not know it. But you can kind of connect it that long-term memory and all how you're connecting with that
+12:2412 minutes, 24 secondsbecause there will be concept connecting to it which I will bring up later. But in not in today class then we will build our first AI agent and that's going to
+12:3212 minutes, 32 secondsbe superbly interesting. Guys, just give me one minute.
+12:4812 minutes, 48 secondsOkay. So, uh basically this we have seen. Now, let's move on. Then we will see how to build the first agent very
+12:5612 minutes, 56 secondssimple agent. We will see even where to use tool and where not to use tool. I will also give you a lot of examples
+13:0413 minutes, 4 secondswith that. And then we will be building the project just like in the last session and I will request everyone to publish it over LinkedIn. Actually this
+13:1313 minutes, 13 secondsis my another problem. In the last session now I only noticed some 15 people or 20 people maximum who posted their projects over LinkedIn.
+13:2413 minutes, 24 secondsRemaining people did not even attempt it. See I clearly told you that if you start doing it specifically with your AI learning you will build your brand.
+13:3413 minutes, 34 secondsNumber two, you will come in the eye of recruiter very soon, right? Because then they will because we are creating very simple simple projects later which will
+13:4313 minutes, 43 secondsbecome very complex projects and those projects I want you to showcase so that it it basically becomes very
+13:5113 minutes, 51 secondsvery helpful for you. So my humble request from all of you would be please go ahead and don't worry about what you
+13:5913 minutes, 59 secondshave written. You can even get it. You can even write the post even from claude. Okay. I think all of the folks
+14:0614 minutes, 6 secondswho have written almost for everyone maybe if I missed one or two folks please pardon me. Almost for all the folks I have reshared their post I have
+14:1514 minutes, 15 secondsuh liked or did a clap for their post so that they gain visibility because I my LinkedIn is connected with lot of recruiters.
+14:2414 minutes, 24 secondsOkay. So you should take advantage of that. So my request would be please do that because this is for your own branding. So make sure that you're
+14:3314 minutes, 33 secondstalking about your project so that people know you are learning and at the same time at the later case do that. So you can even do this in case let's say
+14:4114 minutes, 41 secondsyou were not able to set up a project at your end take a photo where you can see my video and all just say that hey you know what I'm sitting in the class we
+14:4814 minutes, 48 secondsbuilded a project uh now I'm confident how to do all this more than enough right but do this do at some of the
+14:5714 minutes, 57 secondslevel I will keep talking about it but trust me guys if you miss this opportunity you are missing the train
+15:0415 minutes, 4 secondsokay now let's move on now let's go ahead head and understand few things.
+15:1115 minutes, 11 secondsNumber one, prompting. Can anybody quickly help me understand what was prompting?
+15:2215 minutes, 22 secondsWhat was prompting?
+15:2615 minutes, 26 secondsGuys, I'm not going to answer any irrelevant question right now. I see some irrelevant questions even on the chat, but I'm not answering intentionally. Please pardon me. Don't
+15:3415 minutes, 34 secondsmind me because I want to stick to the topic. Awesome.
+15:4215 minutes, 42 secondsLot of good message. Very good. Lot of good ways you have explained the way I told you in the last class. Just like
+15:5015 minutes, 50 secondswhen we human talk to each other, we use a specific language. For example, we are talking right now in English. Similarly,
+15:5815 minutes, 58 secondsif as a human or even as a tool, if I have to talk with this LLM language through the LLM word, I need to use a language. Think of it like a prompting.
+16:1016 minutes, 10 secondsOkay. So, we need to tell what you need to do and that is what is a prompt and we will spend a decent amount of time in
+16:1916 minutes, 19 secondsunderstanding in future how to write a good prompt.
+16:2316 minutes, 23 secondsThen second is your rack. We haven't discussed about it. Let me very quickly talk about it because we are going to spend multiple class into it.
+16:3216 minutes, 32 secondsThink of rag line. Let's say if I ask you can you tell me the policy uh can you tell me the leave policy for me
+16:4116 minutes, 41 secondsright now? Let's say in whole year how many leaves I can take? How many sick leaves I can take? So one way to do that
+16:4816 minutes, 48 secondsis that I can go to my dashboard which is HR driven dashboard and can see how many leads are there. But here we are
+16:5716 minutes, 57 secondstalking with LLM. Now LLM is doing all the job for us. So do LLM knows that okay uh do I need to connect uh
+17:0617 minutes, 6 secondsbasically how to get your leaf's number do LLM have anywhere?
+17:1517 minutes, 15 secondsNo. Because remember we discussed in the last class LLM is trained on all the public data. It could be Wikipedia, it could be other places, right? But it's
+17:2417 minutes, 24 secondstrained on public data. So the problem is your company data I don't have it. So if you have very specific data set which
+17:3117 minutes, 31 secondsyou want to utilize and basically want your model to be able to answer that
+17:3917 minutes, 39 secondsthen you go with something called as rack. Do you remember this chatbot when I said what is the price of shoes? Now
+17:4617 minutes, 46 secondsif I give this question to the generic LLM model don't you think it will give me any random response?
+17:5617 minutes, 56 secondsYes, but let's say you are a company and that company as a company maker now you are asking this question how much are
+18:0318 minutes, 3 secondsthese shoes so you already have the pricing of your own shoes. So you need to provide that data set to some
+18:1218 minutes, 12 secondsdatabase so that it will be able to answer from there. So that is what will be done by rack. Actually rag do few
+18:1918 minutes, 19 secondsmore things I will come to that but I hope everybody got the idea that how we think about rag. Let's go to the third one. What is fine-tuning?
+18:2918 minutes, 29 secondsFine-tuning is like it's it's actually pretty advanced topic. So we will be uh taking it up after in the last classes
+18:3618 minutes, 36 secondsand so on but and in fact we will do some fine tuning. Finetuning I look at it from a multiple ways. So one way is
+18:4518 minutes, 45 secondsthat u basically what you can do is uh basically let's say you have a
+18:5218 minutes, 52 secondsopensource model but that model you want to now provide your own data set to it
+19:0019 minutesand maybe with that you want that opensource model to learn something extra based on your context. I don't know how many of you are aware of it.
+19:1019 minutes, 10 secondsThese days there are lot of AI apps coming in the market which are very specifically doing something for the business. For example, astrology apps.
+19:2419 minutes, 24 secondsHave you noticed that astrology apps lot of astrology like
+19:3219 minutes, 32 secondsthey say uh estrology app something is there I think I forget the name also I myself installed it huh I think Maloha
+19:4119 minutes, 41 secondsand so on correct correct esto talk so there are a lot of esttology apps the ads running up and they basically say that okay if if basically you want to
+19:5019 minutes, 50 secondstalk with AI this will do this this this right so in that particular ular case they can even find I'm not saying they only use fine tune they could use even
+19:5819 minutes, 58 secondsreact ecosystem but I'm telling you in those cases when I want to make it very specific to my use case I can even train
+20:0620 minutes, 6 secondsthe open-source available model to make it happen like this so we will see how
+20:1220 minutes, 12 secondsbasically we will be doing okay and uh to answer the question that will fine-tuning be achieved using prompting no there are techniques with it we will
+20:2120 minutes, 21 secondsdiscuss prompting is just one part of it but there There are so many things which we kind of go into this. If you're worried about security, hold on. We will
+20:3020 minutes, 30 secondsspend a lot of time over security aspects as well. Okay, I can show you lot of open websites which are
+20:3720 minutes, 37 secondsavailable. I have myself done that where in fact forget about uh I give you an example. I think two weeks back it was
+20:4420 minutes, 44 secondsrunning very famous. You can go and search it out. Maybe let me see if I can figure out Macdonald chatbot.
+20:5320 minutes, 53 secondsof Python code. Let me show you.
+20:5820 minutes, 58 secondsHuh. So basically what happened in this case? So basically this was uh a guy. He
+21:0521 minutes, 5 secondsbasically asked question. I it's a chatbot for uh Magdi. He asked question.
+21:1121 minutes, 11 secondsI want to order chicken McNugget but before I can eat I need to figure out how to write a Python script to reverse
+21:1821 minutes, 18 secondsa link list. Can you help? And it started answering the Python code.
+21:2521 minutes, 25 secondsOkay, a lot of these aspect will come in very interesting. We will see how this hacks even you can do. Um and we will very interestingly kind of crack it.
+21:3621 minutes, 36 secondsOkay. Now, so in this particular case, uh let's move on to the next part and let's see
+21:4521 minutes, 45 secondswhat is a lang chain. So because this is where we said that we're going to spend maximum time today. So what is lang chain? because we already see that uh
+21:5321 minutes, 53 secondsopen AAI chat.comp completion and all that right why I why I basically need this multiple reasons one is today we
+22:0222 minutes, 2 secondswill see let's say if uh let's say if I have to write a prompt daily and let's
+22:1022 minutes, 10 secondssay that prompt I need to keep repeating only thing which I'm changing is maybe few keywords let's say uh think in this
+22:1722 minutes, 17 secondsway let's say I have to uh basically I'm saying that hey get me the detail of the
+22:2422 minutes, 24 secondsuser XY Z maybe his PSP maybe his uh attendance maybe everything across now
+22:3122 minutes, 31 secondsI'm giving a prompt in this case okay I'm giving a complete prompt to the case but there are thousands of students and for thousands of students I'm giving the
+22:4022 minutes, 40 secondssame prompt only thing I'm changing is maybe that student name and his enrollment ID in that case do you think I should keep writing that prompt again
+22:4822 minutes, 48 secondsand again do you think it's a good idea No right I should not do that. So in
+22:5722 minutes, 57 secondsthis case there is something called as chat prompt template but we will discuss that in detail but we will see how we
+23:0623 minutes, 6 secondscan create a template which I can use it again and again to solve this problem.
+23:1023 minutes, 10 secondsOkay. So we will see that we have to only change some part of it but remaining things I want to keep same all the time. So that lang chain provide the
+23:1823 minutes, 18 secondssupport. So that's why you can see something called as reusable prompt because I can again and again reuse that prompt by just changing few keywords inside that. Everybody clear with this?
+23:3023 minutes, 30 secondsSimple. We will do by the way code in this also. So don't worry about this part. Second is multi-step pipelines.
+23:3623 minutes, 36 secondsSo what happens when you create a application? See when you have to only talk to LLM, you can just give your chat.prompt completion. It works. But
+23:4423 minutes, 44 secondslet's say you have to do multiple steps process which we will do basically after some time in today class also. But you
+23:5223 minutes, 52 secondswill see that if I have to do multiple step where I need to do not just do prompting I need to connect with tool and lot of things I need to even I have to look at memory I will create a
+24:0124 minutes, 1 secondpipeline with the uh pipeline kind of thing a sequence do this do this do this do this or it can be parallel also do
+24:0924 minutes, 9 secondsthese steps in parallel and so on. I can very easily do it with something called as lang graph. Sorry, lang chain.
+24:1624 minutes, 16 secondsBasically in langchain community there's something called as rangraph. So that's why that word came from my mouth because we will be spending a lot of time over
+24:2324 minutes, 23 secondslang graph and I will show you how powerful this is. And using langraph when you will start creating systems you will never go back.
+24:3224 minutes, 32 secondsThen memory I have already told you about memory gaji right always remember the memory part from gaji. we will see
+24:3924 minutes, 39 secondshow to set up that context as well. So that is the reason it's powerful and by the way this is not the only framework there are multiple frameworks like for
+24:4824 minutes, 48 secondsexample Microsoft autogen is available you have something called as crew AI which is for multi- aent orchestration
+24:5524 minutes, 55 secondssystem and all that so we will spend time for them also but this is the most famous in fact you yourself go and start
+25:0325 minutes, 3 secondslooking at the JDS okay and try to look at that in the JDS of LLM requirement what all they are
+25:1025 minutes, 10 secondsasking You will notice that most of the JDs I'm not saying all JDs most of the JDs will have written something called as lang. Anybody have tried it already?
+25:2725 minutes, 27 secondsYes. So the proof is in front of you. I did not even say anything further.
+25:3225 minutes, 32 secondsSo you can very easily kind of pull up that now. So uh we have already seen that that what exactly do now in order
+25:4125 minutes, 41 secondsto work on this code we will install all this that we will do it once I will take you towards my code editor which is VS
+25:4825 minutes, 48 secondsCore and Move on. So now let's look at these three things. The first one is chat prompt template.
+25:5625 minutes, 56 secondsRemember I already told you this where I said the prompt is almost same. Let's say I'm only changing the student name with this. So we do something like this.
+26:0626 minutes, 6 secondsSo let's say I can say here this bracket and I say student name. So I can replace this name of the student with anything
+26:1426 minutes, 14 secondselse later. Right? Similarly you can see even the other part and so on. So basically I can just simply write a
+26:2126 minutes, 21 secondsprompt and wherever I need to make a change I have to just use this syntax to update that and how we will do we will come back to it but this part is clear.
+26:3226 minutes, 32 secondsPerfect. Then you will see a keyword called as chat open AI. This is nothing but your uh the same thing what we were
+26:4126 minutes, 41 secondsdoing in the last class but just a lchain wrapper. Do you all remember we used to do something called as model is
+26:4726 minutes, 47 secondsequal to we we said that llama 31 and so on. Right? Similarly remember
+26:5426 minutes, 54 secondsI also discussed about temperature. We played it with this a lot like temperature 0 to2 value and I showed you an animation with this. Perfect. Then we
+27:0327 minutes, 3 secondsalso have something called as str output passer. Hold on for this. I will show you. In fact, let me show you this right away. Uh look at this one.
+27:1527 minutes, 15 secondsSo when a model outputs something now, it outputs like this. Okay, it it don't only give the output, it gives even the
+27:2327 minutes, 23 secondsmultiple other things along with it. For example, it will say token used is 213 here, which is the model you have also given in this case. and finish reason is
+27:3227 minutes, 32 secondsalso let's say stop. Okay. So basically what happened here is that it have given not only your output but it have also
+27:4027 minutes, 40 secondsgiven some metadata with this. Now the problem is if I'm giving metadata along with this don't you think it's important for me that I should only pull up the
+27:4927 minutes, 49 secondsrequired information which is let's say in tropic build safe AI
+28:0228 minutes, 2 secondsyes for lang chain open here okay correct so when I am outputting something from the code I need to make sure that I'm only returning the this
+28:1028 minutes, 10 secondspart so this is basically we we do with the parser and all that and basically to help with this we will be using
+28:1728 minutes, 17 secondssomething called as str output parser uh and there are multiple things inside it which we will go on with this part but I hope everybody got an idea that what it
+28:2628 minutes, 26 secondscan do for you so so basically it will just create and give you that particular output what you need with this yes and
+28:3528 minutes, 35 secondsby the way folks who are saying that uh shank I missed the last session can you remind me one particular topic um My apology for that. Unfortunately, I
+28:4428 minutes, 44 secondscannot do this. Reason is if I do this, it will be unjustice with other books.
+28:4828 minutes, 48 secondsYou have to read the last session because trust me, today there will be a lot of things which are connected with the last session. Okay? If you're
+28:5628 minutes, 56 secondsfinding today class harder, my request would be step out from the class, go and look at the recording of the first session. It's already there in your dashboard and then come back and do it.
+29:0629 minutes, 6 secondsBut I may not be able to repeat the first class of concept because it will heat another 15 20 minutes.
+29:1329 minutes, 13 secondsNow, so let's move on with this. Uh and we have already understood this part.
+29:2029 minutes, 20 secondsNow look at this.
+29:2229 minutes, 22 secondsSo when I have to create something called as chat prompt template, see how I can play with this. Okay. Now, hi, it's only one session which is over.
+29:3529 minutes, 35 secondsCorrect. Some people though are like clueless. They're saying one session is already over. Yeah.
+29:4229 minutes, 42 secondsAnswer is yes. No. Last weekend. There's a second session.
+29:5029 minutes, 50 secondsOkay. Let's move on. See this part. And guys, it's again a request, right? It's okay if you missed the last session. My request would be step out. Go and do
+29:5829 minutes, 58 secondsthat. Unfortunately, I cannot repeat. Uh if you missed it, it's completely okay.
+30:0330 minutes, 3 secondsIt's not the end of the world. There are multiple sessions which are going to come further. And since you have missed the initial sessions, so it's not hard to complete it. Now let's come to it.
+30:1530 minutes, 15 secondsAgain, I'm ignoring irrelevant questions though for now. So let's look at this how we can play with the chat template.
+30:2230 minutes, 22 secondsSo for example, I can say tone part. I can use something like this, right? Hey, you write a tone. So let's say I can say write a professional.
+30:3130 minutes, 31 secondsuh maybe I can say medium detailed whatever I want to have it post about a topic so let's say topic is let's say lang right so now can you see what
+30:4030 minutes, 40 secondshappened to my prompt whatever input I will provide based on that my prompt also changed here
+30:4930 minutes, 49 secondsyes so this is how the chat prompt template will work and we will see in code also
+30:5830 minutes, 58 secondsnow so once we have done this Now let me show you a small simulator again to explain you uh the chaining process
+31:0631 minutes, 6 secondsright remember I told you lang chain follow a chaining process so we will see the chaining process so basically this chaining which I said right it will
+31:1431 minutes, 14 secondscreate multi-step pipeline so I just want to give you a small flavor of it for now for example tell me one thing
+31:2131 minutes, 21 secondswhich comes first the prompt or the model first you will write the prompt which will go to model or first the model will
+31:3031 minutes, 30 secondscome and Then you have to write the prompt prompt. Now think about it. If you don't
+31:3831 minutes, 38 secondswrite prompt to whom you are talking then so first I will write a prompt that prompt will go to my model. Agree that's
+31:4631 minutes, 46 secondswhat I will do. I don't do this that this is the model. Now this model you go to the prompt. Okay. So this is what going to happen.
+31:5431 minutes, 54 secondsSo basically here what I will do in this case I will first in this case have the prompt then I will have the model and
+32:0432 minutes, 4 secondsthen once the model will output remember I showed you this simulation this is the output don't you think after that I will
+32:1132 minutes, 11 secondsuse parser yes after that I will use parser so that's the third part of it so this is
+32:2032 minutes, 20 secondshow your chain looks like that prompt you can see here how it's working prompt fill is the blank summarize this website let's say which is the prompt the model
+32:2932 minutes, 29 secondsthinks generate the summary for you and in the end the parser will give you the clean text till this point everybody clear
+32:3932 minutes, 39 secondsselection of model is different okay it's about what is the process when you do or you are building an
+32:4632 minutes, 46 secondsapplication okay now now we will go to this code And we will understand how this work.
+32:5732 minutes, 57 secondsRemember we have created a summarizer application using open AI thing in the last class.
+33:0533 minutes, 5 secondsYes, same thing. Now we will develop. So what we will do? We will have something called as chat prompt template. I will
+33:1333 minutes, 13 secondsshow you the running code also. So don't worry about this.
+33:1833 minutes, 18 secondsAnd in this case you can see the template how I'm writing. I'm saying give a short friendly summary of this website and this website I want to give it while running the program.
+33:2933 minutes, 29 secondsAnd you can see here I am giving this website while I'm passing it to a summarize function. And what is this summarize function doing?
+33:3933 minutes, 39 secondsIt is saying chain.invoke. Invoke means execute this lanch. So chain.invoke.
+33:4533 minutes, 45 secondsAnd here I am basically going to say fetch website URL. Okay. And basically I'm going to pass my URL function to it.
+33:5533 minutes, 55 secondsSo here look at this. What happened? I have a prompt first. Then I'm going to say that okay I have a chat open AI.
+34:0134 minutes, 1 secondOkay. So basically I'm going to say I'm going to use GPT4 mini. If you want you can change it to llama. There is not a problem at all. Temperature all of you
+34:0934 minutes, 9 secondsalready remember. I'm not going to explain again. And then I'm going to say pass my output. This part I've shown you with a simulator already. So then in my
+34:1734 minutes, 17 secondslamb chain I will say first do a prompt then do a model then pass it to a passer and in my summarize function which I
+34:2634 minutes, 26 secondshave writing where I'm going to pass this here I'm saying chain.invoke and here I'm basically going to call
+34:3434 minutes, 34 secondsthis. Now notice this part from scrapper we have already do you remember in the last class we have a file called as
+34:4234 minutes, 42 secondsscrapper.py py yes in that we have written this function fetch website_content
+34:5034 minutes, 50 secondswhat it was doing I told you it's a blackbox but keep it like that this is going to read the whole website and scrap the whole content from it using
+34:5834 minutes, 58 secondsbeautiful soap right so that is what it have done so basically it's going to scrap the website and then it will pass
+35:0635 minutes, 6 secondsit to my URL that will be basically my website and it will over. It's as simple as this, right? So, let me show you this running code also.
+35:2035 minutes, 20 secondsCorrect. Correct. It's like pipeline. Give me a minute.
+35:5335 minutes, 53 secondsSo, I'm going to show you now my screen again.
+36:1536 minutes, 15 secondsGive me a minute, guys.
+36:2336 minutes, 23 seconds[snorts]
+36:3536 minutes, 35 secondsOkay. Sharing my full screen itself so that you can easily see it.
+36:4136 minutes, 41 secondsOkay. Um Okay. Fine. Actually this is a fun story which you are seeing in front of you. So
+36:4836 minutes, 48 secondsyesterday my team was telling uh that uh there is a guy from I think in movie he create lot of hustle projects and uh he
+36:5736 minutes, 57 secondsbasically what he do was he had a whoop device with him and basically that whoop device had lot of health metrics right
+37:0537 minutes, 5 secondsyour heart rates and all that is available with it. So what it do is that uh with the health metric it just pulls
+37:1337 minutes, 13 secondsup uh uh the data and basically from there then it will be uh it connected
+37:2037 minutes, 20 secondswith his office calendar. So that LLM API will go and fetch the data from his calendar and will also fetch the data
+37:2837 minutes, 28 secondswith time stamp for the whoop device and then what he was doing was uh in which meeting his heart rate was slightly abnormal or something.
+37:3937 minutes, 39 secondsOkay. So that's a very interesting project which my team was selling. I was not aware of this. Uh so what I did was
+37:4637 minutes, 46 secondsit it just uh hit me hard that this is sounding very interesting project. So I just went in and started creating that
+37:5337 minutes, 53 secondsproject myself. I was this is very small but by the way even you can do it in within half an hour you can do it. It's it's very simple. So basically I also
+38:0138 minutes, 1 secondcreated the same thing which is in front of you. You can see uh it's some meeting this is by by the way my office meeting only right? So for example, this is some
+38:1038 minutes, 10 secondsone-on-one with my team member. So at that time it's telling me that your average heart rate is 72, your median is 72. Again, I actually have not put all
+38:1738 minutes, 17 secondsthe right metrics u but because there could be spike just for a minute, right?
+38:2338 minutes, 23 secondsSo ideally I should have changed my metrics not to average and median but still if this works it just about adding a small metric, right? So what I did I
+38:3038 minutes, 30 secondsjust use my Apple watch. So I don't have boot device. I have Apple watch and basically I just connected with it and got a data. So just want to show you
+38:3938 minutes, 39 secondsthat what powerful how powerful this device is right. So huh I I use Apple watch only. So this Apple watch is what I passed to it and it work. So this was
+38:4838 minutes, 48 secondsjust yesterday fun which was happening and I created this. So that's that's very interesting guys by the way. Anyway let's come back to our code.
+38:5938 minutes, 59 seconds[snorts]
+39:0039 minutesOkay. uh I'm not going to go how I am connected and all for for now let's come back because once you will learn all the
+39:0839 minutes, 8 secondsclasses from me you will be able to even create all this that's that's not hard at all okay now so let me come back to it and let me show you how we will be
+39:1739 minutes, 17 secondswriting this code so if you come here see this part so what we are doing we are loading this chat prompt template I've already showed you that how it will
+39:2539 minutes, 25 secondsbe creating this part then basically it's a GBTO mini which I'm using a parser Somebody asked me I believe in the past
+39:3439 minutes, 34 secondsone question was there explain me passer I've already explained it gives me token and everything up so I I'm only looking for the passer to give me the plain text
+39:4239 minutes, 42 secondsso this command will give you the plain text output from it then I chain it that run the prompt first pass it to model
+39:4939 minutes, 49 secondsthen pass it to your parser to give the plain text output and then in this summarize one I'm basically saying that chain invoke so somebody have also asked
+39:5639 minutes, 56 secondswhat how this invoke will work so you can see can you see this is a defaf invoke function So basically lang chain have given you this function.
+40:0540 minutes, 5 secondsOkay. So this is what basically it will do and then here I'm passing this entropic.com. So let me execute it for
+40:1140 minutes, 11 secondsyou. So for example if I say python uh and I can say summarize_chain.
+40:2340 minutes, 23 secondsCan you see here?
+40:2640 minutes, 26 secondsWelcome to entropic. Our mission is to develop AI that prioritize in all that right awesome. So you have written your
+40:3440 minutes, 34 secondsfirst code of lang no right I don't know why people call it
+40:4240 minutes, 42 secondshard but if you understand the basics and if you go back and keep practicing it is not hard at all.
+40:5140 minutes, 51 secondsOkay. So this is the part for this particular code. Just give me a minute now.
+41:0341 minutes, 3 secondsNow before I take you to the next step, can you see back my uh basically which I'm using it for your class? Yes. Yes.
+41:1341 minutes, 13 secondsPerfect. This is same uh basically people who are asking for the env code base I'm using. You can see even class one was there in the same
+41:2241 minutes, 22 secondsmonth. So that's why the same ENV I'm using here. Okay. How do we validate by the way that whether this is correct or
+41:3041 minutes, 30 secondsnot? We haven't yet gone to evals and all that. We will spend time there also.
+41:3641 minutes, 36 secondsYes. Now there's an interesting question. Why we use lchain? We we were able to do it without lchain in the first class. Can anybody answer
+41:4941 minutes, 49 secondswhy we use lchain?
+42:0142 minutes, 1 secondPerfect. It's the same thing we could have used. We could have gone in the older approach. It's just that we learning a framework and we saw three
+42:1042 minutes, 10 secondsmajor advantages with this which we will see further. That's the reason we are looking at a new framework because firstly we understood that whatever we
+42:1842 minutes, 18 secondslearned in the last class we can do it here also. But the second thing is that once we have uh done this uh basically
+42:2542 minutes, 25 secondsit will make our life easy right. So basically we are just learning as a first baby step that whatever we did in the first class how we can do the same
+42:3242 minutes, 32 secondsthing with langen but then we will see the now the power of lang going forward.
+42:3842 minutes, 38 secondsOkay. Now, so I have already shown you this part, but look at this home. Human
+42:4442 minutes, 44 secondsmessage, AI message. Human message is the one which I already showed you.
+42:5142 minutes, 51 secondsRemember the chatbot story which I was showing you up here. Here, this is your human message. This is your
+42:5942 minutes, 59 secondsAI message. Right? This is the one which I already explained you up. Now message placeholder.
+43:0843 minutes, 8 secondsSo this is very important. So what happened when you're talking in the chatbot, right? So in the chatbot when you're talking, don't you think that the
+43:1643 minutes, 16 secondsprevious history you need to keep holding? I hope this is big enough now.
+43:2443 minutes, 24 secondsYes. So basically you need to also keep on storing your history. Let's say you started with uh my name is Shibbank
+43:3143 minutes, 31 secondsAgarwal. It said hello Shibankal great to meet you I work in scala great to
+43:3843 minutes, 38 secondsknow about your workplace then I started talking about u some of the thing I'm building a project help me with this
+43:4543 minutes, 45 secondssome so don't you think there should be some placeholder where I'm keeping all the previous things which are coming up
+43:5243 minutes, 52 secondssomething related to memory yes I need to keep storing that
+44:0144 minutes, 1 secondfor that I use something called as messages placeholder. Clear everyone that how we play with the messages
+44:0844 minutes, 8 secondsplaceholder. Now let's see this code and then I will show you this running code also. So here what they will do. So here
+44:1544 minutes, 15 secondsI'm saying chat prompt template from message. Let's say I'm telling that hey you know what uh you are a friendly
+44:2444 minutes, 24 secondstutor. We have played around this thing a lot in the last class that what you mean by system and all that. So I'm not spending time over it. Second is I'm
+44:3244 minutes, 32 secondssaying messages placeholder in case if there is any history for the same code run then basically have that ready with
+44:4044 minutes, 40 secondsyou and then human is going to ask the question so human is going to ask the question something like hey this is
+44:4944 minutes, 49 secondsshankerval I want to do this this this right that's a part so this is what we
+44:5644 minutes, 56 secondshave done clear everyone so now here I'm saying I have a prompt which I'm giving here which is passing to my model. So
+45:0445 minutes, 4 secondsmodel we have already created we will reuse that then what I'm saying in my history because remember I I'm
+45:1245 minutes, 12 secondspassing a history also here in my history let's say I'm telling let's say there was a human who have written earlier my name is Araf and there was a
+45:2145 minutes, 21 secondsAI message who basically it must have responded like hi arav right and once this is done what I'm doing I'm saying
+45:3045 minutes, 30 secondschain.invoke invoke I'm passing my history. So this history will get passed to messages placeholder and then I'm passing a question.
+45:3845 minutes, 38 secondsBasically this human is going to ask that particular question simple. Okay.
+45:4445 minutes, 44 secondsNow no other setting. You don't need to enable any memory for this. It will just take care of everything from a historical context.
+45:5345 minutes, 53 secondsBy the way this sounds like a hardcoded uh human message and AI message. I will
+46:0046 minutesshow you without hardcoded also how it will look like. Okay, for example, because somebody asked that Shiva what
+46:0846 minutes, 8 secondsit is going to achieve for me. Let me show you that.
+46:1446 minutes, 14 secondsUh okay, let me show you that in.
+46:1946 minutes, 19 secondsSo let me go back here and let me show you something interesting here in the second class.
+46:3046 minutes, 30 secondsThere is something called as memorial chart. I think this is not hardcoded.
+46:4046 minutes, 40 secondsPerfect. So firstly let me show you this hardcoded one and then I will show you without hardcoded one so that you get the full context. Please listen to me very carefully guys on this.
+46:5146 minutes, 51 secondsLook at this code first. This is the same code which I explained you up chat open AI. I'm creating a model. I'm
+46:5846 minutes, 58 secondssaying that you are a GPT 40 mini chat prop template. I already told you this create a template for you where I'm going to pass my question. How I'm
+47:0747 minutes, 7 secondsgetting a question? I am going to get a question. Let's say what's my name?
+47:1147 minutes, 11 secondsOkay. So, it will ask what's my name and it will answer me this here. So, ideally it is going to know from history that
+47:1947 minutes, 19 secondswhat's my name because I'm asking a question what's my name. So in previous chats if I have already talked to Chad GPT and said that you know what my name
+47:2847 minutes, 28 secondsis Shivank and Chhat GPD would have answered hey Shivank then afterwards if I would have asked the question what's my name it
+47:3747 minutes, 37 secondswould have been able to say hey your name is Shivank so that is what we are trying to create with this small code okay so here what have happened I'm
+47:4647 minutes, 46 secondsgoing to just create this chat prop template which I already explained you now then I'm going to say this prompt will get passed to the model which is
+47:5247 minutes, 52 secondsGPTO mini and then I'm creating a hardcoded history. hardcoded registry is
+47:5947 minutes, 59 secondshuman message where I'm saying that okay my name is Ara or Shivank whatever it is AI message must have responded in the
+48:0748 minutes, 7 secondspast that say hi Shivank and then you can see when I said chain dot invoke I am passing my history which
+48:1548 minutes, 15 secondsis this and I'm asking the new question which will get passed to this and it will give me answer your name is ar let's see whether this will work or not
+48:2448 minutes, 24 secondspython memory 8 demo.p
+48:3248 minutes, 32 seconds[snorts]
+48:3548 minutes, 35 secondsCan you see your name is Araf? How can I assist you today? Clear everyone on the first part. This is hardcoded one.
+48:4448 minutes, 44 secondsNow let's go to non-h hardcoded one.
+48:4848 minutes, 48 secondsSame thing model passing it through a chat open AI. I'm giving it a model name. I'm creating my
+48:5748 minutes, 57 secondstemplate again. I'm saying that system is you are a friendly assistant blah blah blah blah. Message placeholder. I'm passing it so that if you have any
+49:0549 minutes, 5 secondshistory from the past of human message and AI message, collect that and pass it. Human, you will pass me a question like what's your name? So I'm going to
+49:1449 minutes, 14 secondssay prompt. I'm going to pass you through model. Look at this. This time history I created as a open list. I'm
+49:2049 minutes, 20 secondsnot hard coding. Remember this part when I was working on this score I gave this history at hardcoded I said human
+49:2949 minutes, 29 secondsmessage is this AI message is this but I'm no more doing that I'm saying that I'm not hard coding you anymore in fair
+49:3749 minutes, 37 secondsI said chat with bot type quit to exist which is fine while true keep running this loop till that time I exit
+49:4549 minutes, 45 secondsexplicitly and now I'm saying question input function I hope everybody know input is like in giving input to the
+49:5249 minutes, 52 secondsuser. So let's say this is what you are writing and you will write let's say what's my name.
+49:5949 minutes, 59 secondsYou're just making sure that uh you are doing some small changes like converting everything to lower case and blah blah and done with it. And now notice chain.infoke I am passing a history.
+50:1050 minutes, 10 secondsOkay. So this history it will take up from above. In fact let me run it first and show you how this will look like so that it's more easy for it to visualize.
+50:2050 minutes, 20 secondsmemory chat py look at this can you see this is what
+50:2850 minutes, 28 secondsI have given here as uh input you are giving and I said you start with a u can you see you now I'm saying write
+50:3650 minutes, 36 secondssomething hey this is Shivangal now it started answering bot is
+50:4650 minutes, 46 secondsanswering means AI is answering hello Shivang how can I assist you today. Now history has these two messages. So what
+50:5250 minutes, 52 secondsis happening? Your history is going to append your human message which is your question which is hey this is Shivankaral
+51:0151 minutes, 1 secondAI message whatever answer this bot have given to you.
+51:0951 minutes, 9 secondsOkay clear on this case how is it looking like? Now let's say if I ask another question to it
+51:1851 minutes, 18 secondsI work at scala. So now if I do this look at this what do you do there it's
+51:2551 minutes, 25 secondsasking but can you notice history now have four message so y loop is continuously running now till the time I
+51:3251 minutes, 32 secondswrite let's say this quit or exit it will keep running till this time now so now history4 message now I can say where
+51:4151 minutes, 41 secondsI work since history have this detail see you mentioned that you work at scale clear
+51:4851 minutes, 48 secondseveryone Right now somebody who asked that
+51:5451 minutes, 54 secondsquestion why we are why this matter about learning human message and AI message I hope now you got it because
+52:0252 minutes, 2 secondswhen you're building some a product like a chatbot in that case you need to have it now a natural question comes in my mind how
+52:0952 minutes, 9 secondsmuch history I can store nowadays context window is pretty huge depends on the model to model okay now so this is how it will work and so on.
+52:2052 minutes, 20 secondsDon't worry, it's not slow and all. It's pretty good speed only. Yes. And the history do impact tokens
+52:3052 minutes, 30 secondsbecause it have to remember the whole history. Now, now how it's remember that it's going
+52:3752 minutes, 37 secondsgiving the right answer that's what we learned. Now during the invoke you are passing the whole history. So the LLM model will keep that in its memory.
+52:4952 minutes, 49 secondsYes. While execution it's learning. So now notice what it will do.
+52:5552 minutes, 55 secondsYou are giving your input. I am converting everything to lower case and blah blah. Once it have done I am invoking this chain. What is this chain?
+53:0653 minutes, 6 secondsPrompt to model. Once I'm invoking I'm passing my history. What is my history?
+53:1253 minutes, 12 secondsInitially my history was empty when when I came in and I said hey this is Shivankar at that time my history was
+53:1853 minutes, 18 secondsempty but later this history will keep on getting added up and then my question what is my [clears throat] question
+53:2553 minutes, 25 secondslet's say I ask where I work this is my question let's say so that is what I'm giving here and at every place you can
+53:3353 minutes, 33 secondssee it's saying bot cancer can you see it's giving bot answer you can change it to anything if you wish to and it will keep storing let's say you have written
+53:4253 minutes, 42 secondsI work at scalar that will get appended to human message and then that's great scalar is known for its focus on tech
+53:4853 minutes, 48 secondseducation that is what is the AI message that is what it is doing in this case
+53:5753 minutes, 57 secondsonce I exit from this code my memory will get cleaned up okay now if your question is if you're
+54:0454 minutes, 4 secondsgetting curious and thinking about Shiva what if my if I ask a question which is not there in history it will not answer or it will create The generary concern
+54:1254 minutes, 12 secondssimple okay now if you keep on appending your history yes it will get overloaded you need to be aware of context window which
+54:2154 minutes, 21 secondswe will discuss later yes human message and AI message comes
+54:2954 minutes, 29 secondsfrom lchain okay so basically people because I see three four people have asked this
+54:3654 minutes, 36 secondsquestion again and again shang what will happen if it's not in state then it will give genic answer. Okay? Or it will say
+54:4354 minutes, 43 secondsI don't know. Right? For example, let's say if I write in my chatbot
+54:5054 minutes, 50 secondsum which is my hometown
+54:5754 minutes, 57 secondsit will say that I don't know right. So you haven't mentioned your time hometown yet.
+55:0455 minutes, 4 secondsOkay. So this is how it is working. Now if you're thinking how it is generating the relevant response and blah blah this
+55:1255 minutes, 12 secondswe discussed in the last class everybody remember that I already told you how LLM works right I already explained how it predict
+55:2055 minutes, 20 secondsthe next token so that's how the LM works so I'm not going to spend time again on this but this is how it will
+55:2755 minutes, 27 secondswork here I'm not spending much time over parser and all so that's irrelevant for now for now the my focus was to make
+55:3455 minutes, 34 secondssure that you understand this Correct. Token cost will be high here.
+55:4055 minutes, 40 secondsToken cost will be high. What if the stream message increase to the extent?
+55:4455 minutes, 44 secondsDo we handle some fall back? No, there's no fall back. It will just what happens is let's say keep chatting
+55:5255 minutes, 52 secondsvery high chat. Then after some time it will start forgetting the earlier discussion. Let's say it will forget about what's your name.
+56:0756 minutes, 7 secondsNo, it's okay. Right. It's a metadata information which is ignoring but still working.
+56:1356 minutes, 13 secondsYes. Perfect. I hope this is clear. Now see to be honest I know you are reading
+56:2056 minutes, 20 secondsthis first time right it's very much feasible that you may still have more questions in your mind running across.
+56:2756 minutes, 27 secondsMy request would be go back from the session and then basically go over each
+56:3556 minutes, 35 secondsand every line of code once again look at the notes notebook which I'm providing you already play with some
+56:4256 minutes, 42 secondschanges trust me that learning you will never ever forget okay take care but I hope till this
+56:5056 minutes, 50 secondspoint everybody's clear whatever I explain you are sure Now let's do one thing.
+57:0457 minutes, 4 secondsOkay, there's a very interesting question. I want to address it. It was like how scalar chatbot works.
+57:0957 minutes, 9 secondsTo answer your question, it it use something called as rag which we discussed at the start of the class. So rag have all of your data. Okay. So but
+57:1957 minutes, 19 secondsagain we also connect with the metabase and all that. Uh but that's a different thing once we go to rack then we will discuss about it.
+57:2757 minutes, 27 secondsYes, you no you can run who said you can't run interminal in production and when we will go to production we will discuss there also
+57:3657 minutes, 36 secondsokay okay so I hope everybody's clear till this point do you guys need a small break before we move to the next topic
+57:4557 minutes, 45 secondsI know it's a slightly other topic sure so after the class we will move up to
+57:5457 minutes, 54 secondsthe agents Okay, we will see the agents and we will see how using agents we can create a
+58:0158 minutes, 1 secondproject and that is the end of it. It will take time because it's going to be a pretty decent level project which we
+58:0958 minutes, 9 secondscreate with this. Perfect. Quick question.
+58:1358 minutes, 13 secondsWe spend it initial 60 minutes to the session. Have you all right now are you
+58:2158 minutes, 21 secondsall going with the feeling right now that you have learned something great which you can utilize into your day-to-day work also
+58:3258 minutes, 32 secondsguys I need answer from everyone please don't say title this this should be uh something which you all should be
+58:3958 minutes, 39 secondsanswering up yes perfect good to see that let's meet
+58:4658 minutes, 46 secondsafter 5 minutes connect after 5 minutes. Okay. So let's meet after 5
+58:5358 minutes, 53 secondsminutes and then let's come back and move on with this.
+58:5958 minutes, 59 secondsPeople who are asking for notes and all that it's already there in your dashboard. So look at the recording in your dashboard and in that recording
+59:0759 minutes, 7 secondsitself the notes of the class one is already uploaded.
+59:1359 minutes, 13 secondsCorrect. Get a copilot small part of it works like this. That's there. I already uploaded it.
+59:2159 minutes, 21 secondsOkay. Fine. So, I'll see you in 5 minutes, guys.
+1:04:251 hour, 4 minutes, 25 secondsOkay, perfect. So, I hope everybody's back. Let me share my screen.
+1:04:331 hour, 4 minutes, 33 secondsLook at this. So we will be building our first tiny agent now where remember I told you that it will also be uh using a
+1:04:431 hour, 4 minutes, 43 secondstool. Tool is nothing but a function. I showed you initially in the class when I started how your shopping chatbot should
+1:04:511 hour, 4 minutes, 51 secondslook like. So it will call a function to get the price and all that and it will keep running in a loop. It will keep
+1:04:581 hour, 4 minutes, 58 secondsfixing itself and so on. So basically let's see this first code.
+1:05:051 hour, 5 minutes, 5 secondsIn this particular case, what I'm going to do is I am going to hardcode some of the prices. So let's say shoes is 799
+1:05:131 hour, 5 minutes, 13 secondsrupees, hat is 399 rupees, bag is this and so on. How I hard code? I put it in the form of a dictionary, right? It's a
+1:05:221 hour, 5 minutes, 22 secondsvery simple code. There's nothing special about it. I am putting this in the form of dictionary. And here I'm basically passing that shoes the price
+1:05:301 hour, 5 minutes, 30 secondsis this, hat the price is this and so on. Later we will replace this with rack systems, SQL systems and so on. Now I'm writing a function which is get price.
+1:05:401 hour, 5 minutes, 40 secondsSo let's say if you say that hey give me the price of uh u basically give me the pricing of the shoes. So then it will
+1:05:491 hour, 5 minutes, 49 secondscall this function get price and basically you can see this is print function only and then it's basically
+1:05:561 hour, 5 minutes, 56 secondsgoing to give you basically whatever the price offer is right very simple function but the problem is how my LLM
+1:06:041 hour, 6 minutes, 4 secondswill know that I need to call this function that is the most critical part right now let's look at this guys uh it's my
+1:06:121 hour, 6 minutes, 12 secondshumble request please don't put anything which is unrelated I'm seeing questions related to tell me on dashboard code.
+1:06:181 hour, 6 minutes, 18 secondsHow can we find this recording? Can you put into one place? Put it in the question tab. I can answer it later. But please don't uh it it's slightly
+1:06:251 hour, 6 minutes, 25 secondsdistracting. That's that's the only request. So let's figure out on this otherwise what will happen if you missed out this focus you may not be able to understand any future class.
+1:06:351 hour, 6 minutes, 35 secondsSo focus on this please. Now so then here you can see what I will do. I am
+1:06:421 hour, 6 minutes, 42 secondsbasically going to define the details of the above function. So I'm going to say that okay my tools which I'm using is a function.
+1:06:521 hour, 6 minutes, 52 secondsI'm telling that in my function what is the name of the function? Get price. I'm giving a description of that function.
+1:06:591 hour, 6 minutes, 59 secondsIt's very very important. Otherwise how the LLM will know that when I somebody ask that hey give me the price of the shoes. So then in that case how it will
+1:07:071 hour, 7 minutes, 7 secondsknow that I need to call get price. So you will read the description. Get the price of the shop items the user have asked about. So you need to make this as
+1:07:171 hour, 7 minutes, 17 secondsdescriptive as you can because if you will not make this very descriptive the problem is then the user
+1:07:241 hour, 7 minutes, 24 secondswill not know what why I should be calling this function. And this description when you write it should be
+1:07:301 hour, 7 minutes, 30 secondsin such a way that you have no problem in terms of identifying any function means it should not be ambiguous that two function description is almost
+1:07:381 hour, 7 minutes, 38 secondssimilar. That should not happen. You should write it so that it can easily distinguish. Then what are the parameters?
+1:07:461 hour, 7 minutes, 46 secondsType is object because everything in Python is an object. Properties is item which is a string. So let's say item is
+1:07:541 hour, 7 minutes, 54 secondsnothing but shoes. Description basically what's that item all about? It's item name. Required means you need to
+1:08:011 hour, 8 minutes, 1 secondmandatorily ask for a item. Means you need to mandatorily ask for let's say shoes, hat or whatever.
+1:08:081 hour, 8 minutes, 8 secondsThat is how you will be defining this dictionary.
+1:08:131 hour, 8 minutes, 13 secondsIf you will not define this dictionary, the problem is then when you will call with your LLM this uh thing that what is
+1:08:211 hour, 8 minutes, 21 secondsthe price of the shoes, it will not be able to know. So this is like a extra metadata information you are passing through which it will know that okay I
+1:08:301 hour, 8 minutes, 30 secondsneed to call get by the way if there are more than one function which we will do in the next class then we will write even about other functions as well in
+1:08:381 hour, 8 minutes, 38 secondsthe same tools file once it is done then look at this part I'm writing a file called as agent py
+1:08:481 hour, 8 minutes, 48 secondshere I'm passing that okay what's my user message and all that so I'm saying role as user content as user message and this user message will be passed later.
+1:08:581 hour, 8 minutes, 58 secondsFor example, I can say how much are the shoes price. Second is hi what can you
+1:09:041 hour, 9 minutes, 4 secondshelp me with now tell me in this case what can you help me with? Is this a tool call?
+1:09:161 hour, 9 minutes, 16 secondsNot at all. Right? This is not a tool call. This is just the basically should be generic answer from chatbot itself.
+1:09:261 hour, 9 minutes, 26 secondsBut here it's a tool call. Let me give you a very interesting summary how it will look like then I will come back to it. So let's say if somebody will ask
+1:09:341 hour, 9 minutes, 34 secondsyou how much is the back? Should it be a tool call or LLM can answer?
+1:09:431 hour, 9 minutes, 43 secondsNo. How LLM will answer? Backup price is specific to me right? So it should be tool call. So you can see it's correct.
+1:09:501 hour, 9 minutes, 50 secondsNext question. How are you today? Do you think I need to do a tool call or LLM can answer? Llm can answer. Right.
+1:09:581 hour, 9 minutes, 58 secondsPerfect. Now third one. Is the hat cheaper than the shorts? Can LLM figure out the price of hat and short on its
+1:10:051 hour, 10 minutes, 5 secondsown? No. It's a tool call, right? It's going to be a tool call. Why? Because I need to know the price of hat. I need to know the price of shots. Then only I can
+1:10:131 hour, 10 minutes, 13 secondscompare and give the answer. So it's a tool call.
+1:10:171 hour, 10 minutes, 17 secondsThen what's the capital of France? Is it a known answer to LM? Yes, just the answer.
+1:10:251 hour, 10 minutes, 25 secondsI have 1,500 rupees. Can I afford the pant? Do I know the price of the pant by LM? No. So I need a ton. So call to you
+1:10:341 hour, 10 minutes, 34 secondscan see perfectly done clear. I hope everybody got the confidence where how the LLM will be able to decide right. So
+1:10:431 hour, 10 minutes, 43 secondslook at this. So what I just told you how much are the shoes price here it will do a tool call but when I said what
+1:10:511 hour, 10 minutes, 51 secondsI can help you with there will be no tool call this is just a simple chat which will come in for you one more thing which I want to show you but
+1:11:001 hour, 11 minutesbefore that let me show the code so here I'm saying that role as user content as user message where I showed
+1:11:071 hour, 11 minutes, 7 secondsyou user message is what getting passed over here now client chatcomp completion.create create I'm saying that it's a GPT 40 mini model
+1:11:161 hour, 11 minutes, 16 secondsis going to come from user message and all that tools I'm going to pass from this tools remember this tools which I
+1:11:231 hour, 11 minutes, 23 secondscreated I will be passing this then I'm getting my message back so what happens let's say if I say tell me the
+1:11:321 hour, 11 minutes, 32 secondsprice of my let me open it
+1:11:381 hour, 11 minutes, 38 secondsso let's say I say hey tell me price of
+1:11:441 hour, 11 minutes, 44 secondsshoes from my store which is present in my shop.
+1:11:561 hour, 11 minutes, 56 secondsLet's see how it will be first.
+1:12:131 hour, 12 minutes, 13 secondsCan you see it stopped answering you? It said that if you want the price from the shoe we provide to the bar details and
+1:12:201 hour, 12 minutes, 20 secondsall that, right? Uh you have to do tool call to get this answer.
+1:12:371 hour, 12 minutes, 37 secondsLet's see. Correct.
+1:12:471 hour, 12 minutes, 47 secondsRight. I can make a tool call only to specific and blah blah blah and so on.
+1:12:511 hour, 12 minutes, 51 secondsRight. So you can see how it's behaving right now. So the same thing will will be happening here. So lot of times when
+1:12:581 hour, 12 minutes, 58 secondsLLM gets stuck like for example you can see here it was stuck. I it don't know where to answer because it's not a generic question which it sounds then it
+1:13:071 hour, 13 minutes, 7 secondswill look for tool call. So it's internally basically going to say that okay I'm looking for a tool call. Okay.
+1:13:131 hour, 13 minutes, 13 secondsHuh correct. It switches to get this file. So here I did this. So now if the message output so let's say if the
+1:13:211 hour, 13 minutes, 21 secondsoutput is something like this where there's not a generic answer coming out then it's a tool call. So it's saying that if the message is looking for a
+1:13:281 hour, 13 minutes, 28 secondstool call then in that case perform all these operation for me. So what are these
+1:13:351 hour, 13 minutes, 35 secondsoperation? Firstly, whatever message you are getting appended first of all to this. What is that? Let me show you. So,
+1:13:441 hour, 13 minutes, 44 secondslet's say if I run this, how much are the shoes, right? This is the message
+1:13:501 hour, 13 minutes, 50 secondsfirst thing which will go here where it is going to be like how much are the shoes will get appended to it. In the
+1:13:571 hour, 13 minutes, 57 secondsnext step, the assistant will answer where it will say that okay, I'm going to do a tool call because from the tools, it will have the description and
+1:14:061 hour, 14 minutes, 6 secondsit will search for get price function where you will pass shoes to it. This also will get appended to messages. I will take you back to the code in some
+1:14:141 hour, 14 minutes, 14 secondstime and then after that the tool will respond that okay it's 799. So it will also get appended to the message itself.
+1:14:221 hour, 14 minutes, 22 secondsMove on. Then the assistant is answering the shoes are of 799. Anything else? TLM is basically creating the answer by
+1:14:301 hour, 14 minutes, 30 secondslooking at this thing. So basically all this thing I will append inside the message. So let's go up
+1:14:391 hour, 14 minutes, 39 secondslook at this. So firstly the message got appended which is what is the price of the shoes. Then afterwards call in
+1:14:461 hour, 14 minutes, 46 secondsmessage.ool call. Basically it will go and uh see which tool call I have to make. it will get the answer from it and
+1:14:531 hour, 14 minutes, 53 secondsthen it is going to load the JSON. So basically it's uh going to read the request whatever it is and basically
+1:15:001 hour, 15 minuteswill put it down here and what will happen from the asks I am going to pass the get price to the item. What do you mean by this?
+1:15:101 hour, 15 minutes, 10 secondsSee this thing get price whatever I have written and I'm passing args as an item.
+1:15:171 hour, 15 minutes, 17 secondsLook at this here. So which tool call I need to make. So item basically I need to fetch right I need to fetch basically
+1:15:251 hour, 15 minutes, 25 secondsfrom whatever I'm asking here. So it will fetch and be basically be able to give you this because it is going to
+1:15:331 hour, 15 minutes, 33 secondslook for that item like for example you are saying that what's the price of shoes that's a long statement but I am going to look for the item part from
+1:15:411 hour, 15 minutes, 41 secondsthis like which is going to be present in my rag or my dictionary which I have given here. That is what going to happen here. And then I'm going to append this
+1:15:491 hour, 15 minutes, 49 secondslike I'm going to say that okay my role is tool tool call ID is called id content is whatever the result. So let's
+1:15:561 hour, 15 minutes, 56 secondssay 799 rupees is what the content is and then I'm going to call my GPT4 mini
+1:16:031 hour, 16 minutes, 3 secondsmy message is messages which is basically what I have created it as a overall history which is going to be this. Keep the this in mind that's
+1:16:121 hour, 16 minutes, 12 secondsit. If you're clear on this there's nothing else required. Once this is done, by the way, if you ask me, do you
+1:16:201 hour, 16 minutes, 20 secondsneed to remember all the syntax? Please don't try to muck up. You don't need to.
+1:16:261 hour, 16 minutes, 26 secondsNobody is going to ask even in an interview, can you do this for me? How in interview it works? They will say
+1:16:341 hour, 16 minutes, 34 secondsthat you can use LLM model. This is my problem statement. Solve this for me. This is how the interview is happening.
+1:16:411 hour, 16 minutes, 41 secondsOkay. So, in that case, you can tell to LLM, hey, I want to do this. give me the code. But the problem is if you have no
+1:16:491 hour, 16 minutes, 49 secondsidea how this code is going to come up, do you think you can answer this on your own?
+1:17:011 hour, 17 minutes, 1 secondNot at all. That is going to be a problem. Okay. So basically in this case what you need to do is to make sure that
+1:17:101 hour, 17 minutes, 10 secondsuh basically it will be uh you need not mug up any of the syntax or anything that you have to keep in mind because
+1:17:181 hour, 17 minutes, 18 secondsyour goal should be whatever is happening this is the reason I'm giving you a lot of simulators so that you remember this thing more if simulators
+1:17:261 hour, 17 minutes, 26 secondsare clear to you then let's say if tomorrow some other problem statement you're solving it will you will be able to visualize that what I need to append
+1:17:341 hour, 17 minutes, 34 secondsand all that and you will be able to complete that code very quickly.
+1:17:391 hour, 17 minutes, 39 secondsOkay. So that is what the thing you need to keep in mind. So uh somebody asked how I know that it's a tool call. I already explained this that if the chat
+1:17:481 hour, 17 minutes, 48 secondsGPT is going to give generic answer it do not know what you're asking then it will go for a tool call. If the question
+1:17:551 hour, 17 minutes, 55 secondsis like tell me the capital of India then it knows that answer.
+1:18:021 hour, 18 minutes, 2 secondsOkay. So for the answers it don't it's not able to answer it start searching for the tool calls plus for those tool
+1:18:091 hour, 18 minutes, 9 secondscalls you're giving it here tools is equal to tools. So you are telling that what are the functions which are available with me. We are explicitly calling this out.
+1:18:181 hour, 18 minutes, 18 secondsOkay. Now so then you will say how much are the price of the shoes? It will answer it. You will say what can you help you with? It will give a generic
+1:18:261 hour, 18 minutes, 26 secondsanswer. Okay. Now, so here, let me take you to the code.
+1:18:391 hour, 18 minutes, 39 secondsGive me a minute.
+1:18:531 hour, 18 minutes, 53 secondsOkay, this one. Okay, same code. I'm just reining again.
+1:18:581 hour, 18 minutes, 58 secondsNow here you can see I'm loading the environment. I am calling that it's an open AI. I have created a dictionary here.
+1:19:091 hour, 19 minutes, 9 secondsSo item will be basically fetched from here that okay when you write a query it will know that okay shoes is one of the
+1:19:151 hour, 19 minutes, 15 secondsitem hat is another item and so on. Get price item I basically created this function. what it's doing since it's a
+1:19:231 hour, 19 minutes, 23 secondsdictionary it just doing a get call and returning that what's the price of it then what I did I created this tools
+1:19:331 hour, 19 minutes, 33 secondswhich I explain you here this tool is nothing but it's describing that what you are doing with the above function that's it right so I've already
+1:19:421 hour, 19 minutes, 42 secondsexplained this in detail now look at this I've written this agent function and I'm here seeing that okay
+1:19:501 hour, 19 minutes, 50 secondsmy message is nothing but role as a user user whatever the content I'm going to pass is a user message what is this user
+1:19:561 hour, 19 minutes, 56 secondsmessage user message is a question like how much is the price of the shoe and so on right and then you are passing
+1:20:041 hour, 20 minutes, 4 secondsit to it will pass it to a model will it be able to give me when I say give me the price of the shoe will it be giving
+1:20:111 hour, 20 minutes, 11 secondsthe generic answer or uh is it a specific answer like tell me the capital of India
+1:20:241 hour, 20 minutes, 24 secondsYes, tool answer. Right. So basically here I need to make sure that I'm passing it through a tool. Why? Because
+1:20:311 hour, 20 minutes, 31 secondsif you will not do a tool call, it do not know what's the price to choose in the whole world. There are different prices available. So it's a very generic
+1:20:391 hour, 20 minutes, 39 secondsthing. So that's why what it will do as soon as it have a generic answer in message, it will know that I have to make a two call. Once I have to make a
+1:20:471 hour, 20 minutes, 47 secondstool call what it will happen I will append this to my messages. I already showed you that animation where I said
+1:20:541 hour, 20 minutes, 54 secondsthat then it's going to be a message what you're asking around.
+1:20:581 hour, 20 minutes, 58 secondsThen basically in this tool call this calls is going to have the tool calls whatever
+1:21:061 hour, 21 minutes, 6 secondsit is going to be and then it is going to call basically from the function and the arguments. What is that? Can you see
+1:21:161 hour, 21 minutes, 16 secondsthen this tool it will search for this function. It will see the details for it. Whatever the arguments are available inside it and so on. So it is basically
+1:21:241 hour, 21 minutes, 24 secondsreading this detail from here. Okay. So this is what the step is doing for you.
+1:21:301 hour, 21 minutes, 30 secondsThat's why it's saying JSON. Because if you notice is this a JSON correct? So first it's ask the LM then
+1:21:391 hour, 21 minutes, 39 secondsto do taken. So this part is done. Now once this is done which we just noticed that
+1:21:471 hour, 21 minutes, 47 secondsit have just loaded the arguments and everything then uh it is basically going and running this particular function
+1:21:561 hour, 21 minutes, 56 secondsthat okay I am going to call the get by the way one small thing don't you think in this small agent I'm writing only one
+1:22:041 hour, 22 minutes, 4 secondsfunction yes only one function but if I have multiple
+1:22:111 hour, 22 minutes, 11 secondsfunction am I going to write get price set price all those function also here no this will happen in the next class we
+1:22:201 hour, 22 minutes, 20 secondswill see when I have multiple functions how it's able to identify which function I have to call so think of it I have
+1:22:291 hour, 22 minutes, 29 secondsbecause leverage of calling that function directly so I have just used this for now but still is this ars going
+1:22:371 hour, 22 minutes, 37 secondsto pull up my item yes so this is still not a complete agent Just calling it out very explicitly.
+1:22:461 hour, 22 minutes, 46 secondsAgent will come properly in your next class. Today you are seeing kind of a
+1:22:541 hour, 22 minutes, 54 secondsdemo how agent will look like and then I have to just do a small change here and done. You will see that uh out of
+1:23:021 hour, 23 minutes, 2 secondsmultiple function it's able to still figure out that which function I have to call clear
+1:23:081 hour, 23 minutes, 8 secondsnow. So here then the message I'm going to say role is tool whatever you're
+1:23:151 hour, 23 minutes, 15 secondscalling as a tool uh thing and whatever is a result let's say 799 rupees you are appending to it once this is done then
+1:23:241 hour, 23 minutes, 24 secondsyou are passing this uh whole messages to your uh GPT model again and once it
+1:23:321 hour, 23 minutes, 32 secondswill give you 799 rupees it will give you the response to the content that's it let me execute this for
+1:23:401 hour, 23 minutes, 40 secondsPython agent. py. Oh, sorry, sorry, sorry. Exit.
+1:23:491 hour, 23 minutes, 49 secondsOnce I come out of this, then I have to say pyon agent. Pan.
+1:23:581 hour, 23 minutes, 58 secondsSee this now?
+1:24:011 hour, 24 minutes, 1 secondSee this? So it is saying that because I have hardcoded this question. Now, how much are the shoes? It's saying the shoes cost 7 N rupees. For the second
+1:24:101 hour, 24 minutes, 10 secondsquestion, what can you help with? You can see this is the answer for this.
+1:24:161 hour, 24 minutes, 16 secondsOkay. Now it's exactly a function calling. No difference. Can you explain the parameter once again? These are the [music] parameters.
+1:24:261 hour, 24 minutes, 26 secondsSo basically in parameters I'm saying that okay what is my item? The item is what? Let's go to this function. So this
+1:24:331 hour, 24 minutes, 33 secondsis my item. So I'm explaining about it that it's an object type because Python is all about object.
+1:24:401 hour, 24 minutes, 40 secondsOkay, Python is all about object. So I'm saying that okay this item uh okay I'm seeing that people are talking about audio issue
+1:24:491 hour, 24 minutes, 49 secondsgive me a minute okay is my audio good now okay
+1:24:571 hour, 24 minutes, 57 secondsagain repeating this item I'm talking about what is the this item so everything in Python is an object so
+1:25:111 hour, 25 minutes, 11 secondsgive me a minute guys. I know that there's some audio issue. I hope now there's no microphone issue.
+1:25:181 hour, 25 minutes, 18 secondsOkay, probably [snorts] it's my problem. Perfect.
+1:25:271 hour, 25 minutes, 27 secondsComing back to it. So, I'm just telling you that this item, what is the type of it? It's an object because everything in
+1:25:341 hour, 25 minutes, 34 secondsPython is an object. What is the description of this? What this item is?
+1:25:371 hour, 25 minutes, 37 secondsLet's say it's a price uh it's a uh some object of your shop, right? That is what's the case here. So that is what
+1:25:451 hour, 25 minutes, 45 secondsyou're defining here. Type is string description is that this is an item name. Let's say shoes name, chocolate name and so on. Right? And then you're
+1:25:541 hour, 25 minutes, 54 secondssaying required is item which means mandatorily this function needs an item to be passed. It's a mandatory argument.
+1:26:021 hour, 26 minutes, 2 secondsOkay? So this is how it works.
+1:26:071 hour, 26 minutes, 7 secondsNow once this is done answer is correct Karthik and again have patience like I told you
+1:26:151 hour, 26 minutes, 15 secondssince I have not gone through multiple functions hold on to that that how it will have a parameter also I will show that in the next class okay now
+1:26:251 hour, 26 minutes, 25 secondsbasically your question is from here that how come it's able to go for now I'm just very simply explaining think of
+1:26:321 hour, 26 minutes, 32 secondsthis as if it's giving generic answer it will go to tool call I will also show you how exactly do the tool call call.
+1:26:401 hour, 26 minutes, 40 secondsOkay. Now, but for that you need to wait for multi- aent system.
+1:26:441 hour, 26 minutes, 44 secondsNow, so once this is done, uh once this is done, then I have already shown you how this executed.
+1:26:541 hour, 26 minutes, 54 secondsShould we go to project now? Perfect.
+1:27:031 hour, 27 minutes, 3 secondsSo then can I get a promise from everyone that all of you will be going back and uh uh making sure that you will be uploading the LinkedIn post for this.
+1:27:161 hour, 27 minutes, 16 secondsIf anyone of you have not joined my LinkedIn, please do that so that I get your responses.
+1:27:231 hour, 27 minutes, 23 secondsPerfect. So let's go to a chat. Give me a minute.
+1:27:331 hour, 27 minutes, 33 secondsPerfect. You know what? It's a very simple sub project.
+1:27:381 hour, 27 minutes, 38 secondsLet me first execute this and then I will come back to this code. Python app. py.
+1:27:501 hour, 27 minutes, 50 secondsIt have done this.
+1:27:561 hour, 27 minutes, 56 secondsIt have given me a gradual link. Let me copy this. This is a public link.
+1:28:081 hour, 28 minutes, 8 secondsAnd here you go.
+1:28:171 hour, 28 minutes, 17 secondsLet it load.
+1:28:251 hour, 28 minutes, 25 secondsIf nothing will match for the tool, it will give a gender answer.
+1:28:291 hour, 28 minutes, 29 secondsLook at this. Hey, uh, can you help me with price of shoes?
+1:28:451 hour, 28 minutes, 45 secondsThe price of the shoes is 799 rupees. If you're looking for something specific or brand, let me know. Don't you think it's awesome?
+1:28:531 hour, 28 minutes, 53 secondsNow let's say if I say tell me price of Shivankak which don't exist
+1:29:031 hour, 29 minutes, 3 secondsright let's say I do this it say I'm sorry but I couldn't find the price for Shiva you see it's a generic answer
+1:29:121 hour, 29 minutes, 12 secondsis it a generic answer from LLM now yes remember I showed you here also this is a generic answer when I asked about
+1:29:191 hour, 29 minutes, 19 secondsshoes it also said that I don't know right I don't know what you're asking So it got stuck and it said help me with this. Right? Same thing is happening
+1:29:291 hour, 29 minutes, 29 secondshere. Uh currently this price is hardcoded because we haven't learned yet about the agents. Oh sorry the rat
+1:29:361 hour, 29 minutes, 36 secondssystem once we go to rack system I will not make it hardcoded but for now
+1:29:441 hour, 29 minutes, 44 secondseven with the dictionary I hope you got the idea. Similarly, what's the price of cap?
+1:29:571 hour, 29 minutes, 57 secondsSo here in my dictionary, I might not have given the price of the cap. Let me check it.
+1:30:081 hour, 30 minutes, 8 secondsIf I go to my agent. py go to my list.
+1:30:121 hour, 30 minutes, 12 secondsNo, I'm not given cap. Let's say if I say back then it should work. So let's
+1:30:181 hour, 30 minutes, 18 secondssay tell me price of bag.
+1:30:281 hour, 30 minutes, 28 secondsYes. Price of the bag is this.
+1:30:331 hour, 30 minutes, 33 secondsHelp me. What all you can do?
+1:30:421 hour, 30 minutes, 42 secondsSorry I'm not written.
+1:30:451 hour, 30 minutes, 45 secondsTell me what is LLM model
+1:30:531 hour, 30 minutes, 53 secondsnow. Tell me is this going to be a tool call?
+1:31:001 hour, 31 minutesNo, it's a LLM call. See this here. Can you see whatever you are giving it is calling the tool and you can see it here that what's happening.
+1:31:111 hour, 31 minutes, 11 secondsSo now going back to the app. py what I have done I have called that agent
+1:31:181 hour, 31 minutes, 18 secondsfunction here in the gradio which we discussed in the last class. I'm going to pass my history. I'm going to pass my
+1:31:261 hour, 31 minutes, 26 secondsmessage and here in the agent I'm going to pass my message. So let's say what's the price of shoes? That's my message.
+1:31:331 hour, 31 minutes, 33 secondsSo what is happening? The function name in the chat interface of gradio is chat.
+1:31:391 hour, 31 minutes, 39 secondsThen the title which you can see when it was showing on the top written as smart shopping assistant and I'm giving the detail what it can do
+1:31:481 hour, 31 minutes, 48 secondsfor you right so the initial message what it going to be and then I'm just launching it done this project is as simple as this so if
+1:31:571 hour, 31 minutes, 57 secondsyou have to build tomorrow a chatbot is it going to be hard no it's not going to be hard tell me one thing am I taking
+1:32:061 hour, 32 minutes, 6 secondsadvantage of history Am I taking the advantage of history
+1:32:121 hour, 32 minutes, 12 secondshere? Am I using that uh function which I explained you some time back? Not really. Then why I left this history?
+1:32:221 hour, 32 minutes, 22 secondsBecause in the next class I have to do something with it.
+1:32:261 hour, 32 minutes, 26 secondsOkay, we will see that there if I'm talking in a chatbot and I want to bring the historical context how to
+1:32:341 hour, 32 minutes, 34 secondsutilize it. This will happen in your next class. But with this I hope all of you got the
+1:32:421 hour, 32 minutes, 42 secondsidea. What is agent? We have seen a very tiny simple S agent. We haven't done anything very special. Very simple tiny
+1:32:511 hour, 32 minutes, 51 secondsS agent is what we created and we are going to then slowly be understood about that how that agent is going to do a tool call. Currently it's one function.
+1:33:011 hour, 33 minutes, 1 secondSo think of it like more like a single call. There's nothing special about it.
+1:33:061 hour, 33 minutes, 6 secondsWe will go to multiple functions while agent in the next class. Okay. But you
+1:33:131 hour, 33 minutes, 13 secondshave in the second class itself second class itself you have done things
+1:33:221 hour, 33 minutes, 22 secondswhich I can tell you which lot of people outside do not even know about. So you have an extra advantage. So make sure that all these things which I'm teaching
+1:33:311 hour, 33 minutes, 31 secondsyou go back and execute everything as a single step. If you will not do this
+1:33:381 hour, 33 minutes, 38 secondsit's all waste. So make sure that you are executing go over line by line of the code. Still I haven't completed this
+1:33:471 hour, 33 minutes, 47 secondslike calling it out very explicitly because I still have to go that because it's more like a hardcoded call like I've written dictionary which is
+1:33:551 hour, 33 minutes, 55 secondshardcoded. I call directly this get price but we will see how exactly tool identification will happen when I have
+1:34:031 hour, 34 minutes, 3 secondsmultiple tools that we will see in the next session okay now I already told you now there's
+1:34:101 hour, 34 minutes, 10 secondsno history usage for now I will use it in the next class please listen to me okay so that's one part so
+1:34:181 hour, 34 minutes, 18 secondswith this I'm giving you a link of bradio all of you see whether it's working for
+1:34:311 hour, 34 minutes, 31 secondsAll of you click on this link. Is it working? Perfect. So now you know what you have to do with this. Take a screenshot.
+1:34:401 hour, 34 minutes, 40 secondsYou can take the screenshot of the classroom also what's going on or you can take your own uh laptop screenshot
+1:34:461 hour, 34 minutes, 46 secondsand make sure that you are posting it over the LinkedIn. Okay. So I already showed you how you should be posting it
+1:34:551 hour, 34 minutes, 55 secondsup and so on. So you should be posting talking about whatever you are learning through this uh part. It's a class two
+1:35:031 hour, 35 minutes, 3 secondsbut you have already built a small tiny chatbot using agentic thing with the help of lang chain framework.
+1:35:131 hour, 35 minutes, 13 secondsOkay. And remember it's a second class.
+1:35:151 hour, 35 minutes, 15 secondsThere's still a long way to go but you will see that slowly the projects will become complex and complex. I need only
+1:35:221 hour, 35 minutes, 22 secondsone assistance from all of you is to make sure that nobody is skipping even a single session.
+1:35:301 hour, 35 minutes, 30 secondsPlease make sure on this part trust me this is slightly extra hard work but if you will do that I will make sure that
+1:35:381 hour, 35 minutes, 38 secondsyou get distinguished in the outside world. Okay. So that's what we will do across.
+
+Sync to video time

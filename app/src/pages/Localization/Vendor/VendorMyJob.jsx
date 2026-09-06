@@ -10,7 +10,7 @@ export default function VendorMyJob() {
   const navigate = useNavigate();
   const parsedJobId = parseInt(jobId, 10);
 
-  const [selectedVendorId, setSelectedVendorId] = useState(1);
+  const [selectedVendorId, setSelectedVendorId] = useState(null); // VendorPortalShell defaults this to the first roster vendor once loaded
   const [strings, setStrings] = useState([]);
   const [localeCode, setLocaleCode] = useState('de-DE');
   const [loading, setLoading] = useState(true);

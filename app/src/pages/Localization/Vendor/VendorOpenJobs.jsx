@@ -8,7 +8,7 @@ import { LoadingState, ErrorState, EmptyState } from '../../../components/common
 
 export default function VendorOpenJobs() {
   const navigate = useNavigate();
-  const [selectedVendorId, setSelectedVendorId] = useState(1); // Default to Maria Fischer
+  const [selectedVendorId, setSelectedVendorId] = useState(null); // VendorPortalShell defaults this to the first roster vendor once loaded
   const [vendorDetails, setVendorDetails] = useState(null);
   const [openJobs, setOpenJobs] = useState([]);
   const [awardedJobs, setAwardedJobs] = useState([]);

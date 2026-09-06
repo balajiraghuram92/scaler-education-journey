@@ -1,0 +1,963 @@
+Hey. Hi everyone. Uh can you all quickly confirm if you can see me, hear me? And I haven't shared my screen. So uh I will be doing it now.
+7:197 minutes, 19 secondsGive me a minute.
+7:347 minutes, 34 secondsWhere is this fire?
+7:547 minutes, 54 secondsOkay, hopefully now you should be able to see my screen also.
+7:587 minutes, 58 secondsNow, uh so let's start. By the way, uh if you're joining it for first time, I'm telling you beforehand, it will be
+8:078 minutes, 7 secondsalmost close to impossible for you to understand this lecture. Okay? uh so make sure that you have done the previous sessions because there will be
+8:158 minutes, 15 secondsa lot of assumptions that you know about it. Now in case if you have to um search it up or something like this you can
+8:248 minutes, 24 secondsalways go back uh and ask the team they will tell you where the recordings is and you can go over it. So it it's all
+8:328 minutes, 32 secondsgoing to be connected session and uh that's that's something you have to kind of go with. Okay. Now uh I'm not sure
+8:418 minutes, 41 secondswhether the folks who are asking questions currently over the chat uh they are joining first time itself
+8:488 minutes, 48 secondsbecause the questions are at the level which I completely answered in the first two sessions itself. If you are joining
+8:578 minutes, 57 secondsit first time again my request is to maybe go back and watch the recordings.
+9:029 minutes, 2 secondsI can only call it out in uh basically in detail around that yes it's an option session and there's a reason for it that
+9:109 minutes, 10 secondsreason you can get it only from this this is not part of your core curriculum okay now let's move on to the session
+9:199 minutes, 19 secondspart because that's more important for us so if you look at it by now what we
+9:259 minutes, 25 secondshad done right we understood uh also guys uh it's a request is Is it okay if I ignore all the questions which
+9:349 minutes, 34 secondsare not related to classroom? If everybody's aligned with this, give me a thumbs up because I I'm getting lot of unnecessary questions to be honest like
+9:429 minutes, 42 secondsfor example uh how many long series this is you guys yourself tell have I talked about it already already in two three
+9:519 minutes, 51 secondsfew classes how long this series and all like I how much I want to keep it elongen and all that so those all
+9:589 minutes, 58 secondsdiscussion done so it's possibly then your mistake that you have not done the last sessions you have to complete it uh but I would not prefer to answer it now
+10:0710 minutes, 7 secondsgiven that we have already lot of topics to cover. So let's let's go into this now. So let's move to the important topic. We have discussed already on LLM.
+10:1810 minutes, 18 secondsWe discussed already on what is rag but we have
+10:2610 minutes, 26 secondsdiscussed only on basic rag. By the way we I haven't gone to advanced rag. It is also going to come.
+10:3310 minutes, 33 secondsWe also have discussed around what is going to be your agents.
+10:4010 minutes, 40 secondsWe created agents and we also created agents up to a level of how multiple agents kind of are involved and work together.
+10:5210 minutes, 52 secondsNow we are going to move on on the similar nature. We have also discussed in the last class where I
+11:0111 minutes, 1 secondstarted talking about when you think about all this ecosystem in production.
+11:0711 minutes, 7 secondsWhat are the things you need to keep in mind? And for that I took a slightly advanced session where what we did was
+11:1511 minutes, 15 secondswe kind of went into the perspective of how um we will be able to go ahead and
+11:2511 minutes, 25 secondscreate dockers. We created even a micros service where different dockers were
+11:3211 minutes, 32 secondsinteracting with each other right and that's where we stopped now
+11:3911 minutes, 39 secondsif you also recall in your fourth class I believe fourth or fifth class I talked about I am intentionally taking you to
+11:4711 minutes, 47 secondsthis route because I want to give you an idea that how this whole system which you're
+11:5411 minutes, 54 secondsworking works over cloud environment for example we have already seen launch right that's a good one we have already seen it now
+12:0312 minutes, 3 secondsdocker was required because we wanted to go towards the cloud aspect because ultimately we need to productionize things right without that you are just
+12:1212 minutes, 12 secondsbuilding something on your laptop which is sitting uh as a demo but putting into production is a different ball game
+12:2112 minutes, 21 secondsnow what I am going to do in this part is to give you an insight that how this
+12:3012 minutes, 30 secondswhole ecosystem is going to work over cloud. Okay. So now today is the first session where I'm going to introduce you
+12:3812 minutes, 38 secondswith AWS environment. So in AWS environment there are going to be a lot of interesting things which we are going
+12:4612 minutes, 46 secondsto pick up and in this environment we are going to create uh lot of agents.
+12:5412 minutes, 54 secondsToday we will be using some predefined tools also inside this. I will also show you that how you can even run your lang
+13:0213 minutes, 2 secondschain over cloud. This is also going to happen in today class and if the time permits I also have a project ready in
+13:1013 minutes, 10 secondstoday class also which we can also push up and once it is done you already know what to do with that project right you
+13:1713 minutes, 17 secondshave to post it over LinkedIn create a visibility that what all things you are already developing as a part of a learning
+13:2513 minutes, 25 secondsnow since it's on top of cloud what is
+13:3213 minutes, 32 secondsexpected get out of the session. I want to very clearly call this out so that all of you sit with the same expectation.
+13:4013 minutes, 40 secondsIt's going to be slightly harder, lesser harder than the last class. Docker was slightly harder because we were looking at some dockerized service and all that.
+13:5113 minutes, 51 secondsBut definitely from an LLM perspective, it is going to be decently new as well as harder. Okay.
+13:5913 minutes, 59 secondsSo, why I'm calling this out? You don't need to worry about it. If you give me your
+14:0614 minutes, 6 secondsfull attention, you will not find anything hard. I have made sure that the doc which I have created for you is such
+14:1414 minutes, 14 secondsa simple doc, such a simple code that even a most basic beginner can easily
+14:2114 minutes, 21 secondscatch it. This is my teaching strength and I will definitely make sure that is happening. So you need not worry about
+14:2814 minutes, 28 secondsoh shank it's going to get hard. How will I deal with this? No need to worry about all this. I will ensure that all these things are taken care for you.
+14:3714 minutes, 37 secondsBut I need full attention. When I say attention, if in case you guys are keeping a mobile with you or something
+14:4614 minutes, 46 secondsin your hand and if you're trying to do multitasking with it, can I request everyone to keep the mobile slightly far
+14:5414 minutes, 54 secondsfrom you at least for the next one and a half hour to 2 hour and that's going to really help you to keep yourself pretty
+15:0315 minutes, 3 secondsuh just focused in this. Second request is maybe you can take 1 minute. I'm okay
+15:1015 minutes, 10 secondswith it. Have a pen and paper with you and it's keep scribbling what I'm talking but not everything but important important pointers. Oh, I learned this.
+15:2015 minutes, 20 secondsOh great, great. Oh shank have shown me this diagram. Let me just quickly see whether I understood it. Something around that
+15:2915 minutes, 29 secondsis what is going to be uh expected. So it's just see that if you can uh
+15:3815 minutes, 38 secondsgo ahead and have a pen and paper put your phone slightly farther like I said and everything you will see that will
+15:4615 minutes, 46 secondsstart making sense to you. Now one more thing when I will start on cloud a natural question which will hit your
+15:5315 minutes, 53 secondsmind is shan AWS I need to put some cost. See you just need a credit card. Okay.
+16:0116 minutes, 1 secondSo, uh if you have a credit card, you can have an account which is free of
+16:0816 minutes, 8 secondscost. Uh you can uh AWS provides some $300 US or something that's pity more
+16:1616 minutes, 16 secondsthan enough for you to work across on this session. So that is the only thing which you need. You can create a free
+16:2216 minutes, 22 secondsaccount and can work on it. In case in case let's say you're you have already taken a free account and now it's it's
+16:3216 minutes, 32 secondsnot going to work for you then in that case you can also it it's not going to cost you for this whole series more
+16:3916 minutes, 39 secondsthan$1 or $2. Okay, only for the project case maybe it would incur you $1 or something otherwise it's going to be
+16:4716 minutes, 47 secondscheaper only. So no need to worry about how much cost I need to pay and I think that's a very minimal cost uh if you
+16:5516 minutes, 55 secondshave to just pay like 100 rupees to learn such a critical skill uh and kind of keep those project alive with you.
+17:0317 minutes, 3 secondsBut in case if you do have u the free credit card available with you do that.
+17:1117 minutes, 11 secondsI'm already seeing lot of people are calling out that shank they have put now the UPI and all that. Please explore it.
+17:1817 minutes, 18 secondsI haven't seen it because in my account it's very different. Uh in case if they have already given debit card, credit
+17:2617 minutes, 26 secondscard and UPI things which lot of people are calling out use that. Okay. So that's that's something you can do that because a lot of people are saying that
+17:3417 minutes, 34 secondsthey are doing it but with some limit of 15k. So 15k is too much. You will not spend more than 100 or 200 rupees. So
+17:4217 minutes, 42 secondsit's it's a very simple use case then in for you to kind of go on. So let's start with the first thing which I'm going to
+17:4917 minutes, 49 secondsstart with you. Now in order to work on this what I'm going to start is to give
+17:5617 minutes, 56 secondsyou I'm going to come and do all the setup for you. So don't need to worry when I will take you towards my coding
+18:0218 minutes, 2 secondsnotebook. But let's start with the revision part what we have already gone through right. So what was agent? If I
+18:1118 minutes, 11 secondsask you what is agent? We have already learned agent is somebody like an intern smart intern who is able to do some job
+18:2018 minutes, 20 secondsfor you right and for doing that job you write some Python function which we used to call it as tools and we have already seen that. I'm not going into detail
+18:2918 minutes, 29 secondsthat how it makes autonomous decisions and all that but that's what happened because LLMs have the knowledge cut off dates they they are being trained some
+18:3818 minutes, 38 secondstime back not now so what about the current knowledge these all things you can provide it with the help of tools
+18:4518 minutes, 45 secondsnow second rag what is this so if you look at this rag so in this rag like you hit a user query you keep it uh you kind
+18:5418 minutes, 54 secondsof do an embedding for this and store I have already explained you what you mean by embedding that's a numerical
+19:0119 minutes, 1 secondnumbers for you and then you can even retrieve all the results from your graph and you can augment the results like LLM
+19:0819 minutes, 8 secondsis going to frame a nice English language for you and generate and give it output right this is what we have already seen this now this is how
+19:1619 minutes, 16 secondsgenerally the full rack pipeline looks like if you recall we used to load the data remember we used to chunk and the chunking was very important concept of
+19:2419 minutes, 24 secondsit yes that keep small small chunks so that the searching becomes easy for me.
+19:3019 minutes, 30 secondsembedding we already see that creating that numerical vectors storing it somewhere in vector DB like we have already seen fires DB uh chroma DB right
+19:3819 minutes, 38 secondsand all that then you are going to retrieve things you are going to filter the things remember that cross encoder
+19:4719 minutes, 47 secondsmethods and all that which we discussed for filtering ranking like I took an example of students right if I have to
+19:5519 minutes, 55 secondstake interview and all that and then generating the answer so this is also Now in agent terms what it do is it is
+20:0520 minutes, 5 secondsgoing to reason for you like why I have to do it what I have to do. It have to plan it have to act and it have to
+20:1220 minutes, 12 secondsevaluate. For example maybe my agent may have to talk with rack db it may have to go and talk with tools like functions
+20:2020 minutes, 20 secondsand all that. So this all things we already well aware of. So this was the quick revision what I wanted to bring up. Then the next thing was talking with
+20:2920 minutes, 29 secondsmulti-agent. By the way, today we will create a proper multi- aent system.
+20:3320 minutes, 33 secondsOkay. So you will understand that how that works as well. Now I'm going to
+20:3920 minutes, 39 secondsintroduce with two new terms and I need your full attention for this.
+20:4620 minutes, 46 secondsFirst the first is MCP. And by the way we will be writing detailed code for MCP in the
+20:5520 minutes, 55 secondsclassroom. We will create a complete from scratch MCP server MCP client. So
+21:0221 minutes, 2 secondsyou will know how that is created. So you might be hearing this quite a lot that oh they provide MCP and all that
+21:0921 minutes, 9 secondsvery simple damn simple thing you can create MCP like a cakewalk. It that easy. So when we will go we will
+21:1721 minutes, 17 secondsunderstand there but let me give you a very simple example.
+21:2321 minutes, 23 secondsNow let's say you have agents at the same time you have lot of
+21:3121 minutes, 31 secondsfunctions written which we call it as tool um then basically we talk about even resources
+21:4021 minutes, 40 secondsagent can talk with resources where which is like from the rack db fit have to connect and get the data and even you
+21:4721 minutes, 47 secondscould have prompt templates where it can talk and go with Now there could be multiple agents, there could be multiple tools.
+21:5721 minutes, 57 secondsIf I have to make the agent connect to all the tools, think about it. Don't you
+22:0522 minutes, 5 secondsthink in this partic I'm not telling you anything from the HTML right now.
+22:1322 minutes, 13 secondsSo if I have to if I have multiple agents and I have multiple tools resources prompt here and if I have to
+22:2122 minutes, 21 secondsconnect all this agents with this tool don't you think it is going to become too messy like one agent I will create a
+22:3022 minutes, 30 secondsconnection with this tool tool one tool two tool three rag agent two will connect with uh tool one tool two tool
+22:4022 minutes, 40 secondsthree rag agent three tool one tool Tool 2, tool three, tool four, do I have to take care of all this? Is it going to be
+22:4922 minutes, 49 secondsvery messy connection? Yes. Now in order to handle this in very very simple word if I have to tell you
+22:5922 minutes, 59 secondseven if I talk about your laptop now all of you just notice in your laptop you have two USB ports right now
+23:0823 minutes, 8 secondstell me with this USB port do you put multiple things inside it? Sometime you put a wire to charge your phone.
+23:1523 minutes, 15 secondsSometime you put maybe a connector to have the extended desktop, right?
+23:2123 minutes, 21 secondsSometime you might be putting a hard disk with it. Agree everyone? You all do that with a USB port. Now imagine the
+23:2923 minutes, 29 secondslaptop was giving different different connection for you for every different device that if you have to connect your iPhone then this is the thing you
+23:3823 minutes, 38 secondsconnect. If this is your uh Android phone then connect with this one. Uh if you have to connect with your hardest then connect with this one. Is it going to become complicated or not?
+23:5023 minutes, 50 secondsYes, it's going to become super complicated.
+23:5423 minutes, 54 secondsSo in this case what these guy did they came up with a single port which we that port is like type C or generally you
+24:0324 minutes, 3 secondsjust plug in there and everything connects through that right. So internally to my laptop maybe there
+24:1024 minutes, 10 secondsmight be things happening maybe when it's going internal to my laptop it is like identifying oh it's an iPhone okay give me allow me the access to it and
+24:1924 minutes, 19 secondsblah blah you might have seen that permission assist maybe you connected the hard disk then internally it might be giving instruction hey ask the user
+24:2724 minutes, 27 secondswhether whatever it is right kind of we do that yes so internally there may be lot of things happening but to end user
+24:3624 minutes, 36 secondsit's only one thing where I'm connecting now. So what is happening? So let's imagine this is my that C type thing in
+24:4324 minutes, 43 secondsmy laptop. So what is happening? There could be various devices which I'm connecting to this, right? And internally there could be multiple
+24:5124 minutes, 51 secondsinstruction style which is going inside the laptop. Agree everyone that's exact same thing your MCP achieve for you.
+25:0225 minutes, 2 secondsMCP is just that simple support simple support where what is happening
+25:1025 minutes, 10 secondsis we are we can have multiple agents talking to it. We could have multiple tools or rack system or whatever being
+25:1925 minutes, 19 secondstalking to it but everyone will be connecting to the same place exactly like your USB.
+25:3025 minutes, 30 secondsGetting it everyone? Now see this part.
+25:3225 minutes, 32 secondsThis is your agent. This is your MCP server and maybe through that maybe there could be tools rack blah blah blah
+25:4125 minutes, 41 secondsgetting connected as simple as this. So this is what your MCP will do. That's why I've written it as USB for AI tools.
+25:5325 minutes, 53 secondsOkay. So it's just like a USB where it's not making your connection too complicated. That's why you keep hearing
+26:0126 minutes, 1 secondoh this platform provides MCP connection with your Excel sheet with your MSWord with your DB Oracle DB and so on. Now
+26:1026 minutes, 10 secondshave you heard these statements from products?
+26:1526 minutes, 15 secondsHave you heard this or read this somewhere? I'm not saying you understood it but have you heard this? So whenever they say this, this is what they mean
+26:2326 minutes, 23 secondsthat they are providing one place where you can connect your agent. All these tools supports are given to you. You just need to plug in your agent and those tools you can just use that.
+26:3426 minutes, 34 secondsOkay, that's as simple as this. Now let's go to agent to agent. A2A
+26:4326 minutes, 43 secondsA2A is think of it like this MCP was for more like agent and
+26:5326 minutes, 53 secondstool agent and uh rag resources basically those connections.
+27:0127 minutes, 1 secondBut now if I have multiple agents with me and they have to talk with each other then what will happen?
+27:1027 minutes, 10 secondsBecause now I have multiple agents to talk with right. So if I have to do that
+27:1727 minutes, 17 secondsthen this is where your agentto agent protocol comes in.
+27:2227 minutes, 22 secondsNow within agent to agent protocol there are different styles how you will work with which we will learn in depth. But to give you a high level idea for
+27:3127 minutes, 31 secondsexample let's say I have an orchestrator agent who is connecting with weather agent then it's giving the results back
+27:3927 minutes, 39 secondsand then it's giving to flight agent. So let's say if I'm solving a problem where I want to know whether I should be uh
+27:4627 minutes, 46 secondsbooking the flight to Goa tomorrow. So what you will do generally as a human you will first check the weather of Goa
+27:5427 minutes, 54 secondsright is it worth even going to Goa right tomorrow if it's going to be stormy you would not like to go to Goa
+28:0228 minutes, 2 secondsotherwise you can't do let's say sports activity and blah blah now in this case what's going to happen is so I have an
+28:1028 minutes, 10 secondsorchestrator think of it as human right it's going to first figure out whether so you can understand let's say there's
+28:1828 minutes, 18 secondsagent of identifying the weather. Then it's returning it. Okay, weather sounds okay. Then it's going to flight booking
+28:2628 minutes, 26 secondsagent and getting the job done. Okay. So this is what we will be doing here. So
+28:3328 minutes, 33 secondslet me make this. Okay. Okay. So this is what we will be doing this. So agent can directly talk with each other also.
+28:4328 minutes, 43 secondsWe will be also looking at this part.
+28:4628 minutes, 46 secondsOkay. Now, so this is your MCP and A2A which I just wanted to talk at a high level because I wanted to to talk about
+28:5428 minutes, 54 secondsthis. This is your first chapter of this portion which I want to talk. Now let's move on to AWS agentics back. Okay.
+29:0629 minutes, 6 secondsNow uh in this particular case, okay, by the way there's a question that Shivan but I have seen multiple MCP. Huh? Why not?
+29:1829 minutes, 18 secondsMaybe ma'am one MCP is to connect with only different type of RAD DBs. Maybe one MCP is only for one type of different tools.
+29:2829 minutes, 28 secondsMaybe all Microsoft related product connection. Maybe I created another MCP for different client. I can do all that.
+29:3529 minutes, 35 secondsI can play with all this. Okay. So once you understood the concept then you do whatever you want. And
+29:4329 minutes, 43 secondsthat's why I said I will even teach you how to create these MCP states so that you have an idea how this works.
+29:5129 minutes, 51 secondsNow so two things I have talked about new things MCP A2A and trust me people
+30:0030 minuteswho have already learned agentic AI I know there are few folks from AML side they must have done all this before they
+30:0830 minutes, 8 secondscan tell you that these concepts are slightly harder okay but you don't need to worry about it I will make sure that it's damn easy for you so now let's talk
+30:1730 minutes, 17 secondsabout AWS stack it's going to be important Now in this case uh if I look at this
+30:2730 minutes, 27 secondssee when you're working in your AWS stack is it mandatory that I have to use
+30:3430 minutes, 34 secondsmodels or framework provided by no okay not mandatory that's why I will show you
+30:4130 minutes, 41 secondsevent code which is going to come from lanchin okay but I tell you one
+30:4730 minutes, 47 secondsinteresting thing there is a very famous one. This this is not very old. I think this is just one year or two year old
+30:5430 minutes, 54 secondsframework if I'm not wrong. It just one 14 months or something. I I don't recall this completely but it's a pretty latest
+31:0231 minutes, 2 secondsframework from AWS. Earlier it came in a different way but it did not work. Now they make it very strong. The framework
+31:1031 minutes, 10 secondsis called a strand agent and though you can use lang chain even I use
+31:1731 minutes, 17 secondsit to be honest when I have to work on this I use lang chain quite a lot because if you use a strand agent you have to pay some cost right because it's
+31:2531 minutes, 25 secondsgiven by them but the good thing is with these agents I found it pretty simple in terms of
+31:3431 minutes, 34 secondssaving time when it comes to observability evals and all that which I will talk about in future classes.
+31:4231 minutes, 42 secondsSo what is going to happen here is that just like you have a launching framework,
+31:4831 minutes, 48 secondsyou also have even this strand agent framework which we will use today
+31:5531 minutes, 55 secondsand you will see that this is so so simple that you will say that why the
+32:0232 minutes, 2 secondsheck I learned something like we were wasting time.
+32:0832 minutes, 8 secondsOkay. So that's the flavor of this. They have made it damn simple in order to work with this part. That's why I love
+32:1532 minutes, 15 secondsthis. Uh see I will give a disclaimer to you. I have not written too many projects with this. Reason is because of
+32:2432 minutes, 24 secondscost. Okay. But for creating lot of initial stuff just to make sure that my things are working. I have used this quite a lot. Extensively quite a lot.
+32:3632 minutes, 36 secondsOkay. So that's the reason I want to talk about it because uh I I want to give you one important insight when you
+32:4532 minutes, 45 secondswill start working in a company right the first thing which you will keep hearing from your leadership is how we can move more faster
+32:5332 minutes, 53 secondsand generally they are very furious to know that can I really build this project and make it available to the end user quickly that is where this kind of
+33:0233 minutes, 2 secondsknowledge is going to be damn helpful so that's the reason I'm going to anyway cover Now agent uh bedrock agent core lambda
+33:1233 minutes, 12 secondsECS this is going to be a required thing knowledge for you in order to understand
+33:2033 minutes, 20 secondshow we will be running things in production.
+33:2333 minutes, 23 secondsOkay. So for example we will also be using like lambda functions. Uh if you do not know what is lambda function I will teach you. So don't worry about it.
+33:3433 minutes, 34 secondsuh we will be using ECS uh basically part it's elastic uh basically all the computing and all that
+33:4233 minutes, 42 secondswe will also discuss this that how the services work uh it can connect with agent core very easily and under bedrock
+33:5133 minutes, 51 secondsyou will be able to find all the available models for you for example you want to connect with claude opus you
+33:5933 minutes, 59 secondswant to connect with Claude Fable all these models models are available there.
+34:0534 minutes, 5 secondsDefinitely you will be charged if you're using this. Okay. So that's why this knowledge is important.
+34:1434 minutes, 14 secondsThen number three is model part which I just talked about from Amazon bedrock.
+34:1934 minutes, 19 secondsWe will be using lot of models which are available to us. So we will see that how
+34:2634 minutes, 26 secondsthese three ecosystem is going to work and
+34:3334 minutes, 33 secondswe will be connecting today so we will understand how all these things works and trust me this is going to be fun of your life okay for example I'm seeing
+34:4234 minutes, 42 secondssome chat shank I tried assessing bedrock it was not working no need to worry okay we will I will
+34:5034 minutes, 50 secondsensure that today you see how it works and how simple this is. It's not hard.
+34:5834 minutes, 58 secondsNow, so let's move on and understand few more
+35:0435 minutes, 4 secondsthings with it. So what it is going to happen?
+35:0935 minutes, 9 secondsSo if you look at this, let's say you will be writing something, you will ask that hey do this for me. There will be
+35:1635 minutes, 16 secondsan agent coordinator who is going to have the model, your tools, your functions, your prompt. It is going to
+35:2335 minutes, 23 secondsbe setting some tools somewhere. It will be executing giving the results uh for doing that. If it requires some model
+35:3135 minutes, 31 secondslike any LLM model, it will check that and give the final response. And we will do this code. So don't worry about this part. I just wanted to give you a
+35:3935 minutes, 39 secondshighlevel idea. Now look at the first code. Okay. So now I will show you the whole setup how this will work and what all things you need to keep in mind.
+35:5135 minutes, 51 secondsPlease keep your notes and all handy now because the fun is going to start.
+35:5835 minutes, 58 secondsSo generally it's a correct that when we go for an adventurous ride we generally say that now keep your seat belt tight.
+36:0736 minutes, 7 secondsSo this is going to be important. So let's see what we going to do.
+36:1236 minutes, 12 secondsThe first thing if you look here is I am going to do some setups which I will explain.
+36:2136 minutes, 21 secondsSecond thing is I am going to use bedrock that's why you are seeing this bedrock.
+36:2836 minutes, 28 secondsThird is can you see I'm using the strand framework here. Right? Because I'm loading this up. Now I'm saying that I want to use a very cheapest model.
+36:3936 minutes, 39 secondsThis is also created by Amazon itself.
+36:4336 minutes, 43 secondsThis is not uh external model. It's I'm not using claw model and all that. I'm going to use the very cheapest submodel.
+36:5036 minutes, 50 secondsSo for that I'm going to use Nova light.
+36:5336 minutes, 53 secondsSo let's use that so that we don't have to pay any cost much. And notice what we
+36:5936 minutes, 59 secondsare going to do in this case is that I am going to say agent model is equal to
+37:0737 minutes, 7 secondsmodel. That's it. And as soon as I do this, it is going to initiate strand framework for me.
+37:1537 minutes, 15 secondsSo I'm basically telling that okay I'm going to create an agent and agent is sitting on top of the llm called as nova
+37:2237 minutes, 22 secondslight and this object which I have just created inside that itself I can just
+37:3037 minutes, 30 secondswrite whatever question I want done. Do you remember lang chain case dot completion dot write writing the system
+37:4037 minutes, 40 secondsprompt blah blah remember all that can you see this is lot easier yes
+37:4737 minutes, 47 secondsthat is what we will be doing here noble light is just the model for the question who somebody just asked noite
+37:5637 minutes, 56 secondsis just the model just like we were using openAI modelite is a model created by Amazon itself Okay, very cheap sub
+38:0438 minutes, 4 secondsmodel they have created. Actually they did nothing. They picked up a open source model and they created on top of it and they made it available to us.
+38:1338 minutes, 13 secondsOkay, so this is what this is now and one more thing since there are good questions on this part so I want to talk about it right away.
+38:2338 minutes, 23 secondsCan you see I don't need to set up any envi
+38:3038 minutes, 30 secondsright? nothing it's one time AWS setup which I will do for you once the AWS
+38:3838 minutes, 38 secondssetup is done you don't need to further a such thing it's all being taken care for you okay
+38:4738 minutes, 47 secondsnow so let me show you then how this will work so
+38:5638 minutes, 56 secondslet me go to Right.
+39:0139 minutes, 1 secondOkay. So this is my AWS portal. So let me quickly talk about what you should be
+39:0839 minutes, 8 secondsdoing is the following when you will go to this Amazon
+39:1439 minutes, 14 secondsplatform. Okay. You need to create very simple signup thing and all that. Just make sure that you are for example if
+39:2239 minutes, 22 secondsyou come here you can say AWS free account uh creation something like
+39:3039 minutes, 30 secondsthis you can do and you can see they will give you sign up free now I
+39:3739 minutes, 37 secondsthink they reduce it to $200 earlier it was $300 okay so pardon me for this um
+39:4539 minutes, 45 secondsI think it was $300 if I'm not wrong so but anyway create a free account from here. So when you're going to create a
+39:5239 minutes, 52 secondsfree account, they will give you all that uh uh links and all that. So from there you can just provide all the details. Once you will do all that, then
+40:0140 minutes, 1 secondafterwards you have to provide your credit card or if they provided UPI option u so you can do all that part and
+40:0840 minutes, 8 secondsthat's it. Your free account will be ready with $200 and you can use it.
+40:1340 minutes, 13 secondsOkay. And you can see they they are not even charging you for six month and all that. And by the way, you can go and
+40:2040 minutes, 20 secondssearch some details more around AWS. Uh AWS is very very very um humble guys.
+40:2740 minutes, 27 secondsThey are very humble guys. So uh if if you join their conference, they will give you lot of uh money to even basically set up your AWS and all that.
+40:3840 minutes, 38 secondsThey will give you more and more credits in your account. So they do like this a lot. I have I have taken advantage of it like anything. So um you can even try
+40:4840 minutes, 48 secondsdoing that also and they keep on doing this very frequently. Every month you will get this kind of discounts. Okay.
+40:5540 minutes, 55 secondsSo go ahead and uh figure out just Google it. I I don't have current thing with me but just go and Google it. But
+41:0341 minutes, 3 secondsthey give lot of amounts. I have taken even $50 also. Okay. So but for me it was different actually uh because I I
+41:1141 minutes, 11 secondsbelong to their premium list. So uh what happens is lot of times they reach out asking that they they need some sort of
+41:1841 minutes, 18 secondsbeta testing and all that for me. So there they have paid me pretty pretty good amounts just for spending 15
+41:2641 minutes, 26 secondsminutes conversation with them. So all those things they keep doing. So once you become slightly old they can provide you much more things around that. Um
+41:3541 minutes, 35 secondsplay with this you might get much more around this part. Now I I don't care about it because now I have a corporate account. But earlier I used to do that's why I'm just telling you my older days
+41:4441 minutes, 44 secondsthings that those are another things other than $200 what we can get now. So create this account. I'm not
+41:5141 minutes, 51 secondsgoing into it once you create your account. So let me do that.
+42:0042 minutesSo let me sign in. It will ask for some code.
+42:0542 minutes, 5 secondsSo basically you have to also install to work on this from your Google store there is an authenticator app okay just
+42:1342 minutes, 13 secondsfrom the app store you can just do that and once you will do that it will give once you open it it will give you a code just like OTP you get right it's like an
+42:2242 minutes, 22 secondsOTP okay so I have to put OTP this just stayed valid for 10 seconds or something and then it goes away so like once I did
+42:3042 minutes, 30 secondsthis OTP I got logged into this okay now once I logged into this part. Now you can see it's giving me all this and I
+42:3942 minutes, 39 secondshave a admin sort of account. Uh now you can see here some SSD. Now I'm not going to open it in front of you because it
+42:4842 minutes, 48 secondscost me but just to give you an idea around this part that once you open this SS you will need three things from it.
+42:5942 minutes, 59 secondsYou need to copy those three things and put it in your terminal. which terminal I will show you in some time but you
+43:0743 minutes, 7 secondshave to click on this and then those three items comes there okay that's item number one which you need to be mindful
+43:1343 minutes, 13 secondsof now uh there were I think one person who asked me Siobhan can you create the account right now again I will be honest
+43:2243 minutes, 22 secondsuh it's very simple you have to fill up a form nothing else I don't want to create it because uh I my accounts
+43:3143 minutes, 31 secondsalready exist so it will be unnecessary thing and given it's uh the session here
+43:3843 minutes, 38 secondsis more around AI agents I would prefer to go on this part okay now uh
+43:4843 minutes, 48 secondsokay one but let me so let's uh go ahead and once you will complete this exercise
+43:5643 minutes, 56 secondslike putting this SS key from here then I will go ahead to my VS code so now I will go to my VS test code and we'll
+44:0444 minutes, 4 secondsshow you some code files which I will provide you after the class.
+44:1244 minutes, 12 secondsBy the way, I know some of you were asking in the chat uh that Shivang can you provide this notebook and all that
+44:1944 minutes, 19 secondsright now. I am intentionally not giving you just calling it out. Why? Because I need your full attention here because
+44:2644 minutes, 26 secondsyou miss one step gone. Okay? And I don't want your focus to move here and there at all.
+44:4544 minutes, 45 secondsGive me a minute.
+45:0045 minutesOkay. Now can you see this part guys? Uh and please don't try to do it along with me. I would strongly recommend you to
+45:0845 minutes, 8 secondsfocus on the session because there will be lot of things I'm going to teach right now. So you will feel lost in case if you will just do a parallel with me.
+45:1845 minutes, 18 secondsOkay. I have at least 10 to 15 new code files which I will be tell showing you today. So that's why I
+45:2645 minutes, 26 secondsneed your full attention today. So today I have a lot of things to cover.
+45:3145 minutes, 31 secondsSo this is some code files which I will be using up. You need not worry about it. I will be showing you everything how this works. Okay. Uh I will be giving
+45:4045 minutes, 40 secondsyou this code files also. So you need not worry of how this will work. What I need to do to set up and all this. So this thing will be taken care.
+45:4945 minutes, 49 secondsWhat I am going to do here is to show you is the size okay? I hope. Okay.
+45:5745 minutes, 57 secondsNow, so what I will do here is I will be first copy and pasting some of my AWS
+46:0446 minutes, 4 secondscredentials. Okay, without showing you uh but let me quickly do this. By the way guys, you can see my VS code now,
+46:1246 minutes, 12 secondsright? Just confirming because that's where I'm I'm writing my code now. Take it. Perfect. So now let me bring my SSDs to you.
+46:2646 minutes, 26 secondsSo three keys is what you need. One is a uh AWS SS_key
+46:3446 minutes, 34 secondsid. You will find that. Second is AWS secret SS key. You need to find that.
+46:4346 minutes, 43 secondsNumber three is AWS session token. So they all will be together at one place.
+46:4946 minutes, 49 secondsOkay. There will be a copy button. You need to copy that and paste it in your terminal. That's it.
+47:0147 minutes, 1 secondOkay, I just copy pasteed. You need not worry what I did here. But this is what we did. Now given that I have done the
+47:1147 minutes, 11 secondsconfidential part. Now I can share my full screen again part. Why? Because I want to show you all the things.
+47:2447 minutes, 24 secondsSo let me share my full screen. Now quick question why I need to copy paste.
+47:3247 minutes, 32 secondsOkay.
+47:3347 minutes, 33 secondsThe reason I need to copy paste this is because tell me from my laptop if I have to
+47:4247 minutes, 42 secondsconnect to AWS account what should be the way right. So the problem is that if I have
+47:5147 minutes, 51 secondsto connect my laptop to my AWS account, I need to provide
+47:5847 minutes, 58 secondsusername and passwords. Yes. But if I provide username and password, do you think it's a secure way? No. So what AWS
+48:0748 minutes, 7 secondsdo is it it kind of gives gives the key things to you that if you pass these keys to me in your laptop if it's
+48:1548 minutes, 15 secondscorrect then I will be able to connect with you easily. Okay, I hope this part is clear now. So this is the first
+48:2448 minutes, 24 secondssection what we will be doing. Now uh once this is done now let me show you some setups.
+48:3448 minutes, 34 secondsNow one more thing because this question also is running on the screen that's was already I was aware of it so wanted to
+48:4148 minutes, 41 secondstalk about that as well there is second way of doing that
+48:4748 minutes, 47 secondssecond way of doing that is through I am okay you can see here I have even
+48:5448 minutes, 54 secondsprovide you this AM now what is this now in this AM what you can do is for
+49:0249 minutes, 2 secondsexample I can go to my account now. So this is a second way to authenticate.
+49:1249 minutes, 12 secondsSo I showed you the first way. Now I'm showing you the second way. So what you can do, you can go to the search and type AM. Let's go to this.
+49:2449 minutes, 24 secondsNow once I'm here, you can see AM users.
+49:2949 minutes, 29 secondsYes, AM users. I'm making it bigger for you. AM users.
+49:3549 minutes, 35 secondsNow in this AM user, if you don't have any, you can just click on create user and do that. I already have. So I can go here. And once you go here, you will
+49:4449 minutes, 44 secondsfind something called a security credential. And by the way, you don't need to remember all these steps.
+49:4849 minutes, 48 secondsEverything is there in the HTML file which I will give you. Okay. So you need to click on security credentials. Once you click on security credentials, can
+49:5749 minutes, 57 secondsyou see this SS key? Yes. So what you need to do you need to click on this create SS key. Now I can say I want to
+50:0550 minutes, 5 secondsdo it for CLI. CLI means for my terminal where I will copy paste this. I understand. Click next. Once you will do
+50:1350 minutes, 13 secondsit if you want to give a tag to it give that and click on create SSD. I'm not doing it because I don't need it. But once you do that it will give you a
+50:2050 minutes, 20 secondspassword kind of thing. Copy that and you have to follow these steps for this.
+50:2750 minutes, 27 secondsOkay. Can you see? I am click on users click on security credentials then click on SS key then create SS key and when
+50:3650 minutes, 36 secondsyou're clicking SS key remember I selected CLI option so that's the option you need to click on that and then you will get some user password that you
+50:4450 minutes, 44 secondsneed to paste okay I hope this part is also clear now once you will copy paste that username and password now you have
+50:5350 minutes, 53 secondsto go to your terminal okay here and here you need to write aw WS configure.
+51:0151 minutes, 1 secondOkay, just one thing in your uh terminal you need to install AWS. Just Google it that how to install AWS terminal.
+51:0951 minutes, 9 secondsThere's just one line command. It install everything for you. So I'm not going into that installation step right now. Now in this case AWS configure when
+51:1951 minutes, 19 secondsyou will do it will ask you for that password which you just got after creating that M IM user. And once you do
+51:2651 minutes, 26 secondsthis, it will make your things exactly like what have happened above. Okay. So this is what we have just done.
+51:3551 minutes, 35 secondsSo I showed you two methods. One is you can copy paste those SS keys which I did not show you but showed you once you
+51:4251 minutes, 42 secondsclick on that link it will show you all the three keys you need to copy paste.
+51:4651 minutes, 46 secondsSecond is you can just go ahead and create an IM user and from that user you will get the security code. You click on
+51:5551 minutes, 55 secondsAWS conf. You write AWS configure. It will ask you for the username that password thing. Provide that your laptop got access now to your AWS account.
+52:0752 minutes, 7 secondsOkay. So this is what we have done. Now let's move back to this. And again guys
+52:1452 minutes, 14 secondscalling it very clearly around this part. This is not a AWS class. This is
+52:2252 minutes, 22 secondsfocused on AI agent. What does this mean? I'm still telling you that what you need to do to authenticate and all
+52:3152 minutes, 31 secondsthat. But again the expectation is that I'm not going to go and explain in
+52:3752 minutes, 37 secondsdetail about what is IM not going and explain about each and every key what does this they mean and all that because
+52:4452 minutes, 44 secondsthen the focus on it will take me one class. uh if there is anybody from DevOps they might be aware of this part
+52:5152 minutes, 51 secondsthat how much classes it takes just to go through those topics itself but for your case does that knowledge is
+52:5952 minutes, 59 secondsimportant no what is important for you is as far as I know the process how I can connect my laptop to my AWS account
+53:0653 minutes, 6 secondsgood enough now I can do my job of agent creation is it fair with everyone
+53:1653 minutes, 16 secondsokay Now once we are done with this just want to confirm that it have worked for
+53:2253 minutes, 22 secondsus. So what I will do I have to copy paste this command. Now
+53:3253 minutes, 32 secondsif it show me something like this that means I am connected with my AWS. That's it. I am already connected with my AWS.
+53:4153 minutes, 41 secondsSo what I did I just copied this command from here which once you will get this HTML. Now in that case you have to just
+53:5053 minutes, 50 secondscopy and paste it there. Nothing else which I did. Now I will show you another command. Okay. By the way people are saying that can you maximize it? Let me
+53:5953 minutes, 59 secondstell you this is the maximum maximize state. If I make it more than that uh you will not be able to even see what is
+54:0654 minutes, 6 secondshappening here. Okay guys, in fact tell me don't you think this is larger enough this part?
+54:1554 minutes, 15 secondsYes. Then why you need more?
+54:1954 minutes, 19 secondsOkay fine. Then the next format which I copy paste for you. Now I tell you what it will do. Notice this part. AWS
+54:2754 minutes, 27 secondsbedrock. Oh, zoom out or you want to decrease the size then fine. Okay. AWS bedrock list foundation models.
+54:3854 minutes, 38 secondsIt is telling me go to your AWS bedrock and tell me that in the US East region
+54:4654 minutes, 46 secondsbecause they have different different servers here and there. So in the US East region can you tell me which all model which like do you have claude, do
+54:5554 minutes, 55 secondsyou have Nova, do you have OpenAI, what all models you have available with you?
+55:0155 minutes, 1 secondCan you print this for me? Let me execute this.
+55:0655 minutes, 6 secondsAnd in this case, I have specifically asked give me only claw model because otherwise it will print lot of models
+55:1355 minutes, 13 secondsfor me. So I have specifically asked give me the only claw model. Can you see these are all cloud model names? All of you watch it.
+55:2855 minutes, 28 secondsOkay. Just bear with me because I have to still show you HTML file. Can't help it. Okay. So these are all the cloud
+55:3755 minutes, 37 secondsmodels which you can see here. It's telling that okay these are the models now accessible to you. Have I given any
+55:4355 minutes, 43 secondsAPI key for these models? No. Bedrock will take care for me. Now let me do this. Okay. So once I have done this
+55:5255 minutes, 52 secondspart now let me uh just go ahead and activate this.
+56:0356 minutes, 3 secondsSo what I have just done sorry sorry sorry sorry sorry sorry I think I did not copy this
+56:1256 minutes, 12 secondsthese things we have done it in the last class so I'm not spending time over it and
+56:2156 minutes, 21 secondsSo what I have done basically was I have let it execute and then I will show you what I'm doing.
+56:3056 minutes, 30 secondsSo I have basically executed three commands. This part everybody is aware. Yes.
+56:3956 minutes, 39 secondsNo. So this part is aware. Now what I have just done is I'm just telling go and work on the region which is US East
+56:4756 minutes, 47 secondsone. Now what is this US- East one? Let me take you here. Right here. So here uh
+56:5556 minutes, 55 secondsif you see this, let me go to AWS.
+57:0257 minutes, 2 secondsCan you see there are multiple regions even it includes Mumbai region?
+57:0957 minutes, 9 secondsYes, I'm using Mumbai region and all that. So I just said that okay in the north Virginia I want to connect to AWS
+57:1657 minutes, 16 secondsNorth Virginia and there whatever models are available for me give me that. That is what I've done. Okay. Why I specifically connected to US East one?
+57:2757 minutes, 27 secondsBecause traditionally for uh this region things are cheaper. Every region have
+57:3457 minutes, 34 secondsdifferent different cost. So for this region it is cheaper. It is more cheaper than Mumbai region.
+57:4057 minutes, 40 secondsThat is the reason for learning perspective US East one is the best region to work with. But when you will go to production and all don't use this.
+57:4957 minutes, 49 secondsOkay, don't use this. So you should be aware of this part. Now h latency slight
+57:5757 minutes, 57 secondseffect will happen if you feed in a definitely having a uh father reason but at the same time not too much but for
+58:0458 minutes, 4 secondslearning perspective don't you think is it a problem? No. Right now, so this part, now there's a question. Question
+58:1358 minutes, 13 secondsis, Shivank explain me why you did source. All of you tell me. Have we learned this in class number one?
+58:2658 minutes, 26 secondsClass number one, we did this. Hey, come on. Somebody said no. Go back and read that. Okay, two people saying no. That
+58:3458 minutes, 34 secondsmeans you haven't done that class. Class number one, setup itself. I taught you.
+58:3858 minutes, 38 secondsPlease go back and watch the recording now. So let's move on to the next part.
+58:4958 minutes, 49 secondsOnce I'm done with this, this all I have already explained you. Now welcome to
+58:5658 minutes, 56 secondsthe coding section of this. Okay. Now we will do some code. So the first thing
+59:0359 minutes, 3 secondslet me first show you what is there in 01 hello world agent. py okay huh so
+59:1059 minutes, 10 secondssorry I I missed this part let me first explain this 00 check this py so what I had done was actually this is I while I
+59:1859 minutes, 18 secondswas writing my own code I just wrote it uh just to see that all the setups are happening fine or not actually this will also help you to understand whether
+59:2759 minutes, 27 secondseverything is fine or not for example it will check whether your python version is 310 or not right or greater than 310
+59:3559 minutes, 35 secondswhether I already have strand available in my environment or not. Whether if if it got connected with AWS properly then only it will be available. Okay. Uh just
+59:4459 minutes, 44 secondsmake sure that my credentials are being come up or not. So is my connection with AWS happening or not? Checking the region like if I have set US east one is
+59:5359 minutes, 53 secondsit with US East one or not. So those are the things which I written. Actually this is not required for you at all.
+1:00:001 hourOkay. This is something which I wrote because I wanted to test my code before the class uh that everything is properly
+1:00:081 hour, 8 secondsset or not and that's the reason I just showed you. Okay. So this is basically all the checks which I do and by the way when you will be working in the later
+1:00:171 hour, 17 secondspart of the projects when I will take you to the later class and we'll talk more about how you should be writing all this ecosystem for production then I
+1:00:271 hour, 27 secondswill tell you how important this is at that time. Okay, there I will show you multiple written files that how we write generally. Okay, now let's move on.
+1:00:381 hour, 38 secondsLet's go to shivank one. Okay, now let me show you the first part of the code.
+1:00:451 hour, 45 secondsLet's go through it.
+1:00:481 hour, 48 secondsSo here what I have done in this case is that ignore all this. This is just simple import and all this. Look at this part.
+1:00:571 hour, 57 secondsOkay. Now in this particular case I am going to call the bedrock model. I
+1:01:061 hour, 1 minute, 6 secondsam saying model ID as you want to make it small.
+1:01:121 hour, 1 minute, 12 secondsIs this okay? Size is okay with everyone.
+1:01:151 hour, 1 minute, 15 secondsIn fact I can do this now. Fit make it better now because I don't need to now go back to my HTML. Okay. Now it should be better in my opinion.
+1:01:271 hour, 1 minute, 27 secondsNow I am saying that bedrock model I'm using nova light this is available from bedrock I have not brought it from anywhere by the way somebody asked this
+1:01:361 hour, 1 minute, 36 secondsquestion Shivang you know what where from where this model is available it's available inside bedrock okay it's
+1:01:431 hour, 1 minute, 43 secondsavailable inside bedrock and uh basically from this part itself we are able to pull this then agent model this
+1:01:501 hour, 1 minute, 50 secondsI have already explained you it will pull up the nova model I could also put clot I will show you also in my next
+1:01:571 hour, 1 minute, 57 secondscode and then I'm asking hello tell me a fun fact about AI agent and it will give me a response. Let's see how to run this.
+1:02:071 hour, 2 minutes, 7 secondsSo I will say python shank one and 0 0 what happened?
+1:02:201 hour, 2 minutes, 20 secondsShivank one 01 sorry. So now let me execute this.
+1:02:261 hour, 2 minutes, 26 secondsSee the output. Great. I'm getting something.
+1:02:331 hour, 2 minutes, 33 secondsSee this part. So Adrian, sure. Here's the fun fact about AI agent. AI agent can be designed to play games, even beat human champions, blah blah blah blah blah blah.
+1:02:441 hour, 2 minutes, 44 secondsInteresting. Have we done much settings?
+1:02:471 hour, 2 minutes, 47 secondsNo. Only AWS setting. That is first time. That's it. And you as a machine
+1:02:541 hour, 2 minutes, 54 secondslearning engineer need not even or sorry as an AI engineer need not even bother about AWS in depth.
+1:03:031 hour, 3 minutes, 3 secondswhen I will take you to system design part of it then yes then I will bring up some of the AWS component but at least
+1:03:111 hour, 3 minutes, 11 secondsfor writing these codes you should not be bothered about you should know that okay I need to authenticate what are my steps I am and the second step which I
+1:03:181 hour, 3 minutes, 18 secondsshowed you once it connected done just start using everything is available for you
+1:03:261 hour, 3 minutes, 26 secondsokay so this is your first code let me show you the second code with lang graph
+1:03:331 hour, 3 minutes, 33 secondsOkay. Now if I show you a lang graph again this is all import you can see I'm using lamb graph here lang chain and
+1:03:411 hour, 3 minutes, 41 secondsall. Now see do you remember we have already understood this thing that if we wrote like at the rate tool it will be creating my tool functions from agent.
+1:03:531 hour, 3 minutes, 53 secondsSo greet function remember we used to do all this initialize the model u maybe here I'm just telling to my langenka
+1:04:011 hour, 4 minutes, 1 secondframework a code I'm going to use bedrock okay now I'm just going to call my llm pass my tool and remember agent
+1:04:101 hour, 4 minutes, 10 secondsinvoke I have to again pass my role as user content whatever I'm going to ask my question and then in my output I used
+1:04:171 hour, 4 minutes, 17 secondsto get this do you all remember this yes we had done this in the last class what changed things which changes this.
+1:04:271 hour, 4 minutes, 27 secondsYes, this changed. Now if I execute this okay so let's say if I come to 02
+1:04:351 hour, 4 minutes, 35 secondsand then execute this now what just happened give me a minute
+1:04:461 hour, 4 minutes, 46 secondsI'm suspecting that uh import.
+1:04:571 hour, 4 minutes, 57 secondsOkay, you tell me what this error tells me. All of you code is correct. There is one mistake.
+1:05:051 hour, 5 minutes, 5 secondsWhat's that?
+1:05:091 hour, 5 minutes, 9 secondsDo you remember we used to also install this?
+1:05:171 hour, 5 minutes, 17 secondsDo you remember this? Yes. Have I done this? No. Have you seen this is an import error issue? Import error. Import
+1:05:261 hour, 5 minutes, 26 secondserror means that when I executed this code, it basically suspected that okay, you should have all this available. It
+1:05:341 hour, 5 minutes, 34 secondsis not available. So first what I need to do? We need to install my requirement file. pip
+1:05:421 hour, 5 minutes, 42 secondsinstall - r your requirements.txt. Let's do this.
+1:05:521 hour, 5 minutes, 52 secondsIt will take some time. These are some warnings. Ignore it.
+1:06:011 hour, 6 minutes, 1 secondAnd once this is done, execute the code.
+1:06:081 hour, 6 minutes, 8 secondsUh, okay. Again, this is import error only. I think I might have skipped some requirement.xt thing. Just have that. It
+1:06:161 hour, 6 minutes, 16 secondswill start working for you. Okay. But is the concept clear to everyone?
+1:06:231 hour, 6 minutes, 23 secondsI have used only lang chain. Now it's just that I just use that. But tell me in this code am I using anything related to other than lang chain?
+1:06:351 hour, 6 minutes, 35 secondsAware of this code? Yes.
+1:06:381 hour, 6 minutes, 38 secondsSo it's only lang chain code. We are not using anything in langraph. Lang graph is an extension of langchain and we will also be learning that. If you're worried about it, is it going to be covered?
+1:06:471 hour, 6 minutes, 47 secondsHuh? it's going to be covered now. So the first part we have seen now few of you were asking for a break. Uh I was
+1:06:561 hour, 6 minutes, 56 secondsthinking to just finish one more code and then we go for a break. Is that okay? Because you can see Shivang 2 have this much of code. Shivang 3 have this much of code. This is a project.
+1:07:081 hour, 7 minutes, 8 secondsIs that okay if we finish one or two more code so that even I can show you this requirement.txt running. Okay. Sure.
+1:07:171 hour, 7 minutes, 17 secondsNow let's see this part. Okay. So in this code now I want to talk about some interesting things here. So I want to
+1:07:261 hour, 7 minutes, 26 secondseven walk you over the idea that what I'm going to do at every step. In this case I will show you because the first
+1:07:331 hour, 7 minutes, 33 secondscode which I showed you for AWS was without any tool. Agree everyone there was no tool in this case. In fact
+1:07:411 hour, 7 minutes, 41 secondslet me do just one more time this run so that I don't face across any issue.
+1:07:471 hour, 7 minutes, 47 secondsPerfect. Now there was no tool. I want to show you how this connect with tool also. Same logic. I will say at the rate
+1:07:551 hour, 7 minutes, 55 secondstool I am just writing a function. Check server status. It's a dummy function which I have written. Uh I will just
+1:08:041 hour, 8 minutes, 4 secondscall basically some URL page. Let's say if it exist then it will give me an answer. It will time out after 5 seconds. So let's say in 5 seconds if
+1:08:131 hour, 8 minutes, 13 secondsthat website is not responding to me then it will time out. If let's say that let's say if I say www.scaler.com to scaler.com. So then immediately it will
+1:08:211 hour, 8 minutes, 21 secondsgive a response 200 okay. So then in that case it's working. But in case if that 200 okay do not come for 5 seconds it will say website is not responding.
+1:08:291 hour, 8 minutes, 29 secondsSo this is a simple code which I have written. So it is going to just say that server is up or down. That is what is doing. Now this is a function tool which
+1:08:371 hour, 8 minutes, 37 secondswe have written. Now look at this. I'm going to say agent is equal to agent.
+1:08:411 hour, 8 minutes, 41 secondsSame logic. I'm passing my uh bedrock model and I am just passing in this tool
+1:08:481 hour, 8 minutes, 48 secondsthat hey you know what just collect my check server status and also notice one more thing I am using model ID. So what
+1:08:561 hour, 8 minutes, 56 secondsthis model ID will do model ID will pull up the default model. What is the default model? Noa.
+1:09:041 hour, 9 minutes, 4 secondsBy the way this settings can be changed by your admin. But if you use a model name it will pick up model name. If you
+1:09:121 hour, 9 minutes, 12 secondspick up if you just write by default model ID, it will pick up the default model which is there in the bedrock.
+1:09:181 hour, 9 minutes, 18 secondsOkay. So currently I just pull up whatever is the default model because generally they keep the most cheapest one. That's the reason I did that. Okay.
+1:09:261 hour, 9 minutes, 26 secondsNow so huh that's basically to set the default only for person who asked that model ID was set up. It's basically to set the default now. So then I'm just
+1:09:351 hour, 9 minutes, 35 secondsasking a question in agent is the staging server running check for this particular
+1:09:441 hour, 9 minutes, 44 secondswebsite. I could also put it as https www.scaler.com.
+1:09:491 hour, 9 minutes, 49 secondsThat's it. Now if I go and execute this Python
+1:09:561 hour, 9 minutes, 56 seconds2 / 01 this okay sorry
+1:10:081 hour, 10 minutes, 8 secondsthis one can you see it's doing a tool call yes the server of this is running properly
+1:10:171 hour, 10 minutes, 17 secondsand so Don't you think in lang chain I had to do so many things?
+1:10:251 hour, 10 minutes, 25 secondsYes. Can you see it's working so easily here? I just have written this function
+1:10:321 hour, 10 minutes, 32 secondsand here basically I am just saying that okay uh this is the function I'm going to use an agent and I'm using this model
+1:10:411 hour, 10 minutes, 41 secondsand then whatever object I created I'm passing my question. It automatically go and figure out what tool I have to run and done. Easy.
+1:10:491 hour, 10 minutes, 49 secondsYes. Now like I said in case if you will go and set model ID with something else like for example I say plot sonet and
+1:10:581 hour, 10 minutes, 58 secondsall that you can also do this. Okay. I am not going to do that because I want to use basically the default model from AWS itself. So by default bedrock gives
+1:11:061 hour, 11 minutes, 6 secondsthe default model and I'm pulling that now. Uh
+1:11:141 hour, 11 minutes, 14 secondsso this is one part. But by the way there are interesting other questions Shivang but in case if I have to uh save cost and then basically I have to work
+1:11:231 hour, 11 minutes, 23 secondson it. Do I need to go and use live chain? Huh feel free to do that. See it's completely on you. It just makes a development lot lot faster.
+1:11:321 hour, 11 minutes, 32 secondsUh and it's not about only syntax. When I will go ahead I will show you the power of stand agent and you will
+1:11:401 hour, 11 minutes, 40 secondsyourself say AWS have made the life so so easy for everyone.
+1:11:451 hour, 11 minutes, 45 secondsyou will also say this. So that's why I don't hesitate to use this even for my PC's. I very quickly use it. I don't
+1:11:531 hour, 11 minutes, 53 secondscare about small cost because this really helps me to do a lot of things to check whether my project will work or not.
+1:11:591 hour, 11 minutes, 59 secondsOkay. Now, now this is the first part. Let's go to the second one and then we will probably
+1:12:071 hour, 12 minutes, 7 secondsmaybe do more code and then we will take a break.
+1:12:101 hour, 12 minutes, 10 secondsNow the lesson to which I have also brought up for you is to create a tip calculator.
+1:12:171 hour, 12 minutes, 17 secondsSo if you look at the tip calculator, this is just a dummy code which I wrote.
+1:12:211 hour, 12 minutes, 21 secondsNo need to worry about what I'm doing here. But you can see here what I'm doing, I'm basically if if I pass you the bill amount, tip percentage, number
+1:12:291 hour, 12 minutes, 29 secondsof people who are there, it will tell me the tip. So in India there is not no tip culture. If anybody is from US, he can
+1:12:371 hour, 12 minutes, 37 secondsconfirm you that there is a huge tip culture. Anybody from US? Yes. If you go and eat somewhere now and you don't
+1:12:451 hour, 12 minutes, 45 secondsprovide a tip to the waiter, it's considered as rude.
+1:12:491 hour, 12 minutes, 49 secondsOkay. It's being considered as rude. So in India, it's a very different culture. Now, so here it will calculate a tip.
+1:12:581 hour, 12 minutes, 58 secondsNow in this case, you can see this is a function name which I have created calculate tip. And you can see I'm saying agent
+1:13:051 hour, 13 minutes, 5 secondsdefault model I am telling that this is the function which I'm going to use then in the agent we say the bill is $85
+1:13:121 hour, 13 minutes, 12 secondswhat's a 20% tip and how much each person pay if we split into four ways it calculate and give you the answer easy
+1:13:201 hour, 13 minutes, 20 secondsor not I can even ask more question what's a 15% tip for $42 it will also go to that function and execute it for you
+1:13:281 hour, 13 minutes, 28 secondsbill is $120 we want to tip 18% split between three people can you see it's making the life so so
+1:13:361 hour, 13 minutes, 36 secondsYes, it's making the life so so easy for anything to perform. So let's say I can
+1:13:431 hour, 13 minutes, 43 secondsgo here and say 02 calculator and see this output.
+1:13:491 hour, 13 minutes, 49 secondsSee see it's calculating for every command it will go call your tool and finish your task.
+1:14:001 hour, 14 minutesLast code before the break. Yeah, you want a break now.
+1:14:071 hour, 14 minutes, 7 secondsOne more multi-tools. Let's see this also.
+1:14:131 hour, 14 minutes, 13 secondsSo multi-tools now is interesting.
+1:14:171 hour, 14 minutes, 17 secondsSo here I have written a dummy code where I'm saying that let's say I have a sales data and I am passing some random
+1:14:261 hour, 14 minutes, 26 secondsdictionary here. Okay. So here you can see get sales data and working. Second is analyze sales. Let's say I want to uh if I give you a revenue and deals and
+1:14:351 hour, 14 minutes, 35 secondsquarter it just generates some average again don't bother about what's there inside the code main thing is to understand agent okay now one more send
+1:14:441 hour, 14 minutes, 44 secondsemail so I basically created three function getting the sale data analyzing the sale for me and sending an email now
+1:14:521 hour, 14 minutes, 52 secondswhat I'm doing again creating an agent calling it out bedrock model get the default model I'm saying that I have three different tools available with me
+1:15:001 hour, 15 minutesand see the question I will say pull last quarter sales data we'll call the first one and email a summary to the
+1:15:081 hour, 15 minutes, 8 secondsteam so for summary it will call this analyze sales and then for sending email it will run the send thing am I telling
+1:15:151 hour, 15 minutes, 15 secondsanywhere that okay you use this tool or that tool no it automatically figures out the way we have learned it in lang
+1:15:231 hour, 15 minutes, 23 secondsokay let me execute this and show See this?
+1:15:341 hour, 15 minutes, 34 secondsCan you see?
+1:15:371 hour, 15 minutes, 37 secondsI will be happy to do this which is the last quarter blah blah blah and so on.
+1:15:431 hour, 15 minutes, 43 secondsNow main thing for you to understand is by the way uh if
+1:15:501 hour, 15 minutes, 50 secondsyou have you you have full freedom to go back tweak it slightly and play with this it's it's
+1:16:001 hour, 16 minutescompletely fine and syntaxes could be here and there but you have to play with this part trust me without playing if you try to do something it will not help
+1:16:091 hour, 16 minutes, 9 secondsby the way I tell you one interesting thing if nobody have noticed Do you think in this case it have called the tools?
+1:16:231 hour, 16 minutes, 23 secondsNotice the last code it called. When it called it said this here notice it have asked the question. Can you tell me
+1:16:301 hour, 16 minutes, 30 secondswhich quarter? See in my question I'm asking in which quarter? No because I have called quarter. It started asking
+1:16:381 hour, 16 minutes, 38 secondsyou questions. So maybe you have to change this query slightly calling out the which quarter because there's no
+1:16:461 hour, 16 minutes, 46 secondsmemory which I have set up here. So I don't know when you say last quarter last quarter is what quarter January w quarter July quarter which quarter you have to just pass that data and then it
+1:16:551 hour, 16 minutes, 55 secondswill start running. So this is a small homework for you but is everybody clear?
+1:17:041 hour, 17 minutes, 4 secondsIt have to do three two call. Okay, somebody was asking how many call it trending now. Perfect. No, somebody said
+1:17:121 hour, 17 minutes, 12 secondsShivan but it can take current data. No, you have to tell it with a calendar tool. Then you have to provide calendar tool then it will pick up. How send
+1:17:201 hour, 17 minutes, 20 secondsemail? I have not written send email total code. I just wrote a very dummy code.
+1:17:251 hour, 17 minutes, 25 secondsOkay, somebody's asking show me the send email code. That's a long code. I'm not
+1:17:311 hour, 17 minutes, 31 secondsbothered about it anyway. Now, so this is one part. Second, there was one more question. Can you explain how
+1:17:401 hour, 17 minutes, 40 secondsthis tool calling happened? You can go back to the agentic class. I think I taught this in the uh third or fourth class. Can anybody confirm in which
+1:17:481 hour, 17 minutes, 48 secondsclass I covered this that how this tool calling and all this work? Third class. Just check that there. Okay, perfect.
+1:17:561 hour, 17 minutes, 56 secondsSo, is everybody enjoying the AWS section?
+1:18:031 hour, 18 minutes, 3 secondsRight? You should know everything. You should not know just uh one framework or two framework and done with this. But ideally, you should have knowledge of
+1:18:101 hour, 18 minutes, 10 secondsall the side of the story because when you will go to company, you should know which thing is more stronger, which thing is not stronger. So that
+1:18:181 hour, 18 minutes, 18 secondsaccordingly you can play with this. MCP part will come later. By the way, it will not come today. I am just explaining you what is MCP, what is A2A
+1:18:251 hour, 18 minutes, 25 secondsbecause it will come in some coding section for you. No. Uh, perfect. Or two people said that they don't like it. Fine.
+1:18:361 hour, 18 minutes, 36 secondsFine. Uh, maybe I are too respected for lang chain itself, but it's okay. Main thing is you have to learn this. You
+1:18:431 hour, 18 minutes, 43 secondshave to learn this. You can't avoid this learning. Uh, especially if you're learning AI. Anyway, let's connect after
+1:18:511 hour, 18 minutes, 51 secondsthe break. Let's so see you again in five minutes, guys.
+1:24:161 hour, 24 minutes, 16 secondsOkay, everyone back.
+1:24:191 hour, 24 minutes, 19 secondsPerfect. So, let's move to the next one now. So, we have seen multi- sales agent. Now, the next part is to play
+1:24:261 hour, 24 minutes, 26 secondswith the power of uh stand agent. Okay. So
+1:24:321 hour, 24 minutes, 32 secondsnow I will start showing you few things where you will understand that where this is really powerful. So let me show
+1:24:411 hour, 24 minutes, 41 secondsyou one example. Okay. So by the way this example is nothing new but I want to explain you a concept in few minutes
+1:24:481 hour, 24 minutes, 48 secondsabout this. Okay. So in this case if you look at this what I'm writing is let's say I have to check my inventory. Uh
+1:24:561 hour, 24 minutes, 56 secondslet's say it's a flip card have created something. they are checking inventory and basically here now I have just hardcoded this that let's say product
+1:25:041 hour, 25 minutes, 4 secondsone is 15 products are available product 456 zero are available and so on but ideally this will be a DB connection so
+1:25:121 hour, 25 minutes, 12 secondswhat will happen it will connect to your DB from that DB it will retrieve all this records okay so I have intentionally kept like this for now
+1:25:201 hour, 25 minutes, 20 secondsthen basically uh it's going to pull up the data for whichever product you are asking let's say for product one what is the thing and all that Now then you are
+1:25:291 hour, 25 minutes, 29 secondsjust returning whether this product is available or not. Right? So in case this is hardcoded. So let's say in this case if I ask product for 456 is available or not. So it will say not available
+1:25:381 hour, 25 minutes, 38 secondsbecause quantity is zero for it. Now then I'm just writing my agent and in this agent what I'm doing is I am
+1:25:461 hour, 25 minutes, 46 secondscalling again the same draw saying that okay this function is available and now I can ask a lot of questions right is product 1 2 3 is in stock? Do we have
+1:25:541 hour, 25 minutes, 54 secondsproduct 4 56 available? So for this it will say no it's not available right? So this is basically what I have done. But let me tell you a problem with this
+1:26:021 hour, 26 minutes, 2 secondsapproach. In this approach, what will happen? Every time let's say I get five queries and let's say all this five
+1:26:091 hour, 26 minutes, 9 secondsquery happens in parallel. So don't you think it will open 5 DB connection for me?
+1:26:181 hour, 26 minutes, 18 secondsYes, that's what I answered. Now this will be a DB connection. So from the database you will connect with your SQL DB. From that SQL DB it will just be
+1:26:251 hour, 26 minutes, 25 secondspulling the data. So the thing is that if it's a DB connection then if five queries come in parallel so it will open
+1:26:331 hour, 26 minutes, 33 secondsfive connection. What if if there are 100 queries coming in parallel will it hit 100 DB connections open? Yes. Don't
+1:26:401 hour, 26 minutes, 40 secondsyou think you're going to starve your DB in this case?
+1:26:441 hour, 26 minutes, 44 secondsYes it you will starve your DB in this case. So how to solve this? So in order to solve this, where is the code?
+1:27:001 hour, 27 minutesHuh? Look at this. So in order to solve this, what we do is, by the way, this has nothing to do with agentic AI, but
+1:27:081 hour, 27 minutes, 8 secondsjust want to tell you this pattern because I've seen this mistake a lot of people do. Okay? So what you should do, you should always put it inside a init
+1:27:161 hour, 27 minutes, 16 secondsfunction just like a constructor. You can think of it like this. So what will happen now this initialization will only
+1:27:231 hour, 27 minutes, 23 secondshappen one time. So you can see now in check talk I am not going to basically first this part of the code was sitting
+1:27:311 hour, 27 minutes, 31 secondsinside check. Basically it is more about giving a connection with your DB right.
+1:27:361 hour, 27 minutes, 36 secondsSo instead of doing that I have put it into one initial class. So what will happen now is initialize will happen one time. Now anytime you keep calling these
+1:27:451 hour, 27 minutes, 45 secondstools doesn't matter you call five times 100 times 200 times it will keep the connection open because of this
+1:27:531 hour, 27 minutes, 53 secondsinitializer and it will not end up opening your 50 60 100 connections all together.
+1:28:001 hour, 28 minutesSo this is a good engineering practice.
+1:28:031 hour, 28 minutes, 3 secondsOkay. And I'm telling you due to this there was a major bug
+1:28:121 hour, 28 minutes, 12 secondsokay in one of the recent company which have happened. So their their uh uh whole thing went down for some time
+1:28:211 hour, 28 minutes, 21 secondsbecause in one part of the code which was not properly checked they did this mistake
+1:28:291 hour, 28 minutes, 29 secondsand it's not that the company is bad open AI name everybody heard now we are
+1:28:351 hour, 28 minutes, 35 secondsusing this key so many times yes now so these things uh happen even big
+1:28:441 hour, 28 minutes, 44 secondscompanies So your DB connection if you open it you should always use this pattern. Yes it's called a singleton design pattern for
+1:28:521 hour, 28 minutes, 52 secondspeople who know LL LLD part but you have to use it. I remember when I was teaching class one and class two there
+1:29:001 hour, 29 minuteswas one guy who was wondering asking me Shivank I am learning academ where I will use this AI in AI infusion where I will use that L & concept.
+1:29:111 hour, 29 minutes, 11 secondsI'm not sure whether that guy is sitting here or not but I hope you got your answer. Okay.
+1:29:191 hour, 29 minutes, 19 secondsHuh. So after this whenever is you are going to use it you have to it will be only initialized button.
+1:29:271 hour, 29 minutes, 27 secondsNow let me take you to the other part pre-built tools. This is where strand is really powerful.
+1:29:341 hour, 29 minutes, 34 secondsstrand also have lot and lot of its own provided functions as well. So for
+1:29:421 hour, 29 minutes, 42 secondsexample till now what we were doing was we were writing our functions right we were writing our functions by writing a tool but strand also have its own
+1:29:511 hour, 29 minutes, 51 secondsfunctions for example it already have a function called as calculator notice in this code I'm not writing any calculator
+1:29:591 hour, 29 minutes, 59 secondsfunction it already have it so if you just write calculator it will automatically pull it from stand library
+1:30:051 hour, 30 minutes, 5 secondsso you can see I'm already pulling it from stand tools this is coming from stand library this is written code
+1:30:131 hour, 30 minutes, 13 secondsalready by them why I should rewrite it now you are just saying here what's 42 to the^ 9 it will do that solve the
+1:30:221 hour, 30 minutes, 22 secondsequation for this for me it will do that and so on can you see this is lot easier with the tools available with me
+1:30:301 hour, 30 minutes, 30 secondsyes so I have a huge set of tools available with me let me show you
+1:30:371 hour, 30 minutes, 37 secondsso let me show you one other part. See uh see this HTTP request. Okay, so HTTP
+1:30:481 hour, 30 minutes, 48 secondsrequest means connecting to your web internet calculator and file writing.
+1:30:531 hour, 30 minutes, 53 secondsBasically when you want to write something to your local machine or something you need that permission. So for that there's a file writing code. So this is already available. So I'm not
+1:31:011 hour, 31 minutes, 1 secondwriting any function for that. It's already going to come from stand tools.
+1:31:061 hour, 31 minutes, 6 secondsNow once you do this now see fet stop data from this. So what it will do it will connect it will use the tool http
+1:31:141 hour, 31 minutes, 14 secondsrequest wa then extract the latest closing prices calculate the average price over the period and save the result to stock summary.ext.
+1:31:241 hour, 31 minutes, 24 secondsSo what it will do it will do all the calculation of what you have asked to get from the stop and once you are done prepare a summary report and you you
+1:31:331 hour, 31 minutes, 33 secondshave asked it to store the result into a file. So in this case your last wallet tool will get it.
+1:31:411 hour, 31 minutes, 41 secondsSo without you writing lot of functions there are so many things already available for you. This is one of a very
+1:31:491 hour, 31 minutes, 49 secondspowerful thing available in strand. Now you can read documentation to get to know what all things are available so that you don't need to reinvent anything.
+1:31:581 hour, 31 minutes, 58 secondsThat's one of the very powerful construct of strand. Remember I told you when I have to write P I go ahead and use this strand. Now this is one reason.
+1:32:081 hour, 32 minutes, 8 secondsI will show you so many reasons going forward. Okay. Huh? This is default. In case if you don't want to pass it, it's
+1:32:151 hour, 32 minutes, 15 secondsfine. So in case if you want to pass it, you can pass it. Otherwise it take a generate one for you. It's not mandatory
+1:32:231 hour, 32 minutes, 23 secondsin your strand. Now look at this. What this do? So problem is when you do a connection with HTTP.
+1:32:311 hour, 32 minutes, 31 secondsSo what have you noticed lot of time when you ask a question to claude it uh basically you have to ask uh lot of time
+1:32:401 hour, 32 minutes, 40 secondsit start asking you questions that first you give me these answers or sometimes have you seen that lot of times when you install something in your laptop it says
+1:32:491 hour, 32 minutes, 49 secondsuh do you want to install it yes or no you get all these options so let's say you don't want that irritating thing
+1:32:561 hour, 32 minutes, 56 secondscoming up because when it will try to write the file into your laptop it will ask ask you do you want me to write this file yes or no you don't want that you
+1:33:041 hour, 33 minutes, 4 secondswant I want it to be written so then in that case just do this that's how you can see the name also bypass tool
+1:33:111 hour, 33 minutes, 11 secondsconsent that I don't want you to ask my consent just do whatever I've asked you to do got it everyone okay now so let's
+1:33:231 hour, 33 minutes, 23 secondsmove on to this huh this is just uh a way to call this otherwise it will not get set up it's like an environmental
+1:33:301 hour, 33 minutes, 30 secondsfile That's why this OS now. So this is one part.
+1:33:361 hour, 33 minutes, 36 secondsNumber two is has somebody asked this question. What's the use of it? Can you all answer this?
+1:33:421 hour, 33 minutes, 42 secondsWhy I need this pre-built tools? Can you all answer on your own?
+1:33:521 hour, 33 minutes, 52 secondsJust write over the chat.
+1:34:031 hour, 34 minutes, 3 secondsHuh? reduce development time already I why I should write a new function again and again it's already available use
+1:34:101 hour, 34 minutes, 10 secondsthat right so that's why we always do this now look at this another powerful
+1:34:181 hour, 34 minutes, 18 secondsthing use AWS okay so what will happen in AWS guys
+1:34:251 hour, 34 minutes, 25 secondsagain same request if you want any question for me to answer or my team to answer please make sure the question should be only in in the question tab
+1:34:341 hour, 34 minutes, 34 secondsotherwise you will get a feel that Shivank is not answering me okay I'm already answering lot of questions but it's possible I may not be able to read
+1:34:421 hour, 34 minutes, 42 secondsall the questions so any question which you feel it's very important for you to answer make sure that it should be in
+1:34:481 hour, 34 minutes, 48 secondsthe question okay now look at this use AWS
+1:34:561 hour, 34 minutes, 56 secondsnow this is so powerful that I can't explain you this saves so much of my time what happens when you're building a production system because I use AWS extensively.
+1:35:071 hour, 35 minutes, 7 secondsSo let's say you have to assess S3, you have to assess Dynamo DB, you need to assess so many different different components for yourself.
+1:35:171 hour, 35 minutes, 17 secondsOkay. Now the problem is if you have to create connections with so many of the components, you need to write code for
+1:35:241 hour, 35 minutes, 24 secondsall that that okay I'm going to connect with you. This is the security. This is the connection string. You have to do all this. Yes.
+1:35:341 hour, 35 minutes, 34 secondsStand say why you should do all this? You are part of my AWS ecosystem.
+1:35:401 hour, 35 minutes, 40 secondsIf you just say that I am going to use a AWS. So all the tools which are available all the products of AWS which
+1:35:491 hour, 35 minutes, 49 secondsis present inside that region becomes accessible to you. You want to connect to S3 connect. I don't want you to
+1:35:571 hour, 35 minutes, 57 secondsauthenticate again or something like that. You want to connect with Dyn.
+1:36:021 hour, 36 minutes, 2 secondsSo for example, if I say use AWS, now I'm connected with everything which is there available for me. So what going to
+1:36:091 hour, 36 minutes, 9 secondshappen here? So for example, I will say list all the S3 buckets in my account.
+1:36:151 hour, 36 minutes, 15 secondsSo what it will do? It will go to my Amazon S3 will pull everything what is available.
+1:36:221 hour, 36 minutes, 22 secondsLet me run this code for you. This is very interesting code actually. Python 02. Which code is this? 07.
+1:36:311 hour, 36 minutes, 31 secondsI think I have this one file. So Python shivan 2 07.
+1:36:411 hour, 36 minutes, 41 secondsWhat happened? Uh 02 07. Look at this code.
+1:36:521 hour, 36 minutes, 52 secondsCan you see it's called this? Can you see it is able to read the file which is available like I actually have kept something related to ML flow there it's
+1:37:001 hour, 37 minutesable to read it it's I think I put it on August one something interesting
+1:37:081 hour, 37 minutes, 8 secondsyes don't you think this makes my life so easy I don't need to bother about connecting and all that it's automatically just I have to just tell if if I say hey go to my Dynam DB and
+1:37:181 hour, 37 minutes, 18 secondscollect my file there's a table available called as employee get the data for me and show me it will show you Okay, people who are thinking what is
+1:37:261 hour, 37 minutes, 26 secondsS3? It's like Google Drive. But it's a part of AWS Google Drive.
+1:37:311 hour, 37 minutes, 31 secondsGot it. So this is how it works. So like internal ecosystem, your storage, your EC2, everything you can easily just use
+1:37:401 hour, 37 minutes, 40 secondsit. You don't need to bother about any setup.
+1:37:451 hour, 37 minutes, 45 secondsOkay. So you have to just use this use AWS and that's very powerful and that make my development a lot faster. So now
+1:37:541 hour, 37 minutes, 54 secondsI hope all of you got it why lot of teams use strand including me. Okay.
+1:38:021 hour, 38 minutes, 2 secondsHi by the way you can even do actions on your AWS resources. You just need to have permissions on that by default
+1:38:101 hour, 38 minutes, 10 secondspermissions that you have to keep in mind. Now let me show you one more thing. This I have already covered.
+1:38:171 hour, 38 minutes, 17 secondsThere was one question sometime back. I believe this question was coming from somebody who belonged to DevOps if I'm not wrong.
+1:38:261 hour, 38 minutes, 26 secondsSo he said Shivan can I use async in while using agent span and at that time ignored it.
+1:38:361 hour, 38 minutes, 36 secondsNow let me answer him. So what happens is let's say you're calling tools. Now let's say per tool you take 2 seconds.
+1:38:451 hour, 38 minutes, 45 secondsOkay. So let's say if you call three tools it will be sequential three calls.
+1:38:491 hour, 38 minutes, 49 secondsSo 2 second 2 second 2 second 6 seconds it will take will it be time taken if I have hundreds of tool to call? Yes.
+1:39:001 hour, 39 minutesNow you say that I want to do everything in parallel. So you have to just use one keyword called async.
+1:39:081 hour, 39 minutes, 8 secondsBy the way this is nothing from strand framework. This is a python functionality.
+1:39:151 hour, 39 minutes, 15 secondsThis is a Python functionality which your strand supports. That's it. Okay.
+1:39:221 hour, 39 minutes, 22 secondsSo you have to just say async and then you write your tools whatever you are writing. So for example you're writing your code. You can see even for this
+1:39:301 hour, 39 minutes, 30 secondsalso you write a sync right? Remaining thing is all fine. And when you will execute it you will notice that now if
+1:39:381 hour, 39 minutes, 38 secondsit was let's say three tools it calls it will take 2 seconds to execute it. Why? because all three will run in parallel.
+1:39:501 hour, 39 minutes, 50 secondsThis is a very good fact how this works.
+1:39:521 hour, 39 minutes, 52 secondsAnd by the way, this is how you make your agentic systems faster.
+1:39:571 hour, 39 minutes, 57 secondsOkay? Otherwise, it will not work. Now, great. So, now we are at the end of our
+1:40:051 hour, 40 minutes, 5 secondsclass and we will be building a small project.
+1:40:101 hour, 40 minutes, 10 secondsSo, h definitely depends on the use case. Somebody was asking that is it on use case. Now definitely if it's a it is supposed to be sequential then you should not be doing it.
+1:40:201 hour, 40 minutes, 20 secondsNow so in case of the tools are interdependent or something then you should not be using this as simple as this. Now let's create a project. So my
+1:40:291 hour, 40 minutes, 29 secondsproject is simple uh thing which we will be creating here. Let me pull up the project details.
+1:40:371 hour, 40 minutes, 37 secondsHuh. So the project is you have to create a travel plan. Travel planner.
+1:40:431 hour, 40 minutes, 43 secondsWhat this travel planner will do? So travel planner will basically say that let's say you go to a chatbot and you
+1:40:501 hour, 40 minutes, 50 secondssay I am going to Goa for next 3 days uh or maybe I'm going for Goa 3 days next week within the budget of Rs 20,000.
+1:41:001 hour, 41 minutesWhat should I pack and what will it cost?
+1:41:061 hour, 41 minutes, 6 secondsOkay. Have you seen this kind of uh tools available by make my trip and all that?
+1:41:131 hour, 41 minutes, 13 secondsThey by the way you can go to their websites. They have made it available.
+1:41:161 hour, 41 minutes, 16 secondsOkay. Now I will show you how easy this is to build for you after knowing this part. Okay. Let me show you.
+1:41:251 hour, 41 minutes, 25 secondsSo here first if you are going to Goa I have written a weather function. Okay.
+1:41:321 hour, 41 minutes, 32 secondsNow once you have written the weather function it is going to go you will pass the details I have hardcoded it but it will come let's say from your DB let's
+1:41:401 hour, 41 minutes, 40 secondssay your Dynamo DB now tell me one more thing if you are keeping all the data inside your Dynamob or some AWS account
+1:41:481 hour, 41 minutes, 48 secondsrelated databases now use AWS will help us to make the code easy writing also or not here
+1:41:561 hour, 41 minutes, 56 secondsyes if we would have done here I had coded but it will make my life easy for this project Now you have written this then suggest packing list because you
+1:42:061 hour, 42 minutes, 6 secondsare asking that question. So here you will just packing list based on the temperature whether what you have got you will be uh basically you're checking
+1:42:141 hour, 42 minutes, 14 secondsthat if it's higher temperature then light cotton clothes if it's lower temperature then it's warm jackets and all that. I I just wrote a very basic
+1:42:211 hour, 42 minutes, 21 secondslevel code but definitely you can go and make it expanded for yourself.
+1:42:261 hour, 42 minutes, 26 secondsOnce this will be done then estimate trip cost that's a third tool here based on your destination and your source city
+1:42:351 hour, 42 minutes, 35 secondsit will be calculating everything and definitely number of travelers so it will be doing this so let's say I have done some very simple s calculation
+1:42:421 hour, 42 minutes, 42 secondsmathematical code don't bother about what I have written it just a hardcoded thing which I created for you okay now once this is done then return all this
+1:42:511 hour, 42 minutes, 51 secondsresults for me right which city you're traveling how many days how many travelers Right? Whether your food is there or not. So this will be a total cost because those three tools have
+1:43:001 hour, 43 minuteshelped me to get this. Now see this you come to agent say okay I'm going to use the model you're going to say I'm going
+1:43:081 hour, 43 minutes, 8 secondsto use these three tools and you're going to ask your question. You are a practical travel assistant. When asked about a trip check the weather first
+1:43:161 hour, 43 minutes, 16 secondsthen suggest what to pack based on that weather then estimate the cost. Always say whether the trip fits the user budget and keep advice concise.
+1:43:251 hour, 43 minutes, 25 secondsSo based on your calculation of your that function that how much budget it will come based on your number of travelers and all that it will tell you
+1:43:321 hour, 43 minutes, 32 secondsthat okay whether it's falling inside your budget easy now just think that company have done
+1:43:411 hour, 43 minutes, 41 secondsthis you after learning this AI strand which is just a starting by the way right now
+1:43:491 hour, 43 minutes, 49 secondsyou were able to think of a solution so fast and it's a production ready code by the Only difference is I have not used databases which we will do in future classes also.
+1:44:011 hour, 44 minutes, 1 secondBut other than that if you think about it I have written a code which you will see that later I will start deploying it in AWS also. We will do the as
+1:44:091 hour, 44 minutes, 9 secondsdeployment monitoring and everything uh from stand perspective. Okay. So that is how it will work.
+1:44:191 hour, 44 minutes, 19 secondsSo there's an interesting question. So let me take that. So there's a question around like if let's say there's a get weather function you have written the call would be happening to Dynamob I'm
+1:44:271 hour, 44 minutes, 27 secondsstill not clear will the use just help in connectivity it helps more then how would the code in get_e
+1:44:361 hour, 44 minutes, 36 secondsfunction looks like no you will write a connection basically you will not do anything you will just have a connection code there it's just that when you will
+1:44:441 hour, 44 minutes, 44 secondsdo use AWS it is going to allow you to basically use the aws component like
+1:44:541 hour, 44 minutes, 54 secondsthe DLO DB connection will not create any problem for you in that case because for the agent you are giving just in a
+1:45:021 hour, 45 minutes, 2 secondsway that okay for this agent what I'm running I'm giving you the access to the Dynamob to take up from there otherwise
+1:45:091 hour, 45 minutes, 9 secondsit's a connection just sitting in a function but agent have to get that authentication with it right so that's
+1:45:161 hour, 45 minutes, 16 secondswhat it's required okay Perfect. Now this is the way you can write any simple sub project.
+1:45:271 hour, 45 minutes, 27 secondsIf what you have to do uh okay there's one more question but
+1:45:361 hour, 45 minutes, 36 secondsShivank in this case to the you are writing the connection while apart then what's the deal problem? Yes, it's there in the function. It will be able to
+1:45:441 hour, 45 minutes, 44 secondsconnect inside the function but agent will not have the authentication assess when you will come out of that function
+1:45:511 hour, 45 minutes, 51 secondsthat when agent will try to assess it will try to run that it will say I don't know you try this without AWS you will
+1:45:591 hour, 45 minutes, 59 secondssee that authentication error because there should be a authentication with the agent to be able to execute
+1:46:061 hour, 46 minutes, 6 secondsthat function code that part it will not be able to pick up okay perfect So this is it which I
+1:46:141 hour, 46 minutes, 14 secondswanted to cover today. By the way the person who have asked about the connection and all that we are going to
+1:46:211 hour, 46 minutes, 21 secondsdo it in future just a column just that today if you think about it is the first
+1:46:271 hour, 46 minutes, 27 secondsclass on your AWS related activity it's not some many classes we only know
+1:46:351 hour, 46 minutes, 35 secondsabout LLM. We only know about agents we only knew about rack. We came in this session as a first class on AWS using
+1:46:421 hour, 46 minutes, 42 secondsall that concept implemented today. That is what we did. Okay. Toasa patience is what I will need from all of you. I am
+1:46:511 hour, 46 minutes, 51 secondsgoing to make sure that I will make you build very complex projects but I will need some patience. Okay.
+1:46:591 hour, 46 minutes, 59 secondsPerfect. Now uh ah this is not over. this AWS series
+1:47:061 hour, 47 minutes, 6 secondswill run for at least five classes if I'm not wrong. Just this triangular thing.
+1:47:151 hour, 47 minutes, 15 secondsOkay. Now, no for these sessions you have to just uh apply the free account of AWS just a call. Awesome. So, I'm just going to start the doubt session.
+1:47:271 hour, 47 minutes, 27 secondsNow I have a quick pulse check from all of you on this thing so that I understand that whether I should really do this AWS stand or not or should I
+1:47:351 hour, 47 minutes, 35 secondsjust go back and finish uh the lang chain. Actually doing lang chain is much more easier for me. But the reason I
+1:47:431 hour, 47 minutes, 43 secondspicked it up because I wanted to show you the power of the other things available in the market because generally you will not find these
+1:47:501 hour, 47 minutes, 50 secondslearnings available anywhere. people just talk about lang chain, people just talk about crew AI but they don't talk about uh the production readiness things. So that's why I wanted to cover.
+1:48:011 hour, 48 minutes, 1 secondSo just wanted to check whether you are all good with this knowledge as well right because I want to make sure that you learn it. But definitely your feedback matters more. It should not
+1:48:101 hour, 48 minutes, 10 secondshappen that one or two people think that Shivank langin finish we are done because I tell you one more thing. Okay.
+1:48:171 hour, 48 minutes, 17 secondsUh I think there was a request which came from support team uh that you know what Shivank my placement is dependent on AI. Can you tell me all the topics
+1:48:261 hour, 48 minutes, 26 secondswhat you're going to cover? Okay. And it's a natural thing running in your mind also. So I tell you a problem in
+1:48:331 hour, 48 minutes, 33 secondsthis case. Uh see it's very easy for me to give you the topic name because we teach it in so many places across. But
+1:48:411 hour, 48 minutes, 41 secondsthe reason I'm not doing that currently yes because for example if you ask me in the last class that today I'm going to
+1:48:491 hour, 48 minutes, 49 secondsteach you this uh uh basically AWS or a thing. No but then I realized that this is important. So I brought it up. Okay.
+1:48:591 hour, 48 minutes, 59 secondsSo the thing is I this gives me a flexibility to keep bringing new things for you and I'm not bothered about number of classes at all. Even if it
+1:49:081 hour, 49 minutes, 8 secondstakes 30 class, 40 class, 50 class, let's do it. But I don't want to stick to a defined framework.
+1:49:171 hour, 49 minutes, 17 secondsI don't want to do that. So that is the reason I'm not intentionally talking about that. Okay, let's cover only this
+1:49:251 hour, 49 minutes, 25 secondstopic and done with it. Right? That's the reason I was confidently able to tell you that we will do MCP in detail.
+1:49:311 hour, 49 minutes, 31 secondsWhy? Because then that will give me flexibility to go in depth on MCP.
+1:49:361 hour, 49 minutes, 36 secondsOtherwise, if I have to just cover MCP as MCP, that's a very simple topic. In one hour, I can finish it.
+1:49:431 hour, 49 minutes, 43 secondsOkay. So, I hope everybody enjoyed it.
+1:49:461 hour, 49 minutes, 46 secondsThat's more important. Uh and I will keep adding it more depending on how you guys liked it. Perfect. So I
+1:49:531 hour, 49 minutes, 53 secondsstarted a doubt session and now if you have any questions you can keep writing and if you don't have any uh feel free
+1:50:001 hour, 50 minutesto drop off Kartik have a question but it ties to
+1:50:081 hour, 50 minutes, 8 secondssystem we need to work with GCP or other cloud cover lchain open source
+1:50:161 hour, 50 minutes, 16 secondslang chain we already covering cartigan if you have covered the last five classes it was all on lang chain
+1:50:241 hour, 50 minutes, 24 secondsNo nothing on AWS. This is first class of AWS.
+1:50:281 hour, 50 minutes, 28 secondsOkay. So we are learning in case if you have watched my earlier recording I have talked about it. We will talk about your
+1:50:361 hour, 50 minutes, 36 secondsopen source. We will also talk about cloud both the things we covered. So if your point is Shivank we should only
+1:50:441 hour, 50 minutes, 44 secondstalk about open source uh and not on cloud because that will make me stick to AWS then my only
+1:50:531 hour, 50 minutes, 53 secondsrequest would be in that case that you can skip maybe the remaining some three four classes and then you can join you will not miss anything that's for sure
+1:51:011 hour, 51 minutes, 1 secondonly thing is then AWS will not be covered for you but I will strongly oppose to this idea in case if that's a
+1:51:091 hour, 51 minutes, 9 secondsthing you're trying to Uh perfect we are using AWS agent core with time framework in my company. It
+1:51:171 hour, 51 minutes, 17 secondswill be okay. So atul is saying that it's already getting done with him at in case if you can talk about like why your
+1:51:251 hour, 51 minutes, 25 secondscompany is doing that so that others can also get some more insight from you. I just unmuted you in case if you can unmute yourself.
+1:51:371 hour, 51 minutes, 37 secondsIt will help others understand uh your company insight like why they decided to do this. In case if you know the answer
+1:51:531 hour, 51 minutes, 53 secondsyou're not able to unmute I did that again in case you can try now.
+1:52:011 hour, 52 minutes, 1 secondOh some issue with the microphone. Okay. Uh sure. time.
+1:52:101 hour, 52 minutes, 10 secondsSo let me pick up now. I'm going to the question tab now guys. So I will be only reading question from there. As a beginner in geni, should we invest a lot of time on lang or focus? No, no, no.
+1:52:201 hour, 52 minutes, 20 secondsThere is nothing like you should know only this or that. If you want to become a better geni guy, I would prefer the
+1:52:291 hour, 52 minutes, 29 secondsmore you know the strength pros and pros and cons of both the framework that is going to help. If if you think about it,
+1:52:381 hour, 52 minutes, 38 secondsit's not very different from launching ultimately we are still writing tools.
+1:52:421 hour, 52 minutes, 42 secondsWe are still using uh basically that agent to call. So it's not like very
+1:52:491 hour, 52 minutes, 49 secondsvery different from it but it's still there are differences in terms of the power of uh your strand versus language
+1:52:581 hour, 52 minutes, 58 secondscost tradeoff and all those things you have to keep in mind even if you're a beginner doesn't matter this knowledge is something you need to definitely
+1:53:061 hour, 53 minutes, 6 secondswatch out for I have few questions can we build a AI demo Excel file upload data cleaning huh
+1:53:131 hour, 53 minutes, 13 secondswe will do later right by the way that's very simple thing what you're asking very very simple and ML setup which you talked about that
+1:53:221 hour, 53 minutes, 22 secondswill not be covered here. If you're talking about that you have to join the advanced classes series.
+1:53:281 hour, 53 minutes, 28 secondsHow MCP is different from API? Then this I think question was long time back must be answered by now very different right
+1:53:361 hour, 53 minutes, 36 secondsMCP is just one box you can think of it like this where you are creating connections
+1:53:431 hour, 53 minutes, 43 secondsright and then that connections there's a input connection there's a output connection think of it like this
+1:53:511 hour, 53 minutes, 51 secondsI have listed previous two classes I'm facing issue while practicing please suggest any suggestion for practice
+1:53:581 hour, 53 minutes, 58 secondsuh you I have listed previous two sessions facing issue while practicing.
+1:54:031 hour, 54 minutes, 3 secondsI did not get it when you say is that what you mean by you're facing issue while practicing. If you can write that in
+1:54:101 hour, 54 minutes, 10 secondsdetail one more time. We covered lang but not langraph. That's okay. This is going to come later only. I have a realtime issue from my workplace. Can
+1:54:181 hour, 54 minutes, 18 secondsyou unmute me to ask this? I will do later. Then what opensource tool or framework do you recommend for
+1:54:251 hour, 54 minutes, 25 secondsvalidating agent AI? We will use lot of framework. This I will talk in later part I will be covering
+1:54:331 hour, 54 minutes, 33 secondsa lot many fake ecosystems for that even we will talk about raas and all this anyway we'll discuss that later how
+1:54:401 hour, 54 minutes, 40 secondsto join if you're part of AML that's already coming as with as well that is only for AML folks by the way
+1:54:491 hour, 54 minutes, 49 secondswith expensive SDK like strand agent can you please explain some markers that one should remember as a developer by the way if you're thinking that it's cost
+1:54:571 hour, 54 minutes, 57 secondsdouble or something It just maybe 1.1x 1.2x not huge cost difference. So yeah I have real okay
+1:55:061 hour, 55 minutes, 6 secondsthis I will take later. Don't we need to show this project on len or we can later when this fully built you can you can if
+1:55:141 hour, 55 minutes, 14 secondsyou are talking about LinkedIn you should basically once you will I will give you all this code anyway in a zip format you can just go and write it at
+1:55:221 hour, 55 minutes, 22 secondsyour end then take a screenshot and upload it for LinkedIn. Okay. Don't we need to show this? Okay.
+1:55:311 hour, 55 minutes, 31 secondsThis I already covered.
+1:55:341 hour, 55 minutes, 34 secondsCan't we take access to ML setup classes from a IML batch like having AI demo for ML training? No, no, that's a different
+1:55:411 hour, 55 minutes, 41 secondsone. Now, uh the the tools and everything use is very different.
+1:55:471 hour, 55 minutes, 47 secondsHow should we approach solution this development? what parameters should we consider before sharing it to the end user such as
+1:55:541 hour, 55 minutes, 54 secondsparallel processing and how should we think about different type of there I'm sure the thing is your system design knowledge will help which we will also
+1:56:021 hour, 56 minutes, 2 secondssee up to some extent in the AI infusion sessions that how they follow it's not about practices there are a lot of design patterns when it comes to
+1:56:111 hour, 56 minutes, 11 secondsarchitecture okay uh I suppose if I ask claude or any
+1:56:181 hour, 56 minutes, 18 secondsGPT LLM to create a sample CSP the data set file. So this action taken by C. Yes. Yes. Yes.
+1:56:251 hour, 56 minutes, 25 secondsUm how should we approach solution? This I've already answered for unsure. I'm not able to assess the notes of the
+1:56:321 hour, 56 minutes, 32 secondsprevious class. I missed my JT for this part. You can reach out to the op team.
+1:56:381 hour, 56 minutes, 38 secondsI'm from Java background. Is lang chain tool can be used. Huh. It's available even with net framework and all but I clearly called out in the previous sessions as well. Sujit that if you do
+1:56:471 hour, 56 minutes, 47 secondsthis uh just be mindful that there is not full support of this yet. So lot of frameworks which are available in Python is not available with your Java orn net.
+1:56:591 hour, 56 minutes, 59 secondsUh as a fresher I'm preparing for data analyst and studying for that also and also my scalar course work and also AI infusion class and finding it difficult
+1:57:081 hour, 57 minutes, 8 secondsto manage all this and little confused what to prioritize. See your first priority RN should be definitely your core classes. In case if you're finding
+1:57:161 hour, 57 minutes, 16 secondsit difficult, you can either watch the recording later or these uh series will happen even in future. It's not like
+1:57:241 hour, 57 minutes, 24 secondsthis is just one time activity. So it will again happen. So then you will again get communications at that time
+1:57:321 hour, 57 minutes, 32 secondsyou can start journey which is completely okay.
+1:57:361 hour, 57 minutes, 36 secondsHow do I need to connect to you? If any queries of WhatsApp group you have to reach out to the support team for this part can you please suggest some good
+1:57:441 hour, 57 minutes, 44 secondslangraph sources I can study em is AI engineer involved in managing AI lake house yes up to some extent if you
+1:57:531 hour, 57 minutes, 53 secondsare a senior guy then I have a realtime issue from my workplace can you unmute with okay okay this I said I will cover it later
+1:58:021 hour, 58 minutes, 2 secondsuh use lang chain we are building pipeline also can be done using stand also Yes. Yes, you can build all the pages. We'll discuss that. We we are not
+1:58:111 hour, 58 minutes, 11 secondsdone with this. Did we already implemented projects? No. Land chain we did this only if it's facing issue during
+1:58:191 hour, 58 minutes, 19 secondspractice. Uh again for this part you need to reach out to support only. They will help you with connecting with the team. I really want to understand
+1:58:271 hour, 58 minutes, 27 secondswhether coding is really important. No, not fully important but you should know the basic concept otherwise you will not be able to debug it. That's where it's
+1:58:361 hour, 58 minutes, 36 secondsimportant. Otherwise your chat GPT can give you this code very quickly.
+1:58:411 hour, 58 minutes, 41 secondsIf you're planning uh if you're planning AI engineering roles, do we need to focus more on ML
+1:58:481 hour, 58 minutes, 48 secondscore? No. No. Okay. So ML is different roles. That's the A IML rules. This is A
+1:58:541 hour, 58 minutes, 54 secondsIML roles are more for AML learners. Uh because for them this is very different.
+1:59:001 hour, 59 minutesSo there if for AML learners they ask machine learning plus AI engineering together.
+1:59:101 hour, 59 minutes, 10 secondsUh please can you make recording available in dashboard as of now cannot find them. It's available sedat. Uh again you can reach out to support team
+1:59:181 hour, 59 minutes, 18 secondsin case if you're finding it difficult to search it. Lot many learners have already pasted it also like where they have figured out.
+1:59:271 hour, 59 minutes, 27 secondsUh we recently got an AI interview for wonderful AI. Do you have details about it? Yes, that's an FD role. If you already have those learnings, please go
+1:59:351 hour, 59 minutes, 35 secondsthere. Uh they are putting a package range between 50 lakh is the minimum and 1 CR is the maximum. And they they have asked us to provide 50 people.
+1:59:491 hour, 59 minutes, 49 secondsSo if if you already are in FD to it's a great chance because it's very high package is available for it. Uh second
+1:59:581 hour, 59 minutes, 58 secondsis u basically they are also looking forward for folks who know great AI. So uh do the sessions properly. By the way
+2:00:062 hours, 6 secondsthis is not one time requirement. This will keep coming even in future. So currently we are trying to fill up their
+2:00:132 hours, 13 seconds50 space. Last they have taken his guys in 80 lakh 90 lakh with us. Okay.
+2:00:212 hours, 21 secondsRecently got AI interview for wonderful AI. Do we have details about it? I guess I've already answered Arishmi.
+2:00:312 hours, 31 secondsOkay. What's happening?
+2:00:342 hours, 34 secondsI think by mistake it's going to the answer option. It is important to learn a platform like Google or regular AWS for No. It's just that it helps if you
+2:00:432 hours, 43 secondsknow at least one which I did that for you. I'm not much interested in coding.
+2:00:472 hours, 47 secondsYes, I've already answered you be not be too much bothered about coding. PC basic construct so that you can use LLMs to get your code part quickly. But
+2:00:552 hours, 55 secondsdebugging you should still know okay any FD role in data science profile and
+2:01:022 hours, 1 minute, 2 secondsscaler. So that is open for all by the way. We have currently kept it open for all. If you know that stuff then you can apply.
+2:01:142 hours, 1 minute, 14 secondsOkay.
+2:01:162 hours, 1 minute, 16 secondsUh have I paused my DSML course for some time? So I want to understand now AML correlated I should complete first ML and then
+2:01:242 hours, 1 minute, 24 secondsoffer AI classes for betterness completely on you Ji in case if you want to do it um but ML and AI definitely
+2:01:322 hours, 1 minute, 32 secondsthey are correlated there's with AML the difference comes in ML engineering side though slightly more advanced topics are there
+2:01:392 hours, 1 minute, 39 secondswhich are covered there okay what is the road map to become AI platform engineer for that you need to
+2:01:462 hours, 1 minute, 46 secondsknow whatever I'm teaching first of all That is more than enough but you need to know even more on GCP aspects and all
+2:01:532 hours, 1 minute, 53 secondsthat. This I already talked about in last to last class.
+2:01:592 hours, 1 minute, 59 secondsWhat do someone need to be as an MD for full stack this having 12 year experience that is only full stack knowledge. You need to have the AI
+2:02:072 hours, 2 minutes, 7 secondsknowledge. You need to have how to productionize something knowledge and also you need a stakeholder knowledge.
+2:02:142 hours, 2 minutes, 14 secondsFew challenges I'm facing to get good cash loading. I want to discuss in doubt sessions if you can unmute this. I will pick up later. Then
+2:02:222 hours, 2 minutes, 22 secondsuh I already asked you my questions about prioritizing coursework preparation for DA roles and AI infus.
+2:02:282 hours, 2 minutes, 28 secondsSo my follow-up question is should I focus on coursework and preparation for Yes. Yes. Yes. You can first focus on data analyst in that case.
+2:02:372 hours, 2 minutes, 37 secondsAny MD role in data science profile and scaler recruiter? This I already answered. Are these scripts import? Yes. Right.
+2:02:482 hours, 2 minutes, 48 secondsuh we have completed recommended systems and advanced studies when we can apply for job uh I don't know which uh
+2:02:582 hours, 2 minutes, 58 secondspart you belong A IML DSML I don't know this part again one request I have guys for this can we keep the question only
+2:03:062 hours, 3 minutes, 6 secondsrelated to session today because suddenly if you ask me I have covered till this point I have no idea which uh
+2:03:142 hours, 3 minutes, 14 secondspart you belong to you are coming from acade academy whether you're an advanced learner beginner learner batch which batch you are coming through so uh my
+2:03:222 hours, 3 minutes, 22 secondsrequest is can we keep the questions only related to classroom so I'm going to skip all the questions which are not related to classroom at all okay
+2:03:312 hours, 3 minutes, 31 secondsuh yes siddh so sat just to answer you this
+2:03:382 hours, 3 minutes, 38 secondspart like AI engineer knowledge like this is mandatory for an FD role
+2:03:462 hours, 3 minutes, 46 secondsFor example, if they will take four rounds, two rounds will be on AI which you're learning here. But remaining will be on stakeholder and all that as well.
+2:03:562 hours, 3 minutes, 56 secondsI got the concept that you teach in the class but I want to know how can I practice all this code to get some knowledge for the code. So the projects
+2:04:042 hours, 4 minutes, 4 secondswhich I'm telling you please try to expand on top of that one. Few challenges I'm facing to get a good gras. Okay, this I've already said I will cover later.
+2:04:142 hours, 4 minutes, 14 secondsuh let's say in our company we are using a lot of AWS account and for all these we want to analyze using AWS tool same
+2:04:212 hours, 4 minutes, 21 secondslogic which I told you use strand and start doing it from tomorrow itself okay sure you can have better impact on this
+2:04:282 hours, 4 minutes, 28 secondsI'm a senior back end soon to be a lead uh given the AI investment should I focus on learning front end as well yes that would help you man
+2:04:372 hours, 4 minutes, 37 secondswhat do you mean when you said stakeholders knowledge so okay again this session is not related to FD So do not want to talk about it. Uh
+2:04:462 hours, 4 minutes, 46 secondsthat's why I wanted to skip this question because it just confused people.
+2:04:502 hours, 4 minutes, 50 secondsNow people who know FD they might be aware that as an FD you are being deployed at the client location and then
+2:04:592 hours, 4 minutes, 59 secondsyour stakeholders are like CXOs who are going to talk to you majorly. So they will just give you a problem statement.
+2:05:052 hours, 5 minutes, 5 secondsYou need to first acquire lot of knowledge from them before you can convert that business problem to a technical problem. So this is here your
+2:05:132 hours, 5 minutes, 13 secondsstakeholder management plays it. Okay, that's in short I'm just giving you this answer proper. Okay, now I'm going to skip any question which is not related.
+2:05:212 hours, 5 minutes, 21 secondsOkay, so sorry about that in case uh if I'm just marking your question as answered. Any session plan for prompt engineering also for this it will keep coming.
+2:05:312 hours, 5 minutes, 31 secondsDo we need to join AML track or are the classes sufficient? No, this is more than enough Karthik for now. Is there MCP or AWS or some way I can connect AWS
+2:05:402 hours, 5 minutes, 40 secondswith plot code or can I just experimented while there is but it's not very reliable that's why it's preferred
+2:05:482 hours, 5 minutes, 48 secondsif you connect with your bedro for this coming from data analyst QA background AI in data science I'm planning to move to machine learning or a development
+2:05:562 hours, 5 minutes, 56 secondsrole after completing my scalar DSML what gaps do you think I need to bridge uh make sure that you cover this properly
+2:06:042 hours, 6 minutes, 4 secondsthat would be my sgest Few challenges I'm facing to get a good class. This I said I will take later. We have completed recommended system and
+2:06:132 hours, 6 minutes, 13 secondsthis I've already answered. I'm facing some challenges while setting up the VS code. It might be related to dependency issue. I have tried setting up multiple
+2:06:222 hours, 6 minutes, 22 secondstimes. The project is not currently you have to reach the support for this.
+2:06:262 hours, 6 minutes, 26 secondsStand can be used only with AWS ecosystem or no it's only related to AWS. Okay. Uh so rag is only for static
+2:06:342 hours, 6 minutes, 34 secondsuh generally it's for static but there is something called as metadata and all which I have not covered yet which will come will it be possible to share code
+2:06:422 hours, 6 minutes, 42 secondsthis will come I will upload it anyway few challenges I'm facing through this I've already taken up can you create a discord channel this I've already
+2:06:492 hours, 6 minutes, 49 secondsanswered in the last class also can we get the code please and get link I could see the next class schedule on 22nd August h because next is 15th August now
+2:06:582 hours, 6 minutes, 58 secondsnext Saturday if I do that now All of you will be sitting at my home killing me for this.
+2:07:072 hours, 7 minutes, 7 secondsIt's a national holiday already.
+2:07:092 hours, 7 minutes, 9 secondsCan we get all the materials for today's class? This I will already upload in your dashboard.
+2:07:152 hours, 7 minutes, 15 secondsUh let's say we have edit privilege in AWS. How to restrict users only to view that?
+2:07:212 hours, 7 minutes, 21 secondsYou have to define roles. There is something called as roles and policies.
+2:07:242 hours, 7 minutes, 24 secondsThere you need to define it for the account. Do we have something like span and other clouds? No. There are different names for it.
+2:07:332 hours, 7 minutes, 33 secondsIf agent want to use results of one tool into another tool, will async tool calling work? No. Then you have to create sequentially in those cases. But
+2:07:422 hours, 7 minutes, 42 secondsusually for async, we need a message broker in between the services right. Uh are we setting it up? Not required. If
+2:07:502 hours, 7 minutes, 50 secondsfor parallel processing, why I need that? There's an orchestrator which will take care of it as well.
+2:07:562 hours, 7 minutes, 56 secondsIf just an SS key provides access to all the AWS component, huh? Depending on your account, your account should have
+2:08:032 hours, 8 minutes, 3 secondsthe access to that. If your account do not have SS, you can't do it, right?
+2:08:082 hours, 8 minutes, 8 secondsI have the admin privilege. So, it will work. Just read this. You can write one.
+2:08:152 hours, 8 minutes, 15 secondsWhile designing a tool like cursor ID, this bypass the consent flag will comes into this. Yes. Yes, it will do. But otherwise, don't set it up in that case.
+2:08:252 hours, 8 minutes, 25 secondsIf you don't want that feature which SDK you will use mostly in production stand and chain I have used all I have used even project with stand also I've used
+2:08:342 hours, 8 minutes, 34 secondseven with lang see lang graph is just an extension of lang one sincere request can you please prepone the class timing I think shant
+2:08:422 hours, 8 minutes, 42 secondsyou have asked this even in the last class I requested you to reach out to support see I don't mind putting it up even before I can do it even from 9:30
+2:08:502 hours, 8 minutes, 50 secondsor 10:00 a.m. D uh but it's completely depends on the ops team to take up that so if you can please do that in case if
+2:08:592 hours, 8 minutes, 59 secondsyou haven't done do we have a group this I've already answered no because there are multiple groups uh until the
+2:09:062 hours, 9 minutes, 6 secondsprevious classes we were reporting models into VS code and leveraging them locally now we are connecting to AWS and leveraging
+2:09:142 hours, 9 minutes, 14 secondsuh this is bad AWS can make connection and tool fetch the data yes will This code taught in the class be
+2:09:222 hours, 9 minutes, 22 secondsshared? Yes, search it. Why you don't want it? But it ties us to ecosystem. This I already answered.
+2:09:302 hours, 9 minutes, 30 secondsHow to get a brief documentation and guidance query which we pass during AWS command using region and all that contains. It seems it has similar scope
+2:09:372 hours, 9 minutes, 37 secondsas the other query language. Huh. It has a similar scope only. So whatever you will pass inside your agent there are parameters inside it that it will take up otherwise otherwise the default one.
+2:09:492 hours, 9 minutes, 49 secondsHow do we validate an agent system that can plan, reason and take action? For that you need to learn something called as eval which will come in detail.
+2:09:582 hours, 9 minutes, 58 secondsFew challenges I'm facing. Okay, this is later. Do we wait for completion of AI codes for writing a skills? That is
+2:10:052 hours, 10 minutes, 5 secondssomething what you should do. AIT are there any upcoming projects where we will be using fast API? Fast API though is very important.
+2:10:142 hours, 10 minutes, 14 secondsAnswer is yes.
+2:10:172 hours, 10 minutes, 17 secondsUntil the previous classes we were importing models into VS code and leveraging models through AWS in my understanding correct. So if please if
+2:10:252 hours, 10 minutes, 25 secondsany question comes up it just moves away this. In terms of efficiency is there a performance diff between this? No.
+2:10:342 hours, 10 minutes, 34 secondsGenerally if you ask strand people they will say we are good and I don't believe them. Will this document be shared? Yes.
+2:10:422 hours, 10 minutes, 42 secondsIn case if you have a corporate AWS account this I've already answered. You have to use IM for this. I have completed a four project on this. Now working on the docker project on the
+2:10:502 hours, 10 minutes, 50 secondslast. I posted on LinkedIn. Perfect. If I see it, I will do that. Otherwise, put it over my chat of LinkedIn. Probably are we going to implement guardrails?
+2:11:002 hours, 11 minutesYes. Uh we will also see the governance in detail. I had a question regarding the scaler X.
+2:11:072 hours, 11 minutes, 7 secondsWonderful. Could you please share the expected test format and the key test prepared DSA machine? You can reach out to support. They will provide you everything. I don't have it handy akash
+2:11:162 hours, 11 minutes, 16 secondsfor AML engineer what areas I need to be strong machine learning engineering is the most important information in case if you're coming from AML class uh
+2:11:242 hours, 11 minutes, 24 secondsplease make sure you're joining the advanc series which is already running I think three sessions have happened for them uh there were some sessions even
+2:11:322 hours, 11 minutes, 32 secondsbefore that but they were not connected but uh I think four sessions have happened before that also so at least finish the last three series while apart
+2:11:412 hours, 11 minutes, 41 secondsvery important few challenges I'm facing to get a good grasp. Okay, this is later. How should we approach solishing this development? What parameters should
+2:11:492 hours, 11 minutes, 49 secondsbe considered before sharing this? I've already answered and show a few challenges uh in terms of token usage as well. Is lamb chain and stand
+2:11:582 hours, 11 minutes, 58 secondson equal ground? Yes, because it the bill comes from the provider.
+2:12:052 hours, 12 minutes, 5 secondsNow you connecting to as le no again there's a difference. Strand is providing you some more functionality.
+2:12:132 hours, 12 minutes, 13 secondsWe have discussed only few right now.
+2:12:152 hours, 12 minutes, 15 secondsFor example, have you seen the pre-built things and all? They're very powerful in Strat in comparison to Lchain. So that's why they charge you more whenever you use them.
+2:12:272 hours, 12 minutes, 27 secondsOkay. Now, uh Ajit and Shir, I'm going to unmute but I'm assuming that you guys have
+2:12:342 hours, 12 minutes, 34 secondsquestions only related to today class otherwise I will just answer in short.
+2:12:452 hours, 12 minutes, 45 secondsAjit I just unmuted you first. Hey hi Shimank.
+2:12:502 hours, 12 minutes, 50 secondsYeah go ahead. Yeah. So this is not exactly related to today's class but it is related to AI infused uh learning
+2:12:572 hours, 12 minutes, 57 secondsonly that uh I was trying to revise the previous classes basically the third class which I was going through uh I
+2:13:052 hours, 13 minutes, 5 secondshave I'm facing the challenges like uh the libraries that you have used in the class right in the uh which you are showing when I tried to use those lang
+2:13:132 hours, 13 minutes, 13 secondsuh the those imports and those libraries uh I keep on getting the uh issues like uh this for example example langchain
+2:13:212 hours, 13 minutes, 21 secondsagents could not be resolved. So these kind of libraries are maybe outdated or I don't know what is happening. I tried to uh ask the uh like charge GPT and all
+2:13:312 hours, 13 minutes, 31 secondsfor that but they suggest to change the entire code based on the different versions and whatever right so this is
+2:13:382 hours, 13 minutes, 38 secondssomething which is affecting to you know get the uh learning part uh as it is so that get the grasp of the learning and then we can focus on the parts of that.
+2:13:492 hours, 13 minutes, 49 secondsSo that was the challenge which I was facing on the first part. Uh let's the first part then you can go to the second one. Yes. Yes.
+2:13:562 hours, 13 minutes, 56 secondsThere are two approaches which you can take. Okay. Uh firstly let's not call it as challenge.
+2:14:032 hours, 14 minutes, 3 secondsWhy I'm saying that because as an AI engineer I started my journey I can tell you I
+2:14:092 hours, 14 minutes, 9 secondshave become whatever I am today because of the errors which I faced. Right.
+2:14:152 hours, 14 minutes, 15 secondsyou have because when you will start observing those errors and try to go to fix it, it really helps you to have that muscle power
+2:14:242 hours, 14 minutes, 24 secondsright not the first approach which you're already doing when you're putting it I tell you what happens firstly nothing is duplicated because I have just run it
+2:14:332 hours, 14 minutes, 33 secondsone week back or two week in front of right but what happens is depending on your operating system even if you're on Mac
+2:14:402 hours, 14 minutes, 40 secondsthen Mac also have different versions right be on those versions There could be a slight mismatch of versioning part. So
+2:14:482 hours, 14 minutes, 48 secondswhenever you put to your chatp or cl this question make sure that you provide your system configuration to it. Okay. Okay.
+2:14:552 hours, 14 minutes, 55 secondsAnd just say that can you help me understand for this system what are the things I need to update it will immediately copy paste you will not notice any other that's one.
+2:15:042 hours, 15 minutes, 4 secondsSure.
+2:15:052 hours, 15 minutes, 5 secondsSecond way let's say if it's still not solved. Mhm. Just create a small video. Okay. Okay.
+2:15:112 hours, 15 minutes, 11 secondsSend that question to your support. they will redirect it to my team. Is that yes? And then they will basically help
+2:15:192 hours, 15 minutes, 19 secondslook at your thing. Either they will connect with you or they will answer you then and there if it's a very small thing.
+2:15:252 hours, 15 minutes, 25 secondsYes. Yes. The the only issue is like uh debugging is okay. It is part of the learning. The point is that uh it takes
+2:15:332 hours, 15 minutes, 33 secondsa lot of time to address that. So uh so that like I can focus on the learning part that is
+2:15:412 hours, 15 minutes, 41 secondsokay. I will still say it's okay. Even if your one day I would say it's a blessing in disguise.
+2:15:492 hours, 15 minutes, 49 secondsYou will feel good once you will go through this phase.
+2:15:532 hours, 15 minutes, 53 secondsRight. Right. Uh so the second challenge uh the second challenge was that uh uh when you have explained it well uh I
+2:16:022 hours, 16 minutes, 2 secondsunderstand it but when when I'm going and writing back the uh things uh I am trying to though coding may is like is
+2:16:112 hours, 16 minutes, 11 secondsmore cheap now and we can get it through uh charg also but I want to understand the flow of the uh uh code right so
+2:16:192 hours, 16 minutes, 19 secondsthere I feel the challenge like uh between the tools and the agents how things are working on behind like when when when the uh when it is calling the
+2:16:282 hours, 16 minutes, 28 secondsuh model what it is getting and what is it going to return as a attribute or you know that that part. So this is again
+2:16:352 hours, 16 minutes, 35 secondssomething which I think uh is uh not been deep dived in the class maybe or maybe I'm doing extra work which is not required. I'm not sure with that.
+2:16:452 hours, 16 minutes, 45 secondsNo no no. So it's a very good question.
+2:16:472 hours, 16 minutes, 47 secondsLet me address. In fact, I would say this is great if you're facing this and you brought this up.
+2:16:552 hours, 16 minutes, 55 secondsSo, let me tell you what I have done by now. Mhm.
+2:16:592 hours, 16 minutes, 59 secondsIf you ask me, have I covered that concept? No. Okay.
+2:17:022 hours, 17 minutes, 2 secondsI have just only told you this is how agent work right later when I will take you to the production side.
+2:17:092 hours, 17 minutes, 9 secondsThere I will show you things which will break and then I will show you how to debug through this. Okay.
+2:17:172 hours, 17 minutes, 17 secondsOkay. Because in production if something break I I will also show you situations where things are working on staging environment but when I will put it in deployment environment it will break it fails. Okay. Right.
+2:17:272 hours, 17 minutes, 27 secondsSo how to debug through that like trace that okay when I execute it is first water then water. Basically this is called as traces.
+2:17:372 hours, 17 minutes, 37 secondsH right. I think that is very important for learning. Yes. Correct. So for now just try to grasp from a high level
+2:17:462 hours, 17 minutes, 46 secondsbecause that is the I have covered by now. Mhm.
+2:17:492 hours, 17 minutes, 49 secondsLater this is going to come as a part of your class.
+2:17:532 hours, 17 minutes, 53 secondsSure. Sure thing. And there's only one small issue with the class 3. I saw that in the lecture notes uh there were no
+2:18:022 hours, 18 minutes, 2 secondscodes given that the codes you have written that was not there's a files uh named there's a there's a file called
+2:18:102 hours, 18 minutes, 10 secondsfiles but I didn't see the lecture note like the code there so while I was stuck
+2:18:162 hours, 18 minutes, 16 secondsI thought let's let's try to use your uh code itself but it was not working so so if you can address that
+2:18:262 hours, 18 minutes, 26 secondsyou can reach out to ops again they will help you with okay fine Okay. Sure, sure thing. Sure thing. Okay. Thank
+2:18:332 hours, 18 minutes, 33 secondsI think there was one more. Any new things coming up? Any word? Huh? There is something called as loop engineering these days which is kind of moving up.
+2:18:412 hours, 18 minutes, 41 secondsUh we will see if we have to cover that as well.
+2:18:482 hours, 18 minutes, 48 secondsUh do we cover DPAL? I will cover everything in special. Now I think they were going to do Sham.
+2:18:572 hours, 18 minutes, 57 secondsLet me also meet you now. Hey, where is Sheila?
+2:19:042 hours, 19 minutes, 4 secondsHave you left Sheila? I can't see you.
+2:19:062 hours, 19 minutes, 6 secondsShe okay I think he left.
+2:19:152 hours, 19 minutes, 15 secondsI am not getting any job support this to talk with ops only. I mean again if you want I can connect you
+2:19:232 hours, 19 minutes, 23 secondswith the relevant folks but not a right question for this part.
+2:19:282 hours, 19 minutes, 28 secondsUh few challenges this I have already covered. Perfect. So I hope uh I covered all the questions which were there in
+2:19:352 hours, 19 minutes, 35 secondsthe question tab. If you put anything in the chat uh that I was not seeing by now but I hope everybody enjoyed this
+2:19:422 hours, 19 minutes, 42 secondssession that's more important. Let's connect again next weekend is 15th. So enjoy that. Then we will be connecting for the AI stand once again. Perfect.
+2:19:512 hours, 19 minutes, 51 secondsThank you everyone.

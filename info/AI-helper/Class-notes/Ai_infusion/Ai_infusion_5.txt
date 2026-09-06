@@ -1,0 +1,984 @@
+Okay. Uh can you all quickly confirm if you can all see me, hear me as well as see my screen. Perfect. So let me uh
+5:545 minutes, 54 secondsquickly put few pointers before I start the session and then I will talk about the session. So number one is uh there
+6:016 minutes, 1 secondwere few recording issues which were I think few of the people where possibly what was happening was that you can
+6:086 minutes, 8 secondspossibly see only the half of the things in the recording site right I believe few of the students have raised this I
+6:156 minutes, 15 secondstell you the concern about it so the platform what we are using is Dona okay this drona have a dependency on
+6:236 minutes, 23 secondssomething called as a platform okay so this is a back end what we use for this.
+6:296 minutes, 29 secondsSo there's a problem running at the Agoroda site and they are going to fix it very soon. They're already working on
+6:366 minutes, 36 secondsit. We have already filed a bug with them across. So due to this for few people it have not happened for everyone but for few folks I think this problem
+6:456 minutes, 45 secondshad got initiated but since there's a external dependency that's why it it couldn't get unlocked by last week because we were continuously following
+6:536 minutes, 53 secondswith them to fix it. Okay. So this will get fixed for you this week. So no need to worry about this part. So I hope this
+7:007 minutesis uh fine. We uh no Agoroda is also uh basically an open-source kind of
+7:077 minutes, 7 secondsplatform. They provide support and all that. So that's what we kind of use on it. It's not a travel agency while aging.
+7:167 minutes, 16 secondsNo, no, no. That's not a hotel book.
+7:177 minutes, 17 secondsWell, I think it's a Gora. Sorry, I took the wrong spelling I think.
+7:247 minutes, 24 secondsOkay. So that's a context about it. So uh I hope this is all fine. H you can zoom in and see but definitely that's
+7:327 minutes, 32 secondsnot a good experience when we understand that and that's the reason we are pushing really hard to get this done. Uh just allow us some more time this will
+7:417 minutes, 41 secondsget fixed from a Gora side and this will be uh taken care of. U now number two is
+7:487 minutes, 48 secondsum let me talk about today's session. Okay. So
+7:567 minutes, 56 secondslet's start. So today's session is going to be pretty interesting and I'm also
+8:048 minutes, 4 secondsgoing to call out very clearly that today's session is going to have
+8:118 minutes, 11 secondsno dependence from any any of the previous class.
+8:168 minutes, 16 secondsOkay. So when I say there is no dependence on any of the previous class,
+8:228 minutes, 22 secondsI am going to be talking from a perspective that even if you have not learned anything by now, you will still
+8:318 minutes, 31 secondsbe able to follow up. Uh if you have done previous seven session, it will help definitely but it's not going to be a mandatory mandatory thing.
+8:428 minutes, 42 secondsNow let me first put the context and by the way I will use the same uh rule. Put all the question in the
+8:498 minutes, 49 secondsquestion tab only guys uh because I will be pulling up everything at the later part in the question tab. I am not going
+8:568 minutes, 56 secondsto be pulling up majority of the thing from the chat. Chat should be only for discussions. Anything which you feel
+9:039 minutes, 3 secondsthat uh basically should be taken up later should be in the question tab only. Okay, that's one part.
+9:129 minutes, 12 secondsNow when I talk about today's session what's all going to come we have to deploy our model
+9:219 minutes, 21 secondsright ultimately if I don't push it to the end user is it going to be helpful no it's not going to be helpful
+9:309 minutes, 30 secondsnow if I am deploying a model where I will deploy maybe I will use cloud like AWS maybe I will use something like
+9:389 minutes, 38 secondsright all of that Now the concern here is if I'm going to deploy my model over AWS or Azure side
+9:479 minutes, 47 secondsof the things one challenge which we see is I have
+9:549 minutes, 54 secondswritten my code over my VS code right this is all fine now when I'm
+10:0110 minutes, 1 secondwriting my code over VS code and I push it to the cloud this may or may not work.
+10:1110 minutes, 11 secondsNow let me tell you an issue with this part. Why why that's the case? You might
+10:1710 minutes, 17 secondshave already seen a developer and a tester fighting between themselves that you know what that I am a uh it it works
+10:2710 minutes, 27 secondson my machine but this guy will say do not work on my machine. Now there are multiple reasons why this happens right?
+10:3510 minutes, 35 secondsSo there are multiple reasons that maybe the environment in his machine is different. The environment in his machine can go be very different and we
+10:4310 minutes, 43 secondsas a developer have always a habit that whenever we are developing something we in middle something break we will
+10:5210 minutes, 52 secondsimmediately go and install it right so now whatever you install you're not tracking it now maybe your development environment goes different in tester
+11:0111 minutes, 1 secondmaybe you have a different OS than this guy maybe your laptop is pretty good in comparison to tested laptop so then what
+11:0911 minutes, 9 secondsis an answer for it. The answer which will come from it is going to be called as containerization.
+11:1711 minutes, 17 secondsOkay, which we can also call it as Docker. Now once we learn Docker, we will go to Kubernetes.
+11:2511 minutes, 25 secondsNow I'm sure lot of you who might be aware of Docker, they might be thinking Shivank Docker is not an advanced concept.
+11:3611 minutes, 36 secondsI know it. It's not very advanced then why you wrote advanced class.
+11:4311 minutes, 43 secondsSo the reason it is advanced because even within docker because docker learning is very simple. I think I will
+11:5111 minutes, 51 secondsfinish it in 10 minutes. Nothing complicated in this side. But the way I will be looking at this docker is I am
+11:5911 minutes, 59 secondsgoing to tell you from a docker perspective that uh how you will be building an ML application with it.
+12:1012 minutes, 10 secondsEasy one damn easy one. If you do not know what is ML, don't worry about it. I will also be talking about how you can
+12:1712 minutes, 17 secondsdeploy an RLM service and I will also be telling about how you can deploy an agentic AI application on Docker.
+12:2912 minutes, 29 secondsNow when I will go to aentic AI so it will go like easy, medium, hard.
+12:3512 minutes, 35 secondsSo when I will specifically go towards aentic AI, what will happen? You will see I will create multiple docker containers.
+12:4612 minutes, 46 secondsI will have one docker where I will keep only tools. I will have one docker where I will keep maybe some other part maybe llm code. Maybe I will keep one docker
+12:5412 minutes, 54 secondswhich is having something else and they will be talking with each other within a network in a secure manner.
+13:0313 minutes, 3 secondsThis is what going to be fun part.
+13:0813 minutes, 8 secondsOkay. Now I hope people who know about what is Docker are able to connect the
+13:1413 minutes, 14 secondsdots that okay I at least now I got it by Shivank have called dot that this is going to be slightly advanced session
+13:2213 minutes, 22 secondsI'm not saying it's a full advanced session why because there is still a long way for me to go and when I will reach there you will see what exactly is
+13:3113 minutes, 31 secondscalled as advanc advance okay till now none of the session whether you belong to a IML whether you belong to any other program.
+13:4313 minutes, 43 secondsYou have not seen any session to be honest which is to be honest called as fully advanced session because that is already in my mindset when I will teach
+13:5113 minutes, 51 secondsyou I will teach you. So you need not worry about it.
+13:5613 minutes, 56 secondsit will come. But to reach to that state, I need to make you do some work
+14:0414 minutes, 4 secondsand that is what is the starting point when it comes to deployment. So we have talked about few of the models and all that in the past.
+14:1514 minutes, 15 secondsYou might be hearing in your sessions also about okay what deployment talks about and so on. But the goal here is now on the practical end.
+14:2614 minutes, 26 secondsBy the way, uh Kubernetes somebody asked the question, I already answered that once we go through docker then only you can
+14:3414 minutes, 34 secondsunderstand cubernetes. So let's let's move on. Okay. So this is going to be the agenda. I will try my best we finish
+14:4114 minutes, 41 secondsall three. If I couldn't I will push it towards the next class.
+14:4714 minutes, 47 secondsNow let's move on and understand the docker part. So I already told you the
+14:5514 minutes, 55 secondsproblem statement. The problem statement is it works on my machine. It do not
+15:0015 minuteswork on my machine. Right now in order to handle this in order to handle this
+15:0915 minutes, 9 secondssituation we use something called as docker. And I'm clearly calling out because there are few questions coming
+15:1615 minutes, 16 secondsaround that continuously. Shivank is it going to be needing me any knowledge in docker or anything? No. So don't worry
+15:2415 minutes, 24 secondsabout this part. I will be taking care of this. Please focus on the session now.
+15:3015 minutes, 30 secondsNow it's what's going to happen around the dockerization part. So I already
+15:3815 minutes, 38 secondsclearly told you up that it is going to be like okay if it do not work on my machine how to handle that situation.
+15:4815 minutes, 48 secondsSo let me bring a very simple basics example. I don't know if you have heard about it. Lot of people buy furniture from China.
+15:5715 minutes, 57 secondsHave you heard this?
+16:0116 minutes, 1 secondAnd one of the reason for that is it's damn cheap. In fact, I can tell you the if you go to shops,
+16:1016 minutes, 10 secondsin those shops, people sell things what they have bought from China, they buy it in a very very cheaper cost and then
+16:1716 minutes, 17 secondsthey put it for everyone to buy and then it they make a very good decent money.
+16:2216 minutes, 22 secondsSomebody called out the city name also called as Foschan. I don't know the other city name but Foschan is something which I'm very much aware of. This is a
+16:3116 minutes, 31 secondsvery very famous city where a lot of factories a lot of showrooms only for furniture are there and people go and
+16:4016 minutes, 40 secondsbuy so when let's say you order something in China how it reaches out to your house
+16:4916 minutes, 49 secondsyour house is sitting in India right it is no more there in China so then how it
+16:5616 minutes, 56 secondscomes so what it do it comes through a ship Now the problem is do you think they can just put let's say if you have bought a
+17:0517 minutes, 5 secondstable so they will put that table in the ship. No, what they do is they will be putting everything inside a container.
+17:1317 minutes, 13 secondsThere's a volume of that container standard size. You need to rent it from them. And they will be pushing all of
+17:2117 minutes, 21 secondsyour things together. And generally uh I can tell you this because I know a person who buys from China. So that's why I'm telling you all this. So
+17:3017 minutes, 30 secondsgenerally what they do is the people who go and buy there also, right? They buy from a mindset that if I have to go and
+17:3817 minutes, 38 secondstake one ship container which is let's say of some volume I will be able to feed in only this much of furniture. So
+17:4517 minutes, 45 secondsthey buy from that angle that if I if I'm going from a angle that I have to go with two containers I have to buy this many number of furniture for me.
+17:5417 minutes, 54 secondsThis is how they buy. Now what happens that thing comes as it is to your shop
+18:0318 minutes, 3 secondsand they just feed everything out of that uh thing and as it is m if you ask
+18:1018 minutes, 10 secondsme honestly what they do is in India you might have seen that if you buy a sofa or anything from Amazon they will it
+18:1918 minutes, 19 secondswill come in a dismantle way but from there if you buy it is not dismantle sofa will be putting into the container
+18:2618 minutes, 26 secondsas it is like sofa. It will come to your shop as it is. So it's it's like packing unpacking. You don't need to do any
+18:3318 minutes, 33 secondsextra work. This is how the China system is being evolved. Now why I'm talking about this?
+18:3918 minutes, 39 secondsThe same logic happens with your code.
+18:4418 minutes, 44 secondsHow about I give you a space in your laptop where what I can do that space in your
+18:5118 minutes, 51 secondslaptop which I have given you in that particular space I am going to keep all your code all your operating system
+19:0019 minuteswhich I need all the dependencies being kept inside that space
+19:0719 minutes, 7 secondsnow you just have to test it is it running or not if it's running if I ship that particular space from your laptop
+19:1719 minutes, 17 secondsto any other laptop not as an executable just like a docker image. We will discuss that. So if it goes as it is to
+19:2519 minutes, 25 secondsthe other laptop is it going to be easier or not?
+19:3219 minutes, 32 secondsYes. Now will it work or not? Yes. Why?
+19:3619 minutes, 36 secondsbecause I am also pulling up my operating system along with my code files being shipped from any system to
+19:4419 minutes, 44 secondsany other system and when the other person is running it he's also running in that space only there is no
+19:5119 minutes, 51 secondsdifference for him so it will work this is the concept of docker now a
+19:5819 minutes, 58 secondsnatural question which should hit your mind is Shivang you just said operating system is it really operating system?
+20:0720 minutes, 7 secondsYes. Is it not going to be heavy? Slightly.
+20:1320 minutes, 13 secondsBut why you said slightly? Why not you are saying that okay it's going to be fully complex? Think about it. So the
+20:2120 minutes, 21 secondsway the docker is uh the way it works is let me ask you a simple question. All of you know Linux versions different Linux
+20:2920 minutes, 29 secondsversion. There's a red hat, there is a Mac, there is a uh Ubuntu and so on. Yes.
+20:3620 minutes, 36 secondsNow tell me one thing. Do you really think that these systems
+20:4220 minutes, 42 secondscode change a lot? No. What happens is that almost 90% of the code files stay same
+20:5120 minutes, 51 secondsbeneath them and 10% of it they change and they create different different versions out of it. That's the only
+20:5920 minutes, 59 secondsdifference. I would say 10% also is a huge number which I just called out.
+21:0321 minutes, 3 secondsSo what happens when you say that okay I want to have this Linux version I want to let's say install on my that
+21:1121 minutes, 11 secondscontainer or that image or that space which I'm calling out that space let's say I'm clearly calling
+21:1821 minutes, 18 secondsout that this space is going to be taken up uh basically an operating system here
+21:2721 minutes, 27 secondsis it now going to be taken here from an angle
+21:3321 minutes, 33 secondsthat only that 5% or 10 x% of the file I need to put it in that container remaining I can use it from the host
+21:4121 minutes, 41 secondsoperating system. So if I'm only using some percentage of that, is it going to save my things or not?
+21:5421 minutes, 54 secondsYes, it's going to save a lot of space.
+21:5821 minutes, 58 secondsAm I saying that the space will be still in MBS? No, it can go in GB. We will see today when I will work on it, it will go
+22:0522 minutes, 5 secondsin GBs also. But it will still not be as much of occupying space. what a new complete operating system have to do.
+22:1622 minutes, 16 secondsOkay. So that is how it works. So when you are transferring it to other system also it it takes care of that whatever
+22:2522 minutes, 25 secondsthe host operating system is just the remaining things it just install inside that and start working around this.
+22:3322 minutes, 33 secondsOkay. So this is the concept of docker docker.
+22:3722 minutes, 37 secondsSo your docker is like sitting in your operating system.
+22:4422 minutes, 44 secondsUh basically let's say you are running on Mac which I will be doing. Let's say this is your Mac laptop. You have already a system. Now you will be let's say taking a space. You will say okay
+22:5222 minutes, 52 secondsI'm going to take a space. Let's say the space is occupying 2 GB of RAM uh maybe four cores and so on and maybe some
+23:0023 minutesamount of hardest. In this case, it have taken up some of the operating system files from the host. Whatever is common and whatever is not common, it will
+23:0923 minutes, 9 secondsinstall it and remaining code also you will keep it here.
+23:1323 minutes, 13 secondsThis is the concept. Now let's say if it's your test laptop, you will just transfer this as it is.
+23:2523 minutes, 25 secondsInteresting. Right?
+23:2723 minutes, 27 secondsNow have I said full details about Docker yet? No. This is for your easy
+23:3423 minutes, 34 secondsunderstanding so that you can understand that at a very base level what is Docker. There are still lot of things I
+23:4223 minutes, 42 secondswill keep bringing up those concepts when I will move ahead. To be honest I have intentionally not talked about two
+23:4923 minutes, 49 secondsthree things in Docker yet which is um slight difference from what I just explained you but I will come back to
+23:5623 minutes, 56 secondsit. Okay, it's intentional just calling it out. Now, so let's move on and
+24:0524 minutes, 5 secondsunderstand now few concepts before I will go and explain you what do you mean by uh different components which I will
+24:1324 minutes, 13 secondspush to this. So the first one when I will say machine learning model
+24:2024 minutes, 20 secondswhat do you mean by this? Okay. So your machine learning model firstly let me explain you what is uh in quick banner
+24:2924 minutes, 29 secondswhat do you mean by model for people who do not know. So let's say if I tell you that one year experience salary is 10,000 2ear experience salary is 20,000
+24:3824 minutes, 38 secondsfour year experience salary is 40,000 5 year experience salary is 50,000 and if I ask you can you tell me the salary
+24:4524 minutes, 45 secondsof three year what will be your answer 30k. So are you a magician? How you said
+24:5324 minutes, 53 secondsthis? Because you all must have learned from the pattern and the pattern state
+25:0025 minutessomething like my salary sounds like equal to 10k into year of experience. Agree everyone.
+25:0925 minutes, 9 secondsYes. This is what it sounds like. So now if you ask me any year of experience salary I can easily give you this
+25:1625 minutes, 16 secondsformula which comes from the data set by understanding the pattern is called as model.
+25:2425 minutes, 24 secondsOkay this is called as model in simple term so that you can understand this.
+25:3025 minutes, 30 secondsNow what happens whenever you are creating these models now if you have to run it in production
+25:3825 minutes, 38 secondsyou have created this mathematical formula which you're calling it as model I need to provide it to my AWS machines
+25:4625 minutes, 46 secondsand all that. So just like let's say you have opened a wordpad and you started writing something and once you have
+25:5325 minutes, 53 secondswritten something you have to uh save it in your laptop so that you can transfer it. So you click on save as. So it creates a b do d o cx format and so on.
+26:0426 minutes, 4 secondsRight? Similarly, if I have to save this formula, we either save it in the format of pickle
+26:1226 minutes, 12 secondsor there are other formats also which we will discuss later that's what the advantage of each but there's very famous one called as job li. So in today
+26:2026 minutes, 20 secondsclass we will be using a format called as jobl like this. Have you wor worked on MSWord
+26:2826 minutes, 28 secondsand they have shown you save as? When you say save as, it tells you do you want to save as PDF, do you want to save it as doc x and all right? It gives you
+26:3726 minutes, 37 secondsdifferent formatting. Think of it like this. Yes, job li have some more advantage and even there are some other ones like onx and all. I'm not going for
+26:4426 minutes, 44 secondsit for now but we will be saving it as job and whenever I want to use it again in different machines also I can use it
+26:5126 minutes, 51 secondswith the help of opening that file. Just like if I've created a doc file in my machine, if I pass on to you, you can
+26:5826 minutes, 58 secondsopen it in your laptop. Right? Same thing here as well. If I have created a formula, I can use it on my different systems also. Okay? So that's one part.
+27:1127 minutes, 11 secondsNumber two, so this is the first basic concept which I just talked about that what do you mean by machine learning model.
+27:2027 minutes, 20 secondsNow the second part is LLM. I know few of you know it but just quickly telling you all must have used something like
+27:2727 minutes, 27 secondschat GPT you all must have used something like claude and all these are
+27:3327 minutes, 33 secondsyour LM models as simple as this. Now in order to connect to this we will need an
+27:4127 minutes, 41 secondsopen AI key or we have you can know about gro key and all which are free of cost. open key I have some client cost
+27:4827 minutes, 48 secondsalong this and then you can write your code which can do something now why I'm talking about code I can go either on
+27:5627 minutes, 56 secondsthe chat GPT UI and can work there that's one way but second is if I'm building some application then I need to
+28:0428 minutes, 4 secondswrite through code maybe through Python code now if I'm working with Python code then I need to have those keys to
+28:1128 minutes, 11 secondsauthenticate that this is me and they will charge to me so this is a relative model as simple as that. I'm just talking about number three is agentic AI.
+28:2628 minutes, 26 secondsNow what is your agentic AI?
+28:2928 minutes, 29 secondsIf I talk about agentic AI agentic AI is nothing but think of it like your intern.
+28:3728 minutes, 37 secondsLet's say if I ask my intern hey can you book a flight for me for tomorrow and he will do that. But what he will
+28:4628 minutes, 46 secondsdo, he will open my browser. He will search for a flight. If he know my preference that I'm looking for morning
+28:5328 minutes, 53 secondsflight, he will search for that. He will use a credit card, book it and send it to me. Yes. So there are multiple steps
+29:0229 minutes, 2 secondshe need to do. But in case if you have to take multiple steps what he can do now he can say Shivang LLM can also do
+29:0929 minutes, 9 secondsnow. No LLM can only give you question answer. If you ask LM if you go to chat GPD and say I want to book a flight from
+29:1729 minutes, 17 secondsBangalore to Delhi it will only tell me you can do this you can do this you can do this and done am I right but to agent
+29:2629 minutes, 26 secondsyou are giving control it's making its own autonomous decision so it will need some functions maybe
+29:3529 minutes, 35 secondsfunctions could be like okay go and connect with make my trip maybe I return a function maybe it's it have a calendar function to check tomorrow dates right
+29:4529 minutes, 45 secondswhatever right if I'm looking for weather report it will it need to have the assist to the weather API or some weather tool where it can connect now
+29:5329 minutes, 53 secondswhen I said tool tool means functions tool means functions so when I say
+30:0330 minutes, 3 secondsfunctions basically I might have written some Python functions maybe the Python function could be let's say calculator
+30:1030 minutes, 10 secondsI'm creating a calculator function Right now in this case maybe whatever I'm doing when I will say hey can you
+30:1730 minutes, 17 secondsgive me what is 20 + 30 it will go to this calculator will execute the code and then return the result to me. So this is called as tool calling.
+30:3130 minutes, 31 secondsOkay this is tool calling what you need to go with. I hope till this point everybody got the context model means
+30:4130 minutes, 41 secondscreating formula llm which is like your chart GPT and all that but if I have to create an AI
+30:4830 minutes, 48 secondsapplication I need to do it through code agentic AI where I talked about it's going slightly more than your LLM
+30:5530 minutes, 55 secondsbecause it's doing some discussions internally and it's basically can make a normal decision by interacting with your Python
+31:0431 minutes, 4 secondsfunctions which we are going to call test. Okay, is this part clear to everyone?
+31:1031 minutes, 10 secondsNow there are few lot of unrelated questions coming for now which I'm skipping intentionally.
+31:1731 minutes, 17 secondsNow the reason is because today's session goal is not to talk about that.
+31:2331 minutes, 23 secondsIf I start talking I will end up taking at least 20 to 25 minutes because that's a long topics. I hope it's fair so that
+31:3131 minutes, 31 secondswe can complete whatever we have planned for today. Whenever those sessions will happen for you, those will also come.
+31:3831 minutes, 38 secondsBut let's not make it complex and let's stick to the topic of containerization.
+31:4331 minutes, 43 secondsThat's my major goal which I want to cover today. Okay. Now with this knowledge whatever we have gained now
+31:5331 minutes, 53 secondslet's start doing some coding and that's where the whole fun will start.
+32:1732 minutes, 17 secondsJust give me a minute.
+32:4932 minutes, 49 secondsJust give me a minute guys. I'm just opening that code file so that it's easy for you.
+33:0133 minutes, 1 secondJust give me few minutes around that. My VS code is behaving slightly weirdish.
+33:0933 minutes, 9 secondsJust give me a few minutes around this. I don't know why it's doing so.
+33:2633 minutes, 26 secondsI think I need to close it.
+33:4433 minutes, 44 secondsYes, now I got it.
+33:4833 minutes, 48 secondsSo while I'm explaining this, I will keep on explaining you what each things means. So do not worry about
+33:5633 minutes, 56 secondslot of new things which will pop up in front of you. Okay. Now u again calling out lot of questions which are
+34:0534 minutes, 5 secondscompletely irrelevant. I am not going to answer that because even after my request people are still pushing explain me MCP, explain me agent TKI versus AI
+34:1434 minutes, 14 secondsagent. not relevant for today but trust me if I start this it will end up taking at least 30 40 minutes
+34:2334 minutes, 23 secondsMCP and all is a longer topic and I am going to cover this in depth
+34:3034 minutes, 30 secondsokay I don't want to do unjustice because if I answer it now I will then just skip MCP so let's not do that now
+34:3934 minutes, 39 secondsso let me now share my P
+34:5034 minutes, 50 secondsand in fact let me share my
+34:5734 minutes, 57 secondsperfect now can you all see this my suggestion for all of you would be
+35:0535 minutes, 5 secondsbecause there's a very interesting comment which come in case if you feel that because you will not be able to do along
+35:1335 minutes, 13 secondswith me that for sure. But in case if you want to remember things.
+35:1935 minutes, 19 secondsMy suggestion would be if you can just have a notes handy with you, a pen and a paper
+35:2735 minutes, 27 secondsand just keep on writing down. It will really help you because what will end up happening then you will be having a much
+35:3635 minutes, 36 secondsbetter understanding because I will tell you so many things today which will be new for you that you may start feeling that Shivang this is too much okay so
+35:4635 minutes, 46 secondslet me start with the first thing the application part which I'm going to explain you what is this so in this
+35:5435 minutes, 54 secondsparticular case I am going to start with an installation of Docker. Now what all
+36:0136 minutes, 1 secondyou need to do for this? Just go to www.docker.com and install Docker from there. Depending
+36:0936 minutes, 9 secondsfrom your operating system, just download it. Once you install Docker, you will notice that it will install in
+36:1736 minutes, 17 secondsyour laptop something called as Docker Desktop.
+36:2236 minutes, 22 secondsYou have to keep that thing open in your site. That's it. You have to just open it. Nothing other than that. So once you
+36:2936 minutes, 29 secondswill keep it open that's it your docker is running on your laptop. It's as simple as this. There's nothing
+36:3536 minutes, 35 secondscomplicated. Go to www.docer.com download. Doubleclick next. Next next
+36:4536 minutes, 45 secondsinstall. Done. From your system just search for Docker desktop. It will open up for you.
+36:5336 minutes, 53 secondsOkay. So that is the step for installing docker because without this nothing will work for you in my laptop it is already
+37:0237 minutes, 2 secondsinstalled. If you are using by chance let's say Mac operating system then there is something in that called as bu
+37:1237 minutes, 12 secondslet's say if you don't want to do it you can just hit this command b install cask docker it will install. I have
+37:2037 minutes, 20 secondsalready installed so I'm not going to run it. But if you do this it's done. By the way, do you need to remember this? No, I will give you all this in notes.
+37:2937 minutes, 29 secondsOkay. So do not worry about Shivank how will I get this? I will upload all the notes for you which will have all these commands. For now my focus is to make you understand the concept. So do that.
+37:4037 minutes, 40 secondsSecond I want to just quickly see what is the Docker version I have. So you can oh sorry I think I did a wrong spelling.
+37:5037 minutes, 50 secondsdoc. So you can see I have a pretty decent latest one is what I'm using.
+37:5637 minutes, 56 secondsOkay. Now I'm using VS code by the way for folks who want to know that what I'm doing once this is done. Now let me
+38:0538 minutes, 5 secondsexplain you what all things I will be doing in this case. So in my project which you can see I created is uh at
+38:1538 minutes, 15 secondssomething called as quick bite ETA. I will now show you that what this project will do. Okay. So in this case I have
+38:2438 minutes, 24 secondswritten a very simple application. Now you will also notice something called as fast API with me. So I will explain you
+38:3338 minutes, 33 secondsalso what is fast API. So whenever I have to connect to any system for
+38:4038 minutes, 40 secondsexample when you connect to facebook.com you do not connect directly with facebook.com without any API. So what
+38:4838 minutes, 48 secondshappens there is something called as get request where when you go to facebook.com it will do a get request.
+38:5638 minutes, 56 secondsSo it say that oh go and retrieve some data for me. So there's a function called. So let's say you're calling a news feed function because let's say
+39:0339 minutes, 3 secondswhen you open www.fas.com it opens something called as newsfeed of Facebook where you see all the post. So
+39:1139 minutes, 11 secondsyou might be giving a call stating that get news feed for me for this user account. So then it makes a call which
+39:2039 minutes, 20 secondsis called as a rest call and then basically it retrieves the data from Facebook server and return the response
+39:2739 minutes, 27 secondsback to you. Similarly, let's say you fill up a registration form. In that case, you are sending the data from your
+39:3439 minutes, 34 secondslaptop to the server of Facebook saying that this is my registered new ID which I want to have. This is called as post
+39:4339 minutes, 43 secondsrequest. So, get request retrieving something, post request sending something. Clear? Easy. Okay. So, that's one part. Now, how we create these APIs?
+39:5639 minutes, 56 secondsThere are multiple ways. One thing is called as flask very simple lightweight getting used in
+40:0440 minutes, 4 secondsindustry from a long long time but I prefer a latest one because I have used this in my project quite a lot called as
+40:1240 minutes, 12 secondsfast API. So I am going to be spending some time over the fast API aspect of
+40:1940 minutes, 19 secondsit. So let's move towards fast API and understand how I can create all this. So
+40:2540 minutes, 25 secondslet me first show you in this that what we will be doing but before that let me show you a simple s code for machine
+40:3440 minutes, 34 secondslearning and you need do not worry about machine learning code why I'm telling you because today class is not about
+40:4240 minutes, 42 secondsmachine learning or LLM or agentic AI what happens at lot many places let's
+40:5040 minutes, 50 secondssay there is going to be a data science team there is going to be an AI engineering ing team they will be writing their code they will be giving
+40:5840 minutes, 58 secondsyou the code then you have to make it ready to be deployed on the cloud ecosystem so that's where your work
+41:0641 minutes, 6 secondsstarts now having the knowledge about this ecosystem will make you effective that's why I told you initially what is
+41:1341 minutes, 13 secondscalled as model what is called as jobl so that you understand this at a very high level but do you need to go into nitty-gritty of it no once the data
+41:2241 minutes, 22 secondsscience team will give you the code in enough for you. You will just pick up from there and start working. So let's look at this code now.
+41:3141 minutes, 31 secondsSo in this code what we are doing I have tried to replicate something related to
+41:3841 minutes, 38 secondsSwiggy. So when I say I am trying to replicate something related to Swiggy.
+41:4341 minutes, 43 secondsI'm not going to create any gradu API or streamlit API for UI part because I'm going to keep it everything related to Docker for now. But think of it like
+41:5241 minutes, 52 secondsthis. When you do an order over a Sugi app or a Zamato app, have you noticed that it gives you an ET of 32 minutes, 45 minutes?
+42:0242 minutes, 2 secondsHave you all noticed that? That exactly what we have built in this case. So in this case, I have created a dummy data
+42:1142 minutes, 11 secondsset just like I showed you know one year experience, 10K, 2ear experience, 20K.
+42:1642 minutes, 16 secondsSo I created a dummy data set. You need not worry about how it got created. I'm telling you at a high level. Once that
+42:2342 minutes, 23 secondsis done, I am trying to create a random mathematical formula on my own to get an
+42:3042 minutes, 30 secondsETA. Okay, again you need not worry about that what it do and so on. Once you do this, you are creating a machine
+42:3842 minutes, 38 secondslearning model. So there are a lot of models which can help you to create that formula. Think of like this. When I showed you that example of one year
+42:4642 minutes, 46 secondsexperience 10K, two year experience 20K, it was very easy for you to get that.
+42:5042 minutes, 50 secondsBut in machine learning case when I give it a very complex data set, how machine learning will be able to come up with a formula. So there are multiple
+42:5942 minutes, 59 secondsalgorithms which exist. So random forest is one of those algorithm.
+43:0543 minutes, 5 secondsSo when I'm passing my data set which I created here to my machine learning model, it will help me to create a model
+43:1443 minutes, 14 secondswhich is the my mathematical formula for me. For now, think of it like this. So this is a model which I created a
+43:2143 minutes, 21 secondsmathematical function which I created by using random false.
+43:2643 minutes, 26 secondsOnce I created this mathematical function with me, can you see I am just saving this as a pickle file. I could
+43:3343 minutes, 33 secondshave saved it like a job. You can see I'm also dumping it like a job. So once you create a pickle file from pickle file you can convert it to this. You might have seen this right? You created
+43:4243 minutes, 42 secondsa docx file you can convert it to job uh to your pdf formats. Same thing. So I am converting it to job. So this is just a
+43:5143 minutes, 51 secondsformat. Think of it just like you created a PDF file in your laptop.
+43:5443 minutes, 54 secondsThat's it. Okay. So this is what we have done by now. Again repeating what I just did.
+44:0344 minutes, 3 secondsSo in this case what I have just done I have lot of algorithm of machine learning. One of those algorithm is called as random forest.
+44:1444 minutes, 14 secondsI picked up a random forest algorithm.
+44:1744 minutes, 17 secondsThat algorithm I feed in my input data just like one year experience 10k 2 year experience 20k. Similarly I have created
+44:2544 minutes, 25 secondsa dummy data set for sugi and that data I feed into this algorithm. It created a mathematical function for me called as
+44:3344 minutes, 33 secondsmodel. Once I get this, I wanted to save it in my laptop. I did that saver in my laptop and that's it. I'm done. So this
+44:4244 minutes, 42 secondsI'm calling it as now a pickle file and I dumped it in the format of job. Okay,
+44:5044 minutes, 50 secondseverybody clear till this point what I just did? So we have just understood at a very high level what exactly is
+44:5944 minutes, 59 secondsmachine learning. Now if you're getting wondered what is this DF doing? What is this job doing? What is this np.trandom doing? What is this estimator doing?
+45:0845 minutes, 8 secondsLet's not bother about it. Like I said it came from your machine learning team.
+45:1345 minutes, 13 secondsYou have a high level intuition. What you need? What you need? You need only the pickle job li file. Agree everyone.
+45:2145 minutes, 21 secondsYou only need this pickle job file because that is what you need. You understand what it do that now if I feed
+45:2945 minutes, 29 secondsin some input like for example when I will do an order I will provide my locations and all that it will give me an ETA how much time it will take for me
+45:3845 minutes, 38 secondsto receive my order that is what I'm doing okay so it will give me that prediction
+45:4745 minutes, 47 secondsnow let's go to this app py okay now what I'm doing remember I talked about
+45:5345 minutes, 53 secondsfast API what it do it do at rest calling API feature for you. Get call, post call. Yes, sending data is post
+46:0246 minutes, 2 secondscall. Retrieving data is a get call. Now what I'm going to do with this? So I have created this fast API object blank object. I'm doing job.load.
+46:1446 minutes, 14 secondsCan you recall we had just created ETA_model.picle file.
+46:2046 minutes, 20 secondsRemember that. So I am saying you had created some model before I have saved it. Please load it on my this code. This
+46:3046 minutes, 30 secondsis a different code file. I'm saying please load it here. So if I give that pickle file from my laptop to your laptop also you will be able to load
+46:3846 minutes, 38 secondsthis and that mathematical function is available in your laptop.
+46:4346 minutes, 43 secondsThis is how as simple as this. Okay. Now so this is one part. Now notice another section what I did this is important.
+46:5746 minutes, 57 secondsSo there is a concern. Concern is lot of times when you work in this ecosystem let's say if I ask you to put your phone
+47:0547 minutes, 5 secondsnumber your phone number should be numerical or your phone number should be string.
+47:1547 minutes, 15 secondsYour phone number should be numerical or it should be string. numerical if I give a string or let's say I
+47:2447 minutes, 24 secondsstarted using Chinese character to that some object format I started giving is it the right thing to do when I say string let's say somebody started
+47:3247 minutes, 32 secondswriting s e v n7 8 e i a g s3 is it the right way to write that no but don't you
+47:4047 minutes, 40 secondsthink user can provide in any format yes now in order to hold you accountable
+47:4747 minutes, 47 secondsthat whatever format I need you need to use that lot of people use reg x second is something called as pentic model so
+47:5747 minutes, 57 secondsthis is a pentic model again I'm not going into depth but I'm just giving you a reference using this you will be able
+48:0548 minutes, 5 secondsto control okay this should be expected as float type this should be expected as float type this should be expected as
+48:1448 minutes, 14 secondsinteger type this should be expected as integer Right? So when you will be
+48:2148 minutes, 21 secondsall of you must have read Python or Java or any programming language. Have you heard about something called as inheritance?
+48:2948 minutes, 29 secondsYes. So basically you are inheriting here the base model class which is going to be coming from a pyic source and it's
+48:3748 minutes, 37 secondsbasically going to ensure that okay these are the things you need to follow.
+48:4248 minutes, 42 secondsSo why these features? Because when you will provide this as input now for your prediction for example your distance
+48:5048 minutes, 50 secondskilometer uh let's say you're ordering from a restaurant which is 10 km far from you then how much preparation time from the restaurant it will take then is
+48:5948 minutes, 59 secondsthe rider available for me or not is it raining or not how is the weather condition based on that it will give you a day have you all noticed when it rains the ETA time increase.
+49:1249 minutes, 12 secondsYes, the ETA time increase. You might have all seen that they in fact specifically say that since the weather is bad, expect a delay in your order.
+49:2149 minutes, 21 secondsThat is what is being considered here.
+49:2449 minutes, 24 secondsNow, let's look at this to just confirm if my
+49:3149 minutes, 31 secondsuh API is working or not. My fast API is working or not. I am going to create a
+49:3849 minutes, 38 secondsfunction called as health function. Now, notice what I'm doing here. So I'm saying here I am going to my root. So
+49:4549 minutes, 45 secondslet's say I'm going to call this app.get. What is this app? Can you see I created a object called as app here from fast API. So I'm going to call app. It's
+49:5449 minutes, 54 secondsa get call. I just want to make sure my fast API server is working. So whenever I will go to root folder of this means
+50:0150 minutes, 1 secondwhen I execute something in my code, I just want to see if it's working or not.
+50:0650 minutes, 6 secondsIt's a get call. If it's working, this function will get executed and it will give me hey quick by TTA is live. That's
+50:1250 minutes, 12 secondsit. Okay. Now let's go to the second one / predict. Now this is going to be important.
+50:1950 minutes, 19 secondsDon't you think a user have to do a post request by sending when I place an order it sends that okay how much distance far
+50:2750 minutes, 27 secondsI am because it sends my current latitude and longitude of my house. Then after that uh from my house how the
+50:3650 minutes, 36 secondsweather condition maybe it will call the weather app and so on right so basically I am going to send some post request I'm going to send from my app that okay
+50:4450 minutes, 44 secondsthese are the details you please take it up and then give me a prediction of it here that's why you can notice it's a post request so when I will go to
+50:5350 minutes, 53 secondspredict path when I say predict path think of it like this it will hit something like this www.sigi.com/predict suggi.com/predict.
+51:0251 minutes, 2 secondsSo let's say it's hitting that particular uh path. Now what it will do?
+51:0651 minutes, 6 secondsIt will execute this function. What will happen here? It is calling order. What is order? This order where I am restraining that okay you should belong
+51:1551 minutes, 15 secondsit all the input should come like this in this particular data type file. And then I'm saying okay I am taking some
+51:2351 minutes, 23 secondsinput which I will show you how it will look like. So it's let's say order.od model dump. So what is uh going to
+51:3051 minutes, 30 secondshappen here? So it is going to take my input data across in a simple way and then it is that model. What is this
+51:4051 minutes, 40 secondsmodel? This model this is the mathematical function which I have this model is going to get passed through
+51:4751 minutes, 47 secondsthis X. What is this X? This X think of it from your app when you clicked on that order placement button it sends the
+51:5651 minutes, 56 secondsdata to the swiggy that okay this is the distance this is the weather this is the details about it it sends all the data that is your X it contains all the
+52:0452 minutes, 4 secondsinformation in that X that's why I said this whatever you are passing it will just take up all this value inside your X once it will do that there's a
+52:1352 minutes, 13 secondsfunction called as predict now it will and this predict will belong to that algorithm random forest So it will predict from that
+52:2152 minutes, 21 secondsmathematical formula by passing your X to it. It will now return an EPA value to you.
+52:3052 minutes, 30 secondsThis in simple term it is what going to use. Simple case what we have just created.
+52:3852 minutes, 38 secondsOkay. Now what there are lot of things inside it which is blackbox for you. For example, PD, pandas, data frame is
+52:4552 minutes, 45 secondsnothing but like a table. I'm not going inside it.
+52:4852 minutes, 48 secondsLet's just understand what I'm trying to do from this code for now. Okay, because we haven't still reached to the docker
+52:5652 minutes, 56 secondsfile now. So I have these two functions available for me. Now let's move on and understand this docker file.
+53:0653 minutes, 6 secondsNow first thing can you notice I'm using something called as from python this. So what happening here? So I am basically
+53:1653 minutes, 16 secondstelling hey go and get me a very simple s uh operating system basically this is
+53:2353 minutes, 23 secondsa Linux version which have this Python version installed called as 3.12 now there are lot many images available
+53:3153 minutes, 31 secondsto us free of cost so when you will write this inside a docker file by by the way when you create this the
+53:3953 minutes, 39 secondsextension or nothing you should write same d capital o c k e our file you have to write and inside this you have to
+53:4753 minutes, 47 secondswrite this this is syntax for it. So when you say from this this is a very light version it will bring up a small
+53:5553 minutes, 55 secondsoperating system kind of thing for you having a python installed. So think of it it got a simple container inside your machine which have a small OS side of
+54:0454 minutes, 4 secondsthe thing supported and also have a Python 3.12 installed. What do you mean by slim? Slim is a very lightweight version of the things so that it is not going to occupy a lot of space for you.
+54:1654 minutes, 16 secondsNow where you can see other operating system we will come to it. Now what is this? If you have a container which have
+54:2454 minutes, 24 secondsthe operating system will it have directory files? Yes. Have you all noticed when you open the terminal in
+54:3154 minutes, 31 secondsyour system? Have you noticed that in that terminal also it start showing you a default space. It will take you like / user for example in my case it would be slash user/caler.
+54:4254 minutes, 42 secondsYes. So there is a default space where it generally opens up everything for you. So think of that default space ash
+54:5054 minutes, 50 secondsin that container as slash app directory. Okay. Now once this is done then what's the next part?
+55:0055 minutesAll of you who have done the previous sessions were will be aware of something called as requirements.txt. txt what's
+55:0755 minutes, 7 secondsthe use of it use of this is let's say I want to install a package called a second let's say I want to install a
+55:1455 minutes, 14 secondspackage for open let's say I want to install a package called a scikitler so how I can install I can keep doing
+55:2155 minutes, 21 secondspip install package name pip install package name better way to do that is put it inside into one file that file
+55:2955 minutes, 29 secondsyou can execute it anywhere for example I can just come here and say pip installed requirements dot txt. So what it will do?
+55:4355 minutes, 43 secondsSorry, let me create this quick environment. Quick create vnv.
+55:5355 minutes, 53 secondsOkay, perfect. So I will say pip install- r because there are multiple values. So it should run in a recursive
+56:0056 minutesmode. And second what I'm doing
+56:1056 minutes, 10 secondslet me write this again pip install r requirements txt let's see so what it
+56:1956 minutes, 19 secondswill do you can see it will start installing all of this for you now tell me if you are running it right now on
+56:2756 minutes, 27 secondsyour VS code don't you think that uh all this VS code thing which I'm running
+56:3356 minutes, 33 secondshere is um basically all these things are in your laptop yes if you have to
+56:4156 minutes, 41 secondsrun it don't you think you need to also run it inside your container then now so first thing is I need to copy this requirement txt file to my container
+56:4956 minutes, 49 secondsagree so that's the first step so notice in the app py sorry in the docker file I am telling that copy this requirement
+56:5956 minutes, 59 secondstxt to my you can see this dot so basically it will go to this work directory in that doer and will copy this requirement
+57:0757 minutes, 7 secondstxt from your local machine to that container then after that you see I'm saying run pip install uh requirements
+57:1557 minutes, 15 secondstxt so what it will do it will go and execute that requirement txt just the way I ran it here it will go and execute
+57:2257 minutes, 22 secondsthat in that container clear everyone till this point simple Okay, now let's move the other part.
+57:3257 minutes, 32 secondsDon't you think I need to copy the other code also like train py app py all of this also?
+57:4057 minutes, 40 secondsYes, that's what I need to do. So that I will do again. Now somebody have asked one question. I just want to clarify
+57:4657 minutes, 46 secondsthat what is this dot cp command? This is nothing but cp command. So this file you are saying from my current directory
+57:5557 minutes, 55 secondsof my local system. Copy it to my container. Default directory. What is
+58:0258 minutes, 2 secondsthis default directory? Is this inside this? Send it here. Clear? Okay. This is
+58:1058 minutes, 10 secondsvery simple. Now let's move to the next part. Once you have copied all the other
+58:1658 minutes, 16 secondscode, so when I say this dot dot also, so dot space dot. So this means every file what you have in your laptop on
+58:2458 minutes, 24 secondsthis current folder from your laptop copy it to the default folder. What is the default folder here
+58:3258 minutes, 32 secondsto your container machine. It is again a cp command which is working in this case. Okay. Now let's move on. Run
+58:4258 minutes, 42 secondspython train py. So it will execute this. Why it will execute and where it will execute? It will execute. Now first
+58:4958 minutes, 49 secondsof all is train. py now available in my container. Have I copied this?
+58:5658 minutes, 56 secondsHave I copied this? Yes, I copied this.
+58:5958 minutes, 59 secondsIf I have copied, can I just go and execute that inside my container because that's why I'm saying run. Run means go and execute in my container and I'm
+59:0859 minutes, 8 secondsinside my container. I'm saying python train. Py. So what this will do inside container will that create my pickle file in the job format?
+59:1759 minutes, 17 secondsYes, it did. Now what's this? What is this expos?
+59:2459 minutes, 24 secondsNow this is just the port where I want my application to be available and then
+59:3259 minutes, 32 secondsat the end I am also saying that go and execute this UV command. So basically UVI is also something I installed
+59:3959 minutes, 39 secondsthrough requirement.txt. So this will just help me to execute this at this port. So it will help me to execute the
+59:4859 minutes, 48 secondsuh whatever I have written down like app. py. So this whole thing because the fast API need to execute right. So that
+59:5559 minutes, 55 secondsfast API execution is what we are going to do inside my container. That's it.
+1:00:041 hour, 4 secondsThis is what my docker file is doing. As simple as this. Let me talk at a very high level what we did.
+1:00:111 hour, 11 secondsI have written the code firstly requirement.txt pushed it to container.
+1:00:171 hour, 17 secondsOnce I did that I installed requirement.txt then I copied all the other code. Then I executed train. py because that will create my pickle file.
+1:00:261 hour, 26 secondsAnd then I said once you got ready I want to also execute my app. py which have the fast API ready with me. I will
+1:00:341 hour, 34 secondsrun it with UV and so what going to happen? It will execute
+1:00:411 hour, 41 secondsmy fast API code in my docker container.
+1:00:481 hour, 48 secondsThat's what it did. Again, I talked everything at a very high level right
+1:00:551 hour, 55 secondsnow. Why I'm doing that? Because it's an advanced class. I already announced it.
+1:01:021 hour, 1 minute, 2 secondsSo, let's move to the next step. Now I hope everybody is okay with this part.
+1:01:101 hour, 1 minute, 10 secondsSo I will do whenever I call something as an advanced class. Please don't expect that I will go into every nitty-gritty details. Whatever easy
+1:01:191 hour, 1 minute, 19 secondsthings when I teach I go every step but when I'm going to the advanced class to advance right today is not very advanced
+1:01:261 hour, 1 minute, 26 secondsto be honest. I will be very clearly calling that out. But a slight advancement means that chota ch that
+1:01:331 hour, 1 minute, 33 secondswhat that parameter do that parameter do can you just check it from anywhere easily from the documentation itself say
+1:01:401 hour, 1 minute, 40 secondswhat no cache will do somebody asked that question tell me can you make out from the parameter name itself that when
+1:01:471 hour, 1 minute, 47 secondsyou execute don't c anything for me reline it whenever it's required yes that's a simple construct here now let's
+1:01:561 hour, 1 minute, 56 secondsmove on So once we have done all this once we have understood now how we have created
+1:02:041 hour, 2 minutes, 4 secondsthe fast API app we said that okay let's execute also all these things inside my uh dockerized container there are few
+1:02:131 hour, 2 minutes, 13 secondsmore files can you see this docker ignore yes what does this do so when you're
+1:02:231 hour, 2 minutes, 23 secondsworking on your project it also create lot of Python cache files and all that as well and they could be very big even
+1:02:311 hour, 2 minutes, 31 secondsit will create virtual environment files and all that so it may create let's say 500 500 MB files and all this do I
+1:02:381 hour, 2 minutes, 38 secondsreally need to copy or including my secret keys also right so do I need to copy all of that to my container no
+1:02:481 hour, 2 minutes, 48 secondsbecause they will be huge unnecessarily will eat up my space so whatever things you do not want to go to my docker
+1:02:541 hour, 2 minutes, 54 secondscontainer you can define it here that's number Now what I will do is I will just say docker build.
+1:03:041 hour, 3 minutes, 4 secondsI'm going to give a tag to define some name. Let's say I can say uh quick bite-a.
+1:03:141 hour, 3 minutes, 14 secondsLet's call it as me. Okay. So what it did?
+1:03:221 hour, 3 minutes, 22 secondsOkay. I need to also give a dot. Sorry about this because it will search for my docker file. So it will just go and execute this. Can you see this is running my docker file. Yes.
+1:03:331 hour, 3 minutes, 33 secondsOnce it is done, I can quickly see my images. Docker image.
+1:03:431 hour, 3 minutes, 43 secondsWhat I'm doing? It should be images.
+1:03:461 hour, 3 minutes, 46 secondsSo you can see I created V2 right? Not V_sub_1. Sure should be because I created a lot of
+1:03:551 hour, 3 minutes, 55 secondsthings beforehand that's why you are seeing too many images for me but it will be somewhere here the name as V2
+1:04:021 hour, 4 minutes, 2 secondsjust like how you can see V_sub1 also here similarly there will be V2 also okay you can check it here it will some just like this V1 you can see right so
+1:04:101 hour, 4 minutes, 10 secondsthere will also be a V2 version of this part of it so this will show you up that what all things you have available now
+1:04:181 hour, 4 minutes, 18 secondslet's move on to the next part once this is also done give me a Right. I'm just trying to make the size bigger for you.
+1:04:261 hour, 4 minutes, 26 secondsNow, uh, next thing is I want to run my Docker. So, what I will do. So, look at this. So, I need to give this as B2.
+1:04:391 hour, 4 minutes, 39 secondsNow, look at this. I'm saying, hey, run my Docker. Okay, run my Docker in a detached mode. Detached mode means I
+1:04:471 hour, 4 minutes, 47 secondsdon't want that. Uh, this should keep running. You can keep running in your background. This was the port at which I enabled. Everybody remember?
+1:04:541 hour, 4 minutes, 54 secondsYes. So this local port please map it to my container port. So in my container also please enable the port 8,000 for
+1:05:031 hour, 5 minutes, 3 secondsme. That's what you're doing. Then you are telling that which docker you want to run. So you are telling remember I just created this quick bite uh this
+1:05:111 hour, 5 minutes, 11 secondspart. So let me execute this. So and by the way this will just be a name of the docker when it will get executed.
+1:05:211 hour, 5 minutes, 21 secondsSo once it get executed now what I will do? So in my docker have I now executed
+1:05:281 hour, 5 minutes, 28 secondsmy docker file? Yes. Now in that don't you think my fast API will be running because through UV I have executed that?
+1:05:361 hour, 5 minutes, 36 secondsYes. Now I need to check the predict function. If I have to check the predict function, don't you think I need to do a slash predict?
+1:05:461 hour, 5 minutes, 46 secondsYes, I need to do a / predict because remember the at py had this call. Let me quickly show you this one. I need to do this. Is it a post call or a get call?
+1:05:591 hour, 5 minutes, 59 secondsIs it a post call or a get call? Post call. So whenever I want to execute something, I can do it with the help of
+1:06:061 hour, 6 minutes, 6 secondscurl command. So let me show you. By the way, there are other ways also like you can use postpand and all that. But for now, I'm just showing you a very simple
+1:06:131 hour, 6 minutes, 13 secondsthing. Curl check this post command. I'm just saying that hey, I'm going to do a post request to you. Can remember I said
+1:06:211 hour, 6 minutes, 21 secondsthat 8,000 is the port number where you should run. So it's going to run at the 8,000 port. Can you see I'm calling this
+1:06:281 hour, 6 minutes, 28 seconds/ predict? Yes, I'm saying that I am going to pass you the data in the JSON format. So that's why I'm saying that
+1:06:361 hour, 6 minutes, 36 secondscontent type application/jation and can you notice these are the input parameters which I have to provide. Do
+1:06:431 hour, 6 minutes, 43 secondsyou remember this distance kilometer I will once I click on order it will calculate 4.5 km preparation time so it
+1:06:521 hour, 6 minutes, 52 secondswill say let's say it will take 15 minutes at the restaurant to prepare rider available one means it's there available is raining let's say it's also
+1:07:001 hour, 7 minutesraining which is one so I am passing these inputs now what it will do it will go and call this
+1:07:071 hour, 7 minutes, 7 secondsit will go and call this function that's it yes this is JSON Now if I execute this, can you notice it gave me an output?
+1:07:181 hour, 7 minutes, 18 secondsYour food arrives in 40.5 minute.
+1:07:221 hour, 7 minutes, 22 secondsYes. Can you see this is the function output.
+1:07:291 hour, 7 minutes, 29 secondsNow remember this code is running inside your docker not in your local machine.
+1:07:381 hour, 7 minutes, 38 secondsClear on the first code everyone. term. Interesting.
+1:07:481 hour, 7 minutes, 48 secondsOkay, perfect. Now let's move to the next section where we
+1:07:551 hour, 7 minutes, 55 secondswill see by the way H is header. Uh guys again these small small parameters go and uh after the once I will upload the
+1:08:041 hour, 8 minutes, 4 secondscode now play with them you will have a better feel of this. But for now let's focus on the main stuff which I want to cover in this section.
+1:08:141 hour, 8 minutes, 14 secondsNow once we are done with this should we move to the next project which is going to be your LL project. Now
+1:08:221 hour, 8 minutes, 22 secondsyes but now I hope everybody got a good understanding of this that how this
+1:08:291 hour, 8 minutes, 29 secondsworks. Now we will go to second project which I will call it as scalar GPT project. And in that project I will use
+1:08:381 hour, 8 minutes, 38 secondsan open AI key and through that I will be executing few stuff. Things will be
+1:08:441 hour, 8 minutes, 44 secondsinteresting now because I told you uh initial 1 hour I took it just to give you the basic concept
+1:08:511 hour, 8 minutes, 51 secondsand let's work on the next stuff from here. So let's connect again after a small break as few of you are already
+1:09:001 hour, 9 minutesrequesting and then we will see you in 5 minutes. works.
+1:09:071 hour, 9 minutes, 7 secondsSure. So, see you in 5 minutes, guys.
+1:14:151 hour, 14 minutes, 15 secondsOkay, I hope everybody's back.
+1:14:191 hour, 14 minutes, 19 secondsLet me just do one small thing before I start.
+1:14:291 hour, 14 minutes, 29 secondsBasically, what I'm doing is setting up my key without showing you my key. Then I will share my screen.
+1:15:031 hour, 15 minutes, 3 secondsNow sharing my screen.
+1:15:151 hour, 15 minutes, 15 secondsOkay.
+1:15:171 hour, 15 minutes, 17 secondsSo I hope you can see it. I just copied the open AI key. It's half you which you can see. So you can't see anyway full
+1:15:241 hour, 15 minutes, 24 secondsthing. Uh so for now let's move on to the next step. Um by the way I realize one or two people have raised hand.
+1:15:331 hour, 15 minutes, 33 secondsLet's talk about it at the end. If you feel it's really urgent, put it over the chat, okay? Because I still have to cover a lot of topics. Now let's see
+1:15:421 hour, 15 minutes, 42 secondswhat we are going to do in this particular project. This is going to be very interesting. We will use LLM. Not only that, I will use rack. Now what is
+1:15:511 hour, 15 minutes, 51 secondsrack? It's retrieval system. Think of it like a DB for now where you can keep any of your text and when you search
+1:15:581 hour, 15 minutes, 58 secondssomething, it will search even the similar items for you. For example, let's say in Amazon you go and buy or
+1:16:061 hour, 16 minutes, 6 secondssearch for marathon shoes, it will also give you not only marathon shoes name similarity but it will also give you let's say sport shoe and all that right
+1:16:141 hour, 16 minutes, 14 secondssimilar items also comes out of it. So think of rag like this. So there are different DBs what we have for example chroma DB, fires DB which are there
+1:16:221 hour, 16 minutes, 22 secondsavailable with us this much of understanding is good enough with you. Again the goal here is
+1:16:291 hour, 16 minutes, 29 secondsto understand how the dockerization for an LLM things will work where I'm using
+1:16:371 hour, 16 minutes, 37 secondsrag injection. So I will also be I I would have to set up my rag ecosystem as well to this. So the first thing when
+1:16:451 hour, 16 minutes, 45 secondsyou work with LM you need to set your keys which you already must be aware in case if not what you need to do you need to create a file called asenb
+1:16:541 hour, 16 minutes, 54 secondsand inside that you need to create let's say I'm copying an openi key so I'm going to say openai_api
+1:17:021 hour, 17 minutes, 2 secondskey. Now how will I get this key? You can go to platform.openai.com create an account. You need to put a
+1:17:091 hour, 17 minutes, 9 secondscredit card there. Once you do this uh and upload maybe $5 that's a minimum what you need to put there but this for
+1:17:171 hour, 17 minutes, 17 secondsthis part you might not require even 0.01 01 set just calling it out it's almost free of cost it just that for getting an account for there and then
+1:17:261 hour, 17 minutes, 26 secondsthere is a option of key generate key from there copy paste it here that's it okay so that's a key vala component
+1:17:351 hour, 17 minutes, 35 secondsnow once that is done okay once that is done what all things we will be doing so
+1:17:421 hour, 17 minutes, 42 secondswe will be now creating a dockerization of an LLM project where we will see uh I
+1:17:491 hour, 17 minutes, 49 secondswill ingest these some documents which you can see in my docs folder. For example, I'm going to write something related to docker compose and volume.
+1:17:571 hour, 17 minutes, 57 secondsOkay. So you can see here I'm just writing it down. Then I have docker basics. Some document I have written for this. Similarly some rag nodes. Okay. So I will be ingesting this into my rag.
+1:18:101 hour, 18 minutes, 10 secondsOkay. That's what I will do. So first thing first let's look at the requirements.txt file. Do I need to install this? Yes.
+1:18:191 hour, 18 minutes, 19 secondspip install - r requirements.tphtxt PhD right so whatever will be already there
+1:18:261 hour, 18 minutes, 26 secondsit will be there and you can see here it will get installed okay so once this is
+1:18:351 hour, 18 minutes, 35 secondsinstalled what's the next step I already showed you the open key piece but let's go to app py I hope all of you can
+1:18:441 hour, 18 minutes, 44 secondsrecall now what does app py do fast API remember that we will use something similar here I don't have train py
+1:18:521 hour, 18 minutes, 52 secondsbecause I'm no more into machine learning models. I am now into LLM models. That's a difference which I want
+1:18:591 hour, 18 minutes, 59 secondsto call out here. Even you can use the rock key by the way. There's no issue.
+1:19:031 hour, 19 minutes, 3 secondsNow look at this. So in this case I am going to call my fast API calling it as this. Now notice API key. I am going to
+1:19:131 hour, 19 minutes, 13 secondsload this from my open AI key from the env. This will just read my key because
+1:19:191 hour, 19 minutes, 19 secondswithout this my code will not work. Now what is this? I am reading my key to
+1:19:271 hour, 19 minutes, 27 secondscreate a model. Remember train.py was creating a model which I created. Yes, this LLM model is already created by
+1:19:361 hour, 19 minutes, 36 secondsOpenAI. So I don't need to worry about it. I just called it as an object from OpenAI because my key was already available with me. So it created a model with me.
+1:19:461 hour, 19 minutes, 46 secondsNow once it is there now there is something called as embedding. What is this? People who know uh the rag topics
+1:19:561 hour, 19 minutes, 56 secondswho have done that they might be aware of it but for people who do not know just calling out what they do. So when
+1:20:031 hour, 20 minutes, 3 secondsyou store something inside your rag db you cannot just store it like a text. For example I say hey this is Shivank.
+1:20:111 hour, 20 minutes, 11 secondsSo it will not be hey this is Shivank.
+1:20:131 hour, 20 minutes, 13 secondsIt will be a numeric value related to this. Now how that numeric value happens when you will learn about rag you will learn it in detail or if you have done
+1:20:211 hour, 20 minutes, 21 secondsso you might be aware of it but think of it that inside your rag db everything gets stored as numbers. So it will do a
+1:20:301 hour, 20 minutes, 30 secondsconversion to numbers and those numbers we call it as embeddings. So in this case openai provide a model called as text embedding three small.
+1:20:411 hour, 20 minutes, 41 secondsSo this is the model which I will be using to convert any text to numbers which rag basically understand. Then after that I am going to use chroma.
+1:20:521 hour, 20 minutes, 52 secondsOkay I'm going to use chroma. Chroma is one of the rag ecosystem open source. So that's what I'm using. So I'm saying that I'm going to run it on local host
+1:21:001 hour, 21 minutesinside container. Basically whatever is the local machine I will run there and it's going to be accessible at 8,000 port number. So again I'm just telling
+1:21:091 hour, 21 minutes, 9 secondsthat chroma you will be available uh inside container when I will create a docker file but you will be available at
+1:21:171 hour, 21 minutes, 17 seconds8,000 port number. Now what this function will do this function will just try to create a connection with chroma
+1:21:251 hour, 21 minutes, 25 secondsand it will try to do three times with an exponential back off. So first it will run if it if it's not able to
+1:21:331 hour, 21 minutes, 33 secondsconnect it will time out then it will wait for few seconds again try if it again do not connect it will again try to connect after few more seconds so
+1:21:411 hour, 21 minutes, 41 secondsthat is what this function will do so this function is only going to create a connection and I'm doing it with the
+1:21:471 hour, 21 minutes, 47 secondshelp of HTTP okay again no need to worry about this part just understand at a high level what it do for now now
+1:21:561 hour, 21 minutes, 56 secondsthen you are just saying that okay let me call this function which is going to connect to my rack db. Yes.
+1:22:031 hour, 22 minutes, 3 secondsNow a question is why I am doing this connection. Remember I told you I will create different different containers. I
+1:22:121 hour, 22 minutes, 12 secondswill create now different different docker when I started the class. So one container will keep only rack db. So if
+1:22:201 hour, 22 minutes, 20 secondsother container want to talk don't you think it need to have that connection now? Yes.
+1:22:281 hour, 22 minutes, 28 secondsNow I hope you're getting the context.
+1:22:301 hour, 22 minutes, 30 secondsSo in case when I will put into different containers this connection will make sense for me I'm keeping it simple aentic will come even in much
+1:22:381 hour, 22 minutes, 38 secondsmore complex way of micros service. Now, so once I have done this here, I am basically going to connect to this and I
+1:22:481 hour, 22 minutes, 48 secondsam just saying that okay uh in my this part create this particular connection.
+1:22:531 hour, 22 minutes, 53 secondsI'm just giving a name to it and I'm saying that this open AI EF is nothing but this embedding function. See this.
+1:23:011 hour, 23 minutes, 1 secondSo basically whatever I will store should get stored basically from this embedding function. So whatever I will
+1:23:091 hour, 23 minutes, 9 secondspass through it should get converted using this embedding model and convert into numbers for me. Now let's look at
+1:23:161 hour, 23 minutes, 16 secondsthis again. Everybody recall this everybody recall this identic. I'm
+1:23:251 hour, 23 minutes, 25 secondssaying whenever I will ask a question the question should be of string format.
+1:23:301 hour, 23 minutes, 30 secondsLet's go to the next one. So if I only go to slash not to slash predict and all remember last case is slash. So it will
+1:23:361 hour, 23 minutes, 36 secondsjust tell me that okay scala GPD is live now whatever is present inside my rack just count how many things I have chroma
+1:23:451 hour, 23 minutes, 45 secondsis present at what place at what p is running that's just printing those stuff now look at this when I will ask a
+1:23:541 hour, 23 minutes, 54 secondsquestion when I will ask a question from this rack db which is going to sit in my container then it is going to take my
+1:24:021 hour, 24 minutes, 2 secondsinput question and then it will see in my rack if there is nothing available in my rack. Basically, the count of the deep data which is present in rack is
+1:24:101 hour, 24 minutes, 10 secondszero. Don't you think then it should come out? Yes, because then it say I don't have any data what I will search
+1:24:171 hour, 24 minutes, 17 secondsif everything is there then from this collection remember this collection which I created here where I'm saying
+1:24:241 hour, 24 minutes, 24 secondsthat do this embedding and all that from this collection go and query my data and give me the top three similar results
+1:24:321 hour, 24 minutes, 32 secondswhich I got. So let's say if I ask a question explain me about rag. So what it will do inside my rag DP which I will
+1:24:401 hour, 24 minutes, 40 secondsshow you in a different code these documents will be ingested.
+1:24:461 hour, 24 minutes, 46 secondsSo if it will go if I ask a question what is rag it will actually go and search from here. Okay rag stands for retrieval generation and all that blah
+1:24:541 hour, 24 minutes, 54 secondsblah blah and it will return you that response. So it will search that in my DB is the concept of rag available or
+1:25:011 hour, 25 minutes, 1 secondnot? If available it will just give it from here clear. So let's say if here I change it to rag stand for shivangal and
+1:25:101 hour, 25 minutes, 10 secondsI ingest it to rag and I ask what is rag it will start giving me rag stands for shivanga.
+1:25:181 hour, 25 minutes, 18 secondsGot it everyone? So whatever you are inputting it is going to output the same thing for you. That's what is the simple
+1:25:241 hour, 25 minutes, 24 secondsthing going to happen here now. So let's go back to app. py. So here this query
+1:25:321 hour, 25 minutes, 32 secondsfunction will just go and search in my rack db all these three documents when I will show you how to ingest later and it will just query it uh with your question
+1:25:411 hour, 25 minutes, 41 secondslike what is rap it will accordingly respond. Now once it have done these
+1:25:481 hour, 25 minutes, 48 secondshits it will say hits.get documents. It is just searching for it and it will join all the three documents which I the top three documents which I have given
+1:25:561 hour, 25 minutes, 56 secondsto you. It will just join them up together. Once you're done now read this I'm giving a prompt. I'm telling to my
+1:26:041 hour, 26 minutes, 4 secondsyou are a scalar GPT a helpful teaching assistant. Answer the user's question only with the context below. If the context does not contain the answer say
+1:26:131 hour, 26 minutes, 13 secondsyou don't know. For example, I am just telling that if you ask any question other than this, you say I don't know.
+1:26:211 hour, 26 minutes, 21 secondsDon't bother about anything. Don't try to create your own answers. So if I would ask let's say explain me LLM and if you do not get it from here, don't answer.
+1:26:311 hour, 26 minutes, 31 secondsOkay, something like this. Now once it is done, this is standard way how you connect with your open AI. Very simple
+1:26:401 hour, 26 minutes, 40 secondsfunction. And once it will get executed, it is going to return the question the
+1:26:471 hour, 26 minutes, 47 secondsanswer which the LLM have given you and with what sources it have used. That's it. Once this code will be ready. So
+1:26:551 hour, 26 minutes, 55 secondsthis code is nothing but creating that remember this code will get executed when you are executing that ask
+1:27:031 hour, 27 minutes, 3 secondsfunction. Look at this here. Everybody recall this? Yes. This whole code below which I explained you is coming from a ask function. Nothing more than that.
+1:27:141 hour, 27 minutes, 14 secondsNow let's move to the next thing. This is by the way interesting right? You can see so many moving components now start coming slowly things are becoming
+1:27:221 hour, 27 minutes, 22 secondsinteresting and interesting because this is how you need to naturally depend your codes. Now let's see this part.
+1:27:291 hour, 27 minutes, 29 secondsLook at the docker file. Okay. So that you can understand what's going to go inside this. In fact before I go to docker file let me also show you
+1:27:371 hour, 27 minutes, 37 secondsinest.py. py. So this ingest py is nothing but remember I told you that I will be pushing my u code to uh
+1:27:471 hour, 27 minutes, 47 secondsbasically my uh sorry remember I told you up that I will be pushing my all the data which is inside this docs folder to my rack.
+1:27:561 hour, 27 minutes, 56 secondsYes, this is what I will do. So here you can see I am connecting to openi again as simple as this. I'm saying that I
+1:28:031 hour, 28 minutes, 3 secondswill use open embedding. I am telling that okay where is my chroma present then I'm going to create a connection with my chrom creating collection again
+1:28:131 hour, 28 minutes, 13 secondsnow look at this it's basically loading the data from docs folder inside the docs folder all these files whatever are
+1:28:211 hour, 28 minutes, 21 secondsavailable either it could be txt or md you can see md all the files which are there load it here once this is done
+1:28:311 hour, 28 minutes, 31 secondsthen after that open this file path it's very simple and basically keep on chunking it.
+1:28:381 hour, 28 minutes, 38 secondsChunking means divide the file into small small parts so that it's easy to insert inside your chrom. Once this is
+1:28:471 hour, 28 minutes, 47 secondsdone and even the searching becomes easier. You can see this upsert command.
+1:28:531 hour, 28 minutes, 53 secondsUpsert is going to now load all your documents chunks what you have created inside your active.
+1:29:021 hour, 29 minutes, 2 secondsThis line of code is only doing this. So again I have not gone into the detail of each and every line of the code which
+1:29:111 hour, 29 minutes, 11 secondsyou can look at it later or wait for the future classes where the basic things will be taught to you. For now I'm just telling you again docuation. So this
+1:29:201 hour, 29 minutes, 20 secondsfiles you will get it from your AI engineering team but still I'm telling you so that you get an understanding what each files are doing. So inest.py
+1:29:281 hour, 29 minutes, 28 secondspy is taking the data from docs folder pushing it inside chromb app. py is
+1:29:351 hour, 29 minutes, 35 secondswhere when you will do / ask with any question it will go to your chromat and accordingly we'll search whatever it is and return you the answer for that.
+1:29:451 hour, 29 minutes, 45 secondsOkay. Now once this is done let's look at the docker file. Look at it yourself.
+1:29:521 hour, 29 minutes, 52 secondsIt should be easy. Now I'm saying that okay I have uh get the python when I let's have a default directory copy the
+1:30:001 hour, 30 minutesrequirement.txt execute requirement.txt inside my container copy the remaining code expose the port 8000 so that I can
+1:30:091 hour, 30 minutes, 9 secondsconnect to my part and then open up my uh fast API. Is this now sounding easy to you? Can you see you can connect a pattern very easily?
+1:30:181 hour, 30 minutes, 18 secondsYes. Now let me come to the fun part.
+1:30:241 hour, 30 minutes, 24 secondsThe fun part is docker compose.yamel.
+1:30:301 hour, 30 minutes, 30 secondsSo what was doing? We were like ordering uh let's say you have to order only one
+1:30:351 hour, 30 minutes, 35 secondstip that is like a docker. Okay. But if let's say uh compose basically say that
+1:30:441 hour, 30 minutes, 44 secondswrite one menu. Okay. uh and then just say serve the thali for me. It can do it for you.
+1:30:541 hour, 30 minutes, 54 secondsOkay. So it's like extended version of your docker. Think of it like this. So even using this thing you can have
+1:31:031 hour, 31 minutes, 3 secondsmultiple dockers being created for yourself. It's very interesting. In fact before I show you this give me a minute.
+1:31:201 hour, 31 minutes, 20 secondsLet me delete all my dockers so that it's easy for you to understand
+1:31:361 hour, 31 minutes, 36 secondsperfect even let me delete all the images so what I'm doing is basically I have lot of docker images got created by chance.
+1:31:451 hour, 31 minutes, 45 secondsI'm just trying to delete so that I have some space.
+1:31:561 hour, 31 minutes, 56 secondsIt's eating I think more than 50 GB for me.
+1:32:081 hour, 32 minutes, 8 secondsI created how can I delete all?
+1:32:131 hour, 32 minutes, 13 secondsLet's delete all now. Done.
+1:32:211 hour, 32 minutes, 21 secondsNow it will be a lot easier for me to cover that for you.
+1:32:301 hour, 32 minutes, 30 secondsPerfect.
+1:32:311 hour, 32 minutes, 31 secondsNow let's see. Yeah, I actually did it from Docker desktop where you can see Docker image. I will show you this time. Okay. So now look at
+1:32:401 hour, 32 minutes, 40 secondsthis file. what it will do for you. Then look at this. So docker compose is very simple. Let's see the services. What is
+1:32:481 hour, 32 minutes, 48 secondsthe service? Think of it like giving a menu card. Okay? So I'm telling that okay whatever is below it they are like
+1:32:561 hour, 32 minutes, 56 secondsone one container which I'm telling you then so uh in fact think of it like this uh have you noticed if you have used
+1:33:051 hour, 33 minutes, 5 secondsinstammart or zeppto these kind of services at your end. So you can order and then they don't bother about there
+1:33:121 hour, 33 minutes, 12 secondsmight be different warehouses from where the item comes. Have you noticed that sometimes they split it into two orders for you don't worry you just say that do
+1:33:201 hour, 33 minutes, 20 secondsthis it will go to different different warehouses and two delivery guys or three delivery guys can come and deliver it for you. So think of services like
+1:33:291 hour, 33 minutes, 29 secondsthis that I am telling you that what I want you take care of remaining things for me. Then look at this first part
+1:33:371 hour, 33 minutes, 37 secondsinside app build. So it will go and search for the docker file in my current directory. Okay. So build this service image is what you are telling it to it.
+1:33:471 hour, 33 minutes, 47 secondsNow container name. So you let's say giving a container name which is called as scalar GPT in this case port. Can you
+1:33:541 hour, 33 minutes, 54 secondsrelate this easily? 8,000 port from your local map it to this environmental file.
+1:34:001 hour, 34 minutesBasically your remember contains a secret. That's what the part environment. So I'm telling that okay
+1:34:071 hour, 34 minutes, 7 secondschroma host is available at chroma chroma port is available at 8,000 remember in the code also we were using this continuously
+1:34:151 hour, 34 minutes, 15 secondsdepends on now can anybody make out why I'm writing depends on chroma because can you see chroma so basically I'm
+1:34:231 hour, 34 minutes, 23 secondssaying this docker which I'm creating depends on my chroma remember my whole code was all about rag only yes it's
+1:34:311 hour, 34 minutes, 31 secondsonly about rag so basically I'm saying that you are dependent on this chroma service which I have to create. So restart basically until the time it
+1:34:391 hour, 34 minutes, 39 secondsstopped like I forcefully stop it. Keep running this up for me now. So whenever
+1:34:461 hour, 34 minutes, 46 secondsyou see this part depends on so always related like this I have to first start the service chroma then only I can
+1:34:541 hour, 34 minutes, 54 secondsexecute this remember this because if it depends on this don't you think first I need to execute the chroma service I
+1:35:021 hour, 35 minutes, 2 secondsneed to have the chroma up. If my chrom is not up then what I will do if my rack db is not up my none of the my code is going to be helpful as simple as this.
+1:35:111 hour, 35 minutes, 11 secondsNow let's see chromb here I'm saying my chrom is available as this. I'm going to use this version 0.6.3.
+1:35:191 hour, 35 minutes, 19 secondsThen your container name I'm giving to it. I'm giving a port. I'm mapping my local port 801 to 8,000. This is just as
+1:35:261 hour, 35 minutes, 26 secondssimple volume. Now what is this? So what happens is when you're going to execute
+1:35:321 hour, 35 minutes, 32 secondsthis so chrom is nothing but a data store right it's a data store so you will be storing those chunks and all
+1:35:411 hour, 35 minutes, 41 secondssomewhere so that let's say if you delete the container those chunks will also get deleted then but let's say what you're saying is that okay keep running
+1:35:491 hour, 35 minutes, 49 secondsmy docker where I have chromad but whatever it's storing also link it to this local directory for me I want to
+1:35:561 hour, 35 minutes, 56 secondspersist it I don't want to even if I lost my docker my container it's okay at least my data should be still persistent
+1:36:031 hour, 36 minutes, 3 secondsin some folder that folder is this clear okay now so then restart again the same
+1:36:131 hour, 36 minutes, 13 secondsthing and your volume is coming from coma data basically which is this basically the persistent place where I
+1:36:191 hour, 36 minutes, 19 secondswill be storing this interesting right so we have just seen now how this whole thing works
+1:36:271 hour, 36 minutes, 27 secondsnow what I will Let me execute this code for you.
+1:36:321 hour, 36 minutes, 32 secondsSo first I will say docker compose up uh run it in a way and build it. So basically it will
+1:36:401 hour, 36 minutes, 40 secondsgo and execute this file docker compose which will be loading the data from the docker file get executed
+1:36:511 hour, 36 minutes, 51 secondsonce this will be executed.
+1:36:541 hour, 36 minutes, 54 secondsSo basically this is reading right now my docker compose. ML file which is anyway going to load my docker file. It
+1:37:011 hour, 37 minutes, 1 secondwill set up my uh chromb everything for me. Okay. So it have done. Now once this
+1:37:071 hour, 37 minutes, 7 secondsis done then I will be saying docker compos ps a. What this will do?
+1:37:151 hour, 37 minutes, 15 secondsThis will list all the project container including the dead ones. If there is anyone dead it will also show. Can you notice it have created two containers.
+1:37:241 hour, 37 minutes, 24 secondsOne is chromadb. Second is your application which is connecting with chromadv and everybody can relate why these two apps got created why these two containers got created.
+1:37:341 hour, 37 minutes, 34 secondsYes, we discussed this part agree now once this is done I will be executing the next command.
+1:37:461 hour, 37 minutes, 46 secondsLook at this. So what this will do I basically compose logs app. This is just the app diary as simple as this. Okay.
+1:37:561 hour, 37 minutes, 56 secondsSo it it is just going to tell you that what it is doing. Uh it's already unicorn is running right and so on. So whatever the status is it will keep on
+1:38:041 hour, 38 minutes, 4 secondstelling you up. Now let me execute the file. Now don't you think I need to go
+1:38:121 hour, 38 minutes, 12 secondsinside the container and ingest py I need to run there?
+1:38:191 hour, 38 minutes, 19 secondsYes, I need to do the injection. Yes. So I am basically doing this injection in this particular case.
+1:38:351 hour, 38 minutes, 35 secondsNow can you see it created 15 chunks from the three files. It broken three files into let's say five fivepiece part and created five chunks and basically
+1:38:431 hour, 38 minutes, 43 secondskind of ingested inside this. Now what I will do remember I have the slash ask. Yes. So
+1:38:511 hour, 38 minutes, 51 secondsis it a post request? Yes. Now can I ask the question like what is rack? What is docker? Can I ask this? Yes. Now let's execute the last part.
+1:39:081 hour, 39 minutes, 8 secondsLook at this.
+1:39:121 hour, 39 minutes, 12 secondsCan you see I just did a post command. I got connected to 8,000 port. I'm telling
+1:39:191 hour, 39 minutes, 19 secondsthat okay I am asking a question. What is Docker? This will go as a query. And can you see it is beautifully answering this question?
+1:39:301 hour, 39 minutes, 30 secondsYes, everyone got the idea how this works now.
+1:39:401 hour, 39 minutes, 40 secondsYes. Interesting. Perfect.
+1:39:481 hour, 39 minutes, 48 secondsSo even if I want to show you, I can I've just removed my containers because I don't want unnecessary things here.
+1:39:541 hour, 39 minutes, 54 secondsBut I hope uh how this works. I I basically removed the container now. But you can try this
+1:40:021 hour, 40 minutes, 2 secondsafter the session. I will give you each and every command. So you need not worry about how will I execute it. Each and every step I have written it got written
+1:40:111 hour, 40 minutes, 11 secondsfor you in a file. So you can just follow that and execute everything one
+1:40:171 hour, 40 minutes, 17 secondsby one. Should we go to the third one agents quickly?
+1:40:281 hour, 40 minutes, 28 secondsOkay, let's go through it guys. Again I know there might be some questions running in your mind. Shivanki 8,000
+1:40:351 hour, 40 minutes, 35 secondsport 801 port say just go through the code I have already uploaded the code put it in your notice board you can
+1:40:441 hour, 40 minutes, 44 secondscheck it from there and uh at any time you feel like uh you want to try that
+1:40:521 hour, 40 minutes, 52 secondsyou can just go through it so this is your agent case now
+1:40:591 hour, 40 minutes, 59 secondsso let's move to agent let's let's finish it let's finish Guys uh whenever I explicitly call any
+1:41:081 hour, 41 minutes, 8 secondsclasses advanc I know today is not advanc to us are lesser advance only but don't you think you should get a feel of
+1:41:151 hour, 41 minutes, 15 secondsadvance yes otherwise there is no fun right and by the way uh ch I will announce it at
+1:41:241 hour, 41 minutes, 24 secondsthe end but for now let's let's uh uh enjoy the last project of the day this is going to be slightly complex because
+1:41:331 hour, 41 minutes, 33 secondsI'm going to create a uh agent and let's see what all things we can do with this.
+1:41:421 hour, 41 minutes, 42 secondsSo in this agent I have created something called as desk buddy and the fun part here would be and by
+1:41:521 hour, 41 minutes, 52 secondsthe way for folks who were asking me where I can see all the docker you can go to the uh docker desktop and in the
+1:41:581 hour, 41 minutes, 58 secondsdocker desktop you will be able to see all your containers and everything available for you. Okay so for example I
+1:42:061 hour, 42 minutes, 6 secondscan quickly show you the last one so that you can see it as well.
+1:42:141 hour, 42 minutes, 14 secondsCan you see docker desktop? The last one is can you see I created two containers.
+1:42:211 hour, 42 minutes, 21 secondsSo you can see two images it got created. One is chroma and one was your application of fast API. Right? So that
+1:42:281 hour, 42 minutes, 28 secondsis the part. Let me delete it because I don't need it. They are necessarily uh I think I need to first delete the container.
+1:42:381 hour, 42 minutes, 38 secondsLet me delete this.
+1:42:401 hour, 42 minutes, 40 secondsNow I can go to images and can also delete this because they take space. I don't want the space to be taken. Okay. So let's
+1:42:501 hour, 42 minutes, 50 secondsmove on to the last code so that we have fun. Again the focus will be only on docker.
+1:42:581 hour, 42 minutes, 58 secondsOkay. Calling it out. I will very quickly explain you what other code do but the focus will be on docker which is the main context of today.
+1:43:071 hour, 43 minutes, 7 secondsSo let's see. Let's start the final bus of the day. So we will be first looking at app. py. Okay. Now what this app py
+1:43:161 hour, 43 minutes, 16 secondswill do? As soon as app.py comes up, can you all easily connect the dots that we are talking about uh first API?
+1:43:251 hour, 43 minutes, 25 secondsYes. So there are two app. py. Now I've created two folder. One is agent folder and one is tools folder. Notice the
+1:43:331 hour, 43 minutes, 33 secondsdifference right now. So I am right now app. py in the tools folder. So this tools will have a different container
+1:43:411 hour, 43 minutes, 41 secondsand this uh the agent will have a different container. Okay. So you will be connecting the agent will be
+1:43:481 hour, 43 minutes, 48 secondsconnecting to the tool internally securely.
+1:43:521 hour, 43 minutes, 52 secondsOkay. No tool is not MCP. I'm not teaching about MCP today. Now look at this. I'm creating a fast AP object. I
+1:44:001 hour, 44 minutesam basically writing a of firstly can you all make out what is this identic model I'm saying that whatever expression you give me that should be
+1:44:081 hour, 44 minutes, 8 secondsstrict let's say then I'm checking the health this part you're well aware of now this tool I'm just writing a function this calculator function will
+1:44:171 hour, 44 minutes, 17 secondstake care of addition multiplication and basically there is a eval which exist with us you can use that it if you just
+1:44:241 hour, 44 minutes, 24 secondspass it inside it using this expression and all that it will take care of all the addition, multiplication and all. It's a pre-inbuilt Python thing. Okay.
+1:44:331 hour, 44 minutes, 33 secondsSo I am just writing a simple function calculator which will take care of all the addition subtraction division and all that. So whenever you will call / calculator this will get executed.
+1:44:431 hour, 44 minutes, 43 secondsIf you ask for a current date so you will say / time then this function will return my current date time. Okay.
+1:44:511 hour, 44 minutes, 51 secondsBecause I'm saying date time not now.
+1:44:531 hour, 44 minutes, 53 secondsClear? Now so this part I hope is clear that what does tool do? tool means functions and inside this functions we have got this. Now let's go to agent.
+1:45:031 hour, 45 minutes, 3 secondsOkay. So now let's see what this agent will do. Very interesting.
+1:45:081 hour, 45 minutes, 8 secondsSo let's see this agent. So agent is also going to use fast API. It will sit in my other container anyway. It will
+1:45:141 hour, 45 minutes, 14 secondsload my open AI key. I think I have my open AI key here. Sure it's there. So uh
+1:45:221 hour, 45 minutes, 22 secondslet me quickly confirm it by making it small that I have loaded it. Uh I loaded it. I hope you can make out why I'm
+1:45:291 hour, 45 minutes, 29 secondssaying why I'm doing like this. So that you can't read my API key. Okay. Now so this API key is this. I loaded the open
+1:45:371 hour, 45 minutes, 37 secondsAI key. All good. Now notice something interesting in this. This is going to be slightly complex project. So I need your full attention. So what will happen when
+1:45:461 hour, 45 minutes, 46 secondsI will be uh talking to my project? I will do something like this.
+1:45:541 hour, 45 minutes, 54 secondsHey, I will call a calculator call and I will say to calculator, can you do 2
+1:45:591 hour, 45 minutes, 59 secondsinto 3? It will give me six. Yes. Now my next query would be can you double that?
+1:46:071 hour, 46 minutes, 7 secondsNow as soon as it will say can you double that? If it do not know what was the previous query, can it do that?
+1:46:141 hour, 46 minutes, 14 secondsCan it make 6 into 12? No. So for that I will use something called as radius.
+1:46:221 hour, 46 minutes, 22 secondsOkay. So radius will also need a different container. Yes. So I will need a different container for this. So I will use memory. So this agent is a
+1:46:301 hour, 46 minutes, 30 secondsadvanced agent. So I will use memory. So inside radius I will store all the
+1:46:381 hour, 46 minutes, 38 secondsdetails all the history. Okay. So that I will do. No this will be a long-term memory but anyway hold on for this. So I'm going to say hey go and connect with my radius on this port right and so on.
+1:46:491 hour, 46 minutes, 49 secondsSo I am giving my tool URL. What is this? So tell me one thing. Do you think my tool should be available for any
+1:46:571 hour, 46 minutes, 57 secondscommon public outside? No. Don't you think only agent should be able to connect with the tool? Yes. So I'm telling when agent you will be
+1:47:051 hour, 47 minutes, 5 secondsconnecting to the tool, you have to call this port number this URL to be able to connect to my tool because tool is going
+1:47:131 hour, 47 minutes, 13 secondsto run remember on a different container.
+1:47:161 hour, 47 minutes, 16 secondsOkay. So function calls will be sitting in a different container. So I'm going to say hey whoever wants to connect to it use this particular URL to get to this button.
+1:47:261 hour, 47 minutes, 26 secondsNow then I'm going to define tool definitions. What is this? Basically think of it like whenever you define functions you need to tell to agent what
+1:47:331 hour, 47 minutes, 33 secondsare the tools you have available. So here you can say function you are saying that the name of the function was calculator. Remember that. Now you provide the description of the function.
+1:47:431 hour, 47 minutes, 43 secondsYou provide the parameters of it.
+1:47:451 hour, 47 minutes, 45 secondsSimilarly, I created second function where I said the name of that is get function. What is the function do? What are the parameters inside it and so on.
+1:47:541 hour, 47 minutes, 54 secondsThen I'm going to say call tool.
+1:47:561 hour, 47 minutes, 56 secondsBasically, I'm just writing a very simple function. If I'm going to call calculator, go to this tool URL and execute the function calculator.
+1:48:061 hour, 48 minutes, 6 secondsRemember there was a API I've written in app. py of this that when you call / go and execute the function for my
+1:48:131 hour, 48 minutes, 13 secondscalculator. That's what I'm doing. If the name of the function is get date time related then basically go and connect to the tool URL basically
+1:48:211 hour, 48 minutes, 21 secondsinternally go to that port and off and execute this. That's it. Now this part very well you are aware of I'm going to
+1:48:301 hour, 48 minutes, 30 secondssay chat uh and basically it's a pyic model where I'm just saying that okay these are the uh things you need to make
+1:48:371 hour, 48 minutes, 37 secondssure of float or string and so on. Let's look at this health.
+1:48:421 hour, 48 minutes, 42 secondsSo here I'm going to connect to it. It's going to just print out my tool URL and so on post. Now here the fun starts
+1:48:501 hour, 48 minutes, 50 secondsright. I'm going to start talking to my uh agent and I'm basically going to say
+1:48:571 hour, 48 minutes, 57 secondshey go and read all the history from radius first. Initially it will be empty but later it will get filled. Now load
+1:49:051 hour, 49 minutes, 5 secondsall the history for me. everything which you have this basically 0 to minus one means starting from zero index till last
+1:49:131 hour, 49 minutes, 13 secondsPython everybody remember minus one means last so that's what it's saying read all the history present inside your radius once you have done this part then
+1:49:211 hour, 49 minutes, 21 secondsafter that you're going to say uh okay this is my model I'm going to use GPD 40 mini I going to use the history whatever
+1:49:291 hour, 49 minutes, 29 secondsI have with me and done right these are my tool definitions available for me and it will return the response Now let's
+1:49:361 hour, 49 minutes, 36 secondssay whatever the output of the model would be from the previous history it will keep on appending to this history right for example I said tell me 2 into
+1:49:451 hour, 49 minutes, 45 seconds3 six next time I ask tell me can you double it so it make it 12 so what it did the 12 answer also get appended to
+1:49:531 hour, 49 minutes, 53 secondshistory okay so that's what I'm doing here now once I will do that I am going to then r push means push it back to my
+1:50:021 hour, 50 minutes, 2 secondsradius so this history which I appended to it push it to radius Now there was a question is it going to bloat is it going to be huge tell me do you think if
+1:50:101 hour, 50 minutes, 10 secondsyou're using radius db is it going to be a problem then it's a db remember no why it should be because
+1:50:191 hour, 50 minutes, 19 secondsI'm pushing everything back to radius right now so this is what you've done now once you have taken care of this
+1:50:291 hour, 50 minutes, 29 secondsnow you also have docker file for each read this docker file on your own and can you make out what everything is
+1:50:351 hour, 50 minutes, 35 secondsSimple sir all of you easy correct loading the copy
+1:50:451 hour, 50 minutes, 45 secondsrequirement txt execute copy the whole code and run it. So this docker file will get executed for the agent container. Similarly for the tool
+1:50:541 hour, 50 minutes, 54 secondscontainer can you also make out what it will do? Okay.
+1:51:011 hour, 51 minutes, 1 secondDone. Now the fun part which all of you can make out. Now this is also easy. So
+1:51:091 hour, 51 minutes, 9 secondsin menu card again I will create a agent container first. Okay. Now here
+1:51:181 hour, 51 minutes, 18 secondsI'm going to say agent uh basically go and exit go inside the folder / agent. So basically go here and
+1:51:281 hour, 51 minutes, 28 secondsfor this particular agent whatever you see in the docker file because whatever is there inside the docker file use that
+1:51:351 hour, 51 minutes, 35 secondsto basically run this thing. Okay now so let me come back then you're just giving container name
+1:51:421 hour, 51 minutes, 42 secondsport name you are well aware of copy the env file because you need the things tool URL you are providing radius host you are providing depends on tool and
+1:51:501 hour, 51 minutes, 50 secondsradius basically it's telling that hey make sure that before you execute this make the tool container and the radius container ready now inside this
+1:51:591 hour, 51 minutes, 59 secondscontainer go to tool inside this folder there's a docker file go and execute this rest of the things are same then go to radius So basically can you notice in
+1:52:081 hour, 52 minutes, 8 secondsradius I am specifically telling up very clearly that inside my radius go and
+1:52:151 hour, 52 minutes, 15 secondshave the image of radius can you see this part so basically it's telling that from docker I already have
+1:52:221 hour, 52 minutes, 22 secondsan image where radius is installed get me that radius image that is what it means here now once you're doing this remaining things are simple right also
+1:52:311 hour, 52 minutes, 31 secondsjust see I've just added a volume remember that I want to persist the data into my folder that is What is this? Now this is a file. Let's execute this.
+1:52:411 hour, 52 minutes, 41 secondsRight? This is so so so interesting how these things work. So let me first
+1:52:491 hour, 52 minutes, 49 secondsopen my terminal. Give me a minute. My terminal is not on.
+1:52:571 hour, 52 minutes, 57 secondsNow in my terminal I'm going to say compose this. So for example, it will execute my YAML pi. Docker compose.
+1:53:041 hour, 53 minutes, 4 secondsfile.
+1:53:061 hour, 53 minutes, 6 secondsI can quickly now see what all things it will do.
+1:53:121 hour, 53 minutes, 12 secondsSo the next step is going to be docker compos PSA. I can see all the containers here. So you can see it created radius
+1:53:201 hour, 53 minutes, 20 secondscontainer. It created tool container. It created agent container. Okay. So it created all the three containers from the YAML file. I did nothing very
+1:53:291 hour, 53 minutes, 29 secondsexplicit in this case. Once this is done, now I can talk to these containers and ask question.
+1:53:381 hour, 53 minutes, 38 secondsSo let me ask questions from this container. So my first is I'm doing a post call. I'm saying that okay my
+1:53:461 hour, 53 minutes, 46 secondssession ID is demo. Why? Because radius stores everything like a key value pair.
+1:53:501 hour, 53 minutes, 50 secondsAnd in this demo I'm saying what is 23 into 47 and what time it is right now.
+1:53:551 hour, 53 minutes, 55 secondsDon't you think it should call both the functions?
+1:53:591 hour, 53 minutes, 59 secondsYes, it should be uh doing both the functions. Let's execute this.
+1:54:121 hour, 54 minutes, 12 secondsCan you see it is giving me this answer as well as it is giving me this answer. Agree everyone. Interesting. Yes.
+1:54:221 hour, 54 minutes, 22 secondsLast piece of the day and that's going to be fun. Now I will say
+1:54:311 hour, 54 minutes, 31 secondsthe next part which is going to be this.
+1:54:361 hour, 54 minutes, 36 secondsSo now I'm saying now double the multiplication result. Can you see it was this now it just doubled this part.
+1:54:441 hour, 54 minutes, 44 secondsHow it worked? I gave a session ID as demo. So the key here was demo. Inside this key it have stored all the history.
+1:54:521 hour, 54 minutes, 52 secondsSo the same key as soon as I gave it was able to pull up the history from the radius. Remember I use 0 to minus one.
+1:54:591 hour, 54 minutes, 59 secondsSo it pulled up the old history from there and do it was a second command.
+1:55:031 hour, 55 minutes, 3 secondsStill it was able to remember that yes my last result was 1081 and it returned me 2162.
+1:55:121 hour, 55 minutes, 12 secondsInteresting. We saw here three different containers
+1:55:201 hour, 55 minutes, 20 secondsright? it is persisting all of your data and that's why you were able to see all
+1:55:281 hour, 55 minutes, 28 secondsof your results here. Okay. Now, no radius keeps in memory. It also persists by the way there's something called as RDB and all that people who do not know
+1:55:361 hour, 55 minutes, 36 secondsabout it. Now, so this is interesting how you can work with containerization.
+1:55:441 hour, 55 minutes, 44 secondsNow, let me ask you a quick question from all of you.
+1:55:481 hour, 55 minutes, 48 secondsRemember when I started the session I told to you lot of people who know docker might be thinking shiva docker is a very easy concept what is there hard
+1:55:551 hour, 55 minutes, 55 secondsinside it right but I hope you got the idea why I said it's a slight advance so that you can connect the dots it's not
+1:56:031 hour, 56 minutes, 3 secondsonly about docker docker is very simple which we took initial 1 hour but if you see the next one hour where we spend the time in containerization from the
+1:56:121 hour, 56 minutes, 12 secondsperspective of llm and agents where you need to think about multiple container creation and they're talking with each
+1:56:201 hour, 56 minutes, 20 secondsother because that's how the real world application will look like. That was the main context. Now we will see few more
+1:56:271 hour, 56 minutes, 27 secondsthings coming across with this. Lot of interesting things will keep coming up but I hope all of you had enjoyed this.
+1:56:341 hour, 56 minutes, 34 secondsThat's more important and go back and practice this. I have already loaded this all the code file into
+1:56:441 hour, 56 minutes, 44 secondsuh your basically folder. So go ahead and use this up. This is going to very much help you out. But make sure you
+1:56:521 hour, 56 minutes, 52 secondspractice. If you're not doing that, it's not going to help you. Okay? So practice this after the session. I would uh
+1:57:001 hour, 57 minutesstrongly recommend you will love it. do some changes here and there because then you will have a better fun uh with your
+1:57:071 hour, 57 minutes, 7 secondslearning and please go and look at if there's one or two parameters here and there try to search about that what they
+1:57:141 hour, 57 minutes, 14 secondsdo and anyway in the basic sessions we will learn about it today class intentionally was like this so that at least advanced folks who are sitting
+1:57:221 hour, 57 minutes, 22 secondshere who can who want to go with some advanced concept that how in industry these containeration work get some pulse that's it
+1:57:311 hour, 57 minutes, 31 secondsso let's No, Kubernetes is to scale all these containers. We will also see that later. Okay. So, starting the doubt session.
+1:57:421 hour, 57 minutes, 42 secondsOkay. So, announcement is next week there is no class. Okay. Uh so you will have two weeks now to wrap up all this.
+1:57:491 hour, 57 minutes, 49 secondsUh so make sure that all of you uh complete all the portion of this. So your next class will happen next to next
+1:57:571 hour, 57 minutes, 57 secondsweekend. And the reason for not having class is not from scalar it's for my personal side. Um I have to be in
+1:58:051 hour, 58 minutes, 5 secondshospital for some reasons. So that's why we are not taking it up. Secondly, you will also be uh getting time to wrap up
+1:58:131 hour, 58 minutes, 13 secondseverything. So one request a IML folks for whom today's session was happening.
+1:58:181 hour, 58 minutes, 18 secondsUh if you recall I have already told there's a AI infusion session happening up. So you can get all the recordings.
+1:58:241 hour, 58 minutes, 24 secondsIf you want you can finish it up. It will help you to become even expert into LLM and AJTKI better in case if you have
+1:58:311 hour, 58 minutes, 31 secondstime. I'm not pushing you. It's not mandatory. But if you do it, it will help you. So you will have some four five class recording. You can go through
+1:58:391 hour, 58 minutes, 39 secondsthat. That's why folks who have done AI infusion, they will be well aware of it.
+1:58:451 hour, 58 minutes, 45 secondsUh what I'm talking about I know a lot of people from AML have done AI infusion. So they must be finding it lot easier because they have already gone through what is LLM agents and all that.
+1:58:551 hour, 58 minutes, 55 secondsIf you haven't done so, please complete those recordings and if you want to join the future classes of that you can do
+1:59:011 hour, 59 minutes, 1 secondso. Okay. So this is one part and now let me pick up question from your
+1:59:081 hour, 59 minutes, 8 secondsquestion tab. Uh you have to just request support they will provide you.
+1:59:131 hour, 59 minutes, 13 secondsOkay. Uh there's a question I'll be going.
+1:59:201 hour, 59 minutes, 20 secondsSo that will also come.
+1:59:251 hour, 59 minutes, 25 secondsWe will see uh next class I will intentionally not keep it very advanced because uh advanced sessions I'm doing with AML
+1:59:321 hour, 59 minutes, 32 secondsseparately just that today I tried to merge it so that uh both the things because people have already done to a decent level here.
+1:59:411 hour, 59 minutes, 41 secondsOkay. So let's pick up some questions.
+1:59:451 hour, 59 minutes, 45 secondsUh can we use other programming language to create tools? Huh? You can you can nobody stops you from that but I have already clearly called out shinas for
+1:59:521 hour, 59 minutes, 52 secondsthis. You have to be aware of concerns which can come with this. For example, uh basically when when I talk about
+2:00:002 hoursother languages, you can write functions and can use it but the packages are lesservable. That's the only thing. Just curious deployment topic was for the
+2:00:092 hours, 9 secondslater class as you mentioned in the first class. Reason for coming in with no this we haven't deployed anything now have we?
+2:00:162 hours, 16 secondsWe haven't deployed it just reaching towards deployment. So we have to take steps to these two deployments. Correct.
+2:00:262 hours, 26 secondsOkay. Will we use both AWS and Azure? Uh I will use majorly AWS.
+2:00:332 hours, 33 secondsCan we have at least two classes a week or it will go amount of time to complete? Krishna I don't mind but there will be a lot of people who mind it. So
+2:00:402 hours, 40 secondsI can bet you on this part because there are three classes in a week which are also running up and not only this there are other serieses which are also runs.
+2:00:482 hours, 48 secondsSo it's it's not just AI infusion series. There are other series which also runs.
+2:00:532 hours, 53 secondsUh please take up time at least two three class. This I've already answered.
+2:00:572 hours, 57 secondsNages I am a fresher and from DSML preparing for data analyst. I'm having difficulty today class and also missed a few
+2:01:052 hours, 1 minute, 5 secondssession. If you missed the last session then you will definitely find it hard.
+2:01:102 hours, 1 minute, 10 secondsIf you are from DSML now you have two weeks are in go back revise everything from there. Go through the recordings then come to this class.
+2:01:202 hours, 1 minute, 20 secondsToday class I've already announced beforehand. It's going to be hard.
+2:01:242 hours, 1 minute, 24 secondsCan we have this class a bit early? This visual you need to reach out to support.
+2:01:292 hours, 1 minute, 29 secondsCan we find recording AI info session one and two? Kalyani you have to just reach out to support team for this.
+2:01:382 hours, 1 minute, 38 secondsI feel you are the right person to guide. My goal is to become a should I continue with a 7 out 10 30 40 in session or transfer the complete ML program.
+2:01:482 hours, 1 minute, 48 secondsAnything is fine.
+2:01:502 hours, 1 minute, 50 secondsAnything is fine. You can even transfer if you want to uh check otherwise a fusion will also work.
+2:01:582 hours, 1 minute, 58 secondsIs there any discord? No. No pressure.
+2:02:012 hours, 2 minutes, 1 secondCan you look into our batch? I think agent instructor is good but too fast.
+2:02:042 hours, 2 minutes, 4 secondsCan you also talk about the last two modules at once? Okay. Sit. uh it because there are too many batches here.
+2:02:142 hours, 2 minutes, 14 secondsI to be honest I remember your name because you asked multiple times over the chat and I was reading it I was not just answering it's just that it's hard
+2:02:222 hours, 2 minutes, 22 secondsfor me to know which instructor and all that and secondly this might not be a right place to uh even address that because I don't have the data right now
+2:02:302 hours, 2 minutes, 30 secondswith me so this you can reach out to the team and then I can answer this which all cities are running that that
+2:02:382 hours, 2 minutes, 38 secondsdepends on different different cases for example for a IML folks there is a cities which run separately so for For them it become two sessions now. So one
+2:02:462 hours, 2 minutes, 46 secondsthey do it for uh for their part AML and then they have to come to AI vision and both are very different topics.
+2:02:552 hours, 2 minutes, 55 secondsPrevious lecture notes are not available. Val for this we can reach out to the team but it's uploaded for sure.
+2:03:022 hours, 3 minutes, 2 secondsCan we always keep classes on Saturday as some of us working for Middle East?
+2:03:062 hours, 3 minutes, 6 secondsSure. Sure. This we can take care of. I think it only happened one time.
+2:03:112 hours, 3 minutes, 11 secondsCan we use Brock API? Yes, you can. You can. Why we have keep docs in MD extension? It just nothing. It just easy to read.
+2:03:202 hours, 3 minutes, 20 secondsYou can have lot of markdowns available on it. You can even use PDF. You can even use dot do. No problem with that.
+2:03:272 hours, 3 minutes, 27 secondsAt the start you said there will be 30 45 minutes of your infusion classes.
+2:03:312 hours, 3 minutes, 31 secondsThen how can it be wrapped up in another two classes as you said or I heard I did not get it.
+2:03:392 hours, 3 minutes, 39 secondsBy the way, Sat, I never said it will be wrapped up in two classes.
+2:03:432 hours, 3 minutes, 43 secondsOkay, you you might have misheard me. I never said this. Don't worry. I have elite full year experience with 15. Do you think I need to switch my careers into AI roles? It will help if you can.
+2:03:532 hours, 3 minutes, 53 secondsSee, by the way, you need not switch in your existing role itself. AI is coming up now. You can't help it. AI is
+2:04:002 hours, 4 minutesbecoming a default. So, you need to learn it Jes.
+2:04:052 hours, 4 minutes, 5 secondsBut I think Monday class for AMF folks has not happened last because we merged it today. Now, uncle it happened today.
+2:04:142 hours, 4 minutes, 14 secondsDSA Java batch get recording of AML class um
+2:04:222 hours, 4 minutes, 22 secondsthis you need to check with uh ops team because I really don't know about it which cohort you belong to would like to
+2:04:302 hours, 4 minutes, 30 secondsjoin other AML batch like this how can we do so visually this I take it up uh
+2:04:362 hours, 4 minutes, 36 secondsbasically in your as an optional class so this is not a batch where you can join But whenever you get these sessions, please join like you see it will be helpful.
+2:04:462 hours, 4 minutes, 46 secondsWhen is the next session that was started? Do we have any timeline for that?
+2:04:512 hours, 4 minutes, 51 secondsI don't know what do you mean by March 26 batch but then I'm not clear but if you're asking when is the next session that will happen next to next weekend.
+2:05:002 hours, 5 minutesI'm currently not in the DSML course AI infusion help to correct role in AI role of a company. How it will help me? No
+2:05:082 hours, 5 minutes, 8 secondsDSML it doesn't matter even in analytics you need this AI no is this session part of MLM no this is a AI infusion separate
+2:05:182 hours, 5 minutes, 18 secondssession coming where can we find recording of kalyani for this I've already answered you need to reach out to support team uh is it possible to get
+2:05:262 hours, 5 minutes, 26 secondsaccess for other genai live class again you have to talk with the team version if you're eligible they will provide you
+2:05:352 hours, 5 minutes, 35 secondscan we get some introductory session on radius is I bet if you belong to or you have to wait for system design in case
+2:05:432 hours, 5 minutes, 43 secondsif that system design is a part of your course it will come. Can we build a steam app? Huh? You can but today was
+2:05:502 hours, 5 minutes, 50 secondsnot that goal. Ashwani in second project we have not called LLM as
+2:05:582 hours, 5 minutes, 58 secondswe are injecting the file from Chromma DB. If answer is yes then call correct correct that's what is happening.
+2:06:062 hours, 6 minutes, 6 secondsUh okay I got your point but is there any other resources to learn from? I'm not saying teacher not at all. I just need
+2:06:142 hours, 6 minutes, 14 secondsmore time to understand a particular concept as there are lot of again arin simple answer you need to just watch the previous class recording
+2:06:222 hours, 6 minutes, 22 secondstrust me there are more beginner students sitting in this session see today was just that I wanted to advance class for AML as well as for your batch
+2:06:312 hours, 6 minutes, 31 secondsso that's why I did that this will very rare happen for you guys for AML it will continue to happen every week but for you guys it will not happen too
+2:06:392 hours, 6 minutes, 39 secondsfrequently so um basically you have to just go through all the AI infusion session that's it agent I'm not going to
+2:06:482 hours, 6 minutes, 48 secondsanswer it it will confuse everyone and for MCP I need very detailed time why we have not used lang chain today
+2:06:552 hours, 6 minutes, 55 secondsclass it was not required for me I just wanted to again today class is not about framework today class was about docker
+2:07:032 hours, 7 minutes, 3 secondscontainerization okay uh what is the recursive mode in pip install if you want to install
+2:07:102 hours, 7 minutes, 10 secondsmultiple packages then you use recursive uh there are spring AI and langun forj which are dedicated to java spring boot
+2:07:192 hours, 7 minutes, 19 secondsI have a confusion you can use if you belong to that but this is very specific if you're building a spring boot apps
+2:07:262 hours, 7 minutes, 26 secondsand all but here we are learning about generic thing once you learn it talking about that it's damn easy for you
+2:07:352 hours, 7 minutes, 35 secondscan we create a LinkedIn post for today project you can you can sat you can talk about in the LinkedIn post like
+2:07:432 hours, 7 minutes, 43 secondsBasically today I learned about how multiple containers connect with each other and how the agentic AI ecosystem
+2:07:512 hours, 7 minutes, 51 secondsin containerization looks like something like this. Can you please explain docker compos how links and how it knows docker
+2:07:582 hours, 7 minutes, 58 secondsfile respect? No, it's like this. Now you are giving this path. You're saying dot / it means go to this folder and pick up the docker file from there.
+2:08:062 hours, 8 minutes, 6 secondsThat's what it did when it I am following this AI fusion class. Are there any other learnings on AI going on in scalar? No, only this one.
+2:08:182 hours, 8 minutes, 18 secondsIf it's a part of your course, that module is different. But if you're specifically asking, this is the sessions for you. Uh contains the entire
+2:08:252 hours, 8 minutes, 25 secondsit ignore if the zip file contains only the code. We have built it locally doing that. No, no, same thing. So you do you have all the three projects available there, man?
+2:08:342 hours, 8 minutes, 34 secondsJust give me one second, guys.
+2:08:432 hours, 8 minutes, 43 secondsJust give me one second.
+2:08:552 hours, 8 minutes, 55 secondsOkay. Now coming back uh all the info would you would these sessions along with DSML curriculum be
+2:09:032 hours, 9 minutes, 3 secondssufficient? Yes. Yes. You don't need more than that. Shant there's a production IML system series is going on which is taken by you. I like to know if
+2:09:112 hours, 9 minutes, 11 secondsmore sessions this is the second session of that. Uh it's just that I merged it with this because for both of you folks this was
+2:09:182 hours, 9 minutes, 18 secondsrelevant. That's it. Okay. If you were part of the first uh lecture of that if you recall I was talking only about productionization. So today was
+2:09:272 hours, 9 minutes, 27 secondsproductionization but it's just that I expanded it for you to realize that how with different container you have to you
+2:09:352 hours, 9 minutes, 35 secondshave to create different uh containers and how they will talk with each other.
+2:09:392 hours, 9 minutes, 39 secondsSo how complicated this is it's not about just creating one docker and done.
+2:09:452 hours, 9 minutes, 45 secondsThe current module which stores the last sessions comes from radius or simple search memories. It's coming from radius. it is actually a best practice.
+2:09:522 hours, 9 minutes, 52 secondsNo, it doesn't mean it's a good or bad practice. It depends on your business use case. When I will take you to LLM system design, then you will see this part. Today my goal was just to show you
+2:10:012 hours, 10 minutes, 1 secondthat how when we use persistent memory also uh we need a different uh container
+2:10:082 hours, 10 minutes, 8 secondsand all that for that I missed the second class and recording. I saw this but I don't have access again reach out to the team for this.
+2:10:162 hours, 10 minutes, 16 secondshow you can use gamma also s how we interact api key in container that's stored in
+2:10:242 hours, 10 minutes, 24 secondsmbp file just look at the basically I have copied that I've not removed it from uh docker ignore that's why it
+2:10:332 hours, 10 minutes, 33 secondsmeant I just started max for ml after I wanted to become a engineer and I have one year time should I move to AML
+2:10:402 hours, 10 minutes, 40 secondscourse or this infusion will be enough in fusion IML course on how a vision matter is different for AML course. No, that is different. Completely different.
+2:10:492 hours, 10 minutes, 49 secondsThis is only from the perspective of uh your LLA management there. It's more
+2:10:562 hours, 10 minutes, 56 secondsabout data science, machine learning, engineering stuff. So there we will not deep dive. So if you want to transfer, you have to talk with the team on that.
+2:11:062 hours, 11 minutes, 6 secondsSir, we are calling the tools for information beyond training. Won't it be okay if we call defend the tools as primitive MC? Again I'm not going into
+2:11:132 hours, 11 minutes, 13 secondsMCP server today. Uh I will answer this when I go to MCP server because it will confuse because there are different type of MCP server.
+2:11:232 hours, 11 minutes, 23 secondsCan the question be answered in chronal order? FIFO instead of LEO people who have posted the question earlier their
+2:11:312 hours, 11 minutes, 31 secondsquestion it's just that it's I'm getting the questions in the same order.
+2:11:362 hours, 11 minutes, 36 secondsUh while people were asking the question now are getting their answer within seconds of posting. Sure. Sure.
+2:11:432 hours, 11 minutes, 43 secondsUh let me see if I can change this up. Actually I'm getting not in leap order.
+2:11:492 hours, 11 minutes, 49 secondsIt's more like most uploaded. So if you can upload your own question, your question will come on the top. Okay, that's a nice way for you to get your
+2:11:572 hours, 11 minutes, 57 secondsanswers. Are they in sequence? Huh? They are in sequence.
+2:12:012 hours, 12 minutes, 1 secondIf you keep the history from Reddis, won't LLM consume more token? Obviously, but when you will build an complete ecosystem, you have to think about it.
+2:12:102 hours, 12 minutes, 10 secondsWe have completed 70% portion. There is a lot of thing to prepare. How can we kickstart any road map? Can you suggest?
+2:12:172 hours, 12 minutes, 17 secondsBy the way, I'm from DSML batch uh completed time series. See, you have to just make sure that whatever you have
+2:12:242 hours, 12 minutes, 24 secondslearned, you're properly revising it and make sure that you learn this AI infusion first. Abu you still have deep learning, a lot of things spending with
+2:12:312 hours, 12 minutes, 31 secondsit. By the way, I have one request guys because this is more of a AI infusion session and I'm getting a lot of questions related to your batch that
+2:12:402 hours, 12 minutes, 40 secondswhat should I do this part that part my humble request let's keep the questions related to classroom which we are
+2:12:482 hours, 12 minutes, 48 secondslearning instead of asking questions which are related to maybe your because when I answer that other people will be thinking what Chibank is answering and
+2:12:552 hours, 12 minutes, 55 secondsit will confuse them. So let's only talk about the today's session that's my request. Okay. Can we have one session
+2:13:022 hours, 13 minutes, 2 secondson observability and ML flow? How if you are part of AML it will come in detail.
+2:13:102 hours, 13 minutes, 10 secondsWe are uploading documents in our rack pipeline but this can be done visually on Google AI mode and charg also why we
+2:13:182 hours, 13 minutes, 18 secondsshould build an app just to upload and get inside. Again Rahel what you're talking about now Google AI
+2:13:252 hours, 13 minutes, 25 secondsmode is new. it have come up. No, there are so many systems sitting in rag right now. Will you go and tell them
+2:13:402 hours, 13 minutes, 40 secondsrag is getting used extensively in the orgs? You can't remove it. And should I say that should I only then learn about
+2:13:482 hours, 13 minutes, 48 secondsGoogle AI mode? Let's ignore everything up because it convert into MD and all that very easily and all this. No, you
+2:13:552 hours, 13 minutes, 55 secondscan't do that. Unfortunately, they are the still the requirement.
+2:14:012 hours, 14 minutes, 1 secondOkay. I'm from DSML course. I am ML. The live classes are over. I'm a data scientist already with four years. I plan to learn them in the remaining
+2:14:102 hours, 14 minutes, 10 secondsyear, five months. Is it late? No, it's it's not late. It's completely fine. So, Reddis memory is costly using it. No, I
+2:14:182 hours, 14 minutes, 18 secondsuse radius as the open source today in front of you. Only when you want to go for some other things then it will lead cost virtualization support not detected
+2:14:262 hours, 14 minutes, 26 secondsin desktop app then you have to enable it just Google it you will get the steps in your operating system in settings you have to just enable the dockization
+2:14:352 hours, 14 minutes, 35 secondsright today we have used radius as a memory store beside radius what are the other tools and technology you can store into DB also SQL DB I just use radius
+2:14:442 hours, 14 minutes, 44 secondsbecause I wanted to talk about container that's it Okay, as you just said, stick to on the class
+2:14:532 hours, 14 minutes, 53 secondsrelated topic. Is there any way to connect with you for personal? You have to reach out to support team for this only.
+2:15:002 hours, 15 minutesUh they will either connect you with mentor or if there's any question they will pass on to me. I wanted to deploy this container in AWS. If I use my API
+2:15:082 hours, 15 minutes, 8 secondskey that you will learn how to take care of the secrets, we haven't reached to AWS section. At the end of the series, will I be able to get ready? Yes.
+2:15:172 hours, 15 minutes, 17 secondsI am building intraday trading app to find the best stocks. Can we apply this version? Very much a lot. Just make sure that you take care of security
+2:15:252 hours, 15 minutes, 25 secondscomponents. Can you explain last line again of the docker file? That is just the command to execute uh fast API using UB. That's it.
+2:15:372 hours, 15 minutes, 37 secondsAmit what is the concept of den docker and docker? I don't know this even I haven't used this. Do we need to learn
+2:15:452 hours, 15 minutes, 45 secondsto write the full code or no? You just need to know the flow even I don't remember it. My actual question was
+2:15:522 hours, 15 minutes, 52 secondsasked answered incorrectly when I posted other question which was more of a request to answer the question in F4.
+2:15:582 hours, 15 minutes, 58 secondsAnyway, when I asked what they actually mean is ask is session 1 to4 has to be done in sequence for all the four sessions. Yes, you have to do in sequence.
+2:16:072 hours, 16 minutes, 7 secondsI have Windows laptop. Do I need to install Docker Linux or Docker Windows?
+2:16:102 hours, 16 minutes, 10 secondsDoer Windows Submit. In the last class, you told us to combine the scalar dogs of the first three classes and then combine then upload it to RA but those
+2:16:192 hours, 16 minutes, 19 secondswere HTML files and I could not convert into PDF. You think and tell me by the way there is API for this also otherwise
+2:16:272 hours, 16 minutes, 27 secondsI tell you second just a hint so that you can play around.
+2:16:322 hours, 16 minutes, 32 secondsCan you use Python API to convert one format to other format? This is just a hint. Now go back and read it.
+2:16:412 hours, 16 minutes, 41 secondsLast time you recommended in AI engineering by Chup is the book in huh that's a very good book area damn good
+2:16:482 hours, 16 minutes, 48 secondsbook. So this is by chip uh AI engineering all of you can take that if you want to it's will be helpful if you
+2:16:562 hours, 16 minutes, 56 secondshave a group of students like us to discuss no it's basically the whole scalar is kind of going through it that's why it's hard to kind of create
+2:17:022 hours, 17 minutes, 2 secondsthat you know usually redist will be certain expiry right uh so keeping radius as a source of data no no who
+2:17:112 hours, 17 minutes, 11 secondssaid it's a key value pair you can run it forever the two there are systems running forever over radius It don't
+2:17:182 hours, 17 minutes, 18 secondsexpire like this unless you have set a TQL. Is there any discord community for this class? No. No. What is the
+2:17:262 hours, 17 minutes, 26 secondsadvantage of creating multiple docker image over one? It's just separation of responsibility.
+2:17:332 hours, 17 minutes, 33 secondsThere was one learner who was continuously asking me Shivang where I use LLD he belong to academy I believe.
+2:17:402 hours, 17 minutes, 40 secondsI hope now you are understanding suppression of concern concept.
+2:17:452 hours, 17 minutes, 45 secondsNever ever give multiple task to one guy. Always give the one one task to one
+2:17:522 hours, 17 minutes, 52 secondsperson. That is the same concept we are going to use here. How is the AML course different? Data science, machine learning, engineering, SAT and
+2:18:012 hours, 18 minutes, 1 seconddefinitely this agents goes in much more detail like we create a AI agent track pipeline in Python and then we can connect to the different application using microser like Python to this. Huh?
+2:18:122 hours, 18 minutes, 12 secondsCorrect. Correct. There you can use gpc and all that. Okay, it's just the start.
+2:18:172 hours, 18 minutes, 17 secondsToday was the first session on contation. Is this book by chip huan? Correct. Correct.
+2:18:232 hours, 18 minutes, 23 secondsWhat is the advantage of creating multiple docker? I already answered.
+2:18:262 hours, 18 minutes, 26 secondsWhat is the concept of dent? I already covered this. Can we add localized llm in docker like gamma? I missed. Hi, you can you can just walk through the last classes.
+2:18:372 hours, 18 minutes, 37 secondsHow can we give path of different link in rack db like uh need to connect answers from conference you have to just create a different container for that
+2:18:442 hours, 18 minutes, 44 secondsalso then I'm building a payment gateway can you suggest a use case for agent take care uh deep there could be
+2:18:512 hours, 18 minutes, 51 secondsmultiple to be honest not just one uh when you talk about razor pay uh it do
+2:18:592 hours, 18 minutes, 59 secondstoo many things for outside people you just look at one payment service which is working there are too many things only thing which you should be bothered
+2:19:062 hours, 19 minutes, 6 secondsWhat is the compliance part? So when you use agent, make sure that you follow all the guidance and all because your company will screw you otherwise
+2:19:152 hours, 19 minutes, 15 secondsfor deployment. There will be other teams. Yes, lot of times in bigger companies this happens such
+2:19:222 hours, 19 minutes, 22 secondswe have run app py directly in docker file instead of running train. py huh we can't do that. That's why we did. Hope
+2:19:302 hours, 19 minutes, 30 secondsall of these will run once. H I ran it in front of you. Why it will not run for you? Not a question but I want to thank
+2:19:382 hours, 19 minutes, 38 secondsyou for conducting these sessions. Happy to hear that. Anoj I'm looking for class A2 recording that you need to talk with support manoj
+2:19:472 hours, 19 minutes, 47 secondsthen windows machine docker can be sent to maca just that the size will be bigger only thing will be this. Okay. So
+2:19:552 hours, 19 minutes, 55 secondsin interview people may ask write a code. No for uh if they ask you also they will give you cloud code and all
+2:20:022 hours, 20 minutes, 2 secondsthat. Okay. So there you can just give a command and it will create a code file.
+2:20:062 hours, 20 minutes, 6 secondsBy the way, we will also be in AI in fusion. I will teach you how to use plot code. Don't worry.
+2:20:122 hours, 20 minutes, 12 secondsOkay, perfect. I think I covered today 92 questions. Great. So I hope I covered
+2:20:192 hours, 20 minutes, 19 secondsall of that. U now I also hope you are enjoying this series and uh I hope you
+2:20:272 hours, 20 minutes, 27 secondsliked the first flavor of your advanced session for AI infusion folks. IML anyway folks keep on watching this so
+2:20:352 hours, 20 minutes, 35 secondsfor them nothing new uh but for AI infusion also I will not every time but sometime will bring where I feel that
+2:20:422 hours, 20 minutes, 42 secondsthis concept is relevant for both okay perfect see you guys again uh next week no class so please watch all the
+2:20:512 hours, 20 minutes, 51 secondsrecordings finish up uh try to that's why I covered slightly more today in terms of projects or I should not call project at least three use cases we
+2:20:592 hours, 20 minutes, 59 secondscover try to create project now using this this will help we will connect next to next week again and we will cover
+2:21:062 hours, 21 minutes, 6 secondssome more advanced not advanc for AI in fusion there will be a normal AI in fusion session for AML folks there will be an advanced topic
+2:21:152 hours, 21 minutes, 15 secondsno tomorrow class okay see you guys again thank you

@@ -1,0 +1,879 @@
+Hello everyone. Uh good morning. Uh so let's wait for five more minutes for everyone to join and then we can begin with the session.
+6:446 minutes, 44 secondsHello.
+6:506 minutes, 50 secondsHello. Hi guys. Can you please confirm if you can see me, hear me clearly? Okay. Great, great, great. Thank you.
+6:596 minutes, 59 secondsThank you. Good morning everyone. How are you guys doing? I hope everyone is good.
+7:067 minutes, 6 secondsPerfect. Superb. Superb.
+7:087 minutes, 8 secondsOkay, great, great, great. Uh, some background noise is there. Uh,
+7:147 minutes, 14 secondsokay. Uh, audio is very low. Uh, is it is it better now?
+7:227 minutes, 22 secondsYes sir. There was some static noise but now it's better.
+7:267 minutes, 26 secondsOkay. Okay. Okay. Perfect. Perfect. Uh, cool. Thank you guys uh for the confirmation. Now uh today's session is
+7:337 minutes, 33 secondsa bit different. uh so uh Shivans sir uh won't be there uh for today's session rather what we'll be having is uh
+7:417 minutes, 41 secondsthere's a problem statement uh regarding AI engineering okay so uh there was a uh assignment that came in uh for one of
+7:497 minutes, 49 secondsthe like by one of the companies uh so we just thought that instead of uh you know just giving you as a project uh
+7:577 minutes, 57 secondssession uh basically just giving you as a project uh rather what we thought is uh we'll uh doing this project live with
+8:058 minutes, 5 secondsyou guys. Uh similar to what you had earlier, right? Uh were everyone present during the previous uh project session
+8:128 minutes, 12 secondsthat we had conducted? Yes, no worries for those who did not who
+8:198 minutes, 19 secondswere not present. Uh but uh basically here the expectation is that you have joined uh using your laptop. Okay. And
+8:298 minutes, 29 secondsuh what we'll be doing is uh we'll be having a problem statement that the company has shared with us. Okay. So we'll present that uh problem statement
+8:368 minutes, 36 secondswith you guys. Okay. Then uh you will be the one who will be solving uh that problem statement. Now what we
+8:458 minutes, 45 secondshave is we have Shrian with us and we also have Fulkit with us. So uh these are two uh people who would be helping you guys solve this problem statement.
+8:558 minutes, 55 secondsOkay. So uh Shrian is uh is is an with us. So he's working as an AI engineer
+9:049 minutes, 4 secondshere at scalar and Pulkit is also an AI engineer who is working at scalar. Okay.
+9:099 minutes, 9 secondsSo uh I'll let them introduce themsel uh once uh no no we will not do anything uh
+9:169 minutes, 16 secondswith AWS at the moment. Aron Kumar no we will not be doing uh anything with regarding AWS. It will it will be just
+9:239 minutes, 23 secondsan assignment uh like Shijan would be introducing that assignment so that you guys uh get an understanding of what we have to do. Uh it's pretty simple and
+9:319 minutes, 31 secondsI'm very confident that you guys can uh do that. So I hope you guys are excited for today's session. Yes. Just give me a thumbs up.
+9:419 minutes, 41 secondsYes. Yes. We we'll we'll just share the problem statement. Rahul. Yeah. Don't worry on that part. You guys will be definitely able to solve this problem statement 100%.
+9:509 minutes, 50 secondsUh okay. Uh my voice is still low and so uh
+9:599 minutes, 59 secondsgot okay. Okay. Perfect. Okay. Also apologies. Uh I just I think I just started uh because I just saw the uh
+10:0610 minutes, 6 secondstime and I thought I just uh like we just uh ran out of time for uh that. Uh I just started without introducing
+10:1310 minutes, 13 secondsmyself. Uh so a quick introduction about me. Uh I am Virat Sha. So I am leading your the a IML vertical at scalar along
+10:2110 minutes, 21 secondswith Shivang sir. So I I am working on different a IML projects uh different tie-ups with companies. Recently I have
+10:2810 minutes, 28 secondsworked on a project with Google uh with scalar. So uh I am heading those uh verticals. Uh that is a small bit of
+10:3610 minutes, 36 secondsintroduction about me. Now uh I'll hand hand over the session to sen uh he will introduce himself. uh he's he's an AI
+10:4410 minutes, 44 secondsengineer himself and uh he's working here at scalar with us with me uh working on multiple projects and uh we
+10:5210 minutes, 52 secondsalso have pulkit with us okay so over to you sin uh just quickly introduce yourself and then we can start the
+10:5910 minutes, 59 secondssession with the problem statement all right uh thank you sir you all um I hope I'm audible to everyone and I'm
+11:0711 minutes, 7 secondsvisible Okay. So hello everyone. I am Shijan
+11:1411 minutes, 14 secondsKumar. Uh currently I am pursuing uh BH degree from IT Madras and I am ame
+11:2111 minutes, 21 secondsscaler for IML. I mostly work on the IML projects and a IML side of the things.
+11:2811 minutes, 28 secondsSo for today's session we have a problem statement. But before jumping onto the problem statement, I would like to show you a demo of what we are going to build and how it will look like just for the
+11:3611 minutes, 36 secondssake of motivation so that you guys can see how we are going to what we are going to build and how it will work in real world.
+11:4511 minutes, 45 secondsJust give me a second.
+11:5211 minutes, 52 secondsOkay. I hope my screen is visible to everyone. All right.
+12:0012 minutesSo as you can see uh this is a AI interview mock coach where the AI counterpart will be asking some questions and based on the questions uh the candidate is supposed to answer.
+12:1112 minutes, 11 secondsAfter answering the AI will provide some sort of a feedback to the um okay uh am I not audible?
+12:2412 minutes, 24 secondsOkay. All right. Thank you everyone for confirming. Okay. So as you can see the very first question asked by AI is something related to about debugging a
+12:3312 minutes, 33 secondshard problem. So let's see uh how it responds to a answer that I will give it to him. So this is the answer that I'm giving and when I'll submit.
+12:4412 minutes, 44 secondsSo as you can see I got a feedback that great job you nailed the star structure and all other things that for which the AI agent has been configured. Now it has
+12:5312 minutes, 53 secondsalso given me a relevance score and it has also said that there are no fillers.
+12:5612 minutes, 56 secondsFillers means some filler words that we use in our day-to-day conversation. So now after that I can ask the AI about that like how am I doing so far
+13:0513 minutes, 5 secondsby this question what you mean is how am I doing so far in the interview that is being taken.
+13:1113 minutes, 11 secondsSo this is a feedback that it has generated and I can also generate a final report based on the final report it will tell me what are the questions that has been asked and how I have
+13:1913 minutes, 19 secondsperformed till now. So I hope everybody's got a I hope everybody's got a clear idea about what we are going to build, how it
+13:2813 minutes, 28 secondswill look like and what will be the flow of the things.
+13:3313 minutes, 33 secondsOkay. So now let's move on to the problem statement that we have.
+13:3913 minutes, 39 secondsJust give me a minute. I'll share the problem statement here.
+13:5313 minutes, 53 secondsUm no shi we do not have voice involved.
+13:5713 minutes, 57 secondsUm not exactly shuh we'll be building a end to end pipeline of our aim mock interview. Yeah we'll see the problem as well.
+14:0714 minutes, 7 secondsSo this is the problem statement. So the problem statement is that most of the hiring teams get a lot of recruit lot of rumés where they have to shortlist the
+14:1514 minutes, 15 secondscandidate but some of the candidates are just like applying for the sake of applying they are not really qualified for the job or they just applied because they saw a good opening saw a good
+14:2414 minutes, 24 secondspackage or anything like that. So we just want to filter those kind of candidates before the resumes reach the hiring team. So this is for that
+14:3214 minutes, 32 secondspurpose. So to make that process fast, we have AI involved in the process and we have this deterministic AI that is working in the back end and it will ask
+14:4014 minutes, 40 secondsquestions as we just saw. So given a candidates's written answer to an interview question interview IQ this uh
+14:4714 minutes, 47 secondsagent that we have it should evaluate the answer using a set of tools that we'll provide. We'll see the kind of set of tools that we are supposed to give it
+14:5414 minutes, 54 secondsto the AI and it will uh give a en encouraging feedback and it will tell if the answer is not right. So what we saw
+15:0215 minutes, 2 secondsjust now where the answers are pretty correct and it gave a encouraging feedback but even if the answers are wrong it will tell you the uh criterias the fronts where we are supposed to
+15:1015 minutes, 10 secondsimprove. The third point is that it should will it will remember the entire candidates responses and the questions
+15:1815 minutes, 18 secondsthat have been asked till now so as to generate a final report or so as to generate that how I have been doing so far questions answer so that for that
+15:2615 minutes, 26 secondspurpose it needs a memory in the back end that uh that accumulates throughout the interview then it can also provide some uh good
+15:3415 minutes, 34 secondsinsights on every question as we just saw. So all this functionality working needs a browser interface as well. The browser interface that we just saw. So
+15:4215 minutes, 42 secondswe will be building that as well. So I hope you are clear with the problem statement what we are going to do.
+16:0016 minutesRight. So going by the interaction I hope there is no doubt in the problem statement it's
+16:0716 minutes, 7 secondsvery similar okay we'll see don't worry so let's uh go
+16:1516 minutes, 15 secondsahead with the next thing which is the requirements so there are multiple asks for the project we'll see the ask one by one and we'll go through it
+16:2716 minutes, 27 secondsso the very first task of the project is that we We need to build a tool calling evaluator agent. So that's just is just what we saw in the demonstration as
+16:3516 minutes, 35 secondswell. So we have to implement a evaluator agent that can decide which valuation tools to call which at which time. So there are multiple evaluation
+16:4416 minutes, 44 secondstools as we saw in the answer as well when we when I answered it uh gave a response and for that response there
+16:5216 minutes, 52 secondswere certain criterias. It listed out that the star criteria fulfilled there are no filler words. So these things are decided by the AI because it has certain
+17:0017 minutestools for using which it can detect these things. So one of the tools that is there is detect filler words. So detect filler words detects and flags
+17:0817 minutes, 8 secondsuncommon filler sorry common filler words like um like basically or some generic words that we use in our day-to-day conversation which do not
+17:1517 minutes, 15 secondsreally add meaning to our sentences but they are just filler for the sake of saying. So this tool is used to identify
+17:2317 minutes, 23 secondsthese filler words present in the candidates's answer when the answer will be typed in the input box and the result will be a structured format that will be
+17:3017 minutes, 30 secondsgiven by this tool and that result will be used by the AI to detect if there were any pillar words in the answer or not.
+17:3817 minutes, 38 secondsSo I guess uh this uh ask is clear. Is there any doubt in this ask
+17:5517 minutes, 55 secondsum in our project we won't be using uh those kind of libraries hier but yeah you can use that library for if you want to make this even more advanced.
+18:0718 minutes, 7 secondsYes, Rahul Singh, you can use a list of filler words for your sake. If you just want to make a tone down version of the project, you should use a list of pillow
+18:1618 minutes, 16 secondswords to test how the agent is performing for those list of fer words.
+18:2318 minutes, 23 secondsYes, Rahul Lakura, it is only using only testing the return output.
+18:3018 minutes, 30 secondsNot really. We will be uh uh defining these functions from scratch.
+18:5618 minutes, 56 secondsSo for the question that I just shown on the browser interface, if someone doesn't know the answer for that question, um the user will try to just
+19:0519 minutes, 5 secondspass that question somehow. To avoid that thing, they will use some pillar words to make the answer lengthy to make it look like they know the things but
+19:1219 minutes, 12 secondsthey don't exactly. So those kind of situations have to be detected using the filler word so that we can see that if the user is trying to just make the answer lendy but he doesn't know the
+19:2119 minutes, 21 secondsthings. So that's why we are using that filler word detection.
+19:3019 minutes, 30 secondsOkay. Uh punkage what are the other tools? So we are not really using a lot of tools. Most of the thing is grock which is our backend AI agent. Then we
+19:3819 minutes, 38 secondshave some uh random library which will be used in to just make the answers a bit deterministic and there are not other very complex libraries that we'll
+19:4619 minutes, 46 secondsbe using in the project. Most of this is Python and linking the uh our tools with the AI agent so as to make the AI agent aware about these things.
+20:0220 minutes, 2 secondsOh, apart from detection advers Yeah, we will see. We will see. Don't worry about it. We'll see what are the other things that we are going to use.
+20:0920 minutes, 9 secondsYes, Rajar uh llama is depreciated in drop. So we'll not be using that.
+20:1620 minutes, 16 secondsOkay. So I hope we were clear with uh ask one. Let's see what is the ask two.
+20:3020 minutes, 30 secondsSo the ask two is about the star structure. So a star structure is basically situation, task, action and result. This is a framework that is
+20:3820 minutes, 38 secondsfollowed during the interviews. When someone asks you a answer, they expect you to follow this kind of structure when you are answering. So this answer
+20:4720 minutes, 47 secondsum basically if you are answering in this format, it is shows that you are confident about the answer that you have. You are aware about the situation that you were given. You are aware about
+20:5520 minutes, 55 secondsthe task that you had to perform. And to perform that task the actions that you taken you knew about those actions and the results that you got was the result
+21:0221 minutes, 2 secondsgood or not. So that's why we have this star framework to evaluate the user's answer that the answer will be putting in the candidates's input box. And this
+21:1121 minutes, 11 secondsis another tool that we will give it to the LLM to detect the answers structure and if it is present or not.
+21:1921 minutes, 19 secondsI hope you are clear with this. Yes and you can put it that way as well.
+21:3021 minutes, 30 secondsIt's basically you are saying that uh LLM is there but if LLM is without any tools and you are asking it to detect
+21:3821 minutes, 38 secondsstar structure or filler words there can be a lot of different parameters on which it can detect because its understanding of the filler words or star structure can be a bit different
+21:4521 minutes, 45 secondsfrom what our understanding is. So to make that understanding concrete and make make sure that the thing uh among the AI and between us remains in a
+21:5421 minutes, 54 secondssingle ballpark, we are using these tools and we are assigning these tools to the AI so that the AI can use that same ballpark which we have defined for it.
+22:0722 minutes, 7 secondsYeah, let me explain the ask two again.
+22:1022 minutes, 10 secondsSo the ask two is about checking the star structure. Star structure is basically situation, task, action and result. What we mean by the star structure is when a uh interview is
+22:1822 minutes, 18 secondsasking you a candidate a question, they expect these four things from the interviewer's in from the candidate's answer. The answer should explain the
+22:2622 minutes, 26 secondssituation in which the task was assigned. What the task was and what were the actions taken to fulfill that task and what was the result obtained
+22:3422 minutes, 34 secondsand was the result accomplished uh is satisfiable for the company or not. If not, what other
+22:4222 minutes, 42 secondsparameters need to be taken into account? So that's what the star structure is and this is what our AI will tell AI will detect in the
+22:4922 minutes, 49 secondscandidate's answer as well when the candidate will answer if the answer is not satisfied or the star framework is not being followed then the score
+22:5622 minutes, 56 secondsrelevance will obviously drop in that case because we this is one of the parameters on which we are evaluating candidates answer.
+23:0423 minutes, 4 secondsI hope this is clear.
+23:1823 minutes, 18 secondsOkay. Uh Kiran, what do you mean by star structure? A star structure is a just acronym for the four things that I stated which is situation, task, action
+23:2723 minutes, 27 secondsand result. And based on these four things, we evaluate a answer of a candidate.
+23:3923 minutes, 39 secondsShalpa we will be building the tools that I am just stating as well we will be building a LLM agent that uses these tools in the application.
+23:5123 minutes, 51 secondsYes s you can but in that case the LLM's answer won't be deterministic as I just said that LLM's definition of pillar words LLM's definition of star structure
+23:5923 minutes, 59 secondscan vary and it can vary to extent that what you understand from that what you want from that and what LLM is inferring can be a lot different. So just to make
+24:0724 minutes, 7 secondssure that the ballpark or the uh range of these things remain the same, we are assigning it a tool. The tools are deterministic so as to the LLM's answers will be deterministic.
+24:1924 minutes, 19 secondsFor now the questions are hardcoded because we want to uh make the application a toned down version of the real world application. But in real
+24:2724 minutes, 27 secondsworld obviously these questions will be asked by LLM and those questions will not be deterministic. The questions will have to come from a particular area
+24:3524 minutes, 35 secondswhich are defined by the uh us which defined by the company who is designing the agent.
+24:4724 minutes, 47 secondsYesani we can do that but even in that case again as I said the definition for other things can be uh different.
+24:5724 minutes, 57 secondsOkay. Now let's uh go ahead with the ask three.
+25:0925 minutes, 9 secondsSo this is the ask three. Now ask three is a score relevance tool. So score relevance is of the candidate is scaled on 0 to 100. As we just saw that when I
+25:1725 minutes, 17 secondsanswered the LLM's question, the answer was scaled on on 100 and I was given 100 out of 100 because the answer contained everything that on which on the
+25:2525 minutes, 25 secondsparameters the LLM evaluates. So this is to evaluate agent behavior. The evaluator agent should read the candidates's answer, determine which
+25:3325 minutes, 33 secondsevaluator tools are relevant, all the appropriate tools and then interpret the tool result. Generate short encouraging feedback for the candidate. Now this
+25:4225 minutes, 42 secondsthing will be done when the using all these three tools that we have given.
+25:4725 minutes, 47 secondsOkay, I hope you are clear till this point.
+26:2026 minutes, 20 secondsOkay. Um, just give me a minute. Let me share the Yeah, let me just share the doc link as well.
+27:3627 minutes, 36 secondsI'm sharing the link of the starter kit as well which you guys are supposed to use.
+27:5527 minutes, 55 secondsAll right. Uh, let me change the access.
+28:0328 minutes, 3 secondsYeah, now it should be accessible.
+28:1228 minutes, 12 secondsThe starter kit is having basically the problem statement that you uh you will use and then the readme.md and the requirements that you will need for the project.
+28:2328 minutes, 23 secondsOkay, I hope this is accessible now.
+28:2928 minutes, 29 secondsOkay, so the starter kit and the doc of the problem statement entirely is added in the notice board. I hope everyone can see it and access it.
+28:4128 minutes, 41 secondsOkay.
+28:4228 minutes, 42 secondsSo I hope we are clear about the asks that are being given.
+28:5028 minutes, 50 secondsIs there any doubt in the asks otherwise we can move ahead.
+29:0129 minutes, 1 secondOkay. So the second task is let me just share it.
+29:1529 minutes, 15 secondsOkay. So the second ask is about the session memory that should aggregate uh that should lead to aggregated evaluation. So since we want the agent
+29:2429 minutes, 24 secondsto be aware about the entire questions and the answers that are given by the candidate to generate a final report. It should remember every conversation that
+29:3129 minutes, 31 secondshas happened till that point. So basically the answer that were given the evaluation for that answer if the answers were fulfilling the star structure if there were any filler words
+29:4029 minutes, 40 secondsor not. So these are the parameters that needs to be evaluated and this is something that the AI should need to know throughout this conversation. So
+29:4829 minutes, 48 secondsthe agent must also be able to answer meta questions at any point during the session. As we just saw that I was able to ask the agent that how far how how am
+29:5729 minutes, 57 secondsI doing till this far and it was able to answer that I was doing great because till that point only one question was asked and I answered that correctly. So these things can only be answered by the
+30:0630 minutes, 6 secondsLLM if it knows what was the conversation that has happened till that point. So for that we will be using this memory.
+30:1330 minutes, 13 secondsI hope we are clear about the memory.
+30:2830 minutes, 28 secondsOkay. So, till now we have two ask. One ask was about the uh uh tools. The second ask is about the
+30:3730 minutes, 37 secondsmemory. I hope you are clear about both the asks.
+30:4930 minutes, 49 secondsOkay.
+30:5330 minutes, 53 secondsNo problem. For this uh uh uh project's sake, we will be using a simple uh memory session memory which will be more like a list where we'll be appending the
+31:0231 minutes, 2 secondsanswers and the questions in a proper format so that the LLM can understand it.
+31:1131 minutes, 11 secondsYes coin you can obviously use sketch that's not an issue but for this project's sake sake we will not be using that because in that case the project
+31:1831 minutes, 18 secondswill become a more become a bit more complex to maintain the simplicity but as well as covering the concepts that are needed we will be using a simple
+31:2631 minutes, 26 secondssession storage yes m we will be storing the question answer the ai evaluation that the
+31:3431 minutes, 34 secondsparameters on which the AI has evaluated and what are the scores given we will be storing all No kumar starter kit does not have a you guys are supposed to write that.
+31:4831 minutes, 48 secondsAll right. So if you are clear with the ask two. Okay. Uh it's a it's more like a session storage
+31:5731 minutes, 57 secondsuh uh zappa but uh since we are using just a basic list and appending it into that you can just call it a list for this project's sake. But in a real world
+32:0532 minutes, 5 secondsthat will be called uh more like a real world session storage.
+32:2032 minutes, 20 secondsYes, Rahula, you can use lang chain for this project but uh for now we have not used lang. We are simply using python but you can build this using lang chain as well.
+32:3232 minutes, 32 secondsHi Rashankar. Um uh the topic that uh we have started is a project that we are going to build for the session and the
+32:3932 minutes, 39 secondsproject is about AI agent utilizing the tools for a interview for a from a perspective of interview platform.
+32:5232 minutes, 52 secondsYes m you can call that. Yes we will be building this project.
+33:0233 minutes, 2 secondsOkay. So we are clear till both the asks. Now coming to the next point which is the uh requirement aggregation and the weakest areas.
+33:1333 minutes, 13 secondsSo let's see that.
+33:1733 minutes, 17 secondsSo uh what is the requirement uh required aggregation? So the final intermediate report must perform actual aggregation of the session data. So what we mean by the session data is the
+33:2533 minutes, 25 secondssession memory that has been accumulated till that point of the time of the interview. So the the things that report should include is the average relevance
+33:3333 minutes, 33 secondsscore. Average relevancy score because uh for each of the question the AI will be given giving certain relevance scores. So we want to average that and that should be available in the report.
+33:4333 minutes, 43 secondsWeakest areas weakest areas will be generated by the LM itself that for which question the relevance score was low and why it was low and how AI will
+33:5233 minutes, 52 secondsidentify that because it has certain tools on those tools it has evaluated the candidates answer like the star structure or the filler words. So for
+33:5933 minutes, 59 secondsthat from that perspective it will tell the candidate that these are the weak areas where you should improve and this must be based on complete session
+34:0734 minutes, 7 secondshistory not simply the most recent evaluated answer and for that session history we have the storage that I just introduced
+34:1934 minutes, 19 secondsare we clear with this thing that what is the required aggregation?
+34:2734 minutes, 27 secondsNo karan kumar it is not uh uh dependent on the previous session it's just you you need to know the classes that have been taken for this
+34:3634 minutes, 36 secondsyes zapa it is a interview agent but more like a conversational interview agent not via voice
+34:5934 minutes, 59 secondsAll right. Uh so uh let's move ahead.
+35:0935 minutes, 9 secondsSo the next thing that we have is memory verification. So this project includes a verification script that will be created by you which will be called memory
+35:1735 minutes, 17 secondscheck.py. So we need to uh run this script once we are done with our agent.
+35:2235 minutes, 22 secondsThe script should evaluate one strong answer, evaluates one deliberately weak answer. Ask the agent a meta question about performance and it checks whether
+35:2935 minutes, 29 secondsthe agent correctly answered correctly identified those weak areas or not. This script is something that you will have to create by the end of the project when you are done with it. We do verify that
+35:3835 minutes, 38 secondsthe memory check is working properly or not. This will not be created uh in the beginning because that is not something you can check when uh you have not built
+35:4635 minutes, 46 secondsthe project. Okay. So I hope we are clear with this that you need to build it by the end of the project when we are done with the creating the session
+35:5535 minutes, 55 secondsstorage and the AI agent you can uh develop the interviewer voice
+36:0236 minutes, 2 secondsagent as well but for that you'll have to have access to a better model
+36:1736 minutes, 17 secondsquestion is just basically a random question that the candidate can ask about the performance during in between any of the conversation that you are having.
+36:2636 minutes, 26 secondsOkay.
+36:2836 minutes, 28 secondsSo if you are clear till this point uh we can move ahead.
+36:4336 minutes, 43 secondsSo now the next next task is uh working radio interface. So this that interface that you just saw in the browser uh
+36:5036 minutes, 50 secondswhich I just uh which I just showed you at the very starting of the session that how the UI will look like that's the gradu interface.
+36:5936 minutes, 59 secondsSo how you will build it? Uh we'll have to build uh the interface using gradio.
+37:0237 minutes, 2 secondsIt is a UI uh that UI is required as a part of the project. That's the main one of the main requirement and it must demonstrate the complete interview
+37:1037 minutes, 10 secondsworkflow that we just saw the whole process that the question was asked the answer was happen answer was given then
+37:1737 minutes, 17 secondsuh I asked the agent in between the whole process about how am I per how I'm performing and then a final report. So
+37:2437 minutes, 24 secondsthat is the entire flow that should be there in the graduate. So it should display current question it should display answer box where the candidate will enter the answer. It should display
+37:3337 minutes, 33 secondsa feedback panel. So the feedback panel appeared only when I answered it. Uh prior to that it was not there. Then there is a there is a live score card
+37:4037 minutes, 40 secondsthat will be visible to you for each of the questions. And then a meta question box. So meta question box is the question where you will ask about
+37:4737 minutes, 47 secondsanything uh anything in between regarding the interview about your performance.
+37:5237 minutes, 52 secondsThen a final report button. So the final report button is supposed to generate the final report based on which you your evaluation have done and that report will be created using the storage that we have given to the AI.
+38:0938 minutes, 9 secondsSo uh they with the uh relevancy score you can improve by making sure the criteras on which the AI is evaluating
+38:1738 minutes, 17 secondsum uh that criterias are being fulfilled basically then your uh AI will be able to give you a high relevance score.
+38:2638 minutes, 26 secondsSo uh so we have uh introduced all the asks that were there for the project like the main uh requirement required asks that were there. So for those who
+38:3538 minutes, 35 secondshave understood the asks that were there you guys can start working on the project and uh keep on building and uh if there is any doubt you can obviously ask in the session.
+38:4438 minutes, 44 secondsHello Kai. Uh the session is about building a AI agent that has certain tools accessible to it and based on
+38:5238 minutes, 52 secondsthose tools it will evaluate a candidates's answers that are being asked. So it is basically interview kind of agent to filter out some candidates
+39:0039 minuteswhich are not really applicable for the job.
+39:0339 minutes, 3 secondsIt's a conversational agent not a voice agent.
+39:0839 minutes, 8 secondsOkay. So if you are clear till this point uh what are the three ask that we have seen. The first task was about the tools that were accessible that will be
+39:1539 minutes, 15 secondsaccessible to the AI agent. The second ask was about the storage that should be accessible to the AI so as to it can generate the final report and can answer
+39:2339 minutes, 23 secondssome meta questions. The third ask is about uh the thing that we have just said which is about final report that should be there and meta question box uh
+39:3139 minutes, 31 secondslive scorecard feedback feedback panel answer box and current questions. So these all things will comprise a browser interface that will be created using the gradient.
+39:4839 minutes, 48 secondsSo uh we are clear with the all the uh asks by now.
+40:0440 minutes, 4 secondsOkay. So since uh uh uh we are clear with the asks and uh all the ask have been introduced the primary required
+40:1340 minutes, 13 secondsasks have been introduced. I will share a gate link with all of you where you can ask your doubts anything uh regarding the project uh that you have
+40:2040 minutes, 20 secondsstarted building any kind of error that you are facing any kind of blockers that you are facing uh while building the project. Okay, let me just paste the link in the notice code.
+40:5140 minutes, 51 secondsAll right. So I have pasted the link in the notice board. Uh another theme will be present there to help you all out about the errors and uh any kind of
+40:5840 minutes, 58 secondsblockers that you'll face in the project.
+41:0141 minutes, 1 secondSo moving ahead uh till this point we have introduced all the three asks and most of you already might have started
+41:0841 minutes, 8 secondsworking on that but there's another fourth ask it is not exactly the main ask about the not really required but it
+41:1641 minutes, 16 secondsis more like a bonus if you can achieve it then that's very good the fourth ask is about a multi- aent system so
+41:2341 minutes, 23 secondsthe ask ask this ask basically asking you to make another agent that is new uh and different from the previous agent
+41:3141 minutes, 31 secondsthat you had which is an uh another agent and it will uh basically give you the class or the category for the
+41:3941 minutes, 39 secondsquestion that needs to be asked rather than asking the questions itself.
+41:4541 minutes, 45 secondsSo the another agent is working more like this. We have an interview agent. It
+41:5241 minutes, 52 secondswill select the category. The category will be defined by us only that we have given it a certain questions. For those questions there will be certain
+42:0042 minutescategory. So that category will be selected by this interview agent. Based on that a question will be selected. The candidate will answer then the evaluator agent will evalate. This evaluator agent
+42:0942 minutes, 9 secondsis the agent for which we are talking till now. The evaluator agent will have the access to the three tools. It will have a session
+42:1542 minutes, 15 secondsstorage all that things were for the evaluator agent. The new agent that we are talking about is the interviewer agent. That is a bonus thing that will
+42:2442 minutes, 24 secondswin. So it will look at how candidate has performed so far. It will decide based on the performance it will decide that's other uh thing that's key about
+42:3242 minutes, 32 secondsit that it will decide based on the performance what next category needs to be asked. So suppose a candidate has performed poorly or given a wrong answer
+42:4042 minutes, 40 secondsnot very good answer on a technical question. So in that case the interviewer agent will decide okay let's ask another technical question rather
+42:4842 minutes, 48 secondsthan moving to another category so as to it will try to cover the depth of a particular category until the user answers a good answer for a for a
+42:5742 minutes, 57 secondsparticular category and if that category's answer is satisfied then in that case it will move to next category only otherwise it will not move to next category or it will exhaust out all of
+43:0543 minutes, 5 secondsthe questions only then it will move to the next category and for then it will select the next type of interview question. Now the selected question is
+43:1343 minutes, 13 secondshanded off to the existing evaluator agent and then we do the another all other three asks that were introduced till now that it will ask evaluate the
+43:2143 minutes, 21 secondsuser's answer ask the question and all that feedback loop will be generated. So that's how this fourth agent will come into the picture of our uh previous.
+43:3643 minutes, 36 secondsOkay. So yes f uh you can ask the route and uh by
+43:4643 minutes, 46 secondsthe end of the session I will also show the solution. I have also show showed a working uh demo already of the project that is there.
+43:5543 minutes, 55 secondsYes Rahulura we haven't built a multi- aent system so far but uh that's why this is a bonus and not a requirement.
+44:0244 minutes, 2 secondsUh if even if you are not be able to build it that's not a issue. This is just for the sake of introducing a multi- aent system and uh seeing if you guys can build it or not.
+44:1444 minutes, 14 secondsOkay.
+44:1844 minutes, 18 secondsSo I hope you are clear with this requirement as well.
+44:3544 minutes, 35 secondsOkay. So if uh you do not know about gradio then that's not an issue then you can build the user interface as per your
+44:4244 minutes, 42 secondsliking. Okay. Whatever you know you can build the user interface using that.
+44:5244 minutes, 52 secondsYes, I will be walking through the solution by the end of the session, but you guys are supposed to make it by yourself first, then we'll move to the solution as well by the end.
+45:0845 minutes, 8 secondsOkay, so let me reiterate the asks that were there. The very first task was about the tool calling evaluator agent and the evaluator agent will have access
+45:1545 minutes, 15 secondsto certain tools. The tools were detecting filler words, checking star structure, calculating score relevance.
+45:2245 minutes, 22 secondsThe second task was about session storage uh session memory and aggregated evaluation. So basically that memory helps the agent to access all the conversation that has happened till now
+45:3145 minutes, 31 secondsand based on that conversation it can generate a final report. It can generate uh some uh random questions answer that can be asked in between by the candidate.
+45:4145 minutes, 41 secondsThe third the third ask was about uh working gradu interface where we are going to build a gradu interface where we have a question
+45:4945 minutes, 49 secondsbox uh answer box feedback panel live scorecard a meta meta question box and then a final report button. So this needs to be built using gradu but even
+45:5745 minutes, 57 secondsif you don't know gradu interface using whatever you know okay that won't be an issue.
+46:0346 minutes, 3 secondsThe bonus ask which is not graded obviously is about building a multi- aent system. A new agent that will be introduced into the picture uh apart
+46:1146 minutes, 11 secondsfrom the uh main agent that we have built till now and the purpose of this agent is to decide the next category that needs to be uh needs to be uh for
+46:2046 minutes, 20 secondsthe category that needs to be asked a question from. So this was the fourth aspect.
+46:3546 minutes, 35 secondsUm no preumar try to make it yourself. Uh then that would be better.
+46:4546 minutes, 45 secondssil you should try to write it yourself rather than taking help from AI.
+46:5346 minutes, 53 secondsIf you want to w code yes you can uh wipe code that uh that won't be much of a issue as well.
+47:0447 minutes, 4 secondsUh hello. Yes sir.
+47:0847 minutes, 8 secondsUh yes guys uh so just setting the right expectation here uh that uh you guys are supposed to solve and build this problem
+47:1547 minutes, 15 secondsstatement. Uh this is an assignment uh it's it's an actual assignment shared by the company and we want you guys to uh learn through this and build through the
+47:2347 minutes, 23 secondssystems. So yes, you can definitely uh wipe code uh you can take help from AI but at the same time please ensure that
+47:3147 minutes, 31 secondsyou know what you are using. Okay, white code can give you very complex code. The LLM can give you very complex code. At the same time, it might so happen that
+47:3947 minutes, 39 secondsit might give you a code uh which is not running uh perfectly well. Okay, so for that we already have like Shihijan has shared a Google meet link with you guys.
+47:4747 minutes, 47 secondsOkay. So there we also have Pulkit with you. Uh so uh if there are any doubts on this part then you can definitely ask
+47:5547 minutes, 55 secondshim there. But just ensure that if you are wipe coding uh let's not build the entire wipe coded solution uh in one single prompt. I would suggest whether
+48:0448 minutes, 4 secondsyou can you know do or b basically uh yes exactly yashit yeah you need to have the understanding of what we'll be
+48:1248 minutes, 12 secondsbuilding right yes correct that's very important that's 100% important but I would suggest rather than building uh an entire application or entire project
+48:2048 minutes, 20 secondsusing white coding uh through and through I would suggest let's start building asks one by one so that you are
+48:2848 minutes, 28 secondsalso aware that whatever the llm is giving uh it's as per the current ask what is required. Okay, I hope everyone is clear with the expectation here, right? And there are no doubts on this.
+48:3948 minutes, 39 secondsYes, for those who have already started working on uh Shihan has shared a Google meet link. So for those who have already
+48:4848 minutes, 48 secondsworking on uh you can start working using uh the VS code interface that Shivangar has been uh using so far frequently to uh you know uh display the
+48:5748 minutes, 57 secondsprojects and to uh interface with it. Uh so you can use that now whenever you if you are already building this project you are creating the Python scripts you
+49:0549 minutes, 5 secondsare writing the code on it okay if you are facing any issues while executing the code Pulkit is there to help you on the Git link feel free to ask him uh
+49:1449 minutes, 14 secondsfeel free to take help from him okay your Shanun would be helping you with the asks and at the same time he will
+49:2149 minutes, 21 secondsalso share the solution with you but initially it is expected that you guys would start building the solution okay
+49:2849 minutes, 28 secondspost which uh Shrian will be sharing the uh exact solution. Okay, is everyone clear with this? Okay, any doubts so far
+49:3649 minutes, 36 secondsuh with the current expectation or the current assignment that we have for you? Yes. No.
+49:4449 minutes, 44 secondsOkay. Great. Great. Great. Okay. I hope you guys are excited. Uh this is a very interesting problem statement especially the ask for uh not to worry uh regarding
+49:5349 minutes, 53 secondsthe ask for okay uh that uh you guys have not studied or you just have learned about the theoretical aspects of multi-agent system but Shijan is there
+50:0150 minutes, 1 secondto help you with that okay we'll we'll show you the working prototype of it as well okay uh the today's uh today's agenda is that
+50:1050 minutes, 10 secondswe'll uh sorry uh just a second uh I'm just answering Vishujit's question which is Uh this is an assignment project. What
+50:1950 minutes, 19 secondsis uh today's class agenda? Uh I think uh Vishujit uh the agenda of today's class is that it's a hands-on session.
+50:2650 minutes, 26 secondsIt's an actual uh interview uh this assignment that the company had shared for the AI engineering role and we just want you guys to solve this. Okay.
+50:3850 minutes, 38 secondsAnd that is the reason why we having a hands-on session for you guys. Okay. Uh just a second. Kishor during video
+50:4650 minutes, 46 secondscoding how do white coding how to make sure the LM provides simple and understandable code instead of complex one I think you should be in a good position to answer that right Kishure uh
+50:5550 minutes, 55 secondsbecause uh everything is dependent on the prompt that you are sharing okay with the LLM so just ensure uh you set the right context and the right prompt
+51:0251 minutes, 2 secondsokay and uh you would be able to get the right output using that LLM okay uh okay uh Shilpa says that uh no
+51:1351 minutes, 13 secondsworries Shilpa uh We are there to help you. Uh no worries on that part. Uh we'll be sharing the solution. Maybe you
+51:2051 minutes, 20 secondscan go through that and uh based on that you can start solving it. Okay. Uh the duration of the assignment is basically the duration of this uh lecture itself.
+51:3151 minutes, 31 secondsUh since you are already by coding or you know you are taking help from an LM it is 100% doable within this time limit. Okay.
+51:4251 minutes, 42 secondsOkay. Uh I hope uh everyone has the right expectation setting and uh is everyone clear with this? Uh I'm just uh
+51:4951 minutes, 49 secondssharing over with uh like over to you Shijan. Uh you can uh proceed ahead. Uh so Shien will be helping you uh uh ahead
+51:5851 minutes, 58 secondson how to take uh like for those who are still not clear on the parts where okay how do we start this problem statement.
+52:0452 minutes, 4 secondsSo he'll be helping helping you with that like what is the step one you should be doing, what is the step two you should be doing. Okay. uh over to you Sjan.
+52:1252 minutes, 12 secondsOkay.
+52:1452 minutes, 14 secondsSo as Viras just said that uh uh for those who are not yet sure about where to start or what to ask uh uh the LLM
+52:2452 minutes, 24 secondsitself if you are taking help from LLM what is the good point to start. So let's see that uh what could be a good place to start. So the very first step
+52:3252 minutes, 32 secondscould be get the tools uh sorry get the API key working get the LLM agent working at least. So the step one is before implementing any kind of
+52:4052 minutes, 40 secondsevolution tool before writing any kind of uh functions in the python let's set up the environment which is will be your virtual environment configure the API
+52:4952 minutes, 49 secondskey the API key that you will be using uh in my case I was using brock API key you can use any other API key with whichever you are comfortable make one
+52:5852 minutes, 58 secondssimple LM LM call just to see if the API key is working and then confirm the API provider configuration works correctly
+53:0553 minutes, 5 secondsso the if the API or the LM is able to give you a response that means your API is configured correctly. Your LLM is working properly.
+53:1353 minutes, 13 secondsSo I hope we are clear with this particular step that we are supposed to start with.
+53:2153 minutes, 21 secondsYes. Goind uh there is a mention of interview bank.py in the readme but it is not present in the kit. Yes. So the interview bank is basically a file that
+53:2953 minutes, 29 secondsyou guys will have to create and based on that interview bank the LM will ask questions from. So that's basically like
+53:3753 minutes, 37 secondsfor a company for a particular job role there are particular set of questions that need to be asked by the company that they want to ask the interviewers.
+53:4453 minutes, 44 secondsSo that is basically that bank. Okay.
+53:5753 minutes, 57 secondsYes sav referring to but there are two MD files.
+54:0154 minutes, 1 secondOne is the problem statement and milestones MD which you are also seeing here in the doc as well. That's the same file. Then there's a readm. The readmi is g to there to give you a brief idea
+54:1054 minutes, 10 secondsabout the project that you are going ahead with and what are the things that you need to do.
+54:1654 minutes, 16 secondsSo uh can I get a thumbs up from the students who have done the step one already who have configured the lm and set up a virtual environment and uh made
+54:2454 minutes, 24 secondsthe requirements uh txt and downloaded all the necessary modules.
+54:4354 minutes, 43 secondsOkay. So, let's wait for 2 minutes for everyone to do this particular step at least.
+54:5754 minutes, 57 secondsAnd are there any blockers that we are facing for the students who are not able to do the step one? Um like where are we in the process? Uh did we create the
+55:0655 minutes, 6 secondsvirtual environment or uh is there any issue in configuring the LLM? You guys can ask here if there's any doubt or you can ask in the Git as well if you're not sure about what's the exact issue.
+55:1955 minutes, 19 secondsOkay Provin.
+55:2255 minutes, 22 secondsAre there anyone else who is facing any sort of issue?
+55:3555 minutes, 35 secondsOkay, I think uh most of you have done the setup already. So uh can I get a thumbs up from everyone who have done it?
+55:5355 minutes, 53 secondsUm um no Manish I uh to proceed with the further part of the project you'll have to set this these things first because
+56:0156 minutes, 1 secondyou'll need to have the modules installed you'll have to set up a virtual environment you'll have the LLM you'll have to need the LLM because this project is about an AI agent so you'll
+56:1056 minutes, 10 secondshave to set up the LLM to get started
+56:2156 minutes, 21 secondsOkay friends uh if you don't have any idea about the API key and about the setup then maybe you can go to the me that I have shared there you can uh uh
+56:3056 minutes, 30 secondsask your doubt and the SM presenter there he will help you sort this out and he'll let you know where to find the AP for the uh needful
+56:4456 minutes, 44 secondsLet's move ahead with the step two.
+56:4956 minutes, 49 secondsSo the step two asks us to implement the tools independently. What we mean?
+56:5656 minutes, 56 secondsWhat we mean by this is that uh uh instead of creating the tools and directly like piring them to the LLM and then
+57:0557 minutes, 5 secondschecking if their tools are working properly or not is a wrong way because in that case you will be wasting the API key as a token limit as well and the
+57:1357 minutes, 13 secondstool configuration will not also let you know like you won't be able to debug where the issue exactly is is it from the LLM side or is it from the tools. So
+57:2157 minutes, 21 secondsthe right way to approach this is first of all create the tools that are needed.
+57:2557 minutes, 25 secondsSo in our case we need the three tools that were introduced in the ask one detect filler words check star structure and score reliance. So first of all
+57:3357 minutes, 33 secondscreate these three tools check if they are working correctly or not independently. Do not do not like put them into uh together in
+57:4157 minutes, 41 secondsa whole box and then uh start working with them. try to check for them independently and then try we will go
+57:4957 minutes, 49 secondsahead with the uh process of wiring them to that element.
+57:5657 minutes, 56 secondsOkay. So are we clear with the step two ID? uh you are new to this okay then that's not an issue for the instructions
+58:0458 minutes, 4 secondsfor setup you can refer to the readmd that readmd is very clear about the instructions and it will help you a lot but even in that case if you're facing
+58:1158 minutes, 11 secondsany kind of issues any kind of errors during installation in that case you can refer to the me that I have shared that me in that meet another theme bid manga
+58:2058 minutes, 20 secondshe will help you uh to resolve the errors that you'll be facing
+58:3058 minutes, 30 secondsAll right. So, how many of you are uh comfortable with the step two? Uh who are clear with the step two and and already working on it?
+58:4058 minutes, 40 secondsIs there anyone who still has a doubt about how to go about step two? What could be a potential problem that you might be facing? You can
+58:4858 minutes, 48 secondsso you can tell here. you can uh we can discuss the issue and we can resolve it.
+58:5458 minutes, 54 secondsYes, you can take your time. Uh it's not there's no hurry.
+59:1559 minutes, 15 secondsOkay. So till this point we have uh introduced two step. The very first step was about getting the pipeline uh ready with the pipeline about the LLM
+59:2459 minutes, 24 secondsbasically. So setting up the LLM, setting up the API, configuring it, preparing the virtual environment and putting the requirements there. So this shows the thing in step one step one.
+59:3359 minutes, 33 secondsThe step two is about configuring the tools properly checking if if they're working or not and making sure as a independent function they at least work
+59:4259 minutes, 42 secondsand we'll see how to wire them to the LM in the next step.
+59:5459 minutes, 54 secondsUh yes Rahul uh Llama 3.370 billion versatile has been appreciated. So you can use GPT OSS 20 billion uh parameter
+1:00:021 hour, 2 secondsmodel as well. That's a good replacement of this llama 70 billion versatile.
+1:00:081 hour, 8 secondsSo Manish Kumar we are actually building a interview IQ software uh more like a uh website where we have a AI agent and
+1:00:171 hour, 17 secondsthat AI agent will evaluate the candidates's answer that the answer will be entered in textual format not a voice agent. So the answer will be entered by
+1:00:261 hour, 26 secondsthe candidate and that answers will be evaluated by the AI agent. Based on that AI agent will generate a feedback it will give a relevance score. The evaluation will be done on certain
+1:00:351 hour, 35 secondsparameters which is star star framework and the filler words and from that uh the LLM agent will evaluate your answers
+1:00:431 hour, 43 secondsand it will ask questions and it will be a back and forth until it is run out of questions and you can generate a final report as well.
+1:00:531 hour, 53 secondsYes, Sha the male mail gives has given it and as well as you can refer to the official documentation there they have a
+1:01:011 hour, 1 minute, 1 seconddepreciated section and you can see which model's uh replacement is which model and you can use that as well.
+1:01:071 hour, 1 minute, 7 secondsYes, I can name the agent. In fact, I can paste the agent's name in the chat as well if you guys are not sure about it. Just give me a second.
+1:01:241 hour, 1 minute, 24 secondsYeah. Uh Jendra already has posted the agent name. Thank you Jendra. So this is the exact agent name. Uh it's just that it is from open open AI.
+1:01:381 hour, 1 minute, 38 secondsKiran Kumar you can stay connected in the session because we are yet to introduce the solution as well and uh we'll see by the end of the session what exactly is the solution and how you can
+1:01:471 hour, 1 minute, 47 secondsgo about solving this uh problem. It's exactly it's obviously not only the only solution. There are multiple approaches to the problem and everyone's approach
+1:01:541 hour, 1 minute, 54 secondsis not wrong. Everyone's approach is not right. There can be some blockers in each of the individual processes.
+1:02:081 hour, 2 minutes, 8 secondsAll right. So I hope uh most of you are done with step two. Are there any issues that you are facing?
+1:02:241 hour, 2 minutes, 24 secondsUh can I get a thumbs up or thumbs down from the people who are facing the issue or who are not facing the issue respectively?
+1:02:511 hour, 2 minutes, 51 secondsAll right. So let's see the next step that is involved in the registered approach.
+1:02:581 hour, 2 minutes, 58 secondsNext step is asking us to connect the tools to the agent. We have three tools in the evaluator agents tool calling loop and we have to verify that one
+1:03:071 hour, 3 minutes, 7 secondscomplete evaluation works end to end using main.py. So this main.py PI is the file where you have to connect the tools to the agent and verify that if they're
+1:03:141 hour, 3 minutes, 14 secondsworking correctly or not. If the agent is able to utilize the tools properly or not. So since the tools individually are working correctly, we in the step two we
+1:03:221 hour, 3 minutes, 22 secondshave made sure that the agents sorry the tools are not uh deviating from their uh suggested appro suggested int behavior
+1:03:311 hour, 3 minutes, 31 secondsthat is there. So that should be working properly in step two. That's where why we had this step two and we explicitly
+1:03:381 hour, 3 minutes, 38 secondsstate that they should work properly as a standalone Python function only then we are going to wire them in the LLM. So now in step three we will wire them in
+1:03:461 hour, 3 minutes, 46 secondsthe LM and then we'll check for that evaluation once again that if they are working properly or not the tools as well as the agent together are working properly or not.
+1:03:581 hour, 3 minutes, 58 secondsAre we clear with this step three?
+1:04:261 hour, 4 minutes, 26 secondsOkay, great.
+1:04:421 hour, 4 minutes, 42 secondsIs anyone here facing any problem in or is not clear is or the uh approaches are ambiguous or problem statement is still not clear?
+1:04:521 hour, 4 minutes, 52 secondsYes, Kalipasad you can use the model whichever you're comfortable with that's not an issue as long as you have the access to the model and the API keys.
+1:05:001 hour, 5 minutesThe suggested one is obviously that uh that GPTOSS 20 billion model which is being used from rock because it has a
+1:05:081 hour, 5 minutes, 8 secondsgenerous free token limit. So you can use that.
+1:05:161 hour, 5 minutes, 16 secondsOkay. So I hope most of you are all working with the step two and step three. So let's take a five minute break and then I'll be right back. Meanwhile,
+1:05:231 hour, 5 minutes, 23 secondsyou guys can continue to working on the project and if there are any issues, you can mention in the chat or you can mention in the git that is going there.
+1:05:311 hour, 5 minutes, 31 secondsYou can also ask the doubts there.
+1:10:581 hour, 10 minutes, 58 secondsOkay. So hello everyone. Uh I hope uh that uh uh we are done till step three or is
+1:11:061 hour, 11 minutes, 6 secondsthere any issue? Are we facing any problem? Is anyone not able to resolve the errors or anything?
+1:11:301 hour, 11 minutes, 30 secondsum Sharma the uh select tools uh thing that you're talking about that will not create issue as long as you're using the
+1:11:371 hour, 11 minutes, 37 secondsgro one if you're using some other LLM obviously then you'll have to structure that accordingly because that will create some issue that's for sure
+1:11:461 hour, 11 minutes, 46 secondsbecause if you're using any other LM provider their tool calling structure can be a bit different. It's not it's not very different but there are possibilities and that will have to structure it accordingly.
+1:11:571 hour, 11 minutes, 57 secondsOkay Shilpa what's exactly the out can you please tell
+1:12:191 hour, 12 minutes, 19 secondsThe package file is not very long. You can refer to the requirements.txt that I have shared with the starter kit. That's the only things that you have to install and it will not take much of a time.
+1:12:301 hour, 12 minutes, 30 secondsSince you are installing it in a virtual environment, it will not take uh space in your uh local device as well.
+1:12:451 hour, 12 minutes, 45 secondsOkay. So, how many have done till step two or step three? Like where are we exactly in the process?
+1:13:051 hour, 13 minutes, 5 secondsUm yes Rajumar you can use your laptop but inside the laptop you can create a virtual environment. Uh so as to the modules that are installed installed
+1:13:141 hour, 13 minutes, 14 secondsthat are not exactly installed in the uh local device but inside the virtual environment you can refer to the requirements.t file there we have given the steps to do that.
+1:13:481 hour, 13 minutes, 48 secondsOkay, we create great uh since you have created the tools, I hope you are on the step of wiring these uh tools to the LLM.
+1:14:081 hour, 14 minutes, 8 secondsThe recorded class will be accessible in the same link once the class ends.
+1:14:161 hour, 14 minutes, 16 secondsOkay, great going. Yeah, keep going. Uh then we'll uh discuss about the next step as well. Uh what about others? Uh
+1:14:241 hour, 14 minutes, 24 secondsuh where are we? Uh is there any issues that you guys are facing with the setting up of virtual environment or how to install the requirements or any other tool calling issues?
+1:14:391 hour, 14 minutes, 39 secondsOkay, great.
+1:14:451 hour, 14 minutes, 45 secondsSo while you guys are at step three, let's uh let's introduce the step four.
+1:14:571 hour, 14 minutes, 57 secondsRangaro you are supposed to complete the project in the session itself because since we are allowing the use of LLM so
+1:15:031 hour, 15 minutes, 3 secondsyou can easily complete it given that you are properly using the LLM uh not just uh asking the LLM to complete the
+1:15:111 hour, 15 minutes, 11 secondscollect wipe code the entire project as itself if you're going step by step then it would not be much of a problem.
+1:15:211 hour, 15 minutes, 21 secondsSo the step four asks us to uh store every evaluated answer, store the corresponding scores and evaluation results and the previous answers remain
+1:15:301 hour, 15 minutes, 30 secondsavailable during the later time. So what we are talking about is we are talking about the session memory that we are supposed to create and the session memory should be accessible to the LLM
+1:15:381 hour, 15 minutes, 38 secondsthroughout the entire conversation so that at any point if the candidate asks us ask the LLM that how how he or she
+1:15:451 hour, 15 minutes, 45 secondshas been doing in the process or what are the answers that where it or she is lacking so that the LM can answer these kind of questions properly because it
+1:15:531 hour, 15 minutes, 53 secondswill have the access to the previous conversation that has happened till now. That's what we are doing in step four.
+1:15:581 hour, 15 minutes, 58 secondsWe are adding the session memory into the LLM. So we make sure you are only going to the step four once the
+1:16:061 hour, 16 minutes, 6 secondsevaluator agent is working correctly. By what we mean by working correctly what we mean is that the evaluator agent is able to use the tools properly and the
+1:16:141 hour, 16 minutes, 14 secondstools are accessible to the agent as well and the responses that are given by the agent are as per the response that you're defining for the agent.
+1:16:491 hour, 16 minutes, 49 secondsSha to if you're using lang then in that case u uh you might have to refer to the
+1:16:561 hour, 16 minutes, 56 secondsdocumentation in between because uh the uh this project in this project we are not exactly using the line chain. Uh so
+1:17:041 hour, 17 minutes, 4 secondssince we have used uh like the native Python and the Python functions to buy this entire thing obviously chain is a feasible solution we can use that.
+1:17:151 hour, 17 minutes, 15 secondsSo as I said uh during uh the introduction of the ask of the memory that uh instead of having a proper uh
+1:17:241 hour, 17 minutes, 24 secondsdatabase for memory we can use a list a simple list that we have in Python. Uh and a simple list can be used as a memory. It's just that inside the list
+1:17:321 hour, 17 minutes, 32 secondsyou are supposed to put the answers in a proper format so that the LM can access that. So it's not like you're just appending the everything in the list. In
+1:17:411 hour, 17 minutes, 41 secondsthat case it will become very cumbersome. That's not what you should.
+1:17:431 hour, 17 minutes, 43 secondsYou should structure your responses properly and those responses should be appended in the list in a clear and structured manner like the way it should happen in a real world database as well.
+1:18:021 hour, 18 minutes, 2 secondsSo coming back to the step four, what step four asks us to add a session memory. The session memory is used by the learner to store the evaluated
+1:18:111 hour, 18 minutes, 11 secondsanswer, store the evaluated answers, feedback and the uh that uh the scores that have been given and ensure that the
+1:18:191 hour, 18 minutes, 19 secondsprevious answers and the responses are accessible to the agent at any given point in the interview. That is the step
+1:18:261 hour, 18 minutes, 26 secondsfour. So how many of you have reached till step four or are we are still at some previous step.
+1:18:551 hour, 18 minutes, 55 secondsOkay. Great. Good point going.
+1:18:591 hour, 18 minutes, 59 secondsSo just to reiterate what we have discussed till now. We discussed the asks that were given. We discussed the
+1:19:081 hour, 19 minutes, 8 secondsuh all the four ask that were there and the fourth ask that was a bonus ask. It was about a new agent that we have to create. So that is not the main point
+1:19:171 hour, 19 minutes, 17 secondsfor now. And then we discussed about the suggested implement implementation approach. In that implementation approach, we are at the step four till
+1:19:241 hour, 19 minutes, 24 secondsnow. The first step was about setting up the NLM properly using the key and making sure it is working. The second
+1:19:311 hour, 19 minutes, 31 secondsstep is about implementing the tools independently as a standalone as a standalone function and checking if they
+1:19:391 hour, 19 minutes, 39 secondsuh responding properly to the way the way we want them to.
+1:19:441 hour, 19 minutes, 44 secondsThe third step is about connecting the tools to the agent and making sure the agent and tools are working in synchronous way such that the responses
+1:19:521 hour, 19 minutes, 52 secondsgiven by them are the intended response that we need. Now the fourth step where we are currently is asking us to add the session memory. The memory should be
+1:20:001 hour, 20 minutesaccessible to the LM throughout the interview and everything needs to be stored every conversation needs to be stored in the session.
+1:20:111 hour, 20 minutes, 11 secondsI uh there is no package file exactly but there's a requirement txt that requirement txt lists out the packages
+1:20:181 hour, 20 minutes, 18 secondsor the modules that are supposed to be installed. Okay.
+1:20:281 hour, 20 minutes, 28 secondsOkay. So just give me a minute.
+1:20:381 hour, 20 minutes, 38 secondsAll
+1:20:571 hour, 20 minutes, 57 secondsright.
+1:21:001 hour, 21 minutesSo, how many of you are done till step three? Can I get a thumbs up from the people who are done till that part?
+1:21:201 hour, 21 minutes, 20 secondsOkay, great. So, which means we are currently at test step four for few of you. Nice.
+1:21:341 hour, 21 minutes, 34 secondsSo I guess now we can move to step five to discuss.
+1:21:461 hour, 21 minutes, 46 secondsYes. Go. Uh it uh does not matter where you are adding it. Just make sure it is accessible to the LLM. So you can add it in the main n.py. That would be the most
+1:21:541 hour, 21 minutes, 54 secondsideal place to add it. You can just define a variable at the very start and then make sure it is accessible throughout the process.
+1:22:061 hour, 22 minutes, 6 secondsSo coming to the step five, it is implementing aggregated reporting. So this is about the final report that are supposed that is supposed to be created.
+1:22:141 hour, 22 minutes, 14 secondsSo it's a function that you have to write which is a generate final report function. Now the report must perform certain aggregations that aggregations
+1:22:221 hour, 22 minutes, 22 secondsinclude average relevance score that we just uh discussed during the asks. The second is lowest scoring question. The third is name the weakest area. So the
+1:22:301 hour, 22 minutes, 30 secondsweakest area naming would be based on the criteria that are defined to the LLM and based on that it will tell the candidate what is the weakest area for
+1:22:391 hour, 22 minutes, 39 secondsthat candidate based on the answers given by the candidate.
+1:22:491 hour, 22 minutes, 49 secondsYes, Shalpa. These are the files that you'll have to create. Memory check.py.
+1:22:531 hour, 22 minutes, 53 secondsYou can skip for now. That's a file that should come at the end when you have completed the project because that's just for the checking uh the LLM's
+1:23:011 hour, 23 minutes, 1 secondmemory if the memory is accessible to the LM or not and it is performing what it is supposed to perform properly. So even if you skip memory check.py that
+1:23:091 hour, 23 minutes, 9 secondswon't be issue that is basically a standalone file that should come at the end not at the start.
+1:23:491 hour, 23 minutes, 49 secondsRan the Google Meet link is pinned in the notice board. You can access it from there.
+1:23:591 hour, 23 minutes, 59 secondsfor others. Uh I hope there is no issue that you guys are facing in the setting up of the project or uh the uh LM tool linking. I hope these things are clear.
+1:24:111 hour, 24 minutes, 11 secondsThere is no ambiguity among that.
+1:24:321 hour, 24 minutes, 32 secondsRight. So the most two most uh recent two steps that we have introduced is a session memory storage addition which is
+1:24:401 hour, 24 minutes, 40 secondsabout a memory and uh in real world it should be a database of some sort but in this project we are just using a list as a session memory but obviously the list
+1:24:481 hour, 24 minutes, 48 secondsshould be in a proper structure that can be accessible via lm. So the list is supposed to store the evaluated answer
+1:24:561 hour, 24 minutes, 56 secondsthe corresponding scores and the results and we have to make sure that the list or the session memory which we are calling should be accessible throughout
+1:25:041 hour, 25 minutes, 4 secondsthe conversation for the LS that is the step four that we introduced. The step five is about implementing a function which is supposed to create the final
+1:25:111 hour, 25 minutes, 11 secondsreport. The final report is supposed to contain the average relevance score, the lowest scoring question and the biggest
+1:25:181 hour, 25 minutes, 18 secondsarea that is based on the candidates given uh giving given answers. So these three things will be returned by the LM
+1:25:281 hour, 25 minutes, 28 secondsitself but the LM will use this this function. Now this function is a hardcoded function. Obviously you'll have to define the certain things this relevance score calculation lowest
+1:25:371 hour, 25 minutes, 37 secondsscoring question how it should be calculated and test area how it should be calculated. these things you'll have to do.
+1:25:471 hour, 25 minutes, 47 secondsI hope there's no doubt till this point uh till the step five and uh we are going good uh about these steps.
+1:26:181 hour, 26 minutes, 18 secondsSo can I get a thumbs up from people who are done till step four?
+1:26:331 hour, 26 minutes, 33 secondsOkay. uh gorup to configure the API key you just have to basically use the NV the NV file that is there you have to
+1:26:421 hour, 26 minutes, 42 secondscreate a NV and inside that you'll have to specify the API keys variable and then initialize that API key
+1:26:531 hour, 26 minutes, 53 secondsokay just give me a minute I'll check I'll check Thank
+1:27:211 hour, 27 minutes, 21 secondsyou. Not an issue. You can do it. It is not very complex.
+1:28:061 hour, 28 minutes, 6 secondsOkay. So I have made the Yeah. So now everyone would be able to join the meet.
+1:28:131 hour, 28 minutes, 13 secondsComing to the active models in rock. So you could use OpenAI's 20 billion model uh GPT OSS that is named you can use that.
+1:28:231 hour, 28 minutes, 23 secondsYes. You will have to implement every step that we are discussing till now.
+1:28:351 hour, 28 minutes, 35 secondsYes s you can use that as well but uh it would uh like uh use the API limit of the text. Okay,
+1:28:481 hour, 28 minutes, 48 secondsplease try to solve the problem as well.
+1:28:501 hour, 28 minutes, 50 secondsuh just uh eyeballing the solution is not going to help uh as long as you are not going to code yourself or at least try to code yourself even uh taking the
+1:28:581 hour, 28 minutes, 58 secondshelp from LM and just understanding the code just watching the solution is not going to help
+1:29:061 hour, 29 minutes, 6 secondsuh sel for the sake of this project we are keeping the hard coded words as filler words since the AI's definition of filler words can be different from
+1:29:141 hour, 29 minutes, 14 secondssomeone who is an interviewee so that's why we want that aspect to be deterministic
+1:29:241 hour, 29 minutes, 24 secondsAmit the Google meet link uh is pinned in the notice board. Um uh Sim let me just post the model link model name.
+1:29:401 hour, 29 minutes, 40 secondsThis is the model that I'm using in the project. You can use the 130 billion model as well. There's no issue in that.
+1:29:451 hour, 29 minutes, 45 secondsAs long as this works, it's not an issue.
+1:30:031 hour, 30 minutes, 3 secondsUh this approach talk is pinned in the uh notice board itself uh by the name of problem statement of you can see that that is also there.
+1:30:181 hour, 30 minutes, 18 secondsOkay. So um how many are done till step five or step four?
+1:30:271 hour, 30 minutes, 27 secondsAre there any kind of issues that has being faced by students who are not able to resolve resolve that or some sort of
+1:30:351 hour, 30 minutes, 35 secondslinking issues between the tools and the LLM?
+1:30:501 hour, 30 minutes, 50 secondsOkay. So let's move to the next step then.
+1:30:551 hour, 30 minutes, 55 secondsNow this is something that uh we said that as meta questions which we are referring to throughout the session. So this is for the meta questions. So the
+1:31:031 hour, 31 minutes, 3 secondsstep is six asked us to implement a ask agent function. The is this is a function that allows the candidate to ask meta questions while the interview
+1:31:111 hour, 31 minutes, 11 secondsis still in progress. So the interview is happening from the AI's agent but this ask agent or meta question asking
+1:31:181 hour, 31 minutes, 18 secondsallows the candidate to ask questions to the LM regarding their performance. How they are performing till that point in the session. So the answers must be based on the complete session history.
+1:31:271 hour, 31 minutes, 27 secondsNow this session history is coming from where? It is coming from step five which we have just created. No sorry not step five but step four where we have initialized the session memory. Now this
+1:31:361 hour, 31 minutes, 36 secondssession memory will be used by the agent to answer the questions from the candidate that is being asked.
+1:31:461 hour, 31 minutes, 46 secondsI hope you are clear till step six.
+1:32:141 hour, 32 minutes, 14 secondsCan I get a thumbs up from people who are done till step four?
+1:32:231 hour, 32 minutes, 23 secondsOkay.
+1:32:261 hour, 32 minutes, 26 secondsOkay. Uh is there any issues getting being faced by other students who are not able to solve the preceding steps?
+1:32:561 hour, 32 minutes, 56 secondsOkay brain. Um, very nice. So, did you complete the whole project or till the step four
+1:33:171 hour, 33 minutes, 17 secondsnice? Very good. We'll see the solution also uh by the end of the session.
+1:33:261 hour, 33 minutes, 26 secondsSo what about others? How others are doing?
+1:33:311 hour, 33 minutes, 31 secondsIs there any issues getting faced or any kind of error that you guys are not able to resolve?
+1:33:421 hour, 33 minutes, 42 secondsOkay. So now in the interest of time I'll move ahead with other steps. You guys can keep working on it. I'll try to
+1:33:501 hour, 33 minutes, 50 secondsuh show all the steps that are supposed to be done.
+1:33:551 hour, 33 minutes, 55 secondsSo now the step seven is asking about the memory check. The last step that I said that it is a memory check that
+1:34:031 hour, 34 minutes, 3 secondsyou'll do for this sake of checking that everything that you have implemented till now is working properly. So this will check for the memory if it is
+1:34:121 hour, 34 minutes, 12 secondsworking properly if it is getting you the uh intended answers or the responses that you are that you need.
+1:34:201 hour, 34 minutes, 20 secondsAnd the last step is building the radio AI which is basically your app.py and uh you through this app.py You will be accessing your browser interface that
+1:34:291 hour, 34 minutes, 29 secondswill be created on radio that we just that we saw at the very start of the session.
+1:34:391 hour, 34 minutes, 39 secondsRight? I hope we are clear till the steps. There's no issue.
+1:34:481 hour, 34 minutes, 48 secondsRight? Okay. So let's uh discuss the milestone that were there. So the milestone one is uh pretty much about setting up the environment. So the
+1:34:571 hour, 34 minutes, 57 secondsenvironment setup is basically you have to create a virtual environment then install the requirements txt after activating the virtual environment so that the requirements that are there in
+1:35:051 hour, 35 minutes, 5 secondsthe txt file are installed in the virtual environment and not your uh local device. Then you have to configure env with the required API key. So this
+1:35:141 hour, 35 minutes, 14 secondsis about the environment setup which is very much like the step one that we had.
+1:35:181 hour, 35 minutes, 18 secondsThe second milestone is making a basic LLM call without tools to check if the configured API key and the provider are properly configured or not. This is
+1:35:271 hour, 35 minutes, 27 secondsmilestone 2. Mstone 2 is implementing and directly testing the very first tool that we had which is the uh to filler word detection.
+1:35:411 hour, 35 minutes, 41 secondsshow to uh detect the filler words you just have to hardcode some filler words that you feel like and uh then check for the user's answers if those answers
+1:35:491 hour, 35 minutes, 49 secondscorrect connect those uh filler words or not um no sha you'll have to create that
+1:35:571 hour, 35 minutes, 57 secondsinterview bank.py You can just like put some uh uh intended questions and the intended answers. What should be the expected outcome? These kind of things that should be there in interview.py.
+1:36:071 hour, 36 minutes, 7 secondsYep.
+1:36:091 hour, 36 minutes, 9 secondsM four is about detecting the star structure. So this is basically another tool that you have to give where you are checking the star structure and you have
+1:36:181 hour, 36 minutes, 18 secondsto implement and directly test. So basically these tools are supposed to be checked independently not with the LM as of now.
+1:36:261 hour, 36 minutes, 26 secondsAnd the last one is a score relevance tool. So these were the three tools that we had. So all these three should be defined and uh tested independently. So
+1:36:341 hour, 36 minutes, 34 secondstill this point we are completing the tool uh evaluation and the implementation.
+1:36:421 hour, 36 minutes, 42 secondsMilestone six is tool calling evaluator.
+1:36:441 hour, 36 minutes, 44 secondsSo this is the agent that you had. So connect all three tools to the evaluators tool calling loop and verify one complete evaluation end to end using main.py. So this main.py PI is basically
+1:36:521 hour, 36 minutes, 52 secondsto evaluate if the LLM is able to access the tools, use them properly and generate the intended response that we had.
+1:37:031 hour, 37 minutes, 3 secondsMy student is about the session memory that you had to create. This is in correspondence with the step four that we had where you have to define a basically a list a variable and in that
+1:37:131 hour, 37 minutes, 13 secondsyou have to make sure that the uh things being added are in a proper structure and the LM can access it throughout the session throughout the uh uh interview.
+1:37:231 hour, 37 minutes, 23 secondsmilestone it is about generating the final report. So this is again uh in correspondence to the uh next step that we had where the report must include
+1:37:311 hour, 37 minutes, 31 secondscertain things based on the candidates answer that are given to the LLM agent.
+1:37:401 hour, 37 minutes, 40 secondsM is mid session agent questions. So this is basically the meta question that you have to ask. So for that you have to implement a ask agent function. The
+1:37:471 hour, 37 minutes, 47 secondsagent must answer meta questions using the complete session history not uh some not some any random thing should not be returned. It should access the memory
+1:37:561 hour, 37 minutes, 56 secondsand based on the memory data it should answer the proper questions. Then we had memory verification which is in correspondence to the second last step
+1:38:031 hour, 38 minutes, 3 secondsthat we had where we have to implement memory check.pfy and the test must correctly identify the derivately weak answers as the weakest area. So here you
+1:38:111 hour, 38 minutes, 11 secondshave to basically generate some good answers, some bad answers and based on that the LLM should generate proper responses since those answers should be
+1:38:191 hour, 38 minutes, 19 secondsin the memory history and the memory history should be checked properly. That's what we are doing here.
+1:38:251 hour, 38 minutes, 25 secondsM 11 is about building the graduate application. So it is basically the browser interface that you have to create. So you have to build app.py verify and complete browser uh based
+1:38:331 hour, 38 minutes, 33 secondsworkflow where you the question will be there, answer will be there, then there will be evaluation. After that there should be a feedback which will be given by the L a scorecard and the meta
+1:38:421 hour, 38 minutes, 42 secondsquestion that you can ask and the final report that should be generated once the questions are exhausted.
+1:38:561 hour, 38 minutes, 56 secondsThen the last milestone is basically the multi- aent system that we had and this was a not exactly the requirement but more like a bonus. So you have to create
+1:39:051 hour, 39 minutes, 5 secondsa run multi- aent file where you will connect both the agents and uh this is the interviewer agentpy. This is the new agent that you have to create. So now let's move to the solution that we have.
+1:39:161 hour, 39 minutes, 16 secondsSince we have discussed the uh approach, we have discussed the milestone, we have discussed the asks that were there, now we can discuss the solution as well. So let me just share my screen.
+1:39:451 hour, 39 minutes, 45 secondsOkay. So, I hope this is visible to everyone.
+1:39:501 hour, 39 minutes, 50 secondsCan I get a thumbs up from people if it is visible or not?
+1:39:591 hour, 39 minutes, 59 secondsAll right.
+1:40:061 hour, 40 minutes, 6 secondsOkay. So first of all as suggested by the approach we have to define the tools. So this is where the tools are defined. So here you can see I have a
+1:40:131 hour, 40 minutes, 13 secondsfiller words list. It's just a hardcoded list. So these are some filler words.
+1:40:171 hour, 40 minutes, 17 secondsNow as I said the filler words can vary from people to people. So it is a very non-exhaustive list. You can include a lot more words here. I'm not saying
+1:40:251 hour, 40 minutes, 25 secondsthese are the only words that are filler words. There can be a lot more. But just to to make sure that the uh filler words
+1:40:321 hour, 40 minutes, 32 secondsare a are a limited set for us at least we have included these words. So now to detect the filler words this is a
+1:40:391 hour, 40 minutes, 39 secondsfunction where we are saying the answer should be first of all lower case so that we have a normalization then after that we are checking for the count of
+1:40:471 hour, 40 minutes, 47 secondseach of the filler word and then we're totaling the filler words count and the return value from this function is basically the total count of filler
+1:40:541 hour, 40 minutes, 54 secondswords how many are actually found. So found means basically the dictionary where there's a key the key is the
+1:41:021 hour, 41 minutes, 2 secondsfiller word the value is the filler words count and then the verdict. So verict is it is clean if the total is less than two less than equal to two otherwise it's need needs improvement.
+1:41:111 hour, 41 minutes, 11 secondsSo basically we are saying if the answer is including more than two words then it needs improvement. The answer needs improvement. That's the very first tool.
+1:41:241 hour, 41 minutes, 24 secondsNow coming to the next tool that we had is star structure detection. So star structure detection as I said it is a situation task action and result based
+1:41:341 hour, 41 minutes, 34 secondsstructure. So for this you have to again define the situation that how like in a answer when how you can detect a
+1:41:411 hour, 41 minutes, 41 secondssituation being described. So to detect a situation you have these set of words.
+1:41:461 hour, 41 minutes, 46 secondsNow again these lists are non-exhaustive. You can extend these list. So these are the certain words that can describe a situation or or can
+1:41:541 hour, 41 minutes, 54 secondsuh or can tell you that a situation is going to be described. So like when at my in my previous while working. So these are certain words that people use
+1:42:021 hour, 42 minutes, 2 secondswhen they are describing a situation. So this is a list of situation words. Then we have task words where a task is being described. So a task is can be described
+1:42:101 hour, 42 minutes, 10 secondsas I need to my task was I was responsible for this task or something like that. Okay.
+1:42:191 hour, 42 minutes, 19 secondsThen the next thing we have is actions.
+1:42:201 hour, 42 minutes, 20 secondsSo actions are the actions that are being taken by the candidate itself. So the actions can be I I decided to do
+1:42:271 hour, 42 minutes, 27 secondssomething. So this word tells us that yeah some action was going to be taken.
+1:42:311 hour, 42 minutes, 31 secondsSimilarly for other words and the result is basically the list of words where we are saying that these words lead to
+1:42:381 hour, 42 minutes, 38 secondssomething that that is being described as a result. So it is as a result this leads to be achieved or something similar to this.
+1:42:461 hour, 42 minutes, 46 secondsSo this is a list of star signals that we have defined. Now to check the star structure we have a function again we are normalizing the text. We are
+1:42:541 hour, 42 minutes, 54 secondschecking for the words that are present in the from the star structure. So in this particular line we are saying the words that are present in the answer
+1:43:021 hour, 43 minutes, 2 secondsfrom this star structure and similarly for missing is that uh the words that are missing from the star structure but uh they were present in the so basically
+1:43:101 hour, 43 minutes, 10 secondsthe words that are present that are not present in the user's answer from this particular set of list to reject star
+1:43:171 hour, 43 minutes, 17 secondsstructure and then we are returning a dictionary of present words a list of missing words and we are saying all
+1:43:241 hour, 43 minutes, 24 secondspresent if not missing. So if this not missing is completely false then it all present will be true otherwise it will be opposite of that. So these are the
+1:43:331 hour, 43 minutes, 33 secondstwo tones that we discussed. The third tool is score relevance. So score relevance is basically checking for the score of how many expected words appear
+1:43:421 hour, 43 minutes, 42 secondsin the answer. So we'll see what this expected words means. So let's discuss how this is being calculated. So first we are normalizing the text. Then we are
+1:43:511 hour, 43 minutes, 51 secondschecking how many expected words are covered for a particular question and how many were missed. So these two lines are checking for the presence of
+1:43:591 hour, 43 minutes, 59 secondsexpected words and the absence of expected words. Then we are calculating the expected words score. So score is basically just we are checking the
+1:44:081 hour, 44 minutes, 8 secondslength of covered words that are there from the expected words and divided by the total length of expected words. So if all the expected words are present in candidates's answer then the score will be 100 otherwise it can be zero. Okay.
+1:44:201 hour, 44 minutes, 20 secondsAnd uh this is the thing that we are returning. So basically the score, the covered words and the missing words. So these were the three tools that were needed.
+1:44:291 hour, 44 minutes, 29 secondsOkay. Now coming to the next thing that we have.
+1:44:371 hour, 44 minutes, 37 secondsAll right. So let's uh discuss the doubts once before moving ahead.
+1:44:481 hour, 44 minutes, 48 secondsYes Rahul. So you can do that but again as I said ILM's definition of filler words can be much different from what a
+1:44:551 hour, 44 minutes, 55 secondscompany's uh hiring team wants the filler words consideration.
+1:45:051 hour, 45 minutes, 5 secondsOkay. So uh the meaning of this dict is basically that the returning object will be a dictionary. It will not be anything else. Okay.
+1:45:281 hour, 45 minutes, 28 secondsOkay. Yeah. Let me just show the tool to quickly. This is the tool too.
+1:45:381 hour, 45 minutes, 38 secondsUh I'm uh I'm not really sure what you mean to ask Nandani. Can you please uh make it a bit elaborate?
+1:46:061 hour, 46 minutes, 6 secondsThis answer str is telling that this particular parameter is a string string object. Similarly, this expected keywords is a list. That's what we are saying here.
+1:46:281 hour, 46 minutes, 28 secondsOkay. So now let's move to the next thing. So uh there was this uh interview interview bank that we mentioned but we never saw how it looks. So let's see how
+1:46:371 hour, 46 minutes, 37 secondsit looks. So this is basically a set of questions based on the category and the expected keywords that should be there for the answer of the question. So for
+1:46:451 hour, 46 minutes, 45 secondsthe this question describe a situation where you discre disagreed with the teammate. How do you handle it? So there can be multiple expected keywords for
+1:46:521 hour, 46 minutes, 52 secondsthis. So there should be communication like what that you communicated with your teammate. There should be a word like compromise that you compromised on the situation. You listened to the teammate. So these are the expected
+1:47:011 hour, 47 minutes, 1 secondkeywords that could be there for a particular kind of question. So this is a list that is being passed to the score relevance function as well that you just
+1:47:091 hour, 47 minutes, 9 secondssaw. So in the score relevance if you see there the expected keywords. So based on this expected keywords the score is being generated.
+1:47:171 hour, 47 minutes, 17 secondsSimilarly there's a category. So this is a category that is suggesting us what kind of question that is being asked. So it is technical, it is behavior, there
+1:47:261 hour, 47 minutes, 26 secondscan be multiple other categories as well. You can define other categories that is not an issue.
+1:47:321 hour, 47 minutes, 32 secondsSo this was interview bank. Now you can structure it differently as well. That is not an issue as long as you are following that structure throughout your project.
+1:47:411 hour, 47 minutes, 41 secondsNow we come to the main agent that we had.
+1:47:501 hour, 47 minutes, 50 secondsSo here we are specifying the provider.
+1:47:531 hour, 47 minutes, 53 secondsI have specified grock. You can use any other provider as well as long as you are comfortable using that as long as you have the API key. So if the provider
+1:48:011 hour, 48 minutes, 1 secondis grock, we are using this model. As I said, I am using OpenAI's GPOSS 20 billion parameter model. You can use any other else.
+1:48:091 hour, 48 minutes, 9 secondsNow this is the session memory that we had. So as I mentioned, this is the kind of memory that we'll be using. So each entry of this session log will be a question will be answer then will be
+1:48:171 hour, 48 minutes, 17 secondsthere will be a the third value key will be a result. The result will be basically tool name and the tools response. So this session will have
+1:48:261 hour, 48 minutes, 26 secondseverything that has been uh that has happened in the interview till that point. So a question that was asked a answer that was given the results the
+1:48:331 hour, 48 minutes, 33 secondsresult of what the result of tools that were given. So basically the star structure result the filler words result the score relevance result. So all these things will be stored in the session
+1:48:411 hour, 48 minutes, 41 secondslog. So this session log becomes the memory for that LLM that will be accessed.
+1:48:481 hour, 48 minutes, 48 secondsNow this is the tool schema. This tool schema is used by LLM. This schema tells the LM that what are the tools available
+1:48:551 hour, 48 minutes, 55 secondsfor the LLM and what is the what are the things those tools need. So the tool is a type of function. The function name is
+1:49:021 hour, 49 minutes, 2 secondsdetect filler words. The description of the function is this. So this description again will be used by LM itself to decide whether it needs to use
+1:49:091 hour, 49 minutes, 9 secondsthis function or not. The parameters for this function are answer which is of type string and the required parameter is answer itself. So properties are
+1:49:181 hour, 49 minutes, 18 secondsbasically the parameters that are needed and required tells us the parameters that are actually required. So there can be some optional parameters as well. But in our case we need all the parameters
+1:49:261 hour, 49 minutes, 26 secondsthat are there. The other function is checking star structure. Again there's a description for the function. There are some parameters that are there and all
+1:49:341 hour, 49 minutes, 34 secondsthe parameters are required. So again in our case the answer is the only parameter that is needed and that is a required parameter.
+1:49:421 hour, 49 minutes, 42 secondsThe third function that is there is a score relevance function. So score elements function again it it is a descript it has a description proper it
+1:49:501 hour, 49 minutes, 50 secondshas particular properties. So in this case you can see in this case there are two parameters which is answer another is a expected
+1:49:571 hour, 49 minutes, 57 secondskeyword. So expected keywords is of type array and the items are type string. So uh the expected keywords itself it itself is array and the items inside the
+1:50:061 hour, 50 minutes, 6 secondsexpected keywords array are of type string and these both are required parameters. Similarly there's another function which is generate final report.
+1:50:141 hour, 50 minutes, 14 secondsSo the function that we were addressing that uh there should be a function who which should generate the
+1:50:211 hour, 50 minutes, 21 secondsuh entire basically report that report will be generated using that function. So for that here we
+1:50:301 hour, 50 minutes, 30 secondshave the function definition. Now you can see here we do not have any kind of parameter for this function as you can see here as well there are no parameters.
+1:50:381 hour, 50 minutes, 38 secondsSo now let's see that.
+1:51:001 hour, 51 minutesYes, Ankit, you can do that. That is not an issue. But as I said, there are multiple ways of doing certain things.
+1:51:051 hour, 51 minutes, 5 secondsSo this can uh be one of the way in which you ensure that alarm is not hallucinating.
+1:51:131 hour, 51 minutes, 13 secondsUh yes pank I'll explain that again.
+1:51:171 hour, 51 minutes, 17 secondsOkay there let me show you the libraries that are being imported in just a second. These are the three four things that are being imported.
+1:51:431 hour, 51 minutes, 43 secondsYes, Vijay Kumar. Uh you can use different approach. As I said, uh this tools.py can be defined in multiple ways. You can have a different approach of defining this tools.py as well. I
+1:51:521 hour, 51 minutes, 52 secondswanted it to be a limited way so that we can go about it in the project. But you can define it in a different way. Just make sure you follow that structure
+1:52:001 hour, 52 minutesthroughout the project itself otherwise the pipeline will break.
+1:52:051 hour, 52 minutes, 5 secondsUh yes the uh code will be shared I believe.
+1:52:151 hour, 52 minutes, 15 secondsOkay.
+1:52:181 hour, 52 minutes, 18 secondsNow let's move to the uh generate report function. So here we are saying first of all if there is no session log we are not generating any score. So this is the
+1:52:261 hour, 52 minutes, 26 secondssession log that we had the uh variable that we defined the list variable.
+1:52:321 hour, 52 minutes, 32 secondsNow after that we have the questions that are generated so far okay and the answers for them. Then we have the relevancy score then we have total.
+1:52:401 hour, 52 minutes, 40 secondsSo these are the three things that we will be using to generate the final report.
+1:52:451 hour, 52 minutes, 45 secondsNow we are iterating over the uh sess session log that we create. Now for this session log we are saying for every
+1:52:511 hour, 52 minutes, 51 secondsresult entry append the question that are that is asked then for that question answer detect if there are any filler
+1:52:591 hour, 52 minutes, 59 secondswords if there are any append that filler words as well in the lines. So basically we are saying append the question. Append the filler words. Then
+1:53:061 hour, 53 minutes, 6 secondsfor the star structure again check for the star structure.
+1:53:101 hour, 53 minutes, 10 secondsSee if there are any star note given by the AI. So that that AI will obviously return a feedback. For that feedback we
+1:53:171 hour, 53 minutes, 17 secondsare checking if there is any issue in that. So that feedback will come here and then it will be appended in the lines. Similarly for score relevance.
+1:53:251 hour, 53 minutes, 25 secondsNow if score if relevance score is there if other relevance score is generated then we are saying average it. For weakest score we are checking the
+1:53:341 hour, 53 minutes, 34 secondswhatever is the weakest score and which questions answer got that weakest score.
+1:53:381 hour, 53 minutes, 38 secondsSo that will be a weakest point for that candidate and then we are appending that as well in the lines. So here we did all the four things that were asked in the
+1:53:461 hour, 53 minutes, 46 secondsask that we have to calculate the filler words. We have to check for the star structure. We have to calculate the score relevance and then we have to
+1:53:541 hour, 53 minutes, 54 secondsgenerate the relevance score. That's what we did in the final report section.
+1:53:591 hour, 53 minutes, 59 secondsNow coming to the definition of this tool functions how how we are going to wire it. So this is a tool functions dictionary where we are saying for this
+1:54:071 hour, 54 minutes, 7 secondsparticular tool function tool name the function that we going to use is this and the argument for that function is this argument answer. Similarly for star
+1:54:161 hour, 54 minutes, 16 secondsstructure this is the function that we are going to use and the arguments taken by the function is this. Similarly for score elements and generate final report since generate final report does not
+1:54:231 hour, 54 minutes, 23 secondstake any argument we can define it as it is.
+1:54:271 hour, 54 minutes, 27 secondsNow there's a system prompt that will be given to the LLM to tell the LLM what it is supposed to do. So it is an AI mock interview coach and for every every
+1:54:361 hour, 54 minutes, 36 secondsanswer it has to do certain things. It can use these these functions for certain certain usage.
+1:54:421 hour, 54 minutes, 42 secondsNow this is the main call where everything will happen. So for max tool round so max tool round basically five.
+1:54:481 hour, 54 minutes, 48 secondsSo it will iterate for five times at least. We are generating the model's responses. Uh the tool schema is given.
+1:54:551 hour, 54 minutes, 55 secondsSo the tool schema is the this part from where it can access the tools and for each of the tools there is this is
+1:55:031 hour, 55 minutes, 3 secondstool function is suggesting that what tool is to be used for a suggested tool name.
+1:55:091 hour, 55 minutes, 9 secondsSo after getting the response from the LLM if there is no content from the LM then we are not uh doing anything okay if there is no basically sorry if there
+1:55:181 hour, 55 minutes, 18 secondsis no any no tool call happening from the LM then we are directly returning the content but if the tool call is happening we are appending that tool call in the messages and then we are
+1:55:271 hour, 55 minutes, 27 secondschecking for call in message tool calls if the tool call is happening what is the name of the tool then we are checking for that tool name
+1:55:361 hour, 55 minutes, 36 secondsin the tool function so suppose we got the tool name as check star structure.
+1:55:401 hour, 55 minutes, 40 secondsSo this for this check star structure we are accessing this particular function here. That's what we are doing.
+1:55:461 hour, 55 minutes, 46 secondsThat's what we did here. Then we call that function with the respective arguments. So this arguments is coming from the message messages itself because
+1:55:541 hour, 55 minutes, 54 secondsthat will be given by the lm itself. LM will tell what are the arguments that are need to be passed.
+1:56:001 hour, 56 minutesThen if the result is result out is none. Basically there is no result and function name is not generate final report the result will be printed in the
+1:56:091 hour, 56 minutes, 9 secondsuh in the browser interface or uh then after that we are appending this messages list with the role of tool
+1:56:181 hour, 56 minutes, 18 secondsbasically the tool call happened the tool call ID that has happened and the content so basically the result that has been returned.
+1:56:311 hour, 56 minutes, 31 secondsOkay. Okay. So lambda is a way of writing the functions in a compact format. Basically that's what we do here.
+1:56:431 hour, 56 minutes, 43 secondsUh dank your question is not clear. Can you please uh uh elaborate it a bit?
+1:57:001 hour, 57 minutesSo how many are clear till this point what we are doing uh the uh tool creation the tool initialization and the
+1:57:071 hour, 57 minutes, 7 secondsgenerate file report is there any doubt anyone's facing
+1:57:231 hour, 57 minutes, 23 secondsyes it will be good if you will write the code as well. So since uh throughout the session that's what we did now I'm showing the solution approach but
+1:57:301 hour, 57 minutes, 30 secondsthroughout the session you guys were supposed to code it yourself.
+1:57:351 hour, 57 minutes, 35 secondsOkay since this uh generate final report does not take any fun uh arguments we have defined it here itself. So in the
+1:57:421 hour, 57 minutes, 42 secondsparameters we have said that their parameters are of type object and it does not take any properties. So this properties is empty. That's what that's why that's how the LLM knows that it is
+1:57:511 hour, 57 minutes, 51 secondsnot supposed to take any parameters. As well as in the definition of the function itself, we have said arguments is equal to none. So you have to define this for the LLM to know. But in in a
+1:58:001 hour, 58 minutesgeneric Python function, you do not write this thing which is currently highlighted. But for the LLM to know, you have to define this so that the LLM is clear about the fact that this
+1:58:071 hour, 58 minutes, 7 secondsparticular function will not take any kind of parameters and you can call it directly. Okay.
+1:58:181 hour, 58 minutes, 18 secondsIs there any doubt till this point?
+1:58:211 hour, 58 minutes, 21 secondsAnyone is having any issue whatever I have explained.
+1:58:341 hour, 58 minutes, 34 secondsOkay. So moving ahead now this is the run function. So this is basically to for the candidate to answer
+1:58:431 hour, 58 minutes, 43 secondsquestion. So a user will uh return certain message. So to make the LLM call what we are doing is we are specifying
+1:58:511 hour, 58 minutes, 51 secondsthe question that is being asked the candidates answer that will be given the expected keywords that should be there.
+1:58:571 hour, 58 minutes, 57 secondsSo this expected keywords is again coming from our interview bank that we had and then the prompt that is there.
+1:59:031 hour, 59 minutes, 3 secondsSo basically the prompt is evaluate this answer using the available tools then give short feedback. So that's what we did here.
+1:59:101 hour, 59 minutes, 10 secondsThen this messages will append this. So the system uh role basically it uh this will have the AI's prompt content. So role is system content is system prompt.
+1:59:211 hour, 59 minutes, 21 secondsThe system prompt is the one which we defined above.
+1:59:261 hour, 59 minutes, 26 secondsThen for the user role we have the content. Now this content is basically the user message that has been given. So the message that has been given by this.
+1:59:331 hour, 59 minutes, 33 secondsSo the message is a question answered keywords and the prompt that is that actually should be run by the LLM. Then
+1:59:421 hour, 59 minutes, 42 secondswe are using this run loop function. So this run loop function will be used. Now now for this run loop function what we are doing is we are saying take this message. This message basically is
+1:59:501 hour, 59 minutes, 50 secondshaving the AI's prompt and the users prompt as well. It is having results out result. So this result is a dictionary
+1:59:571 hour, 59 minutes, 57 secondsthat is being given and that is being passed in this particular argument. So this result out will be a dictionary now since we are when we are running that
+2:00:052 hours, 5 secondsfunction run turn when that will run this result out will become a dictionary but by default it is none. It is not an object right at now at the current place.
+2:00:172 hours, 17 secondsThen after that we are whatever the response that we are getting from this feedback. After that we are appending that in the session log. So session log will have the question it will have the
+2:00:252 hours, 25 secondsanswer it will have the result. Now the result will be given by the lm itself.
+2:00:292 hours, 29 secondsSo for now this result is empty but after that after the lenm returns response the result will have some certain things. Okay,
+2:00:462 hours, 46 secondsShanka, the requirement doc is already shared in the notice board.
+2:01:052 hours, 1 minute, 5 secondsAll right. Uh then we have this ask agent function. So this ask agent is another function that we explained in during the asks and this function is
+2:01:132 hours, 1 minute, 13 secondsasking about the meta questions that we had. So here the message is is basically coming from the system and again it is a
+2:01:202 hours, 1 minute, 20 secondssystem prompt but the user's content is basically a straightaway user message.
+2:01:252 hours, 1 minute, 25 secondsThis function is not taking any kind of question any kind of answer any kind of expected keywords nothing. It is a free form function where the user can ask
+2:01:332 hours, 1 minute, 33 secondsanything about the interview and the LM will answer accordingly. So that's what this particular function is doing. And then using this message that we have
+2:01:412 hours, 1 minute, 41 secondsgiven we are running the run loop function again. So this run loop function is a key function that we are using throughout this agentic workflow
+2:01:482 hours, 1 minute, 48 secondsand it is orchestrating basically uh the orchestrating everything. So whenever a message is supposed to be called what are the things that are supposed to be
+2:01:562 hours, 1 minute, 56 secondspassed to the model and uh how it is going to generate the response everything is being handled by this particular runo function only and it
+2:02:042 hours, 2 minutes, 4 secondsthis is the function only which is deciding that whether the tools need to be called or not.
+2:02:112 hours, 2 minutes, 11 secondsThen we have the ask final report function and it is basically a state forward function which is saying uh run this generate final report function.
+2:02:192 hours, 2 minutes, 19 secondsOkay, I hope you are cleared with this entire thing. So this was all for the agent initialization the tools.
+2:02:292 hours, 2 minutes, 29 secondsI hope you're clear with this.
+2:02:432 hours, 2 minutes, 43 secondsOkay.
+2:02:582 hours, 2 minutes, 58 secondsRight.
+2:03:022 hours, 3 minutes, 2 secondsAll right. So now let's move with the app.py. Now this app.py is the file where you're defining our gradio interface.
+2:03:112 hours, 3 minutes, 11 secondsSo this is a format scorecard function which will format the scorecard that has been generated. So if the session log is
+2:03:172 hours, 3 minutes, 17 secondsnot present then we'll return no answers scored yet otherwise what we are doing is we are initializing the lines
+2:03:242 hours, 3 minutes, 24 secondsvariable and for that we are again going through the session log itself for each of the entry we are saying get the score
+2:03:322 hours, 3 minutes, 32 secondsrelevance if the score relevance is not there we are saying return empty dictionary if score elements is there get the score itself and if the score is
+2:03:402 hours, 3 minutes, 40 secondsnot there then return a hyphen basically so we have a basically secondary option for the values if the values are not present. So if a score
+2:03:472 hours, 3 minutes, 47 secondselements is not present, it is empty dictionary. Inside the score elements, if the score itself is not present, there's a hyphen that can be there.
+2:03:552 hours, 3 minutes, 55 secondsSimilarly for detecting filler words. If detecting if the filler words are not there, then we can return a dictionary.
+2:04:002 hours, 4 minutesIf it is there then we check for total filler words. So basically the count of filler words. If you remember the tool that we had detect filler words, there we had a returning value which was the
+2:04:092 hours, 4 minutes, 9 secondstotal values total number of filler words that should be there. So that's what we are trying to access here. If the total count is not there, we are returning helper. So these are just for
+2:04:162 hours, 4 minutes, 16 secondsto be on the safer side so that the so that we do not get any kind of error when the LM is responding or the user interface breaks. So that's why we write
+2:04:242 hours, 4 minutes, 24 secondsthese kind of things so that the responses are there and even if the thing does not exist, we get something in return. It it should not fail or it
+2:04:332 hours, 4 minutes, 33 secondsshould not break the application basically.
+2:04:362 hours, 4 minutes, 36 secondsThen inside this lines, we are appending everything. So we have this question, we have the relevance and then we have the filler words. So this is for the formatting of a scorecard. The scorecard
+2:04:452 hours, 4 minutes, 45 secondsthat you saw in the user interface that we demonstrated at the very start.
+2:04:492 hours, 4 minutes, 49 secondsNow this is a submit function. What this will do when you click on the submit after writing an answer, this function will run. Now what it will do is it will
+2:04:572 hours, 4 minutes, 57 secondscheck if the question index is greater than length of the questions. Now this length of the question is coming from the interview bank itself. So the the
+2:05:042 hours, 5 minutes, 4 secondsreturning thing will be that there are no more questions. Click on the final report for report function and then it will return with the final report.
+2:05:112 hours, 5 minutes, 11 secondsOtherwise if there are questions we are accessing a particular question we are saying run uh run turn for that question. So this run turn internally
+2:05:192 hours, 5 minutes, 19 secondswill run the main loop function that we had that I just explained that function will run and the lm call will happen. So there will be a question there will be
+2:05:272 hours, 5 minutes, 27 secondsanswer given by the user and there will be expected keywords for every question that we had and the index will again keep on increasing since we want the
+2:05:352 hours, 5 minutes, 35 secondsquestions to keep on happening in a sequential order.
+2:05:392 hours, 5 minutes, 39 secondsSo if the next index for the question that is being uh assigned here is less than uh length of question we are saying the next question is this the next index
+2:05:482 hours, 5 minutes, 48 secondsand that question is assigned here. So basically for the displaying of the next question we are doing this. So once the answer is answer for a question has
+2:05:562 hours, 5 minutes, 56 secondshappened the next question will be displayed automatically from here otherwise if the next index is not part
+2:06:032 hours, 6 minutes, 3 secondsof the length of question. So basically we are saying if the next index the subsequent index on which we are at that is out of the boundation of the length
+2:06:112 hours, 6 minutes, 11 secondsof the questions that we had we are saying the interview is complete and click final report. So again we are guiding the user what is the next step
+2:06:182 hours, 6 minutes, 18 secondsthat they should do. The returning thing from this onsummit is feedback a format scorecard function then next index and
+2:06:262 hours, 6 minutes, 26 secondsthe next display. Then ask coach is the function that uh will be used when the user asks a random question. This is for
+2:06:342 hours, 6 minutes, 34 secondsthe meta question that will be asked from the user. So this function will run whenever a user ask meta question. So as you can see this will return agent dot
+2:06:412 hours, 6 minutes, 41 secondsask agent and there will be a message that will be typed by the user. So this ask agent is again a free form function that we defined in the agent.py and this is the final report function.
+2:06:512 hours, 6 minutes, 51 secondsSo again this will generate the final report that we had.
+2:07:012 hours, 7 minutes, 1 secondOkay.
+2:07:022 hours, 7 minutes, 2 secondsNow coming to the main gradio interface that we will build. So we are saying assign gradu blocks the title should be
+2:07:102 hours, 7 minutes, 10 secondsinterview IQ and we this whole application will be treated as demo in this particular code. So we are saying this uh this application that we defined just here should be treated as a demo.
+2:07:202 hours, 7 minutes, 20 secondsSo the variable is demo. There's a markdown that we had and for the markdown we have written uh the name interview mock coach mock interview
+2:07:282 hours, 7 minutes, 28 secondscoach. So the next thing we had is question question state. Now this question state is basically the index that we had. So for now it is zero.
+2:07:372 hours, 7 minutes, 37 secondsThen we have question display. Now inside the question display we are displaying a question. The format is question one. The question zero will so
+2:07:452 hours, 7 minutes, 45 secondsthe very first question will be accessed in the very first iteration. So if you'll go to the in uh here the question zero is this particular question. So
+2:07:542 hours, 7 minutes, 54 secondsfirst of all we are accessing only this first question and this first questions expected keywords and the category will be accessible at that point.
+2:08:022 hours, 8 minutes, 2 secondsSo inside the question zero we are saying access the question. So this will be the very first question. Then we have answer box. Inside the answer box the
+2:08:102 hours, 8 minutes, 10 secondsuser will enter the answer. There's a submit button and the submit button is basically initialized and there's a feed there's a feedback box. Then we have
+2:08:182 hours, 8 minutes, 18 secondsanother markdown where we have the scorecard and the scorecard for now will display no score as of now because the
+2:08:262 hours, 8 minutes, 26 secondsanswer has not happened because we are at the very first iteration.
+2:08:312 hours, 8 minutes, 31 secondsThen another markdown which is about the coach where we are doing the memory check memory check as we have the meta question asking so our candidate can ask
+2:08:382 hours, 8 minutes, 38 secondsany meta question there's a meta box where the user will enter the question there's a button where which you will
+2:08:472 hours, 8 minutes, 47 secondsrun certain kind of function so this button will have this function linked to this ask coach function will be linked using which the llm call will happen and
+2:08:552 hours, 8 minutes, 55 secondsthen there's a meta reply which will be returned by the llm itself The next thing that we have is a report button where which will generate the
+2:09:032 hours, 9 minutes, 3 secondsreport and then a markdown to show the report. Then at last we have the submit button.
+2:09:102 hours, 9 minutes, 10 secondsSo when the submit button is clicked this dot click signifies that the submit button is being clicked. A function will run which is onsubmit.
+2:09:192 hours, 9 minutes, 19 secondsSo this is the function that will be run. We already discussed this function what it will do and it will return certain things. So it will return 1 2 3
+2:09:272 hours, 9 minutes, 27 seconds4 five things. This fifth thing is empty string. So the outputs for this is feedback box, a scorec card box,
+2:09:342 hours, 9 minutes, 34 secondsquestion index state, question display and the answer box. So these five things will be outputed by this function.
+2:09:392 hours, 9 minutes, 39 secondsThat's what we had above also. We had five things returned.
+2:09:432 hours, 9 minutes, 43 secondsSimilarly for meta button which is there the click will call this ask coach function. Now the ask coach function itself calls the ask agent function
+2:09:522 hours, 9 minutes, 52 secondswhich is a free form function where a user can ask anything. That's what we are doing here. The input is metabox.
+2:09:572 hours, 9 minutes, 57 secondsMetabox is this thing the input of the user that will be given. So this metab box is basically saying that whatever the string is returned in the metab box
+2:10:062 hours, 10 minutes, 6 secondspass that as an input and the output will be the meta reply and the meta reply will appear here in the in another markdown. For now this markdown is empty
+2:10:132 hours, 10 minutes, 13 secondsthat's why this was not visible but once the output comes that markdown will be visible.
+2:10:182 hours, 10 minutes, 18 secondsThe last uh button is a report button which will generate the final report and the output will appear in the report box which is defined here.
+2:10:312 hours, 10 minutes, 31 secondsOkay. So I hope uh this gradu uh interface is clear. The code is clear. Is there any doubt in that?
+2:11:032 hours, 11 minutes, 3 secondsYeah, obviously that is not being handled here. You can write the code to handle that as well. Obviously but uh since for the sake of this session we
+2:11:102 hours, 11 minutes, 10 secondshave kept the project a bit simple so that it can be discussed in a twoour session.
+2:11:242 hours, 11 minutes, 24 secondsNow let's discuss the main.py to see how everything is being orchestrated. So now this uh file is for the uh usage throughout this through C cli basically
+2:11:332 hours, 11 minutes, 33 secondsthrough this console the app.py pi is uh for the uses through the gradio interface that we had in the browser. So
+2:11:412 hours, 11 minutes, 41 secondsthis main.py is basically uh asking print the uh uh heading then for all the question print the particular question.
+2:11:502 hours, 11 minutes, 50 secondsUh so we'll iterate over all the questions for we'll keep on printing one question in one go. So we are going sequentially then there will be answer
+2:11:582 hours, 11 minutes, 58 secondsinput box that can be returned by the user. Then there is a feedback the so feedback will be given by the llm itself. So this run turn will be called.
+2:12:062 hours, 12 minutes, 6 secondsNow this run turn itself will call the run loop loop function and then the coach feedback will be printed and then we are printing some lines to make the
+2:12:142 hours, 12 minutes, 14 secondsoutput clear. After that a final report can be called once the questions are done. So you can see this report calling is out out of this for all loop. So once
+2:12:232 hours, 12 minutes, 23 secondsthe questions are done the final report will be called automatically and the report will be generated. Now this this uh particular flow is for the CLI. The
+2:12:312 hours, 12 minutes, 31 secondsCLI is your terminal. Using terminal you can access this agent as well. Using gradual interface the workflow is a bit different where you can in between ask
+2:12:402 hours, 12 minutes, 40 secondscertain things you can in between ask it to generate final report but using CLI the workflow is a bit different. You cannot interrupt in between you have to go in a sequential manner.
+2:12:532 hours, 12 minutes, 53 secondsOkay. So now let's once again see the actual demo that we had.
+2:13:202 hours, 13 minutes, 20 secondsSo this is the agent writing app. So as you can see I have already answered one of the questions. Now the second question was describe a situation where
+2:13:282 hours, 13 minutes, 28 secondsyou disagreed with a teammate and how did you handle it. So to answer this question now for particular for this particular question I will answer this
+2:13:352 hours, 13 minutes, 35 secondsquestion very vaguely instead of being very specific about it and let's see how this time lm responds to me. So let me just answer the question.
+2:13:472 hours, 13 minutes, 47 secondsSo you can see this is a very vague answer. It is not a specific it is not uh uh fulfilling the star structure.
+2:13:532 hours, 13 minutes, 53 secondsInstead it is having some of the filler words as well. So let's see how the NLM responds to this.
+2:14:012 hours, 14 minutes, 1 secondSo now you can see it is saying that I used a lot of filler words which can distract from your point. Try to cut those. So it is also suggesting me how to improve the answer. Your response
+2:14:092 hours, 14 minutes, 9 secondsalso missed star structure and the key concepts. Next time outline the situation, task, accent and result and make sure you mention at least one of the expected keywords. So this is how
+2:14:182 hours, 14 minutes, 18 secondsthe LLM is encouraging the candidate to improve on the answers. Now you have got two different questions output. First question was where I answered everything
+2:14:272 hours, 14 minutes, 27 secondsperfectly. The score is 100 out of 100 there are no fillers. The second question is where the relevance is zero.
+2:14:332 hours, 14 minutes, 33 secondsThe answer is very poor and there are three fillers.
+2:14:362 hours, 14 minutes, 36 secondsNow if I ask the agent uh that what is my weakest area?
+2:14:482 hours, 14 minutes, 48 secondsSo it is saying that it is the weakest area is the handling disagreements with the teammates. Why it is suggesting that? Because that is the question where I failed miserably and it is suggesting
+2:14:572 hours, 14 minutes, 57 secondsanother approaches as well. How to improve on the answer? How to improve on that thing? Now if I generate the final report, you can see this time for the final report it is giving for the
+2:15:062 hours, 15 minutes, 6 secondsquestion two as well. So question two, describe a situation. This was the question. There are three filler words.
+2:15:102 hours, 15 minutes, 10 secondsStar structure is missing. Task X and result nothing is present. Relevance is zero and average relevance is 50 out of 100. Why? Because for one question I
+2:15:192 hours, 15 minutes, 19 secondshave 100 out of 100. For ones I have 0 0 by 100. Weakest area is again described here which is described here as well.
+2:15:252 hours, 15 minutes, 25 secondsAnd the relevance is 0 by 100 for my weakest area.
+2:15:302 hours, 15 minutes, 30 secondsSo I hope and everything is clear.
+2:15:372 hours, 15 minutes, 37 secondsThere are two different reports we are printing agent.py and app.py and web.py.
+2:15:402 hours, 15 minutes, 40 secondsHow horiz. So look agent.py is your main agent file where you're defining the agent and you're linking your tools.
+2:15:462 hours, 15 minutes, 46 secondsApp.py Pi is the file where you are defining the gradu interface and uh everything related to the gradio interface in your app.py which is
+2:15:532 hours, 15 minutes, 53 secondsbasically a uh center file of your project for this project at least. But to demonstrate this project using the
+2:16:002 hours, 16 minutesCLI or the terminal you can use main.py as well. The main.py is basically the file where the flow will change a bit.
+2:16:072 hours, 16 minutes, 7 secondsIt will not be as smooth as the app.py because app.py you have a lot of leverage to utilize other things but in main.py you cannot do that. Okay.
+2:16:202 hours, 16 minutes, 20 secondsGeneral. Yeah. So basically look there are two approaches in app.py. You can ask for the report at any time. You can ask the LLM any question in between regarding the interview process. Okay.
+2:16:302 hours, 16 minutes, 30 secondsThis is with the interface that we have.
+2:16:332 hours, 16 minutes, 33 secondsThe second is main.py. So in main.py you cannot ask the lm in between because in terminal if you used the terminal you know that it goes in a sequential manner. You do not have multiple input
+2:16:412 hours, 16 minutes, 41 secondsbox. You do not have multiple channels where you can communicate. You have only one sequential thing. So there you will have to go in a sequential manner only.
+2:16:482 hours, 16 minutes, 48 secondsSo once the question ends, it will automatically generate the final report.
+2:16:522 hours, 16 minutes, 52 secondsYou do not have to click anywhere. You do not have to ask it to do anything. It will ask questions, you will answer and once the questions send, it will automatically generate the final report.
+2:17:042 hours, 17 minutes, 4 secondsUm in the interest of time, I will not be able to show it through CLI. But yeah, you guys can try that. That won't be the issue.
+2:17:162 hours, 17 minutes, 16 secondsAll right.
+2:17:192 hours, 17 minutes, 19 secondsAre there any other doubts or uh are we clear with the the project what we had and what we have built?
+2:17:362 hours, 17 minutes, 36 secondsYeah, the code will be shared in the post reads. Don't worry the
+2:17:432 hours, 17 minutes, 43 secondsuh milestones uh is accessible in the problem statement doc that is pinned in the notice board. You can access their uh people.
+2:18:052 hours, 18 minutes, 5 secondsAll right.
+2:18:102 hours, 18 minutes, 10 secondsOkay. So, okay. And if you have completed all the 11 milestone, then that's very great. Uh
+2:18:192 hours, 18 minutes, 19 secondsbecause the multi- aent thing was just a bonus. It is not graded. So, even if you're not able to implement it, that won't be issue. Don't worry about it.
+2:18:272 hours, 18 minutes, 27 secondsAll right. So, if there are no other doubts, uh then are we good with concluding the session?
+2:18:372 hours, 18 minutes, 37 secondsCan I get thumbs up or thumbs down? Hello.
+2:18:482 hours, 18 minutes, 48 secondsYes. Uh okay. Uh so uh can you guys uh hear me well? Yes, you are audible.
+2:18:562 hours, 18 minutes, 56 secondsOkay. Perfect. Perfect. Okay. I hope uh you guys enjoyed this session and got a actual hands-on on how to solve this uh
+2:19:032 hours, 19 minutes, 3 secondsassignment. Uh no worries on those who are not able to solve this. Uh uh you still have the entire code solution as
+2:19:112 hours, 19 minutes, 11 secondswell as the explanation of how to approach solving this problem. So you can definitely refer back to this and try solving this assignment by yourself
+2:19:202 hours, 19 minutes, 20 secondsif you are not able to complete this assignment within the time frame. So yes uh I'll be also sharing our code answers
+2:19:272 hours, 19 minutes, 27 secondsto discuss uh basically you can uh Jendra uh but uh basically what you can do is you can refer your solution with
+2:19:352 hours, 19 minutes, 35 secondsthe uh solution that we have prepared uh because this was the actual solution that was expected by the company and uh based on which we have prepared the
+2:19:422 hours, 19 minutes, 42 secondssolution. So you can uh definitely compare if you have any doubts feel free to reach out to us over the support uh we'll be happy to answer them. Uh as I am from D I'm not able to do no problem.
+2:19:552 hours, 19 minutes, 55 secondsUh guys see uh there might be difficulties while solving this problem.
+2:19:592 hours, 19 minutes, 59 secondsThe the agenda of introducing this particular session was that you guys to get a hands-on on how to build this
+2:20:062 hours, 20 minutes, 6 secondssolution because when you guys go and uh work in the industry the expectation is such that you would be delivering or you
+2:20:122 hours, 20 minutes, 12 secondswould be solving this uh uh this uh building this problem statement. Okay.
+2:20:182 hours, 20 minutes, 18 secondsSo we just wanted to give you an hands-on problem uh which so that you would be able to build the solution and at the same time you get the actual
+2:20:262 hours, 20 minutes, 26 secondshands-on. Okay. Uh it was a good session at least we got an idea on how to approach this kind of problem statements and prepare yourself. I'm I'm really
+2:20:332 hours, 20 minutes, 33 secondsglad that it helped you pav that was our aim uh to help you guys so that uh you would be able to solve this. Okay that
+2:20:402 hours, 20 minutes, 40 secondsis the agenda. See uh learning is definitely important but at the same time if you're not practicing and if you're not building things uh that's not
+2:20:492 hours, 20 minutes, 49 secondsuh how we want. So we that is the reason why we brought this session uh we had this project in mind and that is the reason why we introduced this so you get
+2:20:582 hours, 20 minutes, 58 secondsthe actual hands-on part. Okay. Uh so okay sure Rahul we'll definitely check and revert back on the this thing. Okay.
+2:21:072 hours, 21 minutes, 7 secondsUh yes. uh where can we find the code as per the client requirement. This this solution that we just discussed right uh
+2:21:142 hours, 21 minutes, 14 secondsAnushi that is the code that was as per the client's requirement. So we'll be sharing and attaching the actual solution notebook of this uh so that you
+2:21:222 hours, 21 minutes, 22 secondscan go through how to approach the solution. There are different uh like now in also industries uh you might have noticed that there are different Python
+2:21:292 hours, 21 minutes, 29 secondsfiles that we have created and we are just importing that. Okay, this is how actually we implement a given problem statement in an industry itself. So you
+2:21:382 hours, 21 minutes, 38 secondswill also get an experience on how you can build this solution. So that even if let's say uh there is a tool call which is failing. So you you can directly go
+2:21:452 hours, 21 minutes, 45 secondsover to the tool call file which is a tool.pay tool. Python file there you can check that okay what is the thing that is failing. Okay. So it is also easier
+2:21:542 hours, 21 minutes, 54 secondsto debug and that is the flavor that we wanted to give you uh while solving this session.
+2:22:002 hours, 22 minutesUh Rohan you can definitely reach out to the support we will be there to help you guys. Yes. Okay. Uh I hope you guys have
+2:22:082 hours, 22 minutes, 8 secondsenjoyed this session. Uh thank you for taking this time. Uh thank you Sen and thank you Pulkit for supporting uh with
+2:22:142 hours, 22 minutes, 14 secondsthe learners doubt here. Uh yes great great uh happy to see that uh
+2:22:212 hours, 22 minutes, 21 secondsyou guys enjoy the session and uh do do practice this uh after this session ends. If you are not able to complete the project please do complete this
+2:22:292 hours, 22 minutes, 29 secondsproject. It will definitely give you a good boost and uh it would definitely help you a lot. Okay, cool, cool. Uh
+2:22:372 hours, 22 minutes, 37 secondsthank you. Thank you very much for every uh this this thing for everyone who participated. Okay, cool. Thank you guys. Uh we are just ending the session.
+2:22:472 hours, 22 minutes, 47 secondsOkay, I hope there are no no doubts. Cool, cool, cool. Okay, thank you guys.
+2:22:542 hours, 22 minutes, 54 secondsHave a great day. Have a great weekend.
+2:22:562 hours, 22 minutes, 56 secondsOkay, do complete your project.
+2:23:032 hours, 23 minutes, 3 secondsYes. Yes. Yes, that that was the agenda Pravin. Yes. Yes. I'm I'm I'm like we are very happy that uh you you got the confidence that was required.
+2:23:122 hours, 23 minutes, 12 secondsUh there are like uh currently uh if there are any doubts uh Zapa uh feel free to share them. Uh we are happy to
+2:23:212 hours, 23 minutes, 21 secondsanswer them at the moment. If not then we can end the session.
+2:23:302 hours, 23 minutes, 30 secondsUh sure sure. uh we'll we'll share them. We'll share them. We'll also what what okay what you
+2:23:392 hours, 23 minutes, 39 secondsguys can do is uh just refer uh to this post session of this lecture. Okay, if you guys want us to review the solutions that you guys have prepared, uh we'll be
+2:23:472 hours, 23 minutes, 47 secondsattaching the uh the detailed guidelines on how you can share the projects. Maybe what you can do is we can create a uh
+2:23:552 hours, 23 minutes, 55 secondspage itself where you can submit the solution and get them evaluated. Okay.
+2:23:592 hours, 23 minutes, 59 secondsSo we we we'll just uh ensure that you check the post read session of this.
+2:24:072 hours, 24 minutes, 7 secondsUh sure uh za uh zapa you uh how can we download this code? So basically zapa uh
+2:24:142 hours, 24 minutes, 14 secondsyes so what we'll do is in the post session you will find a zip file. Okay in the zip file uh we'll be attaching the entire zip file uh the entire code
+2:24:232 hours, 24 minutes, 23 secondsthat have discussed with you. Okay. So you can just download it. Okay. and then unzip it and then you'll be able to uh refer to the entire solution.
+2:24:362 hours, 24 minutes, 36 secondsOkay. Uh I hope everyone is uh clear with all the doubts. Yes.
+2:24:432 hours, 24 minutes, 43 secondsGreat. Great. Great. Okay. Thank you guys. Thank you. Uh hoping there are no more doubts. Uh just concluding the session. Okay. Thank you for your time guys.
+2:24:582 hours, 24 minutes, 58 secondsYes. Yes. The recording will be available. Thank you guys. Thank you.
+2:25:092 hours, 25 minutes, 9 secondsI have a question. Uh one offer in Dubai company.
+2:25:152 hours, 25 minutes, 15 secondsHey uh you sure happy to help you on that. Provin uh just can you uh raise a support ticket? Uh from there we'll be picking up. Yes. just share whatever uh
+2:25:252 hours, 25 minutes, 25 secondsyou need help with. Uh we'll be there to help you.
+2:25:332 hours, 25 minutes, 33 secondsI hope that answers your question. Uh just even after this session, you can just raise that uh support ticket. Uh we'll be there. We we can connect
+2:25:402 hours, 25 minutes, 40 secondsoneonone based on that. And yeah, cool. Cool. Thank you. Thank you very much, Robin.
+2:25:482 hours, 25 minutes, 48 secondsOkay. Thank you guys. Okay, concluding the session now. Okay.
