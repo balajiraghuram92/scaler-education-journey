@@ -133,7 +133,7 @@ public class AuthAndUserManagementTests
     [Fact]
     public void JwtTokenService_GenerateToken_ContainsExpectedClaims()
     {
-        var authOptions = Options.Create(new AuthOptions
+        var authOptions = Microsoft.Extensions.Options.Options.Create(new AuthOptions
         {
             JwtSigningKey = "Test_Secret_Key_For_Unit_Testing_32_Bytes_Long!",
             JwtIssuer = "TestIssuer",

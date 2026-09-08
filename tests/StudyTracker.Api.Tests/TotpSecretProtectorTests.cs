@@ -18,12 +18,21 @@ public class TotpSecretProtectorTests
         var rawKey = RandomNumberGenerator.GetBytes(32);
         var base64Key = Convert.ToBase64String(rawKey);
 
-        var options = Options.Create(new AuthOptions
+        var options = Microsoft.Extensions.Options.Options.Create(new AuthOptions
         {
             TotpEncryptionKey = base64Key
         });
 
-        _protector = new TotpSecretProtector(options);
+        _protector = new TotpSecretProtector(options, new FakeHostEnvironment());
+    }
+
+    private sealed class FakeHostEnvironment : Microsoft.Extensions.Hosting.IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = "Development";
+        public string ApplicationName { get; set; } = "StudyTracker.Api.Tests";
+        public string ContentRootPath { get; set; } = System.AppContext.BaseDirectory;
+        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; }
+            = new Microsoft.Extensions.FileProviders.NullFileProvider();
     }
 
     [Fact]
@@ -64,7 +73,7 @@ public class TotpSecretProtectorTests
         payload[^1] ^= 0xFF;
         var tampered = Convert.ToBase64String(payload);
 
-        Assert.Throws<CryptographicException>(() => _protector.Decrypt(tampered));
+        Assert.ThrowsAny<CryptographicException>(() => _protector.Decrypt(tampered));
     }
 
     [Theory]
