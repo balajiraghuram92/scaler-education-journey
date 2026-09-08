@@ -20,6 +20,7 @@ env:
   IMAGE_API: ghcr.io/balajiraghuram92/scaler-education-journey-api
   IMAGE_APP: ghcr.io/balajiraghuram92/scaler-education-journey-app
   IMAGE_RUNNER: ghcr.io/balajiraghuram92/neuralascent-java-runner
+  IMAGE_AI_AGENT: ghcr.io/balajiraghuram92/scaler-education-journey-ai-agent
   AWS_REGION: ap-south-2
   DOMAIN_NAME: neuralascent.top
   LETSENCRYPT_EMAIL: admin@neuralascent.top
@@ -110,6 +111,20 @@ jobs:
           cache-from: type=gha,scope=app
           cache-to: type=gha,scope=app,mode=max
 
+      - name: Build and push AI agent image
+        id: build_ai_agent
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ai-agent
+          file: ./ai-agent/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE_AI_AGENT }}:${{ github.sha }}
+            ${{ env.IMAGE_AI_AGENT }}:latest
+          cache-from: type=gha,scope=ai-agent
+          cache-to: type=gha,scope=ai-agent,mode=max
+
       - name: Build and push Java runner image
         id: build_runner
         uses: docker/build-push-action@v6
@@ -128,7 +143,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for image in "${IMAGE_API}:${GITHUB_SHA}" "${IMAGE_APP}:${GITHUB_SHA}" "${IMAGE_RUNNER}:${GITHUB_SHA}"; do
+          for image in "${IMAGE_API}:${GITHUB_SHA}" "${IMAGE_APP}:${GITHUB_SHA}" "${IMAGE_RUNNER}:${GITHUB_SHA}" "${IMAGE_AI_AGENT}:${GITHUB_SHA}"; do
             manifest=$(docker buildx imagetools inspect "${image}")
             grep -q 'linux/arm64' <<<"${manifest}"
           done
@@ -149,7 +164,7 @@ jobs:
               "curl -fsSL $SCRIPT_BASE/scripts/deploy-single-ec2.sh -o /tmp/deploy-single-ec2.sh",
               "chmod 700 /tmp/bootstrap-single-ec2.sh /tmp/deploy-single-ec2.sh",
               "STUDYTRACKER_ENV_PARAMETER=${{ env.STUDYTRACKER_ENV_PARAMETER }} STUDYTRACKER_REGISTRY_TOKEN_PARAMETER=${{ env.STUDYTRACKER_REGISTRY_TOKEN_PARAMETER }} /tmp/bootstrap-single-ec2.sh",
-              "API_IMAGE=${{ env.IMAGE_API }} APP_IMAGE=${{ env.IMAGE_APP }} RUNNER_IMAGE=${{ env.IMAGE_RUNNER }} API_REF=${{ env.IMAGE_API }}@${{ steps.build_api.outputs.digest }} APP_REF=${{ env.IMAGE_APP }}@${{ steps.build_app.outputs.digest }} RUNNER_REF=${{ env.IMAGE_RUNNER }}@${{ steps.build_runner.outputs.digest }} IMAGE_TAG=${{ github.sha }} DOMAIN_NAME=${{ env.DOMAIN_NAME }} LETSENCRYPT_EMAIL=${{ env.LETSENCRYPT_EMAIL }} BACKUP_S3_URI=${{ env.BACKUP_S3_URI }} RESTORE_LATEST_BACKUP=true ALLOW_CREATE_DATABASE=false /tmp/deploy-single-ec2.sh"
+              "API_IMAGE=${{ env.IMAGE_API }} APP_IMAGE=${{ env.IMAGE_APP }} RUNNER_IMAGE=${{ env.IMAGE_RUNNER }} API_REF=${{ env.IMAGE_API }}@${{ steps.build_api.outputs.digest }} APP_REF=${{ env.IMAGE_APP }}@${{ steps.build_app.outputs.digest }} RUNNER_REF=${{ env.IMAGE_RUNNER }}@${{ steps.build_runner.outputs.digest }} AI_AGENT_IMAGE=${{ env.IMAGE_AI_AGENT }} AI_AGENT_REF=${{ env.IMAGE_AI_AGENT }}@${{ steps.build_ai_agent.outputs.digest }} IMAGE_TAG=${{ github.sha }} DOMAIN_NAME=${{ env.DOMAIN_NAME }} LETSENCRYPT_EMAIL=${{ env.LETSENCRYPT_EMAIL }} BACKUP_S3_URI=${{ env.BACKUP_S3_URI }} RESTORE_LATEST_BACKUP=true ALLOW_CREATE_DATABASE=false /tmp/deploy-single-ec2.sh"
             ]' \
             --region "${AWS_REGION}" \
             --query 'Command.CommandId' \
