@@ -4,10 +4,12 @@ set -Eeuo pipefail
 API_IMAGE="${API_IMAGE:?API_IMAGE is required}"
 APP_IMAGE="${APP_IMAGE:?APP_IMAGE is required}"
 RUNNER_IMAGE="${RUNNER_IMAGE:-ghcr.io/balajiraghuram92/neuralascent-java-runner}"
+AI_AGENT_IMAGE="${AI_AGENT_IMAGE:?AI_AGENT_IMAGE is required}"
 IMAGE_TAG="${IMAGE_TAG:-release}"
 API_REF="${API_REF:-}"
 APP_REF="${APP_REF:-}"
 RUNNER_REF="${RUNNER_REF:-}"
+AI_AGENT_REF="${AI_AGENT_REF:-}"
 DOMAIN_NAME="${DOMAIN_NAME:-localhost}"
 LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-}"
 ENV_FILE="${ENV_FILE:-/etc/studytracker/api.env}"
@@ -15,6 +17,7 @@ POSTGRES_IMAGE="${POSTGRES_IMAGE:-postgres:16-alpine}"
 NETWORK_NAME="${NETWORK_NAME:-scaler-network}"
 DATABASE_CONTAINER="${DATABASE_CONTAINER:-}"
 API_CONTAINER="${API_CONTAINER:-studytracker-api}"
+AI_AGENT_CONTAINER="${AI_AGENT_CONTAINER:-ai-agent}"
 APP_CONTAINER="${APP_CONTAINER:-studytracker-app}"
 DATA_VOLUME="${DATA_VOLUME:-scaler_postgres_data}"
 MAVEN_CACHE_VOLUME="${MAVEN_CACHE_VOLUME:-}"
@@ -233,6 +236,22 @@ start_app() {
     return "${status}"
 }
 
+start_ai_agent() {
+    local image="$1"
+    local args=(
+        run -d
+        --name "${AI_AGENT_CONTAINER}"
+        --network "${NETWORK_NAME}"
+        --restart unless-stopped
+        -p 127.0.0.1:5001:8000
+        -e "JWT_SIGNING_KEY=$(env_value Auth__JwtSigningKey)"
+        -e "JWT_ISSUER=$(env_value_or_default Auth__JwtIssuer neuralascent)"
+        -e "JWT_AUDIENCE=$(env_value_or_default Auth__JwtAudience neuralascent-app)"
+        -e "JWT_COOKIE_NAME=$(env_value_or_default Auth__CookieName na_auth)"
+    )
+    docker "${args[@]}" "${image}" >/dev/null
+}
+
 verify_digest_ref() {
     local ref="$1"
     local label="$2"
@@ -296,19 +315,22 @@ if env_has_value POSTGRES_PASSWORD && env_has_value DATABASE_PASSWORD; then
         fail "POSTGRES_PASSWORD and DATABASE_PASSWORD must match for the local PostgreSQL container."
 fi
 
-if [ -z "${API_REF}" ] || [ -z "${APP_REF}" ] || [ -z "${RUNNER_REF}" ]; then
-    fail "API_REF, APP_REF, and RUNNER_REF digest references are required."
+if [ -z "${API_REF}" ] || [ -z "${APP_REF}" ] || [ -z "${RUNNER_REF}" ] || [ -z "${AI_AGENT_REF}" ]; then
+    fail "API_REF, APP_REF, RUNNER_REF, and AI_AGENT_REF digest references are required."
 fi
 api_ref="${API_REF}"
 app_ref="${APP_REF}"
 runner_ref="${RUNNER_REF}"
+ai_agent_ref="${AI_AGENT_REF}"
 runner_local_tag="${RUNNER_IMAGE}:deployed"
 verify_digest_ref "${api_ref}" "API_REF"
 verify_digest_ref "${app_ref}" "APP_REF"
 verify_digest_ref "${runner_ref}" "RUNNER_REF"
+verify_digest_ref "${ai_agent_ref}" "AI_AGENT_REF"
 verify_image_digest_ref "${api_ref}" "API_REF" "${API_IMAGE}"
 verify_image_digest_ref "${app_ref}" "APP_REF" "${APP_IMAGE}"
 verify_image_digest_ref "${runner_ref}" "RUNNER_REF" "${RUNNER_IMAGE}"
+verify_image_digest_ref "${ai_agent_ref}" "AI_AGENT_REF" "${AI_AGENT_IMAGE}"
 
 case "$(uname -m)" in
     aarch64|arm64) ;;
@@ -330,10 +352,12 @@ docker pull "${runner_ref}"
 # pulled image through cleanup without changing the digest passed to the API.
 docker tag "${runner_ref}" "${runner_local_tag}"
 docker pull "${api_ref}"
+docker pull "${ai_agent_ref}"
 docker pull "${app_ref}"
 docker pull "${POSTGRES_IMAGE}"
 verify_host_image_platform "${runner_ref}" "Java runner image"
 verify_host_image_platform "${api_ref}" "API image"
+verify_host_image_platform "${ai_agent_ref}" "AI agent image"
 verify_host_image_platform "${app_ref}" "frontend image"
 
 docker network inspect "${NETWORK_NAME}" >/dev/null 2>&1 || docker network create "${NETWORK_NAME}" >/dev/null
@@ -426,6 +450,7 @@ docker run --rm --network "${NETWORK_NAME}" \
     --env-file "${ENV_FILE}" "${api_ref}" --seed-reference-data
 
 previous_api_image="$(docker container inspect --format '{{.Config.Image}}' "${API_CONTAINER}" 2>/dev/null || true)"
+previous_ai_agent_image="$(docker container inspect --format '{{.Config.Image}}' "${AI_AGENT_CONTAINER}" 2>/dev/null || true)"
 previous_app_image="$(docker container inspect --format '{{.Config.Image}}' "${APP_CONTAINER}" 2>/dev/null || true)"
 previous_runner_ref="$(docker container inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "${API_CONTAINER}" 2>/dev/null | sed -n 's/^ExerciseExecution__RunnerImage=//p' | tail -n 1 || true)"
 
@@ -433,10 +458,13 @@ rollback() {
     local exit_code="${1:-1}"
     trap - ERR
     log "Deployment failed; restoring the previous application images."
-    docker stop "${API_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
-    docker rm "${API_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
+    docker stop "${API_CONTAINER}" "${AI_AGENT_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
+    docker rm "${API_CONTAINER}" "${AI_AGENT_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
     if [ -n "${previous_api_image}" ]; then
         start_api "${previous_api_image}" "${previous_runner_ref}" || true
+    fi
+    if [ -n "${previous_ai_agent_image}" ]; then
+        start_ai_agent "${previous_ai_agent_image}" || true
     fi
     if [ -n "${previous_app_image}" ]; then
         start_app "${previous_app_image}" || true
@@ -459,7 +487,7 @@ if [ "${DOMAIN_NAME}" != "localhost" ]; then
             -v "${CERT_DIR}:${CERT_DIR}" \
             -v /var/lib/letsencrypt:/var/lib/letsencrypt \
             certbot/certbot certonly --standalone --non-interactive --agree-tos --no-eff-email \
-            -m "${LETSENCRYPT_EMAIL}" -d "${DOMAIN_NAME}"
+            -m "${LETSENCRYPT_EMAIL}" -d "${DOMAIN_NAME}" -d "tutor.${DOMAIN_NAME}"
     else
         log "Checking whether the TLS certificate needs renewal."
         docker run --rm -p 80:80 \
@@ -471,12 +499,16 @@ fi
 
 docker stop "${API_CONTAINER}" >/dev/null 2>&1 || true
 docker rm "${API_CONTAINER}" >/dev/null 2>&1 || true
+docker stop "${AI_AGENT_CONTAINER}" >/dev/null 2>&1 || true
+docker rm "${AI_AGENT_CONTAINER}" >/dev/null 2>&1 || true
 docker rm "${APP_CONTAINER}" >/dev/null 2>&1 || true
 
 start_api "${api_ref}" "${runner_ref}"
+start_ai_agent "${ai_agent_ref}"
 start_app "${app_ref}"
 
 wait_for_url http://localhost:5000/health "API" || rollback 1
+wait_for_url http://localhost:5001/health "AI Agent" || rollback 1
 wait_for_url http://localhost/health "Frontend" || rollback 1
 
 trap - ERR
