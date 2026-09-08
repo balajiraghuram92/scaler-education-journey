@@ -103,6 +103,33 @@ services:
       retries: 5
       start_period: 20s
 
+  ai-agent:
+    build: ./ai-agent
+    container_name: neuralascent-ai-agent
+    restart: unless-stopped
+
+    environment:
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set (same value already required by the api service)}
+      JWT_ISSUER: ${JWT_ISSUER:-neuralascent}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-neuralascent-app}
+      JWT_COOKIE_NAME: ${JWT_COOKIE_NAME:-na_auth}
+
+    networks:
+      backend-net:
+        aliases:
+          - ai-agent
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost:8000/health || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
   app:
     image: ${IMAGE_APP:-ghcr.io/balajiraghuram92/scaler-education-journey-app}:${IMAGE_TAG:-latest}
     container_name: studytracker-app
@@ -117,6 +144,8 @@ services:
 
     depends_on:
       api:
+        condition: service_healthy
+      ai-agent:
         condition: service_healthy
 
     networks:

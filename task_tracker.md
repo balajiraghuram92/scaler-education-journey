@@ -343,4 +343,9 @@
 - [x] **Sub-task 44.9**: Owner App Pages & Components — Implemented `LocalizationShell.jsx` (nav cluster, provider health button, project picker, live dot, user profile, 4-tab bar), `ProviderHealthPanel.jsx` (metrics drawer & outage toggle), `LocalizationStrings.jsx` (ruled table, dot-track, needs-review flag, edit drawer with Save & Next, review banner), `LocalizationWorkflow.jsx` (step cards, reordering, run button with 501 boundary notice, add step), `LocalizationSnapshots.jsx` (snapshots table, cut snapshot, manifest drawer), `LocalizationMarketplace.jsx` (locale status overview, post confirmation drawer), and `LocalizationBidReview.jsx` (bids table & award action).
 - [x] **Sub-task 44.10**: Standalone Vendor Portal — Implemented `VendorPortalShell.jsx` (isolated header, vendor roster switcher, no owner nav), `VendorOpenJobs.jsx` (matching open jobs grid, card layout), `BidSubmissionModal.jsx` (centered modal, midpoint price estimation), and `VendorMyJob.jsx` (awarded job workspace, inline translations, no stage column, submit for review).
 
+## Phase 45: AI Agent Service Infrastructure & Routing Scaffold (Completed)
+- [x] **Sub-task 45.1**: Docker Compose Integration — Added `ai-agent` service to `docker-compose.yml` with backend network isolation, JWT environment variables, and health check; added `ai-agent` dependency to `app` service.
+- [x] **Sub-task 45.2**: Nginx Routing Scaffold — Added HTTP-to-HTTPS redirect and reverse proxy server blocks for `tutor.${DOMAIN_NAME}` pointing to `http://ai-agent:8000` in `app/default.conf.template`.
+- [x] **Sub-task 45.3**: Python FastAPI Service Skeleton — Created `ai-agent/requirements.txt`, `ai-agent/Dockerfile`, and `ai-agent/main.py` with public `/health` endpoint, startup check for `JWT_SIGNING_KEY`, `get_current_user` dependency validating .NET-issued JWT tokens (via `Authorization: Bearer <token>` or `na_auth` cookie), and protected `/me` endpoint.
+
 

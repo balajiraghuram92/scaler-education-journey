@@ -5,7 +5,7 @@
 > is, what they're building, every decision that's been locked, and where to
 > find detailed specs. Do not re-derive or re-debate anything marked "LOCKED."
 
-**Last updated:** 2026-09-07
+**Last updated:** 2026-09-08
 **Status:** Design complete, implementation not started
 **Architecture spec:** [ai-learning-agent-ARCHITECTURE.md](ai-learning-agent-ARCHITECTURE.md)
 **Build tracker:** [ai-learning-agent-BUILD-TRACKER.md](ai-learning-agent-BUILD-TRACKER.md)
@@ -92,16 +92,32 @@ Python FastAPI Service (NEW — separate microservice)
     └── Docker Sandbox (Java code execution)
 ```
 
-### Relationship to existing site
+### Relationship to existing site — REVISED 2026-09-08
 
-- The **existing React/.NET site stays as-is** — it's the "legacy" delivery
-  mode for curriculum content
-- The AI agent is a **separate Python microservice** that the React frontend
-  talks to
-- **Auth is shared** — the existing TOTP-gated JWT auth system (already built
-  and committed) is reused
-- The existing Llama API chat (`ChatEndpoints.cs`) is the precursor — this
-  agent replaces it
+**Supersedes the "existing React/.NET stays as legacy" language above.**
+Decided in a session on another machine (2026-09-07/08):
+
+- The new learner-facing frontend is a **fresh TypeScript build** — NOT a
+  reuse of the existing `app/` React/JSX codebase. New project, new repo
+  path.
+- The new backend is **Python + FastAPI** — a separate microservice from the
+  .NET API, not a plugin into it.
+- **Auth is not rebuilt** — the existing TOTP-gated JWT auth (already built
+  in `api/`) keeps issuing tokens. The FastAPI service only **validates**
+  those JWTs (shared secret/keys) — no parallel auth system.
+- **Routing/cutover plan (infra, same AWS public IP, same EC2 host):**
+  1. Today: `neuralascent.top` → .NET API/site, unchanged, for current users.
+  2. Phase 0: add a new subdomain or path (e.g. `tutor.neuralascent.top` or
+     `/agent/*`) via Nginx pointing at the new FastAPI service, dev-only.
+  3. Phase 1–2: new TS frontend + FastAPI built out behind that
+     subdomain/path, authenticating against the shared JWT.
+  4. Phase 3: once the new stack has full feature + auth parity, flip Nginx
+     so `neuralascent.top` itself routes to the new stack. .NET API is kept
+     alive only for whatever isn't yet ported, or retired at that point.
+- The existing Llama API chat (`ChatEndpoints.cs`) is the precursor this
+  agent replaces, but the .NET site itself is not assumed to live on
+  indefinitely as "legacy" — full cutover is the target, not permanent
+  coexistence.
 
 ---
 
@@ -122,7 +138,9 @@ Python FastAPI Service (NEW — separate microservice)
 | Structured output | **Pydantic v2** | Schema enforcement on all LLM outputs |
 | Tool protocol | **MCP** (Model Context Protocol) | Hot interview topic |
 | Code execution | **Docker sandbox** (JDK, no network, resource caps) | Safe Java compilation |
-| Frontend | React (existing) + new components | Built with AI assistance (Gemini) |
+| Frontend | **TypeScript, fresh build** (revised 2026-09-08 — no reuse of existing `app/` React/JSX) | Built with AI assistance (Gemini) |
+| Local inference host | **Mac Studio M1 Max, 32GB**, via SSH tunnel from AWS, always-on/UPS-backed | Runs embedding + reranking locally to cut API cost |
+| Embedding/rerank fallback | Cloud API keys for the *same* model weights as the local models | Failover if Mac/tunnel is down — avoids re-embedding drift from mixed models |
 
 ---
 
@@ -213,12 +231,20 @@ retrieval latency, disqualifying for an interactive tutor, vs. Mem0's ~0.2s.
   for edge cases
 
 ### Decisions — resolved 2026-09-07
+
 | # | Decision | Resolution |
 |---|---|---|
 | 1 | Mem0 vs custom PostgreSQL for learner memory | **LOCKED: Hybrid** — Postgres for L1/L2 (scores, FSRS scheduling), Mem0 for L3 (free-text profile/misconceptions). See §6 Learner memory. |
-| 2 | Embeddings: OpenAI text-embedding-3-large vs BGE (self-hosted) | **LOCKED: OpenAI text-embedding-3-large** for Phase 1. BGE self-hosted comparison moved to Phase 4 stretch. |
-| 3 | FDE exercise grading: LLM-as-judge vs human review only | **LOCKED: LLM-as-judge** — Phase 3 concern, no action needed yet. |
-| 4 | Mac Studio M1 Max local model for routing tier | Still open — genuine Phase 4 stretch call, revisit then. |
+| 2 | FDE exercise grading: LLM-as-judge vs human review only | **LOCKED: LLM-as-judge** — Phase 3 concern, no action needed yet. |
+
+### Decisions — resolved 2026-09-08 (revises #2 embeddings and #4 Mac Studio above)
+
+| # | Decision | Resolution |
+|---|---|---|
+| 3 | Embeddings provider | **REVISED, supersedes the 2026-09-07 "OpenAI text-embedding-3-large" lock.** Reranking via API was pricing out too high, so embedding + reranking move to **local-first via the Mac Studio M1 Max (32GB)**, reached over an SSH tunnel from the AWS host, kept always-on on a UPS. Cloud API keys for the *same model weights* are provisioned as automatic fallback if the Mac/tunnel is unreachable. **Rule: pick one embedding model and never swap it once the corpus is indexed** — a different model's vectors aren't comparable, so a swap means a full re-embed of the whole corpus, not just new content. The local/fallback pair must be the *same* weights for this reason. |
+| 4 | Mac Studio M1 Max local model for routing tier | **Narrowed and locked** — not used for the LLM routing tier (Nova Micro still handles that). Used specifically as the **embedding + reranking host**, for cost savings and as a deliberate model-economics/local-vs-API comparison data point for the interview story. |
+| 5 | Frontend/backend for the new learner-facing stack | **LOCKED: fresh TypeScript frontend + Python FastAPI backend**, no reuse of the existing `app/` React/JSX or the .NET API for the new tutor UI. See §3 "Relationship to existing site — REVISED 2026-09-08". |
+| 6 | Cutover routing from `neuralascent.top` | **LOCKED: staged.** .NET keeps serving the domain through Phase 0–2 (new stack lives on a subdomain/path). Nginx flips the domain to the new stack in Phase 3 once feature + auth parity is reached. Auth itself is not duplicated — FastAPI validates the existing .NET-issued JWTs. |
 
 ---
 
@@ -226,10 +252,11 @@ retrieval latency, disqualifying for an interactive tutor, vs. Mem0's ~0.2s.
 
 | Phase | Target | Goal |
 |---|---|---|
-| **Phase 1** — The substrate | Weeks 1–5, mid-October 2026 | Working RAG tutor + eval harness. Interview-ready after this. |
+| **Phase 0** — Infra & routing scaffold (added 2026-09-08) | Before Phase 1, ~3–5 days | FastAPI skeleton live on the same EC2 host/public IP under a dev subdomain/path; Nginx still sends `neuralascent.top` → .NET unchanged; JWT validation against existing tokens; SSH tunnel from Mac Studio wired up with API fallback for embedding/rerank. |
+| **Phase 1** — The substrate | Weeks 1–5, mid-October 2026 | Working RAG tutor + eval harness, new TS frontend on the dev subdomain. Interview-ready after this. |
 | **Phase 2** — Multi-agent + personalization | Weeks 6–10, late November 2026 | Full agent roster + adaptive learning. Much stronger interview story. |
-| **Phase 3** — Support + Admin + Polish | Weeks 11–14, late December 2026 | Complete system. Full portfolio piece. |
-| **Phase 4** — Stretch | January 2027 (only if time) | Self-hosted model comparison, advanced UX. |
+| **Phase 3** — Support + Admin + Polish + cutover | Weeks 11–14, late December 2026 | Complete system, full portfolio piece, **and** the Nginx routing flip so `neuralascent.top` serves the new stack directly. |
+| **Phase 4** — Stretch | January 2027 (only if time) | Local-vs-API model economics writeup, further self-hosted experiments, advanced UX. |
 
 See **[ai-learning-agent-BUILD-TRACKER.md](ai-learning-agent-BUILD-TRACKER.md)**
 for the detailed task-level tracker with checkboxes.

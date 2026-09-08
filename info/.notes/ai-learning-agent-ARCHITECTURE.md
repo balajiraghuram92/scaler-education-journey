@@ -4,7 +4,7 @@
 > This is the single source of truth for the AI Learning Agent project on
 > Neuralascent — read it before touching any agent code.
 
-**Last updated:** 2026-09-07
+**Last updated:** 2026-09-08
 **Status:** Design phase — no implementation started
 
 ---
@@ -15,9 +15,11 @@
 A personalized, AI-first learning platform built on top of Neuralascent's
 existing Java LLD and FDE curriculum content. The AI tutor agent IS the
 primary learning interface — not a sidebar chatbot bolted onto a traditional
-LMS. The existing site (React/.NET) stays as the "legacy" delivery mode;
-this agent is a **separate Python microservice** that the React frontend
-talks to.
+LMS. **Revised 2026-09-08:** the learner-facing frontend is a fresh
+TypeScript build (no reuse of the existing `app/` React/JSX), talking to a
+**separate Python FastAPI microservice**. The .NET API is not kept on
+indefinitely as "legacy" — it is cut over in stages (see §2.4 Routing &
+cutover plan) and either retired or reduced to whatever isn't yet ported.
 
 ### Why this exists
 This is the user's **primary portfolio project for AI-role job applications**
@@ -151,15 +153,17 @@ The agent is NOT a passive Q&A bot. It is:
 | **Vector store** | pgvector (on existing Postgres 16) | No new infra, already in the stack |
 | **Sparse search** | PostgreSQL tsvector / pg_trgm | BM25-equivalent for exact term matching, hybrid with dense |
 | **Embeddings** | OpenAI text-embedding-3-large (or BGE) | Proven quality; BGE as self-hostable alternative |
-| **Reranking** | bge-reranker-v2-m3 (or Cohere) | Cross-encoder reranking is a strong-hire interview signal |
+| **Reranking** | bge-reranker-v2-m3, **local-first via Mac Studio** (revised 2026-09-08) | Cross-encoder reranking is a strong-hire interview signal; API cost was pricing out too high, moved local with API fallback — see §2.4 |
 | **Eval framework** | DeepEval | pytest-style, CI-gatable, RAGAS-compatible metrics |
 | **Observability** | Langfuse (open-source) | LLM tracing, cost tracking, eval integration, self-hostable |
 | **Structured output** | Pydantic v2 | Schema enforcement for all LLM outputs |
 | **Memory** | Custom PostgreSQL tables + Mem0 (evaluate) | Learner state, conversation history, concept mastery |
 | **Tool protocol** | MCP (Model Context Protocol) | Standardized tool access; hot interview topic |
 | **Code execution** | Docker sandbox (JDK, no network, resource caps) | Safe Java code compilation and execution |
-| **LLM providers** | Multi-provider cascade — see §2.3 | Meta Muse (primary), OpenAI nano (routing), Gemini Flash-Lite (eval) |
-| **Frontend** | React (existing) + new chat components | Built with AI assistance, not hand-written |
+| **LLM providers** | Multi-provider cascade — see §2.3 | Meta Muse (primary), Amazon Nova Micro/Bedrock (routing), Gemini free tier (eval) |
+| **Embeddings** | One model, **local-first via Mac Studio**, cloud API fallback on the same weights (revised 2026-09-08) | Never swap embedding models after the corpus is indexed — vectors from different models aren't comparable, a swap forces a full re-embed |
+| **Local inference host** | Mac Studio M1 Max, 32GB, SSH tunnel from AWS, UPS-backed always-on | Runs embedding + reranking; cuts API spend, doubles as a model-economics data point |
+| **Frontend** | **Fresh TypeScript build** (revised 2026-09-08 — supersedes "React existing + new components") | Built with AI assistance, not hand-written |
 
 ### 2.3 LLM provider cascade (locked 2026-09-07)
 
@@ -201,9 +205,9 @@ happen a few times per week, not per session.
 
 The existing $2/day budget cap is more than sufficient. No credits needed.
 
-**Future (Phase 4 stretch):** Mac Studio M1 Max with a small always-on
-model (7B-8B class) for the routing tier — zero marginal cost, sub-100ms
-latency. Replaces Nova Micro for local development.
+**Note (revised 2026-09-08):** the Mac Studio is not used for the LLM
+routing tier — Nova Micro still owns that. It's used for embedding +
+reranking instead; see §2.4.
 
 **Interview narrative:** "Provider-agnostic cascade across three providers —
 Meta Muse for quality-sensitive tutoring at $0.20/MTok output, Amazon Nova
@@ -211,6 +215,103 @@ Micro on Bedrock for routing at $0.035/MTok with batch inference at 50% off
 for eval runs, and Gemini free tier as the eval judge to avoid self-preference
 bias. Per-session cost is $0.014; I can attribute cost per-agent and per-
 student from Langfuse traces."
+
+---
+
+### 2.4 Local inference host & routing/cutover plan (added 2026-09-08)
+
+**Embedding + reranking — local-first, API fallback:**
+Cross-encoder reranking via API was pricing out too high for this project's
+usage pattern. Both embedding and reranking now run **locally on a Mac
+Studio M1 Max (32GB)**, reached from the AWS host over an SSH tunnel, kept
+always-on and UPS-backed. Cloud API keys for the *same model weights* are
+provisioned as automatic fallback if the Mac or tunnel goes down. This is
+deliberate: it cuts recurring API spend, and the local-vs-API split (cost,
+latency, uptime) becomes its own model-economics data point for the
+interview story.
+
+**Hard rule:** the embedding model, once the corpus is indexed, is never
+swapped. A different model's vectors are not comparable to the existing
+index — switching would require re-embedding the entire corpus, not just
+new content. The local and fallback paths must therefore serve the *same*
+model weights, not merely "an equivalent" model.
+
+**Model choice (locked 2026-09-08):** **BAAI/bge-m3** for embedding,
+**bge-reranker-v2-m3** for reranking. Both run locally on the M1 Max 32GB
+via `FlagEmbedding`/`sentence-transformers` on the MPS (Metal) backend, and
+both are hosted as-is (same weights) on **Deepinfra** as the API-parity
+fallback — satisfies the "same weights on both sides" rule exactly.
+`bge-m3` natively outputs dense + sparse (lexical) + multi-vector
+representations from one model, which can serve the hybrid dense/sparse
+retrieval directly (tsvector remains a simpler fallback for the sparse leg
+if preferred).
+
+**Toggle model — manual, no auto-fallback (locked 2026-09-08):** unlike a
+typical HA design, this project deliberately does **not** auto-fail over
+from local to API. Instead:
+- An **admin-panel global toggle** (`embedding_backend`, `reranker_backend`
+  ∈ {local, api}) read per-request — flip it live, no redeploy. This is the
+  default dev/testing mode, used to collect real local-vs-API cost/latency
+  data (the model-economics interview story).
+- A **per-account override** (e.g. a `force_api_backend` flag on a specific
+  login) that always forces the API path regardless of the global toggle —
+  used for interview demos so the demo never depends on the home Mac/WiFi
+  being reachable.
+- Both paths implement the same `EmbeddingProvider`/`RerankerProvider`
+  interface; only the factory branches on (account override) → (admin
+  toggle). Agent/RAG code never branches on this itself.
+- An admin-panel health indicator ("Mac: reachable/unreachable") is shown
+  next to the toggle so a bad flip is visible before it causes failed
+  requests — acceptable to fail loudly here, this is a personal project,
+  not something needing silent resilience.
+- Every call is still Langfuse-tagged by which backend actually served it,
+  regardless of toggle position.
+
+**SSH tunnel setup (Mac Studio, home WiFi → AWS, locked 2026-09-08):** the
+Mac has no public IP, so it initiates a **reverse SSH tunnel** to AWS:
+```
+autossh -M 0 -N \
+  -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" \
+  -o "ExitOnForwardFailure yes" \
+  -R 127.0.0.1:9000:127.0.0.1:8001 \
+  ai-tunnel@<aws-host>
+```
+- Binds port 9000 on AWS's **loopback only** (not `0.0.0.0`) to the Mac's
+  local embedding/rerank service on 8001 — FastAPI (same AWS host) calls
+  `http://127.0.0.1:9000`. No `GatewayPorts` needed since only same-host
+  FastAPI needs to reach it.
+- `autossh`, not plain `ssh`, so home-WiFi drops auto-reconnect.
+- Runs as a `launchd` agent on the Mac (starts on boot, restarted on death)
+  — Mac Studio is always-on so this is simple.
+- Dedicated, restricted SSH key on the AWS side's `authorized_keys`:
+  `command="/bin/false",no-pty,no-X11-forwarding,no-agent-forwarding,permitopen="127.0.0.1:8001" ssh-ed25519 AAAA... mac-studio-tunnel`
+  — this key can only open that one forwarded port even if it leaked.
+- No further hardening (static home IP, VPN, security-group source-IP
+  lock) — explicitly accepted as unnecessary for a personal project with a
+  restricted key already in place.
+
+**Routing & cutover (same AWS public IP/host as today):**
+
+1. **Today:** `neuralascent.top` → .NET API/site (Nginx), unchanged.
+2. **Phase 0:** stand up the new FastAPI service on the same host; Nginx
+   adds a dev-only subdomain or path (e.g. `tutor.neuralascent.top` or
+   `/agent/*`) pointing at it. `neuralascent.top` itself is untouched.
+   **This is DNS + Nginx only, not a .NET change:**
+   - Add a DNS A record for `tutor` → the same AWS public IP (or a
+     `*.neuralascent.top` wildcard record if more subdomains are likely
+     later), wherever the domain's DNS is managed.
+   - Add a new Nginx `server_name tutor.neuralascent.top` block that
+     proxies to the FastAPI process's local port; the existing `.NET`
+     server block for the bare domain is untouched.
+   - Extend the TLS cert with a SAN for the new subdomain (or rely on an
+     existing wildcard cert if one is already in place).
+3. **Phases 1–2:** the new TypeScript frontend + FastAPI backend are built
+   out behind that subdomain/path. Auth is **not** duplicated — FastAPI
+   validates the JWTs the existing .NET auth system already issues (shared
+   secret/keys), so there's no second login system to build or maintain.
+4. **Phase 3:** once the new stack has full feature + auth parity, Nginx is
+   flipped so `neuralascent.top` routes directly to the new stack. The .NET
+   API is then kept only for anything not yet ported, or retired.
 
 ---
 
@@ -599,18 +700,33 @@ because:
 
 ## 12. Build phases
 
+### Phase 0 — Infra & routing scaffold (added 2026-09-08, before Phase 1, ~3-5 days)
+**Goal:** New stack reachable and provable-working end-to-end before any
+tutor logic exists, with zero disruption to the live .NET site.
+
+- [ ] FastAPI skeleton deployed on the same AWS host/public IP
+- [ ] Nginx: add dev-only subdomain or path (e.g. `tutor.neuralascent.top`
+      or `/agent/*`) → FastAPI; `neuralascent.top` still → .NET, unchanged
+- [ ] FastAPI JWT-validation middleware against existing .NET-issued tokens
+- [ ] SSH tunnel from Mac Studio M1 Max into the AWS host, verified stable
+- [ ] Local embedding + reranking service running on the Mac Studio
+- [ ] Cloud API fallback (same model weights) wired in and tested by
+      killing the tunnel and confirming failover
+- [ ] Fresh TypeScript frontend project scaffolded (not the existing `app/`)
+
 ### Phase 1 — The substrate (weeks 1-5, target: mid-October 2026)
 **Goal:** Working RAG tutor + eval harness. Interview-ready after this phase.
 
 - [ ] Python project scaffold (FastAPI + Pydantic AI + LangGraph)
-- [ ] Content ingestion pipeline (parse existing lessons, chunk, embed)
+- [ ] Content ingestion pipeline (parse existing lessons, chunk, embed via
+      the locked local-first embedding model)
 - [ ] pgvector setup on existing Postgres
 - [ ] Single Tutor Agent with RAG retrieval
 - [ ] Golden eval set (~80-100 Q/A pairs)
 - [ ] Baseline measurements (naive chunking)
 - [ ] Intervention measurements (hybrid search, reranking, AST chunking)
-- [ ] Basic React chat UI (functional, not fancy)
-- [ ] Langfuse tracing integration
+- [ ] Chat UI in the new TypeScript frontend (functional, not fancy)
+- [ ] Langfuse tracing integration, tagged by local-vs-API-fallback path
 - [ ] Docker Compose integration with existing stack
 
 **Interview sentence after Phase 1:**
@@ -638,9 +754,9 @@ interview story.
 difficulty against the learner's mastery state, and the model cascade cuts
 per-session cost 60% by routing simple queries to an 8B model."
 
-### Phase 3 — Support + Admin + Polish (weeks 11-14, target: late Dec)
-**Goal:** Complete system with support bot + admin automation. Full portfolio
-piece.
+### Phase 3 — Support + Admin + Polish + cutover (weeks 11-14, target: late Dec)
+**Goal:** Complete system with support bot + admin automation, and the
+routing cutover to the new stack. Full portfolio piece.
 
 - [ ] Support Agent (different RAG corpus + persona)
 - [ ] Support bot red-team eval suite (30 adversarial cases)
@@ -649,6 +765,8 @@ piece.
 - [ ] Admin dashboard (cost attribution, action audit trail)
 - [ ] FDE vertical initial integration (RAG only, no auto-grading)
 - [ ] Interactive UX improvements (mode transitions, hints)
+- [ ] Routing cutover: flip Nginx so `neuralascent.top` routes to the new
+      TypeScript/FastAPI stack (see §2.4); retire or narrow the .NET API
 - [ ] End-to-end demo narrative rehearsed
 
 **Interview sentence after Phase 3:**
@@ -669,12 +787,14 @@ refunds via Stripe and surfaces resolution suggestions for edge cases."
 
 | # | Decision | Options | Status |
 |---|---|---|---|
-| 1 | LLM provider cascade | Multi-provider: Muse + OpenAI nano + Gemini | **Decided 2026-09-07** |
+| 1 | LLM provider cascade | Multi-provider: Muse + Nova Micro + Gemini | **Decided 2026-09-07** |
 | 2 | Cost budget for demo usage | $2/day cap sufficient at ~$0.015/session | **Decided 2026-09-07** |
-| 3 | Mac Studio M1 Max local model | Always-on 7B-8B for routing tier | Phase 4 stretch |
+| 3 | Mac Studio M1 Max local model | Embedding + reranking host (not LLM routing tier) | **Decided 2026-09-08** — see §2.4 |
 | 4 | FDE exercise grading approach | LLM-as-judge vs human review only | Recommended: LLM-as-judge with rubric |
 | 5 | Mem0 vs custom PostgreSQL for learner memory | Mem0 (faster to build) vs custom (more control) | Evaluate in Phase 1 |
-| 6 | Embeddings provider | OpenAI text-embedding-3-large vs BGE (self-hosted) | Evaluate in Phase 1 |
+| 6 | Embeddings provider | Local-first on Mac Studio, API fallback on same weights | **Decided 2026-09-08** — supersedes prior OpenAI/BGE framing, see §2.4 |
+| 7 | Frontend/backend stack for new tutor UI | Fresh TypeScript + FastAPI vs reuse existing React/.NET | **Decided 2026-09-08** — fresh build, no reuse |
+| 8 | Routing cutover from `neuralascent.top` | Staged: dev subdomain first, full flip in Phase 3 | **Decided 2026-09-08** — see §2.4 |
 
 ---
 

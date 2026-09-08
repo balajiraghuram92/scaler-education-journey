@@ -6,7 +6,7 @@
 > full context lives in
 > [ai-learning-agent-SESSION-HANDOFF.md](ai-learning-agent-SESSION-HANDOFF.md).
 
-**Last updated:** 2026-09-07
+**Last updated:** 2026-09-08
 **Overall status:** Design complete — build not started
 
 ---
@@ -20,9 +20,40 @@
 - [x] This build tracker created
 - [ ] Localization Lab disabled from running site (Gemini prompt produced,
       not yet executed by user)
-- [ ] Python project directory created (e.g. `ai-agent/` at repo root)
-- [ ] Python virtual environment + dependency management (pyproject.toml or
+- [x] Python project directory created (e.g. `ai-agent/` at repo root)
+- [x] Python virtual environment + dependency management (pyproject.toml or
       requirements.txt)
+
+---
+
+## Phase 0 — Infra & Routing Scaffold (added 2026-09-08, before Phase 1)
+
+**Goal:** New stack reachable end-to-end with zero disruption to the live
+.NET site on `neuralascent.top`.
+
+- [ ] FastAPI skeleton deployed on the same AWS host/public IP
+- [ ] DNS A record (or wildcard) for `tutor.neuralascent.top` → same AWS
+      public IP
+- [x] Nginx `server_name tutor.neuralascent.top` block → FastAPI local
+      port; existing `.NET` block for the bare domain untouched
+- [ ] TLS cert covers the new subdomain (SAN added, or existing wildcard)
+- [x] JWT-validation middleware in FastAPI against existing .NET-issued
+      tokens (no parallel auth system)
+- [ ] Dedicated restricted SSH key generated for the tunnel
+      (`command="/bin/false",no-pty,...,permitopen="127.0.0.1:8001"`)
+- [ ] `autossh` reverse tunnel from Mac Studio → AWS
+      (`-R 127.0.0.1:9000:127.0.0.1:8001`), loopback-only on the AWS side
+- [ ] Tunnel wrapped in a `launchd` agent on the Mac (start on boot,
+      auto-restart)
+- [ ] Local embedding (`BAAI/bge-m3`) + reranking (`bge-reranker-v2-m3`)
+      service running on the Mac Studio (MPS backend)
+- [ ] Deepinfra API keys provisioned for the same two models (embedding +
+      rerank), same weights as local
+- [ ] Admin-panel toggle (`embedding_backend`, `reranker_backend`: local |
+      api) + per-account `force_api_backend` override implemented
+- [ ] Admin-panel health indicator for Mac/tunnel reachability
+- [ ] Fresh TypeScript frontend project scaffolded (separate from existing
+      `app/`)
 
 ---
 
@@ -51,7 +82,9 @@ to 0.88."
 - [ ] Atomic MCQ chunking (one MCQ = one chunk)
 - [ ] Metadata extraction per chunk (lesson_id, module_id, section_path,
       chunk_type, concept_tags, content_quality_tier)
-- [ ] Embedding generation via OpenAI text-embedding-3-large (locked 2026-09-07)
+- [ ] Embedding generation via the locked local-first model on the Mac
+      Studio, with API fallback on the same weights (revised 2026-09-08,
+      supersedes the earlier OpenAI text-embedding-3-large lock)
 - [ ] pgvector table creation + index
 - [ ] tsvector column + GIN index for sparse search
 - [ ] Ingestion script (run once, idempotent re-run)
@@ -93,12 +126,12 @@ to 0.88."
   - [ ] Query rewriting for multi-hop vs baseline
 - [ ] Results documented with numbers (these become interview talking points)
 
-### 1.6 Frontend (basic chat UI)
-- [ ] Chat component (functional, not fancy — Gemini builds this)
+### 1.6 Frontend (basic chat UI, fresh TypeScript build)
+- [ ] Chat component (functional, not fancy — Gemini/AI-assisted)
 - [ ] Message display with markdown rendering
 - [ ] Citation display (link back to source lesson)
 - [ ] Loading/streaming state
-- [ ] Auth integration (reuse existing JWT)
+- [ ] Auth integration (validate existing .NET-issued JWT — no new login flow)
 - [ ] API client for the Python FastAPI service
 
 ### Phase 1 — Definition of Done
@@ -265,12 +298,19 @@ suggestions for edge cases."
 - [ ] Demo rehearsed and timed
 - [ ] Key metrics documented (eval numbers, cost numbers, latency numbers)
 
+### 3.9 Routing cutover (added 2026-09-08)
+- [ ] New stack verified at full feature + auth parity
+- [ ] Nginx flipped so `neuralascent.top` routes to the new TypeScript
+      frontend / FastAPI backend
+- [ ] .NET API retired or narrowed to whatever isn't yet ported
+
 ### Phase 3 — Definition of Done
 - [ ] Complete 6-agent system operational
 - [ ] Support bot passes red-team evaluation
 - [ ] Admin dashboard shows real cost/progress data
 - [ ] Stripe test-mode refund demo works end-to-end
 - [ ] FDE content accessible via same RAG pipeline
+- [ ] `neuralascent.top` serving the new stack directly (routing cutover done)
 - [ ] Demo narrative rehearsed, timed, and polished
 - [ ] Ready for January 2027 interview season
 
@@ -278,10 +318,9 @@ suggestions for edge cases."
 
 ## Phase 4 — Stretch (January 2027, only if time allows)
 
-- [ ] Self-hosted model on Mac Studio M1 Max (7B–8B for routing tier)
+- [ ] Local-vs-API model economics writeup (embedding + reranking:
+      cost/quality/latency/uptime, Mac Studio vs cloud fallback)
 - [ ] Model Economics Matrix measurements (latency, cost, quality per model)
-- [ ] BGE self-hosted embeddings vs OpenAI text-embedding-3-large comparison
-      (cost/quality/latency) — deferred from Phase 1 decision
 - [ ] Spaced repetition algorithm tuning (A/B test FSRS vs SM-2)
 - [ ] Advanced UX polish (animations, transitions)
 
@@ -292,8 +331,10 @@ suggestions for edge cases."
 | Milestone | Target | Actual | Status |
 |---|---|---|---|
 | Architecture & design locked | 2026-09-07 | 2026-09-07 | ✅ Done |
+| Infra/tech-stack revision (local Mac inference, fresh TS/FastAPI, cutover plan) | 2026-09-08 | 2026-09-08 | ✅ Done |
 | Localization disabled from site | 2026-09-08 (est.) | — | ⏳ Pending |
-| Phase 1 start | 2026-09-08 (est.) | — | ⏳ Pending |
+| Phase 0 (infra & routing scaffold) start | 2026-09-08 (est.) | — | ⏳ Pending |
+| Phase 1 start | after Phase 0 | — | ⏳ Pending |
 | Phase 1 complete (RAG + eval) | mid-October 2026 | — | ⏳ Pending |
 | Phase 2 complete (multi-agent) | late November 2026 | — | ⏳ Pending |
 | Phase 3 complete (full system) | late December 2026 | — | ⏳ Pending |

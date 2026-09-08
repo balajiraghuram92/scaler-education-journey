@@ -1,8 +1,8 @@
 # Neuralascent — Work Status & Resume Point
 
-> **Current as of 2026-09-07.**
+> **Current as of 2026-09-08.**
 
-**Last updated:** 2026-09-07
+**Last updated:** 2026-09-08
 
 ---
 
@@ -26,19 +26,32 @@ agent IS the primary interface, not a sidebar chatbot. Multi-agent system
 (Pydantic AI + LangGraph + FastAPI) as a separate microservice, using existing
 Java LLD/FDE content as RAG data.
 
-**Stack:** Python, FastAPI, Pydantic AI, LangGraph, pgvector, DeepEval,
-Langfuse, MCP. Existing React/.NET stays as legacy.
+**Stack (revised 2026-09-08):** Fresh TypeScript frontend + Python FastAPI
+backend — **no reuse of the existing React/.NET codebase** for the new tutor
+UI (supersedes the earlier "existing site stays as legacy" framing). Pydantic
+AI, LangGraph, pgvector, DeepEval, Langfuse, MCP unchanged. Embedding +
+reranking run **local-first on a Mac Studio M1 Max (32GB)** over an SSH
+tunnel, UPS-backed always-on, with cloud API fallback on the same model
+weights if the Mac/tunnel is down.
+
+**Routing:** `neuralascent.top` stays on .NET through Phase 0–2 (new stack
+lives on a dev subdomain/path); Nginx flips the domain to the new stack in
+Phase 3 once feature + auth parity is reached. Auth is shared, not
+duplicated — FastAPI validates the existing .NET-issued JWTs.
 
 **Build phases:**
+- Phase 0 (added 2026-09-08, before Phase 1): infra scaffold — FastAPI on a
+  dev subdomain, Mac Studio SSH tunnel + API fallback, fresh TS frontend
+  scaffolded
 - Phase 1 (weeks 1-5, target mid-Oct): RAG + eval harness + single tutor agent
 - Phase 2 (weeks 6-10, target late Nov): Multi-agent + personalization
-- Phase 3 (weeks 11-14, target late Dec): Support bot + admin + Stripe demo
-- Phase 4 (stretch): Self-hosted model comparison, advanced UX
+- Phase 3 (weeks 11-14, target late Dec): Support bot + admin + Stripe demo +
+  routing cutover to the new stack
+- Phase 4 (stretch): local-vs-API model economics writeup, advanced UX
 
 **LLM providers (LOCKED):** Meta Muse Spark 1.3 Contributor (primary) +
 Amazon Nova Micro on Bedrock (routing/batch) + Gemini free tier (eval judge).
-**Open decisions:** Mem0 vs custom PostgreSQL for learner memory, embeddings
-provider (OpenAI vs BGE).
+**Open decisions:** Mem0 vs custom PostgreSQL for learner memory.
 
 ### 2. Localization Lab — ON HOLD
 
