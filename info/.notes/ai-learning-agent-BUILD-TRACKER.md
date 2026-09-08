@@ -31,12 +31,23 @@
 **Goal:** New stack reachable end-to-end with zero disruption to the live
 .NET site on `neuralascent.top`.
 
-- [ ] FastAPI skeleton deployed on the same AWS host/public IP
-- [ ] DNS A record (or wildcard) for `tutor.neuralascent.top` → same AWS
-      public IP
+- [x] FastAPI skeleton built (`ai-agent/`), CI build/push wired
+      (`.github/workflows/deploy-api.yml`), production start wired
+      (`scripts/deploy-single-ec2.sh`) — all committed 2026-09-08
+      (`c3742f6`, `f2db042`). **Actual pipeline run against EC2 still
+      pending** — trigger via Actions → Run workflow before calling this
+      done.
+- [x] DNS A record for `tutor.neuralascent.top` → same AWS public IP —
+      done on GoDaddy, verified resolving 2026-09-08
 - [x] Nginx `server_name tutor.neuralascent.top` block → FastAPI local
       port; existing `.NET` block for the bare domain untouched
-- [ ] TLS cert covers the new subdomain (SAN added, or existing wildcard)
+- [x] TLS cert covers the new subdomain — SAN added via one-time manual
+      `certbot --expand` on the EC2 host 2026-09-08, verified via
+      `openssl s_client` (`DNS:neuralascent.top, DNS:tutor.neuralascent.top`),
+      expires 2026-12-07. Note: the deploy script's own `certonly` branch
+      only fires for a cert that doesn't exist yet — it will never add a
+      SAN to an already-issued cert, so any *future* new subdomain needs
+      this same manual `--expand` step, not just a code change.
 - [x] JWT-validation middleware in FastAPI against existing .NET-issued
       tokens (no parallel auth system)
 - [ ] Dedicated restricted SSH key generated for the tunnel

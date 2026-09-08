@@ -364,7 +364,8 @@ bias. Per-session cost is $0.014."
 | `info/.notes/ai-learning-agent-ARCHITECTURE.md` | Full architecture & design specification (technical detail) |
 | `info/.notes/ai-learning-agent-BUILD-TRACKER.md` | Phase-by-phase build tracker with checkboxes |
 | `info/.notes/neuralascent-work-status.md` | Overall project status across all Neuralascent tracks |
-| `info/.notes/SESSION-2026-09-AI-chatbot-planning-and-auth-build.md` | Previous session handoff (auth build + AI-helper review) |
+| `info/.notes/SESSION-2026-09-08-phase0-infra-and-deploy.md` | **Most recent session** — Phase 0 infra build (ai-agent skeleton, CI/deploy wiring, DNS/TLS), and a flagged conflict with a second unreconciled planning track — read this before continuing Phase 0/1 work |
+| `info/.notes/SESSION-2026-09-AI-chatbot-planning-and-auth-build.md` | Earlier session handoff (auth build + AI-helper review) |
 | `info/.notes/localization-lab-STATUS-TRACKER.md` | Localization project status (on hold) |
 | `CLAUDE.md` | Repo-wide rules (no direct code edits, prompt workflow, scope boundaries) |
 
