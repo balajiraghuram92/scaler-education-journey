@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
-import { X, RefreshCw, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, RefreshCw } from 'lucide-react';
 import { api } from '../../../api/client';
 
 export default function BidSubmissionModal({ isOpen, onClose, job, vendorId, onSuccess }) {
-  if (!isOpen || !job) return null;
-
-  const defaultPrice = Math.round((job.suggestedPriceLow + job.suggestedPriceHigh) / 2);
+  const defaultPrice = job
+    ? Math.round((job.suggestedPriceLow + job.suggestedPriceHigh) / 2)
+    : 0;
   const [proposedPrice, setProposedPrice] = useState(defaultPrice);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (job) {
+      setProposedPrice(defaultPrice);
+      setNote('');
+      setError(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [job?.id]);
+
+  if (!isOpen || !job) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
