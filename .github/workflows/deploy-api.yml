@@ -160,8 +160,8 @@ jobs:
             --parameters 'commands=[
               "set -eu",
               "SCRIPT_BASE=https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}",
-              "curl -fsSL $SCRIPT_BASE/scripts/bootstrap-single-ec2.sh -o /tmp/bootstrap-single-ec2.sh",
-              "curl -fsSL $SCRIPT_BASE/scripts/deploy-single-ec2.sh -o /tmp/deploy-single-ec2.sh",
+              "curl -fsSL -H \"Authorization: token ${{ secrets.GITHUB_TOKEN }}\" $SCRIPT_BASE/scripts/bootstrap-single-ec2.sh -o /tmp/bootstrap-single-ec2.sh",
+              "curl -fsSL -H \"Authorization: token ${{ secrets.GITHUB_TOKEN }}\" $SCRIPT_BASE/scripts/deploy-single-ec2.sh -o /tmp/deploy-single-ec2.sh",
               "chmod 700 /tmp/bootstrap-single-ec2.sh /tmp/deploy-single-ec2.sh",
               "STUDYTRACKER_ENV_PARAMETER=${{ env.STUDYTRACKER_ENV_PARAMETER }} STUDYTRACKER_REGISTRY_TOKEN_PARAMETER=${{ env.STUDYTRACKER_REGISTRY_TOKEN_PARAMETER }} /tmp/bootstrap-single-ec2.sh",
               "API_IMAGE=${{ env.IMAGE_API }} APP_IMAGE=${{ env.IMAGE_APP }} RUNNER_IMAGE=${{ env.IMAGE_RUNNER }} API_REF=${{ env.IMAGE_API }}@${{ steps.build_api.outputs.digest }} APP_REF=${{ env.IMAGE_APP }}@${{ steps.build_app.outputs.digest }} RUNNER_REF=${{ env.IMAGE_RUNNER }}@${{ steps.build_runner.outputs.digest }} AI_AGENT_IMAGE=${{ env.IMAGE_AI_AGENT }} AI_AGENT_REF=${{ env.IMAGE_AI_AGENT }}@${{ steps.build_ai_agent.outputs.digest }} IMAGE_TAG=${{ github.sha }} DOMAIN_NAME=${{ env.DOMAIN_NAME }} LETSENCRYPT_EMAIL=${{ env.LETSENCRYPT_EMAIL }} BACKUP_S3_URI=${{ env.BACKUP_S3_URI }} RESTORE_LATEST_BACKUP=true ALLOW_CREATE_DATABASE=false /tmp/deploy-single-ec2.sh"
