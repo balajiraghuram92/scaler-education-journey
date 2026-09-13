@@ -6,8 +6,10 @@
 > full context lives in
 > [ai-learning-agent-SESSION-HANDOFF.md](ai-learning-agent-SESSION-HANDOFF.md).
 
-**Last updated:** 2026-09-08
-**Overall status:** Design complete — build not started
+**Last updated:** 2026-09-13
+**Overall status:** Phase 0 core goal (new stack reachable end-to-end, JWT
+trust bridge working) confirmed done. Phase 1 ("The Substrate") starting
+next.
 
 ---
 
@@ -34,9 +36,7 @@
 - [x] FastAPI skeleton built (`ai-agent/`), CI build/push wired
       (`.github/workflows/deploy-api.yml`), production start wired
       (`scripts/deploy-single-ec2.sh`) — all committed 2026-09-08
-      (`c3742f6`, `f2db042`). **Actual pipeline run against EC2 still
-      pending** — trigger via Actions → Run workflow before calling this
-      done.
+      (`c3742f6`, `f2db042`)
 - [x] DNS A record for `tutor.neuralascent.top` → same AWS public IP —
       done on GoDaddy, verified resolving 2026-09-08
 - [x] Nginx `server_name tutor.neuralascent.top` block → FastAPI local
@@ -50,6 +50,38 @@
       this same manual `--expand` step, not just a code change.
 - [x] JWT-validation middleware in FastAPI against existing .NET-issued
       tokens (no parallel auth system)
+- [x] **Actual EC2 deploy pipeline run, end to end — confirmed working
+      2026-09-12/13.** Root cause chain from
+      [SESSION-2026-09-10-phase0-deploy-debugging.md](SESSION-2026-09-10-phase0-deploy-debugging.md)
+      (stale `/etc/studytracker/api.env` missing `Auth__JwtSigningKey`,
+      private-repo curl 404) resolved by adding/correcting two SSM
+      Parameter Store values (one 32-byte random key per service's env var
+      name — `Auth__JwtSigningKey` for the `.NET` API,
+      `JWT_SIGNING_KEY` for `ai-agent` — **must be the identical string in
+      both**, since JWT verification only works if signer and verifier
+      share the same secret). `tutor.neuralascent.top/health` and `/me`
+      confirmed responding correctly (JSON, real JWT claims on a valid
+      cookie) — this is the JWT trust-bridge proof the whole Phase 0
+      routing/auth design depended on, and it now holds.
+
+### Deferred until Phase 1's pipeline works end-to-end (decision: 2026-09-13)
+
+**Sequencing decision:** build and prove the full embedding/retrieval
+pipeline against a **cloud API only** first (Deepinfra, hosting
+`BAAI/bge-m3` + `bge-reranker-v2-m3`). Do not start any Mac Studio/tunnel
+work until that cloud-only version is fully working (ingestion → retrieval
+→ eval numbers). The Mac Studio becomes a second, swappable backend for the
+*same* job afterward, not a Phase-0 prerequisite. **Hard constraint this
+sequencing depends on:** the cloud API model must be the same weights as
+whatever eventually runs locally (`BAAI/bge-m3` / `bge-reranker-v2-m3` are
+both available hosted on Deepinfra and self-hostable on Apple Silicon via
+MPS) — picking a different cloud-only model now and swapping later would
+mean a full corpus re-embed, not a config toggle, per the project's own
+locked embedding-model rule.
+
+- [ ] Deepinfra API keys provisioned for `BAAI/bge-m3` (embedding) +
+      `bge-reranker-v2-m3` (reranking) — **do this next, as part of Phase
+      1.2**, not deferred like the rest of this section
 - [ ] Dedicated restricted SSH key generated for the tunnel
       (`command="/bin/false",no-pty,...,permitopen="127.0.0.1:8001"`)
 - [ ] `autossh` reverse tunnel from Mac Studio → AWS
@@ -58,13 +90,12 @@
       auto-restart)
 - [ ] Local embedding (`BAAI/bge-m3`) + reranking (`bge-reranker-v2-m3`)
       service running on the Mac Studio (MPS backend)
-- [ ] Deepinfra API keys provisioned for the same two models (embedding +
-      rerank), same weights as local
 - [ ] Admin-panel toggle (`embedding_backend`, `reranker_backend`: local |
       api) + per-account `force_api_backend` override implemented
 - [ ] Admin-panel health indicator for Mac/tunnel reachability
 - [ ] Fresh TypeScript frontend project scaffolded (separate from existing
-      `app/`)
+      `app/`) — deferred until Phase 1 has something worth displaying
+      (see Phase 1.6)
 
 ---
 
@@ -93,9 +124,10 @@ to 0.88."
 - [ ] Atomic MCQ chunking (one MCQ = one chunk)
 - [ ] Metadata extraction per chunk (lesson_id, module_id, section_path,
       chunk_type, concept_tags, content_quality_tier)
-- [ ] Embedding generation via the locked local-first model on the Mac
-      Studio, with API fallback on the same weights (revised 2026-09-08,
-      supersedes the earlier OpenAI text-embedding-3-large lock)
+- [ ] Embedding generation via Deepinfra-hosted `BAAI/bge-m3` (cloud API
+      first, per the 2026-09-13 sequencing decision above — same weights
+      the Mac Studio will later serve locally, so no re-embed needed when
+      that switch happens)
 - [ ] pgvector table creation + index
 - [ ] tsvector column + GIN index for sparse search
 - [ ] Ingestion script (run once, idempotent re-run)
@@ -344,8 +376,9 @@ suggestions for edge cases."
 | Architecture & design locked | 2026-09-07 | 2026-09-07 | ✅ Done |
 | Infra/tech-stack revision (local Mac inference, fresh TS/FastAPI, cutover plan) | 2026-09-08 | 2026-09-08 | ✅ Done |
 | Localization disabled from site | 2026-09-08 (est.) | — | ⏳ Pending |
-| Phase 0 (infra & routing scaffold) start | 2026-09-08 (est.) | — | ⏳ Pending |
-| Phase 1 start | after Phase 0 | — | ⏳ Pending |
+| Phase 0 (infra & routing scaffold) start | 2026-09-08 (est.) | 2026-09-08 | ✅ Done |
+| Phase 0 core goal (JWT trust bridge live on EC2) | — | 2026-09-12/13 | ✅ Done |
+| Phase 1 start | after Phase 0 | 2026-09-13 | 🚧 Starting |
 | Phase 1 complete (RAG + eval) | mid-October 2026 | — | ⏳ Pending |
 | Phase 2 complete (multi-agent) | late November 2026 | — | ⏳ Pending |
 | Phase 3 complete (full system) | late December 2026 | — | ⏳ Pending |

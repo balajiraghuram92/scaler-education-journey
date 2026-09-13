@@ -1,7 +1,7 @@
 services:
   database:
-    image: postgres:16-alpine
-    container_name: studytracker-db
+    image: pgvector/pgvector:pg1
+    container_name: studytracker-postgres
     restart: unless-stopped
 
     environment:
