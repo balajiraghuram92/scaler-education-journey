@@ -118,6 +118,19 @@ to 0.88."
 - [ ] Health check endpoint
 
 ### 1.2 Content ingestion pipeline
+
+**pgvector is live in production as of 2026-09-13** — see
+[SESSION-2026-09-13-pgvector-migration.md](SESSION-2026-09-13-pgvector-migration.md)
+for the full record, including several real mistakes made along the way
+(wrong assumed database name, a `docker exec -t` binary-corruption gotcha,
+an unverified "backup" that turned out to be invalid) worth reading before
+touching this database again. **One open item from that migration blocks
+nothing today but should be resolved before this is considered
+production-hardened:** `CREATE EXTENSION vector` was enabled manually,
+one-off, directly against the live database — it is not yet captured in any
+EF Core migration or init script, so a from-scratch database recreation
+would silently need this redone.
+
 - [ ] Lesson content parser (read existing curriculum .md / seed data)
 - [ ] Hierarchical chunking (H2 → H3 → H4 section boundaries)
 - [ ] AST-aware chunking via tree-sitter (Java code blocks stay intact)

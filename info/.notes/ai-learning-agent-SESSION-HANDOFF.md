@@ -361,8 +361,10 @@ bias. Per-session cost is $0.014."
 | File | Purpose |
 |---|---|
 | `info/.notes/ai-learning-agent-SESSION-HANDOFF.md` | **This file** — read first in any new session |
+| [SESSION-2026-09-15-teaching-style-and-phase1-kickoff.md](SESSION-2026-09-15-teaching-style-and-phase1-kickoff.md) | **Read this too, first.** How the user wants an assistant to operate (teaching style, hand-written-code scope), current Phase 1 status, and one open unresolved question (CrewAI-vs-LangGraph reasoning — add to architecture doc or not) |
 | `info/.notes/ai-learning-agent-ARCHITECTURE.md` | Full architecture & design specification (technical detail) |
 | `info/.notes/ai-learning-agent-BUILD-TRACKER.md` | Phase-by-phase build tracker with checkboxes |
+| [SESSION-2026-09-13-pgvector-migration.md](SESSION-2026-09-13-pgvector-migration.md) | **Most recent infra session** — production Postgres → pgvector migration; several concrete mistakes documented (wrong assumed DB name, `docker exec -t` corrupting binary backups, an unverified "backup" that was actually corrupt) worth reading before touching this database again; also flags one still-open item (the `vector` extension was enabled manually, not via migration) |
 | `info/.notes/neuralascent-work-status.md` | Overall project status across all Neuralascent tracks |
 | `info/.notes/SESSION-2026-09-10-phase0-deploy-debugging.md` | **Most recent session** — debugging the first real deploy runs; has a confirmed, unfixed blocker (stale env file / missing `Auth__JwtSigningKey` on EC2) — read this first before touching the deploy again |
 | `info/.notes/SESSION-2026-09-08-phase0-infra-and-deploy.md` | Earlier session — Phase 0 infra build (ai-agent skeleton, CI/deploy wiring, DNS/TLS), and a flagged conflict with a second unreconciled planning track (still unresolved) |
