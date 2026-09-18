@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from pydantic_ai import Agent
+from pydantic_ai import Agent, PromptedOutput
 from pydantic_ai.models.openai import OpenAIChatModel
-from pydantic_ai.providers.openai import OpenAIProvider
+from pydantic_ai.providers.openai import OpenAIProvider 
 from config import MUSE_AI_API_KEY
 
 class EchoResult(BaseModel):
@@ -17,5 +17,5 @@ model = OpenAIChatModel(
 
 echo_agent = Agent(
     model=model,
-    output_type=EchoResult,
+    output_type= PromptedOutput(EchoResult),
     system_prompt="You are a helpful assistant that echoes back the user's message.")
