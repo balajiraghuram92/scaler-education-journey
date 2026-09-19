@@ -182,6 +182,12 @@ ever actually recorded being made. Claude explicitly said so rather than
 presenting it as settled history, per the "ask/flag rather than fabricate"
 rule in §1.2.
 
+> **RESOLVED 2026-09-18.** Written up as
+> [ADR-001-orchestration-framework-choice.md](ADR-001-orchestration-framework-choice.md),
+> with the "newly-reasoned, not retroactively-discovered" caveat kept at the top
+> of that file. Recorded as decision 9 in `ai-learning-agent-ARCHITECTURE.md`
+> §13. A new session does not need to re-ask the question below.
+
 **Still open, not yet decided:** Claude offered to add this CrewAI-vs-LangGraph
 reasoning into `ai-learning-agent-ARCHITECTURE.md` as a real documented
 decision (with the honest caveat that it's newly-reasoned, not

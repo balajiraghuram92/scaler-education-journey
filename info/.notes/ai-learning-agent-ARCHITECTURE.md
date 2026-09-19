@@ -795,6 +795,7 @@ refunds via Stripe and surfaces resolution suggestions for edge cases."
 | 6 | Embeddings provider | Local-first on Mac Studio, API fallback on same weights | **Decided 2026-09-08** — supersedes prior OpenAI/BGE framing, see §2.4 |
 | 7 | Frontend/backend stack for new tutor UI | Fresh TypeScript + FastAPI vs reuse existing React/.NET | **Decided 2026-09-08** — fresh build, no reuse |
 | 8 | Routing cutover from `neuralascent.top` | Staged: dev subdomain first, full flip in Phase 3 | **Decided 2026-09-08** — see §2.4 |
+| 9 | Orchestration framework: LangGraph vs LangChain vs CrewAI | LangGraph for the tutor; LangChain for the Localization Lab pipeline; CrewAI in neither product | **Decided 2026-09-18** — full reasoning in [ADR-001-orchestration-framework-choice.md](ADR-001-orchestration-framework-choice.md) |
 
 ---
 
@@ -822,6 +823,7 @@ refunds via Stripe and surfaces resolution suggestions for edge cases."
 | File | Purpose |
 |---|---|
 | `info/.notes/ai-learning-agent-ARCHITECTURE.md` | This file — architecture & design spec |
+| `info/.notes/ADR-001-orchestration-framework-choice.md` | Why LangGraph for the tutor, LangChain for the Localization Lab, CrewAI for neither (§13 decision 9) |
 | `info/.notes/SESSION-2026-09-AI-chatbot-planning-and-auth-build.md` | Previous session handoff (auth build + AI-helper review) |
 | `info/.notes/localization-lab-STATUS-TRACKER.md` | Localization project status (on hold) |
 | `CLAUDE.md` | Repo-wide rules (no direct code edits, prompt workflow, scope boundaries) |
