@@ -1,6 +1,5 @@
 import os
 
-
 JWT_SIGNING_KEY = os.environ.get("JWT_SIGNING_KEY")
 if not JWT_SIGNING_KEY:
     raise RuntimeError("JWT_SIGNING_KEY environment variable is unset")

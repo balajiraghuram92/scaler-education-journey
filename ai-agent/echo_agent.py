@@ -15,7 +15,9 @@ model = OpenAIChatModel(
             ),
             )
 
+Agent.instrument_all()
 echo_agent = Agent(
     model=model,
     output_type= PromptedOutput(EchoResult),
-    system_prompt="You are a helpful assistant that echoes back the user's message.")
+    system_prompt="You are a helpful assistant that echoes back the user's message.",
+    instrument=True)

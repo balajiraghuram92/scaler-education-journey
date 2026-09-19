@@ -361,7 +361,9 @@ bias. Per-session cost is $0.014."
 | File | Purpose |
 |---|---|
 | `info/.notes/ai-learning-agent-SESSION-HANDOFF.md` | **This file** — read first in any new session |
-| [SESSION-2026-09-15-teaching-style-and-phase1-kickoff.md](SESSION-2026-09-15-teaching-style-and-phase1-kickoff.md) | **Read this too, first.** How the user wants an assistant to operate (teaching style, hand-written-code scope), current Phase 1 status, and one open unresolved question (CrewAI-vs-LangGraph reasoning — add to architecture doc or not) |
+| [SESSION-2026-09-19-langgraph-scaffold-and-adr.md](SESSION-2026-09-19-langgraph-scaffold-and-adr.md) | **Most recent AI Learning Agent session — read this first.** LangGraph scaffold built/debugged/verified working, ADR-001 written (resolves the CrewAI-vs-LangGraph question below), Langfuse-vs-LangSmith checked against live 2026 data, and the agreed next step (Langfuse tracing, before Docker Compose) |
+| [SESSION-2026-09-15-teaching-style-and-phase1-kickoff.md](SESSION-2026-09-15-teaching-style-and-phase1-kickoff.md) | How the user wants an assistant to operate (teaching style, hand-written-code scope). Its CrewAI-vs-LangGraph open question is now resolved — see the session file above and `ADR-001-orchestration-framework-choice.md` |
+| [ADR-001-orchestration-framework-choice.md](ADR-001-orchestration-framework-choice.md) | Decision record: LangGraph for the tutor, LangChain for the (on-hold) Localization Lab, CrewAI in neither |
 | `info/.notes/ai-learning-agent-ARCHITECTURE.md` | Full architecture & design specification (technical detail) |
 | `info/.notes/ai-learning-agent-BUILD-TRACKER.md` | Phase-by-phase build tracker with checkboxes |
 | [SESSION-2026-09-13-pgvector-migration.md](SESSION-2026-09-13-pgvector-migration.md) | **Most recent infra session** — production Postgres → pgvector migration; several concrete mistakes documented (wrong assumed DB name, `docker exec -t` corrupting binary backups, an unverified "backup" that was actually corrupt) worth reading before touching this database again; also flags one still-open item (the `vector` extension was enabled manually, not via migration) |

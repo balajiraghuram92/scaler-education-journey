@@ -1,3 +1,5 @@
+
+import observability
 from fastapi import FastAPI
 from routers import health, identity, test_agent, test_graph
 

@@ -109,13 +109,24 @@ cross-encoder reranker moved context precision to 0.84 and faithfulness
 to 0.88."
 
 ### 1.1 Project scaffold
-- [ ] FastAPI app scaffold (main.py, routers, config)
-- [ ] Pydantic AI integration + Pydantic v2 schema setup
-- [ ] LangGraph basic graph scaffold (single-node to start)
-- [ ] Docker Compose integration with existing Postgres + React + .NET stack
-- [ ] Environment config (.env, settings) for LLM provider keys
-- [ ] Langfuse tracing integration (basic — trace every LLM call)
-- [ ] Health check endpoint
+- [x] FastAPI app scaffold (main.py, routers, config) — verified 2026-09-15/18
+- [x] Pydantic AI integration + Pydantic v2 schema setup — `/echo` returns a
+      real Muse Spark call, 200 OK, `PromptedOutput` wrapper applied
+      (Muse only supports `tool_choice="auto"`) — see
+      [SESSION-2026-09-19-langgraph-scaffold-and-adr.md](SESSION-2026-09-19-langgraph-scaffold-and-adr.md)
+- [x] LangGraph basic graph scaffold (single-node to start) — verified
+      2026-09-19, `/agent_test` returns `{"input_txt": "Hello", "output_txt":
+      "graph says: Hello"}` — see session file above
+- [ ] Docker Compose integration with existing Postgres + React + .NET stack —
+      **next up.** No `ai-agent` entry exists yet in `docker-compose.dev.yml`
+      (the main `docker-compose.yml` already has one from Phase 0)
+- [x] Environment config (.env, settings) for LLM provider keys — plain
+      `os.environ.get` constants in `config.py`; `pydantic-settings` upgrade
+      still optional/deferred, not blocking
+- [ ] Langfuse tracing integration (basic — trace every LLM call) — **decided
+      to do this before Docker Compose, not after**, see session file above
+      for why
+- [x] Health check endpoint — `/health` verified 200 OK
 
 ### 1.2 Content ingestion pipeline
 

@@ -4,4 +4,4 @@ pyjwt==2.14.0
 pydantic==2.13.5
 pydantic-ai==2.44.0
 langgraph==1.2.11
-
+langfuse==4.15.2
