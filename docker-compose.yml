@@ -104,7 +104,7 @@ services:
       start_period: 20s
 
   ai-agent:
-    build: ./ai-agent
+    image: ${IMAGE_AI_AGENT:-ghcr.io/balajiraghuram92/scaler-education-journey-ai-agent}:${IMAGE_TAG:-latest}
     container_name: neuralascent-ai-agent
     restart: unless-stopped
 
@@ -113,6 +113,10 @@ services:
       JWT_ISSUER: ${JWT_ISSUER:-neuralascent}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-neuralascent-app}
       JWT_COOKIE_NAME: ${JWT_COOKIE_NAME:-na_auth}
+      MUSE_AI_API_KEY: ${MUSE_AI_API_KEY:?MUSE_AI_API_KEY must be set}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?LANGFUSE_PUBLIC_KEY must be set}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?LANGFUSE_SECRET_KEY must be set}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:?LANGFUSE_BASE_URL must be set}
 
     networks:
       backend-net:
