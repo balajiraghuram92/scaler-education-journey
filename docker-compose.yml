@@ -1,6 +1,6 @@
 services:
   database:
-    image: pgvector/pgvector:pg1
+    image: pgvector/pgvector:pg16
     container_name: studytracker-postgres
     restart: unless-stopped
 
