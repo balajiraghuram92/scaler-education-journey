@@ -1,5 +1,6 @@
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
+from langfuse.langchain import CallbackHandler
 
 class AgentGraph(TypedDict):
     input_txt: str
@@ -9,10 +10,11 @@ class AgentGraph(TypedDict):
 def node(State: AgentGraph) -> dict:
     return {"output_txt": f"graph says: {State['input_txt']}"}
 
+langfuse_handler = CallbackHandler() 
 
 builder = StateGraph(AgentGraph)
 builder.add_node("root_step", node)
 builder.add_edge(START, "root_step")
 builder.add_edge("root_step", END)
-
-agent_graph = builder.compile()   
+ 
+agent_graph = builder.compile().with_config({"callbacks": [langfuse_handler]})
