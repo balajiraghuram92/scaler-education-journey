@@ -6,10 +6,12 @@
 > full context lives in
 > [ai-learning-agent-SESSION-HANDOFF.md](ai-learning-agent-SESSION-HANDOFF.md).
 
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-20
 **Overall status:** Phase 0 core goal (new stack reachable end-to-end, JWT
-trust bridge working) confirmed done. Phase 1 ("The Substrate") starting
-next.
+trust bridge working) confirmed done. **Phase 1.1 (project scaffold) now
+fully complete** — see
+[SESSION-2026-09-20-langfuse-integration-and-docker-compose.md](SESSION-2026-09-20-langfuse-integration-and-docker-compose.md).
+Phase 1.2 (content ingestion pipeline) starting next.
 
 ---
 
@@ -117,15 +119,22 @@ to 0.88."
 - [x] LangGraph basic graph scaffold (single-node to start) — verified
       2026-09-19, `/agent_test` returns `{"input_txt": "Hello", "output_txt":
       "graph says: Hello"}` — see session file above
-- [ ] Docker Compose integration with existing Postgres + React + .NET stack —
-      **next up.** No `ai-agent` entry exists yet in `docker-compose.dev.yml`
-      (the main `docker-compose.yml` already has one from Phase 0)
+- [x] Docker Compose integration with existing Postgres + React + .NET stack —
+      verified 2026-09-20, full stack (`database`, `api`, `ai-agent`, `app`)
+      up and confirmed live via direct HTTP checks — see
+      [SESSION-2026-09-20-langfuse-integration-and-docker-compose.md](SESSION-2026-09-20-langfuse-integration-and-docker-compose.md).
+      Along the way, fixed several pre-existing Compose bugs unrelated to
+      `ai-agent` itself (typo'd Postgres image tag, missing prod-image
+      symmetry for `ai-agent`, missing env vars, rootless-Podman port/config
+      issues) — see that session file for the full list.
 - [x] Environment config (.env, settings) for LLM provider keys — plain
       `os.environ.get` constants in `config.py`; `pydantic-settings` upgrade
       still optional/deferred, not blocking
-- [ ] Langfuse tracing integration (basic — trace every LLM call) — **decided
-      to do this before Docker Compose, not after**, see session file above
-      for why
+- [x] Langfuse tracing integration (both hook points) — verified 2026-09-20:
+      Pydantic AI via `Agent.instrument_all()` + `get_client()`
+      (OTel-backed), LangGraph via `langfuse.langchain.CallbackHandler`
+      bound with `.with_config()`. Real traces confirmed in the Langfuse
+      dashboard for both `/echo` and `/agent_test` — see session file above
 - [x] Health check endpoint — `/health` verified 200 OK
 
 ### 1.2 Content ingestion pipeline

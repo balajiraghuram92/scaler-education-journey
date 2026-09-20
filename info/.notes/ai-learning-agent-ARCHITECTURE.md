@@ -824,7 +824,8 @@ refunds via Stripe and surfaces resolution suggestions for edge cases."
 |---|---|
 | `info/.notes/ai-learning-agent-ARCHITECTURE.md` | This file — architecture & design spec |
 | `info/.notes/ADR-001-orchestration-framework-choice.md` | Why LangGraph for the tutor, LangChain for the Localization Lab, CrewAI for neither (§13 decision 9) |
-| `info/.notes/SESSION-2026-09-19-langgraph-scaffold-and-adr.md` | Most recent session — LangGraph scaffold built/debugged/verified, ADR-001 written, Langfuse-next sequencing decision |
+| `info/.notes/SESSION-2026-09-20-langfuse-integration-and-docker-compose.md` | Most recent session — Langfuse tracing wired for both Pydantic AI and LangGraph, Docker Compose dev-integration done, Phase 1.1 fully complete |
+| `info/.notes/SESSION-2026-09-19-langgraph-scaffold-and-adr.md` | LangGraph scaffold built/debugged/verified, ADR-001 written, Langfuse-next sequencing decision |
 | `info/.notes/SESSION-2026-09-AI-chatbot-planning-and-auth-build.md` | Previous session handoff (auth build + AI-helper review) |
 | `info/.notes/localization-lab-STATUS-TRACKER.md` | Localization project status (on hold) |
 | `CLAUDE.md` | Repo-wide rules (no direct code edits, prompt workflow, scope boundaries) |

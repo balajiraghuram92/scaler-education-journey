@@ -244,6 +244,7 @@ start_ai_agent() {
         --network "${NETWORK_NAME}"
         --restart unless-stopped
         -p 127.0.0.1:5001:8000
+        --env-file "${ENV_FILE}"
         -e "JWT_SIGNING_KEY=$(env_value Auth__JwtSigningKey)"
         -e "JWT_ISSUER=$(env_value_or_default Auth__JwtIssuer neuralascent)"
         -e "JWT_AUDIENCE=$(env_value_or_default Auth__JwtAudience neuralascent-app)"
