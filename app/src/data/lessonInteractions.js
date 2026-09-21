@@ -23715,6 +23715,1134 @@ const lessonInteractions = {
       }
     ]
   },
+  'java-spring-lld/design-principles-patterns/15-creational-patterns': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-creational-mcq-01',
+        question:
+          'A high-throughput telemetry gateway initializes its shared ConnectionPool lazily using double-checked locking, but omits the volatile modifier on the private static instance field. Under multi-threaded stress tests, worker threads intermittently encounter NullPointerExceptions or corrupt states immediately after pool initialization. What JVM mechanism causes this defect?',
+        options: [
+          { id: 'a', label: 'A', text: 'The CPU hardware caches fail to synchronize cache lines, causing reader threads to observe a permanently stale null reference indefinitely.' },
+          { id: 'b', label: 'B', text: 'The compiler and CPU are free to reorder instructions during instantiation—allocating memory and assigning the reference before constructor execution completes—allowing other threads to observe a non-null reference pointing to a partially constructed object.' },
+          { id: 'c', label: 'C', text: 'Double-checked locking without volatile causes the inner synchronized block to release its monitor before constructor execution finishes.' },
+          { id: 'd', label: 'D', text: 'The Java Memory Model requires the final modifier on the singleton class definition to publish object references safely across threads.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Instantiating an object involves memory allocation, constructor execution, and assigning the reference to the variable. Without the volatile keyword establishing a happens-before memory barrier, instruction reordering can publish the reference before internal fields are populated. A concurrent thread executing the first unsynchronized null check observes a non-null reference and attempts to use the uninitialized object. Option A is incorrect because stale reads would simply cause threads to enter the synchronized block and retrieve the initialized instance; Option C is incorrect because monitor release happens strictly at block exit; Option D misapplies the semantics of final fields, which protect field publication within an object rather than the variable holding the singleton reference itself.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-creational-mcq-02',
+        question:
+          'A distributed session cache manager is implemented as a thread-safe Singleton with a private constructor and double-checked locking. When session tokens are transmitted across nodes via standard Java object serialization, developers discover that multiple distinct session manager instances exist in memory, causing session state divergence. What causes this Singleton breakdown, and how is it natively avoided in modern Java?',
+        options: [
+          { id: 'a', label: 'A', text: 'Standard serialization skips private constructors and getInstance() entirely by reconstructing objects reflectively from byte streams; implementing the Singleton as an enum natively guarantees instance uniqueness and serialization safety per the JVM specification.' },
+          { id: 'b', label: 'B', text: 'The class failed to implement Cloneable; overriding clone() to return the existing instance prevents duplicate creation during deserialization.' },
+          { id: 'c', label: 'C', text: 'Double-checked locking only protects static methods; synchronizing all instance methods prevents multiple instances from being reconstructed.' },
+          { id: 'd', label: 'D', text: 'Instance variables were not marked transient; declaring all state transient forces deserialization to bind to the existing singleton reference.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Java deserialization creates a new instance via reflection without invoking any constructor or static factory method, violating the Singleton constraint unless readResolve() is defined. An enum Singleton solves this definitively because the JVM explicitly guarantees that enum constants cannot be instantiated more than once, even across serialization or reflective attacks. Option B is incorrect because cloning and deserialization are distinct mechanisms; Option C does not prevent new instance allocation during readObject(); Option D wipes field data but still yields a duplicate object instance.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-creational-mcq-03',
+        question:
+          'An order management service creates an immutable PaymentRequest domain entity using a Builder. The entity contains required scalar fields and a List<MetadataTag> tags. The caller populates an ArrayList, calls paymentRequestBuilder.setTags(tags).build(), and later executes tags.clear() in a cleanup routine. In production, the built PaymentRequest unexpectedly has an empty tags collection during authorization. Where did the Builder implementation fail?',
+        options: [
+          { id: 'a', label: 'A', text: 'The PaymentRequest class was not declared as a Java record, which automatically deep-freezes collections.' },
+          { id: 'b', label: 'B', text: 'The build() method assigned the caller\'s tags collection reference directly instead of making an unmodifiable defensive copy (e.g., List.copyOf(this.tags) or new ArrayList<>(this.tags)), leaving internal state coupled to external mutation.' },
+          { id: 'c', label: 'C', text: 'The Builder pattern requires collections to be passed as immutable streams rather than List implementations.' },
+          { id: 'd', label: 'D', text: 'The tags field should have been declared volatile to prevent external threads from modifying the underlying elements.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'True immutability requires defensive copying of mutable collection references during construction. If the Builder simply assigns this.tags = builder.tags, the internal domain entity and the outside caller share the exact same list reference on the heap, allowing post-construction external mutations to corrupt domain invariants. Option A is incorrect because records also store shallow references without automatic defensive copying; Option C is incorrect because collections are standard in Builders; Option D is incorrect because volatile manages reference visibility, not mutation of elements inside a collection.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-creational-mcq-04',
+        question:
+          'A banking application introduces a TransactionSpec class with extensive validation rules (account verification, currency checks, and positive balance limits) encapsulated inside TransactionSpecBuilder.build(). An engineer bypasses these rules in an integration test by directly calling new TransactionSpec("ACC-1", -500.0, null), injecting invalid state into the database. How must the class structure be fixed to prevent this bypass?',
+        options: [
+          { id: 'a', label: 'A', text: 'Declare the TransactionSpec constructor private, ensuring instances can only be instantiated through the nested static TransactionSpecBuilder.' },
+          { id: 'b', label: 'B', text: 'Annotate the constructor with @Valid and configure a runtime reflection interceptor to enforce validation.' },
+          { id: 'c', label: 'C', text: 'Move TransactionSpec into a separate package and declare the constructor protected.' },
+          { id: 'd', label: 'D', text: 'Declare TransactionSpec as an abstract class and subclass it inside the Builder.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'A core requirement of the Builder pattern is making the target class constructor private. This guarantees that all instantiation attempts must pass through the Builder, where validation logic and invariant checks are enforced prior to object creation. Leaving the constructor public or package-private provides an uncontrolled backdoor. Option B relies on external framework runtime interception rather than language-level encapsulation; Option C permits unauthorized instantiation from any class within the same package or subclasses; Option D complicates inheritance without securing construction.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-creational-mcq-05',
+        question:
+          'A cloud provisioning engine caches VirtualMachineTemplate prototypes in a ConcurrentHashMap registry. When a new VM is provisioned, the engine fetches the prototype via registry.get("standard-linux") and invokes clone(). A provisioned VM instance adds an IP route to its cloned networkRoutes list, but engineers observe that all subsequent VMs provisioned from the registry suddenly contain this custom route. What is the root cause?',
+        options: [
+          { id: 'a', label: 'A', text: 'The clone() implementation performed a shallow copy by copying the networkRoutes list reference rather than instantiating a new independent collection populated with cloned route objects.' },
+          { id: 'b', label: 'B', text: 'The prototype\'s clone() method was called while another thread was executing registry.put(), causing ConcurrentHashMap to return an unmodifiable view.' },
+          { id: 'c', label: 'C', text: 'The prototype template in the registry should have been wrapped with Collections.unmodifiableList() upon registration to prevent mutations on the clone from modifying the original template.' },
+          { id: 'd', label: 'D', text: 'The class implemented Cloneable but failed to override equals() and hashCode(), causing the collection to treat the clone and the prototype as the identical hash bucket key.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the canonical shallow copy trap in the Prototype pattern. When an object with mutable collection fields is shallow-cloned, only the collection reference is copied. Consequently, the prototype in the registry and the newly cloned instance share the exact same list on the heap. Mutating the clone\'s routes pollutes the prototype template. The solution is a deep copy, creating a fresh collection with duplicated route entities inside clone(). Option B is incorrect because ConcurrentHashMap returns references without altering modifiability; Option C would cause the clone to throw UnsupportedOperationException rather than allowing independent routes; Option D conflates hash code equality with object reference cloning.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-creational-mcq-06',
+        question:
+          'An AI orchestration service uses an AIServiceClientFactory with a static getClient(String provider) method containing a switch statement (OPENAI -> new OpenAiClient(), ANTHROPIC -> new AnthropicClient(), etc.). Every time a new LLM provider is integrated, the factory source file must be edited, recompiled, and redeployed, causing merge conflicts. How should this factory be refactored to satisfy the Open/Closed Principle?',
+        options: [
+          { id: 'a', label: 'A', text: 'Convert the factory into an Abstract Factory with a separate interface and implementation factory for every individual provider.' },
+          { id: 'b', label: 'B', text: 'Convert the factory to a registry-backed factory holding a Map<String, Supplier<AIServiceClient>>, allowing new provider modules to register their constructor lambda during startup without altering the factory class.' },
+          { id: 'c', label: 'C', text: 'Use dynamic reflection inside the switch statement to look up classes matching the provider string at runtime.' },
+          { id: 'd', label: 'D', text: 'Wrap the switch statement in a Singleton to ensure only one instance of each provider client is ever created.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A static factory with switch/if-else branching centralizes object creation but violates the Open/Closed Principle because adding new types requires modifying existing, tested code. A registry-backed factory maintains a map of factory suppliers (Map<String, Supplier<T>>) and exposes a register(name, supplier) method. New providers self-register during application bootstrapping (or via Java ServiceLoader), leaving the factory closed for modification but open for extension. Option A adds boilerplate class hierarchies without solving dynamic registration; Option C introduces fragile reflection and eliminates compile-time safety; Option D caches instances without addressing the OCP violation.'
+      }
+    ]
+  },
+  'java-spring-lld/applied-machine-coding/18-how-to-approach-design': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-18-approach-mcq-01',
+        question:
+          'During a 90-minute machine coding interview for an in-memory vehicle management system, a candidate spends the first 35 minutes designing a distributed sharded PostgreSQL schema, Kafka partition topics, and Redis cache clusters. The interviewer stops the candidate and notes a critical pacing failure. What fundamental Step 0 principle did the candidate violate?',
+        options: [
+          { id: 'a', label: 'A', text: 'The candidate failed to write unit tests before drawing the database schema diagrams.' },
+          { id: 'b', label: 'B', text: 'The candidate conflated High-Level Design (HLD) with Low-Level Design (LLD); LLD evaluates in-memory object modeling, separation of concerns, and clean code execution rather than distributed infrastructure plumbing.' },
+          { id: 'c', label: 'C', text: 'The candidate should have designed database tables with JPA annotations first, as interview rubrics require automated schema generation before in-memory services can be tested.' },
+          { id: 'd', label: 'D', text: 'The candidate should have used an embedded in-memory database like H2 rather than external infrastructure to satisfy the persistence requirement quickly.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Machine coding rounds evaluate an engineer\'s ability to translate ambiguous requirements into clean, production-grade, object-oriented code running on a single JVM. Spending time on distributed databases, messaging queues, or microservice infrastructure mistakes an LLD round for an HLD system architecture interview, burning critical time and guaranteeing failure to deliver a working vertical slice. Option A is a secondary testing concern; Options C and D reinforce the misconception that database persistence or heavy infrastructure is required before demonstrating core in-memory domain models.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-18-approach-mcq-02',
+        question:
+          'An engineer models a Vehicle class hierarchy where a VehicleManager class contains giant procedural methods with 500-line if-else chains checking vehicleType == "ELECTRIC" or vehicleType == "FUEL", while Vehicle and its subclasses are passive data containers with only getters and setters. Why is this considered an architectural failure in an LLD evaluation?',
+        options: [
+          { id: 'a', label: 'A', text: 'It violates the Anemic Domain Model anti-pattern and OOP fundamentals: business rules and state transitions should be encapsulated inside rich domain entities, while service classes coordinate multi-entity workflows.' },
+          { id: 'b', label: 'B', text: 'Placing stateful business rules in service classes requires making domain model fields public or adding unconstrained public setters, breaking encapsulation and allowing external classes to bypass invariants.' },
+          { id: 'c', label: 'C', text: 'Business logic should reside entirely in utility classes with static methods to maximize code reuse across disparate packages.' },
+          { id: 'd', label: 'D', text: 'Using manager classes creates circular classpath dependencies that prevent the Java compiler from resolving subclass types.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Relegating entities to passive data bags while concentrating all behavior in bloated procedural "Manager" or "Helper" services is the hallmark of the Anemic Domain Model. It recreates procedural C-style programming in Java syntax, violating encapsulation, Single Responsibility, and Open/Closed principles. Real OOP requires domain models to govern their own internal invariants (e.g. vehicle.recharge()), while application services orchestrate dependencies. Option B describes a real symptom of anemic models but fails to identify the core architectural anti-pattern; Option C promotes another procedural anti-pattern; Option D is factually incorrect regarding Java compilation.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-18-approach-mcq-03',
+        question:
+          'A ride-hailing design problem asks you to support FuelVehicle and ElectricVehicle with distinct refuel() and recharge() operations. A candidate considers creating subclasses for every combination: ElectricCar, FuelCar, ElectricBike, FuelBike, HybridSedan, and HybridSUV. What design principle directly addresses this combinatorial explosion?',
+        options: [
+          { id: 'a', label: 'A', text: 'Favor object composition and behavioral interfaces (e.g., Refuelable, Rechargeable) over deep class inheritance hierarchies to mix and match capabilities flexibly.' },
+          { id: 'b', label: 'B', text: 'Apply the Memento pattern to save the state of each vehicle variant before refueling.' },
+          { id: 'c', label: 'C', text: 'Merge all vehicle types into a single concrete Vehicle class with optional boolean flags (isElectric, isHybrid).' },
+          { id: 'd', label: 'D', text: 'Use abstract class inheritance with package-private protected fields to allow subclasses full access.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Inheritance hierarchies model "is-a" relationships but quickly cause combinatorial class explosions when applied across orthogonal dimensions (propulsion type vs chassis type). Favoring composition and fine-grained interfaces (Interface Segregation Principle) allows a HybridVehicle to compose an ElectricEngine and a CombustionEngine, implementing both Rechargeable and Refuelable without creating duplicate leaf classes. Option B is an irrelevant behavioral pattern; Option C introduces an unmaintainable flag-ridden monolith; Option D exacerbates inheritance coupling.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-18-approach-mcq-04',
+        question:
+          'When designing a system like a Parking Lot or Task Planner, how does an experienced engineer proactively identify extensibility points during the first 15 minutes of problem analysis?',
+        options: [
+          { id: 'a', label: 'A', text: 'By isolating algorithms that are likely to vary or change (e.g., fee calculation, spot allocation, task prioritization) and abstracting them behind Strategy interfaces before implementing concrete classes.' },
+          { id: 'b', label: 'B', text: 'By implementing the Template Method pattern across all classes with abstract hook methods for every prospective operation.' },
+          { id: 'c', label: 'C', text: 'By wrapping every entity in a generic repository and building a multi-layered event bus architecture before writing the core domain models.' },
+          { id: 'd', label: 'D', text: 'By declaring all method parameters as Object or Map<String, Object> to allow arbitrary data payloads without modifying method signatures.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Anticipating extension points is a key senior engineering skill in machine coding. By identifying business policies subject to change (pricing strategies, allocation algorithms, matching heuristics) and declaring clean interfaces (e.g., FeeCalculationStrategy), the core service logic remains closed for modification while accommodating new variations easily. Option B creates rigid, inheritance-coupled base classes; Option C represents premature infrastructure over-engineering; Option D sacrifices type safety and compile-time verification.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-18-approach-mcq-05',
+        question:
+          'In an in-memory repository implementation for an LLD problem, an engineer uses a ConcurrentHashMap<String, User> to store entities. When registering a new user, the code executes: if (!users.containsKey(id)) { users.put(id, user); }. Under concurrent requests with identical IDs, duplicate accounts are intermittently created. Why did ConcurrentHashMap fail to prevent this race condition?',
+        options: [
+          { id: 'a', label: 'A', text: 'ConcurrentHashMap requires a volatile read barrier, so checking containsKey() inside an if statement flushes CPU cache registers too slowly.' },
+          { id: 'b', label: 'B', text: 'Individual methods like containsKey() and put() are thread-safe in isolation, but compound check-then-act sequences are not atomic; the operation must use putIfAbsent() or computeIfAbsent() to be atomic.' },
+          { id: 'c', label: 'C', text: 'ConcurrentHashMap only synchronizes read operations; write operations must be enclosed in an explicit ReentrantLock.' },
+          { id: 'd', label: 'D', text: 'ConcurrentHashMap uses bucket locks, so concurrent writes to different keys within the same segment will block each other unless an explicit ReentrantLock is used.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A common concurrency misconception is assuming that using a thread-safe collection makes multi-step sequences atomic. In check-then-act (if (!map.containsKey(k)) map.put(k, v)), two threads can both evaluate containsKey(k) as false simultaneously, and both proceed to put(). Concurrent collections provide atomic compound primitives such as putIfAbsent() or computeIfAbsent() specifically to eliminate this race condition. Option A misattributes the flaw to memory barrier latency; Option C is false because writes are internally synchronized per bucket; Option D confuses lock striping behavior with lack of operation atomicity.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-18-approach-mcq-06',
+        question:
+          'At the end of an LLD interview, what role does the Main driver class play in determining whether a candidate passes the evaluation?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is merely a formality; evaluators grade solely on class diagrams and whether interfaces are present, regardless of whether code runs.' },
+          { id: 'b', label: 'B', text: 'It demonstrates working execution by orchestrating a realistic end-to-end user story, demonstrating that dependencies are wired cleanly, business invariants hold, and exceptions are handled without crashes.' },
+          { id: 'c', label: 'C', text: 'It must contain automated unit tests with 90%+ code coverage using JUnit and Mockito rather than running procedural scenario scripts.' },
+          { id: 'd', label: 'D', text: 'It should expose an interactive command-line REPL that reads user commands from System.in in an infinite loop, as hardcoded test scenarios are disqualified.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A working driver script in Main is non-negotiable in machine coding rounds. An elegant abstract class hierarchy that cannot compile or demonstrate an end-to-end execution path fails the round. A comprehensive Main class instantiates repositories, registers strategies into services, and runs through the complete happy path and key edge cases, proving the system is complete and functional. Option A is completely false under modern evaluation criteria; Option C is inaccurate because interviewers prioritize a clean executable driver over extensive mock-based unit tests when time is tight; Option D is an anti-pattern that slows down evaluation compared to deterministic scripted scenarios.'
+      }
+    ]
+  },
+  'java-spring-lld/applied-machine-coding/19-machine-coding-tictactoe': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-19-tictactoe-mcq-01',
+        question:
+          'When generalizing an N x N TicTacToe game to support an arbitrary number of players, why does the game engine enforce the strict constraint that the number of players must be at most N - 1?',
+        options: [
+          { id: 'a', label: 'A', text: 'Having N or more players with distinct symbols guarantees that no single player can ever complete an unbroken line of length N across rows, columns, or diagonals, mathematically forcing every game into an unwinnable gridlock.' },
+          { id: 'b', label: 'B', text: 'Allowing N players would guarantee an immediate draw after the first round because every cell would be occupied before anyone can take a second turn.' },
+          { id: 'c', label: 'C', text: 'The pigeonhole principle dictates that with N players, at least one player will be starved of turns if the game ends in under N moves.' },
+          { id: 'd', label: 'D', text: 'Game theory mandates N - 1 players so that every player has an equal number of turns regardless of who plays first.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'To win an N x N board, a player must fill an entire row, column, or diagonal of length N with their unique symbol. If there are N players and each makes one reasonable placement, every row, column, and diagonal will contain at least two different symbols, making a winning line of size N mathematically impossible and turning the game into a guaranteed stalemate. Restricting players to at most N - 1 preserves the possibility of victory. Option B is incorrect because N players take N moves, which is far fewer than the N^2 cells on the board; Option C misapplies the pigeonhole principle; Option D is false because turn order in sequential games is inherently asymmetric.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-19-tictactoe-mcq-02',
+        question:
+          'An engineer is implementing the Undo feature in TicTacToe. Two approaches are proposed: Approach 1 clones the entire Board object on every move and pushes it to a stack. Approach 2 pushes a Move object (containing the target Cell and the Player) onto a Deque<Move>. Why is Approach 2 architecturally superior?',
+        options: [
+          { id: 'a', label: 'A', text: 'Approach 1 incurs O(N^2) memory allocation and garbage collection overhead per move, while Approach 2 operates in O(1) space per move and enables clean undo by simply clearing the cell and rolling back the player index.' },
+          { id: 'b', label: 'B', text: 'Approach 2 allows the Undo command to be executed asynchronously across multiple thread pools.' },
+          { id: 'c', label: 'C', text: 'Approach 1 breaks reference equality, causing equals() checks between board states and active GUI listeners to fail.' },
+          { id: 'd', label: 'D', text: 'Approach 1 violates the Liskov Substitution Principle because Board is a mutable entity.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Storing full snapshots of an N x N grid on every turn consumes O(N^2) heap allocations per move, generating substantial GC pressure on large boards. Storing only the delta—a lightweight Move(cell, player) on a Deque<Move>—operates in O(1) time and memory. An undo simply pops the top Move, sets cell.setCellState(EMPTY), removes the player symbol, decrements the turn counter, and reverses the win-checker count maps. Option B is irrelevant as turn-based games are sequential; Option C is incorrect because equals() can be implemented for value equality; Option D misapplies LSP.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-19-tictactoe-mcq-03',
+        question:
+          'In a naive N x N TicTacToe implementation, the game engine checks for a winner after each move by scanning all N rows, N columns, and 2 diagonals, resulting in O(N^2) checks per turn. How does an optimal design achieve O(1) time complexity for win-condition checking?',
+        options: [
+          { id: 'a', label: 'A', text: 'By maintaining count maps for each row, column, main diagonal, and anti-diagonal tracking symbol frequencies; after a move at (r, c), only the counters for row r, column c, and applicable diagonals are incremented and checked against N in O(1) time.' },
+          { id: 'b', label: 'B', text: 'By running the board scan in a parallel Stream utilizing ForkJoinPool.' },
+          { id: 'c', label: 'C', text: 'By pre-computing all possible winning board states in a static HashSet at application startup.' },
+          { id: 'd', label: 'D', text: 'By using bitwise XOR masks on 64-bit Long integers, which natively works for boards of any size up to 100x100.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Instead of re-scanning the entire grid, an optimized win checker maintains Map<Symbol, Integer> arrays for each row and column, plus two counters for the main and anti-diagonals. When player P places a symbol at (r, c), the engine simply increments rowCounts[r][P], colCounts[c][P], and (if applicable) diagCounts[P]. If any counter reaches N, player P wins. This evaluation takes O(1) operations independent of board size. Option B still performs O(N^2) work, just distributed; Option C is impossible because state space grows exponentially (3^(N^2)); Option D fails because 64-bit masks cannot represent boards larger than 8x8.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-19-tictactoe-mcq-04',
+        question:
+          'When constructing the Game object in TicTacToe, which pattern and validation strategy should be used to guarantee that a game cannot be started in an invalid state?',
+        options: [
+          { id: 'a', label: 'A', text: 'Use a GameBuilder whose build() method validates that board dimension N >= 3, player count equals N - 1, player symbols are unique, and at most one Bot player exists, before instantiating Game.' },
+          { id: 'b', label: 'B', text: 'Use a Prototype pattern to clone a default game and mutate player symbols after game launch.' },
+          { id: 'c', label: 'C', text: 'Use the Singleton pattern so only one Game instance exists in the JVM, validating state inside getInstance().' },
+          { id: 'd', label: 'D', text: 'Allow the Game constructor to accept null parameters and validate players dynamically as they make their first move.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Game setup involves multiple interlocking constraints: board dimension must be valid, player count must match N - 1, each player must have a unique character symbol, and rules on bot participation must be enforced. A Builder pattern with a private Game constructor centralizes all validation inside build(). If any invariant fails, an InvalidGameException is thrown before the Game object is created. Option B allows invalid intermediate states; Option C prevents running multiple games; Option D delays validation until runtime during gameplay.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-19-tictactoe-mcq-05',
+        question:
+          'A TicTacToe system needs to support Bot players with variable difficulty levels (e.g. EasyBot selects random available cells, MediumBot blocks opponent wins, HardBot uses minimax). How should bot decision-making be designed to satisfy the Open/Closed Principle?',
+        options: [
+          { id: 'a', label: 'A', text: 'Add an if-else chain inside Bot.makeMove() checking botDifficulty == EASY, MEDIUM, or HARD.' },
+          { id: 'b', label: 'B', text: 'Define a BotPlayingStrategy interface with makeMove(Board board) and inject concrete implementations (EasyBotPlayingStrategy, HardBotPlayingStrategy) into Bot instances via Strategy pattern.' },
+          { id: 'c', label: 'C', text: 'Subclass Bot into EasyBot, MediumBot, and HardBot, with each subclass overriding the private field cellState.' },
+          { id: 'd', label: 'D', text: 'Use the Template Method pattern inside Cell to execute bot moves directly on the board.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Decoupling move-generation algorithms from the Bot entity using the Strategy pattern allows new playing strategies (e.g. heuristic, minimax, Monte Carlo) to be added without modifying the Bot class or existing strategy code. Bot simply holds a BotPlayingStrategy reference and delegates makeMove() to it. Option A violates OCP by forcing modifications to Bot for every new algorithm; Option C tightly couples bot identity to inheritance; Option D misplaces gameplay logic inside a data cell.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-19-tictactoe-mcq-06',
+        question:
+          'The product owner requests a custom game variant where, in addition to standard rows, columns, and diagonals, a player can also win by occupying all four corners of the board. How should the win-checking architecture be designed to accommodate this and future rule variations without modifying the core Game class?',
+        options: [
+          { id: 'a', label: 'A', text: 'Define a WinningStrategy interface with checkWinner(Board board, Move move) and maintain a List<WinningStrategy> in Game, allowing RowWinningStrategy, ColWinningStrategy, and FourCornersWinningStrategy to be plugged in.' },
+          { id: 'b', label: 'B', text: 'Hardcode a boolean checkFourCorners() method inside the Board class.' },
+          { id: 'c', label: 'C', text: 'Use an Adapter pattern to adapt the Board class into a FourCornersBoard.' },
+          { id: 'd', label: 'D', text: 'Subclass Game into FourCornersGame and override the entire play() game loop.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Applying the Strategy pattern to victory conditions isolates win-evaluation logic behind a WinningStrategy interface. The Game engine simply iterates over its configured List<WinningStrategy> after each move. Adding "Four Corners", "Diamond", or "Block" win rules requires authoring a new WinningStrategy implementation and registering it in the GameBuilder, without touching the Game loop or Board class. Option B violates OCP; Option C misapplies Adapter where no interface incompatibility exists; Option D duplicates game-loop orchestration code.'
+      }
+    ]
+  },
+  'java-spring-lld/applied-machine-coding/20-machine-coding-parking-lot': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-20-parking-mcq-01',
+        question:
+          'In a multi-story Parking Lot system, vehicles of types MOTORCYCLE, CAR, and BUS must be assigned to compatible ParkingSpots (TWO_WHEELER, COMPACT, LARGE). An engineer implements this with an if-else ladder in EntryGateController. What design pattern should replace this ladder to adhere to SOLID principles?',
+        options: [
+          { id: 'a', label: 'A', text: 'The Memento pattern, storing spot snapshots before assigning vehicles.' },
+          { id: 'b', label: 'B', text: 'The Strategy and Factory patterns: a SpotAssignmentStrategy encapsulates the allocation algorithm (e.g. nearest to entrance, lowest floor first), while compatibility is governed by polymorphic matching rules.' },
+          { id: 'c', label: 'C', text: 'The Decorator pattern, dynamically wrapping ParkingSpot with CarSpot and BusSpot decorators at runtime.' },
+          { id: 'd', label: 'D', text: 'The Observer pattern, having ParkingSpot observe the vehicle arriving at the gate.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Spot assignment involves two distinct responsibilities: checking vehicle-to-spot type compatibility and selecting the optimal spot among candidates (nearest entrance, lowest floor first). Encapsulating selection policies behind a SpotAssignmentStrategy decouples the algorithm from EntryGateController. Pairing it with a Factory allows dynamic instantiation based on lot configuration. Option A is an unrelated behavioral state-saving pattern; Option C misapplies Decorator to physical spot taxonomy; Option D inverts natural domain relationships.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-20-parking-mcq-02',
+        question:
+          'When a vehicle enters the parking lot, the system issues a Ticket. A candidate considers adding a ParkingSpot field directly onto the Vehicle domain model. Why is storing the assigned ParkingSpot on the Vehicle considered bad domain modeling?',
+        options: [
+          { id: 'a', label: 'A', text: 'Vehicle is an external physical entity whose lifecycle extends far beyond a single parking session; parking associations are transient and belong to the Ticket aggregate root linking Vehicle, ParkingSpot, entry gate, and timestamp.' },
+          { id: 'b', label: 'B', text: 'It creates a circular bidirectional dependency between Vehicle and ParkingSpot that breaks clean domain layering and complicates persistence mapping.' },
+          { id: 'c', label: 'C', text: 'Querying vehicle location would require an unindexed full scan of all vehicles in the database instead of looking up the active ticket.' },
+          { id: 'd', label: 'D', text: 'It prevents a vehicle from having a historical record of past parking sessions across multiple visits or different parking facilities.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'A Vehicle exists independently of any parking lot (it has a license plate and owner, and can visit many parking lots over its lifetime). Storing ephemeral parking lot state on the Vehicle violates domain boundaries and creates unnecessary state mutations. The Ticket is the aggregate entity that encapsulates the parking transaction, holding references to the Vehicle, the allocated ParkingSpot, entry time, and issuing Gate. While Option B, C, and D highlight real architectural friction, Option A identifies the fundamental aggregate boundary error.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-20-parking-mcq-03',
+        question:
+          'A display board at the entrance of a 10-floor parking lot must show real-time available spot counts broken down by vehicle type (e.g., Floor 1: 5 Car, 2 Bike; Floor 2: 0 Car, 10 Bike). In an in-memory or database model, how should this be modeled to prevent scanning every spot on every query?',
+        options: [
+          { id: 'a', label: 'A', text: 'Perform a linear scan across all ParkingSpot collections in the entire lot on every display board poll.' },
+          { id: 'b', label: 'B', text: 'Maintain atomic counters or indexed capacity maps on each ParkingFloor (e.g. Map<SpotType, AtomicInteger>) that are updated atomically during spot allocation and release.' },
+          { id: 'c', label: 'C', text: 'Use a database trigger or polling background thread that queries SELECT COUNT(*) WHERE status = \'AVAILABLE\' every 500ms and caches the result in an in-memory variable.' },
+          { id: 'd', label: 'D', text: 'Attach an Observer listener to every individual ParkingSpot that fires an event to the display board whenever its status property changes.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'In high-throughput parking systems, querying the availability display board should be an O(1) read operation. Rather than scanning thousands of spots across all floors on every request, each ParkingFloor maintains aggregated availability counters per SpotType. When a spot is allocated or freed, the corresponding floor counter is updated atomically within the same transaction. Option A causes O(TotalSpots) latency degradation; Option C introduces high database polling overhead and staleness; Option D creates massive event listener fan-in that can cause lock contention on the single display board listener.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-20-parking-mcq-04',
+        question:
+          'A parking lot implements multiple fee structures: weekday flat rates, hourly rates with vehicle multipliers, and weekend holiday surge rates. If BillingService computes fees using hardcoded nested switch statements on dayOfWeek and vehicleType, which design pattern should be applied?',
+        options: [
+          { id: 'a', label: 'A', text: 'Strategy pattern: define a FeeCalculationStrategy interface and inject concrete strategies (FlatFeeStrategy, HourlyRateStrategy, HolidaySurgeStrategy) into BillingService.' },
+          { id: 'b', label: 'B', text: 'Builder pattern: construct the Bill object step-by-step with chained setter methods.' },
+          { id: 'c', label: 'C', text: 'Flyweight pattern: share payment transaction objects to reduce memory usage.' },
+          { id: 'd', label: 'D', text: 'Chain of Responsibility: pass the Bill through every fee class until one pays it.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Fee calculation represents an algorithm that varies depending on business rules and context (vehicle type, duration, peak hours). The Strategy pattern cleanly encapsulates each pricing algorithm behind a FeeCalculationStrategy interface (calculateFee(Ticket ticket, Instant exitTime)), leaving BillingService completely decoupled from specific mathematical formulas. Option B is useful for constructing bills but does not solve algorithmic branching; Option C is for memory optimization of immutable shared objects; Option D passes requests along handlers, which is inappropriate for selecting a single pricing calculation.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-20-parking-mcq-05',
+        question:
+          'During peak hours, two cars arrive at Entry Gate 1 and Entry Gate 2 simultaneously. Both gate processes query the repository for the nearest available compact spot, receive Spot #104, and issue tickets assigning Spot #104 to both cars. What concurrency control mechanism must be applied to prevent this double-allocation bug?',
+        options: [
+          { id: 'a', label: 'A', text: 'Make the EntryGateController class a Singleton.' },
+          { id: 'b', label: 'B', text: 'Enforce an atomic test-and-set boundary: in-memory via AtomicReference/synchronized spot reservation, or in SQL via pessimistic row locking (SELECT ... FOR UPDATE WHERE status = \'AVAILABLE\') before issuing the ticket.' },
+          { id: 'c', label: 'C', text: 'Wrap the spot selection code in a try-catch block that catches DuplicateKeyException and re-runs the allocation loop.' },
+          { id: 'd', label: 'D', text: 'Use a CopyOnWriteArrayList to store all parking spots so that concurrent reads and writes never throw ConcurrentModificationException.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Spot allocation is a classic check-then-act race condition. Multiple concurrent threads observing the same spot as "AVAILABLE" will both attempt to allocate it. Resolving this requires an atomic reservation boundary: in-memory, using CAS operations or locking the spot selection routine; in a database, using pessimistic locking (SELECT ... FOR UPDATE) or optimistic locking with a version column to ensure only one transaction successfully transitions the spot to "OCCUPIED". Option A does not prevent concurrent execution of singleton methods; Option C only works if a strict unique constraint exists on active spot reservations, but causes wasteful exception churn; Option D only prevents collection modification exceptions without providing transactional isolation.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-20-parking-mcq-06',
+        question:
+          'When a vehicle exits the parking lot, the system processes billing, accepts split payments (cash + credit card), and releases the spot. At what exact point in the workflow should the ParkingSpot status revert to AVAILABLE?',
+        options: [
+          { id: 'a', label: 'A', text: 'Immediately when the exit gate camera detects the license plate, before the bill is calculated.' },
+          { id: 'b', label: 'B', text: 'Only after the full bill amount is successfully paid, recorded, and the Ticket transitions to PAID status within the exit transaction.' },
+          { id: 'c', label: 'C', text: 'As soon as the vehicle unparks and trips the exit gate barrier sensor, regardless of whether payment processing has finished or faulted.' },
+          { id: 'd', label: 'D', text: 'Immediately when the driver selects their preferred payment method on the terminal.' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Reverting a parking spot to AVAILABLE prematurely (before payment confirmation) creates an operational hazard: if payment fails or the driver disputes the charge, the spot may be allocated to an incoming vehicle while the exiting vehicle is still physically obstructing the spot or exit lane. The spot must only be marked AVAILABLE once payment is finalized, the ticket is marked PAID, and the exit barrier opens. Option A and D release inventory before payment is guaranteed; Option C risks releasing spots for vehicles whose payments ultimately fail or decline.'
+      }
+    ]
+  },
+  'java-spring-lld/applied-machine-coding/21-machine-coding-bookmyshow': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-21-bookmyshow-mcq-01',
+        question:
+          'In a movie ticketing system like BookMyShow, physical seats in an auditorium (e.g., Row A, Seat 12) have a SeatType (SILVER, GOLD, RECLINER). Why does a well-designed domain model separate Seat from ShowSeat instead of storing the availability status directly on the Seat entity?',
+        options: [
+          { id: 'a', label: 'A', text: 'Physical seats are layout templates that remain immutable across shows, whereas availability and pricing are ephemeral and show-specific; ShowSeat is an associative projection binding Seat, Show, pricing, and dynamic status (AVAILABLE, LOCKED, BOOKED).' },
+          { id: 'b', label: 'B', text: 'Physical Seat entities represent immutable theater infrastructure, whereas availability changes per show; embedding status in Seat would prevent the venue from running concurrent shows across different screens.' },
+          { id: 'c', label: 'C', text: 'Updating availability directly on Seat would require taking a table-level write lock on the entire auditorium layout during peak booking hours.' },
+          { id: 'd', label: 'D', text: 'Storing availability directly on Seat would mean updating the status for a 6:00 PM show would overwrite and corrupt the availability status for the 9:00 PM show scheduled in the same auditorium on the same date.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'An auditorium\'s physical seating topology (Seat) rarely changes: rows, numbers, and physical chair configurations are constant. However, seat availability, lock states, and pricing vary for every distinct Show (e.g. weekend vs weekday rates). Mutating status directly on Seat would corrupt availability across concurrent or future shows in the same auditorium. ShowSeat acts as the temporal associative entity binding a specific Show to a Seat with dynamic state (AVAILABLE, LOCKED, BOOKED). While Option D points out the exact real-world collision defect, Option A provides the complete architectural definition. Option B confuses screens with shows; Option C incorrectly claims table-level locking is required.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-21-bookmyshow-mcq-02',
+        question:
+          'During a flash sale for a blockbuster movie, thousands of users select the same seats simultaneously. The system introduces a SeatLock mechanism. Why is a time-bounded temporary SeatLock placed before initiating payment, rather than directly updating ShowSeat to BOOKED inside a long database transaction?',
+        options: [
+          { id: 'a', label: 'A', text: 'Payment gateway processing involves asynchronous network round-trips taking several minutes; holding an open database transaction with pessimistic row locks across external HTTP payment calls exhausts connection pools and causes cascading outages.' },
+          { id: 'b', label: 'B', text: 'Updating ShowSeat to BOOKED immediately would prevent other users from viewing the real-time seating map until the first user completes checkout.' },
+          { id: 'c', label: 'C', text: 'Marking seats BOOKED early requires implementing a two-phase commit (2PC) protocol across the database and third-party bank APIs, which causes frequent distributed deadlocks.' },
+          { id: 'd', label: 'D', text: 'Directly setting status to BOOKED risks phantom inventory loss if the user\'s browser crashes, as uncompleted bookings cannot be distinguished from confirmed reservations without manual audits.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'A cardinal rule of high-scale transaction design is never to hold open database transactions or database locks across external network calls. Payment authorization takes anywhere from 30 seconds to several minutes while a customer enters OTPs or scans UPI codes. Holding DB row locks for that duration would immediately exhaust the database connection pool, starving the entire platform. A SeatLock provides a lightweight, time-bounded lease (e.g. 5–10 minutes) verified by the application service, releasing DB connections immediately. Option B is incorrect because read queries do not block on uncommitted locks under read-committed isolation; Option C misapplies 2PC where asynchronous callbacks are standard; Option D identifies an operational headache but misses the fatal connection-exhaustion outage.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-21-bookmyshow-mcq-03',
+        question:
+          'A customer attempts to reserve four adjacent seats (A1, A2, A3, A4). When the SeatLockService attempts to acquire locks, it successfully locks A1, A2, and A3, but discovers that A4 was locked by another user 50 milliseconds earlier. What is the required behavior of the lock manager?',
+        options: [
+          { id: 'a', label: 'A', text: 'Lock acquisition must be all-or-nothing: the service must release the locks on A1, A2, and A3 immediately and throw a SeatUnavailableException to prevent partial reservations and deadlocks.' },
+          { id: 'b', label: 'B', text: 'Retain locks on A1, A2, and A3 and prompt the user to pay for three tickets while waiting for A4 to unlock.' },
+          { id: 'c', label: 'C', text: 'Place the customer in a synchronized queue waiting on A4\'s monitor lock, blocking the request thread until A4 is released.' },
+          { id: 'd', label: 'D', text: 'Commit the reservation for A1, A2, and A3, and return a partial booking response so the customer can proceed to pay for the three seats.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Batch resource acquisition must strictly guarantee atomicity. If a multi-seat reservation cannot acquire every requested seat, any partially acquired locks must be immediately and cleanly released. Holding partial locks causes severe resource starvation, bad customer experience (being forced to purchase disjoint subsets), and potential deadlocks if another user contends for the reverse subset. Option B and D force partial reservations onto customers unexpectedly; Option C blocks HTTP worker threads, leading to thread exhaustion.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-21-bookmyshow-mcq-04',
+        question:
+          'When using an in-memory lock store backed by ConcurrentHashMap<String, SeatLock>, why is a background cleanup daemon using ScheduledExecutorService necessary?',
+        options: [
+          { id: 'a', label: 'A', text: 'If a user closes their browser tab or crashes after acquiring a lock without completing payment, the orphaned lock would block that seat indefinitely unless periodically purged upon expiration.' },
+          { id: 'b', label: 'B', text: 'ConcurrentHashMap memory scales with entry count; without eviction, old completed locks accumulate until the JVM runs out of heap space (OutOfMemoryError).' },
+          { id: 'c', label: 'C', text: 'A passive expiration check during subsequent lock acquisitions is insufficient because unpopular movie shows with zero subsequent traffic would leave expired locks in memory indefinitely.' },
+          { id: 'd', label: 'D', text: 'Relying on client-side JavaScript unload beacons to release locks fails whenever users experience sudden browser crashes, operating system reboots, or network disconnects.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'In-memory data structures lack the native Time-To-Live (TTL) expiration mechanisms provided by distributed caches like Redis. If a user reserves seats and abandons the browser tab, the lock remains in the map. Without a periodic eviction process (such as a ScheduledExecutorService sweeping expired locks every 30 seconds), orphaned locks would permanently render those seats unavailable to all other customers. While Options B, C, and D are valid contributing factors, Option A identifies the primary functional necessity.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-21-bookmyshow-mcq-05',
+        question:
+          'In the Booking finite state machine, a Booking moves from PENDING to CONFIRMED upon successful payment. Consider the edge case where a payment authorization succeeds at the bank, but the webhook delivery is delayed by network lag and arrives 2 minutes after the seat lock TTL expired (and the seats were released to another user). How must PaymentService handle this webhook?',
+        options: [
+          { id: 'a', label: 'A', text: 'The service must observe that the Booking transitioned to EXPIRED, reject the confirmation, and trigger an automated compensatory refund workflow rather than creating an illegal double-booking.' },
+          { id: 'b', label: 'B', text: 'Reopen the seat lock retroactively and mark the second booking as pending review in an administrative dashboard.' },
+          { id: 'c', label: 'C', text: 'Acknowledge the webhook with HTTP 200 OK and record the payment against the user\'s account without allocating seats, requiring manual customer support intervention.' },
+          { id: 'd', label: 'D', text: 'Attempt an optimistic lock update on the ShowSeat row; if the update fails due to a version mismatch, silently ignore the webhook callback.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Late payment callbacks following lock expiration are a critical production failure mode in ticketing and inventory systems. If seats have been reclaimed or re-booked, the system must never forcibly double-allocate the inventory. Instead, detecting that the associated Booking is already EXPIRED must trigger a compensating transaction: recording the late payment, logging the anomaly, and scheduling an automatic refund to the customer. Option B creates manual review overhead and compromises seat allocation integrity; Option C abandons the user in limbo; Option D silently drops revenue reconciliation, leading to untracked customer credit card charges.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-21-bookmyshow-mcq-06',
+        question:
+          'A payment aggregator experiences transient network timeouts and retries sending the payment webhook callback three times for the same successful transaction. How must the booking system defend against issuing duplicate tickets or corrupted states?',
+        options: [
+          { id: 'a', label: 'A', text: 'Enforce webhook idempotency by inspecting an idempotencyKey or payment transaction ID: if the transaction is already recorded as SUCCESS, return an immediate HTTP 200 OK without re-executing booking confirmation logic.' },
+          { id: 'b', label: 'B', text: 'Rely on the payment gateway\'s rate limiter to throttle duplicate webhook deliveries within a 60-second sliding window.' },
+          { id: 'c', label: 'C', text: 'Synchronize the entire webhook controller method using synchronized (this), serializing incoming webhook traffic across all server instances.' },
+          { id: 'd', label: 'D', text: 'Check whether a ticket already exists for the show; if so, update the ticket\'s updatedAt timestamp and return HTTP 200 OK.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Payment webhooks are distributed network events that adhere to "at-least-once" delivery semantics, making retries inevitable. The receiver must implement idempotency: storing the unique payment transaction reference or idempotency key in a transaction repository. If a subsequent webhook arrives with an already-processed key, the handler skips side-effects (ticket generation, inventory updates) and immediately acknowledges with HTTP 200 OK. Option B is ineffective because legitimate retries can arrive after the throttle window; Option C fails across distributed multi-pod deployments; Option D risks updating timestamps without verifying idempotency against specific payment references.'
+      }
+    ]
+  },
+  'java-spring-lld/applied-machine-coding/22-machine-coding-splitwise': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-22-splitwise-mcq-01',
+        question:
+          'In Splitwise, an Expense entity models a financial transaction across users. Why does Expense decompose into a collection of fine-grained Split entities rather than directly updating user account balances during expense creation?',
+        options: [
+          { id: 'a', label: 'A', text: 'Decomposing an expense into Split records creates an immutable audit trail and isolates the core domain invariant: the sum of individual split amounts must equal the total expense amount down to the exact cent.' },
+          { id: 'b', label: 'B', text: 'Directly updating mutable balance fields on User objects avoids allocating temporary objects, but leaves no transactional record if a later operation in the batch fails.' },
+          { id: 'c', label: 'C', text: 'Maintaining split records is only necessary when generating monthly PDF statements; real-time expense creation can simply update a single shared net balance map.' },
+          { id: 'd', label: 'D', text: 'Storing individual Split objects causes excessive relational join overhead that degrades query performance compared to storing an aggregated balance string on the group record.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Financial systems require strict auditability, reversibility, and mathematical verification. An Expense decomposes into Split objects (each representing one user\'s exact owed portion) so the system can validate the fundamental invariant: totalAmount == sum(splits). Direct mutations without an itemized split ledger prevent auditability, error rollback, expense editing, and verification. Option B highlights transaction risks but misses the domain audit requirement; Option C treats ledger history as an afterthought; Option D promotes an unnormalized schema anti-pattern.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-22-splitwise-mcq-02',
+        question:
+          'A developer uses double or float data types for monetary balances in Splitwise. After several hundred split operations, users notice balances like $33.000000000000004 or off-by-a-penny errors in their balances. What is the fundamental technical reason for this bug, and what is the standard fix?',
+        options: [
+          { id: 'a', label: 'A', text: 'Binary floating-point types (IEEE-754) cannot represent base-10 fractions (like 0.1) exactly, accumulating rounding errors; financial ledgers must use BigDecimal with an explicit scale and RoundingMode.' },
+          { id: 'b', label: 'B', text: 'The double data type has an insufficient dynamic range and overflows to Infinity when calculating cumulative balances across multiple months.' },
+          { id: 'c', label: 'C', text: 'The balance calculation should be performed using integer arithmetic representing total cents (long cents), but developers mistakenly cast intermediate division steps back to double.' },
+          { id: 'd', label: 'D', text: 'The issue occurs because the standard Java Math.round() method always rounds toward positive infinity rather than utilizing bankers rounding (HALF_EVEN).' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'IEEE-754 floating point numbers represent values in binary fractions. Common decimal fractions like 0.1 or 0.01 have repeating binary representations, causing silent precision loss during repeated additions and subtractions. In financial domains, all monetary calculations must use BigDecimal with explicit scale (typically 2 decimal places) and an explicit rounding mode (such as RoundingMode.HALF_UP) to preserve mathematical exactness. Option B is incorrect because overflow to Infinity requires values exceeding 10^308; Option C describes a valid alternative architecture (integer cents) but misidentifies the root cause of floating point imprecision; Option D confuses rounding modes with binary representation error.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-22-splitwise-mcq-03',
+        question:
+          'When splitting a $100.00 restaurant bill equally among three friends using EqualSplitStrategy, dividing 100.00 by 3 yields 33.3333... per person. Truncating to 2 decimal places yields $33.33 each, leaving an unallocated $0.01 remainder. How does a production EqualSplitStrategy handle this remainder to preserve monetary conservation?',
+        options: [
+          { id: 'a', label: 'A', text: 'The strategy deterministically allocates the remainder penny to the paying user (or the first participant), ensuring that sum(splits) == totalAmount strictly holds.' },
+          { id: 'b', label: 'B', text: 'The strategy discards the remaining cent as unrecoverable rounding loss.' },
+          { id: 'c', label: 'C', text: 'The strategy throws an ArithmeticException and rejects the entire expense.' },
+          { id: 'd', label: 'D', text: 'The strategy charges an extra penny to all three users to round up to $100.02.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'In financial ledgers, the invariant sum(splits) == totalAmount is non-negotiable; money cannot be created or destroyed by division. For uneven divisions (e.g. $100 among 3 users = $33.33, $33.33, $33.33 + $0.01 remainder), production implementations deterministically allocate the remainder cent to either the payer or the first participant (yielding $33.34, $33.33, $33.33). Option B violates monetary conservation; Option C prevents standard equal splits; Option D arbitrarily inflates the debt beyond the total expense.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-22-splitwise-mcq-04',
+        question:
+          'In PercentageSplitStrategy, participants specify percentage shares (e.g. User A: 40%, User B: 30%, User C: 30%). What validation invariant must execute before computing individual split amounts, and how are rounding discrepancies resolved?',
+        options: [
+          { id: 'a', label: 'A', text: 'Validate that the sum of all percentages equals exactly 100.00%; when multiplying percentages yields fractional cents, adjust the final participant\'s split by the rounding delta so the total matches exactly.' },
+          { id: 'b', label: 'B', text: 'Validate that no single participant\'s share exceeds 50.00% to prevent unilateral veto power in group expense settlements.' },
+          { id: 'c', label: 'C', text: 'Truncate all calculated participant shares to whole integer dollar amounts, accumulating unallocated fractions into a group tip jar.' },
+          { id: 'd', label: 'D', text: 'Automatically scale each participant\'s entered percentage proportionately so they sum to 100%, without alerting the user to the invalid input.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Percentage splits require two levels of validation: first, the input percentage shares must sum to exactly 100.00% (throwing InvalidExpenseException otherwise). Second, because percentage multiplication on arbitrary totals can produce fractional cents (e.g. $73.50 * 33.33%), individual rounded amounts can sum to $73.49 or $73.51. The strategy calculates delta = totalAmount - sum(computedSplits) and applies delta to the last participant, preserving exact mathematical equality. Option B is an arbitrary business restriction not found in accounting standards; Option C violates exact settlement precision; Option D silently masks invalid user input.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-22-splitwise-mcq-05',
+        question:
+          'In a shared apartment with 5 roommates, dozens of pairwise expenses are recorded. If balances are maintained solely as a directed pairwise graph (e.g. A owes B $10, B owes C $15, C owes A $20), what problem arises as the number of transactions grows, and how does Net Balance calculation resolve it?',
+        options: [
+          { id: 'a', label: 'A', text: 'Pairwise graphs become dense and contain redundant circular debt chains; computing each user\'s Net Balance (TotalPaid - TotalOwed) collapses mutual obligations into a single scalar value per user, identifying net creditors and net debtors.' },
+          { id: 'b', label: 'B', text: 'Pairwise graphs cannot be serialized to JSON because circular payment references cause infinite recursion errors in REST controllers.' },
+          { id: 'c', label: 'C', text: 'Net balance calculation obscures the original bilateral trust relationships, forcing users to pay people they may not know or interact with directly.' },
+          { id: 'd', label: 'D', text: 'Maintaining pairwise ledgers requires executing O(N) distributed database transactions whenever a single user leaves a group.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Direct pairwise ledgers create complex networks of mutual obligations (O(N^2) edges) with redundant cycles (e.g., A owes B, B owes C, C owes A). When roommates want to settle up, tracking and executing dozens of peer-to-peer payments is chaotic. Calculating individual net balances (NetBalance = TotalPaid - TotalOwed) decouples users from the specific historical web of transactions, reducing the problem to a simple bipartite matching of net debtors and net creditors. Option B confuses graph data structures with object reference loops; Option C states a social trade-off rather than an architectural mechanism; Option D overstates database transaction overhead.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-22-splitwise-mcq-06',
+        question:
+          'How does the greedy Two-Heap (PriorityQueue) Debt Simplification algorithm minimize cash-flow transactions across a group of users?',
+        options: [
+          { id: 'a', label: 'A', text: 'Maintain a max-heap of debtors (ordered by absolute debt) and a max-heap of creditors (ordered by credit); iteratively match the largest debtor with the largest creditor for min(debt, credit), completely settling at least one party per step in at most N - 1 transactions.' },
+          { id: 'b', label: 'B', text: 'Perform depth-first search (DFS) cycle cancellation on the pairwise graph, eliminating all circular paths until the graph is a Directed Acyclic Graph (DAG).' },
+          { id: 'c', label: 'C', text: 'Model the debt network as a min-cost max-flow problem and execute the Bellman-Ford algorithm to compute global equilibrium.' },
+          { id: 'd', label: 'D', text: 'Have every debtor send their owed balance directly to the group creator, who then redistributes the funds to creditors in separate payments.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The classic cash-flow minimization problem is solved using a greedy two-heap approach. Debtor nodes are stored in a max-heap based on magnitude of debt, and creditor nodes in a max-heap based on credit. At each iteration, the largest debtor pays the largest creditor min(debt, credit). At least one party is completely settled and eliminated from their heap, while the other party\'s reduced balance is re-inserted if non-zero. This reduces an O(N^2) tangle of transactions to at most N - 1 optimal settlement payments. Option B eliminates cycles but does not minimize non-cyclic transaction counts; Option C is unnecessarily complex and typically used for currency arbitrage; Option D introduces a central bottle-neck and counterparty credit risk.'
+      }
+    ]
+  },
+  'java-spring-lld/applied-machine-coding/23-machine-coding-contest': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-23-contest-mcq-01',
+        question:
+          'In a 90-minute timed machine coding round, what are the four primary evaluation pillars interviewers use to grade a candidate\'s submission?',
+        options: [
+          { id: 'a', label: 'A', text: 'Architectural Layering (separation of concerns), Object-Oriented Design & Extensibility (SOLID & patterns), Code Quality & Correctness (validation & thread-safety), and Working Execution (compiling, runnable driver).' },
+          { id: 'b', label: 'B', text: 'Code brevity, minimizing line counts by writing concise lambda expressions, aggressive premature optimization, and raw execution speed.' },
+          { id: 'c', label: 'C', text: 'Number of external third-party libraries imported, usage of Spring Cloud, and Kubernetes YAML configuration.' },
+          { id: 'd', label: 'D', text: 'Algorithmic time complexity optimization on LeetCode-style arrays and dynamic programming matrices.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Top-tier tech firms (Flipkart, Uber, Swiggy, CRED) evaluate machine coding across four explicit pillars: Layering (clean controllers, services, repositories, and models), OOD & Extensibility (correct use of interfaces and design patterns for variation points), Code Quality (handling edge cases, nulls, typed exceptions, encapsulation), and Working Execution (a runnable system that executes sample driver tests without crashing). Option B prizes clever syntactic compression over readability and maintainability; Option C evaluates cloud ops rather than object design; Option D conflates machine coding with DSA rounds.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-23-contest-mcq-02',
+        question:
+          'During Phase 1 (Minutes 0 to 15) of a timed machine coding contest, what is the most critical activity a candidate must complete before writing any code in their IDE?',
+        options: [
+          { id: 'a', label: 'A', text: 'Read the problem statement thoroughly, number functional requirements, clarify scope and persistence assumptions with the evaluator, and sketch the entity blueprint and class relationships.' },
+          { id: 'b', label: 'B', text: 'Immediately start typing database entity models and Maven dependency configurations.' },
+          { id: 'c', label: 'C', text: 'Write a 500-line test script containing all expected mock responses.' },
+          { id: 'd', label: 'D', text: 'Implement the Singleton pattern for the main application controller.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Jumping straight into typing code without a clear design blueprint is the number one cause of failed machine coding rounds. Phase 1 must be dedicated to clarifying assumptions (e.g. whether in-memory storage is sufficient, expected driver input format), identifying domain entities and cardinality, and establishing clear requirement boundaries on paper or scratchpad before opening the editor. Option B leads to false starts and major mid-round refactors; Options C and D are premature.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-23-contest-mcq-03',
+        question:
+          'In Phase 3 (Minutes 35 to 65) of the machine coding execution playbook, why is it vital to prioritize delivering a complete "vertical slice" rather than building horizontal layers across the entire system?',
+        options: [
+          { id: 'a', label: 'A', text: 'Building an end-to-end happy path across Controller -> Service -> Repository -> Model for the core user journey guarantees a functional, demonstrable system early, which can then be iteratively expanded.' },
+          { id: 'b', label: 'B', text: 'Horizontal layering requires implementing bidirectional JPA mappings across all entities before writing unit tests.' },
+          { id: 'c', label: 'C', text: 'Horizontal development requires creating mock implementations for every unresolved layer, increasing boilerplate that must later be discarded.' },
+          { id: 'd', label: 'D', text: 'Building horizontally makes it difficult to detect architectural design flaws or missing relationships until all layers are integrated near the end of the round.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Building horizontally (writing all models, then all repository interfaces, then all service skeletons) leaves the candidate with zero working features if time runs out at minute 60. Prioritizing a vertical slice (e.g., implementing driver onboarding and one complete ride booking flow end-to-end) guarantees that a demonstrable, executable application exists early. Edge cases, alternate strategies, and secondary features can then be added iteratively in Phase 4. While Options C and D identify real friction in horizontal development, Option A states the primary strategic advantage of vertical delivery; Option B assumes unnecessary framework constraints.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-23-contest-mcq-04',
+        question:
+          'A candidate spends 50 minutes designing an elaborate abstract generic framework with 12 nested interfaces, custom reflection utilities, and an event-bus broker for a simple Splitwise prompt. At minute 90, the code fails to compile and cannot run a single expense calculation. Which fatal failure mode did the candidate commit?',
+        options: [
+          { id: 'a', label: 'A', text: 'Premature Over-Engineering: over-complicating architecture with unneeded patterns and abstractions before delivering a working baseline system.' },
+          { id: 'b', label: 'B', text: 'Anemic Domain Modeling: keeping entities too lightweight.' },
+          { id: 'c', label: 'C', text: 'Liskov Substitution Principle violation: improperly overriding base class methods.' },
+          { id: 'd', label: 'D', text: 'Memory leak due to missing finalize() methods on interfaces.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Premature over-engineering is the most lethal mistake in machine coding rounds. Candidates attempt to impress the interviewer with excessive design patterns, deep generic class hierarchies, or custom frameworks, losing track of the clock. An over-engineered system that does not run receives an automatic reject. Evaluators look for clean simplicity: just enough design pattern usage to isolate genuine variation points, paired with working execution. Options B, C, and D misdiagnose the failure.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-23-contest-mcq-05',
+        question:
+          'Another candidate implements a completely functional Snake and Ladder game that executes flawlessly in the console, but the entire 700-line solution is written inside a single public static void main(String[] args) method using nested loops and procedural arrays. Why does this candidate fail the machine coding round?',
+        options: [
+          { id: 'a', label: 'A', text: 'It is a Hardcoded Monolith that completely ignores Object-Oriented Design, encapsulation, separation of concerns, and SOLID principles, demonstrating junior procedural coding habits.' },
+          { id: 'b', label: 'B', text: 'Static methods cannot catch checked exceptions or execute multi-threaded code.' },
+          { id: 'c', label: 'C', text: 'Procedural solutions in main cannot be integrated into CI/CD pipelines because they do not expose HTTP REST endpoints.' },
+          { id: 'd', label: 'D', text: 'Writing all logic in main prevents the code from being reused or unit-tested in isolation, as individual components cannot be instantiated or mocked.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Working execution is necessary, but not sufficient. Machine coding rounds assess whether an engineer can produce clean, extensible, production-quality code. Dumping all logic into a monolithic procedural main() method violates every object-oriented principle (no encapsulation, tight coupling, zero testability, inability to extend without modifying). Candidates must demonstrate proper layering, domain modeling, and modular architecture. Option B is factually false; Option C is irrelevant for in-memory LLD; Option D identifies a symptom of untestable code, but Option A identifies the comprehensive architectural failure.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-23-contest-mcq-06',
+        question:
+          'During the final 5 minutes of a machine coding contest, what checklist items should a senior engineer run through during self-review before presenting to the evaluator?',
+        options: [
+          { id: 'a', label: 'A', text: 'Verify encapsulation (private fields), confirm services don\'t contain System.out.println, verify dynamic algorithms use interfaces, ensure invalid inputs throw typed exceptions, and run the Main driver to prove clean execution.' },
+          { id: 'b', label: 'B', text: 'Add JavaDoc comments to every private field and method to maximize documentation score.' },
+          { id: 'c', label: 'C', text: 'Replace all custom exception types with generic RuntimeException to simplify the error handling hierarchy.' },
+          { id: 'd', label: 'D', text: 'Refactor working collections to use parallel streams to artificially demonstrate concurrency proficiency.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'A disciplined 5-minute self-review checks: (1) Encapsulation: are all fields private with proper accessors? (2) Architecture: is CLI/printing logic separated from services? (3) Extensibility: are variations (pricing, matching) abstracted behind interfaces? (4) Invariants: are edge cases throwing custom domain exceptions? (5) Execution: does the driver run end-to-end without crashing? Option B burns critical minutes on low-value comments; Option C discards domain-rich error context; Option D introduces concurrency hazards and thread-safety bugs right before submission.'
+      }
+    ]
+  },
+  'java-spring-lld/applied-machine-coding/24-machine-coding-hotel-management': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-24-hotel-mcq-01',
+        question:
+          'In the Hotel Management System machine-coding lab, the architecture is layered into Controller, Service, and Repository. What is the explicit responsibility boundary of the Controller layer?',
+        options: [
+          { id: 'a', label: 'A', text: 'Translating external request payloads into internal DTOs, validating request syntax, delegating business orchestration to the Service, and formatting response DTOs or HTTP status codes.' },
+          { id: 'b', label: 'B', text: 'Executing database queries and holding ConcurrentHashMap storage instances directly.' },
+          { id: 'c', label: 'C', text: 'Calculating room pricing multipliers and mutating room availability flags.' },
+          { id: 'd', label: 'D', text: 'Managing database transaction commit and rollback routines.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'In layered architectures, the Controller is strictly an entry adapter: it handles transport-level concerns, converts incoming payloads into request DTOs, performs basic parameter validation, and invokes the appropriate domain service method. It must never contain business logic (pricing, date validation) or direct persistence storage access. Option B belongs to Repository; Option C belongs to Service; Option D belongs to transaction management / service boundaries.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-24-hotel-mcq-02',
+        question:
+          'When modeling the Room entity in a Hotel Management System, why should a Room have an immutable base RoomType (e.g. DELUXE, SUITE) and base price, while booking date intervals are maintained in a separate Reservation entity?',
+        options: [
+          { id: 'a', label: 'A', text: 'Rooms represent persistent physical assets, while reservations represent temporal customer agreements; storing booking dates on Room would prevent multiple bookings across different non-overlapping date ranges.' },
+          { id: 'b', label: 'B', text: 'Adding booking dates to Room violates the Single Responsibility Principle by forcing physical maintenance schedules and customer reservations to share the same fields.' },
+          { id: 'c', label: 'C', text: 'It would require adding a new column to the Room database table for every prospective booking, causing schema instability.' },
+          { id: 'd', label: 'D', text: 'Directly mutating booking dates on Room creates write contention on the Room row, preventing concurrent search queries on adjacent dates.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'A Room is a physical inventory asset with fixed attributes (room number, floor, room type). Booking a room is a temporal event valid over an interval [checkIn, checkOut]. If Room stored checkIn and checkOut directly, it could only hold one reservation at a time, making it impossible to book the room for future dates. Decoupling Reservation into a separate entity linking Room, Customer, and DateRange allows a room to have many non-overlapping reservations over time. Options B, C, and D describe practical complications, but Option A identifies the core domain modeling failure.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-24-hotel-mcq-03',
+        question:
+          'The Hotel Management System lab progresses across four incremental stages (Stage 1: Room Inventory CRUD, Stage 2: Availability Search & Filtering, Stage 3: Date-Range Booking, Stage 4: Checkout & Bill Generation). Why is building incrementally in this sequence critical for machine coding success?',
+        options: [
+          { id: 'a', label: 'A', text: 'Each stage builds directly on the clean domain contracts of prior stages, ensuring that a working, testable application exists at every checkpoint while managing cognitive load.' },
+          { id: 'b', label: 'B', text: 'Writing all four stages in parallel allows the compiler to optimize cross-package method calls more effectively.' },
+          { id: 'c', label: 'C', text: 'Designing billing logic before inventory modeling ensures financial constraints dictate the entity relationships.' },
+          { id: 'd', label: 'D', text: 'Attempting to build billing and search before core room management creates ungrounded abstractions that must be heavily refactored once domain constraints become clear.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Machine coding interviewers intentionally structure requirements in incremental stages to observe how a candidate models foundations. Starting with core entity CRUD (Stage 1) establishes clean repositories and controllers; adding search (Stage 2) tests query filters; adding reservations (Stage 3) introduces stateful domain invariants; adding billing (Stage 4) tests extensibility. Each stage produces a runnable milestone. Option B is technically meaningless for Java compilation; Option C inverts natural domain dependencies; Option D describes the consequence of failing to work incrementally, but Option A captures the primary benefit.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-24-hotel-mcq-04',
+        question:
+          'When validating whether a Room is available for a requested date range [reqCheckIn, reqCheckOut], an engineer checks against existing reservations [resCheckIn, resCheckOut]. What is the exact mathematical condition indicating an illegal overlapping booking?',
+        options: [
+          { id: 'a', label: 'A', text: 'reqCheckIn < resCheckOut && reqCheckOut > resCheckIn' },
+          { id: 'b', label: 'B', text: 'reqCheckIn.equals(resCheckIn) && reqCheckOut.equals(resCheckOut)' },
+          { id: 'c', label: 'C', text: 'reqCheckIn >= resCheckOut || reqCheckOut <= resCheckIn' },
+          { id: 'd', label: 'D', text: 'reqCheckOut.isAfter(resCheckOut)' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Two continuous intervals [A, B] and [C, D] overlap if and only if A < D and B > C. In booking domains, a requested range overlaps with an existing reservation whenever the requested check-in is before the existing check-out, and the requested check-out is after the existing check-in. Option B only detects identical intervals (failing on partial overlaps); Option C is the condition for NON-overlapping intervals; Option D ignores the start dates entirely.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-24-hotel-mcq-05',
+        question:
+          'In the booking service, when a customer attempts to book an already-occupied room, a candidate considers returning null from bookRoom() and letting the Controller check for null. Why is throwing a custom domain exception (e.g., RoomNotAvailableException) superior?',
+        options: [
+          { id: 'a', label: 'A', text: 'Returning null creates an ambiguous contract that easily causes NullPointerExceptions if callers forget null checks, whereas typed domain exceptions force explicit handling, carry structured error details (conflicting dates), and map cleanly to HTTP 409 Conflict.' },
+          { id: 'b', label: 'B', text: 'Returning null forces the method signature to return Optional<Room>, which imposes serialization overhead in REST controllers.' },
+          { id: 'c', label: 'C', text: 'Returning null triggers an automatic rollback of the entire database transaction even if the error is caught by an enclosing try-catch block.' },
+          { id: 'd', label: 'D', text: 'Returning a boolean flag (e.g. false) requires passing mutable output parameters to retrieve failure reasons, cluttering method signatures.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Returning null for domain failures is an anti-pattern: it leaves callers guessing why an operation failed (was the room non-existent, already booked, or did a database error occur?) and frequently causes NullPointerExceptions downstream. Strongly-typed domain exceptions (RoomNotAvailableException, InvalidDateRangeException) encapsulate error context and enable global exception handlers (or controllers) to return structured error messages and appropriate HTTP status codes (e.g. 409 Conflict). Option B is false because Optional does not force serialization; Option C is incorrect because transactions only rollback on exceptions; Option D describes boolean returns rather than null returns.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-24-hotel-mcq-06',
+        question:
+          'A hotel booking engine must calculate room prices dynamically based on room type, seasonal peak surcharges, and customer loyalty tier discounts. How should this calculation be designed to prevent bloating BookingService with nested if-else logic?',
+        options: [
+          { id: 'a', label: 'A', text: 'Define a PricingStrategy interface with calculatePrice(Room room, LocalDate checkIn, LocalDate checkOut, User user) and inject concrete strategies (StandardPricingStrategy, SurgePricingStrategy, LoyaltyPricingStrategy) via Strategy pattern.' },
+          { id: 'b', label: 'B', text: 'Store dynamic pricing scripts as JavaScript strings in a database column and execute them using Java Nashorn.' },
+          { id: 'c', label: 'C', text: 'Hardcode all pricing percentages as static final integers inside the Room domain entity.' },
+          { id: 'd', label: 'D', text: 'Use the State pattern where every price change requires transitioning the Hotel into a new State object.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Applying the Strategy pattern decouples price calculation formulas from the BookingService. The service simply delegates price computation to an injected PricingStrategy. New promotional campaigns, holiday multipliers, or loyalty discount algorithms can be introduced by creating new strategy implementations without altering existing reservation logic. Option B introduces security risks and execution overhead; Option C violates OCP and pollutes entity models; Option D misapplies the State pattern to a calculation algorithm.'
+      }
+    ]
+  },
+  'java-spring-lld/spring-enterprise-architecture/14-spring-boot-core': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-14-springboot-mcq-01',
+        question:
+          'An enterprise PaymentProcessingService directly instantiates StripeClient via new StripeClient(apiKey) inside its constructor. When writing unit tests and onboarding a secondary provider (AdyenClient), the engineering team faces tight coupling and an inability to run fast, hermetic mock tests in CI without live network calls. How does Spring\'s Inversion of Control (IoC) container and dependency injection resolve this architectural rigidity?',
+        options: [
+          { id: 'a', label: 'A', text: 'It replaces concrete instantiation by having PaymentProcessingService declare a dependency on a generic PaymentGateway interface injected via its constructor, allowing Spring to inject production beans at runtime and lightweight test stubs in unit tests.' },
+          { id: 'b', label: 'B', text: 'It automatically wraps StripeClient in a bytecode proxy that intercepts HTTP calls and redirects them to a local SQLite database during Maven test goals.' },
+          { id: 'c', label: 'C', text: 'It configures an aspect-oriented programming (AOP) pointcut on all outgoing socket connections to automatically redirect traffic to wiremock stubs.' },
+          { id: 'd', label: 'D', text: 'It forces PaymentProcessingService to declare its client fields as public static so unit tests can overwrite the reference prior to each test case.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Inversion of Control delegates dependency creation and lifecycle management to the container. By programming to an interface (PaymentGateway) and receiving it via constructor injection, PaymentProcessingService is decoupled from concrete vendor implementations. In production, Spring injects the configured vendor bean; in unit tests, test suites can pass mockito mocks or fake implementations directly without booting Spring or touching network sockets. Option B confuses dependency injection with mock proxying; Option C relies on brittle low-level network interception rather than clean polymorphism; Option D uses mutable global state, which introduces severe multi-threading test pollution.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-14-springboot-mcq-02',
+        question:
+          'A senior architect mandates removing all @Autowired annotations from private fields across the microservices codebase in favor of constructor injection with private final fields. What primary engineering benefits justify this architectural mandate?',
+        options: [
+          { id: 'a', label: 'A', text: 'Constructor injection enforces immutability, guarantees that dependencies cannot be null after instantiation, prevents partial initialization bugs, and allows clean unit testing without needing reflection or Spring\'s test runner.' },
+          { id: 'b', label: 'B', text: 'Field injection bypasses security manager permissions, causing ClassCircularityError exceptions in containerized Linux deployments.' },
+          { id: 'c', label: 'C', text: 'Field injection hides dependencies, making it easy for a class to accumulate too many responsibilities without violating visible constructor parameter thresholds.' },
+          { id: 'd', label: 'D', text: 'Field injection prevents fields from being declared final, leaving dependencies mutable post-construction and allowing reflection-based re-assignment.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Constructor injection ensures that an object cannot be constructed in an invalid or partially initialized state, allows fields to be marked final for thread-safety and immutability, and makes required dependencies explicit in the public API. Crucially, it allows plain unit tests to instantiate the class with mock dependencies via new MyService(mockRepo) without requiring slow reflection or Spring context bootstrapping. Option B describes fabricated runtime errors; Option C and D identify real drawbacks of field injection, but Option A synthesizes the complete architectural justification.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-14-springboot-mcq-03',
+        question:
+          'A trading platform service requires a pre-computed cache of currency exchange matrices loaded from an external treasury vault service at startup before the application starts accepting HTTP traffic. If the vault is unreachable or returns invalid matrices, the microservice must fail to start and crash immediately. Which Spring bean lifecycle mechanism is most appropriate to implement this startup validation and initialization?',
+        options: [
+          { id: 'a', label: 'A', text: 'Annotate an initialization method with @PostConstruct (or implement InitializingBean.afterPropertiesSet()), which executes after all dependencies are injected but before the bean is exposed to requests, throwing an exception to abort application context startup.' },
+          { id: 'b', label: 'B', text: 'Inject an ApplicationListener<ContextRefreshedEvent> bean, but catch and log all vault exceptions to allow partial boot.' },
+          { id: 'c', label: 'C', text: 'Use a @Scheduled(fixedDelay = 60000) background task that polls the vault every minute, leaving matrices null until the first run completes.' },
+          { id: 'd', label: 'D', text: 'Place the vault loading logic inside a static initializer block (static { ... }) on the service class so it runs during classloading.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The @PostConstruct annotation (or InitializingBean) defines initialization logic that runs immediately after the container has injected all required dependencies and configured the bean, but before the application publishes endpoints or processes requests. Throwing an exception here halts the ApplicationContext startup, preventing traffic from reaching an unready service (fail-fast principle). Option B logs errors without failing fast, allowing invalid instances to serve traffic; Option C introduces a race window where requests encounter uninitialized state; Option D runs before Spring injects configuration properties, preventing dynamic credential injection.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-14-springboot-mcq-04',
+        question:
+          'An e-commerce service integrates with Twilio for SMS notifications in production and staging, but developers running the system locally in Docker or minikube need a lightweight LoggingNotificationService that prints messages to stdout without hitting paid third-party APIs. How should Spring\'s configuration classes be structured to cleanly swap these beans based on configuration?',
+        options: [
+          { id: 'a', label: 'A', text: 'Define two @Bean methods in a @Configuration class, decorating TwilioNotificationService with @ConditionalOnProperty(name = "notification.provider", havingValue = "twilio") and the fallback with @ConditionalOnProperty(name = "notification.provider", havingValue = "mock", matchIfMissing = true).' },
+          { id: 'b', label: 'B', text: 'Use an if/else block inside every service class that checks System.getProperty("ENV") before instantiating the HTTP client.' },
+          { id: 'c', label: 'C', text: 'Annotate both beans with @Primary, relying on bean definition override settings in application.properties to select the active bean.' },
+          { id: 'd', label: 'D', text: 'Use Spring profiles (@Profile("production") vs @Profile("local")), though this tightly couples bean presence to entire environment profiles rather than feature-specific configuration flags.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Spring Boot\'s @ConditionalOnProperty allows bean registration to be conditional on externalized configuration properties (application.yml or environment variables). By combining havingValue and matchIfMissing = true, the application defaults to the lightweight mock for local runs while switching to the production implementation when the property is set. Option B introduces tight coupling and violates open-closed principles; Option C leads to ConflictingBeanDefinitionException because two @Primary beans cannot coexist; Option D works but is coarse-grained and less flexible than feature-specific property flags.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-14-springboot-mcq-05',
+        question:
+          'A developer implements an InvoiceExportTask annotated with @Scope("prototype") because it holds mutable customer export state and a counter. They inject this prototype bean directly via @Autowired into a standard @Service bean (which uses the default singleton scope). In production under concurrent requests, users report that invoice documents contain blended data from multiple customers. Why did the prototype bean fail to isolate state, and how should this scoping mismatch be resolved?',
+        options: [
+          { id: 'a', label: 'A', text: 'The singleton service is instantiated only once at startup, so its dependencies—including the prototype bean—are injected only once; every concurrent web request to the singleton service reuses that single injected prototype instance. It should be resolved using an ObjectProvider<InvoiceExportTask> or @Lookup method to obtain a fresh instance per invocation.' },
+          { id: 'b', label: 'B', text: 'Annotating the prototype bean with @Lazy forces the singleton service to create a new instance on every method call.' },
+          { id: 'c', label: 'C', text: 'Prototype beans can only be injected into other prototype beans; injecting them into any service bean throws a BeanCreationException at startup.' },
+          { id: 'd', label: 'D', text: 'The prototype bean should be scoped as @RequestScope, ensuring a new instance is bound to each incoming HTTP servlet request thread.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'In Spring, dependencies are resolved at bean creation time. Because the singleton service is created once during context startup, the prototype bean is injected once and never re-instantiated, defeating its prototype scope and creating severe thread-safety bugs when concurrent requests mutate its internal state. Using ObjectProvider<T>.getObject(), a provider factory, or @Lookup ensures a new prototype instance is retrieved on every execution. Option B delays initialization but still injects only one instance; Option C is incorrect because Spring allows injecting prototypes into singletons without error; Option D solves the web request case but breaks asynchronous background tasks.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-14-springboot-mcq-06',
+        question:
+          'During startup of a Spring Boot 3 microservice, the application fails to boot with a BeanCurrentlyInCreationException: OrderService requires PaymentService in its constructor, and PaymentService requires OrderService to update order statuses. How does Spring Boot 3 handle this circular dependency by default, and what is the architecturally sound way to eliminate it?',
+        options: [
+          { id: 'a', label: 'A', text: 'Spring Boot 3 forbids circular dependencies by default; rather than enabling legacy lazy injection workarounds (@Lazy or spring.main.allow-circular-references=true), the architecture should be refactored by introducing a mediator, extracting status updates into an OrderStatusService, or publishing decoupled domain events via ApplicationEventPublisher.' },
+          { id: 'b', label: 'B', text: 'Annotate both constructor parameters with @Qualifier to force Spring to resolve them using separate thread contexts.' },
+          { id: 'c', label: 'C', text: 'Switch both services to field injection with @Autowired, which suppresses the error during startup but risks uninitialized null dependencies at runtime.' },
+          { id: 'd', label: 'D', text: 'Declare the dependency with @Value and inject the target bean\'s name as a SpEL expression to be resolved dynamically.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Spring Boot 2.6+ and 3.x disable circular references by default because they indicate architectural code smells and tight coupling. While setting allow-circular-references=true or @Lazy can mask the symptom, the clean architectural fix is refactoring: breaking the cycle by introducing a domain event (e.g. PaymentCompletedEvent consumed asynchronously or via Spring event listeners) or separating shared responsibilities into a dedicated service. Option B does not resolve constructor circularities; Option C masks circular references through field injection but leaves dependencies prone to NPEs; Option D injects bean names rather than managed bean references.'
+      }
+    ]
+  },
+  'java-spring-lld/spring-enterprise-architecture/15-spring-data-jpa': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-springdata-mcq-01',
+        question:
+          'A batch data ingestion pipeline needs to insert 100,000 telemetry events into PostgreSQL using JPA and Hibernate batch_size = 50. When profiled, the DBA observes 100,000 individual INSERT SQL round-trips instead of batched inserts. The entity ID is annotated with @GeneratedValue(strategy = GenerationType.IDENTITY). Why does GenerationType.IDENTITY disable Hibernate batch inserts in PostgreSQL, and which strategy should be adopted?',
+        options: [
+          { id: 'a', label: 'A', text: 'GenerationType.IDENTITY relies on PostgreSQL identity/serial columns where the database generates the ID during execution; Hibernate must execute each INSERT immediately to retrieve the generated ID, defeating JDBC batching. Switching to GenerationType.SEQUENCE with an allocation size (e.g., 50) allows Hibernate to pre-fetch ID blocks and batch the inserts.' },
+          { id: 'b', label: 'B', text: 'PostgreSQL requires all identity columns to be indexed with a composite B-tree index before bulk operations can proceed.' },
+          { id: 'c', label: 'C', text: 'Using GenerationType.IDENTITY forces Hibernate to disable second-level caching for the entity hierarchy.' },
+          { id: 'd', label: 'D', text: 'JDBC batch execution requires all entity IDs to be assigned client-side using UUID.randomUUID() before calling save().' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'In Hibernate, batching requires delaying SQL execution until flush/commit. However, with GenerationType.IDENTITY, the primary key value is unknown until the DB row is inserted. Hibernate must execute every INSERT statement immediately so that the entity can be populated with its primary key and placed into the persistence context, breaking JDBC batching. GenerationType.SEQUENCE allows Hibernate to request a block of IDs in advance from a database sequence (allocationSize = 50), enabling true batched JDBC statements. Option B is false because standard primary keys already create unique indexes; Option C confuses caching with JDBC execution; Option D represents an alternative strategy (client-side UUIDs) but misstates JDBC batch requirements.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-springdata-mcq-02',
+        question:
+          'An engineer writes a service method:\n@Transactional\npublic void updateEmail(Long userId, String newEmail) {\n    User user = userRepository.findById(userId).orElseThrow();\n    user.setEmail(newEmail);\n}\nA code reviewer flags that userRepository.save(user) was never called and claims the update will not be persisted to PostgreSQL. Is the code reviewer\'s claim correct, and how does JPA handle this mutation?',
+        options: [
+          { id: 'a', label: 'A', text: 'The reviewer is incorrect; inside a @Transactional boundary, loaded entities are managed by the Persistence Context (Hibernate Session). During transaction commit, Hibernate performs automatic dirty checking by comparing the entity\'s current state with its initial snapshot and flushes an UPDATE statement without calling save().' },
+          { id: 'b', label: 'B', text: 'The reviewer is correct; JPA specifications mandate that any in-memory field mutation without an explicit save() invocation is discarded when the method exits.' },
+          { id: 'c', label: 'C', text: 'The reviewer is incorrect because findById() automatically registers a database trigger that listens for JVM memory modifications.' },
+          { id: 'd', label: 'D', text: 'The reviewer is correct if the entity is detached, but calling entityManager.detach(user) is required to prevent unwanted auto-commits.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Managed entities within an active @Transactional persistence context are tracked by Hibernate. At the end of the transaction boundary, Hibernate flushes pending changes by comparing current entity field values against the snapshot taken when the entity was loaded (dirty checking). An explicit repository.save() call is redundant and unnecessary for managed entities in JPA. Option B is a common misconception among developers transitioning from active-record patterns; Option C describes an impossible database-trigger mechanism; Option D correctly notes detach behavior but draws the wrong conclusion for this managed entity.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-springdata-mcq-03',
+        question:
+          'An order management endpoint fetches a list of 50 CustomerOrder entities and serializes them to JSON, including each order\'s List<OrderItem> items (mapped as @OneToMany(fetch = FetchType.LAZY)). Looking at the SQL logs, the database executes 1 query to fetch orders, followed by 50 individual SELECT queries to fetch items for each order (N+1 queries), causing high latency. How should this N+1 query defect be resolved while preserving lazy loading defaults on the entity mapping?',
+        options: [
+          { id: 'a', label: 'A', text: 'Use a custom JPQL query with JOIN FETCH o.items in the repository method (or apply @EntityGraph(attributePaths = {"items"})) to fetch orders and their associated items in a single SQL JOIN query for that specific operation.' },
+          { id: 'b', label: 'B', text: 'Change the entity relationship mapping from FetchType.LAZY to FetchType.EAGER across all entity classes.' },
+          { id: 'c', label: 'C', text: 'Wrap the controller method in a Java parallelStream() to execute all 50 SQL queries simultaneously on background threads.' },
+          { id: 'd', label: 'D', text: 'Annotate the OrderItem foreign key with @BatchSize(size = 50) on the entity mapping, though this still issues multiple batch queries rather than a single join query.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The N+1 problem occurs because lazy loading triggers a separate query when traversing relationships on each parent entity. Changing relationships to EAGER (Option B) is an anti-pattern because it forces the association to be fetched everywhere across the entire application, causing catastrophic Cartesian products. The correct solution is query-level fetching: using JOIN FETCH in JPQL or Spring Data\'s @EntityGraph, which overrides lazy loading for that specific query and loads the parent and children in a single SQL query. Option C accelerates connection pool exhaustion; Option D (@BatchSize) reduces queries from 51 to 2, but is a global batching band-aid rather than an explicit query-level join.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-springdata-mcq-04',
+        question:
+          'A reporting dashboard endpoint displays a paginated list of user summaries (userId, fullName, totalSpent). The underlying User entity has 45 columns, multiple large text fields, and complex associations. Calling userRepository.findAll() consumes 300MB of heap memory and takes 1.8 seconds due to entity hydration and persistence context tracking. What Spring Data JPA feature should be used to optimize memory and query latency for this read-only view?',
+        options: [
+          { id: 'a', label: 'A', text: 'Spring Data DTO projections (using Java records or constructor expressions), writing a repository query that selects only the required fields (SELECT new com.app.UserSummaryDTO(u.id, u.name, ...)) to bypass Hibernate entity management and avoid loading unneeded columns.' },
+          { id: 'b', label: 'B', text: 'Using a native SQL query that returns a List<Object[]> and manually parsing the array indexes in the controller method.' },
+          { id: 'c', label: 'C', text: 'Annotating the unneeded columns with @Basic(fetch = FetchType.LAZY), though Hibernate ignores basic lazy loading without bytecode instrumentation.' },
+          { id: 'd', label: 'D', text: 'Calling entityManager.clear() immediately after fetching the entities, which detaches them but still incurs the full 45-column network fetch and object instantiation penalty.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'For read-only queries, loading full JPA entities incurs substantial overhead: all 45 columns are read across the wire, entity objects are allocated, and snapshots are maintained in the persistence context. DTO projections (e.g. constructor expression with Java records or interface projections) instruct Hibernate to generate a focused SELECT id, full_name, total_spent FROM users SQL query, instantiating plain lightweight DTOs without persistence context tracking, drastically cutting heap usage and query time. Option B works but lacks type safety and requires verbose parsing code; Option C requires complex build-time bytecode weaving; Option D detaches entities post-hydration without eliminating the initial memory surge.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-springdata-mcq-05',
+        question:
+          'A funds transfer service executes:\n@Transactional\npublic void transferMoney(Long fromId, Long toId, BigDecimal amount) throws InsufficientFundsException {\n    debitAccount(fromId, amount);\n    if (checkFraudRules(fromId)) {\n        throw new InsufficientFundsException("Account flagged");\n    }\n    creditAccount(toId, amount);\n}\nInsufficientFundsException extends java.lang.Exception (a checked exception). When the exception is thrown, the developer discovers that debitAccount was committed to the database anyway, leaving customer balances corrupted. Why did @Transactional fail to roll back the transaction, and how must it be fixed?',
+        options: [
+          { id: 'a', label: 'A', text: 'By default, Spring\'s @Transactional only rolls back on unchecked exceptions (RuntimeException and Error); checked exceptions do not trigger a rollback unless explicitly configured with @Transactional(rollbackFor = Exception.class) or by subclassing RuntimeException.' },
+          { id: 'b', label: 'B', text: 'Spring AOP proxies intercept exceptions, but only propagate rollbacks if the method is marked final.' },
+          { id: 'c', label: 'C', text: 'The transaction manager requires checked exceptions to be caught inside the method and converted into a TransactionStatus.setRollbackOnly() call.' },
+          { id: 'd', label: 'D', text: 'The checked exception bypassed the transactional interceptor because transferMoney was invoked via an internal this.transferMoney() self-invocation.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'By default, Spring transaction management rolls back transactions only upon unhandled RuntimeException and Error. Any checked exception (inheriting from Exception but not RuntimeException) is assumed to be an application flow condition, and the transaction is committed by default. To roll back on checked exceptions, one must specify @Transactional(rollbackFor = Exception.class) or redesign domain exceptions to inherit from RuntimeException. Option B is false because CGLIB cannot proxy final methods; Option C is a manual workaround rather than the standard declarative configuration; Option D describes the separate self-invocation proxy-bypass trap.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-15-springdata-mcq-06',
+        question:
+          'In an e-commerce inventory system, product stock is decremented during flash sales. With 200 concurrent requests trying to purchase the last 5 items, the system suffers from lost updates (read-modify-write race conditions). The database contention on the specific row is extremely high for 15 seconds. How should the engineering team choose between JPA Optimistic Locking (@Version) and Pessimistic Locking (LockModeType.PESSIMISTIC_WRITE) for this flash sale scenario?',
+        options: [
+          { id: 'a', label: 'A', text: 'Optimistic locking (@Version) works best in low-to-moderate contention but causes massive abort/retry storms and high latency under heavy contention; for flash-sale hot-spots, pessimistic locking (PESSIMISTIC_WRITE executing SELECT ... FOR UPDATE) serializes access at the database row level, preventing wasted application retries.' },
+          { id: 'b', label: 'B', text: 'Optimistic locking requires wrapping the operation in an explicit synchronized block across cluster nodes using Hazelcast.' },
+          { id: 'c', label: 'C', text: 'Pessimistic locking should always be preferred because it completely avoids database deadlocks under any concurrency level.' },
+          { id: 'd', label: 'D', text: 'Optimistic locking fails to detect concurrent updates if transactions execute under PostgreSQL\'s default READ COMMITTED isolation level.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Optimistic locking detects concurrent modifications via a version column at commit time without database locks. Under severe contention (flash sales), nearly all concurrent transactions will fail with OptimisticLockException and require expensive retry loops, creating retry storms that overwhelm CPU and application threads. Pessimistic write locking (SELECT ... FOR UPDATE) acquires an exclusive row-level lock immediately, queuing concurrent updates at the database level and ensuring clean serialized updates without repetitive rollbacks. Option B conflates optimistic locking with distributed locks; Option C is false because pessimistic locks can easily cause deadlocks if resources are acquired out of order; Option D is false because @Version checks operate independently of transaction isolation levels.'
+      }
+    ]
+  },
+  'java-spring-lld/spring-enterprise-architecture/16-spring-rest-api': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-16-springrest-mcq-01',
+        question:
+          'A developer binds a JPA @Entity User directly as the @RequestBody parameter in a @PostMapping("/users") registration endpoint and returns the saved User entity directly as the HTTP response. What critical security and architectural hazards does this direct entity exposure introduce?',
+        options: [
+          { id: 'a', label: 'A', text: 'It enables mass-assignment vulnerabilities (allowing callers to maliciously bind sensitive fields like role="ADMIN" or accountBalance), leaks database schema details and password hashes in JSON responses, and risks infinite recursion or LazyInitializationException during Jackson serialization.' },
+          { id: 'b', label: 'B', text: 'Exposing entities forces the JPA entity to become detached, disabling optimistic locking version checks during subsequent updates.' },
+          { id: 'c', label: 'C', text: 'It forces all database column names to match the incoming JSON property names exactly, preventing the application from refactoring database schemas.' },
+          { id: 'd', label: 'D', text: 'Direct entity binding allows clients to trigger unexpected database cascade-deletes if relationship collections are sent as null in the JSON payload.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Direct entity exposure in REST controllers violates boundary encapsulation. Inbound, attackers can exploit mass-assignment or over-posting by supplying JSON keys that overwrite sensitive entity fields. Outbound, serialization can inadvertently expose secrets (password hashes, internal flags) or trigger Jackson serialization loops and lazy-loading crashes. Dedicated Request and Response DTOs strictly define the API contract independently of internal persistence representations. Option B is incorrect because entity detachment does not prevent version checking; Option C is false because @Column annotations decouple names; Option D is false unless orphanRemoval is explicitly enabled and entities are blindly merged.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-16-springrest-mcq-02',
+        question:
+          'A banking REST endpoint receives a CreateTransferRequest DTO. The application requires that amount is strictly positive, currency is a valid 3-letter ISO code, and recipientAccountId is non-blank. How should these invariants be validated in Spring Boot, and how should validation failures be communicated to callers?',
+        options: [
+          { id: 'a', label: 'A', text: 'Decorate DTO fields with Jakarta validation annotations (@NotNull, @Positive, @Size(min=3, max=3)), annotate the controller method parameter with @Valid, and capture MethodArgumentNotValidException in a @RestControllerAdvice class to return structured error messages with HTTP 400.' },
+          { id: 'b', label: 'B', text: 'Write manual validation checks at the start of each service method, throwing IllegalArgumentException that is caught in the controller and converted to HTTP 500.' },
+          { id: 'c', label: 'C', text: 'Rely solely on database column constraints (NOT NULL, CHECK (amount > 0)), letting Hibernate throw DataIntegrityViolationException on commit.' },
+          { id: 'd', label: 'D', text: 'Implement validation inside a custom Spring Web filter that parses the raw InputStream, though this prevents re-reading the body for Jackson deserialization.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Declarative validation using Jakarta Bean Validation (@Valid, @NotNull, @Positive) separates validation rules from business logic. When validation fails, Spring automatically throws a MethodArgumentNotValidException. A centralized @RestControllerAdvice intercepts this exception, formats human-readable field errors, and responds with a standardized HTTP 400 Bad Request or 422 Unprocessable Entity payload. Option B leaks server 500 errors for bad client inputs; Option C defers validation until DB commit, causing expensive connection churn; Option D consumes the servlet input stream prematurely.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-16-springrest-mcq-03',
+        question:
+          'A ride-hailing mobile app sends POST /api/v1/rides/book to book a cab. Due to poor cell signal, the mobile client encounters a TCP connection timeout after the server received and processed the request. The client app automatically retries the request 3 seconds later, resulting in duplicate rides and double billing for the rider. How is this API made safely idempotent without turning the POST method into a PUT?',
+        options: [
+          { id: 'a', label: 'A', text: 'Require an Idempotency-Key HTTP header generated by the client (e.g. a UUID per user action); the server records this key in Redis/DB with the processed result inside a distributed lock, returning the cached response for duplicate keys without re-executing booking logic.' },
+          { id: 'b', label: 'B', text: 'Change the HTTP verb from POST to PUT and use the customer ID as the URI resource identifier (PUT /api/v1/rides/customer/{id}).' },
+          { id: 'c', label: 'C', text: 'Store the last processed request timestamp in the user\'s HTTP session and reject calls arriving within a 5-second cooldown window.' },
+          { id: 'd', label: 'D', text: 'Have the client send an optimistic locking version number in the request body, requiring the database to match the expected version before creating the ride.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Network timeouts are inevitable in distributed systems. An Idempotency-Key header allows the server to recognize retried requests. By tracking idempotency keys in an atomic fast-access store (like Redis or PostgreSQL with unique constraints) alongside the execution status and result, subsequent retries with the same key return the original response without executing duplicate financial or booking transactions. Option B creates an unworkable URI structure that allows only one active ride per customer forever; Option C drops legitimate concurrent requests and fails in stateless microservices; Option D is intended for updates to existing records rather than new entity creations.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-16-springrest-mcq-04',
+        question:
+          'A distributed payments platform integrates with dozens of external partner banks. The platform wants to standardize error responses across all microservices so partner client SDKs can programmatically distinguish between validation errors, resource conflicts, and downstream outages without parsing unstructured HTML or arbitrary error strings. What standard and Spring Boot 3 feature should be implemented for this unified error architecture?',
+        options: [
+          { id: 'a', label: 'A', text: 'Enable Spring Boot 3\'s built-in support for RFC 7807 / RFC 9457 ProblemDetail via @ControllerAdvice extending ResponseEntityExceptionHandler, returning JSON with standard fields (type, title, status, detail, instance) and custom extension properties.' },
+          { id: 'b', label: 'B', text: 'Return HTTP 200 OK for all requests with a custom JSON body { "isError": true, "errorMsg": "..." }.' },
+          { id: 'c', label: 'C', text: 'Use a custom global interceptor that intercepts all exceptions and transforms them into generic HTTP 400 responses with an empty JSON object {}.' },
+          { id: 'd', label: 'D', text: 'Return custom string messages directly as text/plain payloads with a custom X-Error-Reason HTTP header.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'RFC 7807 (and the updated RFC 9457) defines "Problem Details for HTTP APIs"—an IETF standard specifying a machine-readable format for reporting errors in HTTP APIs. Spring Boot 3 includes native ProblemDetail classes and ResponseEntityExceptionHandler support. Option B is an infamous anti-pattern ("HTTP 200 with error payload") that breaks HTTP semantics, caches, and API gateways; Option C strips all diagnostic error details; Option D relies on non-standard headers rather than structured response bodies.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-16-springrest-mcq-05',
+        question:
+          'A developer designs an API endpoint POST /api/v1/workspaces/{id}/members to invite a user to a workspace.\nCase 1: The workspace ID does not exist.\nCase 2: The invited user is already an active member of the workspace.\nCase 3: The request JSON body contains an unparseable malformed string instead of a valid email address.\nWhich HTTP status codes correctly represent Cases 1, 2, and 3 respectively according to REST standards?',
+        options: [
+          { id: 'a', label: 'A', text: 'Case 1: 404 Not Found; Case 2: 409 Conflict; Case 3: 400 Bad Request (or 422 Unprocessable Content).' },
+          { id: 'b', label: 'B', text: 'Case 1: 400 Bad Request; Case 2: 500 Internal Server Error; Case 3: 404 Not Found.' },
+          { id: 'c', label: 'C', text: 'Case 1: 204 No Content; Case 2: 401 Unauthorized; Case 3: 403 Forbidden.' },
+          { id: 'd', label: 'D', text: 'Case 1: 409 Conflict; Case 2: 404 Not Found; Case 3: 502 Bad Gateway.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Proper REST semantics require accurate status codes: 404 indicates the parent target resource (the workspace) does not exist; 409 indicates the request cannot be completed because it conflicts with the current state of the resource (the user is already a member); 400 (or 422) indicates syntax errors or semantic validation failures in the request body. Returning 500 (Option B) for expected domain collisions is an error handling bug; Options C and D misuse auth and server gateway error codes.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-16-springrest-mcq-06',
+        question:
+          'A multi-tenant SaaS application exposes PUT /api/v1/accounts/settings. The request body includes { "accountId": 9482, "emailNotifications": false }. A penetration tester captures the request and modifies "accountId": 9482 to "accountId": 1001 (an account belonging to a competitor), successfully updating the competitor\'s settings. What security vulnerability was exploited (Insecure Direct Object Reference / BOLA), and how must the Spring controller be refactored?',
+        options: [
+          { id: 'a', label: 'A', text: 'The controller trusted the unauthenticated client-supplied ID in the request body; it must ignore or remove the ID from the payload and extract the authenticated principal\'s identity strictly from SecurityContextHolder.getContext().getAuthentication() (or @AuthenticationPrincipal), verifying authorization before executing changes.' },
+          { id: 'b', label: 'B', text: 'Add an @PreAuthorize("hasRole(\'USER\')") annotation to the controller method to verify that the caller is logged in.' },
+          { id: 'c', label: 'C', text: 'Encrypt the accountId integer into an opaque alphanumeric string before sending it to the client, preventing sequential ID guessing.' },
+          { id: 'd', label: 'D', text: 'Check that the accountId in the JSON body matches the accountId query parameter passed in the URL.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Broken Object Level Authorization (BOLA / IDOR) is the #1 vulnerability on the OWASP API Security Top 10. When an API trusts a client-supplied resource ID without verifying that the authenticated session owns that resource, any user can tamper with others\' data. The API must resolve tenant/user identity from the validated cryptographic authentication token (e.g. JWT in SecurityContextHolder) and verify that the target entity belongs to that principal. Option B checks that the user is authenticated with a role, but fails to check object-level ownership; Option C relies on security-through-obscurity; Option D compares two client-controlled values without server-side authorization.'
+      }
+    ]
+  },
+  'java-spring-lld/spring-enterprise-architecture/17-machine-coding-capstone': {
+    practiceQuestions: [
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-17-capstone-mcq-01',
+        question:
+          'In a high-concurrency ticket booking capstone, a service method coordinates: 1) allocating seat inventory, 2) invoking an external credit card payment gateway via HTTP, 3) saving the confirmed booking to PostgreSQL, and 4) sending an email confirmation via SMTP. Why is wrapping this entire sequence inside a single @Transactional method a catastrophic architectural flaw?',
+        options: [
+          { id: 'a', label: 'A', text: 'Holding a database transaction open while waiting for external network calls (payment gateway HTTP and SMTP email) holds open database connections and locks for seconds, rapidly exhausting the database connection pool and causing system-wide cascading thread starvation.' },
+          { id: 'b', label: 'B', text: 'Invoking HTTP calls inside @Transactional automatically escalates the transaction isolation level to SERIALIZABLE, causing high deadlock rates.' },
+          { id: 'c', label: 'C', text: 'If the SMTP email delivery fails due to a network glitch, the entire transaction rolls back—cancelling a booking for which the customer\'s credit card was already charged.' },
+          { id: 'd', label: 'D', text: 'External HTTP calls held inside @Transactional cause Spring to automatically retry the transaction if a 5xx response is received, leading to double payments.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Database transactions must remain strictly bounded to fast, in-database operations (typically under 10–20 milliseconds). Introducing blocking third-party network I/O (payment processing taking 2–5 seconds, email delivery taking 1–3 seconds) inside @Transactional ties up precious database connection pool slots for hundreds of times longer than necessary. Under moderate concurrency, all DB connections become exhausted, bringing down the entire platform. While Option C highlights a genuine and severe dual-write failure mode, Option A identifies the fundamental system-wide availability flaw that crashes the entire database pool. Options B and D describe fabricated framework behaviors.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-17-capstone-mcq-02',
+        question:
+          'In a distributed microservices platform, when a ticket booking is confirmed, the BookingService must commit the booking record to PostgreSQL and publish a BookingConfirmedEvent to Apache Kafka for downstream analytics and notification services. An engineer writes:\n@Transactional\npublic void confirmBooking(Booking booking) {\n    bookingRepository.save(booking);\n    kafkaTemplate.send("booking-events", new BookingConfirmedEvent(booking.getId()));\n}\nWhat dual-write inconsistency can occur in this implementation, and how does the Transactional Outbox pattern solve it?',
+        options: [
+          { id: 'a', label: 'A', text: 'If the Kafka broker is temporarily unreachable, the database transaction will roll back; conversely, if Kafka succeeds but the subsequent DB commit fails, an event is published for a non-existent booking. The Transactional Outbox pattern solves this by saving the event to an outbox table in the same database transaction as the booking entity, and an asynchronous poller or Change Data Capture (Debezium) publishes outbox records to Kafka with guaranteed at-least-once delivery.' },
+          { id: 'b', label: 'B', text: 'Using Kafka\'s transactional producer within @Transactional requires distributed 2-phase commit (XA transactions), which imposes significant latency and broker coordination overhead.' },
+          { id: 'c', label: 'C', text: 'Setting acks=all on KafkaTemplate guarantees that the message is delivered, making the database commit redundant.' },
+          { id: 'd', label: 'D', text: 'Kafka consumers can poll the PostgreSQL database directly using CDC tools without needing an outbox table.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'The dual-write problem arises when modifying two independent distributed systems (a relational DB and a message broker) without two-phase commit (2PC). If the database commits but the network fails before Kafka receives the message, the event is permanently lost. If Kafka receives the message but the database commit fails (e.g. unique constraint violation or DB timeout), ghost events are sent downstream. The Transactional Outbox pattern ensures atomicity by recording the message in an outbox database table within the same local ACID transaction as business data, decoupling external message transmission to an asynchronous, retrying worker. Option B describes XA overhead accurately but does not solve the application-broker dual write without 2PC; Option C ignores database state requirements; Option D exposes raw internal schemas to consumers.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-17-capstone-mcq-03',
+        question:
+          'A ticketing platform runs 20 horizontal Spring Boot microservice pods behind a load balancer. During a concert on-sale, multiple pods receive concurrent booking requests for the same high-demand seats. What are the engineering trade-offs between implementing distributed locks via Redis (e.g. Redisson) versus using PostgreSQL pessimistic locking (SELECT ... FOR UPDATE) directly on seat rows?',
+        options: [
+          { id: 'a', label: 'A', text: 'Redis distributed locks reduce database load by intercepting seat contention in an ultra-fast in-memory layer before requests hit PostgreSQL, but introduce operational complexity (split-brain hazards, lock lease expiration renewal via watchdogs); PostgreSQL pessimistic locks are natively ACID-compliant and guarantee zero lock state drift, but concentrate CPU and connection contention on the primary database engine.' },
+          { id: 'b', label: 'B', text: 'Redis distributed locks provide eventual consistency rather than strong consistency, allowing two pods to acquire the same lock if clock drift occurs.' },
+          { id: 'c', label: 'C', text: 'PostgreSQL pessimistic locking requires all pods to run inside the same availability zone to maintain lock tables.' },
+          { id: 'd', label: 'D', text: 'Redis locks are vulnerable to silent release if the GC pause on a microservice pod exceeds the lock lease time, allowing a concurrent pod to acquire the lock while the first pod is still executing.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Redis distributed locks (using Redis primitives or Redisson with automatic lease extension) provide extremely low-latency coordination, protecting relational databases from thundering herds. However, they require careful handling of TTLs, network partitions, and Redis cluster failovers. In contrast, database row locks (SELECT ... FOR UPDATE) provide rock-solid ACID consistency without extra infrastructure, but high contention creates connection pooling bottlenecks and row-lock queues on the database server. While Options B and D highlight real risks of distributed locking (Martin Kleppmann\'s critique of Redlock), Option A provides the comprehensive architectural trade-off. Option C is false because DB locks are enforced centrally in the database regardless of caller AZ.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-17-capstone-mcq-04',
+        question:
+          'A customer reserves a ticket. The payment provider sends a webhook {"orderId": "ORD-99", "status": "SUCCESS"}. However, due to a severe network partition between the payment gateway and the application, the webhook is delivered 20 minutes late. By this time, the application\'s seat lock had expired, and the seat was already booked and paid for by a second customer. How must the payment webhook handler be designed to gracefully resolve this late-arriving event?',
+        options: [
+          { id: 'a', label: 'A', text: 'The webhook handler must verify the current state of ORD-99 inside a transaction; detecting that the booking is in an EXPIRED state, it must reject confirmation, record the reconciliation anomaly in an audit log, and automatically trigger an API call to the payment gateway to execute a full customer refund.' },
+          { id: 'b', label: 'B', text: 'It should acknowledge the webhook with HTTP 200 OK and place the second payment into a general ledger account for manual quarterly auditing.' },
+          { id: 'c', label: 'C', text: 'It should update the booking status to PAYMENT_RECEIVED_INVENTORY_UNAVAILABLE and prompt the customer via push notification to select alternate seats.' },
+          { id: 'd', label: 'D', text: 'It should return HTTP 409 Conflict to the payment gateway so the gateway will automatically cancel the credit card charge.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'In distributed financial architectures, time delays and network partitions mean webhook callbacks can arrive after internal business leases have expired and resources have been reallocated. A production payment reconciliation handler must be idempotent and state-aware: if the underlying reservation has expired or cancelled, it must strictly prevent illegal double-allocation and automatically dispatch an automated compensatory refund to the customer. Option B creates manual reconciliation bottlenecks; Option C leaves customers charged without confirmed seats; Option D misunderstands webhook protocols (gateways do not auto-refund on 4xx responses; they simply retry delivery).'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-17-capstone-mcq-05',
+        question:
+          'A customer reports an intermittent 500 error when booking a cab, but the error happens across a microservice chain: ApiGateway -> BookingService -> DispatchService -> RabbitMQ -> DriverNotificationService. The engineering team cannot find the relevant logs in Elasticsearch because hundreds of concurrent requests generate millions of intertwined log lines. What architectural pattern and Spring/Micrometer mechanism solves this debugging challenge?',
+        options: [
+          { id: 'a', label: 'A', text: 'Implement Distributed Tracing by generating a unique Correlation ID (X-Correlation-ID / traceId) at the API Gateway, propagating it across HTTP headers and message queue metadata, and populating it into the logging MDC (Mapped Diagnostic Context) so all log statements across every service share the same searchable trace ID.' },
+          { id: 'b', label: 'B', text: 'Use a centralized database table where each service inserts its log events using synchronous JDBC statements.' },
+          { id: 'c', label: 'C', text: 'Rely on client IP addresses and timestamps to correlate log messages in Elasticsearch.' },
+          { id: 'd', label: 'D', text: 'Configure log aggregators to group log statements using regular expressions on thread names.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Distributed tracing (using tools like OpenTelemetry, Micrometer Tracing, and SLF4J MDC) injects a unique trace and span ID into every incoming request. When making downstream HTTP calls or publishing message queue events, this correlation ID is propagated via request headers and message properties. Every logger prints the correlation ID from the MDC, allowing engineers to query Elasticsearch or Grafana Loki for that single ID and inspect the complete end-to-end execution path across all decoupled services. Option B introduces severe database contention and latency bottlenecks; Option C fails because multiple requests share IPs behind NATs and timestamps drift; Option D is useless because thread names repeat across thread pools.'
+      },
+      // SOURCE_TYPE: LLM_GENERATED
+      {
+        id: 'lesson-17-capstone-mcq-06',
+        question:
+          'During a high-profile stadium concert release, 50,000 users attempt to access the booking endpoint within the first 500 milliseconds. If all 50,000 requests pass directly to the downstream booking service, the database connection pool will instantly saturate, causing thread exhaustion and cascading failures across the entire ecosystem. Which rate limiting and traffic management strategy should be implemented at the API Gateway layer to protect core services?',
+        options: [
+          { id: 'a', label: 'A', text: 'Implement Token Bucket or Leaky Bucket rate limiting at the API Gateway (using Redis-backed distributed rate limiters), allowing traffic up to downstream capacity while shedding excess bursts with HTTP 429 Too Many Requests and a Retry-After header.' },
+          { id: 'b', label: 'B', text: 'Rely on TCP backpressure and keep-alive socket limits to queue requests at the network layer.' },
+          { id: 'c', label: 'C', text: 'Scale out the database connection pool size to 50,000 connections so every incoming request can immediately acquire a connection.' },
+          { id: 'd', label: 'D', text: 'Configure a circuit breaker on the booking controller that trips open whenever average latency exceeds 200 milliseconds.' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Protecting core domain services from flash-sale overload requires proactive traffic shaping and load shedding at the network edge / API gateway. Algorithms like Token Bucket or Leaky Bucket (often implemented using Redis Lua scripts) enforce concurrency and throughput ceilings. Requests exceeding the threshold are immediately rejected with HTTP 429 Too Many Requests before they consume database connections or application thread pools. Option B buffers connections until operating system file descriptors are exhausted; Option C crashes PostgreSQL due to excessive process memory and CPU context-switching overhead; Option D trips after the database is already overwhelmed rather than proactively shaping traffic.'
+      }
+    ]
+  },
 };
 
 export function getLessonInteractions(courseSlug, moduleSlug, lessonSlug) {
