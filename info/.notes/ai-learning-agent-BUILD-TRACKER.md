@@ -6,12 +6,15 @@
 > full context lives in
 > [ai-learning-agent-SESSION-HANDOFF.md](ai-learning-agent-SESSION-HANDOFF.md).
 
-**Last updated:** 2026-09-20
+**Last updated:** 2026-09-21
 **Overall status:** Phase 0 core goal (new stack reachable end-to-end, JWT
 trust bridge working) confirmed done. **Phase 1.1 (project scaffold) now
 fully complete** — see
 [SESSION-2026-09-20-langfuse-integration-and-docker-compose.md](SESSION-2026-09-20-langfuse-integration-and-docker-compose.md).
-Phase 1.2 (content ingestion pipeline) starting next.
+**Phase 1.2's ingestion-pipeline scaffold (DB connectivity, `content_chunks`
+schema + indexes, idempotent migrations) is built and verified locally as of
+2026-09-21** — see §1.2 below. The three content extractors (lessons, MCQs,
+exercises) are the next real work, not yet started.
 
 ---
 
@@ -144,26 +147,80 @@ to 0.88."
 for the full record, including several real mistakes made along the way
 (wrong assumed database name, a `docker exec -t` binary-corruption gotcha,
 an unverified "backup" that turned out to be invalid) worth reading before
-touching this database again. **One open item from that migration blocks
-nothing today but should be resolved before this is considered
-production-hardened:** `CREATE EXTENSION vector` was enabled manually,
-one-off, directly against the live database — it is not yet captured in any
-EF Core migration or init script, so a from-scratch database recreation
-would silently need this redone.
+touching this database again. **Update 2026-09-21:** the "not captured
+anywhere" gap is now closed going forward — `ai-agent/migrations/` holds a
+tracked, idempotent SQL migration (`001_enable_pgvector_extension.sql`) that
+re-enables the extension safely on any environment, run via
+`ai-agent/migrate.py`. The original prod enablement was still done manually
+at the time, but any future environment (fresh clone, rebuilt database) now
+gets it reproducibly through this migration instead of a remembered one-off
+step.
 
-- [ ] Lesson content parser (read existing curriculum .md / seed data)
+**Ingestion pipeline scaffold (Phase A) built and verified live 2026-09-21,
+all against the real local dev database, not just assumed working:**
+- [x] `ai-agent` → Postgres connectivity — async connection pool
+      (`ai-agent/db.py`, `psycopg` + `psycopg_pool`, `pgvector-python`'s
+      `register_vector_async` wired via the pool's `configure=` callback),
+      opened/closed via a FastAPI `lifespan` hook in `ai-agent/main.py`
+- [x] `content_chunks` table schema decided and created — see
+      `ai-agent/migrations/002_create_content_chunks.sql` for the full
+      column list (`lesson_id`, `module_id`, `chunk_type`, `section_path`,
+      `concept_tags[]`, `content_quality_tier`, `source_type`, `raw_text`,
+      `token_count`, `embedding vector(1024)`, generated `search_vector
+      tsvector`)
+- [x] pgvector table creation + index — `hnsw (embedding vector_cosine_ops)`
+      chosen over `ivfflat` deliberately (no upfront `lists` tuning needed,
+      better recall at this corpus's small scale)
+- [x] tsvector column + GIN index for sparse search — generated column
+      (`GENERATED ALWAYS AS ... STORED`), so it can never drift out of sync
+      with `raw_text`
+- [x] Idempotent migration mechanism — `ai-agent/migrate.py` + a
+      `schema_migrations` tracking table (numbered SQL files in
+      `ai-agent/migrations/`, applied once, safely skipped on rerun —
+      proven via two consecutive runs, second one a no-op)
+- **Scope decision (2026-09-20/21):** `ai-agent/` is hand-written by the
+  user, not Local-LLM/Gemini-prompted like the rest of the AI-integration
+  work CLAUDE.md's scope rule would otherwise allow — deliberate, to keep
+  practicing hands-on Python given AI-assisted coding's effect on
+  interview-relevant coding fluency.
+- **Exercise content source corrected:** the `problems` DB table (5 rows,
+  admin-only manual entry) is **not** the real exercise content — that's
+  `exercises/java/java-lld/**/exercise.json` on disk: 65 real, fully-wired
+  exercises (starter/solution/tests/pom.xml) across 9 topics, covering 17
+  distinct lessons via `lessonSlug`, already served live through
+  `ExerciseRepository`/`ExerciseService`/`ExerciseEndpoints` +
+  `ImplementationExercise.jsx`. Ingestion's exercise pass (Phase D below)
+  reads from there, not from `problems`.
+- **Embedding/reranking provider: DeepInfra, both `bge-m3` and
+  `bge-reranker-v2-m3`** — evaluated and deliberately rejected AWS Bedrock
+  (Titan Embed V2 is 2× DeepInfra's price, Amazon Rerank 1.0 is
+  ~10–125× DeepInfra's price depending on chunk size) and India-native
+  alternatives (Sarvam AI and Krutrim Cloud both lack any embedding model in
+  their catalogs; AICredits.in is a viable UPI-billed proxy in front of
+  DeepInfra at a ~10% markup if payment friction becomes a blocker). Revisit
+  only if DeepInfra's prepaid-wallet risk (funds not recoverable if unused)
+  materializes.
+
+**Remaining content-ingestion work (Phase B onward — extractors, not yet
+built):**
+- [ ] Lesson content parser (DB read from `lessons.content_body`, filtered
+      `content_status = 'Published'`, joined to `course_modules` and
+      `lesson_concept_links` → `knowledge_concepts` for metadata — not a
+      `.md` file parser, no lesson `.md` files exist on disk anymore)
 - [ ] Hierarchical chunking (H2 → H3 → H4 section boundaries)
-- [ ] AST-aware chunking via tree-sitter (Java code blocks stay intact)
-- [ ] Atomic MCQ chunking (one MCQ = one chunk)
-- [ ] Metadata extraction per chunk (lesson_id, module_id, section_path,
-      chunk_type, concept_tags, content_quality_tier)
-- [ ] Embedding generation via Deepinfra-hosted `BAAI/bge-m3` (cloud API
-      first, per the 2026-09-13 sequencing decision above — same weights
-      the Mac Studio will later serve locally, so no re-embed needed when
-      that switch happens)
-- [ ] pgvector table creation + index
-- [ ] tsvector column + GIN index for sparse search
-- [ ] Ingestion script (run once, idempotent re-run)
+- [ ] Atomic MCQ chunking (one MCQ = one chunk; MCQs are embedded inside
+      `content_body`, not a separate table)
+- [ ] AST-aware chunking via tree-sitter (Java code blocks in exercise
+      `solution/**/*.java` files stay intact)
+- [ ] Exercise ingestion — manifest / evidence[] / solution-code chunks from
+      `exercises/**/exercise.json`, resolved to `lesson_id` via `lessonSlug`
+- [ ] Metadata extraction per chunk (mostly designed already — see the
+      `content_chunks` schema above)
+- [ ] Embedding generation via Deepinfra-hosted `BAAI/bge-m3` (wired last,
+      once chunking output is stable — see Phase E reasoning in this
+      session's chat log)
+- [ ] Ingestion script tying all three extractors together, idempotent via
+      a per-chunk `content_hash` (same pattern as the migration runner)
 
 ### 1.3 RAG retrieval pipeline
 - [ ] Dense retrieval (pgvector cosine similarity)
