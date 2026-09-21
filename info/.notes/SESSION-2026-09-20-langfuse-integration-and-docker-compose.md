@@ -308,10 +308,11 @@ bundled into today's dev-only work.
 Nothing left here. Move to Phase 1.2.
 
 ### 4.2 Before real EC2 deployment of `ai-agent`'s new Langfuse/env changes
-- [ ] Update the SSM Parameter Store value at `/neuralascent/prod/api-env`
+- [x] Update the SSM Parameter Store value at `/neuralascent/prod/api-env`
       to include `MUSE_AI_API_KEY`, `LANGFUSE_PUBLIC_KEY`,
-      `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` (see §3) — **not done, and
-      shouldn't be done casually/automatically; a deliberate, separate step**
+      `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` (see §3) — **done later the
+      same day, see §7 addendum below for the real deploy that followed and
+      the two bugs it surfaced**
 - [ ] Optional cosmetic: add `IMAGE_AI_AGENT=ghcr.io/balajiraghuram92/scaler-education-journey-ai-agent`
       to `.env.example` for parity with `IMAGE_API`/`IMAGE_APP` (compose
       already has a working `:-` fallback default, so this is purely
@@ -373,6 +374,101 @@ provisioning (flagged since the Sep-13 session, still outstanding).
 3. Read §3 above before touching anything SSM/EC2-secrets-related — it's
    easy to assume a local `.env`/Compose change does something for
    production when it doesn't.
-4. Ask the user whether Phase 1.2 (content ingestion) is next, or whether
-   the SSM update (§4.2) or something else has taken priority since this
-   was written.
+4. **Read §7 below — it's the actually-current state.** The SSM update and
+   first real EC2 deploy of `ai-agent` happened later the same day this file
+   was written, and surfaced two real bugs (missing `--env-file` in the
+   deploy script, and a quoting bug in the SSM value) that aren't visible
+   anywhere above this point in the file.
+5. Ask the user whether Phase 1.2 (content ingestion) is next.
+
+---
+
+## 7. Addendum (later the same day, 2026-09-20) — first real EC2 deploy of `ai-agent`, two real bugs found and fixed
+
+Everything in §§1–6 above was verified only against local Docker Compose.
+**`ai-agent` had never actually been deployed to the production EC2
+instance at all** — `docker ps -a` on the host showed only
+`studytracker-app`, `studytracker-api`, `studytracker-postgres`, all 6 days
+old, no `ai-agent` container ever created there. This section is the record
+of making that first real deploy actually work, done in a follow-up chat
+session (context: prior session had run low, continued fresh).
+
+### 7.1 Bug 1 — `deploy-single-ec2.sh` never gave `ai-agent` its env file
+[`start_ai_agent()`](../../scripts/deploy-single-ec2.sh) only ever passed
+four explicit `-e` flags (JWT vars, name-translated from the `.NET` side's
+`Auth__*` convention) — unlike `start_api()`, which passes
+`--env-file "${ENV_FILE}"` for the whole file. So `MUSE_AI_API_KEY` and the
+three `LANGFUSE_*` vars never reached the container at all, regardless of
+what SSM/`.env` contained. This was a pure deploy-script omission, nothing
+to do with Python or Docker Compose (which already had the right vars in
+its own `environment:` block). Fixed by adding
+`--env-file "${ENV_FILE}"` to `start_ai_agent()`'s `args` array, right
+before the four existing `-e` flags. Committed as `b37b78a`
+("Pass full env file to ai-agent container so Langfuse/Muse vars reach it").
+
+### 7.2 Detour — GitHub Actions/SSM output truncation hid the real error
+The EC2 deploy step runs via `aws ssm send-command`
+(`AWS-RunShellScript`), and the workflow prints the result via
+`aws ssm get-command-invocation --query '{...Stdout...}'`. That API
+truncates `StandardOutputContent`/`StandardErrorContent` at a few KB — and
+the `--seed-reference-data` step alone logs one EF Core line per SQL query
+across ~180 lessons, easily filling that entire budget before anything
+that happens *after* seeding (container restarts, health checks) ever gets
+printed. Every failed run's log cut off at almost the identical spot, mid
+lesson-lookup query — a structural truncation, not a per-run coincidence.
+
+Fixed by adding S3 output capture to the `aws ssm send-command` call in
+[.github/workflows/deploy-api.yml](../../.github/workflows/deploy-api.yml)
+(`--output-s3-bucket-name`, `--output-s3-key-prefix deploy-logs/${GITHUB_SHA}`),
+plus a `Show full deploy log location on failure` step that prints the S3
+path on failure. Committed as `a3d6c14`.
+
+This itself needed an IAM fix: `StudyTrackerEC2SSMRole` (the EC2 instance's
+own role, which uploads the log via the SSM agent) only had
+`s3:PutObject`/`ListBucket` scoped to `database-backups/*` — writes to the
+new `deploy-logs/*` prefix were silently denied (SSM doesn't surface a
+log-upload failure as a workflow error, it just never appears). Widened the
+role's inline policy: added `deploy-logs`/`deploy-logs/*` to the existing
+`ListBucket` condition, and added a new `ManageNeuralascentDeployLogs`
+statement granting `GetObject`/`PutObject` (deliberately no
+`DeleteObject`) on `.../deploy-logs/*`.
+
+### 7.3 Bug 2 (the actual root cause) — quoted value in the SSM parameter
+With the full log finally visible, the real failure was clear: `ai-agent`
+was failing its `/health` check every time, and
+[deploy-single-ec2.sh](../../scripts/deploy-single-ec2.sh)'s `rollback()`
+removes the crashed container before its logs can ever be read — so the
+truncation fix alone wasn't enough to see *why* it crashed. Reproduced live
+by running the exact same image in the foreground on the EC2 host
+(`docker run` without `-d`, using the real `--env-file`), which printed the
+actual Python traceback:
+```
+httpx.UnsupportedProtocol: Request URL is missing an 'http://' or 'https://' protocol.
+```
+raised inside `langfuse.auth_check()` in
+[ai-agent/observability.py](../../ai-agent/observability.py) at import
+time. Root cause: the SSM parameter's `LANGFUSE_BASE_URL` value had been
+manually edited in the AWS console as
+`LANGFUSE_BASE_URL="https://us.cloud.langfuse.com"` — with literal quote
+characters. **Docker's `--env-file` does not strip quotes the way a shell
+would** — it takes everything after `=` as the literal value, so the
+container's actual env var became `"https://us.cloud.langfuse.com"`
+(quotes included), which fails URL-scheme parsing. Fixed by editing the SSM
+value to remove the quote characters entirely.
+
+**Lesson for any future SSM parameter edit destined for a Docker
+`--env-file`:** never wrap values in quotes the way you would in a shell
+script — quotes are shell syntax, not part of the value, and Docker/SSM
+treat the file as raw `KEY=value` text with no shell parsing.
+
+### 7.4 Verified live, for real this time
+After the quote fix: re-ran the foreground `docker run` on the EC2 host —
+started clean (`Langfuse client is authenticated and ready!`, uvicorn
+serving), `curl http://127.0.0.1:5001/health` → `{"status":"ok"}` on the
+actual production host. Then re-triggered the real GitHub Actions deploy —
+**went green**. `ai-agent` is now running live on production EC2 for the
+first time ever, alongside `api`/`app`/`database`, with the full
+Langfuse/Muse env actually reaching it.
+
+**Phase 1.1 is now genuinely fully verified in production**, not just
+locally via Compose as §§1–6 above had claimed.
