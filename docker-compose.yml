@@ -117,7 +117,8 @@ services:
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?LANGFUSE_PUBLIC_KEY must be set}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?LANGFUSE_SECRET_KEY must be set}
       LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:?LANGFUSE_BASE_URL must be set}
-
+      DATABASE_URL: postgresql://${POSTGRES_USER:-studyuser}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB:-studytracker}
+    
     networks:
       backend-net:
         aliases:
