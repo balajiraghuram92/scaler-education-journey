@@ -26,7 +26,7 @@ async def main():
 
                 sql = path.read_text()
                 async with conn.transaction():
-                    await conn.executr(sql)
+                    await conn.execute(sql)
                     await conn.execute(
                         "INSERT INTO schema_migrations (filename) VALUES (%s)",
                         (path.name,)
