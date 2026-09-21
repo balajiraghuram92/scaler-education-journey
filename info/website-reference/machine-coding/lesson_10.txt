@@ -1,0 +1,41 @@
+Logo
+Scaler Companion
+beta
+_
+Comprehensive Revision Notes: Building BookMyShow with Spring Boot
+Overview
+In this class, we explored the foundational steps for building a BookMyShow replica using Spring Boot and JPA. We began by setting up the model layer, using Lombok to generate boilerplate code for getters and setters. We then focused on establishing database connections, enhancing our understanding of entity-relationship mapping with JPA annotations, and setting up application configurations for running our application with a database.
+
+Setting Up the Project
+Spring Boot with JPA: Our project uses Spring Boot for its framework simplicity and JPA (Java Persistence API) for object-relational mapping, with Hibernate as the default ORM implementation.
+Project Dependencies: We utilized Spring Boot DevTools, Lombok, Spring Data JPA, and MySQL Driver to facilitate rapid development and database interaction.
+Creating the Model Layer
+Base Entity: Introduced a BaseEntity class extended by all model classes to include common fields: id, createdAt, updatedAt.
+Lombok Annotations: Used @Getter and @Setter annotations to eliminate the need for manually coding getters and setters.
+Entity Classes: Developed core entity classes such as Region, Theatre, Screen, Seat, and Movie, each extending the BaseEntity.
+Establishing Database Connection
+Configuration Properties: Configured application.properties to define the database connection:
+spring.datasource.url
+spring.datasource.username & password
+spring.jpa.hibernate.ddl-auto=update for auto schema update
+Database Setup: A local MySQL database named bookmyshow was created to store our tables.
+Entity-Relationship Mapping
+Annotations for Relationships:
+@Entity: Designates a class as a JPA entity, mapping it to a database table.
+@Id and @GeneratedValue: Mark the primary key and specify ID generation strategy.
+Cardinality Annotations:
+@OneToMany and @ManyToOne define the relationship between entities, with mappedBy used to establish the owner side of bidirectional relationships.
+@JoinColumn specifies the foreign key column on the owning side.
+Defining Relationships
+Example: Region and Theatre
+One-to-Many:
+Each Region can have multiple Theatres.
+Foreign key stored in Theatre table as region_id.
+Annotations:
+Region: @OneToMany(mappedBy = "region")
+Theatre: @ManyToOne with @JoinColumn(name = "region_id")
+Managing Enums
+Storing Enum Values: Utilized @Enumerated(EnumType.STRING) to store human-readable names of enums in the database, avoiding the pitfalls of ORDINAL storage.
+Conclusion
+This class set the groundwork for a BookMyShow-like application using Spring Boot and JPA. By focusing on entity creation, relationship mapping, and database configurations, we established a robust start for managing cinema bookings. Leveraging annotations greatly simplifies the development process by automating table creation and relationships, allowing developers to concentrate on business logic rather than database intricacies. In future classes, we will build upon this foundation to add more comprehensive functionalities and user interactions.
+

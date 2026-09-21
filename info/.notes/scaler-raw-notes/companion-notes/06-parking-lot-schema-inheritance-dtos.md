@@ -1,0 +1,52 @@
+Source: Downloads/machine-coding/lesson_6.txt (Scaler Companion AI-generated class revision notes)
+
+Comprehensive Revision Notes: Schema Design & Code Implementation for a Parking System
+Overview
+In this class, we explored advanced concepts in schema design and their application in designing a parking system. We covered methods to represent inheritance in databases, strategies for storing enums efficiently, and the use of Data Transfer Objects (DTOs) to streamline data handling between client and server. We also began structuring the code architecture for a parking management system, focusing on creating model classes with proper design patterns.
+
+Transforming Class Diagrams to Schema Diagrams
+Classes to Entities: Each class from the class diagram becomes a table in the schema.
+Attributes:
+Primitive attributes turn into columns in the table.
+Non-primitive or object references become foreign keys.
+Relationships: Determine cardinality (one-to-many, many-to-many) and use foreign keys or mapping tables accordingly.
+Representing Inheritance in Schema Design
+Traditional Approach Issues
+Combining all child and parent attributes results in sparse tables with lots of nulls.
+Multiple tables for each child class leads to redundancy and complex queries.
+Improved Approach: Single Table Inheritance
+One Parent Table: Contains common attributes for all subclasses.
+Child Tables: Contain only unique attributes and a reference (foreign key) to the parent table.
+This design avoids redundancy and simplifies queries, allowing straightforward data retrieval with fewer joins.
+Storing Enums in Database
+Direct Storage as Strings
+Disadvantages:
+Increased storage space due to repeated strings.
+Typo risk and lack of data integrity.
+Using Lookup Tables
+Benefits:
+Reduces space by storing integers as foreign key references.
+Simplifies updates and maintains value integrity.
+Practical Considerations: Lookup tables are used when enum values can change over time or grow.
+Coding the Model Layer
+Base Entity for Common Attributes
+Attributes: ID, createdAt, updatedAt.
+Purpose: Maintain uniformity and apply auditing across all entities.
+Key Models in the Parking System
+Entities:
+ParkingLot, ParkingFloor, ParkingSpot
+Gate, Operator, Vehicle
+Ticket, Bill, Payment
+Enums: Used for static types like GateType, VehicleType.
+Designing Model Classes
+Emphasized using interfaces for strategies (SlotAssignmentStrategy, FeeCalculationStrategy) to allow dynamic changes at runtime.
+Introduction to Data Transfer Objects (DTOs)
+Purpose of DTOs
+Efficiency: Transmit only necessary data, reducing payload size.
+Security: Avoids exposing sensitive data and complex internal models.
+Robustness: Changes in backend models do not affect clients if properly abstracted by DTOs.
+Implementation
+Request and Response DTOs separate client-server interaction from internal model logic.
+Simplifies API design by providing a stable interface regardless of internal model changes.
+Conclusion
+The session laid the groundwork for designing and implementing a robust parking management system. By correctly applying schema design principles and coding patterns, especially DTOs, we ensure scalability, maintainability, and security in the system design. Understanding and applying these concepts is crucial for efficient database management and software architecture in real-world applications.

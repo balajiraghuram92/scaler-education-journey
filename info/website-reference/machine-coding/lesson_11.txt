@@ -1,0 +1,86 @@
+Logo
+Scaler Companion
+beta
+_
+Comprehensive Revision Notes: Code BookMyShow - Part 2
+Overview
+This class addressed key aspects of implementing the BookMyShow application's ticket booking feature. Initially, it focused on handling reserved SQL keywords for the entities involved. The lesson then navigated through designing controllers and DTOs to manage bookings efficiently. Further exploration into race conditions and the implementation of soft locking using the SERIALIZABLE isolation level offered a robust solution for concurrent seat booking issues. The class concluded with building a BookingService, emphasizing Spring's annotation for dependency injection.
+
+Handling Reserved Keywords
+Identifying Reserved Keywords
+Issue: SQL keywords such as "user", "show", and "row" conflict with MySQL and PostgreSQL reserved words.
+Solution: Utilize @Entity(name = "new_table_name") in Hibernate to rename the tables to "users" and "shows" for compatibility.
+The Booking Use Case: Controller And DTOs
+Setting Up the Controller
+@RestController: Handles HTTP requests and returns data as JSON, which is more suitable for APIs compared to @Controller.
+Method Setup:
+@PostMapping("/book")
+public BookMovieResponseDto bookMovie(@RequestBody BookMovieRequestDto request) {
+    // ...
+}
+Designing DTOs
+BookMovieRequestDto:
+@Getter
+@Setter
+public class BookMovieRequestDto {
+    private List<Long> showSeatIds;
+    private Long userId;
+    private Long showId;
+}
+BookMovieResponseDto:
+public enum ResponseStatus {
+    SUCCESS, FAILURE,
+}
+
+@Getter
+@Setter
+public class BookMovieResponseDto {
+    private ResponseStatus responseStatus;
+    private int amount;
+    private Long bookingId;
+}
+The Booking Flow And The Race Condition
+Booking Process
+Selection: Users select seats, but no reservation is yet made.
+Confirmation: Sets a temporary hold on selected seats.
+Payment: Finalizes the booking within a set period (e.g., 15 minutes).
+Race Condition
+Occurs when two or more users attempt to book the same seat concurrently. The naive check-then-act sequence fails, leading to possible double-booking.
+Solving The Race Condition
+Soft Locking Approach
+Soft Lock: Use the ShowSeatStatus field to indicate if a seat is BLOCKED (held temporarily).
+Database Handling: Applied the SERIALIZABLE isolation level in database transactions to ensure one-at-a-time execution order for conflicting operations.
+Implementing Soft Lock with SERIALIZABLE
+Discussed why a READ_COMMITTED level is insufficient and illustrated the mechanics of the SERIALIZABLE isolation:
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public Booking bookMovie(Long userId, List<Long> seatIds, Long showId) {
+    // Implementation
+}
+Code to Implement Booking
+@Service
+public class BookingService {
+    // Initialize repositories
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public Booking bookMovie(Long userId, List<Long> seatIds, Long showId) {
+        // Check and set seat availability
+    }
+}
+Concurrency Test
+Demonstrated using real threads competing for the same seats, ensuring SERIALIZABLE prevented double bookings.
+Building BookingService
+Dependency Injection
+Used @Autowired for injecting repositories and components to manage dependencies efficiently:
+@Autowired
+public BookingService(BookingRepository, ShowRepository, ...) {
+    // Initialize repositories
+}
+AI Corner: PriceCalculator
+Purpose and Implementation
+AI was leveraged to create a basic structure for PriceCalculator but required manual adjustments to align with system-specific requirements.
+Correction ensured the calculation was based on ShowSeatType, reflecting both show and seat type:
+public interface ShowSeatTypeRepository extends JpaRepository<ShowSeatType, Long> {
+    Optional<ShowSeatType> findByShowAndSeatType(Show show, SeatType seatType);
+}
+Conclusion
+The class delved into comprehensive strategies for implementing a race-safe booking system within the BookMyShow application. Leveraging Spring's features and database isolation levels ensured transactional integrity and correct seat management. The use of AI helps streamline certain processes, but understanding system-specific requirements is crucial for aligning AI output with real-world needs. The session underscored the importance of concurrency handling to maintain the application's reliability and efficiency.
+

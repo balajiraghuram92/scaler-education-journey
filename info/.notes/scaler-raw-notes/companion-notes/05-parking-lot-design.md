@@ -1,0 +1,50 @@
+Source: Downloads/machine-coding/lesson_5].txt (Scaler Companion AI-generated class revision notes)
+
+Revision Notes: Designing a Parking Lot System
+Overview
+In this session, we discussed a comprehensive approach to designing a parking lot system, commonly a subject in software engineering interviews. We explored from requirement gathering to a complete class diagram modeling. A parking lot system typically includes multiple levels, various vehicle types, and different payment methods.
+
+Key Concepts and Steps
+Aligning on the Problem Statement
+Before diving into technical design, it's crucial to align with the interviewer on what is being designed. Clarify the understanding to ensure both parties are on the same page about functionalities like spot assignments, payment processing, and user interactions .
+
+Requirements Gathering
+Identify broad requirements including a multi-level parking system with type-specific parking spots, dynamic fee structures, different payment functionalities, and token generation .
+
+The User Journey
+Map out the user journey from entry to exit in the parking system which includes:
+
+Vehicle arrives and passes through the Entry Gate.
+A Ticket is issued at the entry.
+The vehicle is assigned a Parking Spot.
+Payment is processed at the Exit Gate.
+All operations are managed by an Operator .
+Class Diagram
+The parking system is modeled using several key classes:
+
+ParkingLot: Contains floors and gates.
+ParkingFloor: Each floor has multiple parking spots.
+Gate: Represents both entry and exit gates.
+ParkingSpot: Specific spots on a floor, assigned based on vehicle type.
+Vehicle: Details of parked vehicles.
+Ticket: Issued for managing entries.
+Bill and Payment: Handles financial transactions .
+Design Patterns
+Implement the Strategy Pattern for flexible spot assignments and fee calculations. A Builder Pattern was utilized to construct complex ParkingLot objects efficiently .
+
+Relationships and Bidirectional Design
+Understanding relationships, such as the one-to-many between ParkingLot and ParkingFloor, and recognizing when bidirectional relationships are optimal, are essential to designing a real-world system【4:4†source】.
+
+Enums for Flexible States
+Instead of using booleans, enums provide scalability for future states or additional features, such as adding a VIP entry gate .
+
+AI and Design Verifications
+AI interventions helped identify possible issues, like potential conflicts over spot assignments by multiple gates. This exercise reinforces the need to lock resources in concurrent systems .
+
+Schema Design
+Transitioning from the class diagram to a database schema involves converting classes to tables, with enums potentially becoming lookup tables for future flexibility and minimal table structure changes .
+
+Future Considerations
+In subsequent classes, implementing this design in code will address real-world concurrency problems, like preventing multiple gates from assigning the same spot simultaneously .
+
+These notes encapsulate the live class contents, laying foundational knowledge for learners to bridge between theoretical design and practical implementation of a parking lot system.

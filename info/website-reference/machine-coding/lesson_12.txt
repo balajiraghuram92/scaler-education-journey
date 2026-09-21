@@ -1,0 +1,100 @@
+Logo
+Scaler Companion
+beta
+_
+Comprehensive Revision Notes: BookMyShow Case Study
+Overview
+In this class, we concluded the BookMyShow system design with a focus on implementing booking functionality that ensures seat availability and handles concurrency issues effectively. We also incorporated user signup and login functionalities using Spring and established proper password handling with BCrypt for security. Finally, we addressed automatic timestamp management using JPA auditing.
+
+Booking Process
+Booking Algorithm
+Check Seat Availability: Use a lock to ensure only one thread can check the availability of seats at a time.
+Soft vs. Hard Locking: Use soft locking by setting the status of a seat to BLOCKED with a timestamp instead of traditional hard locking. This avoids performance bottlenecks.
+Lazy Expiry Check: Validate if seats previously marked as BLOCKED have expired by checking timestamps during a new booking request.
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public Booking bookMovie(Long userId, List<Long> seatIds, Long showId) {
+    User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    Show show = showRepository.findById(showId).orElseThrow(() -> new RuntimeException("Show not found"));
+
+    List<ShowSeat> showSeats = showSeatRepository.findAllById(seatIds);
+    for (ShowSeat showSeat : showSeats) {
+        boolean isAvailable = showSeat.getShowSeatStatus() == ShowSeatStatus.AVAILABLE;
+        boolean isExpiredBlock = showSeat.getShowSeatStatus() == ShowSeatStatus.BLOCKED
+                && Duration.between(showSeat.getBlockedAt().toInstant(), new Date().toInstant()).toMinutes() > 15;
+
+        if (!(isAvailable || isExpiredBlock)) {
+            throw new RuntimeException("Seat " + showSeat.getId() + " is not available");
+        }
+    }
+
+    for (ShowSeat showSeat : showSeats) {
+        showSeat.setShowSeatStatus(ShowSeatStatus.BLOCKED);
+        showSeat.setBlockedAt(new Date());
+        showSeatRepository.save(showSeat);
+    }
+
+    Booking booking = new Booking();
+    // Assign other necessary details...
+    bookingRepository.save(booking);
+    return booking;
+}
+Example: Booking Flow
+User selects seats.
+The system checks availability and if available, marks them as BLOCKED.
+Booking object created with status PENDING.
+Payment service is called.
+On payment success, status changes to CONFIRMED and seats to BOOKED.
+User Management
+Signup & Login
+DTOs: Used SignUpRequestDto and SignUpResponseDto to handle user signup data interchange.
+Password Handling:
+Used BCrypt for hashing passwords before storing.
+Utilized the matches() method for login password verification.
+@Service
+public class UserService {
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    public User signUp(String email, String password) {
+        Optional<User> existing = userRepository.findByEmail(email);
+        if (existing.isPresent()) {
+            throw new RuntimeException("User with this email already exists.");
+        }
+
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(bCryptPasswordEncoder.encode(password));
+        return userRepository.save(user);
+    }
+
+    public User login(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (!bCryptPasswordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Incorrect password");
+        }
+        return user;
+    }
+}
+Automatic Timestamps with JPA Auditing
+Annotations: @CreatedDate and @LastModifiedDate automatically update createdAt and lastModifiedAt fields.
+Configuration: Requires @EntityListeners(AuditingEntityListener.class) and @EnableJpaAuditing in the main application class.
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public class BaseModel {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @CreatedDate
+    private Date createdAt;
+
+    @LastModifiedDate
+    private Date lastModifiedAt;
+}
+Conclusion
+The BookMyShow class concluded with the successful implementation of booking functionalities that handle concurrency effectively using Spring and JPA features. We also ensured robust user authentication through secure password storage practices and automated timestamp management. These concepts provide insights into architectural decisions made in enterprise-level applications, highlighting the importance of stability, security, and performance efficiency in system design.
+
+lesson_

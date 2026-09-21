@@ -1,0 +1,33 @@
+Source: Downloads/machine-coding/lesson_3.txt (Scaler Companion AI-generated class revision notes)
+
+Comprehensive Revision Notes: Machine Coding 3 - TicTacToe
+Introduction
+This lesson covered the implementation of the TicTacToe game with a focus on efficient win-checking algorithms and step-by-step coding instructions for a complete game. The class aimed to build on the previous session's design of the game and delve into coding, especially the algorithm to efficiently check for a winner.
+
+Session Structure
+The lesson progressed through several key stages:
+
+Recap of TicTacToe Class Diagram: A quick review of the design decisions made in previous classes, especially the entities involved in the game: Game, Board, Cell, Player.
+Algorithmic Problem Solving: Focused on improving the algorithm to check for a winner, starting from a basic approach and optimizing it significantly.
+Coding Practice: The class involved writing code, starting with foundational model classes and advancing towards more complex strategies.
+Key Concepts and Algorithms
+TicTacToe Game Design
+Game Entity: Holds the board, list of players, moves made, winner, game state, and the next player's turn.
+Board and Cell: The board is made up of cells, and each cell is characterized by its position (row, column) and state.
+Player Types: Distinction between human and bot players, with symbols for each player being customizable.
+Design Patterns and Programming Practices
+Enums vs. Booleans: Enums are favored for state representations as they allow extensibility beyond two states (e.g., EMPTY, FILLED, BLOCKED)【6:1†source】.
+Role of Builder Pattern: Used in constructing game objects, ensuring valid initialization through step-by-step setting of attributes .
+Optimized Algorithm for Win Checking
+Initial Approach: Brute force checking of all possible win conditions led to high computational complexity (O(N³)).
+Solution 1: Simplified to check only the player making the current move.
+Solution 2 & 3: Focus on checking only relevant rows, columns, and diagonals impacted by the last move to reduce complexity to O(N).
+Final Optimized Solution: Using hash maps to maintain running counts of symbols in rows, columns, and diagonals, achieving an O(1) time complexity per move by checking counts directly .
+Implementation Structure
+Project Setup: Discussed MVC (Model-View-Controller) setup with distinct packages for models, controllers, services, and exceptions .
+Code Walkthrough: Guidance on implementing code from setting up enums, to creating model classes, and handling game logic with exceptions.
+Practical Coding Aspects
+Handling of Exceptions: Implementation of specific exceptions to manage game errors cleanly, such as invalid moves or board sizes .
+Player Implementations: Creation of base classes for Players with specific methods for moves, including consideration of bot strategies to be implemented in future sessions .
+Conclusion
+This class provided a comprehensive look at building a structured, efficient version of TicTacToe using sound software engineering principles, preparing learners for practical coding tasks and efficient algorithm design. The focus on optimization and structured programming is crucial for developing scalable and maintainable software solutions.

@@ -1,0 +1,78 @@
+Comprehensive Revision Notes: Parking Lot System and Concurrency
+Overview
+In this session, we continued building a parking lot management system. The focus was on completing the implementation of the "issue ticket" functionality, addressing concurrency issues in spot assignment, and introducing optimizations for concurrent requests. We revisited the MVC architecture, emphasizing the separation of concerns through controllers, services, and repositories.
+
+MVC Architecture Recap
+Model-View-Controller (MVC): Architecture pattern for separating application logic.
+Controller: Handles user input and interactions, directing operations to the service layer.
+Service: Contains business logic and handles interactions with repositories.
+Repository: Manages data persistence and retrieval.
+Repository Layer
+Purpose: Provides in-memory storage for model entities. We implemented a generic repository to avoid code duplication across entities.
+Key Methods:
+Save: Adds an entity to the storage. Ensures entities have unique IDs and timestamps.
+Find by ID: Retrieves an entity using its unique identifier.
+Find All: Returns all stored entities.
+Repository Code Example
+public class InMemoryRepository<T extends BaseModel> {
+    private final List<T> items = new ArrayList<>();
+    private long nextId = 1;
+
+    public T save(T item) {
+        if (item.getId() == null) {
+            item.setId(nextId++);
+            item.setCreatedAt(new Date());
+        }
+        item.setLastModifiedAt(new Date());
+        items.add(item);
+        return item;
+    }
+
+    public Optional<T> findById(Long id) {
+        return items.stream().filter(i -> i.getId().equals(id)).findFirst();
+    }
+
+    public List<T> findAll() {
+        return new ArrayList<>(items);
+    }
+}
+Ticket Service and Controller
+Issue Ticket Functionality: Moved business logic from controller to service, emphasizing correct MVC layering.
+Service Responsibilities:
+Validate input.
+Retrieve the correct gate and verify it's an entry gate.
+Create a vehicle entity and save it.
+Find an available parking spot via a strategy.
+Mark the spot as occupied.
+Create and save the ticket.
+Concurrency in Spot Assignment
+Problem Identified: Simultaneous requests from different gates resulted in assigning the same spot to multiple vehicles.
+Solution: Introduced synchronization to ensure thread safety in critical sections where the spot is assigned and marked occupied.
+Concurrency Fix Example
+public class TicketService {
+    private final Object spotLock = new Object();
+
+    public Ticket issueTicket(IssueTicketRequestDTO request) {
+        // Logic to validate gate and create vehicle...
+
+        ParkingSpot assignedSpot;
+        synchronized (spotLock) {
+            assignedSpot = allotmentStrategy.findSpot(
+                parkingSpotRepository.findAll(), request.getVehicleType());
+
+            if (assignedSpot == null) {
+                throw new ParkingFullException("No available spot for this vehicle type");
+            }
+
+            assignedSpot.setParkingSpotStatus(ParkingSpotStatus.OCCUPIED);
+            parkingSpotRepository.save(assignedSpot);
+        }
+
+        // Logic to create and save ticket...
+    }
+}
+Example Use Case
+Scenario: Two vehicles from two different gates simultaneously attempt to park.
+Outcome: Without a concurrency control, both could receive the same parking spot. The fix ensures that only one vehicle successfully occupies it.
+Conclusion
+The session reinforced the importance of proper architectural practices in software engineering, specifically using the MVC pattern to separate logic. We tackled concurrency issues in multi-threaded environments, ensuring that shared resources are accessed safely. These practices are crucial for building robust systems that handle simultaneous operations reliably and efficiently. Understanding and implementing concurrent programming patterns is essential for developing scalable and high-performance applications.
