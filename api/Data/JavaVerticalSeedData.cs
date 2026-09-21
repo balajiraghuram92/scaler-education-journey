@@ -683,7 +683,7 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
             EstimatedMinutes = 180,
             IsCompleted = false,
             OrderIndex = 4,
-            ContentBody = "# Lesson 21 — Machine Coding: BookMyShow\n## Key Topics\n- Event, show, and venue entities\n- Seat locking and concurrency\n- Booking confirmation and cancellation\n- Payment state machine"
+            ContentBody = GetAuthoredLessonContent("21-machine-coding-bookmyshow") ?? string.Empty
         });
 
         db.Lessons.Add(new Lesson
@@ -698,7 +698,7 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
             EstimatedMinutes = 150,
             IsCompleted = false,
             OrderIndex = 5,
-            ContentBody = "# Lesson 22 — Machine Coding: Splitwise\n## Key Topics\n- User and group management\n- Expense and split strategy\n- Equal, exact, and percentage splits\n- Balance computation and debt simplification"
+            ContentBody = GetAuthoredLessonContent("22-machine-coding-splitwise") ?? string.Empty
         });
 
         db.Lessons.Add(new Lesson
@@ -713,7 +713,7 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
             EstimatedMinutes = 120,
             IsCompleted = false,
             OrderIndex = 6,
-            ContentBody = "# Lesson 23 — Machine Coding Contest\n## Key Topics\n- Timed system design under pressure\n- Applying SOLID and design patterns to new problems\n- Code review and self-assessment"
+            ContentBody = GetAuthoredLessonContent("23-machine-coding-contest") ?? string.Empty
         });
 
         db.Lessons.Add(new Lesson
@@ -1119,8 +1119,10 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
             "01-intro-to-lld" => @"# Lesson 1 — Intro to LLD for Scalable & AI-Ready Systems
 
 ## Concepts Covered
+### High-Level Design vs. Low-Level Design
 System design operates at two altitudes: infrastructure and code. High-Level Design (HLD) answers what components exist and how they connect — load balancers, application servers, databases, caches, message queues. It is a bird's-eye view of the system, deliberately silent on internals. Low-Level Design (LLD) answers how each component is actually written in code. The critical realization is that every infrastructure layer is itself just software. A load balancer is code that reads requests, applies a routing algorithm (round-robin, least-connections, ip-hash), and forwards them. A database is code that handles query parsing, storage engines, indexing, and transaction management. Once HLD has decided what to build, LLD governs how we write that code: maintainably (a teammate can read, modify, and extend it without breaking adjacent behaviour), extensibly (new requirements don't trigger rewrites of existing logic), and reusably (a payment abstraction written once plugs into checkout, refunds, and subscriptions without duplication). The gap between adding a new payment provider taking a day versus three weeks with regressions is an LLD question.
 
+### Procedural Architecture vs. Object-Oriented Domain Entities
 In Procedural style, functions are the active concept and data structs are passive — the puppeteer and the puppets. A `Trip` struct with fields `driverId`, `passengerId`, and `status` can be mutated by `updateTripStatus(trip, ""CANCELLED"")`, by direct assignment `trip.status = ""COMPLETED""`, or by any function across the entire codebase holding a reference. As the system grows across hundreds of files and dozens of engineers, tracing which function corrupted a status field becomes an investigation, not a lookup. OOP resolves this by making entities the primary cognitive unit — a `Trip` object owns its state and exposes controlled methods that enforce business rules at the point where the data lives. Real OOP keeps behaviour close to the data it governs: state transitions belong in the entity, not in an anemic service class that reaches into getters and setters. Service classes coordinate across entities; entities govern their own state.
 
 ## Practical Backend Scenario
@@ -1143,8 +1145,10 @@ Add a `Discount` entity and a method `applyDiscount(Discount d)` to `Trip` that 
 
 ## Concepts Covered
 
+### Classes, Heap Allocation, and the JVM Memory Model
 Abstraction is the overarching principle of OOP — the idea that a complex system is best understood as a set of clearly-bounded ideas working together. Encapsulation, inheritance, and polymorphism are the three mechanisms that implement it. A **class** is a template: it defines the fields an object will carry and the methods it exposes. The class definition occupies minimal JVM memory (bytecode only) and creates no object at runtime. Every call to `new Driver(...)` allocates a distinct **object** on the **heap** — the JVM memory region for dynamically allocated instances — and initializes each field independently. A reference variable on the stack (`Driver d1`) holds the heap address, not the object itself. Assigning `Driver d2 = d1` copies that address; both variables now point at the same heap allocation. `d2.name = ""Suresh""` modifies the single shared object, and `d1.name` returns ""Suresh"" afterwards. Two independent Driver objects require two separate `new` calls.
 
+### Constructors, State Initialization, and Encapsulation
 Java initializes unassigned instance fields to zero-equivalents — reference types to `null`, numerics to `0`, booleans to `false` — so a `Driver` created with `new Driver()` and no constructor body has `name = null` and `rating = 0.0`. Constructors replace those defaults with real values; the `this` keyword distinguishes an instance field from a same-named parameter. Without it, `name = name` in a constructor is a no-op: the parameter is assigned to itself, the field stays `null`, and the compiler raises no warning. The `static` keyword marks class-level members shared across every instance — a `totalDrivers` counter that tracks how many Driver objects exist belongs on the class, not on each driver; making it an instance field means every driver holds its own counter starting at zero, which is nonsensical. **Encapsulation** serves two jobs: bundling state and behaviour inside a class, and protecting that state by making fields `private` and routing all changes through methods that enforce business rules. With public fields, any caller anywhere can write `driver.rating = 10.0`, bypassing every validation the team ever agreed on; private fields close that door at compile time:
 
 ```java
@@ -1192,9 +1196,17 @@ Reference: Lecture material — ""OOP-1: Classes, Objects & Encapsulation"" (Sca
 
 ## Concepts Covered
 
-Access modifiers form the outer visibility boundary of encapsulation. The four tiers — `private` (declaring class only), default/package-private (same package, no keyword), `protected` (same package and subclasses across any package), and `public` (unrestricted) — impose a graduated perimeter that controls which callers can reach which state. The design discipline is to grant the minimum required visibility: a field that serves only its own class has no reason to be package-private, and a method intended for subclass specialization has no reason to be public. The `final` keyword adds a second enforcement axis orthogonal to visibility: a `final` field cannot be reassigned after the constructor completes (the compiler treats any subsequent assignment as an error), a `final` method cannot be overridden by a subclass even when it is `public`, and a `final` class cannot be extended at all. Combining these produces the immutability pattern: declare the class `final`, make every field `private final`, provide getters and computed results but no setters, and perform defensive copies on any mutable objects passed in as constructor arguments. An immutable `Fare` class is the canonical example — once a surge multiplier of 1.2x is locked in at trip-acceptance time, no downstream repricing service can silently alter it because `setMultiplier()` simply does not exist on the type. Any renegotiated fare requires constructing a new `Fare` object, leaving the accepted original untouched. Constructor chaining via `this(...)` keeps initialization DRY within this sealed structure: a `Driver` class may expose a full four-argument constructor, a two-argument partial constructor, and a no-arg default, but all three must route through the master constructor that increments `totalRegisteredDrivers++`. Without chaining, each overload carries its own copy of that bookkeeping, and a future change — adding a secondary metric, say — has to be applied across every branch. The rule is absolute: `this(...)` must be the very first statement in a constructor body, and it is mutually exclusive with `super(...)` in the same constructor, because both demand the first slot.
+### Access Modifiers and the final Keyword
+Access modifiers form the outer visibility boundary of encapsulation. The four tiers — `private` (declaring class only), default/package-private (same package, no keyword), `protected` (same package and subclasses across any package), and `public` (unrestricted) — impose a graduated perimeter that controls which callers can reach which state. The design discipline is to grant the minimum required visibility: a field that serves only its own class has no reason to be package-private, and a method intended for subclass specialization has no reason to be public. The `final` keyword adds a second enforcement axis orthogonal to visibility: a `final` field cannot be reassigned after the constructor completes (the compiler treats any subsequent assignment as an error), a `final` method cannot be overridden by a subclass even when it is `public`, and a `final` class cannot be extended at all.
 
-Copy semantics address a failure mode that access modifiers alone cannot close. When an object holds a reference to a mutable inner object, assigning that reference during copy construction creates an alias — not a copy. Two `Trip` instances that both hold `this.route = other.route` share a single `Route` heap object; a call to `tripCopy.getRoute().setSource(""Whitefield"")` silently rewrites the source on `originalTrip` as well, because both variables reach the same memory address. A deep copy constructor fixes this by allocating a fresh inner object with the same values: `this.route = new Route(other.route)`. The decision rule is crisp: if the nested object is immutable — a `String`, a `Fare`, or any properly sealed class — sharing its reference is safe and memory-efficient because no caller can mutate the shared value; if it is mutable, deep copying is mandatory for isolation. This distinction is not merely theoretical: shallow aliasing is one of the most common root causes of state-corruption bugs in multi-threaded Java services, where two threads operate on what they believe are independent entities that are actually one. Inheritance layers on top of sealed structure through the `extends` keyword. An abstract `Vehicle` parent declares shared fields (`vehicleId`, `licensePlate`, `capacity`) and an abstract `calculateFare(double distanceKm)` method; `Car`, `Auto`, and `Bike` each call `super(vehicleId, licensePlate, capacity)` to delegate shared initialization and override only what differs — their per-km rate and fare formula. Every class in Java implicitly extends `java.lang.Object`, which supplies a default `equals()` that compares references (identity, not value equality) and a default `hashCode()` derived from the object's memory address. The contract between them is strict: if `a.equals(b)` returns `true`, then `a.hashCode()` must equal `b.hashCode()`. Overriding only `equals()` breaks this contract. Two `Trip` objects with the same `tripId` that are logically equal produce different hash codes under the default implementation; `HashSet` computes the bucket from the hash first, never reaching `equals()` to compare them, and stores both as distinct entries — a silent deduplication failure in a collection you expected to hold unique trips.
+### The Immutability Pattern and Constructor Chaining
+Combining these produces the immutability pattern: declare the class `final`, make every field `private final`, provide getters and computed results but no setters, and perform defensive copies on any mutable objects passed in as constructor arguments. An immutable `Fare` class is the canonical example — once a surge multiplier of 1.2x is locked in at trip-acceptance time, no downstream repricing service can silently alter it because `setMultiplier()` simply does not exist on the type. Any renegotiated fare requires constructing a new `Fare` object, leaving the accepted original untouched. Constructor chaining via `this(...)` keeps initialization DRY within this sealed structure: a `Driver` class may expose a full four-argument constructor, a two-argument partial constructor, and a no-arg default, but all three must route through the master constructor that increments `totalRegisteredDrivers++`. Without chaining, each overload carries its own copy of that bookkeeping, and a future change — adding a secondary metric, say — has to be applied across every branch. The rule is absolute: `this(...)` must be the very first statement in a constructor body, and it is mutually exclusive with `super(...)` in the same constructor, because both demand the first slot.
+
+### Shallow vs. Deep Copy Semantics
+Copy semantics address a failure mode that access modifiers alone cannot close. When an object holds a reference to a mutable inner object, assigning that reference during copy construction creates an alias — not a copy. Two `Trip` instances that both hold `this.route = other.route` share a single `Route` heap object; a call to `tripCopy.getRoute().setSource(""Whitefield"")` silently rewrites the source on `originalTrip` as well, because both variables reach the same memory address. A deep copy constructor fixes this by allocating a fresh inner object with the same values: `this.route = new Route(other.route)`. The decision rule is crisp: if the nested object is immutable — a `String`, a `Fare`, or any properly sealed class — sharing its reference is safe and memory-efficient because no caller can mutate the shared value; if it is mutable, deep copying is mandatory for isolation. This distinction is not merely theoretical: shallow aliasing is one of the most common root causes of state-corruption bugs in multi-threaded Java services, where two threads operate on what they believe are independent entities that are actually one.
+
+### Inheritance and the equals/hashCode Contract
+Inheritance layers on top of sealed structure through the `extends` keyword. An abstract `Vehicle` parent declares shared fields (`vehicleId`, `licensePlate`, `capacity`) and an abstract `calculateFare(double distanceKm)` method; `Car`, `Auto`, and `Bike` each call `super(vehicleId, licensePlate, capacity)` to delegate shared initialization and override only what differs — their per-km rate and fare formula. Every class in Java implicitly extends `java.lang.Object`, which supplies a default `equals()` that compares references (identity, not value equality) and a default `hashCode()` derived from the object's memory address. The contract between them is strict: if `a.equals(b)` returns `true`, then `a.hashCode()` must equal `b.hashCode()`. Overriding only `equals()` breaks this contract. Two `Trip` objects with the same `tripId` that are logically equal produce different hash codes under the default implementation; `HashSet` computes the bucket from the hash first, never reaching `equals()` to compare them, and stores both as distinct entries — a silent deduplication failure in a collection you expected to hold unique trips.
 
 ```java
 // Shallow Copy — reference assignment. One Route object lives in heap memory;
@@ -1245,19 +1257,21 @@ Reference: Effective Java, 3rd ed., Joshua Bloch — Items 10 (equals), 11 (hash
 Polymorphism originates from the Greek roots *poly* (multiple) and *morph* (form): the core object-oriented principle where a single entity, interface, or method call can take on multiple concrete forms at runtime and compile time. Without polymorphism, software systems become rigid and brittle — adding a new vehicle type or payment gateway would require modifying and rewriting dispatch logic across every calling service.
 
 Object-oriented polymorphism divides into two primary mechanisms:
-1. **Runtime Polymorphism (Dynamic Dispatch):** Implemented via **method overriding**, where a subclass provides its own specific implementation of a method declared in its parent class. Dynamic dispatch is governed by a fundamental dual-perspective rule:
+### Runtime Polymorphism (Dynamic Dispatch)
+Implemented via **method overriding**, where a subclass provides its own specific implementation of a method declared in its parent class. Dynamic dispatch is governed by a fundamental dual-perspective rule:
    - **Reference type** $\rightarrow$ determines which methods you **CAN** call (enforced strictly by the compiler at compile time).
    - **Actual object type** $\rightarrow$ determines which implementation **RUNS** (dispatched dynamically by the JVM at runtime).
    When `Vehicle v = new Cab(); v.calculateFare();` executes, the compiler verifies that `Vehicle` declares `calculateFare()`, but the JVM dispatches execution to `Cab.calculateFare()`.
-2. **Compile-Time Polymorphism (Static Resolution):** Implemented via **method overloading**, where multiple methods in the same class share the exact same method name but differ in their parameter signatures (parameter count, parameter types, or parameter order). The compiler resolves the exact method to invoke before execution. Return type alone, access modifiers, or variable parameter names cannot differentiate overloads because the compiler cannot resolve call sites based on discarded return values. Static methods can be overloaded, but cannot be overridden (they are hidden). Operator overloading is not supported in Java.
+### Compile-Time Polymorphism (Static Resolution)
+Implemented via **method overloading**, where multiple methods in the same class share the exact same method name but differ in their parameter signatures (parameter count, parameter types, or parameter order). The compiler resolves the exact method to invoke before execution. Return type alone, access modifiers, or variable parameter names cannot differentiate overloads because the compiler cannot resolve call sites based on discarded return values. Static methods can be overloaded, but cannot be overridden (they are hidden). Operator overloading is not supported in Java.
 
-**Abstraction as Code:**
+### Abstraction as Code
 The `abstract` keyword represents an idea, concept, or blueprint rather than a concrete instance. A generic base class like `Vehicle` represents a thought; concrete entities like `Cab`, `Auto`, and `Bike` represent physical vehicles. Declaring `public abstract class Vehicle` prevents direct instantiation (`new Vehicle()` is a compile-time error) while enforcing implementation obligations on subclasses through abstract methods such as `public abstract double getBaseFare();`.
 
-**The Diamond Problem & Interfaces:**
+### The Diamond Problem and Interfaces
 Multiple class inheritance creates structural ambiguity when two parent classes (`A` and `B`) extend a common base class and override the same method — a child class `C` inheriting from both cannot determine which parent implementation to execute. Java solves this by prohibiting multiple class inheritance, using `interface` instead. An interface is a pure capability contract across unrelated class hierarchies (`class C implements A, B`). Interface fields are implicitly `public static final`, and methods define capability contracts (expanded to include `default` methods in Java 8+).
 
-**Composition vs. Inheritance — The Three-Question Design Test:**
+### Composition vs. Inheritance — The Three-Question Design Test
 Inheritance couples classes tightly. The decision framework for choosing the correct design tool is:
 
 | Relationship Type | Question | Tool |
@@ -1294,29 +1308,29 @@ Add a `Rentable` capability interface with `rent(int hours)` and attach it to bo
 
 This lab synthesizes all four core pillars of Object-Oriented Programming — **Encapsulation**, **Abstraction**, **Inheritance**, and **Polymorphism** — by constructing a comprehensive Library Management System (LMS) from scratch.
 
-**1. Abstraction & System Blueprinting:**
+### Abstraction and System Blueprinting
 Abstraction models complex systems as interacting, bounded entities while hiding implementation mechanics. In the LMS architecture, abstraction operates across two distinct constructs:
 - **Abstract Classes:** `User` and `Book` serve as abstract base blueprints that cannot be instantiated directly. They define shared state and contract obligations for concrete specializations.
 - **Interfaces:** `Lendable` serves as a pure capability contract (`lend`, `returnItem`, `isAvailable`) that attaches lending behavior across disparate entity hierarchies without imposing an unnatural inheritance tree.
 
-**2. Inheritance & Constructor Chaining:**
+### Inheritance and Constructor Chaining
 Inheritance shares structural identity across the domain (`Member IS-A User`, `Librarian IS-A User`). When a subclass object is instantiated (`new Member(""Asha"", ""asha@email.com"")`), Java enforces strict constructor ordering:
 1. `Member` constructor is invoked.
 2. `super(...)` passes execution immediately to `User`.
 3. `User` initializes shared identity fields, generates a unique ID, and increments `totalUsers`.
 4. Control returns to `Member` for subclass-specific field initialization.
 
-**3. Class-Level Rules with `static` and `final`:**
+### Class-Level Rules with static and final
 - `static` fields (`idCounter`, `totalUsers`) belong to the class itself, maintaining a single shared copy in memory across all instances. `getTotalUsers()` is a `static` method callable on `User` directly.
 - `final` instance fields (`final String userId`) are assigned exactly once during constructor execution and cannot be reassigned afterwards.
 - `static final` constants (`static final int MAX_BORROW_LIMIT = 5`) define immutable, class-wide policy constants.
 
-**4. The Three Constructor Types & Copy Semantics:**
+### The Three Constructor Types and Copy Semantics
 - **Default Constructor:** Initializes objects with safe, deterministic initial values.
 - **Parameterized Constructor:** Provides complete field initialization at creation time.
 - **Copy Constructor:** Creates an independent object cloned from an existing instance. In the LMS, a copied user invokes `generateUniqueId()` and increments `totalUsers` rather than copying `other.userId` directly, preserving the strict invariant that all users possess distinct IDs. Similarly, a copied book resets `isAvailable = true`.
 
-**5. Polymorphic Execution Without `instanceof`:**
+### Polymorphic Execution Without instanceof
 In `Book.lend(User user)`, the method executes:
 ```java
 if (isAvailable && user.canBorrowBooks()) {
@@ -1326,7 +1340,7 @@ if (isAvailable && user.canBorrowBooks()) {
 ```
 `user.canBorrowBooks()` executes polymorphically: for a `Member`, it checks `borrowedBooksCount < MAX_BORROW_LIMIT`; for a `Librarian`, it returns `true` unconditionally. No `instanceof` type checks are required.
 
-**6. The Access Modifiers Table (Why Every LMS Field Is `private`):**
+### The Access Modifiers Table (Why Every LMS Field Is private)
 | Modifier | Same Class | Same Package | Subclass | Everywhere |
 |----------|------------|--------------|----------|------------|
 | `private` | yes | no | no | no |
@@ -1340,7 +1354,7 @@ why `Member.borrowedBooksCount` cannot be touched directly by `Book.lend()` — 
 classes are not in an inheritance relationship, so `protected` would not even help; the
 field must go through `Member`'s own public methods.
 
-**7. Why `Book.lend()` Never Calls `incrementBorrowCount()` Directly:**
+### Why Book.lend() Never Calls incrementBorrowCount() Directly
 `LibraryManagementSystem.lendBook()` delegates in two separate steps: first `book.lend(member)`,
 then — only if that succeeded — `member.incrementBorrowCount()`. `Book.lend()` itself never
 calls `incrementBorrowCount()`. This separation is deliberate: a `Book` should not need to
@@ -1349,7 +1363,7 @@ should not need to know how a `Book` decides availability. Each class stays resp
 exactly one piece of state, and the orchestrator (`LibraryManagementSystem`) is the only
 place that knows both steps must happen together.
 
-**8. The IS-A Test for This Domain:**
+### The IS-A Test for This Domain
 Every inheritance relationship in the LMS should pass a simple intuition check: does
 ""Child IS-A Parent"" read naturally as a sentence? ""Member IS-A User"" and ""Librarian IS-A
 User"" both read naturally, confirming `extends` is the right tool. If a relationship does
@@ -1400,20 +1414,20 @@ Add a `FinePolicy` strategy interface (`calculateFine(int overdueDays)`) with `S
 
 Concurrent software execution requires understanding how operating systems allocate processing resources and memory at runtime.
 
-**The Office / Company Metaphor:**
+### The Office / Company Metaphor
 A running system is analogous to an office environment:
 - **Company = Process:** A self-contained running program allocated its own physical floor space, address space in RAM, and OS resources.
 - **Employees = Threads:** Lightweight execution units operating inside the process. Each employee has their own private notepad (Call Stack) and task bookmark (Program Counter), but all employees share the office desks, filing cabinets, and whiteboard (Heap Memory).
 - **Managers = CPU Scheduler:** The decision-maker determining which employee works at a physical desk during each time slice.
 - **Desks = CPU Cores:** The physical processing hardware where instructions actively advance.
 
-**Diagnostic Questions — Concurrency vs. Parallelism:**
+### Diagnostic Questions — Concurrency vs. Parallelism
 - *How many tasks are partially done simultaneously?*
 - *How many tasks actively advance right now?*
 - **Concurrency (Managing Many Things at Once):** A single-core CPU executing multiple tasks via rapid time-slicing. Multiple tasks are in various stages of completion, but only one task actively advances at any given instant.
 - **Parallelism (Doing Many Things at Once):** Multi-core hardware running multiple tasks simultaneously. Multiple tasks are partially done AND multiple tasks actively advance at the exact same physical moment across separate cores.
 
-**Five Real-World Anchors for the Office Metaphor (from class):**
+### Five Real-World Anchors for the Office Metaphor
 - **Process = browser tabs:** modern browsers run separate tabs in separate processes; one
   tab crashing does not take down the others, because each has its own isolated memory space.
 - **Thread = a video game's internal workers:** one thread renders graphics, a second
@@ -1430,21 +1444,21 @@ A running system is analogous to an office environment:
   without specifying *which* employee performs it — exactly like handing a task description
   to whichever thread the scheduler assigns next.
 
-**From Code to Process in Memory:**
+### From Code to Process in Memory
 - Source code $\rightarrow$ Compiled into an Executable on Disk (Program) $\rightarrow$ Loaded into RAM upon execution (Process).
 - The OS tracks each process using a **Process Control Block (PCB)**, which stores `ProcessID`, `ProcessName`, `State` (Ready, Running, Blocked), `ExecutionTime`, `MemoryLimit`, `ResourcesAllocated`, and `LastLineExecuted` / register snapshots.
 - Processes execute in isolated memory spaces; inter-process communication (IPC) requires heavy operating-system mechanisms.
 
-**Threads — Lightweight Execution Units:**
+### Threads — Lightweight Execution Units
 - A **Thread** is the smallest unit of execution scheduled by the CPU.
 - Every thread within a process owns an independent **Call Stack** (local variables, method frames) and **Program Counter (PC)**.
 - All threads in the same process share the common **Heap**, static memory, and file descriptors. Communication between threads is instant via shared memory, but requires synchronization to prevent corruption.
 
-**Context Switching & Scheduling Overhead:**
+### Context Switching & Scheduling Overhead
 - When the CPU switches execution from Thread 1 to Thread 2, it saves Thread 1's register state, program counter, and stack pointer, and loads Thread 2's context.
 - Context switching consumes CPU cycles and causes CPU cache line invalidation (cache thrashing). Excessive thread creation degrades throughput because the CPU spends more time switching contexts than executing application logic.
 
-**Standard Operating Procedure (SOP) for Multithreading in Java:**
+### Standard Operating Procedure (SOP) for Multithreading in Java
 1. *Think in terms of tasks to be completed in parallel, not raw threads.*
 2. Create a dedicated task class implementing the `Runnable` functional interface.
 3. Place execution logic inside the `public void run()` method.
@@ -1485,29 +1499,29 @@ Build a concurrent word frequency counter where a large text document is divided
 
 Creating raw threads on demand introduces severe scalability bottlenecks in production systems.
 
-**The Too-Many-Threads Problem:**
+### The Too-Many-Threads Problem
 - Creating a new `Thread` object for every task requires allocating ~1MB of stack memory and making operating system system calls.
 - If a server receives 10,000 requests and spawns 10,000 threads, the operating system exhausts RAM and enters severe CPU context-switching thrashing, where CPU cores spend all their time saving and restoring thread states rather than executing application code.
 - Threads that finish short tasks immediately die, wasting the resource investment of creating them.
 
-**The TATA Motor Production Line Analogy:**
+### The TATA Motor Production Line Analogy
 To manufacture 1,000 cars in a day, TATA Motors does not build 1,000 distinct production assembly lines and demolish each after assembling a single vehicle. Instead, the plant maintains a fixed, reusable set of production lines (e.g. 5 lines). As 1,000 car assembly orders arrive, they enter a waiting queue. Line 1 picks up order 1, completes it, and immediately pulls the next waiting order from the queue.
 A **Thread Pool** operates on this exact principle: a bounded roster of pre-allocated worker threads continuously pulls tasks from an internal thread-safe blocking queue, eliminating per-task creation costs and capping resource consumption.
 
-**The Executor Framework Architecture:**
+### The Executor Framework Architecture
 - `Executor`: Root interface declaring `void execute(Runnable command)` to decouple task submission from execution mechanics.
 - `ExecutorService`: Sub-interface managing pool lifecycle, batching, and returning `Future` handles for asynchronous computation.
 - `Executors`: Factory utility class providing pre-configured thread pool implementations:
   - `Executors.newFixedThreadPool(int nThreads)`: Creates a pool with an exact, unchanging number of worker threads and an unbounded internal queue (`LinkedBlockingQueue`). Excess tasks wait in the queue until a worker becomes free.
   - `Executors.newCachedThreadPool()`: Creates an elastic pool that creates new threads on demand for bursts of work and terminates idle threads (after 60 seconds). *Risk:* Under sustained heavy load, it can spawn unbounded threads and crash system memory.
 
-**Returning Results with `Callable<V>` and `Future<V>`:**
+### Returning Results with Callable<V> and Future<V>
 - `Runnable.run()` returns `void` and cannot throw checked exceptions, preventing tasks from returning computed values to the caller.
 - `Callable<V>` functional interface declares `V call() throws Exception`, allowing tasks to return typed values and propagate checked exceptions.
 - `Future<V>` acts as an asynchronous claim ticket (claim slip / dry-cleaning ticket) representing the eventual result of the computation.
 - `Future.get()` blocks the calling thread until the worker completes the task, returning the computed value or throwing an `ExecutionException` wrapping any task error.
 
-**The Submit-First / Collect-Last Pattern:**
+### The Submit-First / Collect-Last Pattern
 A critical bug in concurrent code is calling `.get()` immediately after submitting each individual task:
 ```java
 // WRONG — Silently serializes execution
@@ -1521,13 +1535,13 @@ int total = fa.get() + fb.get();
 ```
 *Rule:* Submit all tasks first so the pool can execute them concurrently, and collect results via `.get()` only after all tasks are in flight.
 
-**Executor Lifecycle Management:**
+### Executor Lifecycle Management
 Worker threads in a thread pool stay alive waiting for new tasks. Without explicit shutdown, the JVM process will never terminate even after `main()` finishes.
 - `pool.shutdown()`: Orderly shutdown — stops accepting new tasks, completes all currently queued/running tasks, then terminates. Non-blocking.
 - `pool.shutdownNow()`: Attempts immediate stop — cancels queued tasks and interrupts running workers.
 - `pool.awaitTermination(timeout, unit)`: Blocks the caller until all tasks complete or the timeout elapses.
 
-**Multithreaded Merge Sort (Parallel Decomposition):**
+### Multithreaded Merge Sort (Parallel Decomposition)
 Merge Sort recursively decomposes an unsorted list into independent left and right halves that never touch each other's data:
 1. Split list into `left` and `right`.
 2. Create `MergeSortTask` implementing `Callable<List<Integer>>`.
@@ -1571,28 +1585,28 @@ Implement a parallel array sum task `ArraySumTask` implementing `Callable<Long>`
 Foundational Law of Concurrency: **""Separate memory is safe. Shared memory is danger.""**
 In Concurrency-2, multithreaded Merge Sort executed without conflicts because child tasks operated on completely disjoint list allocations. The moment multiple concurrent threads read and write to the *same* shared mutable memory, safety collapses.
 
-**The Adder-Subtractor Problem (Worked Race Condition):**
+### The Adder-Subtractor Problem (Worked Race Condition)
 - A shared `Count` object holds a single field `private int value = 0`.
 - An `Adder` task runs on Thread 1, executing a loop 100,000 times: `count.value++`.
 - A `Subtractor` task runs on Thread 2, executing a loop 100,000 times: `count.value--`.
 - Mathematically, adding 1 and subtracting 1 the exact same number of times must yield `0`.
 - Yet running this program in Java yields unpredictable, corrupted results like `-14`, `37`, or `423`.
 
-**Why Single-Line Statements Fail — The Three-Step Breakdown:**
+### Why Single-Line Statements Fail — The Three-Step Breakdown
 At the CPU/bytecode level, `count++` is not an atomic operation. It decomposes into three discrete steps:
 1. **Read:** Fetch the current value of `count.value` from RAM into a CPU register ($x = \text{value}$).
 2. **Modify:** Increment the value in the register ($x = x + 1$).
 3. **Write:** Write the register value back to memory in RAM ($\text{value} = x$).
 
-**Pre-emption and Interleaving:**
+### Pre-emption and Interleaving
 The OS CPU scheduler can pre-empt (interrupt) a thread between any of these steps. If Thread 1 reads `0` and is pre-empted, Thread 2 runs through read (`0`), decrement (`-1`), and write (`-1`). When Thread 1 resumes, its register holds stale value `0`; it increments to `1` and writes `1` to RAM. Thread 2's completed decrement is completely obliterated.
 
-**Core Concurrency Vocabulary:**
+### Core Concurrency Vocabulary
 - **Critical Section:** Any region of code that accesses (reads or writes) shared mutable data where concurrent execution can cause corruption.
 - **Race Condition:** A defect where the correctness of a program depends on the non-deterministic timing and execution interleaving of concurrent threads.
 - **Pre-emption:** The scheduler pausing an active thread mid-task without warning to allocate CPU time to another thread.
 
-**Solution 1: Explicit Mutex (`ReentrantLock`):**
+### Solution 1: Explicit Mutex (ReentrantLock)
 - Mutex = *Mutually Exclusive* lock.
 - Only one thread can hold the lock at any time. A thread must acquire the lock before entering the critical section and release it immediately upon exiting.
 - *Strict Java Discipline:* Always release the lock inside a `finally` block so that runtime exceptions never cause a permanent lock leak:
@@ -1607,22 +1621,22 @@ The OS CPU scheduler can pre-empt (interrupt) a thread between any of these step
   }
   ```
 
-**Solution 2: The `synchronized` Block:**
+### Solution 2: The synchronized Block
 Java's intrinsic monitor lock built into every object header.
 Syntax: `synchronized (sharedObject) { count.value++; }`.
 The JVM automatically acquires the lock upon entering the block and releases it upon exiting (even if an uncaught exception is thrown).
 
-**Solution 3: The `synchronized` Method:**
+### Solution 3: The synchronized Method
 Declaring `public synchronized void increment()` locks the calling instance (`this`). Declaring `public static synchronized void helper()` locks the class's `Class` object (`Count.class`).
 
-**The Object-Level Lock Ownership Rule:**
+### The Object-Level Lock Ownership Rule
 **""The lock is on the OBJECT. Not on the method. Not on the thread.""**
 - Every Java object has exactly one intrinsic monitor lock.
 - If class `A` has two synchronized methods `fun1()` and `fun2()`, two threads calling `obj1.fun1()` and `obj1.fun2()` on the *same* instance `obj1` cannot execute concurrently — both compete for `obj1`'s single lock.
 - Two threads calling `obj1.fun1()` and `obj2.fun1()` on *different* instances run concurrently because each object has its own independent lock.
 - An unsynchronized method `fun3()` on `obj1` executes concurrently with `fun1()` because `fun3()` does not request the lock.
 
-**Producer-Consumer Introduction & The Check-Then-Act Bug:**
+### Producer-Consumer Introduction & The Check-Then-Act Bug
 Multiple producer threads add items to a shared `Store`; multiple consumer threads remove items.
 Naive code (`if (store.size() > 0) store.removeItem();`) crashes with `IndexOutOfBoundsException` because multiple threads check `size() > 0` simultaneously before any thread removes an item.
 Wrapping methods in `synchronized(store)` fixes correctness, but introduces a major throughput limitation: `synchronized` is binary (all-or-nothing), admitting only 1 thread even when a store with capacity 5 has 4 empty shelves.
@@ -1667,19 +1681,19 @@ Implement a thread-safe banking `Account` class with `transfer(Account from, Acc
 
 In Concurrency-3, `synchronized` solved race conditions by admitting exactly one thread at a time. However, this created an all-or-nothing bottleneck: in a Producer-Consumer store with capacity 5, only 1 producer was permitted to work even when all 5 slots were empty. `synchronized` cannot express admitting up to $N$ concurrent threads.
 
-**The Semaphore Primitive:**
+### The Semaphore Primitive
 A **Semaphore** is a synchronization construct that maintains an internal count of available **permits** and coordinates access to shared resources through two atomic operations:
 - `acquire()`: Decrements the permit count by 1. If the count is 0, the calling thread blocks until a permit is released.
 - `release()`: Increments the permit count by 1 and unblocks a waiting thread if one exists. `release()` never blocks.
 - **Binary Semaphore (`new Semaphore(1)`):** Initialized with 1 permit; behaves like a mutex for capacity control.
 - **Counting Semaphore (`new Semaphore(N)`):** Initialized with $N$ permits; admits up to $N$ threads concurrently into a resource.
 
-**Producer-Consumer with Two Signaling Semaphores:**
+### Producer-Consumer with Two Signaling Semaphores
 Instead of a single lock, the system tracks two independent quantities using two semaphores:
 1. `producerSemaphore`: Initialized to total capacity (e.g. $S = 6$), tracking **empty slots**.
 2. `consumerSemaphore`: Initialized to 0, tracking **available items**.
 
-**Cross-Thread Signaling Flow:**
+### Cross-Thread Signaling Flow
 - **Producer:**
   ```java
   producerSemaphore.acquire(); // wait for an empty slot
@@ -1694,23 +1708,23 @@ Instead of a single lock, the system tracks two independent quantities using two
   ```
 Each side acquires its own semaphore and releases the other's, passing signals between threads without direct coupling.
 
-**Store State Analysis (Queue Capacity Cases from Class Notes):**
+### Store State Analysis
 For a store with maximum capacity $S = 6$:
 - **Case 1 (Full Store — 6 items, 0 empty slots):** `producerSemaphore = 0`, `consumerSemaphore = 6`. Up to 6 consumers may proceed; 0 producers allowed (producers block on `acquire()`).
 - **Case 2 (Partially Filled Store — 3 items, 3 empty slots):** `producerSemaphore = 3`, `consumerSemaphore = 3`. Up to 3 producers and 3 consumers may proceed in parallel.
 - **Case 3 (Empty Store — 0 items, 6 empty slots):** `producerSemaphore = 6`, `consumerSemaphore = 0`. Up to 6 producers may proceed; 0 consumers allowed (consumers block on `acquire()`).
 
-**The Bounded Buffer Pattern — Semaphore for Capacity, Mutex for Mutation:**
+### The Bounded Buffer Pattern — Semaphore for Capacity, Mutex for Mutation
 A counting semaphore solves the **Capacity Problem** (""how many threads may enter""). It does NOT solve the **Mutation Problem** (""what happens when multiple threads touch the underlying `ArrayList` simultaneously""). If 3 producers enter and execute `items.add(item)` concurrently on a plain list, internal array pointers corrupt.
 The **Bounded Buffer Pattern** combines both: counting semaphores govern capacity and cross-thread signaling, while a mutex (`ReentrantLock`) guards the brief moment of mutating the shared list.
 
-**Semaphore vs. Mutex — The Ownership Difference:**
+### Semaphore vs. Mutex — The Ownership Difference
 - **Mutex has an owner:** Only the thread that called `lock()` may call `unlock()`.
 - **Semaphore has NO owner:** Any thread can call `release()`, including a thread that never called `acquire()`.
 - *No ownership is the strength:* Enables cross-thread signaling where a Consumer releases a Producer permit.
 - *No ownership is the danger:* An accidental or duplicate `release()` call creates a **phantom permit**, silently inflating the permit count beyond actual physical capacity without error.
 
-**Specialized Coordination Patterns:**
+### Specialized Coordination Patterns
 - **Baton Pattern (Strict Ordering / Turn-Taking):** Enforces ordered interleaving (e.g. *Print Zero Even Odd*). `zeroSem` starts at 1, `oddSem` and `evenSem` start at 0. The zero thread prints `0` and releases `oddSem` or `evenSem`; the number thread prints and releases `zeroSem` back.
 - **Grouping Pattern (`acquire(n)` / `release(n)`):** Enforces multi-permit batch assembly (e.g. *Building H2O*). Hydrogen calls `h.acquire()` (starts at 2) and signals `o.release()`; Oxygen calls `o.acquire(2)` (starts at 0) to await two hydrogens before proceeding, then calls `h.release(2)` for the next molecule.
 
@@ -1751,7 +1765,7 @@ Implement a `DatabaseConnectionPool` managing 10 physical database connections u
 
 Prior to Java 5, building reusable data structures required storing and passing data as `Object`.
 
-**The Pre-Generics Problem — `Object`-Based Containers:**
+### The Pre-Generics Problem — Object-Based Containers
 Consider the need to store coordinate pairs (`class Coordinate { double x, y; }`) versus name pairs (`class Name { String x, y; }`). To eliminate duplicate classes, developers wrote universal containers backed by `Object`:
 ```java
 class Pair {
@@ -1772,7 +1786,7 @@ double calculateSum(Pair p) {
 ```
 The compiler raised zero warnings during compilation. The mismatch surfaced only at runtime as a fatal `ClassCastException`.
 
-**Generics — Parameterized Types:**
+### Generics — Parameterized Types
 Generics allow classes, interfaces, and methods to be parameterized with placeholder type variables (`T`, `V`, `K`):
 ```java
 class Pair<T, V> {
@@ -1786,7 +1800,7 @@ class Pair<T, V> {
 Client code binds the concrete types at creation time: `Pair<String, Integer> p = new Pair<>(""Rohit"", 100);`. Attempting `p.setFirst(100)` fails at compile time, eliminating runtime type-cast errors.
 **Raw Types (`Pair p = new Pair();`):** Supported for backward compatibility with pre-Java 5 code. Raw types bypass generic type checking and treat fields as `Object`; they should never be used in modern Java.
 
-**Generic Methods:**
+### Generic Methods
 Methods can declare their own independent type parameters, even within non-generic classes. This is mandatory for `static` utility methods because static members have no access to class-level type parameters:
 ```java
 public static <T> T getFirstElement(List<T> list) {
@@ -1794,11 +1808,11 @@ public static <T> T getFirstElement(List<T> list) {
 }
 ```
 
-**Generics with Inheritance — Why Subtyping Does Not Transfer:**
+### Generics with Inheritance — Why Subtyping Does Not Transfer
 If `Dog` extends `Animal`, is `List<Dog>` a subtype of `List<Animal>`? **No.**
 If Java allowed `List<Animal> animals = new ArrayList<Dog>();`, a caller could execute `animals.add(new Cat());`. Because `animals` references a list of dogs on the heap, adding a `Cat` would corrupt heap type safety. Therefore, generic collections are **invariant**: `List<Dog>` and `List<Animal>` are treated as completely unrelated types.
 
-**Bounded Wildcards & The PECS Framework:**
+### Bounded Wildcards and The PECS Framework
 To allow generic methods to operate flexibly across class hierarchies, Java provides **wildcards** (`?`):
 1. **Upper-Bounded Wildcard (`? extends T`):** Accepts `T` and any subclass of `T` (`List<? extends Animal>`). Used when **reading** data from a collection. Writing elements into the collection is prohibited (except `null`) because the compiler cannot determine the exact underlying subtype.
 2. **Lower-Bounded Wildcard (`? super T`):** Accepts `T` and any superclass of `T` (`List<? super Dog>`). Used when **writing / inserting** elements into a collection. Reading from the collection only returns `Object`.
@@ -1806,13 +1820,13 @@ To allow generic methods to operate flexibly across class hierarchies, Java prov
    - If your method reads data from a collection (the collection *produces* values for you), declare it with `? extends`.
    - If your method writes data into a collection (the collection *consumes* values from you), declare it with `? super`.
 
-**Type Erasure & Runtime Implications:**
+### Type Erasure and Runtime Implications
 Java implements generics via **Type Erasure** to maintain binary backward compatibility with legacy JVM bytecode:
 - The compiler verifies all type safety rules at compile time and inserts necessary casts into the bytecode.
 - The compiler then *erases* type parameters, replacing unbounded parameters `T` with `Object` and bounded parameters `T extends Number` with `Number`.
 - *Runtime Consequences:* `new T()` is illegal, creating generic arrays `new T[10]` is prohibited, `instanceof List<String>` is disallowed (only `instanceof List<?>` is valid), and type parameters cannot be queried reflectively without passing explicit `Class<T>` type tokens.
 
-**Collections Framework Hierarchy Overview:**
+### Collections Framework Hierarchy Overview
 - Root `Collection<E>` interface branches into `List<E>` (`ArrayList`, `LinkedList`, `Vector`), `Queue<E>` / `Deque<E>` (`PriorityQueue`, `ArrayDeque`), and `Set<E>` (`HashSet`, `LinkedHashSet`, `TreeSet`).
 - `Map<K, V>` operates as an independent key-value hierarchy (`HashMap`, `TreeMap`, `LinkedHashMap`).
 
@@ -1852,7 +1866,7 @@ Build a generic `InMemoryCache<K, V>` with TTL expiration, implementing `putAll(
 
 Selecting the appropriate collection is a core architectural decision dictated by operational access patterns, Big-O algorithmic complexity, and memory overhead.
 
-**Collections Framework Architecture & Trade-Offs:**
+### Collections Framework Architecture and Trade-Offs
 - `ArrayList`: Dynamic resizable array. Fast $O(1)$ indexed reads and cache locality; amortized $O(1)$ append; expensive $O(N)$ arbitrary insertions/deletions due to element shifting.
 - `LinkedList`: Doubly linked list. $O(1)$ insertions and removals at head and tail (`addFirst()`, `removeLast()`); $O(N)$ sequential search with higher pointer memory overhead per node.
 - `Vector`: Legacy synchronized dynamic array. Thread-safe but imposes per-operation lock overhead; superseded by `ArrayList` and `java.util.concurrent` collections in modern design.
@@ -1861,17 +1875,17 @@ Selecting the appropriate collection is a core architectural decision dictated b
 - `TreeSet`: Backed by a balanced Red-Black Tree (`NavigableMap`). Guaranteed $O(\log N)$ search, insertion, and removal; maintains sorted natural or comparator order.
 - `PriorityQueue`: Backed by a balanced binary heap. $O(1)$ retrieval of minimum/maximum element via `peek()`, $O(\log N)$ extraction via `poll()`; iteration is unordered.
 
-**Natural Ordering with `Comparable<T>`:**
+### Natural Ordering with Comparable<T>
 - `Comparable<T>` defines an entity's single, intrinsic **natural ordering** implemented inside the class via `int compareTo(T other)`.
 - Returns a negative integer if `this < other`, zero if `this.equals(other)`, and a positive integer if `this > other`.
 - Classes implementing `Comparable` (`String`, `Integer`, `Item`) can be sorted automatically by `Collections.sort(list)` and inserted into `TreeSet` / `TreeMap` without custom configuration.
 
-**Contextual Ordering with `Comparator<T>`:**
+### Contextual Ordering with Comparator<T>
 - `Comparator<T>` defines an external, swappable sorting strategy implemented outside the target entity via `int compare(T a, T b)`.
 - A class can have multiple comparators (e.g. `PriceAscendingComparator`, `QuantityDescendingComparator`, `Comparator.comparing(Item::getName)`).
 - Allows adding new sorting criteria without modifying existing entity classes.
 
-**The Strict `equals()` and `hashCode()` Contract:**
+### The Strict equals() and hashCode() Contract
 **""If `a.equals(b)` is true, then `a.hashCode()` must equal `b.hashCode()`.""**
 - `HashSet` and `HashMap` compute the storage bucket using `hashCode() % numBuckets` first.
 - If `equals()` is overridden without overriding `hashCode()`, two logically identical objects produce different memory-derived hash codes and land in different buckets. `HashSet` fails to find the existing entry and inserts a duplicate, silently violating uniqueness.
@@ -1921,7 +1935,7 @@ Implement an in-memory `LruCache<K, V>` by extending `LinkedHashMap<K, V>` with 
 
 Modern Java balances object-oriented structure with functional programming paradigms introduced in Java 8.
 
-**Functional Interfaces (SAM Interfaces):**
+### Functional Interfaces (SAM Interfaces)
 A **Functional Interface** is an interface that declares **exactly one abstract method** (Single Abstract Method). It may contain any number of `default` or `static` methods. Annotated with `@FunctionalInterface`.
 Core functional interfaces in `java.util.function`:
 - `Predicate<T>`: `boolean test(T t)` — conditional checks and filtering.
@@ -1931,14 +1945,14 @@ Core functional interfaces in `java.util.function`:
 - `BinaryOperator<T>`: `T apply(T a, T b)` — combining two operands of the same type.
 - `IntFunction<R>`: `R apply(int value)` — primitive-specialized mapping avoiding boxing overhead.
 
-**Evolution of Interface Implementation:**
+### Evolution of Interface Implementation
 Consider running a task on a separate thread:
 1. **Named Class:** Standalone class `public class MyTask implements Runnable` with boilerplate class definitions.
 2. **Anonymous Class:** Inline `new Runnable() { @Override public void run() { System.out.println(""Hello""); } }` — eliminates separate files but carries heavy syntax ceremony.
 3. **Lambda Expression:** Direct functional syntax: `Runnable r = () -> System.out.println(""Hello"");`.
 Because a functional interface has exactly one abstract method, the compiler infers parameter types, return types, and method identity from target context.
 
-**Syntax Variations for Lambdas:**
+### Syntax Variations for Lambdas
 - Multiple parameters: `(a, b) -> a + b`
 - Single parameter (parentheses optional): `x -> x * x`
 - Multi-statement body (requires braces and explicit `return`): `(a, b) -> { int sum = a + b; return sum; }`
@@ -1948,19 +1962,19 @@ Because a functional interface has exactly one abstract method, the compiler inf
   Predicate<Integer> isEven = x -> x % 2 == 0;
   ```
 
-**Streams API — Thinking in Pipelines:**
+### Streams API — Thinking in Pipelines
 A **Stream** is a sequence of computational elements supporting sequential and parallel aggregate operations. A stream is NOT a data structure — it does not store data; it conveys elements from a source through a pipeline of transformations.
 
-**The Three Pipeline Stages:**
+### The Three Pipeline Stages
 1. **Source:** Collection, array, or I/O generator (`list.stream()`, `Arrays.stream(arr)`).
 2. **Intermediate Operations (Lazy):** Transform a stream into another stream. Intermediate operations execute **lazily** — no computation occurs until a terminal operation is invoked. Examples: `filter(Predicate)`, `map(Function)`, `sorted(Comparator)`, `distinct()`, `limit(long)`, `skip(long)`.
 3. **Terminal Operations (Eager):** Trigger pipeline traversal, process elements, and produce a result or side effect. Examples: `collect(Collector)`, `forEach(Consumer)`, `count()`, `reduce()`, `allMatch(Predicate)`, `anyMatch(Predicate)`, `findFirst()`.
 
-**Lazy vs. Eager Evaluation & Imperative Loop Elimination:**
+### Lazy vs. Eager Evaluation and Imperative Loop Elimination
 Traditional imperative loops require throwaway intermediate lists (`List<Integer> evens = new ArrayList<>()`), multiple passes over data, and inefficient repeated scanning (`contains()`).
 Stream pipelines evaluate lazily: elements flow through chained operations vertically element-by-element, short-circuiting early when possible (`findFirst()`, `allMatch()`).
 
-**Design Judgment — When NOT to Use Lambdas:**
+### Design Judgment — When NOT to Use Lambdas
 Lambdas are intended for concise, locally scoped logic (such as in-line sorting or filtering). Reusable business rules shared across multiple controllers, complex multi-line validation algorithms, or logic requiring isolated unit tests should remain in named, dedicated classes or methods.
 
 ## Practical Backend Scenario
@@ -2000,7 +2014,7 @@ Build a customer analytics pipeline that processes a list of order records, calc
 
 Building enterprise backend applications requires mastering advanced stream collectors for data aggregation and designing a resilient exception architecture for production fault tolerance.
 
-**Advanced Stream Collectors & Aggregations:**
+### Advanced Stream Collectors and Aggregations
 The `Collectors` utility class provides powerful aggregation operations for terminal stream processing:
 - `Collectors.groupingBy()`: Groups elements by a classifier function into a `Map<K, List<V>>` (e.g. `fruits.stream().collect(Collectors.groupingBy(String::length))` maps character lengths to fruit name lists).
 - **Downstream Collectors:** Combining `groupingBy` with secondary collectors such as `Collectors.counting()`, `Collectors.mapping()`, `Collectors.toSet()`, or `Collectors.averagingDouble()` to perform multi-level aggregations in a single pass.
@@ -2008,14 +2022,14 @@ The `Collectors` utility class provides powerful aggregation operations for term
 - `Collectors.toMap()`: Collects stream elements into key-value maps. *Critical Rule:* An explicit merge function `(existing, replacement) -> existing` must be supplied when keys may collide, preventing runtime `IllegalStateException`.
 - `Collectors.joining(delimiter)`: Concatenates stream elements into a single formatted string.
 
-**Java Exception Architecture & Type Hierarchy:**
+### Java Exception Architecture and Type Hierarchy
 `Throwable` is the root superclass of all errors and exceptions in Java:
 - **`Error`:** Critical system-level failures outside application control (`OutOfMemoryError`, `StackOverflowError`). Application code should never catch `Error`.
 - **`Exception`:** Application-level conditions that programs can reasonably intercept and handle.
   - **`RuntimeException` (Unchecked Exceptions):** Subclasses of `RuntimeException` representing programming defects, logic errors, and broken invariants (`NullPointerException`, `IllegalArgumentException`, `IndexOutOfBoundsException`). Unchecked by the compiler; do not require explicit `throws` declarations.
   - **Checked Exceptions:** Subclasses of `Exception` (excluding `RuntimeException`) representing anticipated, recoverable operational failures (`IOException`, `SQLException`). Enforced at compile time; must be caught or declared in method signatures.
 
-**Enterprise Exception Handling Best Practices:**
+### Enterprise Exception Handling Best Practices
 - **`try`-with-resources:** Automatically closes all `AutoCloseable` resources (database connections, file streams, sockets) in reverse order of declaration upon block exit, safely preserving suppressed exceptions.
 - **Layered Exception Translation:** Catch low-level technical exceptions (e.g. `SQLException`, `IOException`) at infrastructure boundaries and translate them into typed domain/application exceptions (`EntityNotFoundException`, `DuplicateKeyException`, `PaymentGatewayException`) carrying structured error codes and HTTP status metadata.
 - **Checked Exceptions in Stream Lambdas:** Stream lambdas cannot throw unhandled checked exceptions. Wrap checked exceptions into unchecked domain exceptions or bridge them using dedicated functional error wrappers.
@@ -2048,21 +2062,29 @@ Implement a resilient stream wrapper utility `CheckedFunction<T, R, E extends Ex
 
 SOLID names five instincts about code quality precisely enough to diagnose and discuss a design problem in specific terms, rather than a vague sense that ""this code is messy."" Each principle in this lesson is anchored to the same running example: a naive `Bird` class holding every bird's data and a branching `fly()` method, corrected one principle at a time.
 
-**Single Responsibility Principle (SRP):** a code unit should have exactly one reason to change. The violation is not about length — a long method built from steps of one coherent algorithm can still respect SRP — it is specifically when the reasons a method might change are unrelated to each other. A `Bird.fly()` method with an `if/else` chain per bird type is really doing two jobs: representing a bird, and knowing how every kind of bird flies. Real-world anchor: an employee expected to simultaneously be the accountant, the IT support, and the receptionist will drop something the moment two of those unrelated responsibilities compete for attention at once.
+### Single Responsibility Principle (SRP)
+A code unit should have exactly one reason to change. The violation is not about length — a long method built from steps of one coherent algorithm can still respect SRP — it is specifically when the reasons a method might change are unrelated to each other. A `Bird.fly()` method with an `if/else` chain per bird type is really doing two jobs: representing a bird, and knowing how every kind of bird flies. Real-world anchor: an employee expected to simultaneously be the accountant, the IT support, and the receptionist will drop something the moment two of those unrelated responsibilities compete for attention at once.
 
-**Open/Closed Principle (OCP):** a system should be open for extension but closed for modification — a new requirement should be met with new code, not edits to code that already worked and already has passing tests. Refactoring `Bird` into an `abstract class Bird` with an abstract `fly()` method, overridden by `Pigeon`, `Sparrow`, and `Peacock`, means adding a new bird type is a new subclass, not a new `else if` branch in a shared method. Real-world anchor: a well-designed house allows a new room to be added without demolishing the kitchen to do it.
+### Open/Closed Principle (OCP)
+A system should be open for extension but closed for modification — a new requirement should be met with new code, not edits to code that already worked and already has passing tests. Refactoring `Bird` into an `abstract class Bird` with an abstract `fly()` method, overridden by `Pigeon`, `Sparrow`, and `Peacock`, means adding a new bird type is a new subclass, not a new `else if` branch in a shared method. Real-world anchor: a well-designed house allows a new room to be added without demolishing the kitchen to do it.
 
-**The Penguin Problem — the bridge from OCP to LSP:** the abstract-`fly()` refactor immediately hits a wall: a `Penguin` cannot honestly fly. Giving it an empty `fly()` body or having it `throw new UnsupportedOperationException()` both compile fine, but both are lies about the contract every other `Bird` subtype honors — client code that does `for (Bird b : birds) b.fly();` now either does nothing for a penguin (silently wrong) or crashes (a runtime surprise nothing in the type system warned about).
+### The Penguin Problem — The Bridge from OCP to LSP
+The abstract-`fly()` refactor immediately hits a wall: a `Penguin` cannot honestly fly. Giving it an empty `fly()` body or having it `throw new UnsupportedOperationException()` both compile fine, but both are lies about the contract every other `Bird` subtype honors — client code that does `for (Bird b : birds) b.fly();` now either does nothing for a penguin (silently wrong) or crashes (a runtime surprise nothing in the type system warned about).
 
-**Liskov Substitution Principle (LSP):** a subtype must be usable anywhere its parent type is expected, without the caller needing special-case handling, and this is about a promise being kept, not about inheritance syntax being valid — code that compiles cleanly can still violate LSP. A subclass may only make preconditions less strict (require less than the parent demanded) and postconditions more strict (guarantee at least as much as the parent promised); weakening a guarantee or demanding more up front breaks substitutability even if every method technically overrides correctly. The `Penguin.fly()` problem is exactly an LSP violation dressed up as an OCP fix: client code that loops over `List<Bird>` and calls `.fly()` on each one now needs a `Penguin`-specific `if (b.type == ""Penguin"") continue;` check to avoid a crash — the moment a caller needs a type check or a `try/catch` to safely use a subtype where its parent type was expected, LSP is broken. Real-world anchor: a ""Backend Developer"" job description promises the ability to write REST APIs — anyone hired into that role is expected to deliver on it without the team handling them differently.
+### Liskov Substitution Principle (LSP)
+A subtype must be usable anywhere its parent type is expected, without the caller needing special-case handling, and this is about a promise being kept, not about inheritance syntax being valid — code that compiles cleanly can still violate LSP. A subclass may only make preconditions less strict (require less than the parent demanded) and postconditions more strict (guarantee at least as much as the parent promised); weakening a guarantee or demanding more up front breaks substitutability even if every method technically overrides correctly. The `Penguin.fly()` problem is exactly an LSP violation dressed up as an OCP fix: client code that loops over `List<Bird>` and calls `.fly()` on each one now needs a `Penguin`-specific `if (b.type == ""Penguin"") continue;` check to avoid a crash — the moment a caller needs a type check or a `try/catch` to safely use a subtype where its parent type was expected, LSP is broken. Real-world anchor: a ""Backend Developer"" job description promises the ability to write REST APIs — anyone hired into that role is expected to deliver on it without the team handling them differently.
 
-**Interface Segregation Principle (ISP):** no client should be forced to depend on methods it does not use. An interface that bundles several unrelated capabilities into one contract forces every implementer to take on obligations it may not actually have — exactly the same shape of problem the Penguin hit, but at the interface level instead of the inheritance level. Real-world anchor: a fixed thali forces every customer to take the full combination of courses, whether they want all of it or not; an à la carte menu lets a customer order exactly what they need.
+### Interface Segregation Principle (ISP)
+No client should be forced to depend on methods it does not use. An interface that bundles several unrelated capabilities into one contract forces every implementer to take on obligations it may not actually have — exactly the same shape of problem the Penguin hit, but at the interface level instead of the inheritance level. Real-world anchor: a fixed thali forces every customer to take the full combination of courses, whether they want all of it or not; an à la carte menu lets a customer order exactly what they need.
 
-**Dependency Inversion Principle (DIP):** high-level modules should not depend on low-level modules — both should depend on abstractions. A class that depends directly on another concrete class is wired in a way that makes both classes harder to change independently and harder to test in isolation. Real-world anchor: a phone charger does not wire itself directly into the power plant; it plugs into a wall socket, a standard interface both sides agree to.
+### Dependency Inversion Principle (DIP)
+High-level modules should not depend on low-level modules — both should depend on abstractions. A class that depends directly on another concrete class is wired in a way that makes both classes harder to change independently and harder to test in isolation. Real-world anchor: a phone charger does not wire itself directly into the power plant; it plugs into a wall socket, a standard interface both sides agree to.
 
-**Dependency Injection (not itself a SOLID letter):** a natural consequence of DIP, not a sixth principle — supplying a class's dependencies from outside rather than having the class construct them itself. Real-world anchor: a new employee joining a company is not expected to bring their own laptop and desk; the company supplies it, and the employee simply plugs in and starts working.
+### Dependency Injection
+A natural consequence of DIP, not a sixth principle — supplying a class's dependencies from outside rather than having the class construct them itself. Real-world anchor: a new employee joining a company is not expected to bring their own laptop and desk; the company supplies it, and the employee simply plugs in and starts working.
 
-**Where this leads next:** by the end of the `Bird` refactor, flying has been extracted into its own `FlyingBehaviour` interface, supplied to a bird rather than hard-coded inside it — this is already a named, well-established design pattern (Strategy), the subject of the very next class, and easier to follow because this lesson builds the underlying reasoning by hand first, before the pattern is named.
+### Extending SOLID into Design Patterns
+By the end of the `Bird` refactor, flying has been extracted into its own `FlyingBehaviour` interface, supplied to a bird rather than hard-coded inside it — this is already a named, well-established design pattern (Strategy), the subject of the very next class, and easier to follow because this lesson builds the underlying reasoning by hand first, before the pattern is named.
 
 ## Practical Backend Scenario
 
@@ -2088,15 +2110,20 @@ Take the `FlyingBehaviour` interface this lesson arrives at (flying extracted ou
 
 ## Concepts Covered
 
+### Creational Design Patterns Overview
 A design pattern is a well-known, reusable solution to a problem that keeps showing up across different, unrelated software systems — not one person's clever idea, but a shape many engineers independently arrive at. In 1994, four authors (Gamma, Helm, Johnson, Vlissides — the ""Gang of Four"" or GoF) catalogued 23 of these. Design patterns are not separate from SOLID; they are named, reusable shapes for applying principles like SOLID to a recurring problem. This module covers the **creational** family — patterns about how and when objects get created.
 
-**Singleton — Exactly One Shared Object:** use Singleton when a shared resource sits behind the class (a DB connection, a logger, a cache — one shared office printer beats five competing ones), or when creating the object is genuinely expensive (a DB connection setup involves real network round-trips before the first query even runs). Building one correctly, step by step: (1) make the constructor `private` so outside code cannot call `new` directly; (2) keep one `private static` field holding the single instance; (3) expose a `public static getInstance()` that creates the instance only if it doesn't exist yet, then returns it — never make the instance field itself `public`, since that removes all protection over the ""only one"" rule. **Eager loading** (`private static Instance = new Instance();`, built at class-load time) needs no locking but slows startup and locks in configuration too early; **lazy loading** (built on first `getInstance()` call) avoids that cost but introduces a real concurrency danger: two threads can both see `instance == null` at nearly the same moment and both create their own object, a race condition. The fix, **double-checked locking**, checks for null once without a lock (fast, used almost every call), and only takes the lock — then checks null *again* inside it — during the one risky moment; the inner check exists because a second thread could have been waiting for the lock while the first thread finished creating the instance, and skipping it lets two objects slip through anyway. Even correct double-checked locking has one more gap that AI-generated code frequently misses: the `instance` field must be declared `private static volatile`, because `instance = new DBConnection()` is really three steps (allocate memory, run the constructor, assign the reference) that the compiler and CPU are otherwise free to reorder — without `volatile`, a second thread could see a non-null reference pointing to a half-constructed object. Serialization is a separate hole double-checked locking does not close at all: Java deserialization rebuilds an object directly from saved bytes, skipping the private constructor and `getInstance()` entirely, which is why many engineers reach for an **enum Singleton** instead — the JVM guarantees exactly one instance, thread-safety, and serialization-safety for free. Since a Singleton always hands back the same object, tests can silently leak state between each other; a `resetInstance()` helper (not part of the original GoF pattern, added purely for testing) clears the stored instance so each test starts fresh — but must never be called from production code, since resetting a live instance while other parts of the app still hold the old one creates two competing ""shared"" objects, exactly what Singleton exists to prevent.
+### Singleton — Exactly One Shared Object
+Use Singleton when a shared resource sits behind the class (a DB connection, a logger, a cache — one shared office printer beats five competing ones), or when creating the object is genuinely expensive (a DB connection setup involves real network round-trips before the first query even runs). Building one correctly, step by step: (1) make the constructor `private` so outside code cannot call `new` directly; (2) keep one `private static` field holding the single instance; (3) expose a `public static getInstance()` that creates the instance only if it doesn't exist yet, then returns it — never make the instance field itself `public`, since that removes all protection over the ""only one"" rule. **Eager loading** (`private static Instance = new Instance();`, built at class-load time) needs no locking but slows startup and locks in configuration too early; **lazy loading** (built on first `getInstance()` call) avoids that cost but introduces a real concurrency danger: two threads can both see `instance == null` at nearly the same moment and both create their own object, a race condition. The fix, **double-checked locking**, checks for null once without a lock (fast, used almost every call), and only takes the lock — then checks null *again* inside it — during the one risky moment; the inner check exists because a second thread could have been waiting for the lock while the first thread finished creating the instance, and skipping it lets two objects slip through anyway. Even correct double-checked locking has one more gap that AI-generated code frequently misses: the `instance` field must be declared `private static volatile`, because `instance = new DBConnection()` is really three steps (allocate memory, run the constructor, assign the reference) that the compiler and CPU are otherwise free to reorder — without `volatile`, a second thread could see a non-null reference pointing to a half-constructed object. Serialization is a separate hole double-checked locking does not close at all: Java deserialization rebuilds an object directly from saved bytes, skipping the private constructor and `getInstance()` entirely, which is why many engineers reach for an **enum Singleton** instead — the JVM guarantees exactly one instance, thread-safety, and serialization-safety for free. Since a Singleton always hands back the same object, tests can silently leak state between each other; a `resetInstance()` helper (not part of the original GoF pattern, added purely for testing) clears the stored instance so each test starts fresh — but must never be called from production code, since resetting a live instance while other parts of the app still hold the old one creates two competing ""shared"" objects, exactly what Singleton exists to prevent.
 
-**Builder — Safely Constructing Objects with Many Optional Fields:** a large constructor with many same-typed parameters is easy to call with arguments silently swapped (the compiler cannot catch it), and a `Map<String, Object>` of settings makes a wrong key ""silently do nothing"" with type errors only surfacing at runtime. Builder fixes this with a nested helper class that collects values with compiler-checked chainable setters (each setter returns `this`), then performs validation and constructs the real object through a single `build()` method. Four things make a production-quality Builder: a static `getBuilder()` on the main class showing how to begin; `build()` performing real validation before constructing; every setter returning the Builder itself for fluent chaining (`.setAge(21).setName(""Naman"").build()`); and a `private` constructor on the main class so nothing can bypass the Builder's validation. Mutable fields like `List`s must be defensively copied inside `build()`, not just referenced, or the caller can mutate the ""finished"" object from outside after construction completes.
+### Builder — Safely Constructing Objects with Many Optional Fields
+A large constructor with many same-typed parameters is easy to call with arguments silently swapped (the compiler cannot catch it), and a `Map<String, Object>` of settings makes a wrong key ""silently do nothing"" with type errors only surfacing at runtime. Builder fixes this with a nested helper class that collects values with compiler-checked chainable setters (each setter returns `this`), then performs validation and constructs the real object through a single `build()` method. Four things make a production-quality Builder: a static `getBuilder()` on the main class showing how to begin; `build()` performing real validation before constructing; every setter returning the Builder itself for fluent chaining (`.setAge(21).setName(""Naman"").build()`); and a `private` constructor on the main class so nothing can bypass the Builder's validation. Mutable fields like `List`s must be defensively copied inside `build()`, not just referenced, or the caller can mutate the ""finished"" object from outside after construction completes.
 
-**Prototype and Registry — Copying Instead of Constructing:** manually copying an object's fields from outside the class couples the caller to every internal field name, cannot reach private fields with no setters, and forces a growing `instanceof` chain to handle subclasses (an OCP violation). Prototype fixes this with a `Prototype<T>` interface requiring `T clone()`; every subclass must override `clone()` itself and call `super(instance)`, because a child that forgets to override `clone()` silently runs its parent's clone logic and drops any fields the child added. A **Registry** is a separate `Map`-based store (`ConcurrentHashMap` for thread safety) for retrieving named prototype templates — `registry.get(""ubuntu-base"")` — where a missing key returns `null` silently, which then causes a `NullPointerException` later, on a completely different line, the moment `.clone()` runs on that `null`. The most common implementation bug is a **shallow copy trap**: copying a mutable field like a `List` by reference (`this.list = instance.list;`) leaves the original and the copy sharing the exact same underlying list, so mutating one mutates both; the fix constructs a genuinely new container from the source's contents (`new ArrayList<>(instance.list)`).
+### Prototype and Registry — Copying Instead of Constructing
+Manually copying an object's fields from outside the class couples the caller to every internal field name, cannot reach private fields with no setters, and forces a growing `instanceof` chain to handle subclasses (an OCP violation). Prototype fixes this with a `Prototype<T>` interface requiring `T clone()`; every subclass must override `clone()` itself and call `super(instance)`, because a child that forgets to override `clone()` silently runs its parent's clone logic and drops any fields the child added. A **Registry** is a separate `Map`-based store (`ConcurrentHashMap` for thread safety) for retrieving named prototype templates — `registry.get(""ubuntu-base"")` — where a missing key returns `null` silently, which then causes a `NullPointerException` later, on a completely different line, the moment `.clone()` runs on that `null`. The most common implementation bug is a **shallow copy trap**: copying a mutable field like a `List` by reference (`this.list = instance.list;`) leaves the original and the copy sharing the exact same underlying list, so mutating one mutates both; the fix constructs a genuinely new container from the source's contents (`new ArrayList<>(instance.list)`).
 
-**Factory — Deciding Which Class to Instantiate:** the problem Factory solves is a decision (""which class to build"") becoming known only at runtime, from configuration or user choice. A naive `if/else` chain hardcoded inside a client (`if (provider.equals(""openai""))...`) is an OCP violation — a new provider means editing tested code — and duplicates the same decision logic anywhere else it's needed. A **Simple/Static Factory** centralizes that decision into one method (`AIServiceClientProvider.getClient(provider)`), so the client depends only on an interface. This is deliberately not the strict GoF Factory Method (which uses an abstract method overridden by subclasses, with polymorphism doing the dispatch) — the practical static-factory shape is far more common in real codebases. An **Abstract Factory** goes one level up: when a single provider must supply a *family* of related objects that must stay compatible with each other (a chat client, an embeddings client, and a moderation client that must all come from the same vendor), an `AIProviderFactory` interface groups the related creation methods together so a caller can never accidentally mix an OpenAI chat client with a Gemini moderation client. Even a well-intentioned static factory can still secretly violate OCP: if adding a new provider still means reopening `getClient()`'s `if/else` chain, it has only centralized the branching, not eliminated the extensibility problem — a **registry-backed factory** (`Map<String, Supplier<T>>`, populated via a `register(name, Constructor::new)` call from each provider's own bootstrap code) genuinely lets a different team add a new provider without ever touching the factory class itself. Java's built-in `ServiceLoader` takes this even further, discovering implementations automatically from `META-INF/services` metadata files with no shared registration code at all — this is exactly how JDBC drivers and SLF4J logging backends register themselves.
+### Factory — Deciding Which Class to Instantiate
+The problem Factory solves is a decision (""which class to build"") becoming known only at runtime, from configuration or user choice. A naive `if/else` chain hardcoded inside a client (`if (provider.equals(""openai""))...`) is an OCP violation — a new provider means editing tested code — and duplicates the same decision logic anywhere else it's needed. A **Simple/Static Factory** centralizes that decision into one method (`AIServiceClientProvider.getClient(provider)`), so the client depends only on an interface. This is deliberately not the strict GoF Factory Method (which uses an abstract method overridden by subclasses, with polymorphism doing the dispatch) — the practical static-factory shape is far more common in real codebases. An **Abstract Factory** goes one level up: when a single provider must supply a *family* of related objects that must stay compatible with each other (a chat client, an embeddings client, and a moderation client that must all come from the same vendor), an `AIProviderFactory` interface groups the related creation methods together so a caller can never accidentally mix an OpenAI chat client with a Gemini moderation client. Even a well-intentioned static factory can still secretly violate OCP: if adding a new provider still means reopening `getClient()`'s `if/else` chain, it has only centralized the branching, not eliminated the extensibility problem — a **registry-backed factory** (`Map<String, Supplier<T>>`, populated via a `register(name, Constructor::new)` call from each provider's own bootstrap code) genuinely lets a different team add a new provider without ever touching the factory class itself. Java's built-in `ServiceLoader` takes this even further, discovering implementations automatically from `META-INF/services` metadata files with no shared registration code at all — this is exactly how JDBC drivers and SLF4J logging backends register themselves.
 
 ## Practical Backend Scenario
 
@@ -2122,20 +2149,21 @@ Build a small plugin-style system where a `Registry` of `Prototype` templates is
 
 ## Concepts Covered
 
+### Structural Design Patterns Overview
 Structural patterns govern how objects are organized and connected *after* they already exist — a different concern from creational patterns (which govern *how* objects come into being).
 
-**Adapter — Translating Without Touching Either Side:**
+### Adapter — Translating Without Touching Either Side
 An adapter is a middle layer connecting two things that don't fit together, without changing either side. The classic production scenario: PhonePe needs to integrate Yes Bank, HDFC, and other banks, each with its own incompatible API shape, without rewriting PhonePe's core code for every new bank and without editing the banks' own SDK code (which would be overwritten on the next upstream update anyway). An adapter has three components: a **Target Interface** (the client's expected contract, e.g. PhonePe's internal `BankAPI`), an **Adaptee** (the existing incompatible class — the actual bank SDK), and the **Adapter** itself, which implements the target interface while internally wrapping and translating calls to the adaptee. Translation can take several forms: type conversion (an int status code becomes a boolean), data reshaping (an object's fields become primitive arguments), pass-through (when shapes already align), and method renaming (identical behavior under a different name). The everyday physical analogy is a MacBook USB-C-to-HDMI dongle: it changes neither the laptop's port nor the monitor's cable, it just translates between the two shapes.
 
-**Facade — One Simple Entry Point Over Complexity:**
+### Facade — One Simple Entry Point Over Complexity
 A facade provides one simple entry point that hides the coordination of several complex subsystems behind it. The production scenario: instead of `Amazon.orderPlace()` directly calling invoice, warehouse, inventory, and email services itself (violating single responsibility), a dedicated `OrderPlacedFacade` coordinates all of that complexity behind one method call. A correctly designed facade receives its subsystem dependencies through its constructor (dependency injection) rather than constructing them internally with `new` — this keeps the facade swappable and testable with mocks, and prevents it from being locked to one concrete implementation.
 
-**Distinguishing Adapter from Facade:** the test is *why* the wrapper exists. If the problem is two incompatible interfaces that need translating, it's an Adapter (typically one adaptee). If the problem is a complex, hard-to-use system that needs a simpler front door, it's a Facade (typically multiple subsystems). Real systems often combine both — an adapter can live inside a facade.
+### Distinguishing Adapter from Facade the test is *why* the wrapper exists. If the problem is two incompatible interfaces that need translating, it's an Adapter (typically one adaptee). If the problem is a complex, hard-to-use system that needs a simpler front door, it's a Facade (typically multiple subsystems). Real systems often combine both — an adapter can live inside a facade.
 
-**Decorator — Adding Behavior by Wrapping, Not Editing:**
+### Decorator — Adding Behavior by Wrapping, Not Editing
 Decorator attaches new responsibilities to an object dynamically by wrapping it in another object that implements the same interface, leaving the original class completely untouched. The canonical worked example is a coffee shop: `Espresso implements Beverage` costs 80.0. Wrapping it as `new Mocha(order)` adds 20.0 by delegating to the wrapped beverage's `cost()` and adding its own charge on top; wrapping again as `new Whip(order)` adds another 15.0 the same way — three layers deep, `order.cost()` returns 115.0. Because decorators are just objects implementing the same interface as what they wrap, they compose: wrapping in `Mocha` *twice* (`new Mocha(new Mocha(order))`) naturally produces a ""double mocha"" with zero new code, which is the entire point of the pattern. The failure mode to recognize: if someone adds boolean flags like `hasMocha`/`hasWhip` and `if` branches directly inside `Espresso` to fake this behavior, they have reintroduced the exact tight coupling Decorator exists to eliminate — every new add-on then requires editing the base class again, and each new combination needs its own branch. A concrete bug to know: a `CondimentDecorator` subclass must have a constructor that receives and stores the wrapped `Beverage` (often via `super(beverage)`); forgetting this constructor is a common reason this pattern fails to compile.
 
-**Flyweight — Sharing State to Cut Memory:**
+### Flyweight — Sharing State to Cut Memory
 Flyweight splits an object's data into **intrinsic state** (identical across many instances, safe to share from one cached object) and **extrinsic state** (unique per instance, passed in from the caller at the moment of use, never stored in the shared object). The canonical example: a game needs millions of bullets on screen, but they only come in a handful of *types* (e.g. ""AKM"") — the bullet's damage, model, and sound are intrinsic (identical for every AKM bullet fired) and belong in one cached `BulletType` object per type name, while each bullet's current position is extrinsic and passed in separately per bullet instance. A `BulletTypeFactory` backed by a `HashMap` returns the *same* cached object for the same type name (`getBulletType(""AKM"") == getBulletType(""AKM"")` is `true`), which is what makes the memory saving real. The most common mistake when applying this pattern is inverting the split — for example, in a text-editor `Character` class rendering millions of characters, the *font/size/color* are usually shared across large runs of text (intrinsic, cacheable) while each character's *row/column position* is unique per occurrence (extrinsic, passed in); a design that puts position into the shared/cached class and formatting into the per-instance class has the split exactly backwards. The same reasoning scales to any domain with a small fixed set of categories shared across a huge number of records — a food delivery app with only 30 order categories but millions of daily line items should cache one `Category` object per name and have every line item reference it, not duplicate the category data into every line item.
 
 ## Practical Backend Scenario
@@ -2162,21 +2190,22 @@ Combine two of these patterns in one worked example: build a `PaymentGatewayFaca
 
 ## Concepts Covered
 
+### Behavioural Patterns Overview
 Behavioural patterns govern how objects communicate and distribute responsibility for an algorithm or a reaction to change — distinct from structural patterns (which govern how objects are wired together) and creational patterns (which govern how objects are made).
 
-**Strategy — Selecting an Algorithm, Not Branching Inside One:**
+### Strategy — Selecting an Algorithm, Not Branching Inside One
 Strategy extracts an algorithm into its own interface so the algorithm in use can be swapped without touching the class that uses it. The failure mode it replaces: one method full of `if (mode.equals(""car""))` / `else if (mode.equals(""bike""))` branches, where adding a new mode means editing and re-testing existing, already-working code — a direct violation of the Open-Closed Principle and Single Responsibility. Strategy's fix: each mode becomes its own class implementing a shared interface (e.g. `CarPathCalculator`, `BikePathCalculator`), and the class that needs the behavior (e.g. `PricingManager`, `VideoStreamingManager`) holds a reference to the interface, not to any concrete implementation, receiving it through its constructor. A concrete strategy class deliberately does **not** take a ""mode"" parameter in its methods — the class itself already represents one specific way of doing the task, so telling it what mode it is would be redundant and would reopen the door to the same branching the pattern exists to remove. Most concrete strategies are stateless (all their inputs arrive as method parameters, nothing is stored as instance state), which is exactly why a Strategy Factory can safely cache and return one shared instance per type instead of constructing a new object on every call. A `StrategyFactory`'s only job is selection: mapping some input (a mode string, an enum) to the correct concrete strategy object — it never executes the algorithm itself, and a common bug is a factory built on a lookup map that only covers some of the possible inputs, silently returning `null` for any input it wasn't given an entry for, which surfaces later as a `NullPointerException` far from the real mistake.
 
-**Strategy vs. Chain of Responsibility — Choosing One vs. Trying in Sequence:**
+### Strategy vs. Chain of Responsibility
 It's a common misclassification to call a fallback/retry sequence a ""Strategy"" because multiple implementations share one interface. The test is behavioral: Strategy selects exactly one implementation up front and uses only that one. A payment flow that tries Razorpay, then falls back to Stripe on failure, then falls back to PayPal, is not Strategy — no single provider was chosen ahead of time, and control passes along a sequence until one succeeds. That ordered, try-until-handled shape is Chain of Responsibility, a related but distinct pattern.
 
-**Observer — Broadcasting a Change to Many Listeners:**
+### Observer — Broadcasting a Change to Many Listeners
 Observer lets a subject (the publisher) notify an open-ended set of listeners (observers) whenever its state changes, without the publisher needing to know anything about who those listeners are or how many there will be. The publisher holds a list of a shared `Observer` interface, exposes `subscribe`/`unsubscribe` (or `register`/`addObserver`) to manage that list, and — critically — must actually iterate the list and invoke each observer inside every method that changes state. The single most common Observer bug is exactly that last step going missing: a `setTemperature(double temp)` method that updates the field but never loops through `observers` and calls their update method leaves every registered listener silently uninformed, even though registration itself worked perfectly. Unsubscribing removes an observer from the list going forward only — a `Publisher` that subscribes a `Logger`, publishes an event (which the logger receives), unsubscribes the logger, then publishes a second event, delivers only the first event to that logger, not the second. This is why adding an entirely new kind of subscriber (e.g. a `WhatsAppService` next to existing `AlertService`, `EmailService`, `SlackService` observers) requires zero changes to the publisher — it's simply one more object registering itself against the same interface.
 
-**Strategy vs. Observer — the Real Distinguishing Question:**
+### Strategy vs. Observer — The Core Distinction
 Both patterns program against one interface implemented by multiple classes, which is why they're often confused. The distinguishing question is intent: does the caller pick exactly *one* implementation to delegate to (Strategy), or does the caller notify *every* registered implementation at once (Observer)? A `RoutingStrategy` selects one AI model to route a query to; a list of `Observer`s all receive the same order-placed event simultaneously. Neither pattern is ""better"" — they solve different problems that happen to share the same programming-to-an-interface mechanic.
 
-**UML — A Shared Notation for Communicating Design:**
+### UML — A Shared Notation for Communicating Design
 UML (Unified Modelling Language) is a standardized visual notation so any engineer reads the same diagram shapes the same way, independent of implementation language. It splits into **Structural UML** (Class, Object, Component diagrams — describing the frozen structure of a codebase) and **Behavioral UML** (Use Case, Sequence, Activity diagrams — describing behavior over time). A Class diagram box has three sections: name, then attributes (`- privateField: Type`, `+ publicField: Type`), then methods (`+ methodName(): ReturnType`), using `-`/`+`/`#` for private/public/protected. Static members are underlined regardless of access modifier. An abstract class's name and abstract methods are shown in italics; an interface carries a `<<interface>>` stereotype label; an enum carries `<<enumeration>>`. In Use Case diagrams, a solid **includes** arrow means the parent use case *always* triggers the child (e.g. ""Enroll in Course"" includes ""Make Payment""); a dashed **extends** arrow means the child is one *optional* variant of the parent (e.g. ""Pay by UPI"" and ""Pay by Card"" both extend ""Make Payment""). For HAS-A relationships, a hollow diamond denotes **aggregation** (both objects can exist independently — e.g. a reusable `Module` shared across multiple `Course`s), while a filled diamond denotes **composition** (the child cannot exist without the parent — e.g. a one-off `Module` that belongs to exactly one `Course`). There is deliberately no universal rule for which one applies to a given relationship — the same `Module`-to-`Course` relationship can be legitimately aggregation or composition depending on the actual product requirement, and this judgment call cannot be automated away by an ORM. A composite primary key is the alternative to a surrogate `id` column on a junction table: instead of adding a new auto-incrementing column, the combination of both foreign keys together (e.g. `student_id` + `course_id`) serves as the primary key, since that pair is already guaranteed unique. In Hibernate, a plain `@ManyToMany` is sufficient only when the relationship itself carries no extra data; the moment the relationship needs its own fields (e.g. an `enrolledAt` timestamp on an enrollment), it must be modeled as its own full `@Entity` with two `@ManyToOne` sides instead, because a plain many-to-many junction table has nowhere to store that extra column. The most reliable way to tell aggregation from composition is a lifecycle-dependency test, not intuition: if the contained object continues to exist and make sense after the container is deleted (a post surviving its author's account deletion, a song surviving its playlist's deletion), it's aggregation; if the contained object stops making sense the moment the container is gone (a notebook's pages, a car's engine and wheels, a GPS trip's route coordinates), it's composition — and a common implementation bug is a class that claims aggregation but actually constructs its dependency internally in its own constructor (e.g. `this.driver = new Driver();` inside `Car`'s constructor) rather than receiving an already-existing object from outside, which silently turns it into composition-like ownership regardless of what the diagram says.
 
 ## Practical Backend Scenario
@@ -2205,10 +2234,13 @@ A repeatable framework for machine coding interviews and real-world system desig
 
 ## Concepts Covered
 
+### Step 0: Alignment and Problem Framing
 Machine coding interviews fail most often not from lack of Java knowledge but from lack of sequencing discipline — jumping straight into classes before the requirements are pinned down. Scaler's 6-step framework exists to prevent that: Step 0 is alignment with the interviewer (or with yourself, in a solo problem) — confirm what you already know and explicitly name what you don't, rather than assuming. Two questions settle the shape of the whole exercise before any design starts: does this system need to persist data, or is an in-memory, single-run structure acceptable; and how will a user actually interact with it — a REST API, a CLI, or a hardcoded `main()` method exercising the classes directly. Getting these two answers wrong early costs far more time than getting them right.
 
+### From Requirements to Class Diagrams (Steps 1 to 3)
 Step 1 is requirement gathering, typically producing 5–10 explicit, numbered requirements (R1, R2, R3...) rather than a vague paragraph. Step 2 clarifies and resolves tradeoffs within those requirements — this is where multiple candidate approaches to a tricky requirement (like an undo feature, or a pluggable pricing strategy) get compared on time and space complexity before committing to one. Step 3 turns the clarified requirements into a class diagram: nouns from the requirements become candidate classes, verbs become candidate methods, and the diagram should be walkable as a user journey — a reader should be able to trace what happens, in order, class by class, when a user performs the core action.
 
+### Identifying Behavioral Pattern Signals in Requirements
 A phrase like ""this behavior needs to be swappable without rewriting the system"" is a Strategy pattern appearing in plain English — trained eyes catch it during requirement clarification, before any diagramming starts, rather than noticing only once the code has already ossified around a single hardcoded approach. Requirements that describe multiple interchangeable algorithms (fee calculation, spot assignment, bot difficulty, winning-condition checks) are the strongest signal.
 
 ## Practical Backend Scenario
@@ -2233,12 +2265,16 @@ Design and implement a clean, extensible TicTacToe engine: board abstraction, pl
 
 ## Concepts Covered
 
+### Core Requirements and System Constraints
 TicTacToe is Scaler's first full application of the 6-step framework to a complete, working system, and its value is in the seven requirements it generates: an N×N board (not fixed at 3×3), up to N−1 players, unique symbols chosen per player, support for bot players, bots with a difficulty curve (easy, medium, hard), configurable win-condition rules chosen before the game starts, and an undo feature. Each of these pushes the design toward extensibility rather than a special-cased 3×3, two-player script.
 
+### Undo Feature Architectural Trade-Offs
 The undo feature is the requirement most worth slowing down on, because three genuinely different implementations exist with different tradeoffs. The first stores a stack of past moves and works for TicTacToe specifically, but breaks down for games with more complex state mutation per move (chess captures, for example) because undoing a move isn't always the exact inverse of applying it. The second replays all N−1 prior moves onto a freshly empty board — correct for any game, but O(N²) time and O(N·N·m) space for m stored move-lists, since every undo re-simulates from scratch. The third stores a full board snapshot after every move, making undo an O(N) lookup — trading memory for speed, which is the right trade for a bounded board size where snapshots stay small.
 
+### Win-Condition Checking Optimization: O(N³) to O(1)
 Win-condition checking has its own optimization arc, moving through four solutions. The naive approach checks every player against the entire board (every row, column, and diagonal) after every move: O(N³). Since only the player who just moved could possibly have created a new winning line, checking only the current player already drops this to O(N²). Since a move at position (i, j) can only ever affect row i, column j, and — only when i == j or i + j == N−1 — one or both diagonals, checking only the touched lines drops this further to O(N). The final optimization replaces re-scanning entirely with running counters: a map per row, per column, and two fixed maps for the diagonals, incremented on every placed symbol and compared against N. This reaches O(1) time per move at the cost of O(N) additional space — for a bounded board size, accepting that space cost for constant-time checking is the correct trade, and it only works if the counters live as persistent fields on the class, not as local variables recreated on every call.
 
+### Applying Builder, Factory, and Strategy Patterns
 Three design patterns organize the resulting system. `Game` is constructed exclusively through a `GameBuilder`, whose validation (bot count capped at one per game, player count matching board dimension minus one, symbol uniqueness across all players) runs before any `Game` instance can exist — a private constructor makes bypassing this impossible. Player creation goes through a `PlayerFactory` returning the correct concrete type. Both winning-condition checks and bot move-selection are Strategy implementations: a `WinningStrategy` interface lets a new rule be added as one new class without touching `Game`'s core logic, and `BotPlayingStrategy` implementations (an easy strategy picking the first empty cell, a hard strategy using minimax with alpha-beta pruning) let a `Bot` delegate its move-selection entirely, keeping `Bot` itself thin.
 
 ## Practical Backend Scenario
@@ -2263,12 +2299,16 @@ Design and implement a multi-floor parking lot system: spot types, vehicle hiera
 
 ## Concepts Covered
 
+### Physical Domain Requirements and Design Pattern Signals
 Parking Lot moves the 6-step framework from a pure game (TicTacToe) to a system involving physical resources and financial transactions, and the eight requirements it generates read differently as a result: multiple floors per lot, vehicle-type-specific spots with exact-match allocation only (a truck can never occupy a car spot), a token created and a spot assigned simultaneously at entry, payment and spot-release happening together at exit, dynamically swappable fee-calculation algorithms, support for both cash and third-party online payment, multiple physically distinct entry and exit gates, and configurable spot assignment (auto-nearest-pick or user selection). Requirements 5 and 8 are the same Strategy-pattern signal from Lesson 18 appearing twice in one problem — two separate interfaces are needed, one for fee calculation and one for spot allotment.
 
+### Driver Journey and Domain Entity Modeling
 Walking through a driver's actual journey — arrive, receive a ticket, park, later present the ticket, pay, leave — yields nine classes: `ParkingLot`, `ParkingFloor`, `Gate`, `ParkingSpot`, `Vehicle`, `Operator`, `Ticket`, `Bill`, and `Payment`. Several of the modeling decisions here generalize well beyond parking lots. `Gate` is one class with a `GateType` enum (ENTRY or EXIT) rather than two separate `EntryGate`/`ExitGate` classes, because the two are identical except for that one field — creating a subclass distinction for a single enum value is needless duplication. `Ticket` captures its own `operator` field as a snapshot at the moment of issue, distinct from `Gate.operator`, which reflects whoever is *currently* staffing that gate — conflating the two would mean a ticket's audit trail silently changes when a shift changes, which is wrong: a ticket must record who was actually on duty when it was issued. `Bill` holds a `List<Payment>` rather than a single `Payment`, because real payment splitting (part cash, part card) needs to be representable, and each payment in the list can be independently refunded or audited. `ParkingSpot` stores its `floorId` directly rather than deriving it by walking up through the floor object on every lookup — a deliberate duplication justified by how frequently that lookup happens (printing every ticket), not applied blindly everywhere.
 
+### Relational Schema Mapping and Cardinality
 Schema design here follows the same class-to-table algorithm from earlier lessons — every class becomes a table, every simple attribute becomes a column, and every attribute that is itself another class needs its cardinality checked before deciding where the foreign key goes. `ParkingLot`-to-`ParkingFloor` is one-to-many, so `parking_lot_id` lives on the `parking_floor` table, not the reverse — a single `floor_id` column on `parking_lot` could only ever reference one floor, which can't represent a lot having many floors. `Bill`-to-`Payment` is similarly one-to-many, so `bill_id` sits on the `payment` table. `Gate`-to-`Operator`, by contrast, is genuinely many-to-many across the shift history (many operators work many gates over time), which would need its own mapping table if that full history matters — a plain foreign key column would only capture the *current* operator, matching what `Gate.operator` is meant to store, but not the shift history.
 
+### Concurrency Hazards in Spot Allocation
 The design deliberately leaves one real gap unresolved after the class diagram is complete: nothing in the paper design prevents two entry gates from assigning the same empty spot to two different vehicles arriving at nearly the same moment. `AllotmentStrategy.assignSpot()` decides which spot to hand out, but no lock exists between the moment it reads ""this spot is free"" and the moment it commits that assignment — a genuine concurrency problem that only manifests when gates run concurrently, and one that a single-threaded paper design cannot surface or fix by itself.
 
 ## Practical Backend Scenario
@@ -2291,7 +2331,11 @@ Add a `ReservationStrategy` allowing spots to be pre-booked ahead of physical ar
 
 ## Concepts Covered
 
-This machine-coding exercise builds a Hotel Management System incrementally, across four stages, each adding one capability on top of a shared layered architecture: a **Controller** layer (accepting request DTOs and returning response DTOs), a **Service** layer (interface + implementation holding business logic), a **Repository** layer (interface + an in-memory implementation, so the domain logic stays independent of any real database), and plain **domain models** (`Room`, `User`, `Booking`, `Invoice`, `CustomerSession`) with their own enums (`RoomType`, `UserType`, `CustomerSessionStatus`) and typed exceptions (`UserNotFoundException`, `UnAuthorizedAccess`, `InvalidRoomException`). The four stages build on each other: **Add Rooms** (ADMIN-only capability to register new rooms into the system), **Get Rooms** (customers browse available rooms), **Book Rooms** (customers reserve a room, tracked through a `CustomerSession`), and **Generate Invoice** (producing a bill for a completed booking). Each stage's Controller and Service only add the one new capability the stage is named for, while reusing the Repository and domain models already established by earlier stages — this is the same incremental-milestone structure used in the OOP-4 Library Management System lab, but applied to a full request/response layered architecture instead of a single class hierarchy.
+### Layered Architecture: Controller, Service, and Repository
+This machine-coding exercise builds a Hotel Management System incrementally, across four stages, each adding one capability on top of a shared layered architecture: a **Controller** layer (accepting request DTOs and returning response DTOs), a **Service** layer (interface + implementation holding business logic), a **Repository** layer (interface + an in-memory implementation, so the domain logic stays independent of any real database), and plain **domain models** (`Room`, `User`, `Booking`, `Invoice`, `CustomerSession`) with their own enums (`RoomType`, `UserType`, `CustomerSessionStatus`) and typed exceptions (`UserNotFoundException`, `UnAuthorizedAccess`, `InvalidRoomException`).
+
+### Four Incremental Development Stages
+The four stages build on each other: **Add Rooms** (ADMIN-only capability to register new rooms into the system), **Get Rooms** (customers browse available rooms), **Book Rooms** (customers reserve a room, tracked through a `CustomerSession`), and **Generate Invoice** (producing a bill for a completed booking). Each stage's Controller and Service only add the one new capability the stage is named for, while reusing the Repository and domain models already established by earlier stages — this is the same incremental-milestone structure used in the OOP-4 Library Management System lab, but applied to a full request/response layered architecture instead of a single class hierarchy.
 
 ## Practical Backend Scenario
 
@@ -2316,8 +2360,10 @@ Add a `CancelBooking` capability that transitions a `CustomerSession` back to an
             "14-spring-boot-core" => @"# Lesson 14 — Spring Boot Core: IoC & Dependency Injection
 
 ## Concepts Covered
+### Inversion of Control and Dependency Injection
 Inversion of Control means application code declares dependencies while a container creates and wires the object graph. Constructor injection makes required dependencies visible, supports immutable fields, and lets a unit test construct a service without starting the framework. Component scanning is convenient, but explicit configuration is valuable when multiple implementations, security-sensitive clients, or environment-specific policies exist.
 
+### Spring Bean Lifecycle and Configuration Management
 A bean has a lifecycle: creation, dependency resolution, initialization, use, and destruction. Scope affects state safety; a singleton should not hold request-specific mutable data. Configuration properties should be validated at startup, secrets should come from a managed secret source, and profiles should select infrastructure wiring rather than change business rules.
 
 ## Practical Backend Scenario
@@ -2339,8 +2385,10 @@ Add a decorator that records gateway latency and failure counts while keeping th
             "15-spring-data-jpa" => @"# Lesson 15 — Spring Data JPA & PostgreSQL Integration
 
 ## Concepts Covered
+### Object-Relational Mapping and Persistence Context Boundaries
 JPA maps object state to relational rows, but the mapping is not the transaction boundary by itself. Decide aggregate ownership, identifier strategy, fetch behavior, and lifecycle before adding annotations. A persistence context tracks managed entities; lazy loading can trigger queries later, and an accidentally broad entity graph can load far more data than the endpoint needs.
 
+### Transaction Scope, Query Optimization, and Locking
 Transactions should be short, explicit, and aligned with a business operation. Use repository methods that match the read shape, project only required fields, and inspect generated SQL for hot paths. Prevent N+1 queries with a deliberate fetch plan, indexes, pagination, and query analysis. Optimistic locking is useful when conflicts are expected and should be surfaced as a retriable domain outcome.
 
 ## Practical Backend Scenario
@@ -2362,8 +2410,10 @@ Add an outbox record in the same transaction as an order state change, then desc
             "16-spring-rest-api" => @"# Lesson 16 — RESTful APIs, Validation & Security
 
 ## Concepts Covered
+### REST API Contracts and DTO Boundary Protection
 An HTTP API is a public contract of resources, methods, status codes, representations, validation errors, and retry semantics. Request DTOs protect the domain model from transport concerns; response DTOs prevent persistence fields from becoming accidental API commitments. Validation should fail close to the boundary, while business rules remain in the application or domain layer.
 
+### Idempotency, Authentication, and Error Handling
 Idempotency matters for payment, booking, and other retryable commands. Authentication establishes who is calling; authorization decides what that caller may do. API keys, sessions, and JWTs have different rotation, revocation, and audience considerations. Never treat a decoded token as permission by itself. Central error handling should return a stable problem shape, a correlation id, and no stack trace or secret.
 
 ## Practical Backend Scenario
@@ -2385,8 +2435,10 @@ Add an idempotency table with request fingerprint and response metadata. Define 
             "17-machine-coding-capstone" => @"# Lesson 17 — Distributed Systems & Machine Coding Capstone
 
 ## Concepts Covered
+### Capstone Architecture and Core Invariants
 The capstone combines object modeling, concurrency, persistence, API boundaries, and operational thinking under a time constraint. Start with invariants and the smallest vertical slice. Separate command handling from read concerns, make retry behavior explicit, and choose one consistency boundary before optimizing. A good submission is not the most abstract design; it is a coherent design whose failure behavior can be explained.
 
+### Layered Workflow Coordination, Concurrency, and Observability
 Use an application service to coordinate a booking or ride-matching workflow, domain objects to protect state transitions, repositories for persistence, and ports for external providers. Concurrency needs a bounded execution policy and a uniqueness or version guarantee. Observability is part of correctness: record correlation ids, state transitions, latency, and failure categories without logging personal or payment data.
 
 ## Practical Backend Scenario
@@ -2404,6 +2456,137 @@ You can defend the aggregate boundary, the concurrency guarantee, the idempotenc
 
 ## Suggested Extension
 Add an outbox-backed notification publisher and a reconciliation command. Document duplicate delivery handling and the metrics that would alert an operator before customers report a problem.
+",
+            "21-machine-coding-bookmyshow" => @"# Lesson 21 — Machine Coding: BookMyShow
+
+## Concepts Covered
+
+### Event, Show, and Venue Modelling
+A movie ticketing platform models real-world physical and temporal structures. The core domain separates the creative work from its exhibition: an `Event` (or `Movie`) represents the media entity (title, duration, genre, language), while a `Show` represents a specific temporal exhibition of that event at a particular `Screen` within a `Theatre` located in a `City`. A `Venue` or `Theatre` contains multiple physical `Screen` instances, each configured with a physical layout of `Seat` objects designated by row, seat number, and `SeatType` (such as `SILVER`, `GOLD`, `PLATINUM`, or `RECLINER`). Crucially, physical seats are immutable layout templates; they do not store availability status. Availability is temporal and show-specific. To represent this without mutating physical theater definitions, the domain introduces `ShowSeat` as an associative entity binding a `Show`, a physical `Seat`, and a mutable `ShowSeatStatus` (`AVAILABLE`, `LOCKED`, `BOOKED`). Pricing is also decoupled: a `ShowSeatType` mapping assigns rates per seat type for a given show, accommodating dynamic weekend pricing or holiday surges without modifying the base theater topology.
+
+### Seat Locking and Concurrent Booking
+The primary operational hazard in high-demand ticket sales is the double-allocation race condition during flash sales. When thousands of users select the same seats simultaneously, the system must establish an exclusive, temporary reservation before requiring payment. This is solved through a time-bounded **Seat Lock** mechanism. A `SeatLock` entity associates a `ShowSeat` with a `User`, a creation timestamp, and a lock expiration window (typically 5 to 10 minutes). When a customer initiates checkout, the system validates that every requested `ShowSeat` is currently `AVAILABLE` and has no active, unexpired lock:
+
+```java
+public class SeatLock {
+    private final ShowSeat showSeat;
+    private final User lockedBy;
+    private final Instant lockedAt;
+    private final Duration timeout;
+
+    public boolean isExpired() {
+        return Instant.now().isAfter(lockedAt.plus(timeout));
+    }
+}
+```
+
+Concurrency control can be enforced in-memory via synchronized blocks, `ReentrantLock` instances per show, or atomic test-and-set operations on concurrent collections; in distributed architectures, this translates to Redis distributed locks (`SET resource_name my_random_value NX PX 300000`) or database pessimistic row locks (`SELECT ... FOR UPDATE`). If any requested seat in a multi-seat batch cannot be locked, the entire transaction rolls back cleanly, avoiding partial allocations.
+
+When using in-memory locks with `ConcurrentHashMap<String, SeatLock>`, key eviction requires a deterministic cleanup mechanism. If a thread crashes after acquiring a lock but before initiating payment, or if the user simply closes their browser tab, an orphaned lock would block that seat indefinitely. A `ScheduledExecutorService` running every 30 seconds sweeps expired entries from the map, comparing `Instant.now()` against `lockedAt.plus(timeout)`. In a distributed deployment, this role is offloaded to Redis TTLs or database row timestamps evaluated with optimistic conditional updates (`UPDATE show_seats SET status = 'LOCKED', version = version + 1 WHERE id = :id AND status = 'AVAILABLE' AND version = :version`).
+
+### Booking and Payment State Machine
+Once seats are successfully locked, a `Booking` is instantiated in a `PENDING` state, linked to the `User`, the selected `ShowSeat` instances, the calculated total fare, and an expiry deadline mirroring the seat locks. The transition from reservation to permanent ownership is governed by a strict finite state machine: `PENDING` -> `CONFIRMED`, `PENDING` -> `EXPIRED`, or `PENDING` -> `CANCELLED`. The system delegates financial processing to an external payment gateway through a polymorphic `PaymentService` abstraction. While payment is being authorized asynchronously, the customer holds the lock. If payment succeeds before timeout, a callback or webhook triggers the confirmation workflow: the `Booking` transitions to `CONFIRMED`, an `Invoice` or `Ticket` token with a QR payload is generated, the underlying `ShowSeat` statuses permanently update to `BOOKED`, and the temporary locks are released. Conversely, if payment fails or the timer expires before authorization lands, a scheduler or lock eviction routine executes: the `Booking` transitions to `EXPIRED`, the `ShowSeat` records revert to `AVAILABLE`, and any late-arriving payment notification triggers an automated refund workflow rather than an illegal double-booking.
+
+To prevent double-charging or duplicate bookings caused by network retries from the payment aggregator, the payment callback endpoint must enforce idempotency. Each payment request payload carries an `idempotencyKey` (such as a UUID combining booking ID and user ID). When the webhook delivers a success notification, `PaymentService` first queries a `PaymentTransactionRepository`. If a transaction with that key already exists in `SUCCESS` status, the service returns an immediate HTTP 200 OK without re-executing seat confirmation logic.
+
+## Practical Backend Scenario
+A major blockbuster opens ticket reservations at noon. Within five seconds, 8,000 concurrent HTTP requests target the same 200 seats in Audi 1 for an evening show. Two users, Priya and Rahul, click ""Proceed to Pay"" for seats `A1` and `A2` at the exact same millisecond. In a naive implementation without atomic locking, both requests check availability, observe `A1` and `A2` as open, and create two distinct payment orders. Both users complete payment via UPI, resulting in an irrecoverable double booking, an angry customer at the box office, and manual intervention. In our layered architecture, Priya's request enters `BookingController.bookSeats()`, where `BookingService` acquires an in-memory lock on Show #101. It evaluates `ShowSeatRepository.findAvailableSeats()`, identifies `A1` and `A2` as available, creates two `SeatLock` entries with a 5-minute TTL, sets status to `LOCKED`, and commits within an atomic boundary. When Rahul's request evaluates two milliseconds later, the lock manager detects that `A1` and `A2` have active unexpired locks held by another session. Rahul's request immediately throws `SeatUnavailableException`, returning an HTTP 409 Conflict with a structured error payload detailing exactly which seats failed. Priya completes payment within 3 minutes; the payment webhook invokes `PaymentService.handleCallback()`, transitioning `Booking` to `CONFIRMED` and `ShowSeat` to `BOOKED`.
+
+## Practice Loop
+1. **Model Core Domain Entities:** Define `City`, `Theatre`, `Screen`, `Seat`, `SeatType`, `Event`/`Movie`, `Show`, `ShowSeat`, `ShowSeatStatus`, `Booking`, and `BookingStatus`. Ensure physical `Seat` is purely layout metadata while `ShowSeat` owns show-specific status and pricing.
+2. **Implement In-Memory Storage Repositories:** Create `ShowRepository`, `ShowSeatRepository`, `BookingRepository`, and `SeatLockRepository` backed by `ConcurrentHashMap` instances to support fast, thread-safe lookups without an external database.
+3. **Build the Seat Lock Manager:** Implement `SeatLockService` providing `boolean lockSeats(String showId, List<String> seatIds, String userId, Duration ttl)` and `void unlockSeats(String showId, List<String> seatIds)`. Ensure lock acquisition is all-or-nothing: if 3 of 4 seats are free but the 4th is locked, release the 3 and return false.
+4. **Implement Booking Workflow Orchestration:** Create `BookingService.createBooking(CreateBookingRequestDto dto)` which calls `SeatLockService`, calculates total cost using seat type pricing rules, creates a `Booking` in `PENDING` state, and returns a `CreateBookingResponseDto` containing booking ID and lock expiration timestamp.
+5. **Implement Payment and Confirmation State Transitions:** Create `PaymentService.processPayment(String bookingId, PaymentRequestDto dto)` and webhook handler `handlePaymentCallback(PaymentCallbackDto dto)`. Verify that successful payment marks `ShowSeat` as `BOOKED` and clears locks. Write a test asserting that if payment completes after the lock TTL has elapsed, the booking is rejected, a refund is scheduled, and seats are not reserved.
+6. **Concurrent Race Condition Test:** Launch 100 parallel threads attempting to reserve the same 2 seats simultaneously using `ExecutorService` and `CountDownLatch`. Assert that exactly one thread successfully creates a booking, exactly 99 receive `SeatUnavailableException`, and zero duplicate allocations occur.
+
+## Evidence of Understanding
+You can defend the architectural separation between physical `Seat` and contextual `ShowSeat`, demonstrating why mutability belongs only to the show-specific projection. You can explain how pessimistic versus optimistic locking strategies behave under high contention, and justify why seat reservation requires an explicit temporary lock state prior to payment initiation. You can trace the entire lifecycle of a concurrent transaction from request arrival, lock contention, payment webhook processing, to automatic lock eviction on timeout. You can explain how to handle the critical edge case of late payment arrival after lock expiry without causing double allocation.
+
+## Suggested Extension
+Add a dynamic pricing strategy using the Strategy Pattern (`PricingStrategy` interface with `FlatPricingStrategy`, `DemandBasedPricingStrategy`, and `DayOfWeekPricingStrategy`) that calculates seat costs based on remaining inventory percentage and historical demand. Implement a background cleanup daemon using `ScheduledExecutorService` that periodically scans for expired locks, cancels abandoned pending bookings, and notifies interested waitlisted users via an `Observer` notification bus.
+",
+            "22-machine-coding-splitwise" => @"# Lesson 22 — Machine Coding: Splitwise
+
+## Concepts Covered
+
+### Group and Expense Modelling
+An expense sharing application models how financial obligations arise and propagate across social circles. The primary domain entities are `User`, `Group`, `Expense`, and `Split`. A `User` maintains identity attributes (name, email, phone) alongside a personalized balance ledger. A `Group` represents a bounded collection of users sharing recurring expenses (such as a vacation, an apartment, or an event) and manages membership rosters. An `Expense` encapsulates a financial transaction: an identifier, a monetary total, a textual description, the creator, the paying user (or multiple paying users with specific contributions), a timestamp, and an optional association with a `Group`. Crucially, an expense does not store balances directly. Instead, it decomposes into a collection of fine-grained `Split` objects. Each `Split` pairs a specific recipient `User` with their exact financial owed share. The fundamental domain invariant is mathematical equality: the sum of all individual split amounts must equal the total expense amount down to the smallest currency unit ($0.01 or 1 paisa). Monetary values in financial ledgers require exact representation. Using `double` or `float` introduces binary floating-point representation artifacts where simple sums like `0.1 + 0.2` evaluate to `0.30000000000000004`, silently corrupting account balances over time. All monetary fields in `Expense`, `Split`, and `BalanceSheet` are typed as `BigDecimal` with an explicit scale (typically 2 decimal places for cents/paisa) and rounding mode (`RoundingMode.HALF_UP`). Any discrepancy—whether from rounding, truncation, or malicious input—invalidates the expense creation.
+
+### Split Strategy as a Polymorphic Abstraction
+Real-world expense distribution requires diverse splitting policies: equal splits among all members, exact nominal amounts specified per user, percentage allocations, or share/ratio-based distributions. Hardcoding conditional `if-else` or `switch` statements inside an `ExpenseService` severely violates the Open/Closed Principle (OCP); introducing a new split mechanism (such as itemized receipt splitting with tax and tip) would require modifying core service transaction logic. This domain cleanly applies the **Strategy Pattern**:
+
+```java
+public interface SplitStrategy {
+    void validate(List<Split> splits, BigDecimal totalAmount);
+    List<Split> calculateSplits(BigDecimal totalAmount, List<User> participants, SplitMetadata metadata);
+}
+```
+
+Concrete strategies—`EqualSplitStrategy`, `ExactSplitStrategy`, `PercentageSplitStrategy`, and `ShareSplitStrategy`—encapsulate distinct mathematical algorithms. In `EqualSplitStrategy`, total expense is divided by participant count; fractional remainders resulting from uneven division (such as $100 divided among 3 users resulting in $33.33 each with $0.01 left over) are deterministically allocated to the payer or the first participant to maintain strict monetary conservation. For `PercentageSplitStrategy`, validation checks that the sum of percentage shares across all participants equals exactly 100.00%. Each participant's owed share is computed as `totalAmount.multiply(percentage).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)`. Because rounding individual percentages can produce an off-by-one-cent aggregate discrepancy against the total expense, the strategy adjusts the final participant's share by the delta, ensuring `totalAmount == sum(splits)` always holds as an invariant. An `ExpenseFactory` or dependency injection container supplies the appropriate strategy based on client input, keeping expense creation extensible and decoupled.
+
+### Balance Computation and Debt Simplification
+Once an expense is validated and persisted, user balances must update accurately. A system can maintain balances in two distinct topologies: a global pairwise ledger or a net balance sheet. In a pairwise ledger, a directed graph represents claims: an edge from User A to User B with weight $20 signifies that A owes B $20. While straightforward, pairwise tracking produces high graph density: in a group of 5 roommates, each pairwise transaction adds edges, resulting in dozens of redundant transfers. To resolve this, the domain introduces **Debt Simplification** (cash flow minimization). The first phase calculates each user's net balance: `NetBalance = TotalPaid - TotalOwed`. Users with positive net balances are net creditors (they should receive money); users with negative net balances are net debtors (they must pay money); users with zero net balance are fully settled. The second phase eliminates redundant intermediate debts using a greedy bipartite matching algorithm. Two heaps (priority queues) are maintained: a max-heap of debtors ordered by magnitude of debt, and a max-heap of creditors ordered by magnitude of credit. In each iteration, the largest debtor pays the largest creditor the minimum of the two amounts. One party is completely settled and removed from their heap; the other's balance is decremented and re-inserted into the heap if non-zero. This reduces an O(N²) web of transactions to at most N-1 optimal settlement payments, dramatically simplifying group settlements.
+
+## Practical Backend Scenario
+Four friends—Aman, Bharat, Chetan, and Divya—share an apartment. Aman pays the monthly electricity bill of $120, split equally among all four ($30 each). Bharat pays the grocery bill of $150, split by exact amounts: Aman owes $40, Bharat owes $30, Chetan owes $50, and Divya owes $30. Later, Chetan pays $80 for dinner, split by percentages: Aman 40% ($32), Bharat 20% ($16), Chetan 20% ($16), and Divya 20% ($16). If tracked as isolated pairwise debts, settling up requires Aman to pay Bharat $40 and Chetan $32, Bharat to pay Aman $30 and Chetan $16, Chetan to pay Aman $30 and Bharat $50, and Divya to pay three different people. The total number of peer-to-peer payments is chaotic and error-prone. With our automated balance sheet and debt simplification engine, the `ExpenseService` tallies net balances: Aman is +$18 ($120 paid - $102 owed), Bharat is +$74 ($150 paid - $76 owed), Chetan is -$16 ($80 paid - $96 owed), and Divya is -$76 ($0 paid - $76 owed). The simplification algorithm matches Divya (largest debtor, -$76) with Bharat (largest creditor, +$74): Divya pays Bharat $74, completely settling Bharat. Divya still owes $2 and Aman is owed $18. Next, Chetan (debtor, -$16) and Divya (remaining debt, -$2) both pay Aman ($16 and $2 respectively). The entire web of mutual liabilities collapses into exactly three clear, direct payments: Divya pays Bharat $74, Divya pays Aman $2, and Chetan pays Aman $16.
+
+## Practice Loop
+1. **Define Core Domain Entities:** Create `User`, `Group`, `Expense`, `Split`, `SplitType` enum (`EQUAL`, `EXACT`, `PERCENTAGE`, `SHARE`), and `BalanceSheet`. Ensure monetary values use `BigDecimal` rather than floating-point `double` to eliminate IEEE-754 precision corruption.
+2. **Implement SplitStrategy Hierarchy:** Define the `SplitStrategy` interface and implement `EqualSplitStrategy`, `ExactSplitStrategy`, and `PercentageSplitStrategy`. Implement rounding invariant validation ensuring `splits.stream().map(Split::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add).compareTo(totalAmount) == 0`.
+3. **Build the In-Memory Repositories:** Implement `UserRepository`, `GroupRepository`, and `ExpenseRepository` backed by concurrent data structures (`ConcurrentHashMap`, `CopyOnWriteArrayList`).
+4. **Implement Expense Management Service:** Create `ExpenseService.addExpense(CreateExpenseRequestDto dto)`. Verify user and group existence, resolve the appropriate `SplitStrategy` via an `ExpenseStrategyRegistry`, validate the split invariants, record the expense, and update pairwise user balance ledgers.
+5. **Implement Balance Sheet and Settlement Computation:** Create `SettlementService.simplifyGroupDebts(String groupId)` implementing the greedy heap-based debt simplification algorithm. It should accept the group's current expense state, calculate individual net balances, match creditors and debtors, and output a minimal list of `Transaction` objects (`fromUser`, `toUser`, `amount`).
+6. **Unit and Edge-Case Testing:** Write tests verifying that uneven splits handle remaining cents without loss of funds ($100 split 3 ways yields $33.34, $33.33, $33.33). Write a test verifying that adding an exact split whose sum does not match total amount throws `InvalidExpenseException`. Run a debt simplification test on a multi-user cycle (A owes B, B owes C, C owes A) and assert that net zero debts are eliminated with zero required transactions.
+
+## Evidence of Understanding
+You can articulate why `BigDecimal` is non-negotiable for financial systems and explain how rounding remainders are deterministically handled during equal divisions. You can defend the Strategy Pattern for split calculation and describe how adding a new split mechanism requires zero modifications to existing classes. You can explain the graph theory and algorithmic tradeoffs between maintaining dense pairwise ledgers versus executing greedy bipartite matching for debt simplification, including why the greedy heuristic produces O(N) transactions that are practically optimal for human settlements.
+
+## Suggested Extension
+Add support for recurring expenses and multi-payer contributions, where multiple users co-fund a single purchase in unequal portions before dividing it among the group. Implement an activity feed using the Observer Pattern where every newly recorded expense or debt settlement publishes events to asynchronously notify affected group members via email, SMS, or in-app push channels.
+",
+            "23-machine-coding-contest" => @"# Lesson 23 — Machine Coding Contest
+
+## Concepts Covered
+
+### What a Timed Machine Coding Round Actually Evaluates
+The machine coding round is a cornerstone evaluation format used by high-caliber engineering organizations (including Flipkart, Swiggy, Uber, and CRED). Unlike algorithmic data-structure rounds that measure problem-solving on toy inputs, or high-level design interviews that stay theoretical on whiteboards, the machine coding round evaluates an engineer's ability to transform an ambiguous, multi-page problem statement into clean, production-grade, executable code within a rigid time limit (typically 90 to 120 minutes). Evaluators look for four explicit pillars: **Architectural Layering** (clean separation of concerns across controllers, services, repositories, and domain models), **Object-Oriented Design & Extensibility** (proper application of SOLID principles, interfaces, polymorphism, and behavioral design patterns to prevent rigid coupling), **Code Quality & Correctness** (handling edge cases, input validation, custom typed exceptions, thread safety, and idiomatic language constructs), and **Working Execution** (delivering a working, verifiable application that compiles cleanly and executes a realistic driver script without crashing). Candidates who write beautiful abstract classes but fail to produce a running system fail; candidates who write one giant 800-line procedural `main()` method that works also fail. Success requires balancing architectural purity with ruthless execution speed.
+
+### A Repeatable Approach Under Time Pressure
+To consistently deliver working code in 90 minutes, engineers must follow a disciplined, milestone-driven execution playbook rather than coding ad-hoc. The 90-minute timeline decomposes into four synchronized phases:
+- **Phase 1: Requirements Distillation & Entity Blueprinting (Minutes 0–15):** Read the problem statement twice. Identify and number the non-functional and functional requirements (R1, R2, R3...). Identify nouns (candidate entities like `User`, `Ride`, `Vehicle`) and verbs (candidate service methods like `bookRide`, `cancelRide`). Clarify assumptions and scope with the evaluator (e.g., whether in-memory persistence is sufficient and what input driver format is expected). Sketch the class hierarchy and relationships (one-to-one, one-to-many, inheritance vs. composition) on paper or scratchpad before opening the IDE.
+- **Phase 2: Skeleton Layering & Domain Scaffolding (Minutes 15–35):** Create the package structure immediately: `model`, `repository`, `service`, `strategy`, `exception`, and `dto`. Code the domain models and enums with encapsulated fields, constructors, and getters/setters. Write in-memory repository interfaces and backing implementations using `ConcurrentHashMap`. Set up custom runtime exceptions (`EntityNotFoundException`, `ValidationException`).
+- **Phase 3: Core Vertical Slice & Happy Path (Minutes 35–65):** Implement the primary service interface and its implementation. Focus strictly on executing the end-to-end happy path for the most critical user journey first. Plug in clean interfaces for components requiring dynamic behavior (such as pricing, allocation, or scoring algorithms) using the Strategy Pattern. Wire a `Main` or `Runner` class that instantiates repositories, services, and tests the happy path with concrete sample data.
+- **Phase 4: Strategies, Edge Cases & Verification (Minutes 65–90):** Flesh out alternate strategy implementations (e.g., peak pricing, nearest-neighbor matching). Add validation guards, null checks, and boundary condition handling. Expand the driver `main()` method or write JUnit tests verifying edge cases: concurrent requests, invalid inputs, conflicting bookings, and not-found lookups. Clean up unused imports and verify that the output formatting matches the interviewer's prompt.
+
+### Common Failure Modes and How to Self-Review
+Under interview adrenaline, candidates fall into predictable traps that destroy their evaluation. The most lethal mistake is **Premature Over-Engineering**: designing an elaborate, deeply nested generic framework with dozens of interfaces before a single service method works. If time runs out, an over-engineered codebase with zero executable features receives an automatic reject. The second failure mode is **Hardcoded Monoliths**: bundling all validation, database mutation, business calculations, and console logging inside a single class, violating SRP and rendering the code unreviewable. The third is **Ignoring Extensibility Points**: when an interviewer specifically hints that ""pricing may vary based on time of day,"" writing hardcoded `if-else` blocks instead of a `PricingStrategy` interface signals a lack of senior design intuition. Before submitting, perform a five-minute mental self-review:
+
+```text
+Checklist for Self-Review (Final 5 Minutes):
+1. Encapsulation: Are all fields private with explicit constructor initialization?
+2. Architecture: Is the Service layer free of console print statements and CLI logic?
+3. Extensibility: Are dynamic algorithms encapsulated behind interfaces?
+4. Invariants: Are validation errors throwing typed exceptions rather than returning null?
+5. Execution: Does the driver class demonstrate the complete end-to-end user journey?
+```
+
+## Practical Backend Scenario
+You are in a 90-minute machine coding interview with a top ride-sharing firm. The prompt asks for a simplified Ride-Hailing Service: riders can register, drivers can register with a vehicle type (`SEDAN`, `SUV`, `AUTO`), drivers update their online/offline availability, riders request a ride specifying pickup and drop coordinates, the system matches the ride to the nearest available driver using a pluggable driver-matching strategy, calculates fare using a pluggable pricing strategy based on distance, tracks ride status (`REQUESTED`, `ACCEPTED`, `IN_PROGRESS`, `COMPLETED`), and generates a receipt upon completion. You have 90 minutes on your own machine. A junior engineer immediately starts writing a complex geospatial indexing tree or setting up a Postgres Docker container, burning 45 minutes on plumbing without writing domain logic. A disciplined candidate recognizes this as an in-memory design problem: they define Euclidean distance for coordinates, establish `Rider`, `Driver`, `Ride`, and `Vehicle` entities, create `MatchingStrategy` (`NearestDriverMatchingStrategy`) and `PricingStrategy` (`StandardPricingStrategy`), build `RideService` managing an in-memory `DriverRepository` and `RideRepository`, and create a complete driver class in `main()` demonstrating driver onboarding, ride request, driver allocation, trip completion, and billing within 70 minutes. With 20 minutes remaining, they cleanly add a `SurgePricingStrategy` and demonstrate its swappability to the interviewer.
+
+## Practice Loop
+1. **Simulate a Strict 90-Minute Timed Session:** Select an unseen system prompt (e.g., Splitwise, Snake and Ladder, Task Planner, or Ride-Hailing). Start a hard countdown timer for 90 minutes. Do not pause or take breaks.
+2. **Execute Phase 1 (15 mins):** Write requirements R1 to R6 on a notepad. Define data structures and entity signatures. Validate your domain assumptions.
+3. **Execute Phase 2 (20 mins):** Generate project scaffolding in Java: define packages (`domain`, `repository`, `service`, `strategy`, `exception`). Implement all models, enums, and repository interfaces with in-memory concurrent hash maps.
+4. **Execute Phase 3 (30 mins):** Code the core service workflow. Implement the primary user flow end-to-end. Keep classes decoupled by injecting strategies through constructor parameters.
+5. **Execute Phase 4 (20 mins):** Implement alternate strategies and edge-case validations. Write a comprehensive `Main` class demonstrating the complete story: happy path execution, boundary condition handling, and failure case demonstrations.
+6. **Execute Phase 5 (5 mins Self-Assessment):** Score your submission against the four pillars: Did it run without manual edits? Are concerns properly layered? Are interfaces used where variation is anticipated? Are invariants protected? Note areas where time was wasted to refine your pacing in subsequent mock contests.
+
+## Evidence of Understanding
+You can articulate the exact priorities of a machine coding evaluation and explain why delivering a working, layered vertical slice is superior to an incomplete over-architected skeleton. You can describe the four phases of the 90-minute playbook and demonstrate how to manage time effectively under pressure. You can identify the design pattern signals embedded in interview problem descriptions and apply the Strategy, Factory, and Observer patterns naturally without ceremony. You can critique a machine coding submission across layering, encapsulation, thread safety, and extensibility, providing actionable feedback on code quality.
+
+## Suggested Extension
+Take your completed contest code and subject it to a simulated peer code review: convert in-memory repositories to generic interfaces that can be swapped with Spring Data JPA repositories without altering the service layer. Introduce an event-driven domain architecture by defining a `DomainEventPublisher` that broadcasts events (such as `RideCompletedEvent`) to decoupled listeners handling analytics and audit logging.
 ",
             _ => null
         };
