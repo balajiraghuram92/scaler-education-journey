@@ -121,31 +121,26 @@ for l_slug, (c_slug, m_slug) in java_lessons_map.items():
 
 print(f"Total seeded lessons simulated: {len(seeded_lessons)}")
 
-# 5. Check which of the 181 expected entries match using SQL alias resolution
-slug_aliases = {
-    "02-oop-classes-objects": "02-oop-1-intro-lab",
-    "03-oop2-encapsulation-inheritance": "03-oop-2-access-modifiers-encapsulation"
-}
-
-matched_sql = []
-missing_sql = []
+# 5. Check which of the expected entries match directly: l.slug = e.lesson_slug
+matched_direct = []
+missing_direct = []
 
 for c, m, l, q in expected_entries:
-    resolved_l = slug_aliases.get(l, l)
-    key = (c, m, resolved_l)
+    key = (c, m, l)
     if key in seeded_lessons:
-        matched_sql.append((c, m, l, q))
+        matched_direct.append((c, m, l, q))
     else:
-        missing_sql.append((c, m, l, q))
+        missing_direct.append((c, m, l, q))
 
-print(f"\n--- SQL JOIN MATCH RESULTS (with alias support) ---")
-print(f"Matched: {len(matched_sql)} / {len(expected_entries)}")
-print(f"Missing: {len(missing_sql)} / {len(expected_entries)}")
+print(f"\n--- DIRECT SQL JOIN MATCH RESULTS (l.slug = e.lesson_slug) ---")
+print(f"Matched: {len(matched_direct)} / {len(expected_entries)}")
+print(f"Missing: {len(missing_direct)} / {len(expected_entries)}")
 
-if missing_sql:
+if missing_direct:
     print("\nMissing items:")
-    for c, m, l, q in missing_sql:
+    for c, m, l, q in missing_direct:
         print(f"  Missing: {c}/{m}/{l} (qcount: {q})")
 else:
-    print("\nSUCCESS: All 181 expected lessons resolve to seeded lessons with 0 missing rows!")
+    print("\nSUCCESS: All 179 expected lessons resolve to seeded lessons with exactly 0 missing rows!")
+
 
