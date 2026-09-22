@@ -91,7 +91,10 @@ services:
           - api
 
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${EXERCISE_DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock
+
+    group_add:
+      - "${EXERCISE_DOCKER_SOCKET_GID:-0}"
 
     healthcheck:
       test:

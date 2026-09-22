@@ -67,6 +67,15 @@ public sealed class ExerciseService
 
             return response;
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Exercise execution {RunId} for {ExerciseId} failed.",
+                runId,
+                exerciseId);
+            throw;
+        }
         finally
         {
             if (workspace is not null)

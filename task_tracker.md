@@ -375,3 +375,10 @@
 - [x] **Sub-task 49.3**: MCQ Migration Dataset Normalization — Filtered duplicate alias groups in `scripts/mcq-migration-data.json` and `api/Data/mcq-migration-data.json` yielding 179 canonical lessons and 1,182 unique question keys (100% duplicate-free). Updated `scripts/migrate-mcqs-to-db.mjs` to skip alias entries.
 - [x] **Sub-task 49.4**: Backend Slug Normalization & Idempotency — Added runtime slug alias normalization in `McqService.cs` and `McqMigrationSeedData.cs` mapping `02-oop-classes-objects -> 02-oop-1-intro-lab` and `03-oop2-encapsulation-inheritance -> 03-oop-2-access-modifiers-encapsulation` for seamless backward compatibility without creating duplicate lessons in the database.
 - [x] **Sub-task 49.5**: SQL Verification Alignment — Updated `find_missing_lessons.sql` to resolve backward-compatibility aliases in its `LEFT JOIN`, ensuring that `find_missing_lessons.sql` evaluates to 0 missing rows across all 181 entries.
+
+## Phase 50: Exercise Runner Docker Socket Permission Fix & Exception Logging (Completed)
+- [x] **Sub-task 50.1**: Portable Socket Mount & GID Propagation in Compose — Updated `docker-compose.yml` to bind-mount `${EXERCISE_DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock` and added `group_add: ["${EXERCISE_DOCKER_SOCKET_GID:-0}"]` under the `api` service.
+- [x] **Sub-task 50.2**: Document Rootless Podman Configuration — Added `EXERCISE_DOCKER_SOCKET_PATH` and `EXERCISE_DOCKER_SOCKET_GID` with documentation to `.env.example`.
+- [x] **Sub-task 50.3**: Diagnostic Exception Logging in ExerciseService — Added a `catch (Exception ex)` block to `ExecuteAsync` in `api/Services/Exercises/ExerciseService.cs` with `_logger.LogError` before rethrowing `ex` to preserve endpoint 503/404/429 status code mapping while giving full visibility in container logs.
+- [x] **Sub-task 50.4**: Live Environment Socket & Image Audit — Verified rootless Podman user namespace mapping on WSL host (`uid=1000, gid=1000` mapping to `root:root` inside container); confirmed `/run/user/1000/podman/podman.sock` is live and reachable via ephemeral `scaler-journey-api:dev` container curl test.
+
