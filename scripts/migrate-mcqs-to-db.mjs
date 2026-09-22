@@ -84,6 +84,12 @@ function main() {
   for (const [key, interaction] of Object.entries(lessonInteractions)) {
     if (!interaction) continue;
 
+    // Skip backward-compatibility aliases that mirror canonical lessons
+    if (key === 'java-spring-lld/oop-foundations/02-oop-classes-objects' ||
+        key === 'java-spring-lld/oop-foundations/03-oop2-encapsulation-inheritance') {
+      continue;
+    }
+
     const parts = key.split('/');
     if (parts.length !== 3) {
       console.warn(`[WARN] Skipping key with invalid format: ${key}`);

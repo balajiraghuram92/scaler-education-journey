@@ -85,15 +85,22 @@ public static class McqMigrationSeedData
         int skippedCount = 0;
         int totalQuestions = 0;
 
+        var slugAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["02-oop-classes-objects"] = "02-oop-1-intro-lab",
+            ["03-oop2-encapsulation-inheritance"] = "03-oop-2-access-modifiers-encapsulation"
+        };
+
         foreach (var group in lessonGroups)
         {
-            var lookupKey = $"{group.CourseSlug}/{group.ModuleSlug}/{group.LessonSlug}";
+            var effectiveSlug = slugAliases.TryGetValue(group.LessonSlug, out var canonical) ? canonical : group.LessonSlug;
+            var lookupKey = $"{group.CourseSlug}/{group.ModuleSlug}/{effectiveSlug}";
             if (!lessonLookup.TryGetValue(lookupKey, out var lesson))
             {
                 lesson = db.Lessons
                     .Include(l => l.Module)
                         .ThenInclude(m => m!.Course)
-                    .FirstOrDefault(l => l.Slug == group.LessonSlug &&
+                    .FirstOrDefault(l => l.Slug == effectiveSlug &&
                                          l.Module != null && l.Module.Slug == group.ModuleSlug &&
                                          l.Module.Course != null && l.Module.Course.Slug == group.CourseSlug);
 

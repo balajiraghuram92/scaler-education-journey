@@ -43,17 +43,29 @@ public class McqService
         _logger = logger;
     }
 
+    private static readonly Dictionary<string, string> LessonSlugAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["02-oop-classes-objects"] = "02-oop-1-intro-lab",
+        ["03-oop2-encapsulation-inheritance"] = "03-oop-2-access-modifiers-encapsulation"
+    };
+
+    private static string NormalizeLessonSlug(string slug)
+    {
+        return LessonSlugAliases.TryGetValue(slug, out var canonical) ? canonical : slug;
+    }
+
     public async Task<List<McqPresentationDto>> GetPracticeQuestionsAsync(
         string courseSlug,
         string moduleSlug,
         string lessonSlug,
         int? userId)
     {
+        var resolvedLessonSlug = NormalizeLessonSlug(lessonSlug);
         var lesson = await _db.Lessons
             .Include(l => l.Module)
                 .ThenInclude(m => m!.Course)
             .FirstOrDefaultAsync(l =>
-                l.Slug == lessonSlug &&
+                l.Slug == resolvedLessonSlug &&
                 l.Module != null && l.Module.Slug == moduleSlug &&
                 l.Module.Course != null && l.Module.Course.Slug == courseSlug);
 
