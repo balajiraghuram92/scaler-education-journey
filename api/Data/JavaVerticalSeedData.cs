@@ -2219,7 +2219,7 @@ A repeatable framework for machine coding interviews and real-world system desig
 
 ## Concepts Covered
 
-### The Three Interview Formats and the "Resist First Reaction" Discipline
+### The Three Interview Formats and the ""Resist First Reaction"" Discipline
 Technical evaluations at engineering organizations operate across three distinct interview formats, each measuring different competencies:
 1. **Theoretical Interviews:** Focus on rapid-fire conceptual recall—explaining Java memory models, garbage collection algorithms, interface versus abstract class trade-offs, and concurrency primitives. Common in legacy enterprises, these evaluate textbook knowledge but reveal little about an engineer's coding craftsmanship.
 2. **Design Interviews:** Standard 45-to-60 minute architectural discussions centered on high-level system boundaries, class diagrams, and database schemas (e.g., ""Design a URL shortener"" or ""Design Tinder""). These probe structural thinking and relationship modeling, but intentionally stop short of writing executable code.
@@ -2518,7 +2518,7 @@ This walkthrough establishes nine core domain entities: `ParkingLot`, `ParkingFl
 
 ### Representing Inheritance in Schema Design: The Pen Analogy and Table Hierarchy
 Relational databases lack native object-oriented inheritance. Mapping polymorphic domain hierarchies to tables is illustrated through the **Pen Analogy**:
-- **The Naive Approach (Subtype Tables with Duplicated Columns):** Consider modeling pens where `Pen` is an abstract base, and `BallPen` and `GelPen` are concrete subclasses. Creating separate tables (`ball_pens`, `gel_pens`) with duplicated columns (`id`, `brand`, `price`, `color`) creates severe relational debt. Answering simple aggregate questions ("What is the total pen inventory across the store?", "What is the minimum pen price?") requires complex `UNION ALL` queries across every child table. Adding a new subtype (`fountain_pens`) forces modifying every aggregate query across the entire system.
+- **The Naive Approach (Subtype Tables with Duplicated Columns):** Consider modeling pens where `Pen` is an abstract base, and `BallPen` and `GelPen` are concrete subclasses. Creating separate tables (`ball_pens`, `gel_pens`) with duplicated columns (`id`, `brand`, `price`, `color`) creates severe relational debt. Answering simple aggregate questions (""What is the total pen inventory across the store?"", ""What is the minimum pen price?"") requires complex `UNION ALL` queries across every child table. Adding a new subtype (`fountain_pens`) forces modifying every aggregate query across the entire system.
 - **The Correct Approach (Single Shared Parent Table with Specialized Child Tables):** Common attributes are stored once in a parent table (`pens`), with child tables storing only their specialized attributes (`ball_pens` stores `nib_size`, `gel_pens` stores `ink_viscosity`) alongside a foreign key referencing `pens(id)`.
 
 This principle applies directly to the `Payment` hierarchy:
@@ -2529,14 +2529,14 @@ This principle applies directly to the `Payment` hierarchy:
 Querying total revenue requires a simple `SELECT SUM(amount) FROM payments WHERE payment_status = 'SUCCESS'`, requiring zero joins or `UNION` queries across payment modes.
 
 ### The Enum vs. Lookup Table Test and the Parking Spot Sizing Correction
-Choosing between a plain Java enum and a database lookup table depends on a single deciding test: **"How likely is this set of values to change without a code redeploy?"**
+Choosing between a plain Java enum and a database lookup table depends on a single deciding test: **""How likely is this set of values to change without a code redeploy?""**
 - **Plain Java Enums:** Appropriate for fixed, immutable sets where changing values requires physical infrastructure modifications. `GateType` (`ENTRY`, `EXIT`) and `PaymentStatus` (`INITIATED`, `SUCCESS`, `FAILED`) stay plain Java enums because gate topologies and transaction lifecycles do not mutate at runtime.
 - **Lookup Tables / Configurable Classes:** Appropriate when values represent business rules, fees, or algorithms that must be added, modified, or tuned dynamically without rebuilding or redeploying code. `SpotAssignmentStrategyType` and `FeeCalculationStrategyType` are backed by lookup tables and configuration entities, allowing operators to register new pricing rules at runtime.
 
 During development, modeling reveals a genuine domain gap: **The Parking Spot Sizing Correction**.
 The initial naive assumption enforced an exact-match rule: a vehicle could only park in a spot of its exact type (`CAR` in `CAR_SPOT`). However, physical reality dictates that parking spots are volumetric dimensions (`BIKE < CAR < TRUCK`). A large spot built for a `TRUCK` can physically accommodate a `CAR` or a `BIKE`, whereas a `BIKE` spot cannot accommodate a `CAR`.
 
-Modeling implication: `ParkingSpot` cannot store a single `VehicleType` foreign key or enum. It must support a `List<VehicleType> supportedVehicleTypes`. Storing this as a comma-separated string (`"BIKE,CAR,TRUCK"`) in a single column violates First Normal Form (1NF), prevents database indexing, and makes queries like "find available spots for a CAR" slow and unindexable. The correct relational design is a dedicated many-to-many mapping table: `parking_spot_supported_vehicle_types` (`parking_spot_id`, `vehicle_type`).
+Modeling implication: `ParkingSpot` cannot store a single `VehicleType` foreign key or enum. It must support a `List<VehicleType> supportedVehicleTypes`. Storing this as a comma-separated string (`""BIKE,CAR,TRUCK""`) in a single column violates First Normal Form (1NF), prevents database indexing, and makes queries like ""find available spots for a CAR"" slow and unindexable. The correct relational design is a dedicated many-to-many mapping table: `parking_spot_supported_vehicle_types` (`parking_spot_id`, `vehicle_type`).
 
 ### Controller Boundary Protection: The Case for DTOs
 Exposing raw domain entities across controller boundaries is a common architectural failure. The necessity of Data Transfer Objects (DTOs) is demonstrated through two concrete failure scenarios:
@@ -2559,7 +2559,7 @@ public class TicketService {
             assignedSpot = allotmentStrategy.findSpot(
                 parkingSpotRepository.findAll(), request.getVehicleType());
             if (assignedSpot == null) {
-                throw new ParkingFullException("No available spot for this vehicle type");
+                throw new ParkingFullException(""No available spot for this vehicle type"");
             }
             assignedSpot.setParkingSpotStatus(ParkingSpotStatus.OCCUPIED);
             parkingSpotRepository.save(assignedSpot);
@@ -2572,7 +2572,7 @@ public class TicketService {
 
 Lock scope discipline is critical:
 - The `synchronized (spotLock)` block is kept narrow, encompassing only the allotment query and status update. Synchronizing the entire `issueTicket()` method would needlessly serialize gate validation, vehicle saving, and ticket persistence, severely degrading system throughput.
-- Concurrency testing must recreate the problem faithfully: using two genuinely distinct `Gate` instances executing on separate concurrent threads, rather than simulating an abstract "two requests" scenario.
+- Concurrency testing must recreate the problem faithfully: using two genuinely distinct `Gate` instances executing on separate concurrent threads, rather than simulating an abstract ""two requests"" scenario.
 
 **AI Corner: The Unsafe Vehicle-Type Locking Optimization:**
 An AI tool suggested optimizing concurrency by locking per vehicle type using a `ConcurrentHashMap`:
@@ -2742,7 +2742,7 @@ Constructing this model reveals two essential design corrections:
 2. **Design Correction 2: Pricing on ShowSeatType, Not Seat or ShowSeat:** Placing price on physical `Seat` is invalid because pricing fluctuates dynamically (matinee vs. prime time, weekday vs. weekend). Placing price directly on `ShowSeat` redundantly duplicates identical pricing records across hundreds of seat instances. Pricing is a function of the show and the seat tier: `ShowSeatType`, keyed by `(Show, SeatType)` and storing `price`.
 
 ### Configurable Data vs. Shared Enums and Capability vs. Snapshot Features
-The distinction between Java enums and configurable database entities is governed by the **"Same Set for Every Owner" Test**:
+The distinction between Java enums and configurable database entities is governed by the **""Same Set for Every Owner"" Test**:
 A shared Java enum is valid only if every entity owner in the ecosystem agrees on identical constants. For example, while `ShowSeatStatus` (`AVAILABLE`, `BLOCKED`, `BOOKED`) is universal, `SeatType` is not. One cinema chain categorizes seats as `SILVER`, `GOLD`, and `PLATINUM`, while a boutique chain uses `RECLINER`, `PRIME`, and `VIP`. Hardcoding `SeatType` as a Java enum breaks multi-tenant extensibility; `SeatType` must be modeled as a configurable database entity.
 
 A recurring modeling discipline is the **Capability vs. Snapshot Features Pattern**:
@@ -2751,16 +2751,16 @@ A recurring modeling discipline is the **Capability vs. Snapshot Features Patter
 
 ### JPA Entity Modeling, Relationship Annotations, and Enterprise Gotchas
 Translating domain models to enterprise Spring Data JPA involves several critical relational mappings:
-- **SQL Reserved Keyword Collisions:** The entities `User` and `Show` directly collide with SQL reserved words (`USER`, `SHOW`) in PostgreSQL and MySQL. Left unaddressed, Hibernate generates syntax errors during DDL execution. This is resolved by explicitly defining table names: `@Entity(name = "users")` and `@Entity(name = "shows")`.
+- **SQL Reserved Keyword Collisions:** The entities `User` and `Show` directly collide with SQL reserved words (`USER`, `SHOW`) in PostgreSQL and MySQL. Left unaddressed, Hibernate generates syntax errors during DDL execution. This is resolved by explicitly defining table names: `@Entity(name = ""users"")` and `@Entity(name = ""shows"")`.
 - **Bidirectional Relationships and the `mappedBy` Trap:** In bidirectional associations (e.g., `Region` and `Theatre`), the inverse side must declare `mappedBy`:
   ```java
   // Region entity (inverse side)
-  @OneToMany(mappedBy = "region")
+  @OneToMany(mappedBy = ""region"")
   private List<Theatre> theatres;
 
   // Theatre entity (owning side)
   @ManyToOne
-  @JoinColumn(name = "region_id")
+  @JoinColumn(name = ""region_id"")
   private Region region;
   ```
   Omitting `mappedBy` causes Hibernate to assume two independent one-way relationships, silently generating an unwanted join table (`region_theatres`) that degrades query performance and complicates cascading updates.
@@ -2808,9 +2808,9 @@ The critical section requires `@Transactional(isolation = Isolation.SERIALIZABLE
 @Transactional(isolation = Isolation.SERIALIZABLE)
 public Booking bookMovie(Long userId, List<Long> seatIds, Long showId) {
     User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new RuntimeException(""User not found""));
     Show show = showRepository.findById(showId)
-            .orElseThrow(() -> new RuntimeException("Show not found"));
+            .orElseThrow(() -> new RuntimeException(""Show not found""));
 
     List<ShowSeat> showSeats = showSeatRepository.findAllById(seatIds);
     for (ShowSeat showSeat : showSeats) {
@@ -2818,7 +2818,7 @@ public Booking bookMovie(Long userId, List<Long> seatIds, Long showId) {
         boolean isExpiredBlock = showSeat.getShowSeatStatus() == ShowSeatStatus.BLOCKED
                 && Duration.between(showSeat.getBlockedAt().toInstant(), new Date().toInstant()).toMinutes() > 15;
         if (!(isAvailable || isExpiredBlock)) {
-            throw new RuntimeException("Seat " + showSeat.getId() + " is not available");
+            throw new RuntimeException(""Seat "" + showSeat.getId() + "" is not available"");
         }
     }
 
@@ -2980,7 +2980,7 @@ The relational schema maps to five core tables: `users`, `groups`, `group_member
 Requirements specify CLI interaction and confirm that data does not need to persist across application runs. Consequently, using an embedded in-memory H2 database and skipping web starters eliminates external database container dependencies, keeping the application lightweight and self-contained.
 
 **The Command Design Pattern for CLI Input:**
-A naive command-line interface processes user input with a monolithic `main()` method filled with chained `if-else` blocks checking input strings (`if (input.startsWith("Register")) ... else if (input.startsWith("SettleUp"))`). This violates the Single Responsibility Principle and Open/Closed Principle. The clean architecture applies the **Command Pattern**:
+A naive command-line interface processes user input with a monolithic `main()` method filled with chained `if-else` blocks checking input strings (`if (input.startsWith(""Register"")) ... else if (input.startsWith(""SettleUp""))`). This violates the Single Responsibility Principle and Open/Closed Principle. The clean architecture applies the **Command Pattern**:
 
 ```java
 public interface Command {
@@ -2999,8 +2999,8 @@ public class SettleUpUserCommand implements Command {
 
     @Override
     public boolean matches(String input) {
-        List<String> tokens = Arrays.asList(input.split(" "));
-        return tokens.size() >= 2 && tokens.get(1).equalsIgnoreCase("SettleUp");
+        List<String> tokens = Arrays.asList(input.split("" ""));
+        return tokens.size() >= 2 && tokens.get(1).equalsIgnoreCase(""SettleUp"");
     }
 
     @Override
@@ -3025,7 +3025,7 @@ public class CommandExecutor {
                 return;
             }
         }
-        System.out.println("Unknown command: " + input);
+        System.out.println(""Unknown command: "" + input);
     }
 }
 ```
