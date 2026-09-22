@@ -1,0 +1,2 @@
+class UserNotOnListError(Exception):
+    pass

@@ -119,7 +119,7 @@ function buildContentSections(contentBody) {
   return sections.filter((section) => section.blocks.length > 0);
 }
 
-function ChapterMarkdown({ sections, interactions, exerciseIds, expandedExerciseIds, onToggleExerciseExpanded }) {
+function ChapterMarkdown({ sections, interactions, exerciseIds, expandedExerciseIds, onToggleExerciseExpanded, courseSlug, moduleSlug, lessonSlug }) {
   const conceptChecks = interactions?.conceptChecks || [];
   const practiceQuestions = interactions?.practiceQuestions || [];
 
@@ -147,8 +147,13 @@ function ChapterMarkdown({ sections, interactions, exerciseIds, expandedExercise
           onToggleExpand={() => onToggleExerciseExpanded(exerciseId)}
         />
       ))}
-      {section.id === 'practice-loop' && practiceQuestions?.length > 0 && (
-        <PracticeQuestions questions={practiceQuestions} />
+      {section.id === 'practice-loop' && (
+        <PracticeQuestions
+          courseSlug={courseSlug}
+          moduleSlug={moduleSlug}
+          lessonSlug={lessonSlug}
+          questions={practiceQuestions}
+        />
       )}
     </React.Fragment>
   ));
@@ -393,6 +398,9 @@ export default function ChapterReader() {
             interactions={lessonInteractions}
             exerciseIds={lessonExercise?.exerciseIds}
             expandedExerciseIds={expandedExerciseIds}
+            courseSlug={chapterCourseSlug}
+            moduleSlug={chapter.module?.slug || moduleSlug || ''}
+            lessonSlug={chapter.slug || targetSlug}
             onToggleExerciseExpanded={(exerciseId) => setExpandedExerciseIds((current) => {
               const next = new Set(current);
               if (next.has(exerciseId)) {

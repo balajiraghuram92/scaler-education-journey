@@ -1,0 +1,11 @@
+{
+  "id": "java-implement-factory-design-pattern-for-board-game-creation",
+  "title": "Implement Factory Design Pattern for Board Game Creation.",
+  "language": "JAVA",
+  "concept_tags": [
+    "general-lld"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

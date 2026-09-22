@@ -1,0 +1,2 @@
+from .spot_assignment_strategy import SpotAssignmentStrategy
+from .random_spot_assignment_strategy import RandomSpotAssignmentStrategy

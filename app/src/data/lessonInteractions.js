@@ -23999,95 +23999,230 @@ const lessonInteractions = {
   },
   'java-spring-lld/applied-machine-coding/20-machine-coding-parking-lot': {
     practiceQuestions: [
-      // SOURCE_TYPE: LLM_GENERATED
+      // SOURCE_TYPE: FROM_MATERIAL
       {
         id: 'lesson-20-parking-mcq-01',
         question:
-          'In a multi-story Parking Lot system, vehicles of types MOTORCYCLE, CAR, and BUS must be assigned to compatible ParkingSpots (TWO_WHEELER, COMPACT, LARGE). An engineer implements this with an if-else ladder in EntryGateController. What design pattern should replace this ladder to adhere to SOLID principles?',
+          'In a layered backend design (Controller → Service → Repository), what is the Repository layer\'s job?',
         options: [
-          { id: 'a', label: 'A', text: 'The Memento pattern, storing spot snapshots before assigning vehicles.' },
-          { id: 'b', label: 'B', text: 'The Strategy and Factory patterns: a SpotAssignmentStrategy encapsulates the allocation algorithm (e.g. nearest to entrance, lowest floor first), while compatibility is governed by polymorphic matching rules.' },
-          { id: 'c', label: 'C', text: 'The Decorator pattern, dynamically wrapping ParkingSpot with CarSpot and BusSpot decorators at runtime.' },
-          { id: 'd', label: 'D', text: 'The Observer pattern, having ParkingSpot observe the vehicle arriving at the gate.' }
+          { id: 'a', label: 'A', text: 'Saving and fetching data — nothing about business rules' },
+          { id: 'b', label: 'B', text: 'Converting request DTOs into model objects' },
+          { id: 'c', label: 'C', text: 'Deciding which resource (e.g. a parking spot) to assign to a request' },
+          { id: 'd', label: 'D', text: 'Validating business rules, like rejecting an invalid input type' }
         ],
-        correctOptionId: 'b',
+        correctOptionId: 'a',
         explanation:
-          'Spot assignment involves two distinct responsibilities: checking vehicle-to-spot type compatibility and selecting the optimal spot among candidates (nearest entrance, lowest floor first). Encapsulating selection policies behind a SpotAssignmentStrategy decouples the algorithm from EntryGateController. Pairing it with a Factory allows dynamic instantiation based on lot configuration. Option A is an unrelated behavioral state-saving pattern; Option C misapplies Decorator to physical spot taxonomy; Option D inverts natural domain relationships.'
+          'A Repository\'s sole job is persistence (save/find/list). Resource-assignment logic (C) belongs in a Service using a Strategy, DTO conversion (B) belongs at the Controller boundary, and business-rule validation (D) belongs in the Service layer. Mixing any of these into the Repository breaks the separation the layered architecture exists to provide.'
       },
-      // SOURCE_TYPE: LLM_GENERATED
+      // SOURCE_TYPE: FROM_MATERIAL
       {
         id: 'lesson-20-parking-mcq-02',
         question:
-          'When a vehicle enters the parking lot, the system issues a Ticket. A candidate considers adding a ParkingSpot field directly onto the Vehicle domain model. Why is storing the assigned ParkingSpot on the Vehicle considered bad domain modeling?',
+          'public class InMemoryRepository<T extends BaseModel> {\n    private final List<T> items = new ArrayList<>();\n\n    public T save(T item) {\n        if (item.getId() == null) {\n            item.setId(1L);\n        }\n        items.add(item);\n        return item;\n    }\n}\nWhy is the bound `T extends BaseModel` necessary here, instead of just `T`?',
         options: [
-          { id: 'a', label: 'A', text: 'Vehicle is an external physical entity whose lifecycle extends far beyond a single parking session; parking associations are transient and belong to the Ticket aggregate root linking Vehicle, ParkingSpot, entry gate, and timestamp.' },
-          { id: 'b', label: 'B', text: 'It creates a circular bidirectional dependency between Vehicle and ParkingSpot that breaks clean domain layering and complicates persistence mapping.' },
-          { id: 'c', label: 'C', text: 'Querying vehicle location would require an unindexed full scan of all vehicles in the database instead of looking up the active ticket.' },
-          { id: 'd', label: 'D', text: 'It prevents a vehicle from having a historical record of past parking sessions across multiple visits or different parking facilities.' }
+          { id: 'a', label: 'A', text: 'It lets the repository store multiple unrelated types at once' },
+          { id: 'b', label: 'B', text: 'Without it, `item.getId()` wouldn\'t compile, since plain `Object` has no `getId()` method' },
+          { id: 'c', label: 'C', text: 'It is required syntax for all Java generic classes' },
+          { id: 'd', label: 'D', text: 'It makes the compiled code run faster at execution time' }
         ],
-        correctOptionId: 'a',
+        correctOptionId: 'b',
         explanation:
-          'A Vehicle exists independently of any parking lot (it has a license plate and owner, and can visit many parking lots over its lifetime). Storing ephemeral parking lot state on the Vehicle violates domain boundaries and creates unnecessary state mutations. The Ticket is the aggregate entity that encapsulates the parking transaction, holding references to the Vehicle, the allocated ParkingSpot, entry time, and issuing Gate. While Option B, C, and D highlight real architectural friction, Option A identifies the fundamental aggregate boundary error.'
+          'Without a bound, `T` is erased to `Object`, and `Object` has no `getId()`/`setId()` methods, so the method body wouldn\'t compile. The bound is what gives the generic class compile-time access to `BaseModel`\'s methods on every `T`. Option A is backwards (a bound narrows what `T` can be, it doesn\'t widen storage); C is false (unbounded generics are valid Java); D confuses compile-time type-checking with runtime performance.'
       },
-      // SOURCE_TYPE: LLM_GENERATED
+      // SOURCE_TYPE: FROM_MATERIAL
       {
         id: 'lesson-20-parking-mcq-03',
         question:
-          'A display board at the entrance of a 10-floor parking lot must show real-time available spot counts broken down by vehicle type (e.g., Floor 1: 5 Car, 2 Bike; Floor 2: 0 Car, 10 Bike). In an in-memory or database model, how should this be modeled to prevent scanning every spot on every query?',
+          'public class InMemoryRepository<T extends BaseModel> {\n    private final List<T> items = new ArrayList<>();\n    private long nextId = 1;\n\n    public T save(T item) {\n        if (item.getId() == null) {\n            item.setId(nextId++);\n        }\n        items.add(item);\n        return item;\n    }\n}\n\nInMemoryRepository<Gate> repo = new InMemoryRepository<>();\nGate g1 = new Gate();\nGate g2 = new Gate();\nrepo.save(g1);\nrepo.save(g2);\nSystem.out.println(g1.getId() + ", " + g2.getId());\n\nWhat gets printed?',
         options: [
-          { id: 'a', label: 'A', text: 'Perform a linear scan across all ParkingSpot collections in the entire lot on every display board poll.' },
-          { id: 'b', label: 'B', text: 'Maintain atomic counters or indexed capacity maps on each ParkingFloor (e.g. Map<SpotType, AtomicInteger>) that are updated atomically during spot allocation and release.' },
-          { id: 'c', label: 'C', text: 'Use a database trigger or polling background thread that queries SELECT COUNT(*) WHERE status = \'AVAILABLE\' every 500ms and caches the result in an in-memory variable.' },
-          { id: 'd', label: 'D', text: 'Attach an Observer listener to every individual ParkingSpot that fires an event to the display board whenever its status property changes.' }
+          { id: 'a', label: 'A', text: '0, 1' },
+          { id: 'b', label: 'B', text: '1, 1' },
+          { id: 'c', label: 'C', text: '1, 2' },
+          { id: 'd', label: 'D', text: '2, 3' }
         ],
-        correctOptionId: 'b',
+        correctOptionId: 'c',
         explanation:
-          'In high-throughput parking systems, querying the availability display board should be an O(1) read operation. Rather than scanning thousands of spots across all floors on every request, each ParkingFloor maintains aggregated availability counters per SpotType. When a spot is allocated or freed, the corresponding floor counter is updated atomically within the same transaction. Option A causes O(TotalSpots) latency degradation; Option C introduces high database polling overhead and staleness; Option D creates massive event listener fan-in that can cause lock contention on the single display board listener.'
+          '`nextId` starts at 1. `save(g1)` reads `nextId` (1), assigns it to `g1`, then post-increments `nextId` to 2. `save(g2)` reads `nextId` (2), assigns it to `g2`, then increments to 3. So `g1.getId()==1` and `g2.getId()==2`, printing `1, 2`.'
       },
-      // SOURCE_TYPE: LLM_GENERATED
+      // SOURCE_TYPE: FROM_MATERIAL
       {
         id: 'lesson-20-parking-mcq-04',
         question:
-          'A parking lot implements multiple fee structures: weekday flat rates, hourly rates with vehicle multipliers, and weekend holiday surge rates. If BillingService computes fees using hardcoded nested switch statements on dayOfWeek and vehicleType, which design pattern should be applied?',
+          'public class TicketController {\n    public IssueTicketResponseDTO issueTicket(IssueTicketRequestDTO request) {\n        Gate gate = fetchGate(request.getGateId());\n        if (gate.getGateType() == GateType.EXIT) {\n            throw new InvalidGateException("Cannot issue a ticket at an exit gate");\n        }\n        Ticket ticket = buildTicket(request, gate);\n        return toResponseDTO(ticket);\n    }\n    private Gate fetchGate(Long gateId) { /* looks gate up from storage */ }\n    private Ticket buildTicket(IssueTicketRequestDTO request, Gate gate) { /* builds a Vehicle, finds a spot, creates the Ticket */ }\n}\nAssuming this code compiles and runs correctly, what is the actual design problem with it?',
         options: [
-          { id: 'a', label: 'A', text: 'Strategy pattern: define a FeeCalculationStrategy interface and inject concrete strategies (FlatFeeStrategy, HourlyRateStrategy, HolidaySurgeStrategy) into BillingService.' },
-          { id: 'b', label: 'B', text: 'Builder pattern: construct the Bill object step-by-step with chained setter methods.' },
-          { id: 'c', label: 'C', text: 'Flyweight pattern: share payment transaction objects to reduce memory usage.' },
-          { id: 'd', label: 'D', text: 'Chain of Responsibility: pass the Bill through every fee class until one pays it.' }
+          { id: 'a', label: 'A', text: 'The gate-type check compares against `GateType.EXIT` instead of `GateType.ENTRY`, which is a logic bug' },
+          { id: 'b', label: 'B', text: '`IssueTicketResponseDTO` is never returned, so this code doesn\'t compile' },
+          { id: 'c', label: 'C', text: '`InvalidGateException` needs to be declared in a `throws` clause for this to compile' },
+          { id: 'd', label: 'D', text: '`fetchGate()` is a storage lookup and `buildTicket()` contains real business logic (spot assignment, ticket creation), but both are implemented directly inside the Controller instead of a Repository/Service' }
         ],
-        correctOptionId: 'a',
+        correctOptionId: 'd',
         explanation:
-          'Fee calculation represents an algorithm that varies depending on business rules and context (vehicle type, duration, peak hours). The Strategy pattern cleanly encapsulates each pricing algorithm behind a FeeCalculationStrategy interface (calculateFee(Ticket ticket, Instant exitTime)), leaving BillingService completely decoupled from specific mathematical formulas. Option B is useful for constructing bills but does not solve algorithmic branching; Option C is for memory optimization of immutable shared objects; Option D passes requests along handlers, which is inappropriate for selecting a single pricing calculation.'
+          'The code is logically and syntactically fine (A, B, C are all false claims about this specific snippet); the real problem is architectural: storage lookup and business logic sit directly in the Controller, which should be a thin layer delegating to a Service and Repository.'
       },
-      // SOURCE_TYPE: LLM_GENERATED
+      // SOURCE_TYPE: FROM_MATERIAL
       {
         id: 'lesson-20-parking-mcq-05',
         question:
-          'During peak hours, two cars arrive at Entry Gate 1 and Entry Gate 2 simultaneously. Both gate processes query the repository for the nearest available compact spot, receive Spot #104, and issue tickets assigning Spot #104 to both cars. What concurrency control mechanism must be applied to prevent this double-allocation bug?',
+          'public class TicketService {\n    public Ticket issueTicket(IssueTicketRequestDTO request) {\n        Gate gate = gateRepository.findById(request.getGateId())\n                .orElseThrow(() -> new IllegalArgumentException("Gate not found"));\n        if (gate.getGateType() != GateType.ENTRY) {\n            throw new InvalidGateException("Cannot issue a ticket at an exit gate");\n        }\n        // ... builds and saves the ticket ...\n    }\n}\nA second, completely separate `AdminController` is added later, and it calls `ticketService.issueTicket(...)` directly (it does not go through the original `TicketController`). Will the "gate must be ENTRY" rule still be enforced for requests coming from `AdminController`?',
         options: [
-          { id: 'a', label: 'A', text: 'Make the EntryGateController class a Singleton.' },
-          { id: 'b', label: 'B', text: 'Enforce an atomic test-and-set boundary: in-memory via AtomicReference/synchronized spot reservation, or in SQL via pessimistic row locking (SELECT ... FOR UPDATE WHERE status = \'AVAILABLE\') before issuing the ticket.' },
-          { id: 'c', label: 'C', text: 'Wrap the spot selection code in a try-catch block that catches DuplicateKeyException and re-runs the allocation loop.' },
-          { id: 'd', label: 'D', text: 'Use a CopyOnWriteArrayList to store all parking spots so that concurrent reads and writes never throw ConcurrentModificationException.' }
+          { id: 'a', label: 'A', text: 'Yes — because the check lives inside `TicketService`, any caller of the Service automatically gets the same validation, regardless of which Controller invoked it' },
+          { id: 'b', label: 'B', text: 'No — the check lives in the Controller layer, so `AdminController` would need to reimplement it' },
+          { id: 'c', label: 'C', text: 'No — validation only runs when a DTO object is passed in, and `AdminController` might use different DTOs' },
+          { id: 'd', label: 'D', text: 'Yes, but only if `AdminController` also extends `TicketController`' }
         ],
-        correctOptionId: 'b',
+        correctOptionId: 'a',
         explanation:
-          'Spot allocation is a classic check-then-act race condition. Multiple concurrent threads observing the same spot as "AVAILABLE" will both attempt to allocate it. Resolving this requires an atomic reservation boundary: in-memory, using CAS operations or locking the spot selection routine; in a database, using pessimistic locking (SELECT ... FOR UPDATE) or optimistic locking with a version column to ensure only one transaction successfully transitions the spot to "OCCUPIED". Option A does not prevent concurrent execution of singleton methods; Option C only works if a strict unique constraint exists on active spot reservations, but causes wasteful exception churn; Option D only prevents collection modification exceptions without providing transactional isolation.'
+          'The validation lives in the Service, not the Controller, so every caller of `TicketService.issueTicket()` gets it for free. This is precisely why business logic belongs in the Service layer: it becomes a single enforced rule regardless of how many Controllers call into it.'
       },
-      // SOURCE_TYPE: LLM_GENERATED
+      // SOURCE_TYPE: FROM_MATERIAL
       {
         id: 'lesson-20-parking-mcq-06',
         question:
-          'When a vehicle exits the parking lot, the system processes billing, accepts split payments (cash + credit card), and releases the spot. At what exact point in the workflow should the ParkingSpot status revert to AVAILABLE?',
+          'int totalPaid = bill.getPayments().stream()\n        .filter(p -> p.getPaymentStatus() == PaymentStatus.SUCCESS)\n        .mapToInt(Payment::getAmount)\n        .sum();\nif (totalPaid >= bill.getAmount()) {\n    bill.setBillStatus(BillStatus.PAID);\n}\nA `Bill` has `amount = 500`. Two `Payment` records exist on it: Payment1 (amount=200, status=SUCCESS) and Payment2 (amount=300, status=FAILED). What is `totalPaid`, and what happens to the bill\'s status?',
         options: [
-          { id: 'a', label: 'A', text: 'Immediately when the exit gate camera detects the license plate, before the bill is calculated.' },
-          { id: 'b', label: 'B', text: 'Only after the full bill amount is successfully paid, recorded, and the Ticket transitions to PAID status within the exit transaction.' },
-          { id: 'c', label: 'C', text: 'As soon as the vehicle unparks and trips the exit gate barrier sensor, regardless of whether payment processing has finished or faulted.' },
-          { id: 'd', label: 'D', text: 'Immediately when the driver selects their preferred payment method on the terminal.' }
+          { id: 'a', label: 'A', text: 'totalPaid = 500; bill is marked PAID' },
+          { id: 'b', label: 'B', text: 'totalPaid = 200; bill stays whatever it was before (not PAID)' },
+          { id: 'c', label: 'C', text: 'totalPaid = 300; bill is marked PAID' },
+          { id: 'd', label: 'D', text: 'totalPaid = 500; bill stays unpaid because one payment failed' }
         ],
         correctOptionId: 'b',
         explanation:
-          'Reverting a parking spot to AVAILABLE prematurely (before payment confirmation) creates an operational hazard: if payment fails or the driver disputes the charge, the spot may be allocated to an incoming vehicle while the exiting vehicle is still physically obstructing the spot or exit lane. The spot must only be marked AVAILABLE once payment is finalized, the ticket is marked PAID, and the exit barrier opens. Option A and D release inventory before payment is guaranteed; Option C risks releasing spots for vehicles whose payments ultimately fail or decline.'
+          'The filter keeps only `SUCCESS` payments, so only Payment1\'s 200 counts. `200 >= 500` is false, so the bill\'s status is untouched (the `if` block never runs) — it stays whatever it already was, not explicitly set to "unpaid."'
+      },
+      // SOURCE_TYPE: FROM_MATERIAL
+      {
+        id: 'lesson-20-parking-mcq-07',
+        question:
+          'A developer simplifies the paid-amount check by removing the status filter:\nint totalPaid = bill.getPayments().stream()\n        .mapToInt(Payment::getAmount)\n        .sum();\nif (totalPaid >= bill.getAmount()) {\n    bill.setBillStatus(BillStatus.PAID);\n    freeParkingSpot(bill);\n}\nWhat real problem does removing the filter introduce?',
+        options: [
+          { id: 'a', label: 'A', text: 'It won\'t compile, since `mapToInt` requires an `IntStream` as its argument' },
+          { id: 'b', label: 'B', text: 'It silently doubles the amount charged to the customer' },
+          { id: 'c', label: 'C', text: 'A bill could be marked PAID (and its spot freed) even though an online payment attempt actually FAILED, since failed payments now count toward the total' },
+          { id: 'd', label: 'D', text: 'Cash payments would stop being counted entirely' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'Without the `SUCCESS` filter, a `FAILED` payment\'s amount still gets summed, so a bill can cross the paid threshold and get marked `PAID` (freeing the spot) purely from failed payment attempts — a real correctness and revenue bug, not a compile error (A is false) or a doubling/undercounting bug (B, D are false).'
+      },
+      // SOURCE_TYPE: FROM_MATERIAL
+      {
+        id: 'lesson-20-parking-mcq-08',
+        question:
+          'In multithreaded code, what is a "critical section"?',
+        options: [
+          { id: 'a', label: 'A', text: 'Any method that is allowed to throw a checked exception' },
+          { id: 'b', label: 'B', text: 'The part of a method that only constructs new objects (no shared state)' },
+          { id: 'c', label: 'C', text: 'The part of a Controller responsible for converting a model into a response DTO' },
+          { id: 'd', label: 'D', text: 'A piece of code, operating on shared data, that must never be executing simultaneously in more than one thread at a time' }
+        ],
+        correctOptionId: 'd',
+        explanation:
+          'This is the standard definition: a critical section is the specific region of code touching shared mutable state that requires mutual exclusion. A, B, and C describe unrelated concepts (exception declarations, object construction, DTO mapping) with no inherent connection to concurrency.'
+      },
+      // SOURCE_TYPE: FROM_MATERIAL
+      {
+        id: 'lesson-20-parking-mcq-09',
+        question:
+          'public boolean tryClaim(ParkingSpot spot) {\n    if (spot.getStatus() == SpotStatus.EMPTY) {   // read\n        spot.setStatus(SpotStatus.OCCUPIED);      // write\n        return true;\n    }\n    return false;\n}\nTwo threads run this method concurrently on the same `spot` object, which starts with `status = EMPTY`, with no synchronization at all. Both threads happen to reach the `if` check before either thread reaches the `setStatus` line. What is the realistic outcome?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both threads see EMPTY at their read, and both proceed to set the status and return `true` — the spot gets "claimed" twice' },
+          { id: 'b', label: 'B', text: 'Only one thread\'s `if` check passes; the JVM automatically blocks the second thread\'s read until the first thread finishes' },
+          { id: 'c', label: 'C', text: 'The final status ends up back at EMPTY, since the two writes cancel out' },
+          { id: 'd', label: 'D', text: 'A `ConcurrentModificationException` is thrown, and neither thread returns `true`' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'This is the canonical check-then-act race condition: with no synchronization, both threads can read `EMPTY` before either writes `OCCUPIED`, so both pass the check and both return `true` — a double claim on one physical spot. The JVM provides no automatic blocking (B is false), writes don\'t "cancel out" (C is false), and no exception is thrown by this code (D is false).'
+      },
+      // SOURCE_TYPE: FROM_MATERIAL
+      {
+        id: 'lesson-20-parking-mcq-10',
+        question:
+          'A developer attempts to fix a race condition like this:\npublic boolean tryClaim(ParkingSpot spot) {\n    Object lock = new Object();   // created fresh, every single call\n    synchronized (lock) {\n        if (spot.getStatus() == SpotStatus.EMPTY) {\n            spot.setStatus(SpotStatus.OCCUPIED);\n            return true;\n        }\n        return false;\n    }\n}\nIf two threads call `tryClaim(spot)` on the same `spot` object at nearly the same time, does this actually prevent both from succeeding?',
+        options: [
+          { id: 'a', label: 'A', text: 'Yes — any `synchronized` block prevents concurrent access, regardless of which object is used as the lock' },
+          { id: 'b', label: 'B', text: 'No — `lock` is a brand-new object on every call, so each thread synchronizes on a DIFFERENT object and never actually blocks the other' },
+          { id: 'c', label: 'C', text: 'Yes, but only the first two times the method is called' },
+          { id: 'd', label: 'D', text: 'No — this code fails to compile, since `synchronized` requires a `static final` lock object' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'A `synchronized` block only excludes threads that lock on the *same* object instance. Since `lock` is instantiated fresh inside the method on every call, two concurrent invocations each get their own private lock object and never actually contend — the synchronization is a no-op in practice. A is false (the lock object identity is exactly what matters); C is nonsensical; D is false (`synchronized` works with any object reference, no such requirement exists).'
+      },
+      // SOURCE_TYPE: FROM_MATERIAL
+      {
+        id: 'lesson-20-parking-mcq-11',
+        question:
+          'public class SpotAllotter {\n    private final Object lock = new Object();\n\n    public boolean tryClaim(ParkingSpot spot) {\n        synchronized (lock) {\n            if (spot.getStatus() == SpotStatus.EMPTY) {\n                spot.setStatus(SpotStatus.OCCUPIED);\n                return true;\n            }\n            return false;\n        }\n    }\n}\nTwo different threads call `tryClaim()`, but each thread is working with its own, separately-constructed `SpotAllotter` instance (`new SpotAllotter()` was called twice, instead of both threads sharing one instance). Does `lock` still protect against both threads claiming the same spot?',
+        options: [
+          { id: 'a', label: 'A', text: 'Yes — `lock` is declared `final`, so it\'s automatically shared across all instances' },
+          { id: 'b', label: 'B', text: 'Yes — Java merges fields with the same name across different instances of a class' },
+          { id: 'c', label: 'C', text: 'No — each `SpotAllotter` instance has its own separate `lock` object, so two different instances mean two different locks that never block each other' },
+          { id: 'd', label: 'D', text: 'No — `synchronized` blocks stop working once more than one thread is involved, regardless of instances' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          '`final` only means the field reference can\'t be reassigned after construction; it says nothing about sharing across instances. Each `new SpotAllotter()` gets its own `lock` object, so two separate instances mean two separate locks — no mutual exclusion between them. A and B misunderstand what `final` and instance fields actually do; D is simply false (synchronized blocks work correctly with multiple threads when the lock object is genuinely shared).'
+      },
+      // SOURCE_TYPE: FROM_MATERIAL
+      {
+        id: 'lesson-20-parking-mcq-12',
+        question:
+          'A test is written to prove that two concurrent requests for the same single resource can\'t both succeed. Version 1 spins up two threads that both call a method on the exact same request object, just with two different thread names. Version 2 spins up two threads that call the method using two separate, independently-constructed request objects (e.g., two different `Gate` instances) representing two different real-world entry points, competing for the same one resource. Which version more faithfully proves that a real-world "two independent callers, one shared resource" bug is actually fixed?',
+        options: [
+          { id: 'a', label: 'A', text: 'Version 1 — using the same object for both threads is closer to how concurrent requests actually arrive' },
+          { id: 'b', label: 'B', text: 'Neither — thread names and object identity have no effect on whether a race condition is proven' },
+          { id: 'c', label: 'C', text: 'Version 1 — it uses fewer objects, so it\'s a simpler and therefore stronger test' },
+          { id: 'd', label: 'D', text: 'Version 2 — it recreates the real scenario of two distinct, independent callers competing for one resource, rather than one object being accessed by two threads in the abstract' }
+        ],
+        correctOptionId: 'd',
+        explanation:
+          'Real concurrent requests come from independent callers (different gates, different users) each with their own request object, not from one shared object accessed by two threads with different names. Version 2\'s use of two genuinely distinct `Gate` instances is what makes the test faithful to the actual production scenario; Version 1 tests something related but not identical. A and C invert this reasoning; B is false since object identity is exactly the variable that determines test fidelity here.'
+      },
+      // SOURCE_TYPE: FROM_MATERIAL
+      {
+        id: 'lesson-20-parking-mcq-13',
+        question:
+          'To reduce lock contention, a developer proposes locking per resource *category* instead of one global lock:\nprivate final ConcurrentHashMap<VehicleType, Object> locksByVehicleType = new ConcurrentHashMap<>();\n\nprivate Object getLockFor(VehicleType type) {\n    return locksByVehicleType.computeIfAbsent(type, t -> new Object());\n}\n\npublic boolean tryClaim(ParkingSpot spot, VehicleType requestedType) {\n    synchronized (getLockFor(requestedType)) {\n        if (spot.getStatus() == SpotStatus.EMPTY) {\n            spot.setStatus(SpotStatus.OCCUPIED);\n            return true;\n        }\n        return false;\n    }\n}\nSuppose a single physical spot supports multiple vehicle types — for example, one large spot supports both TRUCK and CAR. Thread 1 calls `tryClaim(thatSpot, VehicleType.CAR)` and Thread 2 calls `tryClaim(thatSpot, VehicleType.TRUCK)` on that exact same spot object, at nearly the same time. What bug does this locking strategy introduce?',
+        options: [
+          { id: 'a', label: 'A', text: 'The two threads lock on different `VehicleType` keys (CAR vs TRUCK), so they never block each other — both can read and claim the SAME physical spot object, causing a double assignment' },
+          { id: 'b', label: 'B', text: '`ConcurrentHashMap.computeIfAbsent` throws an exception when called concurrently from two threads' },
+          { id: 'c', label: 'C', text: '`getLockFor()` returns `null` the first time a new `VehicleType` is seen' },
+          { id: 'd', label: 'D', text: 'The code fails to compile, since `Object` cannot be used as a `ConcurrentHashMap` value type' }
+        ],
+        correctOptionId: 'a',
+        explanation:
+          'Locking per vehicle-type is the wrong granularity because one physical spot can be claimed under two different type keys (a spot supporting both CAR and TRUCK can be locked via either), so two threads requesting different types never contend for the same lock even though they\'re racing for the same underlying resource — reintroducing the exact double-claim bug locking was meant to fix. B, C, and D are all false claims about `ConcurrentHashMap`\'s real, well-defined behavior.'
+      },
+      // SOURCE_TYPE: FROM_MATERIAL
+      {
+        id: 'lesson-20-parking-mcq-14',
+        question:
+          'Here is a corrected claiming method that locks on the spot itself and re-checks status inside the lock:\npublic boolean tryClaim(ParkingSpot spot) {\n    synchronized (spot) {\n        if (spot.getStatus() == SpotStatus.EMPTY) {\n            spot.setStatus(SpotStatus.OCCUPIED);\n            return true;\n        }\n        return false;\n    }\n}\n`spot.status` starts as EMPTY. Two threads call `tryClaim(spot)` on this exact same `spot` object at nearly the same moment. What is guaranteed about the result?',
+        options: [
+          { id: 'a', label: 'A', text: 'Both threads return `true`, since both read EMPTY before either one writes' },
+          { id: 'b', label: 'B', text: 'Exactly one thread returns `true` and sets the status to OCCUPIED; the other thread enters the lock afterward, sees OCCUPIED (not its earlier assumption), and returns `false`' },
+          { id: 'c', label: 'C', text: 'Both threads deadlock, since they both try to `synchronize` on `spot` at the same time' },
+          { id: 'd', label: 'D', text: 'The result is undefined and could differ depending on the JVM version' }
+        ],
+        correctOptionId: 'b',
+        explanation:
+          'Locking on `spot` itself means both threads contend for the same lock object; one acquires it first, sees `EMPTY`, claims it, and releases the lock. The second thread then acquires the lock, but by that point re-reads `status` as `OCCUPIED` (not stale), so it correctly returns `false`. This is exactly the correct, deterministic behavior a mutual-exclusion lock should guarantee — not a race (A), not a deadlock (`synchronized` blocks waiting threads, it doesn\'t deadlock two threads over one lock — C is false), and not JVM-dependent (D is false).'
+      },
+      // SOURCE_TYPE: FROM_MATERIAL
+      {
+        id: 'lesson-20-parking-mcq-15',
+        question:
+          'A code reviewer sees this comment above a class:\n// NOTE: Locking is currently per-VehicleType (see getLockFor()).\n// A teammate mentioned that a walkthrough elsewhere shows what a\n// correct per-ParkingSpot locking fix looks like, so they believe\n// no further work is needed here.\npublic class SpotAllotter {\n    private final ConcurrentHashMap<VehicleType, Object> locksByVehicleType = new ConcurrentHashMap<>();\n    // ... tryClaim() still uses getLockFor(requestedType)\n}\nGiven that the actual running code in this class still uses `getLockFor(requestedType)` (per-vehicle-type locking), is the teammate\'s belief — that no further work is needed — correct?',
+        options: [
+          { id: 'a', label: 'A', text: 'Yes — since a correct version has been described elsewhere, the bug is effectively already fixed' },
+          { id: 'b', label: 'B', text: 'Yes — per-vehicle-type locking is safe as long as `ConcurrentHashMap` is used' },
+          { id: 'c', label: 'C', text: 'No — the class shown here still uses the flawed per-vehicle-type locking strategy in its actual code; describing a correct fix elsewhere doesn\'t change what this class does at runtime, so the fix still needs to be implemented and verified with a real concurrency test on this class' },
+          { id: 'd', label: 'D', text: 'No — the real problem is that `ConcurrentHashMap` isn\'t thread-safe for this use case' }
+        ],
+        correctOptionId: 'c',
+        explanation:
+          'A design discussion or walkthrough describing the correct fix has zero effect on what compiled, running code actually does. This class\'s `tryClaim()` still calls `getLockFor(requestedType)`, so it still has Q14\'s exact double-claim bug, regardless of what was discussed elsewhere. A and B both wrongly treat a description as equivalent to an implementation; D misdiagnoses the bug (`ConcurrentHashMap` itself is thread-safe — the bug is lock granularity, not the map\'s thread-safety).'
       }
     ]
   },
@@ -24276,100 +24411,6 @@ const lessonInteractions = {
         correctOptionId: 'a',
         explanation:
           'The classic cash-flow minimization problem is solved using a greedy two-heap approach. Debtor nodes are stored in a max-heap based on magnitude of debt, and creditor nodes in a max-heap based on credit. At each iteration, the largest debtor pays the largest creditor min(debt, credit). At least one party is completely settled and eliminated from their heap, while the other party\'s reduced balance is re-inserted if non-zero. This reduces an O(N^2) tangle of transactions to at most N - 1 optimal settlement payments. Option B eliminates cycles but does not minimize non-cyclic transaction counts; Option C is unnecessarily complex and typically used for currency arbitrage; Option D introduces a central bottle-neck and counterparty credit risk.'
-      }
-    ]
-  },
-  'java-spring-lld/applied-machine-coding/23-machine-coding-contest': {
-    practiceQuestions: [
-      // SOURCE_TYPE: LLM_GENERATED
-      {
-        id: 'lesson-23-contest-mcq-01',
-        question:
-          'In a 90-minute timed machine coding round, what are the four primary evaluation pillars interviewers use to grade a candidate\'s submission?',
-        options: [
-          { id: 'a', label: 'A', text: 'Architectural Layering (separation of concerns), Object-Oriented Design & Extensibility (SOLID & patterns), Code Quality & Correctness (validation & thread-safety), and Working Execution (compiling, runnable driver).' },
-          { id: 'b', label: 'B', text: 'Code brevity, minimizing line counts by writing concise lambda expressions, aggressive premature optimization, and raw execution speed.' },
-          { id: 'c', label: 'C', text: 'Number of external third-party libraries imported, usage of Spring Cloud, and Kubernetes YAML configuration.' },
-          { id: 'd', label: 'D', text: 'Algorithmic time complexity optimization on LeetCode-style arrays and dynamic programming matrices.' }
-        ],
-        correctOptionId: 'a',
-        explanation:
-          'Top-tier tech firms (Flipkart, Uber, Swiggy, CRED) evaluate machine coding across four explicit pillars: Layering (clean controllers, services, repositories, and models), OOD & Extensibility (correct use of interfaces and design patterns for variation points), Code Quality (handling edge cases, nulls, typed exceptions, encapsulation), and Working Execution (a runnable system that executes sample driver tests without crashing). Option B prizes clever syntactic compression over readability and maintainability; Option C evaluates cloud ops rather than object design; Option D conflates machine coding with DSA rounds.'
-      },
-      // SOURCE_TYPE: LLM_GENERATED
-      {
-        id: 'lesson-23-contest-mcq-02',
-        question:
-          'During Phase 1 (Minutes 0 to 15) of a timed machine coding contest, what is the most critical activity a candidate must complete before writing any code in their IDE?',
-        options: [
-          { id: 'a', label: 'A', text: 'Read the problem statement thoroughly, number functional requirements, clarify scope and persistence assumptions with the evaluator, and sketch the entity blueprint and class relationships.' },
-          { id: 'b', label: 'B', text: 'Immediately start typing database entity models and Maven dependency configurations.' },
-          { id: 'c', label: 'C', text: 'Write a 500-line test script containing all expected mock responses.' },
-          { id: 'd', label: 'D', text: 'Implement the Singleton pattern for the main application controller.' }
-        ],
-        correctOptionId: 'a',
-        explanation:
-          'Jumping straight into typing code without a clear design blueprint is the number one cause of failed machine coding rounds. Phase 1 must be dedicated to clarifying assumptions (e.g. whether in-memory storage is sufficient, expected driver input format), identifying domain entities and cardinality, and establishing clear requirement boundaries on paper or scratchpad before opening the editor. Option B leads to false starts and major mid-round refactors; Options C and D are premature.'
-      },
-      // SOURCE_TYPE: LLM_GENERATED
-      {
-        id: 'lesson-23-contest-mcq-03',
-        question:
-          'In Phase 3 (Minutes 35 to 65) of the machine coding execution playbook, why is it vital to prioritize delivering a complete "vertical slice" rather than building horizontal layers across the entire system?',
-        options: [
-          { id: 'a', label: 'A', text: 'Building an end-to-end happy path across Controller -> Service -> Repository -> Model for the core user journey guarantees a functional, demonstrable system early, which can then be iteratively expanded.' },
-          { id: 'b', label: 'B', text: 'Horizontal layering requires implementing bidirectional JPA mappings across all entities before writing unit tests.' },
-          { id: 'c', label: 'C', text: 'Horizontal development requires creating mock implementations for every unresolved layer, increasing boilerplate that must later be discarded.' },
-          { id: 'd', label: 'D', text: 'Building horizontally makes it difficult to detect architectural design flaws or missing relationships until all layers are integrated near the end of the round.' }
-        ],
-        correctOptionId: 'a',
-        explanation:
-          'Building horizontally (writing all models, then all repository interfaces, then all service skeletons) leaves the candidate with zero working features if time runs out at minute 60. Prioritizing a vertical slice (e.g., implementing driver onboarding and one complete ride booking flow end-to-end) guarantees that a demonstrable, executable application exists early. Edge cases, alternate strategies, and secondary features can then be added iteratively in Phase 4. While Options C and D identify real friction in horizontal development, Option A states the primary strategic advantage of vertical delivery; Option B assumes unnecessary framework constraints.'
-      },
-      // SOURCE_TYPE: LLM_GENERATED
-      {
-        id: 'lesson-23-contest-mcq-04',
-        question:
-          'A candidate spends 50 minutes designing an elaborate abstract generic framework with 12 nested interfaces, custom reflection utilities, and an event-bus broker for a simple Splitwise prompt. At minute 90, the code fails to compile and cannot run a single expense calculation. Which fatal failure mode did the candidate commit?',
-        options: [
-          { id: 'a', label: 'A', text: 'Premature Over-Engineering: over-complicating architecture with unneeded patterns and abstractions before delivering a working baseline system.' },
-          { id: 'b', label: 'B', text: 'Anemic Domain Modeling: keeping entities too lightweight.' },
-          { id: 'c', label: 'C', text: 'Liskov Substitution Principle violation: improperly overriding base class methods.' },
-          { id: 'd', label: 'D', text: 'Memory leak due to missing finalize() methods on interfaces.' }
-        ],
-        correctOptionId: 'a',
-        explanation:
-          'Premature over-engineering is the most lethal mistake in machine coding rounds. Candidates attempt to impress the interviewer with excessive design patterns, deep generic class hierarchies, or custom frameworks, losing track of the clock. An over-engineered system that does not run receives an automatic reject. Evaluators look for clean simplicity: just enough design pattern usage to isolate genuine variation points, paired with working execution. Options B, C, and D misdiagnose the failure.'
-      },
-      // SOURCE_TYPE: LLM_GENERATED
-      {
-        id: 'lesson-23-contest-mcq-05',
-        question:
-          'Another candidate implements a completely functional Snake and Ladder game that executes flawlessly in the console, but the entire 700-line solution is written inside a single public static void main(String[] args) method using nested loops and procedural arrays. Why does this candidate fail the machine coding round?',
-        options: [
-          { id: 'a', label: 'A', text: 'It is a Hardcoded Monolith that completely ignores Object-Oriented Design, encapsulation, separation of concerns, and SOLID principles, demonstrating junior procedural coding habits.' },
-          { id: 'b', label: 'B', text: 'Static methods cannot catch checked exceptions or execute multi-threaded code.' },
-          { id: 'c', label: 'C', text: 'Procedural solutions in main cannot be integrated into CI/CD pipelines because they do not expose HTTP REST endpoints.' },
-          { id: 'd', label: 'D', text: 'Writing all logic in main prevents the code from being reused or unit-tested in isolation, as individual components cannot be instantiated or mocked.' }
-        ],
-        correctOptionId: 'a',
-        explanation:
-          'Working execution is necessary, but not sufficient. Machine coding rounds assess whether an engineer can produce clean, extensible, production-quality code. Dumping all logic into a monolithic procedural main() method violates every object-oriented principle (no encapsulation, tight coupling, zero testability, inability to extend without modifying). Candidates must demonstrate proper layering, domain modeling, and modular architecture. Option B is factually false; Option C is irrelevant for in-memory LLD; Option D identifies a symptom of untestable code, but Option A identifies the comprehensive architectural failure.'
-      },
-      // SOURCE_TYPE: LLM_GENERATED
-      {
-        id: 'lesson-23-contest-mcq-06',
-        question:
-          'During the final 5 minutes of a machine coding contest, what checklist items should a senior engineer run through during self-review before presenting to the evaluator?',
-        options: [
-          { id: 'a', label: 'A', text: 'Verify encapsulation (private fields), confirm services don\'t contain System.out.println, verify dynamic algorithms use interfaces, ensure invalid inputs throw typed exceptions, and run the Main driver to prove clean execution.' },
-          { id: 'b', label: 'B', text: 'Add JavaDoc comments to every private field and method to maximize documentation score.' },
-          { id: 'c', label: 'C', text: 'Replace all custom exception types with generic RuntimeException to simplify the error handling hierarchy.' },
-          { id: 'd', label: 'D', text: 'Refactor working collections to use parallel streams to artificially demonstrate concurrency proficiency.' }
-        ],
-        correctOptionId: 'a',
-        explanation:
-          'A disciplined 5-minute self-review checks: (1) Encapsulation: are all fields private with proper accessors? (2) Architecture: is CLI/printing logic separated from services? (3) Extensibility: are variations (pricing, matching) abstracted behind interfaces? (4) Invariants: are edge cases throwing custom domain exceptions? (5) Execution: does the driver run end-to-end without crashing? Option B burns critical minutes on low-value comments; Option C discards domain-rich error context; Option D introduces concurrency hazards and thread-safety bugs right before submission.'
       }
     ]
   },

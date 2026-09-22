@@ -1,0 +1,2 @@
+class InvalidLectureError(Exception):
+    pass

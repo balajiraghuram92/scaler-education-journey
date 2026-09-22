@@ -1,0 +1,11 @@
+{
+  "id": "java-integrate-cloud-service-provider-for-our-project",
+  "title": "Integrate Cloud Service Provider for our Project.",
+  "language": "JAVA",
+  "concept_tags": [
+    "cloud-integration"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

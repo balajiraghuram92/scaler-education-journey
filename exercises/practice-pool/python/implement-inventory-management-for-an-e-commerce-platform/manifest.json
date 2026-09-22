@@ -1,0 +1,11 @@
+{
+  "id": "python-implement-inventory-management-for-an-e-commerce-platform",
+  "title": "Implement Inventory Management for an E-Commerce Platform",
+  "language": "PYTHON",
+  "concept_tags": [
+    "ecommerce"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

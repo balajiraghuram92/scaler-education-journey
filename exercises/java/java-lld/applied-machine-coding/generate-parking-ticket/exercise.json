@@ -1,0 +1,249 @@
+{
+  "id": "java-lld-generate-parking-ticket",
+  "lessonSlug": "20-machine-coding-parking-lot",
+  "title": "Parking Lot — Generate Entry Ticket",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "generate-ticket-request-dto",
+      "path": "src/main/java/com/scaler/parking_lot/dtos/GenerateTicketRequestDto.java",
+      "displayName": "dtos/GenerateTicketRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "generate-ticket-response-dto",
+      "path": "src/main/java/com/scaler/parking_lot/dtos/GenerateTicketResponseDto.java",
+      "displayName": "dtos/GenerateTicketResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "response-status",
+      "path": "src/main/java/com/scaler/parking_lot/dtos/ResponseStatus.java",
+      "displayName": "dtos/ResponseStatus.java",
+      "editable": false
+    },
+    {
+      "id": "invalid-gate-exception",
+      "path": "src/main/java/com/scaler/parking_lot/exceptions/InvalidGateException.java",
+      "displayName": "exceptions/InvalidGateException.java",
+      "editable": false
+    },
+    {
+      "id": "invalid-parking-lot-exception",
+      "path": "src/main/java/com/scaler/parking_lot/exceptions/InvalidParkingLotException.java",
+      "displayName": "exceptions/InvalidParkingLotException.java",
+      "editable": false
+    },
+    {
+      "id": "parking-spot-not-available-exception",
+      "path": "src/main/java/com/scaler/parking_lot/exceptions/ParkingSpotNotAvailableException.java",
+      "displayName": "exceptions/ParkingSpotNotAvailableException.java",
+      "editable": false
+    },
+    {
+      "id": "base-model",
+      "path": "src/main/java/com/scaler/parking_lot/models/BaseModel.java",
+      "displayName": "models/BaseModel.java",
+      "editable": false
+    },
+    {
+      "id": "floor-status",
+      "path": "src/main/java/com/scaler/parking_lot/models/FloorStatus.java",
+      "displayName": "models/FloorStatus.java",
+      "editable": false
+    },
+    {
+      "id": "gate",
+      "path": "src/main/java/com/scaler/parking_lot/models/Gate.java",
+      "displayName": "models/Gate.java",
+      "editable": false
+    },
+    {
+      "id": "gate-type",
+      "path": "src/main/java/com/scaler/parking_lot/models/GateType.java",
+      "displayName": "models/GateType.java",
+      "editable": false
+    },
+    {
+      "id": "parking-attendant",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingAttendant.java",
+      "displayName": "models/ParkingAttendant.java",
+      "editable": false
+    },
+    {
+      "id": "parking-floor",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingFloor.java",
+      "displayName": "models/ParkingFloor.java",
+      "editable": false
+    },
+    {
+      "id": "parking-lot",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingLot.java",
+      "displayName": "models/ParkingLot.java",
+      "editable": false
+    },
+    {
+      "id": "parking-spot",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingSpot.java",
+      "displayName": "models/ParkingSpot.java",
+      "editable": false
+    },
+    {
+      "id": "parking-spot-status",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingSpotStatus.java",
+      "displayName": "models/ParkingSpotStatus.java",
+      "editable": false
+    },
+    {
+      "id": "ticket",
+      "path": "src/main/java/com/scaler/parking_lot/models/Ticket.java",
+      "displayName": "models/Ticket.java",
+      "editable": false
+    },
+    {
+      "id": "vehicle",
+      "path": "src/main/java/com/scaler/parking_lot/models/Vehicle.java",
+      "displayName": "models/Vehicle.java",
+      "editable": false
+    },
+    {
+      "id": "vehicle-type",
+      "path": "src/main/java/com/scaler/parking_lot/models/VehicleType.java",
+      "displayName": "models/VehicleType.java",
+      "editable": false
+    },
+    {
+      "id": "gate-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/GateRepository.java",
+      "displayName": "respositories/GateRepository.java",
+      "editable": false
+    },
+    {
+      "id": "parking-lot-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/ParkingLotRepository.java",
+      "displayName": "respositories/ParkingLotRepository.java",
+      "editable": false
+    },
+    {
+      "id": "ticket-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/TicketRepository.java",
+      "displayName": "respositories/TicketRepository.java",
+      "editable": false
+    },
+    {
+      "id": "vehicle-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/VehicleRepository.java",
+      "displayName": "respositories/VehicleRepository.java",
+      "editable": false
+    },
+    {
+      "id": "ticket-service",
+      "path": "src/main/java/com/scaler/parking_lot/services/TicketService.java",
+      "displayName": "services/TicketService.java",
+      "editable": false
+    },
+    {
+      "id": "spot-assignment-strategy",
+      "path": "src/main/java/com/scaler/parking_lot/strategies/assignment/SpotAssignmentStrategy.java",
+      "displayName": "strategies/assignment/SpotAssignmentStrategy.java",
+      "editable": false
+    },
+    {
+      "id": "ticket-controller",
+      "path": "src/main/java/com/scaler/parking_lot/controllers/TicketController.java",
+      "displayName": "controllers/TicketController.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-gate-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/InMemoryGateRepositoryImpl.java",
+      "displayName": "respositories/InMemoryGateRepositoryImpl.java",
+      "editable": true
+    },
+    {
+      "id": "in-memory-parking-lot-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/InMemoryParkingLotRepositoryImpl.java",
+      "displayName": "respositories/InMemoryParkingLotRepositoryImpl.java",
+      "editable": true
+    },
+    {
+      "id": "in-memory-ticket-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/InMemoryTicketRepositoryImpl.java",
+      "displayName": "respositories/InMemoryTicketRepositoryImpl.java",
+      "editable": true
+    },
+    {
+      "id": "in-memory-vehicle-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/InMemoryVehicleRepositoryImpl.java",
+      "displayName": "respositories/InMemoryVehicleRepositoryImpl.java",
+      "editable": true
+    },
+    {
+      "id": "assign-nearest-available-spot-strategy",
+      "path": "src/main/java/com/scaler/parking_lot/strategies/assignment/AssignNearestAvailableSpotStrategy.java",
+      "displayName": "strategies/assignment/AssignNearestAvailableSpotStrategy.java",
+      "editable": true
+    },
+    {
+      "id": "equal-distribution-assignment-strategy",
+      "path": "src/main/java/com/scaler/parking_lot/strategies/assignment/EqualDistributionAssignmentStrategy.java",
+      "displayName": "strategies/assignment/EqualDistributionAssignmentStrategy.java",
+      "editable": true
+    },
+    {
+      "id": "ticket-service-impl",
+      "path": "src/main/java/com/scaler/parking_lot/services/TicketServiceImpl.java",
+      "displayName": "services/TicketServiceImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/scaler/parking_lot/controllers/TestTicketController.java",
+    "className": "TestTicketController"
+  },
+  "evidence": [
+    {
+      "id": "issue-ticket-one-available-spot",
+      "label": "Issues ticket successfully when one spot is available in the parking lot",
+      "testMethod": "testIssueTicketWith1AvailableParkingSpot"
+    },
+    {
+      "id": "issue-ticket-two-available-spots",
+      "label": "Issues ticket successfully allocating available spot when multiple spots exist",
+      "testMethod": "testIssueTicketWith2AvailableParkingSpots"
+    },
+    {
+      "id": "issue-ticket-no-available-spots",
+      "label": "Rejects ticket generation with FAILURE when no parking spot is available",
+      "testMethod": "testIssueTicketWithNoAvailableSpots"
+    },
+    {
+      "id": "issue-ticket-from-exit-gate",
+      "label": "Rejects ticket generation with FAILURE when attempted from an exit gate",
+      "testMethod": "testIssueTicketWithFromExitGate"
+    },
+    {
+      "id": "issue-ticket-non-existing-gate",
+      "label": "Rejects ticket generation with FAILURE when gate id does not exist",
+      "testMethod": "testIssueTicketFromNonExistingGate"
+    },
+    {
+      "id": "issue-ticket-multi-floor-distribution",
+      "label": "Correctly evaluates multi-floor capacity and assigns nearest available spot across floors",
+      "testMethod": "testIssueTicketWith3Floors2CarsOn1stAnd2ndFloorAnd1On3rdFloor"
+    },
+    {
+      "id": "issue-ticket-floor-under-maintenance",
+      "label": "Skips parking spots on floors currently under maintenance",
+      "testMethod": "testIssueWithWith1FloorUnderMaintenance"
+    }
+  ]
+}

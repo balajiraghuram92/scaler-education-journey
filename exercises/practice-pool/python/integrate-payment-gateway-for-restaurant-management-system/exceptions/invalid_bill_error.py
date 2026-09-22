@@ -1,0 +1,2 @@
+class InvalidBillError(Exception):
+    pass

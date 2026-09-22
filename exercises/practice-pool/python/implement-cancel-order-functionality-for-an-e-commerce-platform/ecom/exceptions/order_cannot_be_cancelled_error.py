@@ -1,0 +1,2 @@
+class OrderCannotBeCancelledError(Exception):
+    pass

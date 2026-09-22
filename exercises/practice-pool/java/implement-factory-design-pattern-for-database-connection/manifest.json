@@ -1,0 +1,11 @@
+{
+  "id": "java-implement-factory-design-pattern-for-database-connection",
+  "title": "Implement Factory Design Pattern for Database Connection",
+  "language": "JAVA",
+  "concept_tags": [
+    "factory-pattern"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

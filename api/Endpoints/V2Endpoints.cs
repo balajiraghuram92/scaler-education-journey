@@ -108,6 +108,42 @@ public static class V2Endpoints
             var result = await progressService.SetTaskCompletionAsync(req.TaskId, req.IsCompleted, req.CorrelationId);
             return result.Success ? Results.Ok(result) : Results.BadRequest(result);
         }).WithName("V2SetTaskProgress");
+
+        // 6. Dynamic Practice Questions (MCQs)
+        group.MapGet("/practice-questions/{courseSlug}/{moduleSlug}/{lessonSlug}", async (
+            string courseSlug,
+            string moduleSlug,
+            string lessonSlug,
+            HttpContext httpContext,
+            McqService mcqService) =>
+        {
+            var sub = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(sub, out var parsedId) ? parsedId : null;
+
+            var questions = await mcqService.GetPracticeQuestionsAsync(courseSlug, moduleSlug, lessonSlug, userId);
+            return Results.Ok(questions);
+        }).WithName("V2GetPracticeQuestions");
+
+        group.MapPost("/practice-questions/{presentationId:guid}/attempts", async (
+            Guid presentationId,
+            McqAttemptRequest req,
+            McqService mcqService) =>
+        {
+            if (string.IsNullOrWhiteSpace(req?.SelectedOptionKey))
+            {
+                return Results.BadRequest(new { error = "selectedOptionKey is required." });
+            }
+
+            try
+            {
+                var result = await mcqService.RecordAttemptAsync(presentationId, req.SelectedOptionKey);
+                return Results.Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(new { error = ex.Message });
+            }
+        }).WithName("V2RecordPracticeAttempt");
     }
 }
 

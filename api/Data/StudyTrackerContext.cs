@@ -64,6 +64,12 @@ public class StudyTrackerContext : DbContext
     public DbSet<LedgerEntry> LocalizationLedgerEntries { get; set; } = null!;
     public DbSet<ProviderHealthSnapshot> LocalizationProviderHealth { get; set; } = null!;
 
+    // MCQ Dynamic Architecture DbSets
+    public DbSet<McqQuestion> McqQuestions { get; set; } = null!;
+    public DbSet<McqOption> McqOptions { get; set; } = null!;
+    public DbSet<McqPresentation> McqPresentations { get; set; } = null!;
+    public DbSet<McqAttempt> McqAttempts { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -736,6 +742,79 @@ public class StudyTrackerContext : DbContext
             entity.HasKey(p => p.Id);
             entity.Property(p => p.ErrorRatePercent)
                 .HasPrecision(5, 2);
+        });
+
+        // 25. MCQ Dynamic Architecture
+        modelBuilder.Entity<McqQuestion>(entity =>
+        {
+            entity.ToTable("mcq_questions");
+            entity.HasKey(q => q.Id);
+
+            entity.HasIndex(q => q.LegacyKey)
+                .IsUnique()
+                .HasDatabaseName("ux_mcq_questions_legacy_key");
+
+            entity.HasIndex(q => q.LessonId)
+                .HasDatabaseName("ix_mcq_questions_lesson_id");
+
+            entity.Property(q => q.IsActive)
+                .HasDefaultValue(true);
+
+            entity.HasOne(q => q.Lesson)
+                .WithMany()
+                .HasForeignKey(q => q.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<McqOption>(entity =>
+        {
+            entity.ToTable("mcq_options");
+            entity.HasKey(o => o.Id);
+
+            entity.HasIndex(o => o.QuestionId)
+                .HasDatabaseName("ix_mcq_options_question_id");
+
+            entity.HasOne(o => o.Question)
+                .WithMany(q => q.Options)
+                .HasForeignKey(o => o.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<McqPresentation>(entity =>
+        {
+            entity.ToTable("mcq_presentations");
+            entity.HasKey(p => p.Id);
+
+            entity.HasIndex(p => p.UserId)
+                .HasDatabaseName("ix_mcq_presentations_user_id");
+
+            entity.HasIndex(p => p.QuestionId)
+                .HasDatabaseName("ix_mcq_presentations_question_id");
+
+            entity.HasOne(p => p.Question)
+                .WithMany(q => q.Presentations)
+                .HasForeignKey(p => p.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<McqAttempt>(entity =>
+        {
+            entity.ToTable("mcq_attempts");
+            entity.HasKey(a => a.Id);
+
+            entity.HasIndex(a => a.PresentationId)
+                .IsUnique()
+                .HasDatabaseName("ux_mcq_attempts_presentation_id");
+
+            entity.HasOne(a => a.Presentation)
+                .WithOne(p => p.Attempt)
+                .HasForeignKey<McqAttempt>(a => a.PresentationId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

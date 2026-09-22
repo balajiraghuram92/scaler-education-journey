@@ -1,0 +1,11 @@
+{
+  "id": "java-integrate-payment-gateway-for-restaurant-management-system",
+  "title": "Integrate Payment Gateway for Restaurant Management System",
+  "language": "JAVA",
+  "concept_tags": [
+    "payment-integration"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

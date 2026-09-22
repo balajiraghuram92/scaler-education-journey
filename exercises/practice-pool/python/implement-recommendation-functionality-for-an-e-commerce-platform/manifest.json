@@ -1,0 +1,11 @@
+{
+  "id": "python-implement-recommendation-functionality-for-an-e-commerce-platform",
+  "title": "Implement recommendation functionality for an e-commerce platform",
+  "language": "PYTHON",
+  "concept_tags": [
+    "ecommerce"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

@@ -1,0 +1,11 @@
+{
+  "id": "java-implement-generate-invoice-functionality-for-hotel-management-system",
+  "title": "Implement generate Invoice functionality for Hotel Management System.",
+  "language": "JAVA",
+  "concept_tags": [
+    "hotel-management"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

@@ -1,0 +1,5 @@
+from .gate_repository import GateRepository
+from .vehicle_repository import VehicleRepository
+from .parking_lot_repository import ParkingLotRepository
+from .ticket_repository import TicketRepository
+from .parking_spot_repository import ParkingSpotRepository

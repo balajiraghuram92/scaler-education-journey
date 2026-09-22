@@ -76,6 +76,7 @@ services:
       ExerciseExecution__ExercisesRoot: /app/exercises
       ExerciseExecution__WorkspaceRoot: /tmp/studytracker-exercises
       ExerciseExecution__RunnerImage: ${EXERCISE_RUNNER_IMAGE:-neuralascent-java-runner:dev}
+      ExerciseExecution__RunnerImagesByProfile__java-maven-spring: ${EXERCISE_RUNNER_IMAGE_SPRING:-neuralascent-java-spring-runner:dev}
       ExerciseExecution__DockerEndpoint: unix:///var/run/docker.sock
       ExerciseExecution__MavenCacheVolume: ${EXERCISE_MAVEN_CACHE_VOLUME:-neuralascent-maven-cache}
 

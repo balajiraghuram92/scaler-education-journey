@@ -1,0 +1,11 @@
+{
+  "id": "java-implement-functionality-which-will-render-the-all-classes-page-for-learners-for",
+  "title": "Implement functionality which will render the 'All classes' page for learners for Scaler Academy",
+  "language": "JAVA",
+  "concept_tags": [
+    "scaler-academy-lms"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

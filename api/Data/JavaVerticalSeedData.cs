@@ -704,21 +704,6 @@ Use `getClass() != obj.getClass()` to ensure strict symmetry across subclasses."
         db.Lessons.Add(new Lesson
         {
             ModuleId = moduleId,
-            Slug = "23-machine-coding-contest",
-            Title = "Lesson 23 — Machine Coding Contest",
-            Description = "Timed machine coding assessment applying all design patterns and OOP principles to a new, unseen problem under interview conditions.",
-            LectureNumber = 23,
-            ClassDate = "TBD",
-            HorstmannRef = "TBD",
-            EstimatedMinutes = 120,
-            IsCompleted = false,
-            OrderIndex = 6,
-            ContentBody = GetAuthoredLessonContent("23-machine-coding-contest") ?? string.Empty
-        });
-
-        db.Lessons.Add(new Lesson
-        {
-            ModuleId = moduleId,
             Slug = "24-machine-coding-hotel-management",
             Title = "Lesson 24 — Machine Coding: Hotel Management System",
             Description = "Design and implement a layered hotel booking system across four incremental stages: adding rooms, browsing availability, booking rooms, and generating invoices — Controller/DTO/Repository/Service architecture.",
@@ -2234,14 +2219,130 @@ A repeatable framework for machine coding interviews and real-world system desig
 
 ## Concepts Covered
 
-### Step 0: Alignment and Problem Framing
-Machine coding interviews fail most often not from lack of Java knowledge but from lack of sequencing discipline — jumping straight into classes before the requirements are pinned down. Scaler's 6-step framework exists to prevent that: Step 0 is alignment with the interviewer (or with yourself, in a solo problem) — confirm what you already know and explicitly name what you don't, rather than assuming. Two questions settle the shape of the whole exercise before any design starts: does this system need to persist data, or is an in-memory, single-run structure acceptable; and how will a user actually interact with it — a REST API, a CLI, or a hardcoded `main()` method exercising the classes directly. Getting these two answers wrong early costs far more time than getting them right.
+### The Three Interview Formats and the "Resist First Reaction" Discipline
+Technical evaluations at engineering organizations operate across three distinct interview formats, each measuring different competencies:
+1. **Theoretical Interviews:** Focus on rapid-fire conceptual recall—explaining Java memory models, garbage collection algorithms, interface versus abstract class trade-offs, and concurrency primitives. Common in legacy enterprises, these evaluate textbook knowledge but reveal little about an engineer's coding craftsmanship.
+2. **Design Interviews:** Standard 45-to-60 minute architectural discussions centered on high-level system boundaries, class diagrams, and database schemas (e.g., ""Design a URL shortener"" or ""Design Tinder""). These probe structural thinking and relationship modeling, but intentionally stop short of writing executable code.
+3. **Machine Coding Interviews:** The standard evaluation format at high-bar product companies and startups (such as Flipkart, Swiggy, Uber, and CRED). Candidates are given an ambiguous, multi-page problem statement and a strict time limit (typically 90 to 120 minutes) to produce clean, modular, production-grade, and fully executable code from scratch on their own machines.
 
-### From Requirements to Class Diagrams (Steps 1 to 3)
-Step 1 is requirement gathering, typically producing 5–10 explicit, numbered requirements (R1, R2, R3...) rather than a vague paragraph. Step 2 clarifies and resolves tradeoffs within those requirements — this is where multiple candidate approaches to a tricky requirement (like an undo feature, or a pluggable pricing strategy) get compared on time and space complexity before committing to one. Step 3 turns the clarified requirements into a class diagram: nouns from the requirements become candidate classes, verbs become candidate methods, and the diagram should be walkable as a user journey — a reader should be able to trace what happens, in order, class by class, when a user performs the core action.
+Under interview adrenaline, a candidate's instinctive reaction is to immediately start typing code—creating database tables, declaring instance fields, or jumping straight to an algorithmic solution. Strong engineers deliberately suppress this impulse and practice **Step 0: Resist the First Reaction**. Step 0 mandates pausing to align with the interviewer's intent, confirming what is known, explicitly clarifying ambiguities, and agreeing on problem boundaries before touching the keyboard. Rushing to code without alignment almost always leads to false starts, wasted time, and major mid-round refactors.
 
-### Identifying Behavioral Pattern Signals in Requirements
-A phrase like ""this behavior needs to be swappable without rewriting the system"" is a Strategy pattern appearing in plain English — trained eyes catch it during requirement clarification, before any diagramming starts, rather than noticing only once the code has already ossified around a single hardcoded approach. Requirements that describe multiple interchangeable algorithms (fee calculation, spot assignment, bot difficulty, winning-condition checks) are the strongest signal.
+### The Scaler 6-Step Framework, Follow-Up Step 7, and the 3 Clarifying Questions
+To consistently deliver clean, working code within a rigid time box, engineers follow the repeatable Scaler 6-step framework in strict chronological order:
+- **Step 1: Overview:** Summarize the core system in one concise paragraph. Align with the interviewer on the fundamental mental model and primary user journey before discussing technical details.
+- **Step 2: Gather Requirements:** Elicit and document 5 to 8 core functional and non-functional requirements, explicitly numbered (R1, R2, R3...). Numbering requirements creates an auditable contract throughout the interview.
+- **Step 3: Clarify Requirements:** Probe edge cases, clarify ambiguous constraints, and compare candidate approaches (such as undo mechanisms or allocation strategies) by time and space complexity before committing to one.
+- **Step 4: Class Diagram:** Construct the object model outside-in. Walk through the core user journey step-by-step; nouns in the requirements become candidate classes, while verbs become candidate methods.
+- **Step 5: Schema Diagram:** Once persistence is required, translate the class model into a relational database schema using the class-to-table mapping algorithm, establishing primary keys, foreign keys, and mapping tables.
+- **Step 6: Working Code:** Implement the layered system stepwise under a time box, delivering an executable end-to-end vertical slice before expanding to secondary features.
+- **Step 7: Follow-up:** A crucial closing step observed in mature design interviews (such as Splitwise). Once the baseline system compiles and runs, the interviewer probes architectural depth: ""What if a group has 10,000 members?"", ""How does the system handle concurrent network retries?"", or ""How would you migrate this to a distributed event-driven architecture?""
+
+Across every machine-coding domain, senior engineers apply the **Three Transferable Clarifying Questions** as a standard checklist during Step 0 and Step 3:
+1. **Scope:** What is strictly in-scope versus out-of-scope? (e.g., core domain entities and algorithms only, or full HTTP controllers and exception handlers?)
+2. **Persistence:** Does data need to survive across application restarts, or is an in-memory repository structure (or an embedded H2 database) sufficient?
+3. **Interaction Mode:** How will the application be exercised? (An interactive command-line interface (CLI), automated JUnit test suites, or a hardcoded driver `main()` method?)
+
+### Domain Modeling in Practice: The Vehicle Hierarchy and Interface Segregation
+Consider designing a vehicle management domain to observe how requirements translate into clean object-oriented structures without brittle hierarchies. The system requires modeling various vehicle types (cars, bikes, trucks, and electric variants) alongside their operational states and refueling behaviors:
+
+```java
+public enum VehicleType { CAR, BIKE, TRUCK }
+public enum TransmissionType { MANUAL, AUTOMATIC }
+public enum VehicleState { IDLE, MOVING, PARKED }
+
+public abstract class Vehicle {
+    private final String licensePlate;
+    private final String brand;
+    private final VehicleType vehicleType;
+    private final TransmissionType transmissionType;
+    private VehicleState state;
+    private Driver driver; // Aggregation: Driver exists independently of Vehicle
+
+    public Vehicle(String licensePlate, String brand, VehicleType vehicleType, TransmissionType transmissionType) {
+        this.licensePlate = licensePlate;
+        this.brand = brand;
+        this.vehicleType = vehicleType;
+        this.transmissionType = transmissionType;
+        this.state = VehicleState.IDLE;
+    }
+
+    public void assignDriver(Driver driver) { this.driver = driver; }
+    public abstract void start();
+    public abstract void stop();
+}
+```
+
+This model highlights two fundamental object-oriented design distinctions:
+1. **Aggregation vs. Composition:** A `Vehicle` *has* a `Driver`—this is **aggregation**. The driver exists independently in the system; if the vehicle is decommissioned or parked, the driver remains intact. Conversely, a `FuelTank` is integral to an internal combustion `Engine`—this is **composition**. The fuel tank's lifecycle is bound to the engine; it cannot meaningfully exist or function without it.
+2. **Interface Segregation Principle (ISP) in Action:** Placing a `refuel()` method directly on the abstract `Vehicle` class violates ISP. An electric vehicle (`ElectricCar`) has no fuel tank and burns no gasoline; forcing it to implement `refuel()` forces either an empty dummy implementation or an awkward runtime `UnsupportedOperationException`. Instead, capabilities are segregated into focused, distinct interfaces:
+
+```java
+public interface Refuelable {
+    void refuel(double liters);
+}
+
+public interface Chargeable {
+    void recharge(double kilowattHours);
+}
+
+public class PetrolCar extends Vehicle implements Refuelable {
+    public PetrolCar(String plate, String brand) {
+        super(plate, brand, VehicleType.CAR, TransmissionType.MANUAL);
+    }
+    @Override public void start() { /* ignite engine */ }
+    @Override public void stop() { /* cut ignition */ }
+    @Override public void refuel(double liters) { /* fill fuel tank */ }
+}
+
+public class ElectricCar extends Vehicle implements Chargeable {
+    public ElectricCar(String plate, String brand) {
+        super(plate, brand, VehicleType.CAR, TransmissionType.AUTOMATIC);
+    }
+    @Override public void start() { /* engage motor */ }
+    @Override public void stop() { /* disengage motor */ }
+    @Override public void recharge(double kwh) { /* charge battery pack */ }
+}
+
+public class HybridCar extends Vehicle implements Refuelable, Chargeable {
+    public HybridCar(String plate, String brand) {
+        super(plate, brand, VehicleType.CAR, TransmissionType.AUTOMATIC);
+    }
+    @Override public void start() { /* engage hybrid drivetrain */ }
+    @Override public void stop() { /* disengage hybrid drivetrain */ }
+    @Override public void refuel(double liters) { /* fill fuel tank */ }
+    @Override public void recharge(double kwh) { /* charge auxiliary battery */ }
+}
+```
+
+By segregating behaviors into `Refuelable` and `Chargeable`, `HybridCar` can implement both capabilities cleanly, while `ElectricCar` and `PetrolCar` remain decoupled from contracts they do not support.
+
+### The 90-Minute Timed Machine Coding Playbook, Failure Modes, and 5-Minute Self-Review
+Machine coding evaluators grade submissions across four explicit pillars:
+1. **Architectural Layering:** Clean separation of concerns across controllers, services, repositories, and domain models.
+2. **Object-Oriented Design & Extensibility:** Proper application of SOLID principles, interfaces, and behavioral design patterns for anticipated variation points.
+3. **Code Quality & Correctness:** Input validation guards, custom typed exceptions, thread safety, and idiomatic language constructs.
+4. **Working Execution:** Compiling cleanly and executing a realistic driver script without crashing. Candidates who write pristine abstractions that do not compile fail; candidates who write an 800-line monolithic procedural `main()` method also fail.
+
+To deliver working code under pressure, candidates execute a disciplined four-phase playbook across 90 minutes:
+- **Phase 1: Requirements Distillation & Entity Blueprinting (Minutes 0–15):** Read the problem twice. Identify and number requirements (R1..Rn). Spot nouns (candidate entities like `User`, `Ride`, `Vehicle`) and verbs (candidate service methods like `bookRide`). Ask the three clarifying questions (scope, persistence, interaction mode). Sketch the class hierarchy and relationships on paper before opening the IDE.
+- **Phase 2: Skeleton Layering & Domain Scaffolding (Minutes 15–35):** Create the package structure: `model`, `repository`, `service`, `strategy`, `exception`, and `dto`. Code the domain models and enums with private fields and getters/setters. Write generic in-memory repository interfaces backed by `ConcurrentHashMap`. Define custom domain runtime exceptions (`EntityNotFoundException`, `ValidationException`).
+- **Phase 3: Core Vertical Slice & Happy Path (Minutes 35–65):** Implement the primary service interface and its implementation. Build the end-to-end happy path for the core user journey first (e.g., vehicle onboarding and one complete booking). Inject pluggable strategy interfaces (pricing, matching) via constructors. Write a `Runner` or `Main` class verifying the happy path with concrete data.
+- **Phase 4: Strategies, Edge Cases & Verification (Minutes 65–90):** Flesh out secondary strategies (e.g., peak-hour surge pricing). Add validation guards, null checks, and boundary handling. Expand the driver class to demonstrate edge cases, error handling, and concurrent requests.
+
+Two fatal failure modes destroy machine coding rounds:
+- **Premature Over-Engineering:** Building deep generic frameworks, custom reflection utilities, or dynamic proxy buses before a single service workflow executes. If time expires with zero running features, the submission is rejected.
+- **Hardcoded Monoliths:** Bundling input parsing, business rules, database queries, and console printing inside a single monolithic class. This violates SRP, destroys testability, and demonstrates junior procedural habits.
+
+Before submitting, execute a rigorous five-minute self-review:
+
+```text
+Checklist for Self-Review (Final 5 Minutes):
+1. Encapsulation: Are all fields private with explicit constructor initialization?
+2. Architecture: Is the Service layer free of console print statements and CLI logic?
+3. Extensibility: Are dynamic algorithms encapsulated behind interfaces?
+4. Invariants: Are validation errors throwing typed exceptions rather than returning null?
+5. Execution: Does the driver class demonstrate the complete end-to-end user journey?
+```
 
 ## Practical Backend Scenario
 
@@ -2265,17 +2366,117 @@ Design and implement a clean, extensible TicTacToe engine: board abstraction, pl
 
 ## Concepts Covered
 
-### Core Requirements and System Constraints
-TicTacToe is Scaler's first full application of the 6-step framework to a complete, working system, and its value is in the seven requirements it generates: an N×N board (not fixed at 3×3), up to N−1 players, unique symbols chosen per player, support for bot players, bots with a difficulty curve (easy, medium, hard), configurable win-condition rules chosen before the game starts, and an undo feature. Each of these pushes the design toward extensibility rather than a special-cased 3×3, two-player script.
+### Generalized Requirements: N×N Board, N-1 Players, and Extensible Cell State
+TicTacToe serves as the foundational machine-coding domain, transitioning abstract object-oriented principles into a fully functioning game engine. The problem generalizes traditional rules into dynamic constraints: an $N \times N$ board (rather than a hardcoded $3 \times 3$), up to $N - 1$ players, unique symbol assignments, configurable winning conditions, an undo facility, and bot players with variable difficulty.
 
-### Undo Feature Architectural Trade-Offs
-The undo feature is the requirement most worth slowing down on, because three genuinely different implementations exist with different tradeoffs. The first stores a stack of past moves and works for TicTacToe specifically, but breaks down for games with more complex state mutation per move (chess captures, for example) because undoing a move isn't always the exact inverse of applying it. The second replays all N−1 prior moves onto a freshly empty board — correct for any game, but O(N²) time and O(N·N·m) space for m stored move-lists, since every undo re-simulates from scratch. The third stores a full board snapshot after every move, making undo an O(N) lookup — trading memory for speed, which is the right trade for a bounded board size where snapshots stay small.
+The constraint of allowing at most $N - 1$ players on an $N \times N$ board is not an arbitrary rule; it is mathematically necessary to prevent the game from immediately degenerating. On an $N \times N$ board with $N$ competing players, if each player places just one symbol in a row or column, every player simultaneously blocks every other player from completing that line. As $N$ grows, having $N$ players causes almost every match to collapse into an early, uninteresting stalemate. Restricting the player count to $N - 1$ guarantees that at least one row, column, or diagonal remains unblocked by rival symbols, preserving meaningful competition and decisive victories.
 
-### Win-Condition Checking Optimization: O(N³) to O(1)
-Win-condition checking has its own optimization arc, moving through four solutions. The naive approach checks every player against the entire board (every row, column, and diagonal) after every move: O(N³). Since only the player who just moved could possibly have created a new winning line, checking only the current player already drops this to O(N²). Since a move at position (i, j) can only ever affect row i, column j, and — only when i == j or i + j == N−1 — one or both diagonals, checking only the touched lines drops this further to O(N). The final optimization replaces re-scanning entirely with running counters: a map per row, per column, and two fixed maps for the diagonals, incremented on every placed symbol and compared against N. This reaches O(1) time per move at the cost of O(N) additional space — for a bounded board size, accepting that space cost for constant-time checking is the correct trade, and it only works if the counters live as persistent fields on the class, not as local variables recreated on every call.
+At the cell level, state representation requires careful modeling. Using a boolean flag such as `isOccupied` or `hasSymbol` is a fragile antipattern: a boolean is strictly binary and cannot represent states such as `BLOCKED` (for obstacle cells or forbidden squares in board variations) without adding secondary flags like `isBlocked` or `isReserved`. This pollutes the entity and violates the Open/Closed Principle. Instead, the domain introduces an explicit `CellState` enum:
 
-### Applying Builder, Factory, and Strategy Patterns
-Three design patterns organize the resulting system. `Game` is constructed exclusively through a `GameBuilder`, whose validation (bot count capped at one per game, player count matching board dimension minus one, symbol uniqueness across all players) runs before any `Game` instance can exist — a private constructor makes bypassing this impossible. Player creation goes through a `PlayerFactory` returning the correct concrete type. Both winning-condition checks and bot move-selection are Strategy implementations: a `WinningStrategy` interface lets a new rule be added as one new class without touching `Game`'s core logic, and `BotPlayingStrategy` implementations (an easy strategy picking the first empty cell, a hard strategy using minimax with alpha-beta pruning) let a `Bot` delegate its move-selection entirely, keeping `Bot` itself thin.
+```java
+public enum CellState {
+    EMPTY,
+    FILLED,
+    BLOCKED
+}
+
+public class Cell {
+    private final int row;
+    private final int col;
+    private CellState cellState;
+    private Player player;
+
+    public Cell(int row, int col) {
+        this.row = row;
+        this.col = col;
+        this.cellState = CellState.EMPTY;
+    }
+
+    public void clear() {
+        this.cellState = CellState.EMPTY;
+        this.player = null;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
+        this.cellState = CellState.FILLED;
+    }
+    // getters...
+}
+```
+
+### Undo Feature Architectural Trade-Offs: Reversal vs. Replay vs. Snapshot
+Implementing an undo mechanism requires evaluating trade-offs across execution latency and memory consumption:
+1. **Direct Reversal (State Inversion):** The system maintains a stack of past `Move` objects. When an undo is requested, the engine pops the most recent move and reverses its mutations (`cell.clear()`). While this operates in $O(1)$ time and minimal memory, it fails in games with irreversible state transitions or cascading side effects (such as piece captures, promotions, or power-ups in Chess), where the prior state cannot be reconstructed solely from the move coordinates.
+2. **Replay from Scratch:** The engine stores an ordered history list of all applied moves. Upon undo, the engine discards the last move, instantiates a brand-new blank board, and replays all $M - 1$ remaining moves from the beginning. While mathematically universal for any complex ruleset, replaying consumes $O(M)$ time per undo and $O(M^2)$ time under repeated undos, introducing unacceptable latency on large boards.
+3. **Snapshot Saving (Chosen Scaler Design):** The engine maintains a stack of board snapshots (`Deque<Board>`). After every valid move, a deep copy of the board is pushed onto the stack. An undo operation is an instantaneous $O(1)$ pointer restoration: the current board reference is replaced with the popped prior snapshot. While this trades memory ($O(M \times N^2)$) for speed, the absolute memory footprint for bounded board sizes ($N \le 10$) is negligible (a few kilobytes), making snapshot storage the optimal latency trade-off.
+
+### Win-Check Optimization Progression: From O(N³) Brute Force to O(1) Hash Counter Tracking
+Checking whether a player has won after making a move evolves across four distinct algorithmic stages:
+- **Stage 1: Naive Full Board Scan ($O(N^3)$):** After every turn, the engine iterates across all $N$ rows, $N$ columns, and 2 diagonals for every one of the $N - 1$ players. Inspecting $2N + 2$ lines of length $N$ for $N - 1$ players takes $(N - 1) \times (2N + 2) \times N = O(N^3)$ operations per turn.
+- **Stage 2: Active Player Scoping ($O(N^2)$):** Only the player who just executed the current move could have created a new winning line. Checking all rows, columns, and diagonals for only this active player reduces operations to $(2N + 2) \times N = O(N^2)$.
+- **Stage 3: Move-Localized Line Check ($O(N)$):** A move placed at row $r$ and column $c$ can only ever alter four lines: row $r$, column $c$, the main diagonal (only if $r == c$), and the anti-diagonal (only if $r + c == N - 1$). Inspecting only these 2 to 4 touched lines of length $N$ reduces turn latency to $O(N)$.
+- **Stage 4: Running Hash Counter Tracking ($O(1)$):** Eliminate board inspection entirely. The engine maintains persistent hash maps tracking symbol frequencies as class state: a `List<Map<Symbol, Integer>>` of size $N$ for rows, a `List<Map<Symbol, Integer>>` of size $N$ for columns, and two `Map<Symbol, Integer>` for the main and anti-diagonals. When a player places a symbol, increment the corresponding symbol count in $O(1)$ time. If any counter reaches $N$, that player wins immediately:
+
+```java
+public class OrderOneWinningStrategy implements WinningStrategy {
+    private final List<Map<Symbol, Integer>> rowMaps = new ArrayList<>();
+    private final List<Map<Symbol, Integer>> colMaps = new ArrayList<>();
+    private final Map<Symbol, Integer> mainDiagMap = new HashMap<>();
+    private final Map<Symbol, Integer> antiDiagMap = new HashMap<>();
+
+    public OrderOneWinningStrategy(int size) {
+        for (int i = 0; i < size; i++) {
+            rowMaps.add(new HashMap<>());
+            colMaps.add(new HashMap<>());
+        }
+    }
+
+    @Override
+    public boolean checkWinner(Board board, Move move) {
+        int r = move.getCell().getRow();
+        int c = move.getCell().getCol();
+        Symbol sym = move.getPlayer().getSymbol();
+
+        Map<Symbol, Integer> rowMap = rowMaps.get(r);
+        rowMap.put(sym, rowMap.getOrDefault(sym, 0) + 1);
+        if (rowMap.get(sym) == board.getSize()) return true;
+
+        Map<Symbol, Integer> colMap = colMaps.get(c);
+        colMap.put(sym, colMap.getOrDefault(sym, 0) + 1);
+        if (colMap.get(sym) == board.getSize()) return true;
+
+        if (r == c) {
+            mainDiagMap.put(sym, mainDiagMap.getOrDefault(sym, 0) + 1);
+            if (mainDiagMap.get(sym) == board.getSize()) return true;
+        }
+        if (r + c == board.getSize() - 1) {
+            antiDiagMap.put(sym, antiDiagMap.getOrDefault(sym, 0) + 1);
+            if (antiDiagMap.get(sym) == board.getSize()) return true;
+        }
+        return false;
+    }
+}
+```
+
+The frequency maps must live as persistent fields on the strategy instance across the game lifecycle. Re-instantiating maps inside `checkWinner()` would destroy historical counts and reintroduce $O(N)$ scanning.
+
+### Bot Difficulty via Strategy Pattern and Structural Creational Boundaries
+Bot move selection is modeled as a pluggable behavioral abstraction using the **Strategy Pattern**:
+
+```java
+public interface BotPlayingStrategy {
+    Move makeMove(Board board, Bot bot);
+}
+```
+
+Implementations exhibit different algorithmic profiles:
+- **EasyBotPlayingStrategy:** Scans the board linearly from $(0, 0)$ to $(N-1, N-1)$ and selects the first empty cell (`cell.getCellState() == CellState.EMPTY`). This runs in $O(N^2)$ time, providing deterministic, predictable moves for novice players.
+- **HardBotPlayingStrategy (Minimax vs. Depth-Limited Search):** Minimax recursively evaluates all possible future game trees, scoring leaf nodes to choose the mathematically optimal move. However, Minimax has exponential complexity $O(b^d)$, where branching factor $b \le N^2$ and search depth $d \le N^2$. On a $3 \times 3$ board ($b \le 9, d \le 9$), Minimax evaluates up to 362,880 states in milliseconds. On a $4 \times 4$ board ($16! \approx 2.09 \times 10^{13}$ states), an unbounded Minimax search causes severe thread exhaustion and UI timeouts. The practical engineering fix is **depth-limited Minimax with alpha-beta pruning and heuristic evaluation**: searching up to a fixed depth (e.g., 3 to 4 plies) and scoring board lines based on open symbol counts. This is framed as a deliberate, honest engineering simplification rather than an unprincipled shortcut.
+
+Creational boundaries enforce domain invariants before play begins:
+- **GameBuilder:** Enforces strict validation invariants: exactly one bot allowed per match, player count equal to $N - 1$, unique symbols across all players, board dimension $N \ge 3$, and at least one active winning strategy. By making `Game`'s constructor private and exposing construction solely through `GameBuilder.build()`, bypassing validation is impossible.
+- **PlayerFactory:** Encapsulates the instantiation of `HumanPlayer` and `Bot` instances, configuring bot difficulty strategies cleanly at startup.
 
 ## Practical Backend Scenario
 
@@ -2299,17 +2500,85 @@ Design and implement a multi-floor parking lot system: spot types, vehicle hiera
 
 ## Concepts Covered
 
-### Physical Domain Requirements and Design Pattern Signals
-Parking Lot moves the 6-step framework from a pure game (TicTacToe) to a system involving physical resources and financial transactions, and the eight requirements it generates read differently as a result: multiple floors per lot, vehicle-type-specific spots with exact-match allocation only (a truck can never occupy a car spot), a token created and a spot assigned simultaneously at entry, payment and spot-release happening together at exit, dynamically swappable fee-calculation algorithms, support for both cash and third-party online payment, multiple physically distinct entry and exit gates, and configurable spot assignment (auto-nearest-pick or user selection). Requirements 5 and 8 are the same Strategy-pattern signal from Lesson 18 appearing twice in one problem — two separate interfaces are needed, one for fee calculation and one for spot allotment.
+### The Nine-Class Domain Hierarchy Derived from the Driver Journey
+Transitioning from game engines to enterprise systems involves physical resources, human operators, and monetary transactions. The domain model is derived directly by tracing a driver's end-to-end journey through the facility:
+1. A driver arrives with a `Vehicle` at an entry `Gate`.
+2. An `Operator` on duty verifies the vehicle and issues a `Ticket`.
+3. The system assigns an available `ParkingSpot` on a specific `ParkingFloor` within the `ParkingLot`.
+4. The driver parks the vehicle. Later, the driver proceeds to an exit `Gate`.
+5. An operator inspects the ticket, calculates parking fees, and generates a `Bill`.
+6. The driver settles the bill via a `Payment` (cash or online transaction).
+7. Upon payment confirmation, the parking spot is marked available, and the gate opens.
 
-### Driver Journey and Domain Entity Modeling
-Walking through a driver's actual journey — arrive, receive a ticket, park, later present the ticket, pay, leave — yields nine classes: `ParkingLot`, `ParkingFloor`, `Gate`, `ParkingSpot`, `Vehicle`, `Operator`, `Ticket`, `Bill`, and `Payment`. Several of the modeling decisions here generalize well beyond parking lots. `Gate` is one class with a `GateType` enum (ENTRY or EXIT) rather than two separate `EntryGate`/`ExitGate` classes, because the two are identical except for that one field — creating a subclass distinction for a single enum value is needless duplication. `Ticket` captures its own `operator` field as a snapshot at the moment of issue, distinct from `Gate.operator`, which reflects whoever is *currently* staffing that gate — conflating the two would mean a ticket's audit trail silently changes when a shift changes, which is wrong: a ticket must record who was actually on duty when it was issued. `Bill` holds a `List<Payment>` rather than a single `Payment`, because real payment splitting (part cash, part card) needs to be representable, and each payment in the list can be independently refunded or audited. `ParkingSpot` stores its `floorId` directly rather than deriving it by walking up through the floor object on every lookup — a deliberate duplication justified by how frequently that lookup happens (printing every ticket), not applied blindly everywhere.
+This walkthrough establishes nine core domain entities: `ParkingLot`, `ParkingFloor`, `Gate`, `ParkingSpot`, `Vehicle`, `Operator`, `Ticket`, `Bill`, and `Payment`. Several structural decisions illustrate mature object-oriented design:
+- `Gate` is modeled as a single class with a `GateType` enum (`ENTRY`, `EXIT`) rather than two separate subclasses (`EntryGate`, `ExitGate`). Both gate types share identical properties (number, floor, operator, gate status); subclassing for a single enum distinction is unnecessary class proliferation.
+- `Ticket` stores an `operator` snapshot representing the operator on duty at the exact moment of ticket generation. Pointing dynamically to `Gate.operator` is an antipattern: when operator shifts change, historical tickets would silently reflect the new operator, corrupting audit trails.
+- `Bill` contains a `List<Payment>` rather than a single `Payment` reference. This accommodates partial split payments (e.g., paying ₹100 in cash and ₹200 via UPI), with each transaction independently audited.
+- `ParkingSpot` records its `floorId` directly rather than traversing through the floor hierarchy on every lookup, optimizing frequent ticket printing queries.
 
-### Relational Schema Mapping and Cardinality
-Schema design here follows the same class-to-table algorithm from earlier lessons — every class becomes a table, every simple attribute becomes a column, and every attribute that is itself another class needs its cardinality checked before deciding where the foreign key goes. `ParkingLot`-to-`ParkingFloor` is one-to-many, so `parking_lot_id` lives on the `parking_floor` table, not the reverse — a single `floor_id` column on `parking_lot` could only ever reference one floor, which can't represent a lot having many floors. `Bill`-to-`Payment` is similarly one-to-many, so `bill_id` sits on the `payment` table. `Gate`-to-`Operator`, by contrast, is genuinely many-to-many across the shift history (many operators work many gates over time), which would need its own mapping table if that full history matters — a plain foreign key column would only capture the *current* operator, matching what `Gate.operator` is meant to store, but not the shift history.
+### Representing Inheritance in Schema Design: The Pen Analogy and Table Hierarchy
+Relational databases lack native object-oriented inheritance. Mapping polymorphic domain hierarchies to tables is illustrated through the **Pen Analogy**:
+- **The Naive Approach (Subtype Tables with Duplicated Columns):** Consider modeling pens where `Pen` is an abstract base, and `BallPen` and `GelPen` are concrete subclasses. Creating separate tables (`ball_pens`, `gel_pens`) with duplicated columns (`id`, `brand`, `price`, `color`) creates severe relational debt. Answering simple aggregate questions ("What is the total pen inventory across the store?", "What is the minimum pen price?") requires complex `UNION ALL` queries across every child table. Adding a new subtype (`fountain_pens`) forces modifying every aggregate query across the entire system.
+- **The Correct Approach (Single Shared Parent Table with Specialized Child Tables):** Common attributes are stored once in a parent table (`pens`), with child tables storing only their specialized attributes (`ball_pens` stores `nib_size`, `gel_pens` stores `ink_viscosity`) alongside a foreign key referencing `pens(id)`.
 
-### Concurrency Hazards in Spot Allocation
-The design deliberately leaves one real gap unresolved after the class diagram is complete: nothing in the paper design prevents two entry gates from assigning the same empty spot to two different vehicles arriving at nearly the same moment. `AllotmentStrategy.assignSpot()` decides which spot to hand out, but no lock exists between the moment it reads ""this spot is free"" and the moment it commits that assignment — a genuine concurrency problem that only manifests when gates run concurrently, and one that a single-threaded paper design cannot surface or fix by itself.
+This principle applies directly to the `Payment` hierarchy:
+- `payments` parent table: `id`, `bill_id`, `amount`, `payment_status`, `payment_mode`, `created_at`.
+- `cash_payments` child table: `payment_id` (PK/FK referencing `payments.id`), `cash_tendered`, `change_returned`, `cashier_id`.
+- `online_payments` child table: `payment_id` (PK/FK referencing `payments.id`), `transaction_reference`, `gateway_provider`, `payment_response_payload`.
+
+Querying total revenue requires a simple `SELECT SUM(amount) FROM payments WHERE payment_status = 'SUCCESS'`, requiring zero joins or `UNION` queries across payment modes.
+
+### The Enum vs. Lookup Table Test and the Parking Spot Sizing Correction
+Choosing between a plain Java enum and a database lookup table depends on a single deciding test: **"How likely is this set of values to change without a code redeploy?"**
+- **Plain Java Enums:** Appropriate for fixed, immutable sets where changing values requires physical infrastructure modifications. `GateType` (`ENTRY`, `EXIT`) and `PaymentStatus` (`INITIATED`, `SUCCESS`, `FAILED`) stay plain Java enums because gate topologies and transaction lifecycles do not mutate at runtime.
+- **Lookup Tables / Configurable Classes:** Appropriate when values represent business rules, fees, or algorithms that must be added, modified, or tuned dynamically without rebuilding or redeploying code. `SpotAssignmentStrategyType` and `FeeCalculationStrategyType` are backed by lookup tables and configuration entities, allowing operators to register new pricing rules at runtime.
+
+During development, modeling reveals a genuine domain gap: **The Parking Spot Sizing Correction**.
+The initial naive assumption enforced an exact-match rule: a vehicle could only park in a spot of its exact type (`CAR` in `CAR_SPOT`). However, physical reality dictates that parking spots are volumetric dimensions (`BIKE < CAR < TRUCK`). A large spot built for a `TRUCK` can physically accommodate a `CAR` or a `BIKE`, whereas a `BIKE` spot cannot accommodate a `CAR`.
+
+Modeling implication: `ParkingSpot` cannot store a single `VehicleType` foreign key or enum. It must support a `List<VehicleType> supportedVehicleTypes`. Storing this as a comma-separated string (`"BIKE,CAR,TRUCK"`) in a single column violates First Normal Form (1NF), prevents database indexing, and makes queries like "find available spots for a CAR" slow and unindexable. The correct relational design is a dedicated many-to-many mapping table: `parking_spot_supported_vehicle_types` (`parking_spot_id`, `vehicle_type`).
+
+### Controller Boundary Protection: The Case for DTOs
+Exposing raw domain entities across controller boundaries is a common architectural failure. The necessity of Data Transfer Objects (DTOs) is demonstrated through two concrete failure scenarios:
+1. **Scenario 1: Ripple Fragility Across Unrelated Callers:** Suppose Callers A and B both invoke `issueTicket()`. If the internal domain model `Ticket` is modified to include an internal security field (`securityClearanceLevel`) or its constructor signature changes, both callers are forced to update their code and recompile. Using dedicated `IssueTicketRequestDTO` and `IssueTicketResponseDTO` decouples callers from internal model changes: internal entity refactorings break zero external consumers.
+2. **Scenario 2: Information Exposure and Security Leakage:** An external partner (such as a municipal tax auditor or parking aggregator) integrates with `TicketController`. Exposing the raw `Ticket` model inadvertently serializes the internal `Operator` entity (leaking employee IDs, shift schedules, and HR metadata) and internal spatial coordinates (`assignedSpot`). A DTO acts as a deliberate, one-way security membrane: only fields explicitly declared on the response DTO leave the API boundary.
+
+### Critical Section Identification, Narrow Synchronization, and Concurrency Fix
+When multiple entry gates operate simultaneously, a critical concurrency hazard emerges: two vehicles arrive at Gate 1 and Gate 2 at the exact same millisecond. Both gates query available spots for a `CAR`, observe Spot #42 as `AVAILABLE`, allocate Spot #42, and issue two distinct tickets for the exact same physical space.
+
+The race condition occurs in the read-then-write gap: checking spot availability and marking it occupied. The fix applies targeted synchronization:
+
+```java
+public class TicketService {
+    private final Object spotLock = new Object();
+
+    public Ticket issueTicket(IssueTicketRequestDTO request) {
+        // validate gate, resolve vehicle...
+        ParkingSpot assignedSpot;
+        synchronized (spotLock) {
+            assignedSpot = allotmentStrategy.findSpot(
+                parkingSpotRepository.findAll(), request.getVehicleType());
+            if (assignedSpot == null) {
+                throw new ParkingFullException("No available spot for this vehicle type");
+            }
+            assignedSpot.setParkingSpotStatus(ParkingSpotStatus.OCCUPIED);
+            parkingSpotRepository.save(assignedSpot);
+        }
+        // create and save ticket...
+        return ticketRepository.save(ticket);
+    }
+}
+```
+
+Lock scope discipline is critical:
+- The `synchronized (spotLock)` block is kept narrow, encompassing only the allotment query and status update. Synchronizing the entire `issueTicket()` method would needlessly serialize gate validation, vehicle saving, and ticket persistence, severely degrading system throughput.
+- Concurrency testing must recreate the problem faithfully: using two genuinely distinct `Gate` instances executing on separate concurrent threads, rather than simulating an abstract "two requests" scenario.
+
+**AI Corner: The Unsafe Vehicle-Type Locking Optimization:**
+An AI tool suggested optimizing concurrency by locking per vehicle type using a `ConcurrentHashMap`:
+`synchronized (vehicleTypeLockMap.get(request.getVehicleType())) { ... }`
+
+While this looks plausible and permits concurrent allocations for bikes and cars, it is catastrophically broken against the system's own prior design decision (the parking spot sizing correction). Because a `TRUCK` spot supports `CAR` and `BIKE`, a truck thread acquiring the `TRUCK` lock and a car thread acquiring the `CAR` lock will bypass each other's locks and both allocate the exact same physical spot simultaneously! Fine-grained locking must lock on the physical resource being contested (the individual spot), not on an overlapping proxy category.
 
 ## Practical Backend Scenario
 
@@ -2461,33 +2730,125 @@ Add an outbox-backed notification publisher and a reconciliation command. Docume
 
 ## Concepts Covered
 
-### Event, Show, and Venue Modelling
-A movie ticketing platform models real-world physical and temporal structures. The core domain separates the creative work from its exhibition: an `Event` (or `Movie`) represents the media entity (title, duration, genre, language), while a `Show` represents a specific temporal exhibition of that event at a particular `Screen` within a `Theatre` located in a `City`. A `Venue` or `Theatre` contains multiple physical `Screen` instances, each configured with a physical layout of `Seat` objects designated by row, seat number, and `SeatType` (such as `SILVER`, `GOLD`, `PLATINUM`, or `RECLINER`). Crucially, physical seats are immutable layout templates; they do not store availability status. Availability is temporal and show-specific. To represent this without mutating physical theater definitions, the domain introduces `ShowSeat` as an associative entity binding a `Show`, a physical `Seat`, and a mutable `ShowSeatStatus` (`AVAILABLE`, `LOCKED`, `BOOKED`). Pricing is also decoupled: a `ShowSeatType` mapping assigns rates per seat type for a given show, accommodating dynamic weekend pricing or holiday surges without modifying the base theater topology.
+### Physical Domain Hierarchy and the Two Core Design Corrections
+Movie ticketing platforms model real-world entertainment infrastructure. The domain forms a physical composition hierarchy: `City` (modeled as `Region` in code) $\to$ `Theatre` $\to$ `Screen` $\to$ `Seat`, directly mirroring Parking Lot's spatial composition.
 
-### Seat Locking and Concurrent Booking
-The primary operational hazard in high-demand ticket sales is the double-allocation race condition during flash sales. When thousands of users select the same seats simultaneously, the system must establish an exclusive, temporary reservation before requiring payment. This is solved through a time-bounded **Seat Lock** mechanism. A `SeatLock` entity associates a `ShowSeat` with a `User`, a creation timestamp, and a lock expiration window (typically 5 to 10 minutes). When a customer initiates checkout, the system validates that every requested `ShowSeat` is currently `AVAILABLE` and has no active, unexpired lock:
+A fundamental domain distinction separates the creative media work from its temporal exhibition:
+- `Movie`: The creative intellectual property (title, duration, genre, language, certificate).
+- `Show`: A specific temporal exhibition of a `Movie` on a particular `Screen` with an explicit `startTime` and `endTime`. Customers book tickets for a specific `Show`, not an abstract `Movie`.
+
+Constructing this model reveals two essential design corrections:
+1. **Design Correction 1: Booking Status on ShowSeat, Not Seat:** A physical `Seat` (e.g., Row E, Seat 12) is an immutable layout asset that exists permanently inside an auditorium. It is booked for the 6:00 PM show of Oppenheimer, but completely available for the 9:30 PM show. Storing a mutable `status` field on physical `Seat` would mean booking a seat for one show reserves it for all shows across eternity! `Seat` is purely a physical layout template. Booking mutability belongs on an associative mapping class: `ShowSeat`, keyed by `(Show, Seat)` and owning a mutable `ShowSeatStatus` (`AVAILABLE`, `BLOCKED`, `BOOKED`).
+2. **Design Correction 2: Pricing on ShowSeatType, Not Seat or ShowSeat:** Placing price on physical `Seat` is invalid because pricing fluctuates dynamically (matinee vs. prime time, weekday vs. weekend). Placing price directly on `ShowSeat` redundantly duplicates identical pricing records across hundreds of seat instances. Pricing is a function of the show and the seat tier: `ShowSeatType`, keyed by `(Show, SeatType)` and storing `price`.
+
+### Configurable Data vs. Shared Enums and Capability vs. Snapshot Features
+The distinction between Java enums and configurable database entities is governed by the **"Same Set for Every Owner" Test**:
+A shared Java enum is valid only if every entity owner in the ecosystem agrees on identical constants. For example, while `ShowSeatStatus` (`AVAILABLE`, `BLOCKED`, `BOOKED`) is universal, `SeatType` is not. One cinema chain categorizes seats as `SILVER`, `GOLD`, and `PLATINUM`, while a boutique chain uses `RECLINER`, `PRIME`, and `VIP`. Hardcoding `SeatType` as a Java enum breaks multi-tenant extensibility; `SeatType` must be modeled as a configurable database entity.
+
+A recurring modeling discipline is the **Capability vs. Snapshot Features Pattern**:
+- `Screen.features`: Represents the physical capabilities of an auditorium (e.g., `2D`, `3D`, `IMAX`, `DOLBY_ATMOS`).
+- `Show.features`: Represents the specific feature set activated for a single screening. An auditorium physically capable of 3D IMAX projection can run a standard 2D afternoon screening. Conflating screen capabilities with show configurations creates rigid schemas that cannot reflect real operational scheduling.
+
+### JPA Entity Modeling, Relationship Annotations, and Enterprise Gotchas
+Translating domain models to enterprise Spring Data JPA involves several critical relational mappings:
+- **SQL Reserved Keyword Collisions:** The entities `User` and `Show` directly collide with SQL reserved words (`USER`, `SHOW`) in PostgreSQL and MySQL. Left unaddressed, Hibernate generates syntax errors during DDL execution. This is resolved by explicitly defining table names: `@Entity(name = "users")` and `@Entity(name = "shows")`.
+- **Bidirectional Relationships and the `mappedBy` Trap:** In bidirectional associations (e.g., `Region` and `Theatre`), the inverse side must declare `mappedBy`:
+  ```java
+  // Region entity (inverse side)
+  @OneToMany(mappedBy = "region")
+  private List<Theatre> theatres;
+
+  // Theatre entity (owning side)
+  @ManyToOne
+  @JoinColumn(name = "region_id")
+  private Region region;
+  ```
+  Omitting `mappedBy` causes Hibernate to assume two independent one-way relationships, silently generating an unwanted join table (`region_theatres`) that degrades query performance and complicates cascading updates.
+- **`EnumType.STRING` vs. `EnumType.ORDINAL`:** Enums must always be annotated with `@Enumerated(EnumType.STRING)`. The default `EnumType.ORDINAL` persists the enum constant's zero-based integer index. If an engineer later reorders constants or inserts a new status in the middle of the enum, existing database rows silently point to corrupt values without throwing exceptions.
+- **`@ElementCollection` for Value Types:** Collections of basic types or enums (e.g., `List<Feature>`) use `@ElementCollection`, creating a child table managed automatically by JPA without requiring a standalone entity. In contrast, `@ManyToMany` is strictly reserved for associations between two independent first-class entities with their own lifecycles.
+- **Base Entity Architecture:** Core entities extend `BaseModel`, which centralizes common auditing fields:
 
 ```java
-public class SeatLock {
-    private final ShowSeat showSeat;
-    private final User lockedBy;
-    private final Instant lockedAt;
-    private final Duration timeout;
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+@Getter
+@Setter
+public abstract class BaseModel {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    public boolean isExpired() {
-        return Instant.now().isAfter(lockedAt.plus(timeout));
-    }
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private Date createdAt;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private Date lastModifiedAt;
 }
 ```
 
-Concurrency control can be enforced in-memory via synchronized blocks, `ReentrantLock` instances per show, or atomic test-and-set operations on concurrent collections; in distributed architectures, this translates to Redis distributed locks (`SET resource_name my_random_value NX PX 300000`) or database pessimistic row locks (`SELECT ... FOR UPDATE`). If any requested seat in a multi-seat batch cannot be locked, the entire transaction rolls back cleanly, avoiding partial allocations.
+### The Seat-Booking Race Condition: Why Long Transactions and Synchronized Both Fail
+The defining technical challenge in ticketing systems is the seat-booking race condition during high-concurrency flash sales (e.g., thousands of users targeting the same seats simultaneously). The naive check-then-act flow fails: User A and User B both observe Seat #15 as available, and both execute booking transactions.
 
-When using in-memory locks with `ConcurrentHashMap<String, SeatLock>`, key eviction requires a deterministic cleanup mechanism. If a thread crashes after acquiring a lock but before initiating payment, or if the user simply closes their browser tab, an orphaned lock would block that seat indefinitely. A `ScheduledExecutorService` running every 30 seconds sweeps expired entries from the map, comparing `Instant.now()` against `lockedAt.plus(timeout)`. In a distributed deployment, this role is offloaded to Redis TTLs or database row timestamps evaluated with optimistic conditional updates (`UPDATE show_seats SET status = 'LOCKED', version = version + 1 WHERE id = :id AND status = 'AVAILABLE' AND version = :version`).
+Two intuitive solutions fail for distinct architectural reasons:
+1. **Why a Long Database Transaction Fails:** Holding an open database transaction across the entire booking and payment flow (from seat selection through credit card verification and payment gateway callbacks, taking 5 to 15 minutes) exhausts the application's database connection pool almost instantly. Under high traffic, connections starve, and the entire platform crashes.
+2. **Why `synchronized` Blocks Fail:** A Java `synchronized` block only protects threads executing within a single JVM process on one physical server. Production applications scale horizontally across multiple container instances or Kubernetes pods behind a load balancer. Each instance maintains its own JVM heap and monitor locks; `synchronized` provides zero mutual exclusion across multiple servers.
 
-### Booking and Payment State Machine
-Once seats are successfully locked, a `Booking` is instantiated in a `PENDING` state, linked to the `User`, the selected `ShowSeat` instances, the calculated total fare, and an expiry deadline mirroring the seat locks. The transition from reservation to permanent ownership is governed by a strict finite state machine: `PENDING` -> `CONFIRMED`, `PENDING` -> `EXPIRED`, or `PENDING` -> `CANCELLED`. The system delegates financial processing to an external payment gateway through a polymorphic `PaymentService` abstraction. While payment is being authorized asynchronously, the customer holds the lock. If payment succeeds before timeout, a callback or webhook triggers the confirmation workflow: the `Booking` transitions to `CONFIRMED`, an `Invoice` or `Ticket` token with a QR payload is generated, the underlying `ShowSeat` statuses permanently update to `BOOKED`, and the temporary locks are released. Conversely, if payment fails or the timer expires before authorization lands, a scheduler or lock eviction routine executes: the `Booking` transitions to `EXPIRED`, the `ShowSeat` records revert to `AVAILABLE`, and any late-arriving payment notification triggers an automated refund workflow rather than an illegal double-booking.
+### The Soft-Lock Architecture, SERIALIZABLE Isolation, and Lazy Expiry
+The correct architecture decouples seat reservation from payment through a **Soft Lock**:
+- A temporary hold is placed by updating `ShowSeatStatus` to `BLOCKED` with a timestamp `blockedAt`.
+- The database transaction lasts only milliseconds: checking availability, marking seats `BLOCKED`, and committing. The user then has a 15-minute window to complete payment while holding the soft lock.
 
-To prevent double-charging or duplicate bookings caused by network retries from the payment aggregator, the payment callback endpoint must enforce idempotency. Each payment request payload carries an `idempotencyKey` (such as a UUID combining booking ID and user ID). When the webhook delivers a success notification, `PaymentService` first queries a `PaymentTransactionRepository`. If a transaction with that key already exists in `SUCCESS` status, the service returns an immediate HTTP 200 OK without re-executing seat confirmation logic.
+To protect the short check-and-block critical section, database isolation levels must be configured correctly. Default `READ_COMMITTED` isolation is insufficient: it guarantees a transaction will not read dirty data, but it does not prevent another transaction from modifying the row between read and write. Both Thread A and Thread B can read `status == AVAILABLE`, and both proceed to update to `BLOCKED`.
+
+The critical section requires `@Transactional(isolation = Isolation.SERIALIZABLE)`:
+
+```java
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public Booking bookMovie(Long userId, List<Long> seatIds, Long showId) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+    Show show = showRepository.findById(showId)
+            .orElseThrow(() -> new RuntimeException("Show not found"));
+
+    List<ShowSeat> showSeats = showSeatRepository.findAllById(seatIds);
+    for (ShowSeat showSeat : showSeats) {
+        boolean isAvailable = showSeat.getShowSeatStatus() == ShowSeatStatus.AVAILABLE;
+        boolean isExpiredBlock = showSeat.getShowSeatStatus() == ShowSeatStatus.BLOCKED
+                && Duration.between(showSeat.getBlockedAt().toInstant(), new Date().toInstant()).toMinutes() > 15;
+        if (!(isAvailable || isExpiredBlock)) {
+            throw new RuntimeException("Seat " + showSeat.getId() + " is not available");
+        }
+    }
+
+    for (ShowSeat showSeat : showSeats) {
+        showSeat.setShowSeatStatus(ShowSeatStatus.BLOCKED);
+        showSeat.setBlockedAt(new Date());
+        showSeatRepository.save(showSeat);
+    }
+
+    Booking booking = new Booking();
+    booking.setUser(user);
+    booking.setShow(show);
+    booking.setShowSeats(showSeats);
+    booking.setBookingStatus(BookingStatus.PENDING);
+    booking.setAmount(priceCalculator.calculatePrice(show, showSeats));
+    return bookingRepository.save(booking);
+}
+```
+
+Under `SERIALIZABLE`, the database detects read-write conflict dependencies when concurrent transactions touch overlapping rows, rolling back competing transactions with a serialization failure error without serializing unrelated shows or seats.
+
+The `isExpiredBlock` check implements **Lazy Expiry**: if a user abandons checkout, the seat is not stranded until an asynchronous sweeper runs; the next customer request examining the seat immediately detects that `blockedAt` exceeds 15 minutes and reclaims it. Lazy expiry serves as an immediate, self-healing complement to scheduled background sweepers.
+
+This architecture is verified with real concurrency tests using multiple worker threads competing for identical seat IDs, asserting that exactly one thread succeeds while competing threads fail cleanly.
+
+### Authentication, Salted Password Hashing, and JPA Auditing
+User authentication requires strict security guarantees:
+- Storing plaintext passwords violates fundamental security standards; storing unsalted fixed hashes (such as MD5 or SHA-256) is vulnerable to dictionary and precomputed rainbow table attacks.
+- The system employs `BCryptPasswordEncoder`. BCrypt automatically generates a cryptographically secure random salt and embeds it directly into the output hash string (`$2a$10$...`). Password verification uses `bCryptPasswordEncoder.matches(rawPassword, encodedPassword)` (never `.equals()`), which extracts the embedded salt from the hash, re-hashes the input password, and compares them in constant time.
+- Automatic entity auditing via `@CreatedDate` and `@LastModifiedDate` requires enabling the auditing listener: adding `@EntityListeners(AuditingEntityListener.class)` to `BaseModel` and declaring `@EnableJpaAuditing` on a Spring configuration class. Without these configurations, auditing annotations remain inert.
 
 ## Practical Backend Scenario
 A major blockbuster opens ticket reservations at noon. Within five seconds, 8,000 concurrent HTTP requests target the same 200 seats in Audi 1 for an evening show. Two users, Priya and Rahul, click ""Proceed to Pay"" for seats `A1` and `A2` at the exact same millisecond. In a naive implementation without atomic locking, both requests check availability, observe `A1` and `A2` as open, and create two distinct payment orders. Both users complete payment via UPI, resulting in an irrecoverable double booking, an angry customer at the box office, and manual intervention. In our layered architecture, Priya's request enters `BookingController.bookSeats()`, where `BookingService` acquires an in-memory lock on Show #101. It evaluates `ShowSeatRepository.findAvailableSeats()`, identifies `A1` and `A2` as available, creates two `SeatLock` entries with a 5-minute TTL, sets status to `LOCKED`, and commits within an atomic boundary. When Rahul's request evaluates two milliseconds later, the lock manager detects that `A1` and `A2` have active unexpired locks held by another session. Rahul's request immediately throws `SeatUnavailableException`, returning an HTTP 409 Conflict with a structured error payload detailing exactly which seats failed. Priya completes payment within 3 minutes; the payment webhook invokes `PaymentService.handleCallback()`, transitioning `Booking` to `CONFIRMED` and `ShowSeat` to `BOOKED`.
@@ -2510,23 +2871,193 @@ Add a dynamic pricing strategy using the Strategy Pattern (`PricingStrategy` int
 
 ## Concepts Covered
 
-### Group and Expense Modelling
-An expense sharing application models how financial obligations arise and propagate across social circles. The primary domain entities are `User`, `Group`, `Expense`, and `Split`. A `User` maintains identity attributes (name, email, phone) alongside a personalized balance ledger. A `Group` represents a bounded collection of users sharing recurring expenses (such as a vacation, an apartment, or an event) and manages membership rosters. An `Expense` encapsulates a financial transaction: an identifier, a monetary total, a textual description, the creator, the paying user (or multiple paying users with specific contributions), a timestamp, and an optional association with a `Group`. Crucially, an expense does not store balances directly. Instead, it decomposes into a collection of fine-grained `Split` objects. Each `Split` pairs a specific recipient `User` with their exact financial owed share. The fundamental domain invariant is mathematical equality: the sum of all individual split amounts must equal the total expense amount down to the smallest currency unit ($0.01 or 1 paisa). Monetary values in financial ledgers require exact representation. Using `double` or `float` introduces binary floating-point representation artifacts where simple sums like `0.1 + 0.2` evaluate to `0.30000000000000004`, silently corrupting account balances over time. All monetary fields in `Expense`, `Split`, and `BalanceSheet` are typed as `BigDecimal` with an explicit scale (typically 2 decimal places for cents/paisa) and rounding mode (`RoundingMode.HALF_UP`). Any discrepancy—whether from rounding, truncation, or malicious input—invalidates the expense creation.
+### Requirements Decomposition (R1–R12) and the Conservation of Money Invariant
+Splitwise represents an algorithmic and financial machine-coding domain, shifting focus from physical structures to ledger invariants and transaction minimization. Requirements decompose into twelve explicit statements:
+- **R1–R3 (Users & Groups):** Users register with name, phone, email, and password. Users can participate in shared expenses. Users can create groups (e.g., ""Flatmates"", ""Trip""); only group creators can add or remove members.
+- **R4 (Expense Logging):** To add an expense, a user specifies either the group or the individual participants, along with who paid what and who owes what, plus a description.
+- **R5–R8 (Dashboards & Visibility):** Users can view their total owed amount, personal expense history, and group-specific histories. Users cannot inspect groups they do not belong to.
+- **R9 (Membership Invariant):** A user cannot leave a group while having an outstanding unsettled balance in that group.
+- **R10 (Individual Settle-Up):** A user can request individual settlement; the system generates a list of transactions that brings the user's net balance across all global expenses to zero.
+- **R11 (Group Settle-Up):** A user can request group settlement; the system generates a list of transactions that brings all members within that group to net zero, considering only that group's expenses.
+- **R12 (Transaction Minimization):** When settling a group, minimize the total number of transactions members need to make. This is explicitly designated as a **""Good to Have""** optimization.
 
-### Split Strategy as a Polymorphic Abstraction
-Real-world expense distribution requires diverse splitting policies: equal splits among all members, exact nominal amounts specified per user, percentage allocations, or share/ratio-based distributions. Hardcoding conditional `if-else` or `switch` statements inside an `ExpenseService` severely violates the Open/Closed Principle (OCP); introducing a new split mechanism (such as itemized receipt splitting with tax and tip) would require modifying core service transaction logic. This domain cleanly applies the **Strategy Pattern**:
+Across every expense, the system enforces the **Conservation of Money Invariant**:
+$$\sum \text{whoPaid} = \sum \text{whoHadToPay} = \text{totalExpense}$$
+
+If the sum of amounts paid does not exactly equal the sum of amounts owed, money has vanished into thin air or been conjured from nothing. Any compliant implementation must validate this invariant and reject discrepant inputs with custom exceptions.
+
+### The extra_amount Balance Formulation and Worked Multi-User Trace
+To settle debts, the engine calculates each participant's net position across all target expenses using the `extra_amount` formula:
+
+$$\text{extra\_amount}(p) = \sum_{e} \left( \text{paid}_e(p) - \text{owed}_e(p) \right)$$
+
+- $\text{extra\_amount}(p) > 0$: Net Creditor (GET pool)—the user paid more than their fair share and must receive funds.
+- $\text{extra\_amount}(p) < 0$: Net Debtor (GIVE pool)—the user paid less than their fair share and must pay funds.
+- $\text{extra\_amount}(p) = 0$: Fully settled.
+
+Because every single expense satisfies $\sum \text{paid} = \sum \text{owed}$, summing balances across all participants in any closed group must strictly equal zero: $\sum_{p} \text{extra\_amount}(p) \equiv 0$.
+
+**Concrete Four-Person Worked Example:**
+Consider four roommates—A, B, C, and D—across four shared expenses:
+- Expense 1 (₹1000 Dinner): A paid ₹1000; A owed ₹500, B owed ₹500.
+- Expense 2 (₹3000 Groceries): A paid ₹3000; A owed ₹1000, C owed ₹1000, D owed ₹1000.
+- Expense 3 (₹1500 Utilities): B paid ₹1500; A owed ₹500, B owed ₹500, C owed ₹500.
+- Expense 4 (₹1000 Snacks): B paid ₹1000; A owed ₹250, B owed ₹250, C owed ₹250, D owed ₹250.
+
+Tallying `extra_amount` per person:
+- **A:** Paid (1000 + 3000 = 4000) - Owed (500 + 1000 + 500 + 250 = 2250) = **+₹1750** (Receives ₹1750)
+- **B:** Paid (0 + 0 + 1500 + 1000 = 2500) - Owed (500 + 0 + 500 + 250 = 1250) = **+₹1250** (Receives ₹1250)
+- **C:** Paid (0) - Owed (0 + 1000 + 500 + 250 = 1750) = **-₹1750** (Pays ₹1750)
+- **D:** Paid (0) - Owed (0 + 1000 + 0 + 250 = 1250) = **-₹1250** (Pays ₹1250)
+
+Verification check: $+1750 + 1250 - 1750 - 1250 = 0$. The net balance invariant holds.
+
+### Competing Settlement Algorithms and the NP-Hard Minimization Proof
+Once net balances are established, the engine must generate concrete settlement transactions. Two competing approaches exist:
+1. **Solution 1: The Sorted-Chain Approach (Brute-Force):**
+   - Sort all users by their final net balance.
+   - Walk the sorted list: person $i$ settles fully with person $i+1$, with person $i+1$ absorbing the remainder and passing it down the chain.
+   - While mathematically correct and guaranteed to complete in at most $n - 1$ transactions, this produces socially awkward, unnatural pairings: someone who owes ₹50 for coffee might be instructed to pay ₹50 to a person they never directly interacted with, purely due to sorted array positions.
+2. **Solution 2: The Greedy Get/Give Two-Heap Approach (Chosen Scaler Design):**
+   - Separate users into a GET pool (creditors, positive balance) and a GIVE pool (debtors, absolute negative balance).
+   - Maintain two priority queues: a max-heap of creditors and a max-heap of debtors.
+   - Iteratively pop the largest creditor $C$ and largest debtor $D$. Execute a transaction where $D$ pays $C$ the amount $\min(C_{\text{credit}}, D_{\text{debt}})$.
+   - At least one participant reaches a net balance of zero and is eliminated from their heap. If a participant has a remaining balance, re-insert them into their heap.
+   - Completes in at most $n - 1$ transactions in $O(n \log n)$ time, while producing intuitive, direct pairings.
+
+**Why True Transaction Minimization is NP-Hard:**
+Minimizing transactions is mathematically equivalent to partitioning the balance set into the maximum number of independent disjoint subsets that each sum to zero. If a group can be partitioned into $k$ independent zero-sum subsets, each subset can be settled independently in $s_i - 1$ transactions, yielding a global minimum of $n - k$ transactions.
+However, determining whether any subset of numbers sums to zero is the **Subset Sum Problem**, a known NP-complete problem. Maximizing the number of zero-sum partitions is strongly NP-hard ($O(2^n)$ combinations). Chasing the absolute mathematical minimum for large groups is computationally infeasible; acknowledging that transaction minimization is NP-hard and deploying the $O(n \log n)$ greedy heuristic demonstrates senior engineering judgment.
+
+### Class Derivation via Noun-Spotting and the Dummy-Expense Modeling Trick
+Unlike Parking Lot and BookMyShow where class hierarchies were derived from physical walkthroughs, Splitwise derives domain models via **Noun-Spotting** directly from requirements:
+- Identifying candidate classes from nouns: `User`, `Group`, `Expense`.
+- Identifying attributes: `name`, `phone`, `password`, `amount`, `description`.
+- Identifying services and verbs: `SettleUp`, `AddExpense`, `RegisterUser`.
+
+**The Transaction Trap and the Dummy-Expense Trick:**
+Requirements R10 and R11 state that settle-up returns a ""list of transactions."" Creating a separate `Transaction` table is a common modeling trap: it introduces two independent entities representing money movement (`Expense` and `Transaction`), requiring complex dual-reconciliation whenever balances are computed.
+
+The elegant resolution is **The Dummy-Expense Trick**: a debt settlement is modeled as an `Expense` with an `ExpenseType` enum:
 
 ```java
-public interface SplitStrategy {
-    void validate(List<Split> splits, BigDecimal totalAmount);
-    List<Split> calculateSplits(BigDecimal totalAmount, List<User> participants, SplitMetadata metadata);
+public enum ExpenseType {
+    NORMAL,
+    PAYMENT
 }
 ```
 
-Concrete strategies—`EqualSplitStrategy`, `ExactSplitStrategy`, `PercentageSplitStrategy`, and `ShareSplitStrategy`—encapsulate distinct mathematical algorithms. In `EqualSplitStrategy`, total expense is divided by participant count; fractional remainders resulting from uneven division (such as $100 divided among 3 users resulting in $33.33 each with $0.01 left over) are deterministically allocated to the payer or the first participant to maintain strict monetary conservation. For `PercentageSplitStrategy`, validation checks that the sum of percentage shares across all participants equals exactly 100.00%. Each participant's owed share is computed as `totalAmount.multiply(percentage).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)`. Because rounding individual percentages can produce an off-by-one-cent aggregate discrepancy against the total expense, the strategy adjusts the final participant's share by the delta, ensuring `totalAmount == sum(splits)` always holds as an invariant. An `ExpenseFactory` or dependency injection container supplies the appropriate strategy based on client input, keeping expense creation extensible and decoupled.
+When Debtor D pays Creditor C ₹500 to settle a balance, the system logs a dummy expense of type `PAYMENT` where D paid ₹500 and C had to pay ₹500. This seamlessly updates ledger calculations using the exact same pipeline without duplicating financial data structures.
 
-### Balance Computation and Debt Simplification
-Once an expense is validated and persisted, user balances must update accurately. A system can maintain balances in two distinct topologies: a global pairwise ledger or a net balance sheet. In a pairwise ledger, a directed graph represents claims: an edge from User A to User B with weight $20 signifies that A owes B $20. While straightforward, pairwise tracking produces high graph density: in a group of 5 roommates, each pairwise transaction adds edges, resulting in dozens of redundant transfers. To resolve this, the domain introduces **Debt Simplification** (cash flow minimization). The first phase calculates each user's net balance: `NetBalance = TotalPaid - TotalOwed`. Users with positive net balances are net creditors (they should receive money); users with negative net balances are net debtors (they must pay money); users with zero net balance are fully settled. The second phase eliminates redundant intermediate debts using a greedy bipartite matching algorithm. Two heaps (priority queues) are maintained: a max-heap of debtors ordered by magnitude of debt, and a max-heap of creditors ordered by magnitude of credit. In each iteration, the largest debtor pays the largest creditor the minimum of the two amounts. One party is completely settled and removed from their heap; the other's balance is decremented and re-inserted into the heap if non-zero. This reduces an O(N²) web of transactions to at most N-1 optimal settlement payments, dramatically simplifying group settlements.
+**ExpenseUser as a Relationship Mapping Class:**
+The question ""How much did User X pay or owe for Expense Y?"" is an attribute of the relationship between `User` and `Expense`, not an attribute of either entity alone. The domain models this associative entity as `ExpenseUser`:
+
+```java
+public enum ExpenseUserType {
+    PAID,
+    HAD_TO_PAY
+}
+
+@Entity
+public class ExpenseUser extends BaseModel {
+    @ManyToOne
+    private User user;
+
+    @ManyToOne
+    private Expense expense;
+
+    private int amount;
+
+    @Enumerated(EnumType.STRING)
+    private ExpenseUserType expenseUserType;
+}
+```
+
+### Relational Schema, In-Memory H2 Tooling, and the Command Pattern for CLI
+The relational schema maps to five core tables: `users`, `groups`, `group_members` (a many-to-many join table linking users and groups), `expenses` (storing `id`, `description`, `amount`, `created_by`, `group_id`, `expense_type`), and `expense_users` (associative mapping).
+
+**Tooling Choices Driven by Requirements:**
+Requirements specify CLI interaction and confirm that data does not need to persist across application runs. Consequently, using an embedded in-memory H2 database and skipping web starters eliminates external database container dependencies, keeping the application lightweight and self-contained.
+
+**The Command Design Pattern for CLI Input:**
+A naive command-line interface processes user input with a monolithic `main()` method filled with chained `if-else` blocks checking input strings (`if (input.startsWith("Register")) ... else if (input.startsWith("SettleUp"))`). This violates the Single Responsibility Principle and Open/Closed Principle. The clean architecture applies the **Command Pattern**:
+
+```java
+public interface Command {
+    boolean matches(String input);
+    void execute(String input);
+}
+
+@Component
+public class SettleUpUserCommand implements Command {
+    private final SettleUpController settleUpController;
+
+    @Autowired
+    public SettleUpUserCommand(SettleUpController settleUpController) {
+        this.settleUpController = settleUpController;
+    }
+
+    @Override
+    public boolean matches(String input) {
+        List<String> tokens = Arrays.asList(input.split(" "));
+        return tokens.size() >= 2 && tokens.get(1).equalsIgnoreCase("SettleUp");
+    }
+
+    @Override
+    public void execute(String input) {
+        // extract parameters, invoke controller, format response
+    }
+}
+
+@Component
+public class CommandExecutor {
+    private final List<Command> commands;
+
+    @Autowired
+    public CommandExecutor(List<Command> commands) {
+        this.commands = commands;
+    }
+
+    public void execute(String input) {
+        for (Command command : commands) {
+            if (command.matches(input)) {
+                command.execute(input);
+                return;
+            }
+        }
+        System.out.println("Unknown command: " + input);
+    }
+}
+```
+
+Spring's dependency injection automatically discovers all beans implementing `Command` and injects them into `CommandExecutor`. Adding a new command requires creating a new class without modifying existing dispatch code.
+
+### Settle-Up Architecture and Strategy Pattern Implementation
+The settle-up engine is structured across layered service contracts:
+
+```java
+public interface SettleUpStrategy {
+    List<Expense> settleUp(List<Expense> expensesToSettleUp);
+}
+
+@Service
+public class NaiveSettleUpStrategy implements SettleUpStrategy {
+    @Override
+    public List<Expense> settleUp(List<Expense> expensesToSettleUp) {
+        // 1. Calculate net extra_amount per user across expensesToSettleUp
+        // 2. Separate into GET (creditors) and GIVE (debtors) priority queues
+        // 3. Iteratively match max creditor with max debtor for min(get, give)
+        // 4. Return generated dummy expenses of type ExpenseType.PAYMENT
+        return new ArrayList<>();
+    }
+}
+```
+
+The Service layer coordinates retrieval via Spring Data repository query methods:
+- `ExpenseRepository.findAllByGroup(Group group)`: Retrieves group-scoped expenses for group settle-up (R11).
+- `ExpenseUserRepository.findAllByUser(User user)`: Retrieves all expense records involving a specific user across all contexts for individual settle-up (R10).
+
+The `SettleUpController` receives DTOs from commands, invokes `SettleUpService`, applies the active `SettleUpStrategy`, and returns transaction lists cleanly separated from persistence models.
 
 ## Practical Backend Scenario
 Four friends—Aman, Bharat, Chetan, and Divya—share an apartment. Aman pays the monthly electricity bill of $120, split equally among all four ($30 each). Bharat pays the grocery bill of $150, split by exact amounts: Aman owes $40, Bharat owes $30, Chetan owes $50, and Divya owes $30. Later, Chetan pays $80 for dinner, split by percentages: Aman 40% ($32), Bharat 20% ($16), Chetan 20% ($16), and Divya 20% ($16). If tracked as isolated pairwise debts, settling up requires Aman to pay Bharat $40 and Chetan $32, Bharat to pay Aman $30 and Chetan $16, Chetan to pay Aman $30 and Bharat $50, and Divya to pay three different people. The total number of peer-to-peer payments is chaotic and error-prone. With our automated balance sheet and debt simplification engine, the `ExpenseService` tallies net balances: Aman is +$18 ($120 paid - $102 owed), Bharat is +$74 ($150 paid - $76 owed), Chetan is -$16 ($80 paid - $96 owed), and Divya is -$76 ($0 paid - $76 owed). The simplification algorithm matches Divya (largest debtor, -$76) with Bharat (largest creditor, +$74): Divya pays Bharat $74, completely settling Bharat. Divya still owes $2 and Aman is owed $18. Next, Chetan (debtor, -$16) and Divya (remaining debt, -$2) both pay Aman ($16 and $2 respectively). The entire web of mutual liabilities collapses into exactly three clear, direct payments: Divya pays Bharat $74, Divya pays Aman $2, and Chetan pays Aman $16.
@@ -2544,51 +3075,7 @@ You can articulate why `BigDecimal` is non-negotiable for financial systems and 
 
 ## Suggested Extension
 Add support for recurring expenses and multi-payer contributions, where multiple users co-fund a single purchase in unequal portions before dividing it among the group. Implement an activity feed using the Observer Pattern where every newly recorded expense or debt settlement publishes events to asynchronously notify affected group members via email, SMS, or in-app push channels.
-",
-            "23-machine-coding-contest" => @"# Lesson 23 — Machine Coding Contest
-
-## Concepts Covered
-
-### What a Timed Machine Coding Round Actually Evaluates
-The machine coding round is a cornerstone evaluation format used by high-caliber engineering organizations (including Flipkart, Swiggy, Uber, and CRED). Unlike algorithmic data-structure rounds that measure problem-solving on toy inputs, or high-level design interviews that stay theoretical on whiteboards, the machine coding round evaluates an engineer's ability to transform an ambiguous, multi-page problem statement into clean, production-grade, executable code within a rigid time limit (typically 90 to 120 minutes). Evaluators look for four explicit pillars: **Architectural Layering** (clean separation of concerns across controllers, services, repositories, and domain models), **Object-Oriented Design & Extensibility** (proper application of SOLID principles, interfaces, polymorphism, and behavioral design patterns to prevent rigid coupling), **Code Quality & Correctness** (handling edge cases, input validation, custom typed exceptions, thread safety, and idiomatic language constructs), and **Working Execution** (delivering a working, verifiable application that compiles cleanly and executes a realistic driver script without crashing). Candidates who write beautiful abstract classes but fail to produce a running system fail; candidates who write one giant 800-line procedural `main()` method that works also fail. Success requires balancing architectural purity with ruthless execution speed.
-
-### A Repeatable Approach Under Time Pressure
-To consistently deliver working code in 90 minutes, engineers must follow a disciplined, milestone-driven execution playbook rather than coding ad-hoc. The 90-minute timeline decomposes into four synchronized phases:
-- **Phase 1: Requirements Distillation & Entity Blueprinting (Minutes 0–15):** Read the problem statement twice. Identify and number the non-functional and functional requirements (R1, R2, R3...). Identify nouns (candidate entities like `User`, `Ride`, `Vehicle`) and verbs (candidate service methods like `bookRide`, `cancelRide`). Clarify assumptions and scope with the evaluator (e.g., whether in-memory persistence is sufficient and what input driver format is expected). Sketch the class hierarchy and relationships (one-to-one, one-to-many, inheritance vs. composition) on paper or scratchpad before opening the IDE.
-- **Phase 2: Skeleton Layering & Domain Scaffolding (Minutes 15–35):** Create the package structure immediately: `model`, `repository`, `service`, `strategy`, `exception`, and `dto`. Code the domain models and enums with encapsulated fields, constructors, and getters/setters. Write in-memory repository interfaces and backing implementations using `ConcurrentHashMap`. Set up custom runtime exceptions (`EntityNotFoundException`, `ValidationException`).
-- **Phase 3: Core Vertical Slice & Happy Path (Minutes 35–65):** Implement the primary service interface and its implementation. Focus strictly on executing the end-to-end happy path for the most critical user journey first. Plug in clean interfaces for components requiring dynamic behavior (such as pricing, allocation, or scoring algorithms) using the Strategy Pattern. Wire a `Main` or `Runner` class that instantiates repositories, services, and tests the happy path with concrete sample data.
-- **Phase 4: Strategies, Edge Cases & Verification (Minutes 65–90):** Flesh out alternate strategy implementations (e.g., peak pricing, nearest-neighbor matching). Add validation guards, null checks, and boundary condition handling. Expand the driver `main()` method or write JUnit tests verifying edge cases: concurrent requests, invalid inputs, conflicting bookings, and not-found lookups. Clean up unused imports and verify that the output formatting matches the interviewer's prompt.
-
-### Common Failure Modes and How to Self-Review
-Under interview adrenaline, candidates fall into predictable traps that destroy their evaluation. The most lethal mistake is **Premature Over-Engineering**: designing an elaborate, deeply nested generic framework with dozens of interfaces before a single service method works. If time runs out, an over-engineered codebase with zero executable features receives an automatic reject. The second failure mode is **Hardcoded Monoliths**: bundling all validation, database mutation, business calculations, and console logging inside a single class, violating SRP and rendering the code unreviewable. The third is **Ignoring Extensibility Points**: when an interviewer specifically hints that ""pricing may vary based on time of day,"" writing hardcoded `if-else` blocks instead of a `PricingStrategy` interface signals a lack of senior design intuition. Before submitting, perform a five-minute mental self-review:
-
-```text
-Checklist for Self-Review (Final 5 Minutes):
-1. Encapsulation: Are all fields private with explicit constructor initialization?
-2. Architecture: Is the Service layer free of console print statements and CLI logic?
-3. Extensibility: Are dynamic algorithms encapsulated behind interfaces?
-4. Invariants: Are validation errors throwing typed exceptions rather than returning null?
-5. Execution: Does the driver class demonstrate the complete end-to-end user journey?
-```
-
-## Practical Backend Scenario
-You are in a 90-minute machine coding interview with a top ride-sharing firm. The prompt asks for a simplified Ride-Hailing Service: riders can register, drivers can register with a vehicle type (`SEDAN`, `SUV`, `AUTO`), drivers update their online/offline availability, riders request a ride specifying pickup and drop coordinates, the system matches the ride to the nearest available driver using a pluggable driver-matching strategy, calculates fare using a pluggable pricing strategy based on distance, tracks ride status (`REQUESTED`, `ACCEPTED`, `IN_PROGRESS`, `COMPLETED`), and generates a receipt upon completion. You have 90 minutes on your own machine. A junior engineer immediately starts writing a complex geospatial indexing tree or setting up a Postgres Docker container, burning 45 minutes on plumbing without writing domain logic. A disciplined candidate recognizes this as an in-memory design problem: they define Euclidean distance for coordinates, establish `Rider`, `Driver`, `Ride`, and `Vehicle` entities, create `MatchingStrategy` (`NearestDriverMatchingStrategy`) and `PricingStrategy` (`StandardPricingStrategy`), build `RideService` managing an in-memory `DriverRepository` and `RideRepository`, and create a complete driver class in `main()` demonstrating driver onboarding, ride request, driver allocation, trip completion, and billing within 70 minutes. With 20 minutes remaining, they cleanly add a `SurgePricingStrategy` and demonstrate its swappability to the interviewer.
-
-## Practice Loop
-1. **Simulate a Strict 90-Minute Timed Session:** Select an unseen system prompt (e.g., Splitwise, Snake and Ladder, Task Planner, or Ride-Hailing). Start a hard countdown timer for 90 minutes. Do not pause or take breaks.
-2. **Execute Phase 1 (15 mins):** Write requirements R1 to R6 on a notepad. Define data structures and entity signatures. Validate your domain assumptions.
-3. **Execute Phase 2 (20 mins):** Generate project scaffolding in Java: define packages (`domain`, `repository`, `service`, `strategy`, `exception`). Implement all models, enums, and repository interfaces with in-memory concurrent hash maps.
-4. **Execute Phase 3 (30 mins):** Code the core service workflow. Implement the primary user flow end-to-end. Keep classes decoupled by injecting strategies through constructor parameters.
-5. **Execute Phase 4 (20 mins):** Implement alternate strategies and edge-case validations. Write a comprehensive `Main` class demonstrating the complete story: happy path execution, boundary condition handling, and failure case demonstrations.
-6. **Execute Phase 5 (5 mins Self-Assessment):** Score your submission against the four pillars: Did it run without manual edits? Are concerns properly layered? Are interfaces used where variation is anticipated? Are invariants protected? Note areas where time was wasted to refine your pacing in subsequent mock contests.
-
-## Evidence of Understanding
-You can articulate the exact priorities of a machine coding evaluation and explain why delivering a working, layered vertical slice is superior to an incomplete over-architected skeleton. You can describe the four phases of the 90-minute playbook and demonstrate how to manage time effectively under pressure. You can identify the design pattern signals embedded in interview problem descriptions and apply the Strategy, Factory, and Observer patterns naturally without ceremony. You can critique a machine coding submission across layering, encapsulation, thread safety, and extensibility, providing actionable feedback on code quality.
-
-## Suggested Extension
-Take your completed contest code and subject it to a simulated peer code review: convert in-memory repositories to generic interfaces that can be swapped with Spring Data JPA repositories without altering the service layer. Introduce an event-driven domain architecture by defining a `DomainEventPublisher` that broadcasts events (such as `RideCompletedEvent`) to decoupled listeners handling analytics and audit logging.
-",
-            _ => null
+",            _ => null
         };
     }
 }

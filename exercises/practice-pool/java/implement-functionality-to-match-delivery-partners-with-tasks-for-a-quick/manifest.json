@@ -1,0 +1,11 @@
+{
+  "id": "java-implement-functionality-to-match-delivery-partners-with-tasks-for-a-quick",
+  "title": "Implement functionality to match delivery partners with tasks for a Quick Commerce Delivery platform",
+  "language": "JAVA",
+  "concept_tags": [
+    "logistics-routing"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

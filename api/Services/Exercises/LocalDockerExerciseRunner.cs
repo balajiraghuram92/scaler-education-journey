@@ -33,15 +33,16 @@ public sealed class LocalDockerExerciseRunner : IExerciseRunner
         var containerName = $"studytracker-exercise-{workspace.RunId:N}";
         string? containerId = null;
         var timedOut = false;
+        var runnerImage = ResolveRunnerImage(workspace.Definition);
 
         try
         {
-            await EnsureRunnerImageAsync(cancellationToken);
+            await EnsureRunnerImageAsync(runnerImage, cancellationToken);
 
             var createResponse = await _dockerClient.Containers.CreateContainerAsync(
                 new CreateContainerParameters
                 {
-                    Image = _options.RunnerImage,
+                    Image = runnerImage,
                     Name = containerName,
                     WorkingDir = "/workspace",
                     Labels = new Dictionary<string, string>
@@ -141,19 +142,41 @@ public sealed class LocalDockerExerciseRunner : IExerciseRunner
         }
     }
 
-    private async Task EnsureRunnerImageAsync(CancellationToken cancellationToken)
+    private string ResolveRunnerImage(ExerciseDefinition definition)
+    {
+        var profile = definition.Manifest.Runtime.Profile;
+        if (!string.IsNullOrWhiteSpace(profile))
+        {
+            if (_options.RunnerImagesByProfile.TryGetValue(profile, out var image) &&
+                !string.IsNullOrWhiteSpace(image))
+            {
+                return image;
+            }
+
+            var normalizedProfile = profile.Replace('-', '_');
+            if (_options.RunnerImagesByProfile.TryGetValue(normalizedProfile, out var normalizedImage) &&
+                !string.IsNullOrWhiteSpace(normalizedImage))
+            {
+                return normalizedImage;
+            }
+        }
+
+        return _options.RunnerImage;
+    }
+
+    private async Task EnsureRunnerImageAsync(string runnerImage, CancellationToken cancellationToken)
     {
         try
         {
-            await _dockerClient.Images.InspectImageAsync(_options.RunnerImage, cancellationToken);
+            await _dockerClient.Images.InspectImageAsync(runnerImage, cancellationToken);
         }
         catch (DockerImageNotFoundException ex)
         {
-            throw new ExerciseRunnerUnavailableException("The configured exercise runner image is unavailable.", ex);
+            throw new ExerciseRunnerUnavailableException($"The configured exercise runner image '{runnerImage}' is unavailable.", ex);
         }
         catch (DockerApiException ex)
         {
-            throw new ExerciseRunnerUnavailableException("The Docker daemon could not inspect the exercise runner image.", ex);
+            throw new ExerciseRunnerUnavailableException($"The Docker daemon could not inspect the exercise runner image '{runnerImage}'.", ex);
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {

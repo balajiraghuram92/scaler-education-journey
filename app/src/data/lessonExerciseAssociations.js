@@ -124,6 +124,12 @@ const lessonExerciseAssociations = {
       'java-lld-tictactoe-win-check'
     ]
   },
+  'java-spring-lld/applied-machine-coding/20-machine-coding-parking-lot': {
+    exerciseIds: [
+      'java-lld-generate-parking-ticket',
+      'java-lld-display-parking-lot-capacity'
+    ]
+  },
   'java-spring-lld/applied-machine-coding/24-machine-coding-hotel-management': {
     exerciseIds: [
       'java-lld-hotel-add-rooms',

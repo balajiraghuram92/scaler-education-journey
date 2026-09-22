@@ -1,0 +1,648 @@
+[
+  {
+    "id": "java-add-hotel-rooms",
+    "title": "Add Hotel Rooms",
+    "language": "JAVA",
+    "concept_tags": [
+      "hotel-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-display-parking-lot-capacity",
+    "title": "Display parking lot capacity",
+    "language": "JAVA",
+    "concept_tags": [
+      "parking-lot"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-estimate-delivery-time-functionality-for-an-e-commerce-platform",
+    "title": "java-17-test_case",
+    "language": "JAVA",
+    "concept_tags": [
+      "logistics-routing"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-generate-ticket-for-parking-lot-system",
+    "title": "Generate Ticket for Parking Lot System",
+    "language": "JAVA",
+    "concept_tags": [
+      "parking-lot"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-cancel-order-functionality-for-an-e-commerce-platform",
+    "title": "Implement cancel order functionality for an e-commerce platform",
+    "language": "JAVA",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-create-redeem-gift-cards-functionality-for-an-e-commerce-platform",
+    "title": "Implement place order functionality for an e-commerce platform",
+    "language": "JAVA",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-factory-design-pattern-for-board-game-creation",
+    "title": "Implement Factory Design Pattern for Board Game Creation.",
+    "language": "JAVA",
+    "concept_tags": [
+      "general-lld"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-factory-design-pattern-for-database-connection",
+    "title": "Implement Factory Design Pattern for Database Connection",
+    "language": "JAVA",
+    "concept_tags": [
+      "factory-pattern"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-functionality-to-calculate-efficient-routes-for-delivery-partners-for",
+    "title": "Implement functionality to calculate efficient routes for delivery partners for a Quick Commerce Delivery platform",
+    "language": "JAVA",
+    "concept_tags": [
+      "logistics-routing"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-functionality-to-match-delivery-partners-with-tasks-for-a-quick",
+    "title": "Implement functionality to match delivery partners with tasks for a Quick Commerce Delivery platform",
+    "language": "JAVA",
+    "concept_tags": [
+      "logistics-routing"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-functionality-to-show-ads-on-an-ecommerce-platform",
+    "title": "Implement functionality to show ads on an ecommerce platform",
+    "language": "JAVA",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-functionality-using-which-customers-can-book-hotel-rooms",
+    "title": "Implement functionality using which customers can book Hotel rooms.",
+    "language": "JAVA",
+    "concept_tags": [
+      "hotel-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-functionality-using-which-customers-can-browse-the-hotel-rooms",
+    "title": "Implement functionality using which customers can browse the Hotel rooms.",
+    "language": "JAVA",
+    "concept_tags": [
+      "hotel-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-functionality-which-will-allow-learners-to-give-mcq-exams",
+    "title": "Implement functionality which will allow learners to give MCQ exams",
+    "language": "JAVA",
+    "concept_tags": [
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-functionality-which-will-broadcast-important-messages-to-learners",
+    "title": "Implement functionality which will broadcast important messages to learners",
+    "language": "JAVA",
+    "concept_tags": [
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-functionality-which-will-render-the-all-classes-page-for-learners-for",
+    "title": "Implement functionality which will render the 'All classes' page for learners for Scaler Academy",
+    "language": "JAVA",
+    "concept_tags": [
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-generate-invoice-functionality-for-hotel-management-system",
+    "title": "Implement generate Invoice functionality for Hotel Management System.",
+    "language": "JAVA",
+    "concept_tags": [
+      "hotel-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-notify-users-for-out-of-stock-products-functionality-for-an-e",
+    "title": "Implement notify users for out of stock products functionality for an e-commerce platform",
+    "language": "JAVA",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-place-order-functionality-for-an-e-commerce-platform",
+    "title": "java-17-test_case",
+    "language": "JAVA",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-ratings-functionality-for-movies",
+    "title": "Implement ratings functionality for movies",
+    "language": "JAVA",
+    "concept_tags": [
+      "ratings"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-recommend-frequently-bought-products-functionality-for-an-e-commerce",
+    "title": "Implement recommend frequently bought products functionality for an e-commerce platform",
+    "language": "JAVA",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-implement-url-shortener-like-bit-ly",
+    "title": "Implement URL Shortener like bit.ly",
+    "language": "JAVA",
+    "concept_tags": [
+      "url-shortener"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-integrate-cloud-service-provider-for-our-project",
+    "title": "Integrate Cloud Service Provider for our Project.",
+    "language": "JAVA",
+    "concept_tags": [
+      "cloud-integration"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-integrate-payment-gateway-for-restaurant-management-system",
+    "title": "Integrate Payment Gateway for Restaurant Management System",
+    "language": "JAVA",
+    "concept_tags": [
+      "payment-integration"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-manage-wait-list-for-a-restaurant",
+    "title": "Manage Wait List for a Restaurant",
+    "language": "JAVA",
+    "concept_tags": [
+      "restaurant-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-scaler-schedule-lecture-batch",
+    "title": "Implement functionality schedule lectures functionality for Scaler Academy",
+    "language": "JAVA",
+    "concept_tags": [
+      "logistics-routing",
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-splitwise-create-delete-group",
+    "title": "Implement functionality which will allow Splitwise users to manage groups",
+    "language": "JAVA",
+    "concept_tags": [
+      "splitwise",
+      "splitwise-groups"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-splitwise-manage-group-members",
+    "title": "Implement functionality which will allow Splitwise users to manage groups",
+    "language": "JAVA",
+    "concept_tags": [
+      "splitwise",
+      "splitwise-groups"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-tictactoe-undo-functionality",
+    "title": "TicTacToeUndoFunctionality",
+    "language": "JAVA",
+    "concept_tags": [
+      "tictactoe"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "java-tictactoe-winner-checker",
+    "title": "TicTacToe Winner Checker Functionality",
+    "language": "JAVA",
+    "concept_tags": [
+      "tictactoe"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-add-hotel-rooms",
+    "title": "Add Hotel Rooms",
+    "language": "PYTHON",
+    "concept_tags": [
+      "hotel-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-additional-services-at-parking-lot",
+    "title": "Additional Services at Parking Lot",
+    "language": "PYTHON",
+    "concept_tags": [
+      "parking-lot"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-display-parking-lot-capacity",
+    "title": "Display parking lot capacity",
+    "language": "PYTHON",
+    "concept_tags": [
+      "parking-lot"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-estimate-delivery-time-functionality-for-an-e-commerce-platform",
+    "title": "Estimate delivery time functionality for an e-commerce platform",
+    "language": "PYTHON",
+    "concept_tags": [
+      "logistics-routing"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-generate-ticket-for-parking-lot-system",
+    "title": "Generate Ticket for Parking Lot System",
+    "language": "PYTHON",
+    "concept_tags": [
+      "parking-lot"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-a-functionality-to-match-delivery-partners-with-tasks",
+    "title": "Implement a functionality to match delivery partners with tasks",
+    "language": "PYTHON",
+    "concept_tags": [
+      "logistics-routing"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-cancel-order-functionality-for-an-e-commerce-platform",
+    "title": "Implement cancel order functionality for an e-commerce platform",
+    "language": "PYTHON",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-create-redeem-gift-cards-functionality-for-an-e-commerce-platform",
+    "title": "Implement create/redeem gift cards functionality for an e-commerce platform",
+    "language": "PYTHON",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-functionality-to-allow-learners-to-access-lectures-for-scaler-academy",
+    "title": "Implement functionality to allow learners to access lectures for Scaler Academy",
+    "language": "PYTHON",
+    "concept_tags": [
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-functionality-to-show-ads-on-an-ecommerce-platform",
+    "title": "Implement functionality to show ads on an ecommerce platform",
+    "language": "PYTHON",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-functionality-using-which-admins-can-manage-batches-for-scaler-academy",
+    "title": "Implement functionality using which admins can manage batches for Scaler Academy",
+    "language": "PYTHON",
+    "concept_tags": [
+      "logistics-routing",
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-functionality-using-which-customers-can-book-hotel-rooms",
+    "title": "Implement functionality using which customers can book Hotel rooms.",
+    "language": "PYTHON",
+    "concept_tags": [
+      "hotel-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-functionality-using-which-customers-can-browse-the-hotel-rooms",
+    "title": "Implement functionality using which customers can browse the Hotel rooms.",
+    "language": "PYTHON",
+    "concept_tags": [
+      "hotel-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-functionality-which-will-allow-learners-to-give-mcq-exams",
+    "title": "Implement functionality which will allow learners to give MCQ exams",
+    "language": "PYTHON",
+    "concept_tags": [
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-functionality-which-will-broadcast-important-messages-to-learners",
+    "title": "Implement functionality which will broadcast important messages to learners",
+    "language": "PYTHON",
+    "concept_tags": [
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-functionality-which-will-render-the-all-classes-page-for-learners-for",
+    "title": "Implement functionality which will render the 'All classes' page for learners for Scaler Academy",
+    "language": "PYTHON",
+    "concept_tags": [
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-generate-invoice-functionality-for-hotel-management-system",
+    "title": "Implement generate Invoice functionality for Hotel Management System.",
+    "language": "PYTHON",
+    "concept_tags": [
+      "hotel-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-inventory-management-for-an-e-commerce-platform",
+    "title": "Implement Inventory Management for an E-Commerce Platform",
+    "language": "PYTHON",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-notify-users-for-out-of-stock-products-functionality-for-an-e",
+    "title": "Implement notify users for out of stock products functionality for an e-commerce platform",
+    "language": "PYTHON",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-place-order-functionality-for-an-e-commerce-platform",
+    "title": "Implement place order functionality for an e-commerce platform",
+    "language": "PYTHON",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-recommendation-functionality-for-an-e-commerce-platform",
+    "title": "Implement recommendation functionality for an e-commerce platform",
+    "language": "PYTHON",
+    "concept_tags": [
+      "ecommerce"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-implement-route-creation-for-batched-task-functionality-in-food-delivery",
+    "title": "Implement route creation for batched task functionality in Food Delivery Platform",
+    "language": "PYTHON",
+    "concept_tags": [
+      "logistics-routing"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-integrate-payment-gateway-for-restaurant-management-system",
+    "title": "Integrate Payment Gateway for Restaurant Management System",
+    "language": "PYTHON",
+    "concept_tags": [
+      "payment-integration"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-manage-wait-list-for-a-restaurant",
+    "title": "Manage Wait List for a Restaurant",
+    "language": "PYTHON",
+    "concept_tags": [
+      "restaurant-management"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-scaler-reschedule-lecture",
+    "title": "Implement functionality schedule lectures functionality for Scaler Academy",
+    "language": "PYTHON",
+    "concept_tags": [
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-scaler-schedule-lecture-batch",
+    "title": "Implement functionality schedule lectures functionality for Scaler Academy",
+    "language": "PYTHON",
+    "concept_tags": [
+      "logistics-routing",
+      "scaler-academy-lms"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-splitwise-create-delete-group",
+    "title": "Implement functionality which will allow Splitwise users to manage groups",
+    "language": "PYTHON",
+    "concept_tags": [
+      "splitwise",
+      "splitwise-groups"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  },
+  {
+    "id": "python-splitwise-settle-up-transactions",
+    "title": "Implement functionality which will allow Splitwise users to manage groups",
+    "language": "PYTHON",
+    "concept_tags": [
+      "splitwise",
+      "splitwise-settle-up",
+      "splitwise-groups"
+    ],
+    "source_type": "FROM_MATERIAL",
+    "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+    "has_tests": true
+  }
+]

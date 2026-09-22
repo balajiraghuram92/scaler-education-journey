@@ -1,0 +1,12 @@
+{
+  "id": "python-splitwise-create-delete-group",
+  "title": "Implement functionality which will allow Splitwise users to manage groups",
+  "language": "PYTHON",
+  "concept_tags": [
+    "splitwise",
+    "splitwise-groups"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

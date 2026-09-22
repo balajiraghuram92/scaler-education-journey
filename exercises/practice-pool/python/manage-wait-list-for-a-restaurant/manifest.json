@@ -1,0 +1,11 @@
+{
+  "id": "python-manage-wait-list-for-a-restaurant",
+  "title": "Manage Wait List for a Restaurant",
+  "language": "PYTHON",
+  "concept_tags": [
+    "restaurant-management"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

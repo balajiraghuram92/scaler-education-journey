@@ -1,0 +1,2 @@
+class InvalidBatchError(Exception):
+    pass

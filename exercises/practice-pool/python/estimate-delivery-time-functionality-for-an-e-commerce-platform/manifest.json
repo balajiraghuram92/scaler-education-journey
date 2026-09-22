@@ -1,0 +1,11 @@
+{
+  "id": "python-estimate-delivery-time-functionality-for-an-e-commerce-platform",
+  "title": "Estimate delivery time functionality for an e-commerce platform",
+  "language": "PYTHON",
+  "concept_tags": [
+    "logistics-routing"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

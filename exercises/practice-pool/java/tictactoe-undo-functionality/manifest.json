@@ -1,0 +1,11 @@
+{
+  "id": "java-tictactoe-undo-functionality",
+  "title": "TicTacToeUndoFunctionality",
+  "language": "JAVA",
+  "concept_tags": [
+    "tictactoe"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

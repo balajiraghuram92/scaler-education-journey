@@ -1,0 +1,2 @@
+class ProductInStockError(Exception):
+    pass

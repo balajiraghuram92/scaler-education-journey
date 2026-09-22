@@ -1,0 +1,2 @@
+class InvalidInstructorError(Exception):
+    pass

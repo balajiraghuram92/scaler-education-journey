@@ -1,0 +1,11 @@
+{
+  "id": "python-add-hotel-rooms",
+  "title": "Add Hotel Rooms",
+  "language": "PYTHON",
+  "concept_tags": [
+    "hotel-management"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

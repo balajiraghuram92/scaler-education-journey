@@ -1,0 +1,11 @@
+{
+  "id": "java-implement-ratings-functionality-for-movies",
+  "title": "Implement ratings functionality for movies",
+  "language": "JAVA",
+  "concept_tags": [
+    "ratings"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

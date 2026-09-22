@@ -10,6 +10,8 @@ public sealed class ExerciseExecutionOptions
 
     public string RunnerImage { get; set; } = "neuralascent-java-runner:dev";
 
+    public Dictionary<string, string> RunnerImagesByProfile { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
     public string DockerEndpoint { get; set; } = "unix:///var/run/docker.sock";
 
     public string MavenCacheVolume { get; set; } = "neuralascent-maven-cache";
@@ -22,11 +24,11 @@ public sealed class ExerciseExecutionOptions
 
     public int MaxOutputBytes { get; set; } = 65_536;
 
-    public int MaxExecutionSeconds { get; set; } = 120;
+    public int MaxExecutionSeconds { get; set; } = 240;
 
     public int ExecutionStartupGraceSeconds { get; set; } = 15;
 
-    public long MemoryLimitBytes { get; set; } = 805_306_368;
+    public long MemoryLimitBytes { get; set; } = 1_610_612_736;
 
     public long NanoCpus { get; set; } = 1_000_000_000;
 

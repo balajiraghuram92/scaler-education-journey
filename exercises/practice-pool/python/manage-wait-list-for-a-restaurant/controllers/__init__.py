@@ -1,0 +1,1 @@
+from .wait_list_controller import WaitListController

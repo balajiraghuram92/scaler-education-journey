@@ -149,6 +149,13 @@ export const api = {
       apiClient('/api/v2/progress/task', { method: 'POST', body: { taskId, isCompleted, correlationId } }),
     importCurriculum: (payload) =>
       apiClient('/api/v2/curriculum/import', { method: 'POST', body: payload }),
+    getPracticeQuestions: (courseSlug, moduleSlug, lessonSlug) =>
+      apiClient(`/api/v2/practice-questions/${encodeURIComponent(courseSlug)}/${encodeURIComponent(moduleSlug)}/${encodeURIComponent(lessonSlug)}`),
+    submitPracticeAttempt: (presentationId, selectedOptionKey) =>
+      apiClient(`/api/v2/practice-questions/${encodeURIComponent(presentationId)}/attempts`, {
+        method: 'POST',
+        body: { selectedOptionKey }
+      }),
   },
 
   // Legacy Endpoints

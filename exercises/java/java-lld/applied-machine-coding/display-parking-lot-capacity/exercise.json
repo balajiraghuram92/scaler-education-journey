@@ -1,0 +1,201 @@
+{
+  "id": "java-lld-display-parking-lot-capacity",
+  "lessonSlug": "20-machine-coding-parking-lot",
+  "title": "Parking Lot — Display Parking Lot Capacity",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "get-parking-lot-capacity-request-dto",
+      "path": "src/main/java/com/scaler/parking_lot/dtos/GetParkingLotCapacityRequestDto.java",
+      "displayName": "dtos/GetParkingLotCapacityRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "get-parking-lot-capacity-response-dto",
+      "path": "src/main/java/com/scaler/parking_lot/dtos/GetParkingLotCapacityResponseDto.java",
+      "displayName": "dtos/GetParkingLotCapacityResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "response",
+      "path": "src/main/java/com/scaler/parking_lot/dtos/Response.java",
+      "displayName": "dtos/Response.java",
+      "editable": false
+    },
+    {
+      "id": "response-status",
+      "path": "src/main/java/com/scaler/parking_lot/dtos/ResponseStatus.java",
+      "displayName": "dtos/ResponseStatus.java",
+      "editable": false
+    },
+    {
+      "id": "get-parking-lot-request-validation-exception",
+      "path": "src/main/java/com/scaler/parking_lot/exceptions/GetParkingLotRequestValidationException.java",
+      "displayName": "exceptions/GetParkingLotRequestValidationException.java",
+      "editable": false
+    },
+    {
+      "id": "invalid-parking-lot-exception",
+      "path": "src/main/java/com/scaler/parking_lot/exceptions/InvalidParkingLotException.java",
+      "displayName": "exceptions/InvalidParkingLotException.java",
+      "editable": false
+    },
+    {
+      "id": "base-model",
+      "path": "src/main/java/com/scaler/parking_lot/models/BaseModel.java",
+      "displayName": "models/BaseModel.java",
+      "editable": false
+    },
+    {
+      "id": "floor-status",
+      "path": "src/main/java/com/scaler/parking_lot/models/FloorStatus.java",
+      "displayName": "models/FloorStatus.java",
+      "editable": false
+    },
+    {
+      "id": "gate",
+      "path": "src/main/java/com/scaler/parking_lot/models/Gate.java",
+      "displayName": "models/Gate.java",
+      "editable": false
+    },
+    {
+      "id": "gate-type",
+      "path": "src/main/java/com/scaler/parking_lot/models/GateType.java",
+      "displayName": "models/GateType.java",
+      "editable": false
+    },
+    {
+      "id": "parking-attendant",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingAttendant.java",
+      "displayName": "models/ParkingAttendant.java",
+      "editable": false
+    },
+    {
+      "id": "parking-floor",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingFloor.java",
+      "displayName": "models/ParkingFloor.java",
+      "editable": false
+    },
+    {
+      "id": "parking-lot",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingLot.java",
+      "displayName": "models/ParkingLot.java",
+      "editable": false
+    },
+    {
+      "id": "parking-spot",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingSpot.java",
+      "displayName": "models/ParkingSpot.java",
+      "editable": false
+    },
+    {
+      "id": "parking-spot-status",
+      "path": "src/main/java/com/scaler/parking_lot/models/ParkingSpotStatus.java",
+      "displayName": "models/ParkingSpotStatus.java",
+      "editable": false
+    },
+    {
+      "id": "ticket",
+      "path": "src/main/java/com/scaler/parking_lot/models/Ticket.java",
+      "displayName": "models/Ticket.java",
+      "editable": false
+    },
+    {
+      "id": "vehicle",
+      "path": "src/main/java/com/scaler/parking_lot/models/Vehicle.java",
+      "displayName": "models/Vehicle.java",
+      "editable": false
+    },
+    {
+      "id": "vehicle-type",
+      "path": "src/main/java/com/scaler/parking_lot/models/VehicleType.java",
+      "displayName": "models/VehicleType.java",
+      "editable": false
+    },
+    {
+      "id": "parking-lot-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/ParkingLotRepository.java",
+      "displayName": "respositories/ParkingLotRepository.java",
+      "editable": false
+    },
+    {
+      "id": "parking-lot-service",
+      "path": "src/main/java/com/scaler/parking_lot/services/ParkingLotService.java",
+      "displayName": "services/ParkingLotService.java",
+      "editable": false
+    },
+    {
+      "id": "parking-lot-controller",
+      "path": "src/main/java/com/scaler/parking_lot/controllers/ParkingLotController.java",
+      "displayName": "controllers/ParkingLotController.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-parking-lot-repository",
+      "path": "src/main/java/com/scaler/parking_lot/respositories/InMemoryParkingLotRepositoryImpl.java",
+      "displayName": "respositories/InMemoryParkingLotRepositoryImpl.java",
+      "editable": true
+    },
+    {
+      "id": "parking-lot-service-impl",
+      "path": "src/main/java/com/scaler/parking_lot/services/ParkingLotServiceImpl.java",
+      "displayName": "services/ParkingLotServiceImpl.java",
+      "editable": true
+    },
+    {
+      "id": "parking-floor-utils",
+      "path": "src/main/java/com/scaler/parking_lot/utils/ParkingFloorUtils.java",
+      "displayName": "utils/ParkingFloorUtils.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/scaler/parking_lot/controllers/ParkingLotControllerTest.java",
+    "className": "ParkingLotControllerTest"
+  },
+  "evidence": [
+    {
+      "id": "capacity-negative-parking-lot-id",
+      "label": "Rejects request with negative parking lot id returning FAILURE status",
+      "testMethod": "testGetParkingLotCapacityWithNegativeParkingLotId"
+    },
+    {
+      "id": "capacity-invalid-parking-lot-id",
+      "label": "Rejects request with non-existent parking lot id returning FAILURE status",
+      "testMethod": "testGetParkingLotCapacityWithInvalidParkingLotId"
+    },
+    {
+      "id": "capacity-no-vehicles-parked",
+      "label": "Returns full floor capacity when no vehicles are parked in the lot",
+      "testMethod": "testGetParkingLotCapacityWithNoVehiclesParked"
+    },
+    {
+      "id": "capacity-few-spots-occupied",
+      "label": "Accurately computes remaining available capacity across all floors when spots are occupied",
+      "testMethod": "testGetParkingLotCapacityWithFewSpotsOccupied"
+    },
+    {
+      "id": "capacity-filtered-single-floor",
+      "label": "Filters capacity reporting to only the requested floor ids",
+      "testMethod": "testGetParkingLotCapacityWithFewSpotsOccupiedAndJust2ndFloor"
+    },
+    {
+      "id": "capacity-filtered-vehicle-type",
+      "label": "Filters capacity reporting to only the requested vehicle types",
+      "testMethod": "testGetParkingLotCapacityWithFewSpotsOccupiedAndVehicleTypeCar"
+    },
+    {
+      "id": "capacity-filtered-floor-and-vehicle-type",
+      "label": "Accurately combines floor and vehicle type filters in capacity breakdown",
+      "testMethod": "testGetParkingLotCapacityWithFewSpotsOccupiedAndVehicleTypeCarAnd2ndFloor"
+    }
+  ]
+}

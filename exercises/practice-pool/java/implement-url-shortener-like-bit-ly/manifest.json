@@ -1,0 +1,11 @@
+{
+  "id": "java-implement-url-shortener-like-bit-ly",
+  "title": "Implement URL Shortener like bit.ly",
+  "language": "JAVA",
+  "concept_tags": [
+    "url-shortener"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

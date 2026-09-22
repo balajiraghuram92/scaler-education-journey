@@ -1,0 +1,12 @@
+{
+  "id": "python-implement-functionality-using-which-admins-can-manage-batches-for-scaler-academy",
+  "title": "Implement functionality using which admins can manage batches for Scaler Academy",
+  "language": "PYTHON",
+  "concept_tags": [
+    "logistics-routing",
+    "scaler-academy-lms"
+  ],
+  "source_type": "FROM_MATERIAL",
+  "source": "Scaler platform machine-coding practice pool (Downloads/machine-coding/0.Exercises)",
+  "has_tests": true
+}

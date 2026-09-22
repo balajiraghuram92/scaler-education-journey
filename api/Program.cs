@@ -109,6 +109,7 @@ builder.Services.AddScoped<FdeReconciler>();
 builder.Services.AddScoped<AzureLabsReconciler>();
 builder.Services.AddScoped<AtlasReadingReconciler>();
 builder.Services.AddScoped<ReconciliationEngine>();
+builder.Services.AddScoped<McqService>();
 
 // Auth & Email Services DI
 builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOptions.SectionName));
