@@ -1,12 +1,12 @@
 # Local LLM Prompts — Neuralascent Chapter Content Authoring
 
-Read [`00-project-knowledge-map.md`](00-project-knowledge-map.md) and
-[`01-content-population-workflow.md`](01-content-population-workflow.md) first. Everything
+Read [`../history/02-java-lld-fde-curriculum-and-content-pipeline.md`](../history/02-java-lld-fde-curriculum-and-content-pipeline.md)
+(§§1–4: knowledge map + population workflow, folded there 2026-09-30) first. Everything
 below is meant to be copy-pasted directly into a local model's chat (LM Studio / Ollama /
 similar, OpenAI-compatible endpoint at `:1234`).
 
 **Model recommendation**, based on the models already in the user's local-AI workflow
-(see [`../03-fde-ai-self-study-plan.md`](../03-fde-ai-self-study-plan.md) §4):
+(see [`../history/08-python-migration-and-study-plans.md`](../history/08-python-migration-and-study-plans.md) §B.4):
 - **Content authoring (§1–§4 below)**: the largest/smartest local model available
   (e.g. `gpt-oss-120b`, or a 70B-class dense model) — this is reasoning- and
   accuracy-sensitive, not high-volume, so trade speed for quality.
@@ -296,7 +296,7 @@ independently — a batch run is still N individual review decisions, not one.
 
 Rare — only for lessons that teach a small, test-verifiable mechanic (see workflow §7).
 Follow the exact trust-boundary structure from
-[`../website-assignments-reference/2.neuralascent_java_exercises_architecture_handoff.md`](../website-assignments-reference/2.neuralascent_java_exercises_architecture_handoff.md) §12–13
+`2.neuralascent_java_exercises_architecture_handoff.md` §12–13 (folded into [`../history/02-…`](../history/02-java-lld-fde-curriculum-and-content-pipeline.md) §7; original via `git show 9e6d03f:info/website-assignments-reference/2.neuralascent_java_exercises_architecture_handoff.md`)
 — starter/tests/solution stay in separate directories; tests are never sent to the
 browser; the manifest never bakes in exercise-specific behavior into shared runner code.
 
