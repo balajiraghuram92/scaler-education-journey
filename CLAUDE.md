@@ -4,6 +4,8 @@
 
 Claude does **not** have permission to edit, create, or delete any file in this repository.
 
+- Exception: a task prompt in `info/.notes/` may explicitly authorize edits for that task only (for example `opus-cloud-prompt-3-stage-audit-and-ai-agent-hardening.md`); the authorization lists the allowed paths and lapses when the task ends.
+
 This applies to:
 - Source code (`.cs`, `.jsx`, `.js`, `.tsx`, `.ts`, `.css`, `.html`)
 - Data files (`.json`, `.md` inside `app/` or `api/`)
@@ -49,7 +51,8 @@ Prompts must be **copy-paste ready** — the user pastes them directly into the 
 - **Design philosophy**: All content on the same page — no separate quiz or exercise pages
 - **Target audience**: Developers with 7–8+ years of experience; content must not be basic
 - **Local run**: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
-- **Write-once seeding gotcha**: Lessons with `ContentBody` containing `## Practical Backend Scenario`, `## Practice Loop`, and `## Evidence of Understanding` are never overwritten by the seeder. To force a reseed: `UPDATE lessons SET content_body = '', content_status = 'Outline' WHERE slug = '<slug>';` then restart API — and also ensure `BackfillLessonContent` sets `ContentStatus = 'Draft'` when it writes content.
+- **Write-once seeding gotcha**: Lessons with `ContentBody` containing `## Practical Backend Scenario`, `## Practice Loop`, and `## Evidence of Understanding` are never overwritten by the seeder. To force a reseed: (1) check status first — `SELECT slug, content_status FROM lessons WHERE slug IN (...)`; the reseed sets `Published` lessons back to `Draft`, so republish them manually after review; (2) run `UPDATE lessons SET content_body = '', content_status = 'Outline' WHERE slug IN ('<slug>', ...);` through `docker exec -i studytracker-postgres psql -U studyuser -d studytracker` (local) — restarting the API alone does NOT seed; (3) run the seeder: `docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps api --seed-reference-data` (the `[deploy]` pipeline runs the same step on EC2). `BackfillLessonContent` sets `ContentStatus = 'Draft'` when it writes content.
+- **DB names**: local compose uses container `studytracker-postgres`, user `studyuser`, database `studytracker` (lowercase); the API container is `studytracker-api`. Prod (EC2) uses database `StudyTrackerDB`. SQL must go through `psql` (for example `docker exec -i ... psql <<'SQL' ... SQL`), never typed into the shell.
 
 ---
 
