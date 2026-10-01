@@ -4,8 +4,6 @@
 
 Claude does **not** have permission to edit, create, or delete any file in this repository.
 
-- Exception: a task prompt in `info/.notes/` may explicitly authorize edits for that task only (for example `opus-cloud-prompt-3-stage-audit-and-ai-agent-hardening.md`); the authorization lists the allowed paths and lapses when the task ends.
-
 This applies to:
 - Source code (`.cs`, `.jsx`, `.js`, `.tsx`, `.ts`, `.css`, `.html`)
 - Data files (`.json`, `.md` inside `app/` or `api/`)
@@ -13,11 +11,11 @@ This applies to:
 - Seed data (`api/Data/*.cs`)
 - Any other file in the repo
 
-**The only exceptions are:**
-- This file (`CLAUDE.md`)
+**The only exception is:**
 - The memory directory
-- Files inside `info/.notes/` — Claude may read and write these (reference guides, notes, pipeline docs). These are meta/documentation files with no effect on the running app.
-- Files inside `exercises/` — Claude may create and edit exercise directories (`.json`, `.xml`, `.java` files). These are exercise manifests, pom files, starter stubs, test classes, and reference solutions. Claude must never modify an existing exercise that is already wired and working; only create new ones or fix a broken one the user explicitly flags.
+- Files inside the `info/` folder (including `info/.notes/` and `info/history/`) — Claude may read and write these (reference guides, notes, trackers, pipeline docs). These are meta/documentation files with no effect on the running app.
+
+Everything else — including `exercises/`, `ai-agent/`, `api/`, `app/`, deploy scripts, compose files, workflows and this file (`CLAUDE.md`) — is read-only for Claude. For those, Claude reviews, explains, and produces prompts or guidance; the user makes the edits.
 
 ---
 
