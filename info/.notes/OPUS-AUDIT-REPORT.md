@@ -8,6 +8,8 @@ Secrets: no secret values were read or printed. Variable names only.
 
 ---
 
+> **Correction (Stage 2 re-verification, 2026-10-01):** two Stage 1 claims below were wrong. (1) "Java L2/L3 have empty bodies" is false: both cases exist as C# `or` patterns (`"02-oop-1-intro-lab" or "02-oop-classes-objects"`, ...) and hold 1,025 and 1,385 words; the audit grep missed them. (2) "No BookMyShow exercise anywhere" is false: `0.Exercises` has 4 BMS zips; none was wired to a lesson. The other items were re-confirmed. See `OPUS-RUN-PROGRESS.md`, Stage 2.
+
 ## A. Chapter / lesson update candidates
 
 ### A1. Machine-coding (module 5 `applied-machine-coding`, `api/Data/JavaVerticalSeedData.cs` ~L627)
