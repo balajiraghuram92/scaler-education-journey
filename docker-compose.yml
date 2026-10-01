@@ -121,8 +121,23 @@ services:
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?LANGFUSE_PUBLIC_KEY must be set}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?LANGFUSE_SECRET_KEY must be set}
       LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:?LANGFUSE_BASE_URL must be set}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-studyuser}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB:-studytracker}
-    
+      # Optional; empty means the default in ai-agent/config.py.
+      DEEPINFRA_API_KEY: ${DEEPINFRA_API_KEY:-}
+      MUSE_MODEL: ${MUSE_MODEL:-}
+      MUSE_BASE_URL: ${MUSE_BASE_URL:-}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-}
+      AI_AGENT_RATE_LIMIT_PER_MINUTE: ${AI_AGENT_RATE_LIMIT_PER_MINUTE:-}
+      # Separate parts, not a URL: special characters in the password stay safe.
+      DATABASE_HOST: database
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: ${POSTGRES_DB:-studytracker}
+      DATABASE_USER: ${POSTGRES_USER:-studyuser}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+
+    depends_on:
+      database:
+        condition: service_healthy
+
     networks:
       backend-net:
         aliases:

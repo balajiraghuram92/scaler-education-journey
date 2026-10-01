@@ -1,0 +1,55 @@
+name: ai-agent CI
+
+# Lint + tests for the Python ai-agent service. Never builds images, never
+# deploys, uses no secrets. Deployment stays in deploy-api.yml.
+on:
+  pull_request:
+    paths:
+      - "ai-agent/**"
+      - ".github/workflows/ai-agent-ci.yml"
+  push:
+    paths:
+      - "ai-agent/**"
+      - ".github/workflows/ai-agent-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-agent-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ai-agent
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            ai-agent/requirements.txt
+            ai-agent/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      # Docker is available on ubuntu-latest, so the migration tests run against
+      # a throwaway pgvector/pgvector:pg16 container started by the tests.
+      - name: Pytest
+        run: python -m pytest -v

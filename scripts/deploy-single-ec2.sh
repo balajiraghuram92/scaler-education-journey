@@ -238,6 +238,9 @@ start_app() {
 
 start_ai_agent() {
     local image="$1"
+    # --env-file passes DATABASE_URL or DATABASE_HOST/PORT/NAME/USER/PASSWORD,
+    # MUSE_AI_API_KEY, LANGFUSE_* and DEEPINFRA_API_KEY through unchanged
+    # (checked by require_ai_agent_env); only the JWT names need mapping.
     local args=(
         run -d
         --name "${AI_AGENT_CONTAINER}"
@@ -251,6 +254,26 @@ start_ai_agent() {
         -e "JWT_COOKIE_NAME=$(env_value_or_default Auth__CookieName na_auth)"
     )
     docker "${args[@]}" "${image}" >/dev/null
+}
+
+require_ai_agent_env() {
+    if ! env_has_value DATABASE_URL; then
+        for required_key in DATABASE_HOST DATABASE_NAME DATABASE_USER DATABASE_PASSWORD; do
+            env_value "${required_key}" >/dev/null
+        done
+    fi
+    env_value MUSE_AI_API_KEY >/dev/null
+    env_has_value LANGFUSE_PUBLIC_KEY || log "WARNING: LANGFUSE_* unset in ${ENV_FILE}; ai-agent tracing is disabled."
+}
+
+dump_container_logs() {
+    local container
+    for container in "$@"; do
+        docker container inspect "${container}" >/dev/null 2>&1 || continue
+        log "Container ${container}: $(docker container inspect --format 'status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}} restarts={{.RestartCount}}' "${container}" 2>/dev/null || true)"
+        log "Last 100 log lines of ${container}:"
+        docker logs --tail 100 "${container}" 2>&1 || true
+    done
 }
 
 verify_digest_ref() {
@@ -304,6 +327,7 @@ exec 9>"${DEPLOY_LOCK_FILE}"
 flock -n 9 || fail "Another Neuralascent deployment is already running."
 
 env_value API_KEY >/dev/null
+require_ai_agent_env
 
 if ! env_has_value ConnectionStrings__DefaultConnection; then
     for required_key in DATABASE_HOST DATABASE_NAME DATABASE_USER DATABASE_PASSWORD; do
@@ -458,7 +482,9 @@ previous_runner_ref="$(docker container inspect --format '{{range .Config.Env}}{
 rollback() {
     local exit_code="${1:-1}"
     trap - ERR
-    log "Deployment failed; restoring the previous application images."
+    log "Deployment failed; capturing container state and logs before rollback."
+    dump_container_logs "${API_CONTAINER}" "${AI_AGENT_CONTAINER}" "${APP_CONTAINER}"
+    log "Restoring the previous application images."
     docker stop "${API_CONTAINER}" "${AI_AGENT_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
     docker rm "${API_CONTAINER}" "${AI_AGENT_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
     if [ -n "${previous_api_image}" ]; then
