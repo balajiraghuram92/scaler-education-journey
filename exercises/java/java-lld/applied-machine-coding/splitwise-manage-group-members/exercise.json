@@ -1,0 +1,248 @@
+{
+  "id": "java-lld-splitwise-manage-group-members",
+  "lessonSlug": "22-machine-coding-splitwise",
+  "title": "Splitwise — Manage Group Members",
+  "language": "java",
+  "difficulty": "intermediate",
+  "estimatedMinutes": 45,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 10
+  },
+  "files": [
+    {
+      "id": "add-member-request-dto",
+      "path": "src/main/java/com/example/splitwise/dtos/AddMemberRequestDto.java",
+      "displayName": "dtos/AddMemberRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "add-member-response-dto",
+      "path": "src/main/java/com/example/splitwise/dtos/AddMemberResponseDto.java",
+      "displayName": "dtos/AddMemberResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "fetch-members-request-dto",
+      "path": "src/main/java/com/example/splitwise/dtos/FetchMembersRequestDto.java",
+      "displayName": "dtos/FetchMembersRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "fetch-members-response-dto",
+      "path": "src/main/java/com/example/splitwise/dtos/FetchMembersResponseDto.java",
+      "displayName": "dtos/FetchMembersResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "remove-member-request-dto",
+      "path": "src/main/java/com/example/splitwise/dtos/RemoveMemberRequestDto.java",
+      "displayName": "dtos/RemoveMemberRequestDto.java",
+      "editable": false
+    },
+    {
+      "id": "remove-member-response-dto",
+      "path": "src/main/java/com/example/splitwise/dtos/RemoveMemberResponseDto.java",
+      "displayName": "dtos/RemoveMemberResponseDto.java",
+      "editable": false
+    },
+    {
+      "id": "response-status",
+      "path": "src/main/java/com/example/splitwise/dtos/ResponseStatus.java",
+      "displayName": "dtos/ResponseStatus.java",
+      "editable": false
+    },
+    {
+      "id": "invalid-group-exception",
+      "path": "src/main/java/com/example/splitwise/exceptions/InvalidGroupException.java",
+      "displayName": "exceptions/InvalidGroupException.java",
+      "editable": false
+    },
+    {
+      "id": "invalid-user-exception",
+      "path": "src/main/java/com/example/splitwise/exceptions/InvalidUserException.java",
+      "displayName": "exceptions/InvalidUserException.java",
+      "editable": false
+    },
+    {
+      "id": "un-authorized-access-exception",
+      "path": "src/main/java/com/example/splitwise/exceptions/UnAuthorizedAccessException.java",
+      "displayName": "exceptions/UnAuthorizedAccessException.java",
+      "editable": false
+    },
+    {
+      "id": "base-model",
+      "path": "src/main/java/com/example/splitwise/models/BaseModel.java",
+      "displayName": "models/BaseModel.java",
+      "editable": false
+    },
+    {
+      "id": "group",
+      "path": "src/main/java/com/example/splitwise/models/Group.java",
+      "displayName": "models/Group.java",
+      "editable": false
+    },
+    {
+      "id": "group-admin",
+      "path": "src/main/java/com/example/splitwise/models/GroupAdmin.java",
+      "displayName": "models/GroupAdmin.java",
+      "editable": false
+    },
+    {
+      "id": "group-member",
+      "path": "src/main/java/com/example/splitwise/models/GroupMember.java",
+      "displayName": "models/GroupMember.java",
+      "editable": false
+    },
+    {
+      "id": "user",
+      "path": "src/main/java/com/example/splitwise/models/User.java",
+      "displayName": "models/User.java",
+      "editable": false
+    },
+    {
+      "id": "group-admin-repository",
+      "path": "src/main/java/com/example/splitwise/repositories/GroupAdminRepository.java",
+      "displayName": "repositories/GroupAdminRepository.java",
+      "editable": false
+    },
+    {
+      "id": "group-member-repository",
+      "path": "src/main/java/com/example/splitwise/repositories/GroupMemberRepository.java",
+      "displayName": "repositories/GroupMemberRepository.java",
+      "editable": false
+    },
+    {
+      "id": "group-repository",
+      "path": "src/main/java/com/example/splitwise/repositories/GroupRepository.java",
+      "displayName": "repositories/GroupRepository.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-group-admin-repository",
+      "path": "src/main/java/com/example/splitwise/repositories/InMemoryGroupAdminRepository.java",
+      "displayName": "repositories/InMemoryGroupAdminRepository.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-group-repository",
+      "path": "src/main/java/com/example/splitwise/repositories/InMemoryGroupRepository.java",
+      "displayName": "repositories/InMemoryGroupRepository.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-user-repository",
+      "path": "src/main/java/com/example/splitwise/repositories/InMemoryUserRepository.java",
+      "displayName": "repositories/InMemoryUserRepository.java",
+      "editable": false
+    },
+    {
+      "id": "user-repository",
+      "path": "src/main/java/com/example/splitwise/repositories/UserRepository.java",
+      "displayName": "repositories/UserRepository.java",
+      "editable": false
+    },
+    {
+      "id": "group-service",
+      "path": "src/main/java/com/example/splitwise/services/GroupService.java",
+      "displayName": "services/GroupService.java",
+      "editable": false
+    },
+    {
+      "id": "group-controller",
+      "path": "src/main/java/com/example/splitwise/controllers/GroupController.java",
+      "displayName": "controllers/GroupController.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-group-member-repository",
+      "path": "src/main/java/com/example/splitwise/repositories/InMemoryGroupMemberRepository.java",
+      "displayName": "repositories/InMemoryGroupMemberRepository.java",
+      "editable": true
+    },
+    {
+      "id": "group-service-impl",
+      "path": "src/main/java/com/example/splitwise/services/GroupServiceImpl.java",
+      "displayName": "services/GroupServiceImpl.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/splitwise/controllers/TestGroupController.java",
+    "className": "TestGroupController"
+  },
+  "evidence": [
+    {
+      "id": "add-member-unknown-group",
+      "label": "Adding a member to a group id that does not exist returns FAILURE",
+      "testMethod": "testAddMember_GroupNotFound"
+    },
+    {
+      "id": "add-member-non-admin",
+      "label": "Only an admin of the group can add a member",
+      "testMethod": "testAddMember_AdminNotFound"
+    },
+    {
+      "id": "add-member-unknown-user",
+      "label": "Adding a user id that does not exist returns FAILURE",
+      "testMethod": "testAddMember_MemberNotFound"
+    },
+    {
+      "id": "add-member-duplicate",
+      "label": "Adding a user who is already a member returns FAILURE instead of creating a duplicate row",
+      "testMethod": "testAddMember_MemberAlreadyPresent"
+    },
+    {
+      "id": "add-member-success",
+      "label": "A successful add records the group, the new member and the admin who added them",
+      "testMethod": "testAddMember_Success"
+    },
+    {
+      "id": "remove-member-unknown-group",
+      "label": "Removing a member from a group id that does not exist returns FAILURE",
+      "testMethod": "testRemoveMember_GroupNotFound"
+    },
+    {
+      "id": "remove-member-non-admin",
+      "label": "Only an admin of the group can remove a member",
+      "testMethod": "testRemoveMember_AdminNotFound"
+    },
+    {
+      "id": "remove-member-unknown-user",
+      "label": "Removing a user id that does not exist returns FAILURE",
+      "testMethod": "testRemoveMember_MemberNotFound"
+    },
+    {
+      "id": "remove-member-not-in-group",
+      "label": "Removing a valid user who is not in the group returns FAILURE",
+      "testMethod": "testRemoveMember_MemberNotPresentInGroup"
+    },
+    {
+      "id": "remove-member-success",
+      "label": "An admin can remove an existing member",
+      "testMethod": "testRemoveMember_Success"
+    },
+    {
+      "id": "fetch-members-unknown-group",
+      "label": "Listing members of a group id that does not exist returns FAILURE",
+      "testMethod": "testFetchMembers_GroupNotFound"
+    },
+    {
+      "id": "fetch-members-unknown-user",
+      "label": "Listing members on behalf of a user id that does not exist returns FAILURE",
+      "testMethod": "testFetchMembers_MemberNotFound"
+    },
+    {
+      "id": "fetch-members-outsider",
+      "label": "A user who is neither an admin nor a member of the group cannot list its members",
+      "testMethod": "testFetchMembers_UserDoesntBelongToMemberOrAdmin"
+    },
+    {
+      "id": "fetch-members-success",
+      "label": "A member sees the combined list of the group's admins and members",
+      "testMethod": "testFetchMembers_Success"
+    }
+  ]
+}

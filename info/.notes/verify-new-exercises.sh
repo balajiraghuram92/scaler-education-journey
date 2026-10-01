@@ -54,6 +54,10 @@ EXERCISES=(
   exercises/java/java-lld/design-patterns/builder-database-configuration
   exercises/java/java-lld/design-patterns/builder-query
   exercises/java/java-lld/design-patterns/builder-message
+  # Stage 2 (2026-10-01): Splitwise and BookMyShow ports
+  exercises/java/java-lld/applied-machine-coding/splitwise-create-delete-group
+  exercises/java/java-lld/applied-machine-coding/splitwise-manage-group-members
+  exercises/java/java-lld/applied-machine-coding/bms-book-ticket
 )
 
 REPO_ROOT="$(pwd)"

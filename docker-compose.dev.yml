@@ -27,5 +27,7 @@ services:
       context: ./ai-agent
       dockerfile: Dockerfile
     image: scaler-journey-ai-agent:dev
+    environment:
+      AI_AGENT_ENABLE_DOCS: "true"
     ports:
-      - "127.0.0.1:8000:8000"   
+      - "127.0.0.1:8000:8000"

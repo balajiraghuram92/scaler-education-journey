@@ -2596,135 +2596,369 @@ You can justify why `Gate` is one class with an enum rather than two subclasses,
 
 Add a `ReservationStrategy` allowing spots to be pre-booked ahead of physical arrival, and work through how it interacts with `AllotmentStrategy` — does a reservation reduce the pool `AllotmentStrategy` chooses from, or bypass it entirely for that vehicle?
 ",
+            // SOURCE_TYPE: FROM_MATERIAL (Scaler Hotel Management exercise templates, info/.notes/scaler-raw-notes/exercise-templates-batch4/06-09, and the wired hotel-* reference solutions). The Practical Backend Scenario figures and the orphan-session analysis are LLM_GENERATED, checked against those solutions.
             "24-machine-coding-hotel-management" => @"# Lesson 24 — Machine Coding: Hotel Management System
 
 ## Concepts Covered
 
 ### Layered Architecture: Controller, Service, and Repository
-This machine-coding exercise builds a Hotel Management System incrementally, across four stages, each adding one capability on top of a shared layered architecture: a **Controller** layer (accepting request DTOs and returning response DTOs), a **Service** layer (interface + implementation holding business logic), a **Repository** layer (interface + an in-memory implementation, so the domain logic stays independent of any real database), and plain **domain models** (`Room`, `User`, `Booking`, `Invoice`, `CustomerSession`) with their own enums (`RoomType`, `UserType`, `CustomerSessionStatus`) and typed exceptions (`UserNotFoundException`, `UnAuthorizedAccess`, `InvalidRoomException`).
+This machine-coding problem builds a Hotel Management System in four incremental stages on one layered skeleton. A **Controller** (`RoomController`, `BookingController`) accepts a request DTO, calls one service method, and maps the outcome to a response DTO carrying a `ResponseStatus` of `SUCCESS` or `FAILURE`; it catches the typed exception and never lets it escape to the caller. A **Service** interface and implementation (`RoomService`/`RoomServiceImpl`, `BookingService`/`BookingServiceImpl`) holds every business rule. A **Repository** interface (`RoomRepository`, `UserRepository`, `BookingRepository`, `CustomerSessionRepository`) hides storage behind `save` and finder methods, and an in-memory implementation backs it so the whole system can be built and graded with no database. The graders construct these classes reflectively: each repository needs a no-arg constructor, and each service implementation needs a constructor whose parameters are exactly the repositories it uses. That constraint is the point of the exercise. Because the service receives its collaborators through the constructor instead of creating them, the same `BookingServiceImpl` runs against `InMemoryRoomRepository` in a test and against a JPA repository in production without a line of business logic changing. Role checks live in the service, not the controller: `addRoom` looks the caller up, throws `UserNotFoundException` if the id is unknown, and throws `UnAuthorizedAccess` unless `UserType` is `ADMIN`, so a second entry point (a CLI command, a batch import) inherits the rule instead of re-implementing it.
 
-### Four Incremental Development Stages
-The four stages build on each other: **Add Rooms** (ADMIN-only capability to register new rooms into the system), **Get Rooms** (customers browse available rooms), **Book Rooms** (customers reserve a room, tracked through a `CustomerSession`), and **Generate Invoice** (producing a bill for a completed booking). Each stage's Controller and Service only add the one new capability the stage is named for, while reusing the Repository and domain models already established by earlier stages — this is the same incremental-milestone structure used in the OOP-4 Library Management System lab, but applied to a full request/response layered architecture instead of a single class hierarchy.
+### Four Incremental Stages and What Each Adds
+**Add Rooms** registers a `Room` (name, `price`, `RoomType` of `DELUXE`, `SUPER_DELUXE` or `SUITE`, description) for an ADMIN. **Get Rooms** returns every room when the requested type is `null` and filters by `RoomType` otherwise, which is why the repository exposes both `getRooms()` and `getRoomsByRoomType(...)`. **Book Rooms** takes a user id and a `Map<Long, Integer>` of room id to quantity; it is a quantity booking, not a date-range reservation. **Generate Invoice** takes only a user id. Each stage reuses the domain model and repositories of the previous one and adds a single capability, so there is a working, testable system at every checkpoint; the same milestone discipline appears in the OOP-4 Library Management lab, applied here to a request/response architecture.
+
+The request DTOs carry the room type as a `String`, and both `addRoom` and `getRooms` convert it with `RoomType.valueOf(roomType)`. That call throws `IllegalArgumentException` for any value outside the enum, such as `""PENTHOUSE""` or a lower-case `""deluxe""`. The exception is unchecked, so it appears in no service signature, and the learner only discovers the behaviour because the controller's blanket `catch (Exception e)` turns it into `FAILURE`. In a real API that conversion belongs at the boundary: the controller (or a validating DTO) parses the string once, rejects bad input with a specific error, and the service accepts a `RoomType`, so its contract cannot be violated by a typo.
+
+### CustomerSession as the Billing Boundary
+A customer can book several times before asking for a bill, so something must group those bookings. That is `CustomerSession`, with `CustomerSessionStatus` `ACTIVE` or `ENDED`. The first booking for a user creates an `ACTIVE` session; every later booking attaches to the same session through `findActiveCustomerSessionByUserId`; generating the invoice marks the session `ENDED`, so the next booking starts a new bill.
+
+```java
+Optional<CustomerSession> active = customerSessionRepository.findActiveCustomerSessionByUserId(userId);
+CustomerSession session;
+if (active.isEmpty()) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(""User not found""));
+    session = new CustomerSession();
+    session.setUser(user);
+    session.setCustomerSessionStatus(CustomerSessionStatus.ACTIVE);
+    session = customerSessionRepository.save(session);
+} else {
+    session = active.get();
+}
+```
+
+Invoice generation loads every `Booking` of the session, merges their `Map<Room, Integer>` quantities into one map, computes the room subtotal as the sum of `price × quantity`, then adds GST at 18% and a service charge at 10% of that subtotal. Two details matter for a senior reviewer. First, `Room` does not override `equals`/`hashCode`, so the merge relies on identity: it works only because the in-memory repository hands back the same `Room` instance every time. A JPA-backed version that loads a fresh entity per query would split one room into two map keys unless equality is defined on the id (Lesson 3). Second, the invoice uses `double`; that is acceptable for a grading harness, but a production bill uses `BigDecimal` with an explicit rounding mode, as Lesson 22 argues for Splitwise.
+
+### Where the Exercise Stops
+The reference solution looks up or creates the session before it validates the room ids, so a request containing an unknown room id throws `InvalidRoomException` after an `ACTIVE` session has already been saved. Nothing is booked, but an empty open session now exists. Validating all inputs before the first write, or doing both inside one transaction, removes that partial state. The exercise also has no availability or date model and no concurrency control: two customers can book the last `SUITE` at once. Adding check-in/check-out dates turns booking into the interval-overlap and soft-lock problem solved in Lesson 21 for BookMyShow seats.
 
 ## Practical Backend Scenario
 
-A hotel chain's booking backend separates ADMIN operations (adding rooms with a type and nightly rate) from CUSTOMER operations (browsing available rooms, filtering by type, and booking one for a date range). Every request enters through a Controller that translates an HTTP-shaped request DTO into a call on the Service layer; the Service layer enforces business rules (a `UserType` check before allowing a room to be added, a room-availability check before allowing a booking) and delegates persistence to a Repository interface, currently backed by an in-memory implementation so the whole system can be built and tested before a real database is wired in. A completed booking transitions a `CustomerSession` through its status lifecycle and becomes eligible for `Invoice` generation, which reads the booking's room rate and duration to compute the final bill.
+At the front-desk system of a 40-room business hotel, guest Meera Iyer books two `DELUXE` rooms at ₹4,000 in one request for her team and, an hour later, one `SUITE` at ₹9,000 for a client. At checkout she asks for one bill. Because both bookings resolve to the same `ACTIVE` `CustomerSession`, `generateInvoice(meeraId)` merges them into `{DELUXE×2, SUITE×1}`: subtotal ₹17,000, GST ₹3,060, service charge ₹1,700, total ₹21,760, and the session flips to `ENDED`. In a design where each booking created its own session, or where the invoice read only the latest `Booking`, the bill would show the suite alone at ₹11,520 and the hotel would undercharge by ₹10,240 without any error being raised.
 
 ## Practice Loop
 
-1. Implement the **Add Rooms** stage: `RoomController`, `AddRoomRequestDto`/`AddRoomResponseDto`, `RoomService`/`RoomServiceImpl`, `RoomRepository`/`InMemoryRoomRepository`, enforcing that only an ADMIN `UserType` may add a room (throwing `UnAuthorizedAccess` otherwise).
-2. Implement the **Get Rooms** stage on top of the same `Room`/`RoomRepository`: a `GetRoomsRequestDto`/`GetRoomsResponseDto` pair letting a customer browse available rooms.
-3. Implement the **Book Rooms** stage: introduce `Booking`, `CustomerSession`, and `CustomerSessionStatus`; a `BookingController` accepting a `MakeBookingRequestDto` that validates the room exists (`InvalidRoomException` otherwise) and the user exists (`UserNotFoundException` otherwise) before creating a `Booking`.
-4. Implement the **Generate Invoice** stage: an `Invoice` domain object and a `GenerateInvoiceRequestDto`/`GenerateInvoiceResponseDto` pair that looks up a completed `CustomerSession` (throwing `CustomerSessionNotFoundException` if it can't be found) and computes a bill from its associated `Booking` and `Room` rate.
-5. Once all four stages are implemented against the same in-memory repositories, write one end-to-end test that adds a room as an ADMIN, browses it as a customer, books it, and generates its invoice — proving all four stages compose correctly through the shared Repository and domain layer.
+1. Build the Add Rooms stage: `Room`, `RoomType`, `UserType`, `RoomRepository`/`InMemoryRoomRepository`, and `RoomServiceImpl.addRoom`, rejecting a CUSTOMER with `UnAuthorizedAccess`; add Meera's two room types as an ADMIN.
+2. Add Get Rooms on the same repository and confirm a `null` type returns all rooms while `DELUXE` returns only the deluxe ones.
+3. Implement `makeBooking`, then book Meera's two requests and count the `CustomerSession` rows: exactly one must exist. Next send a booking with an unknown room id for a new user and count again; record the orphan `ACTIVE` session the reference ordering leaves behind.
+4. Implement `generateInvoice` and assert subtotal ₹17,000, GST ₹3,060, service charge ₹1,700, total ₹21,760, and session status `ENDED`; then book again and confirm a new session is created.
+5. Refactor `makeBooking` so every room id is validated before any session is saved, and re-run step 3 to show the orphan is gone while all four stage tests still pass.
 
 ## Evidence of Understanding
 
-You can explain why splitting a machine-coding problem into Controller/DTO/Service/Repository layers, even for an in-memory-only implementation, keeps business logic independent of any specific persistence technology. You can justify why role-based checks (ADMIN vs. CUSTOMER) belong in the Service layer rather than the Controller. You can trace a booking's full lifecycle from `Room` creation through `CustomerSession` to `Invoice` generation, and name which typed exception fires for which specific failure case (missing room, missing user, missing session).
+You can explain why the services take repositories through their constructors and show the same service running against a different repository implementation. You can trace Meera's two bookings into one `CustomerSession`, compute her invoice by hand, and show why reading only the latest booking undercharges. You can name which typed exception each failure raises (`UserNotFoundException`, `UnAuthorizedAccess`, `InvalidRoomException`, `CustomerSessionNotFoundException`), demonstrate the orphan-session ordering bug with a test, and explain why `Map<Room, Integer>` aggregation depends on `Room` identity.
 
 ## Suggested Extension
 
-Add a `CancelBooking` capability that transitions a `CustomerSession` back to an available state and updates `RoomRepository` accordingly, then extend `Invoice` generation to apply a cancellation-fee rule based on how close to the booking date the cancellation occurred.
+Add check-in and check-out dates to `Booking` and reject a request when `requestedCheckIn < existingCheckOut && requestedCheckOut > existingCheckIn` for the same room, then make that check-and-insert safe for two concurrent requests using the soft-lock approach from Lesson 21.
+
+---
+
+Reference: Scaler Machine Coding — Hotel Management System exercises (Add Rooms, Get Rooms, Book Rooms, Generate Invoice)
 ",
+            // SOURCE_TYPE: LLM_GENERATED (no Scaler source exists for the Spring module; aligned with this lesson's six LLM_GENERATED MCQs in lessonInteractions.js). Needs owner review.
             "14-spring-boot-core" => @"# Lesson 14 — Spring Boot Core: IoC & Dependency Injection
 
 ## Concepts Covered
-### Inversion of Control and Dependency Injection
-Inversion of Control means application code declares dependencies while a container creates and wires the object graph. Constructor injection makes required dependencies visible, supports immutable fields, and lets a unit test construct a service without starting the framework. Component scanning is convenient, but explicit configuration is valuable when multiple implementations, security-sensitive clients, or environment-specific policies exist.
 
-### Spring Bean Lifecycle and Configuration Management
-A bean has a lifecycle: creation, dependency resolution, initialization, use, and destruction. Scope affects state safety; a singleton should not hold request-specific mutable data. Configuration properties should be validated at startup, secrets should come from a managed secret source, and profiles should select infrastructure wiring rather than change business rules.
+### Inversion of Control and Constructor Injection
+In Inversion of Control, your classes declare what they need and the container builds the object graph. At startup Spring Boot scans the packages under your `@SpringBootApplication` class, registers a bean definition for every `@Component`, `@Service`, `@Repository`, and `@Controller`, adds the `@Bean` methods of every `@Configuration` class, and applies auto-configuration for whatever is on the classpath. It then instantiates the singletons eagerly, resolving each constructor parameter by type. A class with exactly one constructor needs no `@Autowired`; Spring has used the single constructor automatically since 4.3. Constructor injection is the default you defend in review for three reasons. Dependencies can be `final`, so a half-built service cannot exist. The constructor documents everything the class needs, so a constructor with eight parameters is a visible design smell rather than one hidden behind eight annotated fields. And a unit test creates the class with `new` and hand-written fakes, with no Spring context and no reflection. Field injection gives up all three and lets a test silently run with a `null` collaborator.
+
+```java
+@Service
+public class PaymentService {
+    private final PaymentGateway gateway;
+    private final PaymentRepository payments;
+    private final Clock clock;
+
+    public PaymentService(PaymentGateway gateway, PaymentRepository payments, Clock clock) {
+        this.gateway = gateway;
+        this.payments = payments;
+        this.clock = clock;
+    }
+
+    public Payment capture(OrderId orderId, Money amount) {
+        Authorization authorization = gateway.authorize(orderId, amount);
+        return payments.save(Payment.captured(orderId, amount, authorization, clock.instant()));
+    }
+}
+```
+
+When two beans implement the same interface, resolution by type is ambiguous and startup fails with `NoUniqueBeanDefinitionException`. You choose explicitly: `@Primary` marks the default, `@Qualifier(""stripe"")` selects one at the injection point, and injecting `List<PaymentGateway>` or `Map<String, PaymentGateway>` (keyed by bean name) hands you every implementation for a registry like the one in Lesson 4. Selecting an implementation from configuration belongs in a `@Configuration` class, for example with `@ConditionalOnProperty(name = ""payments.provider"", havingValue = ""stripe"")`, so domain code never reads a profile or a property to decide which gateway it is talking to.
+
+### Bean Lifecycle, Scopes, and Startup Validation
+For each bean the container instantiates it, injects dependencies, calls the `Aware` callbacks, runs every `BeanPostProcessor`'s before-initialization hook, calls `@PostConstruct` and then `InitializingBean.afterPropertiesSet()`, and runs the after-initialization hooks. That last step is where Spring wraps beans in proxies for `@Transactional`, `@Async`, and `@Cacheable`, which is why the object injected into your controller is often a proxy and not your class. On shutdown, `@PreDestroy` runs for singletons. Prototype beans are created on every lookup and Spring does not call their destroy callbacks.
+
+Scope is a thread-safety decision. A singleton serves every request concurrently, so it must hold no request-specific mutable state: a `currentCustomer` field on a singleton service is a data leak between users. Injecting a prototype bean into a singleton does not give you a fresh instance per call; the singleton is wired once and keeps the one instance it received. When you really need a new instance per use, inject `ObjectProvider<T>` and call `getObject()`. Circular dependencies are rejected by default since Spring Boot 2.6 (`spring.main.allow-circular-references=false`); the fix is to break the cycle with an event or a third collaborator, not to turn the flag back on or add `@Lazy`.
+
+Configuration should fail at startup, not on the first customer request. Bind related properties into a typed class with `@ConfigurationProperties`, add Bean Validation constraints, and annotate it `@Validated` (with `spring-boot-starter-validation` on the classpath). A missing or malformed value then stops the context from starting, with a message naming the property.
+
+```java
+@Validated
+@ConfigurationProperties(prefix = ""payments.gateway"")
+public record GatewayProperties(@NotNull URI baseUrl, @NotNull Duration timeout) {
+}
+
+@Configuration
+@EnableConfigurationProperties(GatewayProperties.class)
+class PaymentConfiguration {
+
+    @Bean
+    Clock clock() {
+        return Clock.systemUTC();
+    }
+
+    @Bean
+    PaymentGateway paymentGateway(GatewayProperties properties) {
+        return new HttpPaymentGateway(properties.baseUrl(), properties.timeout());
+    }
+}
+```
+
+Profiles (`application-prod.yml`) should change infrastructure wiring and values, not business rules. Secrets such as the gateway API key come from the environment or a secret manager at runtime, never from a committed properties file.
+
+### Testing the Wiring Without Testing Everything Through It
+Because `PaymentService` is a plain class, most of its tests need no container at all. Reserve Spring-backed tests for the wiring itself. `@SpringBootTest` starts the full context and proves that properties bind, conditions select the right gateway, and no bean is ambiguous; it is slow, so keep a few. Slice tests such as `@WebMvcTest(PaymentController.class)` or `@DataJpaTest` start only the web or persistence layer. To replace one bean in a context, Spring Framework 6.2 provides `@MockitoBean`, which supersedes Spring Boot's `@MockBean` (deprecated since Boot 3.4). Every distinct combination of mocked beans and properties produces a separate cached context, so scattering `@MockitoBean` across test classes quietly multiplies startup time; prefer a small number of shared test configurations.
 
 ## Practical Backend Scenario
-A payment application has `PaymentService`, `PaymentGateway`, `PaymentRepository`, and `Clock` dependencies. Production wiring selects an HTTP gateway and PostgreSQL repository, while tests provide fakes. The service remains a plain Java class with constructor validation. A feature flag controls gateway routing through a policy object, not through scattered profile checks inside domain logic.
+
+A payment service is deployed with a new `application-prod.yml` in which the gateway block was nested under `payment.gateway` instead of `payments.gateway`, so `payments.gateway.base-url` is simply absent. In the old version, `HttpPaymentGateway` read the URL with `@Value(""${payments.gateway.base-url:}"")` into a field, so the pods started healthy, passed the readiness probe, and took traffic; the first `capture` call at 09:00 built a request against an empty base URL and every checkout failed until someone rolled back. With `GatewayProperties` bound and validated, the missing key leaves `baseUrl` null, the application context refuses to start with a binding error that names `payments.gateway.baseUrl` and the violated `@NotNull`, the new pods never become ready, and the rolling deployment stops while the previous pods keep serving payments.
 
 ## Practice Loop
-1. Write the service as a framework-free class and test it with hand-built fakes.
-2. Add Spring configuration at the edge with constructor injection.
-3. Validate required endpoint and timeout properties before the application accepts traffic.
-4. Test bean replacement, multiple implementations, and shutdown behavior.
-5. Search for field injection, hidden service locators, mutable singleton state, and configuration reads inside domain methods.
+
+1. Write `PaymentService` as a plain class with constructor parameters `PaymentGateway`, `PaymentRepository`, and `Clock`, and unit-test `capture` with a fake gateway, an in-memory repository, and `Clock.fixed(...)`, with no Spring context.
+2. Add `PaymentConfiguration` with the `Clock` and `PaymentGateway` beans and `GatewayProperties`, and start the application with a correct `application.yml`.
+3. Move the gateway block under the wrong prefix `payment.gateway` and measure when the failure appears: with the `@Value` field version, count how many requests succeed before the first failed `capture`; with validated properties, record the startup error and confirm the readiness endpoint never reports UP.
+4. Register a second `PaymentGateway`, observe the `NoUniqueBeanDefinitionException` at startup, then resolve it once with `@Primary` and once with `@ConditionalOnProperty` on `payments.provider`, and write a `@SpringBootTest` that asserts which implementation is active for each property value.
+5. Review the codebase for field injection, `ApplicationContext.getBean` calls in domain code, mutable fields on singletons, and `@Value` reads inside business methods, and move each into constructor injection or a validated properties class.
 
 ## Evidence of Understanding
-You can draw the object graph, explain which dependencies are required at construction, and run the core payment behavior without a container. A misconfigured endpoint fails at startup with a useful message instead of failing on the first customer request.
+
+You can draw the payment service's object graph, say which bean definitions come from component scanning, `@Bean` methods, and auto-configuration, and run `capture` in a unit test without a container. You can explain where in the lifecycle a `@Transactional` proxy is created, why a prototype injected into a singleton behaves as a single instance, and how `ObjectProvider` changes that. You can show a misconfigured gateway URL failing the application at startup with a message naming the property, and resolve an ambiguous `PaymentGateway` injection three different ways and justify the one you keep.
 
 ## Suggested Extension
-Add a decorator that records gateway latency and failure counts while keeping the payment service unaware of metrics implementation details.
+
+Wrap the active `PaymentGateway` in a `MeteredPaymentGateway` decorator, registered in `PaymentConfiguration`, that records latency and failure counts with Micrometer, and verify with a unit test that `PaymentService` is unchanged and unaware of the metrics.
+
+---
+
+Reference: Spring Framework Reference Documentation — Core Technologies, ""The IoC Container""
 ",
+            // SOURCE_TYPE: LLM_GENERATED (no Scaler source exists for the Spring module; aligned with this lesson's six LLM_GENERATED MCQs in lessonInteractions.js). Needs owner review.
             "15-spring-data-jpa" => @"# Lesson 15 — Spring Data JPA & PostgreSQL Integration
 
 ## Concepts Covered
-### Object-Relational Mapping and Persistence Context Boundaries
-JPA maps object state to relational rows, but the mapping is not the transaction boundary by itself. Decide aggregate ownership, identifier strategy, fetch behavior, and lifecycle before adding annotations. A persistence context tracks managed entities; lazy loading can trigger queries later, and an accidentally broad entity graph can load far more data than the endpoint needs.
 
-### Transaction Scope, Query Optimization, and Locking
-Transactions should be short, explicit, and aligned with a business operation. Use repository methods that match the read shape, project only required fields, and inspect generated SQL for hot paths. Prevent N+1 queries with a deliberate fetch plan, indexes, pagination, and query analysis. Optimistic locking is useful when conflicts are expected and should be surfaced as a retriable domain outcome.
+### The Persistence Context: Identity, Dirty Checking, and Flush
+JPA maps object state to rows, but the mechanism you reason about every day is the persistence context, which Hibernate implements as the `Session` behind your `EntityManager`. Inside one transaction it keeps at most one managed instance per entity type and id. A second `findById(42L)` returns the same object from this first-level cache without a query. When you load an entity, Hibernate keeps a snapshot of its state. At flush (before commit, and before a query whose results could be affected by pending changes) it compares every managed entity with its snapshot and issues an `UPDATE` for each one that changed. That is why `order.markShipped()` inside a `@Transactional` method persists without any `save` call, and also why loading 10,000 entities into one transaction costs memory and dirty-checking time even if you change none of them. A read-only method should say so: `@Transactional(readOnly = true)` lets Hibernate skip the snapshots and flushes for that session.
+
+Spring applies `@Transactional` through a proxy, so the annotation only takes effect when a call enters the bean from outside. A `public` method calling another `@Transactional` method on `this` bypasses the proxy and gets no new transaction settings. By default the transaction rolls back on unchecked exceptions (`RuntimeException` and `Error`) and commits on checked exceptions unless you declare `rollbackFor`. Keep transactions short and shaped around one business operation. Lesson 17 shows what happens when a remote call sits inside one.
+
+### Fetch Plans and the N+1 Problem
+Associations decide how many queries an endpoint issues. `@OneToMany` and `@ManyToMany` default to lazy loading, while `@ManyToOne` and `@OneToOne` default to eager, which surprises people. Declare `fetch = FetchType.LAZY` on every association and choose the fetch plan per query. The N+1 problem follows directly: load a page of 20 orders with one query, then touch `order.getItems()` on each, and Hibernate issues 20 more queries, one per collection. The fix is to fetch what this use case needs in the same statement, with `join fetch` in JPQL or `@EntityGraph(attributePaths = ""items"")` on the repository method. Fetching a collection and paginating in the same query has a trap: the row limit cannot be applied in SQL to parent rows multiplied by their children, so Hibernate loads everything and paginates in memory, logging warning HHH90003004. For pages, select the parent ids first and fetch their collections in a second query, or use a DTO projection.
+
+```java
+public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Long> {
+
+    @Query(value = ""select new com.shop.orders.OrderSummary(o.id, o.placedAt, o.status, o.total) ""
+            + ""from CustomerOrder o where o.customerId = :customerId"",
+            countQuery = ""select count(o) from CustomerOrder o where o.customerId = :customerId"")
+    Page<OrderSummary> findSummaries(@Param(""customerId"") Long customerId, Pageable pageable);
+
+    @EntityGraph(attributePaths = ""items"")
+    Optional<CustomerOrder> findWithItemsById(Long id);
+}
+
+public record OrderSummary(Long id, Instant placedAt, OrderStatus status, BigDecimal total) {
+}
+```
+
+The constructor-expression projection selects four columns and creates no managed entities, so nothing is dirty-checked or lazily loaded during JSON serialization. Spring Boot leaves `spring.jpa.open-in-view` enabled by default and logs a warning about it at startup. It keeps the session open until the HTTP response is written, which turns a forgotten association into silent extra queries during serialization instead of a `LazyInitializationException` you would see in testing. Set it to `false` and make every endpoint's fetch plan explicit.
+
+### Identifiers, Batching, and Concurrency Control
+`GenerationType.IDENTITY` lets PostgreSQL assign ids on insert, so Hibernate must execute each `INSERT` immediately to learn the id, which disables JDBC insert batching. `GenerationType.SEQUENCE` with an allocation size (Hibernate's default is 50) pre-allocates ids and lets `hibernate.jdbc.batch_size` group inserts. For concurrent updates, `@Version` adds optimistic locking: the `UPDATE` includes `where version = ?`, a lost race updates zero rows, and Spring raises `ObjectOptimisticLockingFailureException`, which you surface as a retry or a `409`. This works well when conflicts are rare. For a hot row with constant contention, retries pile up; `@Lock(LockModeType.PESSIMISTIC_WRITE)` issues `SELECT ... FOR UPDATE` and makes contenders wait, or a single conditional `UPDATE` (Lesson 17) avoids the read entirely. Schema changes belong in versioned migrations (Flyway or Liquibase) with `spring.jpa.hibernate.ddl-auto=validate` in production, never `update`.
+
+Entity equality needs the same care Lesson 3 gave value objects, with one twist: a generated id is `null` until the entity is persisted. If `equals` and `hashCode` use the id, an `OrderItem` added to a `HashSet` before `persist` sits in the bucket for a `null` id and can no longer be found or removed once the id is assigned. Either compare on an immutable business key (an order number assigned at creation), or compare on the id when both ids are non-null and return a constant `hashCode` for the class. Never include lazy associations in `equals`, `hashCode`, or `toString`; doing so triggers loading at surprising moments, or a `LazyInitializationException` outside the session.
 
 ## Practical Backend Scenario
-An order history endpoint returns a page of orders with item summaries and payment status. The read model should not load every customer relation or serialize managed entities directly. The application uses a projection or fetch plan, a stable sort key, and a transaction that ends after the response data is assembled. The checkout write uses an idempotency key and a version check so retries do not create duplicate orders.
+
+The order-history endpoint `GET /customers/{id}/orders?page=0&size=20` returns `CustomerOrder` entities directly, and each order's `items` collection is lazy. With open-in-view enabled, Jackson walks `items` while writing the response and Hibernate quietly issues one query per order: 21 queries for one page, and for a large customer the item rows of all 20 orders loaded as managed entities. Nobody notices in development with three orders. In production the endpoint's p99 climbs past two seconds and the connection pool shows the request holding a connection for the whole serialization. Rewritten with `findSummaries` returning `OrderSummary` records, and `findWithItemsById` used only on the order-detail page, the list endpoint issues exactly two statements (the page and its count) and holds no managed entities when the JSON is written.
 
 ## Practice Loop
-1. Model the order aggregate and identify which relations are owned, read-only, or external.
-2. Write the expected SQL shape before writing the repository method.
-3. Test query count for a page of orders and expose an N+1 regression deliberately.
-4. Add an index based on a measured filter and compare the query plan.
-5. Simulate a concurrent update and define the user-visible conflict behavior.
+
+1. Model `CustomerOrder` (lazy `items`, `@Version`, sequence-generated id) and `OrderItem` on PostgreSQL in a Testcontainers test, with Flyway creating the schema and `ddl-auto=validate`.
+2. Write the SQL you expect for the list page and for the detail page before writing the repository methods, including the count query.
+3. Turn on `spring.jpa.properties.hibernate.generate_statistics=true`, call the entity-returning list endpoint for a customer with 20 orders, and record the prepared-statement count; then switch to `findSummaries` and record it again.
+4. Seed 50,000 orders, run `EXPLAIN ANALYZE` on the summary query filtered by `customer_id` and ordered by `placed_at`, add a composite index on `(customer_id, placed_at)`, and compare the plans and timings.
+5. Update the same order from two transactions and assert that one receives `ObjectOptimisticLockingFailureException`, then decide and test the user-visible behaviour: retry once or return `409` with the current version.
 
 ## Evidence of Understanding
-You can explain the difference between an entity graph and an API response, identify where a transaction begins and ends, and diagnose an N+1 query from logs or a query-count test. Your repository does not rely on lazy loading during JSON serialization.
+
+You can explain what the persistence context guarantees within a transaction, why a managed entity changed inside `@Transactional` is written without `save`, and why self-invocation skips the transaction proxy. You can reproduce an N+1 query with a statistics-based test and remove it with a projection or an entity graph, and explain why paginating a collection fetch join happens in memory. You can justify `SEQUENCE` over `IDENTITY` for batch inserts, show an optimistic-lock conflict surfacing as a defined API outcome, and point to the index that makes the order-history query use an index scan.
 
 ## Suggested Extension
-Add an outbox record in the same transaction as an order state change, then describe how a separate publisher makes the event eventually delivered without duplicating the order write.
+
+Write an `OutboxEvent` row in the same transaction that changes an order's status, and add a scheduled publisher that reads unpublished rows with `FOR UPDATE SKIP LOCKED` and marks them published, so the event is delivered at least once without the order write depending on the broker.
+
+---
+
+Reference: Hibernate ORM User Guide — ""Persistence Contexts"" and ""Fetching""
 ",
+            // SOURCE_TYPE: LLM_GENERATED (no Scaler source exists for the Spring module; aligned with this lesson's six LLM_GENERATED MCQs in lessonInteractions.js). Needs owner review.
             "16-spring-rest-api" => @"# Lesson 16 — RESTful APIs, Validation & Security
 
 ## Concepts Covered
-### REST API Contracts and DTO Boundary Protection
-An HTTP API is a public contract of resources, methods, status codes, representations, validation errors, and retry semantics. Request DTOs protect the domain model from transport concerns; response DTOs prevent persistence fields from becoming accidental API commitments. Validation should fail close to the boundary, while business rules remain in the application or domain layer.
 
-### Idempotency, Authentication, and Error Handling
-Idempotency matters for payment, booking, and other retryable commands. Authentication establishes who is calling; authorization decides what that caller may do. API keys, sessions, and JWTs have different rotation, revocation, and audience considerations. Never treat a decoded token as permission by itself. Central error handling should return a stable problem shape, a correlation id, and no stack trace or secret.
+### The HTTP Contract and the DTO Boundary
+An HTTP API is a public contract made of resources, methods, status codes, representations, error shapes, and retry semantics. Once a mobile client ships against it, every field you expose is a promise you cannot quietly withdraw. Request and response DTOs, usually Java records, are where you keep that promise independent of your persistence model. Binding a request body straight onto a JPA entity invites mass assignment: a client adds `""role"": ""ADMIN""` or `""status"": ""CONFIRMED""` to the JSON and Jackson sets it. Returning entities leaks columns such as password hashes and internal flags, and serializing a lazy association either triggers queries during response writing or fails with `LazyInitializationException`, as Lesson 15 showed. Status codes are part of the same contract. `201 Created` with a `Location` header for a new booking, `200 OK` for a replayed one, `400` for a malformed or invalid request, `401` when the caller is not authenticated, `403` when an authenticated caller may not perform the action, `404` when the resource does not exist (or when you choose not to reveal that it does), `409` for a conflict with current state such as a seat already held, and `422` for a well-formed request that breaks a business rule. HTTP also defines which methods a client or proxy may safely repeat. RFC 9110 makes `GET`, `HEAD`, `PUT`, and `DELETE` idempotent: sending the same request twice leaves the server in the same state as sending it once. `POST` carries no such guarantee, and neither does `PATCH` in general. Gateways and HTTP client libraries rely on this when they retry automatically after a timeout, so creating a booking with `POST` is safe to retry only if the server makes it idempotent, which is what the `Idempotency-Key` below does.
+
+### Validation at the Edge and One Error Shape
+Validate the shape of a request at the boundary and the business rules in the service. Jakarta Bean Validation annotations on the record components express shape: required fields, sizes, ranges. `@Valid` on the `@RequestBody` parameter makes Spring MVC run them before your method executes, and a violation raises `MethodArgumentNotValidException`, which becomes `400`. Whether the seats are still free is not a shape question; the service decides it and throws a domain exception. Map every exception to one error representation in a `@RestControllerAdvice`. Spring Framework 6 ships `ProblemDetail`, an implementation of RFC 9457 (which obsoletes RFC 7807) with `type`, `title`, `status`, `detail`, and `instance` plus custom properties. Setting `spring.mvc.problemdetails.enabled=true` makes Spring Boot render its own MVC exceptions in the same format. Error bodies carry a correlation id and never a stack trace, SQL, or secret.
+
+```java
+public record CreateBookingRequest(
+        @NotNull Long showId,
+        @NotEmpty @Size(max = 10) List<@NotNull Long> showSeatIds) {
+}
+
+@RestController
+@RequestMapping(""/api/bookings"")
+class BookingController {
+    private final BookingService bookingService;
+
+    BookingController(BookingService bookingService) {
+        this.bookingService = bookingService;
+    }
+
+    @PostMapping
+    ResponseEntity<BookingResponse> create(@AuthenticationPrincipal Jwt jwt,
+                                           @RequestHeader(""Idempotency-Key"") String idempotencyKey,
+                                           @Valid @RequestBody CreateBookingRequest request) {
+        BookingResult result = bookingService.create(jwt.getSubject(), idempotencyKey, request);
+        return ResponseEntity.status(result.replayed() ? HttpStatus.OK : HttpStatus.CREATED)
+                .location(URI.create(""/api/bookings/"" + result.bookingId()))
+                .body(BookingResponse.from(result));
+    }
+}
+
+@RestControllerAdvice
+class ApiExceptionHandler {
+
+    @ExceptionHandler(SeatsUnavailableException.class)
+    ProblemDetail seatsUnavailable(SeatsUnavailableException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                ""One or more seats are no longer available"");
+        problem.setTitle(""Seats unavailable"");
+        problem.setProperty(""showSeatIds"", ex.getShowSeatIds());
+        return problem;
+    }
+}
+```
+
+### Authentication, Authorization, and Idempotency
+Authentication establishes who is calling; authorization decides what that caller may do to this resource. With Spring Security's OAuth2 resource server, a bearer JWT is validated (signature, expiry, issuer, audience) before your controller runs, and the authenticated principal is available through `@AuthenticationPrincipal`. A valid token proves identity, not permission: the service still checks that the booking belongs to `jwt.getSubject()`. The customer id therefore comes from the token, never from the request body or a path parameter the client controls; trusting a client-supplied id is an insecure direct object reference. When a caller asks for another customer's booking, returning `404` instead of `403` avoids confirming that the booking exists. API keys, sessions, and JWTs differ in revocation: a session can be deleted on the server, while a JWT stays valid until it expires unless you keep a deny list, which is one reason access tokens should be short-lived.
+
+Booking and payment commands are retried by clients after timeouts, so the API needs idempotency. The client generates an `Idempotency-Key` per user action. The server stores the key with the customer id, a hash of the request body, and the resulting booking id, under a unique constraint on `(customer_id, idempotency_key)`. A repeat with the same key and the same body returns the stored result; the same key with a different body is a client bug and gets `422`; two concurrent first attempts race on the unique constraint, and the loser reads the winner's row.
 
 ## Practical Backend Scenario
-Build a booking endpoint that accepts a customer id, event slot, and idempotency key. The controller validates shape and limits, the application service checks ownership and availability, and the repository enforces the final uniqueness rule. A second request with the same key returns the stored result, while a request from another customer receives an authorization error without revealing booking existence unnecessarily.
+
+Priya taps ""Book"" for seats `A1` and `A2`. Her app sends `POST /api/bookings` with her JWT, `Idempotency-Key: 7c9e…`, and a body containing only `showId` and `showSeatIds`. The service holds the seats and returns `201` with a `Location` header, but the response is lost when her phone switches from Wi-Fi to mobile data. The app retries with the same key and body, finds the stored row, and receives `200` with the same booking instead of a second hold. An older version of the app put `customerId` in the body; under that contract, a modified client could have booked against, or read, another customer's account by changing one number. Now the id comes from the token, and when Rahul requests `GET /api/bookings/{priyasBookingId}` he receives `404`, with no hint that the booking exists.
 
 ## Practice Loop
-1. Define request, response, validation, and problem-detail contracts.
-2. Add tests for malformed JSON, missing fields, duplicate commands, forbidden access, and expired credentials.
-3. Separate authentication middleware from resource authorization policy.
-4. Add correlation logging and ensure sensitive fields are redacted.
-5. Verify timeout, retry, and pagination behavior with a client that repeats requests.
+
+1. Define `CreateBookingRequest`, `BookingResponse`, and the `ProblemDetail` mappings for `400`, `404`, `409`, and `422`, and write down which layer raises each one.
+2. Write `@WebMvcTest` cases for malformed JSON, a missing `showSeatIds`, eleven seat ids, a missing `Idempotency-Key`, an expired token, and a token for the wrong customer, asserting status and `ProblemDetail` fields for each.
+3. Send the same create request twice with the same key, then twice concurrently from two threads, and count the `booking` rows and the `201` versus `200` responses; then reuse the key with a different body and confirm `422`.
+4. Add a filter that reads or generates `X-Correlation-Id`, puts it in the SLF4J `MDC`, echoes it on the response, and includes it in every `ProblemDetail`; check the logs for any seat id, token, or card field that should be redacted.
+5. Review every endpoint for client-supplied identity fields, entity types in signatures, and `500` responses that should have been `4xx`, and fix each one.
 
 ## Evidence of Understanding
-You can explain which layer owns each validation, distinguish 401 from 403, and prove that a retried command does not duplicate a booking. The endpoint exposes stable errors and does not serialize internal entities or credentials.
+
+You can explain which layer owns each validation and each status code, distinguish `401`, `403`, and the deliberate `404`, and show why the customer id must come from the authenticated principal. You can demonstrate with tests that a retried booking command produces exactly one booking, that a reused key with a different payload is rejected, and that every error, including Spring's own, has the same `ProblemDetail` shape with a correlation id and no internal details. Your endpoints neither accept nor return JPA entities.
 
 ## Suggested Extension
-Add an idempotency table with request fingerprint and response metadata. Define how conflicting payloads using the same key are rejected.
+
+Add an `idempotency_record` table with the request hash, response status, response body, and an expiry, and a scheduled job that deletes expired keys; then define and test what happens when a retry arrives while the first attempt is still in progress.
+
+---
+
+Reference: Spring Framework Reference Documentation — Web on Servlet Stack, ""Error Responses"" (RFC 9457 ProblemDetail)
 ",
+            // SOURCE_TYPE: LLM_GENERATED (no Scaler source exists for this capstone; aligned with the six LLM_GENERATED MCQs for this lesson in lessonInteractions.js). Needs owner review.
             "17-machine-coding-capstone" => @"# Lesson 17 — Distributed Systems & Machine Coding Capstone
 
 ## Concepts Covered
-### Capstone Architecture and Core Invariants
-The capstone combines object modeling, concurrency, persistence, API boundaries, and operational thinking under a time constraint. Start with invariants and the smallest vertical slice. Separate command handling from read concerns, make retry behavior explicit, and choose one consistency boundary before optimizing. A good submission is not the most abstract design; it is a coherent design whose failure behavior can be explained.
 
-### Layered Workflow Coordination, Concurrency, and Observability
-Use an application service to coordinate a booking or ride-matching workflow, domain objects to protect state transitions, repositories for persistence, and ports for external providers. Concurrency needs a bounded execution policy and a uniqueness or version guarantee. Observability is part of correctness: record correlation ids, state transitions, latency, and failure categories without logging personal or payment data.
+### Scoping a Two-Hour Build: Invariants Before Classes
+The capstone is a timed build of a seat-booking service: hold seats, take payment, confirm, notify. It pulls together the domain modelling of Lessons 18–22, the concurrency of Module 2, and the Spring, JPA, and REST layers of Lessons 14–16. Under a clock, the failure mode is not a weak class diagram; it is spending ninety minutes on abstractions and never proving the one property the reviewer will attack. Write the invariants first, as sentences a test can check: a show seat is held or sold by at most one booking; a booking moves `PENDING → CONFIRMED` or `PENDING → EXPIRED` and never backwards; one client request produces at most one booking however often it is retried; a payment never confirms an expired hold. Then build the thinnest vertical slice that enforces them end to end: a controller, one application service, the `Show`/`ShowSeat`/`Booking` aggregate from Lesson 21, and one persistence strategy. Everything else (pricing rules, seat maps, notification channels) is an extension you mention rather than build.
+
+### One Atomic Write Instead of Check-Then-Act
+Lesson 21 showed why reading `status == AVAILABLE` and then writing `BLOCKED` races, and why a JVM `synchronized` block protects nothing once two pods serve traffic. In PostgreSQL you can make the check and the write one statement. A conditional `UPDATE` takes a row lock on every row it changes; under the default `READ COMMITTED` isolation a second transaction that targets the same row waits for the first to commit and then re-evaluates the `WHERE` clause against the committed row, so it finds the seat no longer available and updates nothing. The service compares the returned row count with the number of seats requested and treats a mismatch as a conflict.
+
+```java
+public interface ShowSeatRepository extends JpaRepository<ShowSeat, Long> {
+
+    @Modifying(clearAutomatically = true)
+    @Query(""update ShowSeat s set s.status = :blocked, s.blockedUntil = :until, s.bookingId = :bookingId ""
+            + ""where s.id in :ids and (s.status = :available ""
+            + ""or (s.status = :blocked and s.blockedUntil < :now))"")
+    int tryBlock(@Param(""ids"") List<Long> ids,
+                 @Param(""bookingId"") Long bookingId,
+                 @Param(""now"") Instant now,
+                 @Param(""until"") Instant until,
+                 @Param(""available"") ShowSeatStatus available,
+                 @Param(""blocked"") ShowSeatStatus blocked);
+}
+```
+
+```java
+@Transactional
+public Booking hold(HoldSeatsCommand command) {
+    Instant now = clock.instant();
+    Booking booking = bookingRepository.save(
+            Booking.pending(command.customerId(), command.showId(), command.idempotencyKey(), now.plus(HOLD)));
+    int blocked = showSeatRepository.tryBlock(command.showSeatIds(), booking.getId(), now, now.plus(HOLD),
+            ShowSeatStatus.AVAILABLE, ShowSeatStatus.BLOCKED);
+    if (blocked != command.showSeatIds().size()) {
+        // SeatsUnavailableException extends RuntimeException, so Spring rolls back the booking
+        // row and any seats this statement did block: the request is all-or-nothing.
+        throw new SeatsUnavailableException(command.showSeatIds());
+    }
+    return booking;
+}
+```
+
+The `blockedUntil < :now` branch is the lazy expiry from Lesson 21 expressed in the same statement, so an abandoned hold is reclaimed by the next request without waiting for a sweeper. Compared with `SERIALIZABLE` isolation, this approach never asks the caller to retry a serialization failure; compared with a Redis lock, it has no lease to expire mid-request and no second system to keep consistent. Redis locks become worth their operational cost only when contention is so high that you want to reject requests before they reach the database.
+
+### Keep External Calls Outside the Transaction
+A `@Transactional` method holds a pooled connection, and the row locks it took, until it returns. Calling the payment gateway or sending an email inside it means a two-second gateway stall holds a HikariCP connection for two seconds, and a pool of ten connections serves five such requests per second before every other endpoint queues. Split the flow into short transactions around the slow calls: `hold` commits, the client pays, and a separate `confirm` transaction checks state and writes the result. Notifications follow the transactional outbox pattern: `confirm` inserts an `outbox_event` row in the same transaction as the status change, and a relay publishes pending rows afterwards. Delivery is at-least-once, so consumers deduplicate on the event id. Publishing straight to a broker from inside the transaction leaves two bad outcomes: the publish succeeds and the commit fails, announcing a booking that does not exist, or the commit succeeds and the publish fails, losing the notification.
+
+### Idempotency, Late Callbacks, and Operability
+Clients and payment providers retry. Store the client's idempotency key on `Booking` with a unique constraint on `(customer_id, idempotency_key)`; a retried `hold` finds the existing booking and returns it rather than blocking more seats. Payment webhooks carry the provider's event id; record processed ids under a unique constraint so a redelivered callback becomes a no-op. A callback can also arrive after the hold expired and the seat was resold. The `confirm` transaction must read the booking's current state, and if it is `EXPIRED` it records the anomaly and triggers a refund instead of confirming. For operability, generate a correlation id at the edge, put it in the SLF4J `MDC`, and pass it on outbound HTTP headers and message metadata, so one booking can be traced across services without logging card or personal data. Shed overload at the gateway with HTTP 429 and a `Retry-After` header rather than letting it reach the connection pool.
 
 ## Practical Backend Scenario
-Implement a seat-booking service with inventory, payment authorization, and confirmation. Two customers may request the final seat at once, a payment provider may retry a callback, and notification delivery may fail after the booking commits. The design must prevent double allocation, make callbacks idempotent, and expose a recovery path for a committed booking whose notification is pending.
+
+Show #101, seats `A1` and `A2`, are the last two in the hall. Priya's and Rahul's `hold` requests reach two different pods in the same millisecond. Priya's `tryBlock` locks and updates both rows and returns 2; Rahul's statement waits on those row locks, re-checks the `WHERE` clause after Priya commits, updates nothing, returns 0, and Rahul receives `409 Conflict` naming `A1` and `A2`. Priya's mobile client times out on the response and retries with the same idempotency key, and gets her original booking back instead of a second one. Her payment succeeds, but the provider's webhook is delivered twice: the first delivery confirms the booking and writes an outbox row, and the second hits the unique constraint on the provider event id and is acknowledged without side effects. Had the webhook arrived after her 10-minute hold expired and Rahul had since bought the seats, `confirm` would find the booking `EXPIRED` and issue a refund instead of selling `A1` twice.
 
 ## Practice Loop
-1. Spend the first pass writing requirements, invariants, entities, commands, and failure states.
-2. Build the happy path end to end with a narrow interface and one persistence strategy.
-3. Add duplicate requests, concurrent allocation, timeout, provider retry, and partial failure tests.
-4. Review transaction scope, thread ownership, API errors, indexes, and logs.
-5. Explain the next safe improvement and what evidence would justify it.
+
+1. Write the four invariants for show #101 as failing tests before any production code: single holder per seat, forward-only booking states, one booking per idempotency key, and no confirmation after expiry.
+2. Build the slice: `BookingController.hold`, `BookingService.hold` with `tryBlock`, and `Booking`/`ShowSeat` entities on PostgreSQL in a Testcontainers test, plus a `Clock` you can move forward.
+3. Measure the race: fire 50 concurrent `hold` requests at `A1`/`A2` through an `ExecutorService` and a `CountDownLatch`, then count bookings in `PENDING` and seats in `BLOCKED`. Repeat with a check-then-act version and record how many double holds it produces.
+4. Add a 2-second stubbed gateway call inside `@Transactional`, run 20 concurrent checkouts against a 10-connection pool, and record the connection-acquisition timeouts; move the call outside the transaction and run the same load again.
+5. Add the outbox table, the processed-webhook table, and the expired-hold refund path, then review every `@Transactional` boundary and log line for held connections during remote calls and for leaked personal data.
 
 ## Evidence of Understanding
-You can defend the aggregate boundary, the concurrency guarantee, the idempotency key, and the recovery process. A reviewer can run your tests and see that the system remains correct when external calls fail or requests arrive concurrently. You can also name the assumptions that would need confirmation before production rollout.
+
+You can state the capstone's invariants as testable sentences and point to the line of code that enforces each one. You can explain why a conditional `UPDATE` with a row-count check is atomic under `READ COMMITTED` in PostgreSQL while a read followed by a write is not, and show a 50-thread test in which exactly one hold wins. You can demonstrate connection-pool exhaustion caused by a remote call inside a transaction and remove it, show that a retried request and a redelivered webhook each produce a single effect, and describe how a late payment for an expired hold is refunded rather than confirmed.
 
 ## Suggested Extension
-Add an outbox-backed notification publisher and a reconciliation command. Document duplicate delivery handling and the metrics that would alert an operator before customers report a problem.
+
+Add a `@Scheduled` sweeper that marks holds past `blockedUntil` as `EXPIRED` in batches using `FOR UPDATE SKIP LOCKED`, so two application instances can sweep concurrently without processing the same rows, and keep the lazy-expiry branch in `tryBlock` as the correctness guarantee.
+
+---
+
+Reference: PostgreSQL Documentation — Chapter 13, Concurrency Control (13.2.1 Read Committed Isolation Level)
 ",
             "21-machine-coding-bookmyshow" => @"# Lesson 21 — Machine Coding: BookMyShow
 
@@ -2851,7 +3085,7 @@ User authentication requires strict security guarantees:
 - Automatic entity auditing via `@CreatedDate` and `@LastModifiedDate` requires enabling the auditing listener: adding `@EntityListeners(AuditingEntityListener.class)` to `BaseModel` and declaring `@EnableJpaAuditing` on a Spring configuration class. Without these configurations, auditing annotations remain inert.
 
 ## Practical Backend Scenario
-A major blockbuster opens ticket reservations at noon. Within five seconds, 8,000 concurrent HTTP requests target the same 200 seats in Audi 1 for an evening show. Two users, Priya and Rahul, click ""Proceed to Pay"" for seats `A1` and `A2` at the exact same millisecond. In a naive implementation without atomic locking, both requests check availability, observe `A1` and `A2` as open, and create two distinct payment orders. Both users complete payment via UPI, resulting in an irrecoverable double booking, an angry customer at the box office, and manual intervention. In our layered architecture, Priya's request enters `BookingController.bookSeats()`, where `BookingService` acquires an in-memory lock on Show #101. It evaluates `ShowSeatRepository.findAvailableSeats()`, identifies `A1` and `A2` as available, creates two `SeatLock` entries with a 5-minute TTL, sets status to `LOCKED`, and commits within an atomic boundary. When Rahul's request evaluates two milliseconds later, the lock manager detects that `A1` and `A2` have active unexpired locks held by another session. Rahul's request immediately throws `SeatUnavailableException`, returning an HTTP 409 Conflict with a structured error payload detailing exactly which seats failed. Priya completes payment within 3 minutes; the payment webhook invokes `PaymentService.handleCallback()`, transitioning `Booking` to `CONFIRMED` and `ShowSeat` to `BOOKED`.
+A major blockbuster opens ticket reservations at noon. Within five seconds, 8,000 concurrent HTTP requests target the same 200 seats in Audi 1 for an evening show. Two users, Priya and Rahul, click ""Proceed to Pay"" for seats `A1` and `A2` at the exact same millisecond. In a naive implementation without atomic locking, both requests check availability, observe `A1` and `A2` as open, and create two distinct payment orders. Both users complete payment via UPI, resulting in an irrecoverable double booking, an angry customer at the box office, and manual intervention. In the soft-lock design, Priya's request enters `BookingController.bookSeats()` and `BookingService.bookMovie()` runs its short `SERIALIZABLE` transaction: it reads `A1` and `A2` as `AVAILABLE`, sets both `ShowSeat` rows to `BLOCKED` with `blockedAt` set to now, creates a `PENDING` `Booking`, and commits within milliseconds. Rahul's transaction read the same rows concurrently, so PostgreSQL aborts it with a serialization failure; had he arrived after Priya's commit instead, he would have read `BLOCKED` seats whose 15-minute window has not elapsed. Either way his request fails with an HTTP 409 Conflict naming `A1` and `A2`. Because the guarantee comes from the database rather than a JVM lock, it holds even though the two requests landed on different application pods. Priya completes payment within 3 minutes; the payment webhook invokes `PaymentService.handleCallback()`, transitioning `Booking` to `CONFIRMED` and `ShowSeat` to `BOOKED`.
 
 ## Practice Loop
 1. **Model Core Domain Entities:** Define `City`, `Theatre`, `Screen`, `Seat`, `SeatType`, `Event`/`Movie`, `Show`, `ShowSeat`, `ShowSeatStatus`, `Booking`, and `BookingStatus`. Ensure physical `Seat` is purely layout metadata while `ShowSeat` owns show-specific status and pricing.

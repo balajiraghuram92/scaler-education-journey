@@ -1,0 +1,236 @@
+{
+  "id": "java-lld-bms-book-ticket",
+  "lessonSlug": "21-machine-coding-bookmyshow",
+  "title": "BookMyShow — Book Ticket (All-or-Nothing Seat Blocking)",
+  "language": "java",
+  "difficulty": "advanced",
+  "estimatedMinutes": 50,
+  "runtime": {
+    "profile": "java-maven",
+    "javaVersion": 11,
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "book-ticket-requestdto",
+      "path": "src/main/java/com/example/bmsbookticket/dtos/BookTicketRequestDTO.java",
+      "displayName": "dtos/BookTicketRequestDTO.java",
+      "editable": false
+    },
+    {
+      "id": "book-ticket-responsedto",
+      "path": "src/main/java/com/example/bmsbookticket/dtos/BookTicketResponseDTO.java",
+      "displayName": "dtos/BookTicketResponseDTO.java",
+      "editable": false
+    },
+    {
+      "id": "response-status",
+      "path": "src/main/java/com/example/bmsbookticket/dtos/ResponseStatus.java",
+      "displayName": "dtos/ResponseStatus.java",
+      "editable": false
+    },
+    {
+      "id": "invalid-show-seat-exception",
+      "path": "src/main/java/com/example/bmsbookticket/exceptions/InvalidShowSeatException.java",
+      "displayName": "exceptions/InvalidShowSeatException.java",
+      "editable": false
+    },
+    {
+      "id": "seats-unavailable-exception",
+      "path": "src/main/java/com/example/bmsbookticket/exceptions/SeatsUnavailableException.java",
+      "displayName": "exceptions/SeatsUnavailableException.java",
+      "editable": false
+    },
+    {
+      "id": "user-not-found-exception",
+      "path": "src/main/java/com/example/bmsbookticket/exceptions/UserNotFoundException.java",
+      "displayName": "exceptions/UserNotFoundException.java",
+      "editable": false
+    },
+    {
+      "id": "base-model",
+      "path": "src/main/java/com/example/bmsbookticket/models/BaseModel.java",
+      "displayName": "models/BaseModel.java",
+      "editable": false
+    },
+    {
+      "id": "movie",
+      "path": "src/main/java/com/example/bmsbookticket/models/Movie.java",
+      "displayName": "models/Movie.java",
+      "editable": false
+    },
+    {
+      "id": "seat",
+      "path": "src/main/java/com/example/bmsbookticket/models/Seat.java",
+      "displayName": "models/Seat.java",
+      "editable": false
+    },
+    {
+      "id": "seat-status",
+      "path": "src/main/java/com/example/bmsbookticket/models/SeatStatus.java",
+      "displayName": "models/SeatStatus.java",
+      "editable": false
+    },
+    {
+      "id": "seat-type",
+      "path": "src/main/java/com/example/bmsbookticket/models/SeatType.java",
+      "displayName": "models/SeatType.java",
+      "editable": false
+    },
+    {
+      "id": "show",
+      "path": "src/main/java/com/example/bmsbookticket/models/Show.java",
+      "displayName": "models/Show.java",
+      "editable": false
+    },
+    {
+      "id": "show-seat",
+      "path": "src/main/java/com/example/bmsbookticket/models/ShowSeat.java",
+      "displayName": "models/ShowSeat.java",
+      "editable": false
+    },
+    {
+      "id": "ticket",
+      "path": "src/main/java/com/example/bmsbookticket/models/Ticket.java",
+      "displayName": "models/Ticket.java",
+      "editable": false
+    },
+    {
+      "id": "ticket-status",
+      "path": "src/main/java/com/example/bmsbookticket/models/TicketStatus.java",
+      "displayName": "models/TicketStatus.java",
+      "editable": false
+    },
+    {
+      "id": "user",
+      "path": "src/main/java/com/example/bmsbookticket/models/User.java",
+      "displayName": "models/User.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-seats-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/InMemorySeatsRepository.java",
+      "displayName": "repositories/InMemorySeatsRepository.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-show-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/InMemoryShowRepository.java",
+      "displayName": "repositories/InMemoryShowRepository.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-show-seat-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/InMemoryShowSeatRepository.java",
+      "displayName": "repositories/InMemoryShowSeatRepository.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-ticket-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/InMemoryTicketRepository.java",
+      "displayName": "repositories/InMemoryTicketRepository.java",
+      "editable": false
+    },
+    {
+      "id": "in-memory-user-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/InMemoryUserRepository.java",
+      "displayName": "repositories/InMemoryUserRepository.java",
+      "editable": false
+    },
+    {
+      "id": "seats-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/SeatsRepository.java",
+      "displayName": "repositories/SeatsRepository.java",
+      "editable": false
+    },
+    {
+      "id": "show-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/ShowRepository.java",
+      "displayName": "repositories/ShowRepository.java",
+      "editable": false
+    },
+    {
+      "id": "show-seat-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/ShowSeatRepository.java",
+      "displayName": "repositories/ShowSeatRepository.java",
+      "editable": false
+    },
+    {
+      "id": "ticket-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/TicketRepository.java",
+      "displayName": "repositories/TicketRepository.java",
+      "editable": false
+    },
+    {
+      "id": "user-repository",
+      "path": "src/main/java/com/example/bmsbookticket/repositories/UserRepository.java",
+      "displayName": "repositories/UserRepository.java",
+      "editable": false
+    },
+    {
+      "id": "ticket-service",
+      "path": "src/main/java/com/example/bmsbookticket/services/TicketService.java",
+      "displayName": "services/TicketService.java",
+      "editable": false
+    },
+    {
+      "id": "ticket-service-impl",
+      "path": "src/main/java/com/example/bmsbookticket/services/TicketServiceImpl.java",
+      "displayName": "services/TicketServiceImpl.java",
+      "editable": true
+    },
+    {
+      "id": "ticket-controller",
+      "path": "src/main/java/com/example/bmsbookticket/controllers/TicketController.java",
+      "displayName": "controllers/TicketController.java",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests/src/test/java/com/example/bmsbookticket/controllers/TestTicketController.java",
+    "className": "TestTicketController"
+  },
+  "evidence": [
+    {
+      "id": "book-two-seats",
+      "label": "Booking two available seats returns an UNPAID ticket with both seats and marks exactly those seats BLOCKED",
+      "testMethod": "testBookTicket_1_Request_Success"
+    },
+    {
+      "id": "book-non-overlapping",
+      "label": "Two bookings for disjoint seats of the same show both succeed",
+      "testMethod": "testBookTicket_2_Request_Success_Non_overlapping_seats"
+    },
+    {
+      "id": "unknown-user",
+      "label": "A booking for a user id that does not exist returns FAILURE and changes no seat",
+      "testMethod": "testBookTicket_NonExistingUser_Failure"
+    },
+    {
+      "id": "unknown-show-seat",
+      "label": "A request containing a show-seat id that does not exist returns FAILURE and blocks nothing",
+      "testMethod": "testBookTicket_InvalidShowSeat_Failure"
+    },
+    {
+      "id": "rebook-blocked-seats",
+      "label": "Requesting seats that are already blocked returns FAILURE",
+      "testMethod": "testBookTicket_BookABookedTicket_Failure"
+    },
+    {
+      "id": "all-or-nothing",
+      "label": "If any requested seat is unavailable, the available ones in the same request stay AVAILABLE",
+      "testMethod": "testBookTicket_PartiallyAvailableSeats_Failure"
+    },
+    {
+      "id": "unavailable-ids-reported",
+      "label": "The failure names exactly the show-seat ids that were unavailable",
+      "testMethod": "testBookTicket_ReportsUnavailableSeatIds"
+    },
+    {
+      "id": "concurrent-requests",
+      "label": "When eight requests race for the same two seats, exactly one succeeds and exactly one ticket exists",
+      "testMethod": "testBookTicket_ConcurrentRequests_OnlyOneSucceeds"
+    }
+  ]
+}

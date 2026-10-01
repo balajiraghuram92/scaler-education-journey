@@ -1,0 +1,20 @@
+# Tool configuration only (dependencies live in requirements*.txt).
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["auth", "config", "db", "echo_agent", "echo_graph", "main", "migrate",
+                     "observability", "rate_limit", "routers", "conftest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
