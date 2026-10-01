@@ -11,11 +11,13 @@ This applies to:
 - Seed data (`api/Data/*.cs`)
 - Any other file in the repo
 
-**The only exception is:**
+**The only exceptions are:**
 - The memory directory
 - Files inside the `info/` folder (including `info/.notes/` and `info/history/`) — Claude may read and write these (reference guides, notes, trackers, pipeline docs). These are meta/documentation files with no effect on the running app.
+- Files inside `exercises/` — Claude may create and edit exercise directories (`.json`, `.xml`, `.java` files). These are exercise manifests, pom files, starter stubs, test classes, and reference solutions. Claude must never modify an existing exercise that is already wired and working; only create new ones or fix a broken one the user explicitly flags. Wiring an exercise to a lesson (`app/src/data/lessonExerciseAssociations.js`) is outside this exception — the user does that.
+- MCQ data: `api/Data/mcq-migration-data.json` and its identical copy `scripts/mcq-migration-data.json` — Claude may edit these two files, and must keep them identical. The seeder adds a question only when its `legacyKey` is new; editing the text of an existing question does not update rows already in the database.
 
-Everything else — including `exercises/`, `ai-agent/`, `api/`, `app/`, deploy scripts, compose files, workflows and this file (`CLAUDE.md`) — is read-only for Claude. For those, Claude reviews, explains, and produces prompts or guidance; the user makes the edits.
+Everything else — including `ai-agent/`, `api/` (other than the MCQ JSON above), `app/`, deploy scripts, compose files, workflows and this file (`CLAUDE.md`) — is read-only for Claude. For those, Claude reviews, explains, and produces prompts or guidance; the user makes the edits.
 
 ---
 
