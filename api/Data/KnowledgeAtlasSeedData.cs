@@ -190,16 +190,16 @@ public static class KnowledgeAtlasSeedData
         // 5. Seed Concept Next Lessons
         var nextLessons = new List<ConceptNextLesson>
         {
-            new() { ConceptId = conMap["concurrency"], LessonTitle = "Java Concurrency", ModuleName = "Java & Spring Architecture", LessonSlug = "java-concurrency", OrderIndex = 1 },
+            new() { ConceptId = conMap["concurrency"], LessonTitle = "Java Concurrency", ModuleName = "Java & Spring Architecture", LessonSlug = "06-concurrency-1-threads", OrderIndex = 1 },
             new() { ConceptId = conMap["concurrency"], LessonTitle = "Structured Concurrency", ModuleName = "Java & Spring Architecture", LessonSlug = "structured-concurrency", OrderIndex = 2 },
             new() { ConceptId = conMap["concurrency"], LessonTitle = "Next Security", ModuleName = "Application Engineering & Reliability", LessonSlug = "next-security", OrderIndex = 3 },
-            new() { ConceptId = conMap["rag"], LessonTitle = "RAG Architecture: Ingestion & Retrieval", ModuleName = "Enterprise LLM Engineering", LessonSlug = "rag-ingestion-retrieval", OrderIndex = 1 },
-            new() { ConceptId = conMap["apis"], LessonTitle = "FastAPI & RESTful Design", ModuleName = "Backend Engineering", LessonSlug = "fastapi-rest-design", OrderIndex = 1 },
-            new() { ConceptId = conMap["databases"], LessonTitle = "Postgres Internals: Indexing & MVCC", ModuleName = "Backend Engineering", LessonSlug = "postgres-internals-mvcc", OrderIndex = 1 },
-            new() { ConceptId = conMap["networking"], LessonTitle = "AWS VPC, Subnets & Routing", ModuleName = "Cloud & Infrastructure", LessonSlug = "aws-vpc-routing", OrderIndex = 1 },
-            new() { ConceptId = conMap["caching"], LessonTitle = "Redis Streams & Caching Policies", ModuleName = "Backend Engineering", LessonSlug = "redis-caching-policies", OrderIndex = 1 },
-            new() { ConceptId = conMap["observability"], LessonTitle = "OpenTelemetry Distributed Tracing", ModuleName = "Reliability", LessonSlug = "opentelemetry-tracing", OrderIndex = 1 },
-            new() { ConceptId = conMap["security"], LessonTitle = "Auth: OAuth2, JWT & RBAC", ModuleName = "Reliability", LessonSlug = "auth-oauth2-jwt", OrderIndex = 1 }
+            new() { ConceptId = conMap["rag"], LessonTitle = "RAG Architecture: Ingestion & Retrieval", ModuleName = "Enterprise LLM Engineering", LessonSlug = "07-rag-architecture-ingestion-and-retrieval", OrderIndex = 1 },
+            new() { ConceptId = conMap["apis"], LessonTitle = "FastAPI & RESTful Design", ModuleName = "Backend Engineering", LessonSlug = "02-fastapi-intro-to-deep-dive", OrderIndex = 1 },
+            new() { ConceptId = conMap["databases"], LessonTitle = "Postgres Internals: Indexing & MVCC", ModuleName = "Backend Engineering", LessonSlug = "10-postgres-internals-explain-analyze-indexing-and-mvcc", OrderIndex = 1 },
+            new() { ConceptId = conMap["networking"], LessonTitle = "AWS VPC, Subnets & Routing", ModuleName = "Cloud & Infrastructure", LessonSlug = "01-aws-core-iam-vpc-and-networking", OrderIndex = 1 },
+            new() { ConceptId = conMap["caching"], LessonTitle = "Redis Streams & Caching Policies", ModuleName = "Backend Engineering", LessonSlug = "07-real-time-queues-and-caching-websockets-sse-redis", OrderIndex = 1 },
+            new() { ConceptId = conMap["observability"], LessonTitle = "OpenTelemetry Distributed Tracing", ModuleName = "Reliability", LessonSlug = "08-observability-and-distributed-tracing-opentelemetry-grafana", OrderIndex = 1 },
+            new() { ConceptId = conMap["security"], LessonTitle = "Auth: OAuth2, JWT & RBAC", ModuleName = "Reliability", LessonSlug = "03-auth-oauth2-jwt-oidc-and-rbac", OrderIndex = 1 }
         };
 
         db.ConceptNextLessons.AddRange(nextLessons);

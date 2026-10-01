@@ -130,6 +130,17 @@ const lessonExerciseAssociations = {
       'java-lld-display-parking-lot-capacity'
     ]
   },
+  'java-spring-lld/applied-machine-coding/21-machine-coding-bookmyshow': {
+    exerciseIds: [
+      'java-lld-bms-book-ticket'
+    ]
+  },
+  'java-spring-lld/applied-machine-coding/22-machine-coding-splitwise': {
+    exerciseIds: [
+      'java-lld-splitwise-create-delete-group',
+      'java-lld-splitwise-manage-group-members'
+    ]
+  },
   'java-spring-lld/applied-machine-coding/24-machine-coding-hotel-management': {
     exerciseIds: [
       'java-lld-hotel-add-rooms',
