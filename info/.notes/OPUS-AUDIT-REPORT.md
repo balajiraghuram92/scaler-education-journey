@@ -133,7 +133,7 @@ Not in scope: RAG ingestion (chunking/embedding/retrieval) — next phase. Progr
 4. **Prod env.** Does the SSM-sourced `/etc/studytracker/api.env` already contain `DATABASE_URL`, `MUSE_AI_API_KEY`, `LANGFUSE_*`? How should `DATABASE_URL` be produced going forward (compose-style interpolation vs script-built)?
 5. **Where does `migrate.py` run in prod**: deploy script step, container entrypoint, or manual? Is the prod DB container a pgvector image?
 6. **Ingest rule** for RAG: Published only, or Published + Draft (298 prod lessons: 277 Draft, 21 Published)?
-7. **Authoritative backend direction:** `dotnet-to-java-migration-PLAN.md` (Java/Spring, `ai-agent/` stays Python) vs `info/history/00` and `08` (which frame the migration as Python/FastAPI). `ai-agent/` is Python in both; the conflict concerns `api/`.
+7. **Authoritative backend direction:** `dotnet-to-java-migration-PLAN.md` (Java/Spring, `ai-agent/` stays Python) — **resolved 2026-10-02: Python; the plan is now `dotnet-to-python-migration-PLAN.md`** vs `info/history/00` and `08` (which frame the migration as Python/FastAPI). `ai-agent/` is Python in both; the conflict concerns `api/`.
 8. **Lesson 23** gap: intentional? Are `Code_BMS_1___4th_Sept` and `3.8__Code_BMS_1` two versions? Where are `Code_BMS_2` / `Splitwise_2` PDFs? Do the 68 screenshots map 1:1 to the 68 zips? Parking Lot MCQ count 14 or 15?
 9. Are the 3 expanded Java modules (58 lessons) intended or the "pollution" `cleanup-redundant-expanded-modules.sql` describes? Which word tier applies to FDE lessons?
 10. Are Java L2/L3 DB-only on purpose? Should the practice pool and 20 unwired Python zips be wired in? Is the MCQ length bias limited to LLM-generated FDE items?

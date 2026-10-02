@@ -22,7 +22,7 @@ Do all work on a new git branch (e.g. `claude/opus-3-stage`). **Never push to `m
 
 ## Context to read first (all stages)
 - `info/history/00-INDEX.md`, then `01-…` and `07-ai-learning-agent.md` (full AI Tutor status, locked decisions, reviewer findings, gotchas), `04-deployment-infra-and-ops.md` before touching deploy/DB. These were consolidated 2026-09-30; originals are recoverable via `git show 9e6d03f:<path>`.
-- `info/.notes/dotnet-to-java-migration-PLAN.md` (a separate track: .NET→Java migration; `ai-agent/` stays Python; do not touch `api/` beyond what's strictly required).
+- `info/.notes/dotnet-to-python-migration-PLAN.md` (a separate track: .NET→Python migration, renamed from the earlier Java version on 2026-10-02; `ai-agent/` stays Python; do not touch `api/` beyond what's strictly required).
 - `info/.notes/Neuralascent_Master_Reference_Guide_Updated.md` (lesson authoring contract) and `info/.notes/Neuralascent_Local_LLM_Ingestion_Prompt.md`.
 - All of `ai-agent/`, `docker-compose.yml`, `docker-compose.dev.yml`, `.env.example`, `scripts/deploy-single-ec2.sh`, `.github/workflows/deploy-api.yml`, `app/default.conf.template`.
 - `info/website-reference/machine-coding/` (PDF lecture material plus `0.Exercises` and `0.MCQ's`) and the rest of `info/` (skim the tree first; do not bulk-read multi-MB files or zips).
