@@ -1,0 +1,47 @@
+Comprehensive Notes on Class Content
+Introduction to UML (Unified Modeling Language)
+UML is a standardized way to represent software engineering concepts like classes, interfaces, relationships, and workflows as diagrams. This shared visual vocabulary allows engineers to understand complex systems at a glance, much like how sheet music allows musicians to play a piece correctly together without prior collaboration .
+
+Types of UML Diagrams
+UML diagrams are generally split into two broad categories:
+
+Structural Diagrams: Describe what the codebase’s structure looks like. Our focus is primarily on class diagrams and schema design.
+Behavioral Diagrams: Describe how the system behaves and flows over time .
+Use Case Diagrams
+A use case diagram provides a high-level view of the system and its interactions with external actors. It identifies user roles, possible actions, and system boundaries. The focus is on what the system does rather than its implementation:
+
+Roles: Different users like students, instructors, and admins can perform specific actions.
+Features and Actions: Identify what actions users can perform and the scope of the system .
+Use case relationships:
+
+Includes: A mandatory sub-step required every time the parent use case is executed.
+Extends: Optional specializations of a general use case .
+Example Analogy:
+In an ATM system, withdrawing cash includes verifying the PIN (mandatory), while printing a receipt extends withdrawing cash (optional) .
+
+Class Diagrams
+Class diagrams represent the static structure of a system by depicting classes, their attributes, and relationships including:
+
+Classes: Represented by rectangles divided into sections for class name, attributes, and methods.
+Visibility Markers: Indicate access levels, such as private -, public +, and protected # .
+Schema Design: From Classes to Tables
+Schema design translates class diagrams into database tables:
+
+Primary Keys (PK): Unique identifiers for each table row.
+Foreign Keys (FK): Establish relationships between tables, residing on the "many" side in one-to-many relationships .
+Common Patterns:
+One-to-Many: Place FK on the "many" side.
+Many-to-Many: Use a junction table to hold FKs for both sides, such as an Enrollment table for Student and Course .
+Relationships: Inheritance vs. Association
+Inheritance (IS-A relationship): Typically represented by a solid line with a hollow triangle arrowhead from subclass to superclass.
+Association (HAS-A relationship): Can be further categorized into aggregation (independent life cycle, hollow diamond) and composition (dependent life cycle, filled diamond). This distinction often requires a judgement call informed by domain-specific requirements .
+Normalization
+Normalization involves organizing database schemas to reduce redundancy and improve data integrity by storing each fact once. This is analogous to the DRY (Don't Repeat Yourself) principle in coding .
+
+AI in Schema Design
+AI can aid in diagnosing schema design flaws, emphasizing the importance of correct schema relationships and normalization without writing the schema itself .
+
+This comprehensive guide covers key aspects of UML diagrams, schema design, and relational database management emphasized during the class. Ensure to delve into each section for a complete understanding and employ these concepts effectively in software engineering projects.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rJe2D3-vMx
+post:  https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/SkJnwnbDzx

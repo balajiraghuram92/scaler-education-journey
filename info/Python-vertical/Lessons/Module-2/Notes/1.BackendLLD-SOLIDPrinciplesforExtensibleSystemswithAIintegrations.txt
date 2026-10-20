@@ -1,0 +1,49 @@
+Revision Notes: SOLID Principles in Software Engineering
+In this class, we discussed the core SOLID principles, which are essential for designing robust, maintainable, and scalable software systems. Below are the comprehensive notes covering each principle that was taught.
+
+1. Single Responsibility Principle (SRP)
+The Single Responsibility Principle states that a class should have only one reason to change, meaning every class should have a single responsibility or purpose 【6:6†typed.md】.
+
+Explanation:
+A class handling multiple responsibilities can lead to fragile designs that are not robust against changes.
+Example:
+If a class is managing both user authentication and data logging, changing one aspect might unintentionally affect the other.
+2. Open/Closed Principle (OCP)
+The Open/Closed Principle asserts that a class should be open for extension but closed for modification .
+
+Explanation:
+New features should be implemented by adding new code, rather than altering existing code, to prevent breaking current functionality.
+Analogy:
+Like adding new pieces to a puzzle without altering the existing ones, ensuring that each piece still fits【6:6†typed.md】.
+3. Liskov Substitution Principle (LSP)
+This principle states that objects of a superclass should be replaceable with objects of a subclass without affecting the proper function of the system .
+
+Explanation:
+A child class should meet the expectations set by the parent class's interface without introducing errors.
+Analogy:
+It's like replacing a broken part of a machine with a compatible new part that fits perfectly without modification .
+4. Interface Segregation Principle (ISP)
+The Interface Segregation Principle suggests that no client should be forced to depend on methods it does not use .
+
+Explanation:
+Large interfaces should be divided into smaller, specific ones so that implementing classes only need to implement the methods that are of interest to them.
+Example:
+Breaking down an interface for Bird into Flyable and Dancable ensures that a class like Penguin only needs to implement Dancable without Flyable【6:6†typed.md】.
+5. Dependency Inversion Principle (DIP)
+The Dependency Inversion Principle recommends that high-level modules should not depend on low-level modules but both should depend on abstractions .
+
+Explanation:
+Instead of a high-level module depending directly on low-level modules, both should rely on a mutual interface or abstraction.
+Types of Dependency Injection:
+Constructor Injection: Passing dependencies via the constructor.
+Analogy:
+Similar to a plug socket where appliances (classes) connect using a common plug type (abstraction)【6:6†typed.md】.
+Additional Observations
+Class Explosion: The issue of having too many classes due to overly granular class designs. It can be avoided by careful interface and behavior design .
+
+Code Maintainability: Code should be designed to accommodate future changes easily, incorporating principles like SRP and OCP to ensure adaptability .
+
+These principles collectively support creating software that is easy to maintain, extend, and adapt without compromising existing system stability and integrity. Understanding and applying SOLID principles is crucial for any software engineer aiming to master object-oriented design.
+
+Pre notes: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/BkThCo_Sfx
+Post notes: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/S1C_Q3_SGe

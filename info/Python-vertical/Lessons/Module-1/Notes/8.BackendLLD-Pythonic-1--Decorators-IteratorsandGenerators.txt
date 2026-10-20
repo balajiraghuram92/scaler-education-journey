@@ -1,0 +1,119 @@
+Lecture Notes on Python Decorators, Iterators, and Generators
+Introduction
+In this session, we covered several key concepts in Python that are essential for writing efficient and elegant code. We explored first-class functions, closures, decorators, and more, all core to the Python programming ethos of simplicity and readability.
+
+First-Class Functions
+Functions in Python are first-class citizens, meaning they can be stored in variables, passed as arguments, and returned from other functions. This concept forms the basis for many advanced features like decorators and callbacks【6:0†source】.
+
+Example:
+
+def greet(name):
+    return f"Hello, {name}"
+
+say_hello = greet
+print(say_hello("Alice"))  # Outputs: Hello, Alice
+Closures
+Closures are functions that remember the environment in which they were created, even after that environment is gone. It's like giving functions a backpack containing variables from their surrounding context.
+
+Example:
+
+def make_multiplier(factor):
+    def multiply(number):
+        return number * factor
+    return multiply
+
+double = make_multiplier(2)
+print(double(10))  # Outputs: 20
+The factor variable is remembered by the multiply function even after make_multiplier has finished executing【6:2†source】.
+
+Decorators
+Decorators allow you to modify the behavior of a function or class method. They essentially "wrap" a function, adding additional functionality before and after the function runs.
+
+Basic Decorator Structure
+def my_decorator(func):
+    def wrapper():
+        print("Before function")
+        func()
+        print("After function")
+    return wrapper
+
+@my_decorator
+def say_hi():
+    print("Hi!")
+
+say_hi()  # Before function, Hi!, After function
+The @my_decorator above say_hi is syntactic sugar for say_hi = my_decorator(say_hi)【6:6†source】.
+
+Decorators with Arguments
+Decorators can also accept arguments by introducing an extra layer of functions.
+
+def repeat(times):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for _ in range(times):
+                func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+@repeat(3)
+def greet():
+    print("Hi!")
+
+greet()  # Prints "Hi!" three times【6:15†source】.
+Stacked Decorators
+Decorators can be stacked, where the order of stacking determines the order of execution. The closest decorator to the function runs last during the execution but is applied first when decorating.
+
+@stars
+@logger
+def greet():
+    print("Hello")
+
+# This is equivalent to greet = stars(logger(greet))
+The stars decorator will be the final decorator to act when the function is called, but it wraps the result of logger(greet) .
+
+Iterators
+An iterator in Python is an object with a defined interface consisting of __iter__() and __next__(). It is the underlying mechanism that powers Python’s for loop.
+
+Example:
+
+class Countdown:
+    def __init__(self, start):
+        self.current = start
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.current <= 0:
+            raise StopIteration
+        self.current -= 1
+        return self.current + 1
+Generators
+Generators simplify the process of creating iterators. They use the yield statement to return data and maintain state between iterations, which is more memory efficient than creating a complete list.
+
+Example:
+
+def countdown(start):
+    while start > 0:
+        yield start
+        start -= 1
+
+for n in countdown(3):
+    print(n)  # Outputs: 3, 2, 1
+When the generator function is called, it doesn’t execute immediately. Instead, it returns a generator object that supports the iterator protocol【6:12†source】.
+
+Memory Efficiency of Generators
+Generators do not store their contents in memory; they generate items on the fly, making them much more memory-efficient compared to lists.
+
+import sys
+
+nums_list = [i for i in range(10**6)]
+nums_gen = (i for i in range(10**6))
+
+print(sys.getsizeof(nums_list))  # Outputs a large memory size
+print(sys.getsizeof(nums_gen))   # Outputs a small memory size【6:12†source】.
+Conclusion
+In this session, you learned the power of first-class functions, the subtlety of closures, the flexibility of decorators, and the efficiency of iterators and generators. These tools are integral for writing clean, Pythonic code. As homework, try creating a @count_calls decorator that counts how many times a function is called!
+
+Pre Lecture notes: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/BktBocVHzx
+Post Lecture notes: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/r14qs9Nrfe

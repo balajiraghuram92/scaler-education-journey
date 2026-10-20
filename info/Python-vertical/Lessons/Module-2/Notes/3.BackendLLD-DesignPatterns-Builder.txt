@@ -1,0 +1,37 @@
+Comprehensive Revision Notes on the Builder Design Pattern Class
+Introduction to the Builder Design Pattern
+The Builder design pattern is one of the creational patterns. It addresses the issue of constructing complex objects step-by-step in a clean, readable manner. This pattern is especially useful when a class has numerous optional or mandatory attributes that can make the constructor unwieldy and error-prone to use.
+
+Problem Statement
+When dealing with classes that have many attributes, such as a Student class with fields like name, age, grade, batch, ID number, university name, graduation year, and phone number, the constructor becomes cumbersome. It requires all fields be passed simultaneously, which isn't always possible or desirable .
+
+Builder Pattern Step-by-Step
+Simplified Construction: Initially, objects were constructed with lengthy constructors needing all attributes at once. This posed a readability and maintainability challenge .
+
+Approach with a Helper Class:
+
+Usage of a Helper class to set values gradually and then pass it to the Student constructor helped segregate attribute management from object initialization and allowed validation during construction .
+However, this led to the question of whether the Helper was merely for storage or should assist in building .
+Introducing the Builder:
+
+The Builder pattern allows for gradual construction and logical grouping of attribute settings. The Builder collects values first, which are then validated and used for constructing the object .
+Fluent Interface with Method Chaining:
+
+By returning self in setter methods, a fluent interface is established, allowing chaining of method calls to set attribute values in a clear and logically readable sequence .
+Static Methods for Discoverability:
+
+Utilizing a static method Student.get_builder() allows clients to begin building without directly handling the Builder, making the design pattern more user-friendly and intuitive .
+Validation Logic:
+
+Validation logic is encapsulated within the constructor of the Student class to prevent creation of invalid objects. This enhances safety and ensures business rules are enforced .
+Design Improvements:
+
+The Builder pattern not only simplifies object creation but also isolates concerns. Builder performs validation and object creation, enabling a separation of responsibilities, enhancing code readability and maintenance .
+Immutability and slots:
+
+Use of __slots__ prevents dynamically adding attributes to objects, which catches typos or incorrect assignments early in the process .
+Conclusion
+By utilizing the Builder pattern, complex object creation processes become more manageable and flexible. While initially more complex to set up, the result is a codebase that is easier to read, maintain, and extend. This pattern particularly shines in applications where objects are not always created with full data sets at a single point in time.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/r1RNSvkLGx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rkWxBvyIMe

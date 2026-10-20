@@ -1,0 +1,53 @@
+Revision Notes: Library Management System Class
+Overview of the Session
+In this session, we built a mini library management system. The focus was on object-oriented programming concepts in Python, including class design, inheritance, abstract classes, and more. The main task was to identify system entities such as users and books and manage interactions like borrowing and returning books.
+
+Key Concepts Discussed
+Entities in the System
+Books: We have two types of books – Textbook and Novel. Both inherit from a parent Book class.
+Users: There are two types of users – Members and Librarians.
+Loans: Represent the relationship between books and members, tracking who borrowed what and when it is due.
+Library: Contains records of books and users. Could also contain other functionalities like search, catalog management, etc.
+Class Design and Implementation
+User Class
+Attributes:
+
+id: Unique identifier for each user.
+total_users: Class attribute to maintain the total count of users.
+Methods:
+
+Constructor: Initializes the user and assigns a unique ID using a class attribute counter.
+Display Info: Method for displaying user information (abstract in superclass).
+Member and Librarian Classes
+Inherit from the User class and implement specific methods like:
+
+Borrow Book: Allows a member to borrow a book if the borrowing count is below the limit (5 books for members).
+Display Dashboard: Shows specific information relevant to the type of user (e.g., borrowed book count for members, employee number for librarians).
+Book Class
+Attributes:
+
+title, author, and is_available (defaulted to True).
+Methods:
+
+Borrow: Checks if the book is available and if the member can borrow more books.
+Return Book: Marks the book as available again.
+Inheritance and Abstract Classes
+The User class is an abstract class implementing some abstract methods like display_info and borrow_book.
+Member and Librarian subclasses must provide implementations for these methods which define specific logic according to their roles.
+Advanced Concepts
+Abstract Base Class (ABC)
+Enforced contracts between classes using 'abstractmethod' decorator to ensure subclasses like Member and Librarian implement their own method logic.
+Duck Typing
+Discussed how Python allows for a more dynamic form of typing that checks for method implementation rather than inheritance, which is flexible but less safe.
+Class and Instance Attributes
+Discussion over class attributes (like user count, unique ID counter) shared across all instances of a class versus instance attributes specific to each object of the class.
+Protocols and Mixins
+Introduced the concept of protocols for structural typing in Python, allowing third-party class implementations without needing to subclass.
+Practical Coding Experience
+Participants were engaged in a lab session where they actively wrote and tested Python code to practice these concepts live. This included creating classes, defining and using methods, implementing abstract methods and duck typing, and role-based conditions for borrowing and lending items. Participants gained hands-on experience in implementing and understanding class relationships and static and dynamic typing.
+
+Conclusion
+This session provided a comprehensive overview of designing a simple system using object-oriented principles in Python. It involved creating a practical application while understanding how to manage and enforce class behavior and structure through Python's dynamic capabilities.
+
+Pre Lecture Notes: https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/SJ-5vedDEGl
+Post Lecture Notes: https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/r1qPx_wNze

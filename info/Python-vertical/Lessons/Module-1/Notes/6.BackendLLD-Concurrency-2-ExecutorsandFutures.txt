@@ -1,0 +1,58 @@
+Concurrency in Python: Executors and Futures
+Introduction to Executors and Futures
+In this session, we focused on the concepts of "Executors" and "Futures" within the Python concurrent.futures module, ensuring detailed understanding of threading versus multiprocessing and how to leverage these for concurrent execution of tasks. The goal was to provide learners with the tools necessary to handle CPU-bound and I/O-bound tasks efficiently using a high-level API.
+
+Key Concepts Discussed
+1. Executors
+Executors provide a higher-level abstraction over pooling mechanisms for managing asynchronous task execution. The two main types discussed are:
+
+ThreadPoolExecutor: Suitable for I/O-bound tasks. It allows you to run multiple function calls asynchronously, using threads, which is beneficial for operations like network calls or database queries that can be performed concurrently. This executor is preferred for tasks where the bottleneck is waiting on I/O rather than CPU processing .
+
+ProcessPoolExecutor: Ideal for CPU-bound tasks. It allows tasks to be executed in separate processes, sidestepping the Global Interpreter Lock (GIL) in Python. Each process runs on a separate CPU core, which makes this executor well-suited for tasks that require parallel execution of heavy computations .
+
+2. Futures
+A "Future" is an object that represents the result of an asynchronous computation. Futures are particularly useful because they allow you to check the state of your task and obtain the result once it has finished:
+
+.submit() returns a Future object immediately, providing a handle to the executing task .
+.done() allows you to check if the task has been completed, returning a boolean .
+.result() blocks and waits for the task to complete, returning the task's output. If the task raised an exception, it will be raised when .result() is called .
+3. Use Cases and Performance
+I/O-Bound Tasks
+For tasks like web scraping, where the primary limitation is the waiting time for I/O operations (such as network requests), using a ThreadPoolExecutor is more efficient. This approach allows multiple tasks to "wait" at the same time, leveraging concurrent execution to reduce waiting time in total .
+
+Example:
+
+from concurrent.futures import ThreadPoolExecutor
+
+def fetch_page(url):
+    response = requests.get(url, timeout=5)
+    return f"{url} -> {len(response.content)} bytes"
+
+with ThreadPoolExecutor(max_workers=5) as executor:
+    results = list(executor.map(fetch_page, urls))
+I/O-bound work essentially allows you to fill CPU "waiting" time doing useful work from other tasks, effectively overlapping I/O wait time.
+
+CPU-Bound Tasks
+In contrast, CPU-bound tasks benefit more from a ProcessPoolExecutor due to the GIL. Heavy computational tasks can fully utilize multiple cores by running in separate processes.
+
+Example:
+
+from concurrent.futures import ProcessPoolExecutor
+
+def cpu_heavy_computation():
+    return sum(i * i for i in range(1000000))
+
+with ProcessPoolExecutor(max_workers=4) as executor:
+    results = list(executor.map(cpu_heavy_computation, range(10)))
+This approach makes each process run on its own core, thereby offering a substantial performance boost for such tasks 【4:6†transcript.txt】.
+
+Important Points and Analogies
+Understanding GIL: The Global Interpreter Lock (GIL) allows only one thread to execute Python bytecode at a time. Thus, in multi-threaded programs, only one thread can run at once. This makes ThreadPoolExecutor unsuitable for CPU-intensive operations but excellent for I/O-bound operations .
+
+Analogy: The executor and future model can be compared to ordering food at a restaurant - you place your order (submit a task), receive a token (a Future), and either wait for your food to be prepared (task completion) or check periodically if it's ready (task status) .
+
+Conclusion
+The session reinforced the understanding of when and how to pick between ThreadPoolExecutor and ProcessPoolExecutor by comparing the differences through practical examples. Learners are encouraged to experiment with these concepts by scaling tasks and comparing performance across different setups. The next session will delve deeper into issues like shared-state interference and proper management using locks and other concurrency primitives .
+
+Pre Lecture Notes: https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/SJg8q-X0Ezg
+Post Lecture Notes: https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/r18qZQ0Vfl

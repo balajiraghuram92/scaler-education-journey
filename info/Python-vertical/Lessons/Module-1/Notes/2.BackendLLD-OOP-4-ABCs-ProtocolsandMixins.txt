@@ -1,0 +1,74 @@
+Revision Notes: Mixins, Multiple Inheritance, ABC, and Protocols in Python
+Introduction to Multiple Inheritance
+Multiple inheritance refers to the capability of a class in Python to inherit from more than one base class. This is pivotal when designing systems that need to integrate distinct functionalities from different parent hierarchies.
+
+Diamond Problem
+The Diamond Problem is a famous issue in computer science, particularly in languages supporting multiple inheritance like Python. It arises when a class inherits from two classes that have a common base class.
+Python addresses this problem using Method Resolution Order (MRO) with the help of C3 linearization, ensuring a clear path is followed when executing methods from multiple inherited classes.
+Method Resolution Order (MRO)
+MRO is used to determine the order in which classes should be considered to avoid the ambiguity inherent in multiple inheritance scenarios. In Python, the order can be inspected using the __mro__ attribute .
+Mixins in Python
+What are Mixins?
+A Mixin is a small class that provides additional functionality to other classes through inheritance, without being a standalone entity on its own .
+They are frequently used to incorporate side-capabilities such as logging, serialization (to JSON), etc., without affecting the primary business logic or the identity of the class they enhance .
+Example: Logging and Serialization Mixins
+LoggingMixin: Adds logging capabilities to classes. It leverages the Python logging module to log various messages .
+
+import logging
+
+class LoggingMixin:
+    def get_logger(self):
+        return logging.getLogger(self.__class__.__name__)
+
+    def log_info(self, message):
+        self.get_logger().info(f"[{self.__class__.__name__}] {message}")
+
+    def log_error(self, message):
+        self.get_logger().error(f"[{self.__class__.__name__}] {message}")
+SerializationMixin: Converts object data to JSON format using the json module .
+
+import json
+
+class SerializationMixin:
+    def to_dict(self):
+        return {key: value for key, value in self.__dict__.items() if not key.startswith('_')}
+
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=2)
+Abstract Base Classes (ABCs) and Protocols
+Abstract Base Classes (ABC)
+ABCs provide a framework for defining abstract classes in Python. They enforce that derived classes implement certain methods, setting a contract that must be adhered to.
+Classes that inherit from an ABC must implement the abstract methods defined in the base class .
+Protocols and Structural Subtyping
+Protocols provide a more flexible alternative to ABCs by checking the shape of an object rather than its position in the class hierarchy.
+Protocols define expected methods and attributes, allowing any class fulfilling those contracts to be used without explicit inheritance .
+Practical Application
+Combining both ABCs and Protocols allows for robust design patterns in Python, particularly useful when dealing with systems requiring strict contracts for internal components and flexible interfaces for external integrations .
+Examples in Python
+Multiple Inheritance with Mixins
+You can create a Car class that borrows features like logging and serialization through mixins while also being a Vehicle .
+
+class Car(LoggingMixin, SerializationMixin, Vehicle):
+    def __init__(self, registration_number, num_seats):
+        super().__init__(registration_number)
+        self.num_seats = num_seats
+
+    def calculate_fare(self, distance_km):
+        self.log_info(f"Calculating fare for {distance_km} km")
+        fare = 15 * distance_km
+        self.log_info(f"Fare: ₹{fare}")
+        return fare
+Protocols Example
+Using Protocols to check capabilities at runtime rather than inheritance .
+
+from typing import Protocol
+
+class Notifiable(Protocol):
+    def send(self, user, message) -> None:
+        ...
+This approach is perfect for integrating with third-party libraries where classes may not inherit from your base class directly.
+
+In conclusion, the usage of mixins, ABCs, and protocols offers a flexible and powerful way to structure software, allowing Python developers to handle complexity and build extensible systems effectively.
+
+Pre notes=> https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/r1lyftvTmMe
+post notes=> https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/HJgaJZCXfl

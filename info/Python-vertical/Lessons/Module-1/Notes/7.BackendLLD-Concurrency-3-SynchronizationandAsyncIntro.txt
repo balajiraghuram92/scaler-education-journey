@@ -1,0 +1,79 @@
+Revision Notes for Concurrency in Python: Synchronization and Asynchronous Programming
+Overview
+This class covered the concepts of threading, synchronization using locks, conditions, and semaphores and introduced asynchronous programming using async and await. Key emphases were laid on understanding race conditions, the role of synchronization primitives, and the efficient handling of tasks with asynchronous methods【6:7†transcript.txt】【6:12†transcript.txt】.
+
+Key Concepts
+1. Threading in Python
+Race Conditions: Occur when multiple threads/processes access and modify shared data simultaneously. This can result in inconsistent data states. An analogy provided was a bank scenario where two people simultaneously update a bank balance leading to incorrect final states due to non-atomic operations【6:4†transcript.txt】.
+
+Locks and RLocks:
+
+Lock: A basic synchronization primitive that allows only one thread to access the shared resource at any given time, analogous to a key for a locked room【6:6†transcript.txt】.
+RLock: A reentrant lock that allows a thread that holds the lock to re-acquire it without blocking itself【6:4†transcript.txt】.
+Semaphore: A synchronization primitive that maintains a counter to control access to a shared resource over multiple processes. A counting semaphore could be used for pooled resource like connection limits【6:14†transcript.txt】.
+
+2. Producer-Consumer Problem
+Synchronization Constructs:
+Locks and Conditions are used to manage the producer-consumer model to prevent race conditions when adding or removing items from a shared buffer【6:16†typed.md】.
+Queue simplifies the producer-consumer problem by handling synchronization internally, allowing for a FIFO queue to manage tasks without manually handling locks and conditions【6:11†transcript.txt】.
+3. Asynchronous Programming
+Basic Concepts:
+
+Async Functions: Functions defined using async def that allows for pausing and resuming, facilitating non-blocking operations【6:5†transcript.txt】【6:13†transcript.txt】.
+Coroutines: Special functions that can pause their execution (await) to allow other coroutines to run. They enable efficient use of resources by freeing up the event loop while waiting on operations like I/O【6:5†transcript.txt】【6:17†transcript.txt】.
+Advantages of Async over Threads:
+
+Reduces memory usage and context-switching time by using a single thread to manage multiple tasks unlike multiple threads where each requires its own stack and incurs overhead due to context switching【6:7†transcript.txt】【6:15†transcript.txt】.
+Event Loop: The core of asyncio, it schedules coroutines and manages their execution flow. asyncio.run() can start the event loop and execute multiple tasks concurrently【6:18†transcript.txt】.
+
+Practical Examples and Exercises
+A practical demonstration was made on handling the producer-consumer problem using both a hand-rolled solution with locks and conditions and a more efficient solution with queues【6:16†typed.md】.
+Students were encouraged to experiment with threads and async tasks using provided code snippets to solidify understanding and witness the behavior first-hand【6:19†transcript.txt】.
+Code Examples:
+Synchronous Producer-Consumer with Locks and Conditions
+import threading, time
+
+buffer = []
+lock = threading.Lock()
+condition = threading.Condition(lock)
+
+def producer():
+    for i in range(5):
+        with condition:
+            buffer.append(i)
+            print(f"Produced {i}")
+            condition.notify()
+        time.sleep(0.1)
+
+def consumer():
+    for _ in range(5):
+        with condition:
+            while not buffer:
+                condition.wait()
+            item = buffer.pop(0)
+            print(f"Consumed {item}")
+
+threading.Thread(target=producer).start()
+threading.Thread(target=consumer).start()
+Asynchronous Example
+import asyncio
+
+async def fetch(name):
+    print(f"{name}: start")
+    await asyncio.sleep(1)          # simulate a blocking call
+    print(f"{name}: done")
+
+async def main():
+    await asyncio.gather(
+        fetch("A"),
+        fetch("B"),
+        fetch("C"),
+    )
+
+asyncio.run(main())
+Conclusion
+This session emphasized the importance of understanding and correctly employing synchronization techniques and async programming to efficiently manage concurrent executions in software applications. By leveraging async programming, developers can mitigate the challenges presented by threading and optimize resource usage for large-scale systems【6:9†typed.md】【6:19†transcript.txt】.
+
+
+Pre Lecture notes: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rJYovAgrGl
+Post Lecture notes: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/HkCydClHMe

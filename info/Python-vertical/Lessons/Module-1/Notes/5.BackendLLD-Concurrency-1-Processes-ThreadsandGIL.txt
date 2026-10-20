@@ -1,0 +1,41 @@
+Revision Notes: Concurrency, Threads, and Parallelism in Python
+Introduction to Concurrency
+Concurrency allows a computer to handle multiple tasks at once. This is crucial in improving performance, especially when tasks involve a lot of idle time waiting for external resources. There are two main concepts related to executing multiple tasks simultaneously:
+
+Concurrency: This is like multitasking, where the system rapidly switches between tasks, giving the illusion that they are happening at the same time. This approach is practical for tasks that involve waiting (I/O-bound tasks), where the task can pause and switch to another during its waiting period.
+
+Parallelism: This involves performing multiple tasks at exactly the same time, which is truly executing them simultaneously, often requiring multiple cores or CPUs【6:3†transcript.txt】【6:9†transcript.txt】.
+
+Understanding Threads
+Definition and Creation
+A thread is a path of execution within a process. A process can contain multiple threads, which share the same memory space but can run independently.
+Threads in Python are created using the threading.Thread class. To create a thread, specify the target function and its arguments:
+import threading
+
+def my_function(arg):
+    print(arg)
+
+t1 = threading.Thread(target=my_function, args=(10,))
+t1.start()
+t1.join()
+The start() method begins a thread's activity, and join() ensures the main program waits for the thread to complete【6:0†transcript.txt】【6:10†transcript.txt】.
+The GIL (Global Interpreter Lock)
+GIL is a mutex that protects access to Python objects, preventing multiple native threads from executing Python bytecodes at once【6:11†transcript.txt】.
+It ensures that only one thread executes Python code at a time, which means Python can't fully utilize multiple CPU cores for heavy computations【6:10†transcript.txt】.
+Thread Safety and Race Conditions
+Thread safety: Ensuring that shared data is accessed by only one thread at a time to prevent inconsistencies.
+Race condition: Occurs when two or more threads attempt to modify shared data at the same time, leading to unpredictable results.
+Using locks can help prevent race conditions by ensuring that only one thread can access the critical section of code at any one time【6:7†transcript.txt】【6:14†transcript.txt】.
+CPU-bound vs I/O-bound
+CPU-bound tasks involve heavy computation and benefit little from threading due to the GIL. Here, using the multiprocessing module, which allows for parallel execution by using separate memory spaces for each process, is preferable【6:14†transcript.txt】【6:15†transcript.txt】.
+
+I/O-bound tasks: Involve waiting for external resources, such as file I/O, network requests, or database queries. Threading can be very beneficial here, as the GIL is released during I/O wait times, allowing other threads to run【6:19†transcript.txt】.
+
+Multiprocessing
+The multiprocessing module offers both local and remote concurrency by using subprocesses instead of threads, effectively sidestepping the GIL. Thus, it is suitable for CPU-bound tasks.
+This module can be used to create a Process for computation-intensive tasks ensuring they can run truly parallel on multiple cores【6:19†transcript.txt】.
+Conclusion
+Understanding and correctly applying threading and multiprocessing is crucial in Python for optimizing application performance. Threads are suited for I/O-bound tasks, exploiting the GIL's limitations, whereas multiprocessing is better for CPU-bound tasks, where true parallel execution is required.
+
+Pre Lecture notes: https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/HJxsTPiEfl
+Post Lecture notes: https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/ry4w6wj4fg

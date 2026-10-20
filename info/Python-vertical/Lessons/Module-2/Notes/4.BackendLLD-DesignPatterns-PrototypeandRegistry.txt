@@ -1,0 +1,44 @@
+Comprehensive Notes on Prototype and Registry Design Patterns
+Overview
+In this session, we tackled the complexity of object duplication in software engineering using the Prototype Design Pattern. This pattern facilitates copying existing objects (prototypes) to create new instances that can be customized with minimal effort. We also discussed the Registry Design Pattern, which complements the Prototype by providing a way to manage and store templates for easy retrieval and cloning.
+
+Prototype Design Pattern
+Problem Statement
+Manual Field Copying: Initially, objects were manually copied by replicating each field individually, which posed issues like tight coupling, risk of missing fields, and maintenance complexity .
+Core Solution
+Prototype Pattern: This pattern involves defining a common method, clone(), for all classes needing duplication. This method is responsible for creating a near-exact copy of the object, while ensuring that the object owns its copying logic, thus improving encapsulation and reducing code duplication .
+Key Concepts
+Responsibilities within Class: The logic to duplicate an object should reside within the object itself, eliminating the need for external code to understand or access private fields. This encapsulation solves multiple problems at once, including coupling, encapsulation, and dependency issues .
+
+Subclass Responsibility: Each subclass must override its own clone() method to ensure additional fields introduced in the subclass are handled correctly. Failing to do so results in the parent's clone logic being executed and potentially significant data being lost silently .
+
+Handling Mutable Fields: Special attention is required for mutable fields, such as lists or dictionaries, which must be deeply copied to avoid shared references that could lead to unexpected behavior .
+
+Example
+Consider a class, VMInstance, representing virtual machine configurations with attributes like OS, runtime, etc. The clone() method returns a new instance with identical configurations, ensuring modifications to the clone do not impact the original .
+
+Registry Design Pattern
+Purpose
+Storing and Retrieving Templates: The Registry pattern serves as a repository for storing pre-configured template instances, allowing various parts of a codebase to retrieve and clone these instances without reconfiguring them from scratch .
+Implementation
+Basic Structure: Utilizes a dictionary to map keys to instances, where methods like register() and get() allow templates to be registered and retrieved efficiently .
+
+Concurrency Considerations: In environments with potentially concurrent access (multi-threading), additional mechanisms such as locks are necessary to prevent race conditions during template retrieval and registration .
+
+Usage Scenario
+Imagine you have pre-defined VM images for different server types in a cloud infrastructure. These images are stored in a registry, where they can be cloned to create instance-specific configurations, like hostnames and IP addresses, without altering the base images .
+
+Analogies and Real-World Use Cases
+VM Image Cloning: Just as virtual machines are often created by cloning a base image, prototypes in software serve as a template that skips the redundant setup processes, focusing only on the necessary customizations .
+
+Game Development: Using prototypes to spawn game characters based on pre-configured templates ensures efficient resource management and consistency across clones .
+
+Conclusion
+Combining Prototype and Registry patterns mitigates the complexity of object instantiation and configuration by promoting reuse and reducing the chance of errors introduced through manual copying. These patterns, while simple, can greatly enhance the maintainability and scalability of software systems by enforcing clear boundaries and responsibilities.
+
+The session focused on understanding these patterns’ foundational principles and their practical implications, preparing learners to apply these concepts to real-world problems.
+
+These notes cover the key topics discussed in the session and are intended to consolidate your understanding of the Prototype and Registry design patterns.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/B1cd2H8Uzx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/BJ6jnSULfl

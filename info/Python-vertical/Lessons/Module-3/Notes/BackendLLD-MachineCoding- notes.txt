@@ -1,0 +1,908 @@
+Lesson 1:
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rkKh2PtDMl
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/ByL2hwFDMe
+
+
+Lesson 2:
+Comprehensive Revision Notes: TicTacToe Game Development
+Overview
+This class explored the design and implementation of a TicTacToe game, focusing on key areas such as developing winning strategies, implementing an undo feature, creating a class diagram, and applying design patterns. We started with understanding the problem framework, moved through optimizing the game logic and concluded with the structural setup for the game code.
+
+Understanding the Game Framework
+Overview and Alignment
+Overview Stage: Establishing a shared understanding of the problem with the interviewer is critical to ensure alignment and avoid confusion. It includes clarifying:
+System interactions: CLI, GUI, or entity-based.
+Data persistence requirements.
+Game Requirements
+Grid: Dynamic or constant, typically n x n.
+Players:
+Each player has a unique symbol decided at game start.
+Possibility of bot players with varying difficulties.
+Game Flow:
+Random selection for which player starts.
+User-defined winning strategies: row-wise, column-wise, or diagonal-wise.
+Additional considerations: tournament settings, leaderboards, and time per move were mentioned but not implemented.
+Developing Winning Strategies
+Basic Concept
+Determine the game outcome by checking if a player has a complete row, column, or diagonal.
+Draw Condition: Occurs when the grid has no further moves.
+Initial Approach
+Brute Force: Check each row, column, and diagonal after every move for a win:
+Iterate over all players and all grid lines to see if any line is fully filled by a player's symbol.
+Time Complexity: O(n³), not efficient.
+Optimized Approaches
+Optimize Checks:
+Only check the player who made the last move if they won.
+Only check the specific row, column, and diagonals linked to the last move's position.
+Running Count Approach:
+Maintain counts of player symbols in each row, column, and diagonals.
+Adjust counts with each move and check these counts for a win.
+Perform these checks in O(1) time complexity by using state arrays.
+Implementing Undo Functionality
+Concepts
+Stack-Based Approach: Maintain a stack of moves to facilitate undoing a move.
+State Tracking: Record the board's state after each move, allowing restoration when undo is requested.
+Features of Undo
+Restore the previous state upon undo request.
+Update the board and player turn accordingly.
+Class Diagram and Design Patterns
+Class Components
+Game Core:
+Board: Holds grid details.
+Players: Human and Bot, differentiated by strategy patterns.
+Moves: Knowledge of move history.
+Mechanics:
+Winning Strategies stored as strategies.
+Game State enum: To manage the game's current status.
+Design Patterns Used
+Strategy Pattern: Used for implementing the flexible winning conditions and bot playing levels.
+Builder Pattern: To construct and validate the game setup.
+Factory Pattern: To create player instances based on type (Human/Bot).
+Example: Winning Strategy Optimization
+Example Scenario
+Suppose a player moves to (2, 2) on a 3x3 grid:
+Check row 2, column 2, and both diagonals for a win.
+Update the corresponding counters, allowing for an O(1) check for complete lines.
+Analogies
+Treat the game as a series of DSA problems, optimizing both time and space complexity by balancing between in-memory calculations and pre-stored states.
+Conclusion
+This session provided a deep dive into structuring a TicTacToe game efficiently through strategic use of algorithms and design patterns. The emphasis was on reducing complexity from O(n³) to O(1) for critical operations like determining a winner, alongside implementing user-friendly features like undo. Applying strategy and builder patterns allows flexibility and scalability, ensuring that the game design is adaptable to different configurations and expansions.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/Syc4QFTvzx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rJ23QYawMl
+
+Lesson 3:
+
+Comprehensive Revision Notes: Machine Coding of Tic-Tac-Toe
+Overview
+In this class, learners were introduced to the process of machine coding through the example of building a Tic-Tac-Toe game. The session focused on applying object-oriented principles, design patterns, and coding habits suitable for software engineering interviews. Key areas covered included setting up a project scaffold, implementing game logic, and employing design patterns like Builder and Strategy to manage complexities within the code.
+
+What is a Machine Coding Round?
+Definition: A coding round where you turn a problem statement into a running, readable, object-oriented piece of code.
+Key Objective: To demonstrate understanding of object-oriented design and coding principles within a fixed timeframe (90-120 minutes).
+Process: Start with smaller components (enums, models) and build up to more complex integration (game controllers, bots).
+Setting Up the Project
+Packages: Organize your code into clearly defined packages such as models, strategies, controllers, and exceptions.
+Hierarchy: Most leaves (enums) are coded first; integrative node objects like Game and Controller are completed last.
+Enums: Use enums for fixed choices like CellState and GameState to improve readability and reduce brittleness.
+Game Design Components
+Game Model and Board
+Board: Represented as a grid of Cell objects, each with attributes like row, column, and cell state.
+GameState: Tracks the overall state of the game (e.g., IN_PROGRESS, ENDED, DRAW).
+Players and Moves
+Player Class: Implementation for human player inputs and bot behaviors via subclasses.
+Move Class: Encapsulates a player action by associating a player and a specific cell on the board.
+Winning Strategies
+Strategies: Use the Strategy design pattern to encapsulate game-winning logic in separate classes.
+Row, Column, Diagonal: Each winning strategy focuses on one aspect of the board and validates through optimized O(1) operations using running counts.
+Coding a Bot
+Bot Class: Inherits from the Player class with overridden methods for deciding moves based on the associated BotPlayingStrategy.
+Bot Strategies:
+Easy Strategy: Selects the first available empty cell.
+Medium and Hard Strategies: These remain stubs or are more complex (AI-assisted).
+Game Orchestration with Controllers
+GameController: Manages game progression by delegating tasks to the appropriate game components.
+Start and Manage Game: Implements a seamless loop for game interaction, printing, and decision-making to handle moves and recognize winning/draw conditions.
+Implementing Builder Design Pattern
+Builder Pattern: Used for Game object creation to ensure all configurations are valid before instantiation, providing a clear separation between construction and representation.
+Example Code Snippet
+class Player:
+    def __init__(self, name, symbol):
+        self.name = name
+        self.symbol = symbol
+
+class Move:
+    def __init__(self, player, cell):
+        self.player = player
+        self.cell = cell
+Analogies
+Chess Game Analogy for Design Patterns
+Comparing the code's design patterns to a chess game strategy—players do not directly manipulate the board but move through defined strategies with game control outside individual pieces.
+
+Conclusion
+This class illustrated the process of methodically building a Tic-Tac-Toe game from complex objects down to a simple and running Python script. Deep exploration into design patterns, code structure, and separation of concerns aligned with industry standards, emphasizing the importance of writing maintainable and expandable code in a timed coding interview context.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/Hyzt1S4Ofg
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/ryIKkSV_zl
+
+
+Lesson 4:
+
+Comprehensive Revision Notes: Parking Lot System Design
+Overview
+The class focused on designing a Parking Lot System, highlighting the key concepts necessary for software engineers to architect such a system. The session walked through the initial problem statement, requirements gathering, user journey, class diagram creation, and schema design. It included interactive discussions on how to handle dynamic challenges such as spot allocation and fee calculation, with insights into using design patterns like Strategy and Builder.
+
+Problem Definition: Step Zero
+Task: Design a Parking Lot System.
+Objective: Establish initial alignment with the interviewer and clarify basic assumptions.
+Important Aspects:
+Multi-story, multi-vehicle type support.
+Entry through gates with ticket issuance.
+Fee calculation and payment at exit.
+Spot must be made available immediately after vehicle exit.
+Requirement Gathering: Step One
+Process
+Alignment: Ensure mutual understanding of the problem statement.
+Determine System Requirements:
+Multiple Floors: Must support more than one level of parking.
+Vehicle-Type Specific Spots: Exact matching for vehicle types like cars, bikes, and trucks.
+Entry and Exit Gates: Must handle vehicle entry, issue tickets, and facilitate exit and payment.
+Dynamic Fee Calculation: Fees must adapt based on factors like vehicle type and parking duration.
+MVP (Minimum Viable Product)
+Features critical for the system's basic functionality.
+Avoid complex, non-essential features for initial implementation.
+User Journey
+Steps:
+Vehicle enters through an entry gate.
+Ticket issued and a parking spot assigned.
+In-system storage of vehicle entry details.
+Upon exit, fee calculated, payment processed, and spot made available.
+Class Diagram Design
+Key Classes and Responsibilities
+ParkingLot: Manages floors, gates, and strategy patterns.
+ParkingFloor: Represents a single level within the parking lot.
+Gate: Handles entry and exit logistics.
+ParkingSpot: Holds information about individual parking spots.
+Vehicle: Stores relevant vehicle details.
+Operator: Personnel responsible for managing the gates.
+Ticket: Proof of parking, linking vehicle and spot details.
+Bill: Generated on exit, includes amount and payment details.
+Payment: Details on transaction methods and statuses.
+Design Patterns Used
+Strategy Pattern:
+
+Fee Calculation: Adapt based on different scenarios.
+Spot Assignment: Change between automatic allocation and user-choice.
+Builder Pattern: Construct ParkingLot with essential checks for components like floors and gates.
+
+Schema Design
+Class-Converted Tables: Each class corresponds to a specific table.
+Handling Relationships:
+1:M relationships handled by placing foreign keys on the "many" side.
+Enum fields given separate lookup tables for flexibility and future-proofing.
+Conclusion
+The discussion detailed the Parking Lot System design process, emphasizing the importance of initial requirement alignment, careful planning of user journeys, and strategy patterns to ensure flexibility in spot allocation and fee calculation. By focusing on structured design and anticipating potential real-world issues, participants learned how a well-architected system forms the backbone of effective software solutions. This design approach helps streamline parking management operations and can be adapted to different contexts. The class set the foundation for coding implementations in subsequent sessions, where concurrency and real-time challenges, such as entry-exit conflicts, will be addressed.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/H1K9T5U_fx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/ByXSRqIOzl
+
+
+Lesson 5:
+
+Comprehensive Revision Notes: Low-Level Design (LLD) Foundations
+Overview
+This class focused on the fundamental components of Low-Level Design (LLD) in software engineering, emphasizing the importance of structuring code through distinct sections such as models, controllers, and data transfer objects (DTOs). We discussed practical examples and analogies to solidify the concepts of organizing and structuring software projects, particularly in the context of object-oriented design.
+
+Models
+Models represent the core entities within a system we design. They encapsulate the data attributes and behaviors relevant to these entities.
+
+Models: Represent entities in the system. Each entity identified results in a class creation.
+Class Diagrams: Help identify the entities and their relationships, which become classes in the code.
+Steps to Define Models
+Identify Entities: Use class diagrams to determine entities.
+Create Classes: Each entity becomes a class with attributes and methods.
+Attributes: Include necessary fields (e.g., ID, name) as part of your class design.
+Inheritance in Schema:
+Use parent tables for common attributes and child tables for specific ones to avoid redundancy.
+Example: Pen Class Inheritance
+Pen (Parent)
+   ├── BallPen (Child)
+   └── GelPen (Child)
+Pen: Has common attributes such as brand, name, price.
+BallPen and GelPen: Contain specific attributes (e.g., ink type for GelPen).
+Controllers
+Controllers act as intermediaries between models and views, handling input, processing requests, and returning responses.
+
+Purpose: They are the entry points of the application, handling requests.
+Analogy: A controller is like a hotel reception desk; it facilitates communication without performing the core tasks.
+Responsibilities
+Receive Requests: Handle incoming requests.
+Delegate Work: Pass tasks to models or services for processing.
+Return Responses: Collect data from models/services and send back a response.
+Example Code Snippet
+class TicketController:
+    def issue_ticket(self, request: IssueTicketRequestDTO) -> IssueTicketResponseDTO:
+        ...
+        return response_dto
+Data Transfer Objects (DTOs)
+DTOs are simple objects used to transfer data between processes or layers in an application.
+
+Request DTOs: Encapsulate data coming from the client.
+Response DTOs: Encapsulate data sent back to the client.
+Purpose: Ensure only necessary information is shared outside the service.
+Benefits
+Decoupling: Keeps controllers simple and decouples request/response from actual code logic.
+Security: Limits the exposure of internal attributes.
+Analogies
+Controller Analogy
+Controllers as Reception Desks:
+
+Function: Controllers are like reception desks at a hotel. They manage requests (e.g., booking a room) but do not perform the actual task (e.g., cleaning a room or cooking food). This analogy emphasizes their role in processing requests and delegating to the appropriate service, much like a receptionist delegates tasks to hotel staff.
+Example: Handling Inheritance
+We covered inheritance in database schemas to optimize querying, ensuring common attributes reside in parent tables to prevent redundancy and complex queries involving unions.
+
+Conclusion
+Understanding the structuring of code using models, controllers, and DTOs is crucial for building maintainable and scalable software systems. These concepts help streamline processing, clarify responsibilities, and protect the integrity of data exchanges across different layers within an application. Mastery of these components will support efficient system designs, improve code readability, and enable easier maintenance and updates in the long term.
+
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/S1SXaKT_fx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/H1FmaY6Ozx
+
+
+Lesson 6:
+
+Comprehensive Revision Notes: Advanced Design Patterns in Parking Lot System
+Overview
+This class covers the foundational aspects of designing a parking lot management system using layered architecture principles. We explored various components, including controllers, services, and repositories, to handle the business logic, data persistence, and request routing efficiently. The session also delved into managing concurrency with a focus on ensuring thread safety during operations involving shared data.
+
+Layered Architecture
+Components
+Controller: Acts as an interface between models and services, handling incoming requests and sending responses.
+Service: Contains the core business logic, coordinating actions between controllers and repositories.
+Repository: Responsible for data storage and retrieval, providing a persistence layer, often acting on databases.
+Design Patterns
+DTOs (Data Transfer Objects): These are used to transfer data between software application subsystems. Two main types are:
+
+Request DTOs: For client-to-service communication.
+Response DTOs: For service-to-client communication.
+Models: Define the data structure, often encapsulating database entities.
+
+Service Layer
+Key Responsibilities
+Executes main business operations.
+Isolates the logic from data access operations, enabling cleaner architecture and easier maintenance.
+Coordinates with repositories to perform data retrieval and updates.
+Example with Ticket Service
+class TicketService:
+    def issue_ticket(self, gate_id: int, vehicle_number: str, vehicle_type: VehicleType, owner_name: str) -> Ticket:
+        # Business logic for issuing a ticket
+Example Code
+def issue_ticket(self, gate_id: int, vehicle_number: str, vehicle_type: VehicleType, owner_name: str) -> Ticket:
+    gate = self.gate_repository.find_by_id(gate_id)
+    if gate is None or gate.gate_type != GateType.ENTRY:
+        raise InvalidGateException("Cannot issue a ticket at an exit gate")
+
+    vehicle = Vehicle(vehicle_number, vehicle_type, owner_name)
+    assigned_spot = self.allotment_strategy.find_spot(
+        self.parking_spot_repository.find_all(), vehicle_type
+    )
+    if assigned_spot is None:
+        raise ParkingFullException("No available spot for this vehicle type")
+
+    assigned_spot.parking_spot_status = ParkingSpotStatus.OCCUPIED
+    self.parking_spot_repository.save(assigned_spot)
+
+    ticket = Ticket(
+        number=str(uuid.uuid4()),
+        entry_time=datetime.now(),
+        vehicle=vehicle,
+        assigned_spot=assigned_spot,
+        generated_at=gate,
+        generated_by=None,
+    )
+    return self.ticket_repository.save(ticket)
+Repository Layer
+Purpose: Interface for data operations such as fetching, saving, and deleting records.
+Design: Designed to be generic, allowing easy adaptation to various data models like Gate, Ticket, etc.
+Managing Concurrency
+The Concurrency Issue
+Problem: Simultaneous requests from different gates could potentially issue the same parking spot to multiple vehicles.
+Solution: Use locking mechanisms to ensure that only one thread can process a spot assignment at a time.
+Implementation
+Locks: Implement threading.Lock() to handle synchronization between threads.
+lock = threading.Lock()  # Ensures only one thread can execute the logic at a time
+
+with lock:
+    # Critical section begins
+    assigned_spot = self.allotment_strategy.find_spot(
+        self.parking_spot_repository.find_all(), vehicle_type
+    )
+    # Update spot status and save to repository
+Example
+Issuing a Ticket
+Fetch gate and validate type.
+Initialize vehicle object.
+Use strategy to find an appropriate parking spot.
+Adjust states (mark as occupied, save the state).
+Conclusion
+The class covered designing a robust parking lot management system employing layered architecture patterns to manage requests, implement business logic, and ensure thread safety in concurrent environments. These patterns are crucial for building scalable and maintainable software solutions. Understanding these concepts equips developers to tackle complex software design problems effectively.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/r1ADiWxYfe
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/SJFvo-xtMe
+
+
+Lesson 7:
+
+Comprehensive Revision Notes: Advanced Design Patterns in Parking Lot System
+Overview
+This class covers the foundational aspects of designing a parking lot management system using layered architecture principles. We explored various components, including controllers, services, and repositories, to handle the business logic, data persistence, and request routing efficiently. The session also delved into managing concurrency with a focus on ensuring thread safety during operations involving shared data.
+
+Layered Architecture
+Components
+Controller: Acts as an interface between models and services, handling incoming requests and sending responses.
+Service: Contains the core business logic, coordinating actions between controllers and repositories.
+Repository: Responsible for data storage and retrieval, providing a persistence layer, often acting on databases.
+Design Patterns
+DTOs (Data Transfer Objects): These are used to transfer data between software application subsystems. Two main types are:
+
+Request DTOs: For client-to-service communication.
+Response DTOs: For service-to-client communication.
+Models: Define the data structure, often encapsulating database entities.
+
+Service Layer
+Key Responsibilities
+Executes main business operations.
+Isolates the logic from data access operations, enabling cleaner architecture and easier maintenance.
+Coordinates with repositories to perform data retrieval and updates.
+Example with Ticket Service
+class TicketService:
+    def issue_ticket(self, gate_id: int, vehicle_number: str, vehicle_type: VehicleType, owner_name: str) -> Ticket:
+        # Business logic for issuing a ticket
+Example Code
+def issue_ticket(self, gate_id: int, vehicle_number: str, vehicle_type: VehicleType, owner_name: str) -> Ticket:
+    gate = self.gate_repository.find_by_id(gate_id)
+    if gate is None or gate.gate_type != GateType.ENTRY:
+        raise InvalidGateException("Cannot issue a ticket at an exit gate")
+
+    vehicle = Vehicle(vehicle_number, vehicle_type, owner_name)
+    assigned_spot = self.allotment_strategy.find_spot(
+        self.parking_spot_repository.find_all(), vehicle_type
+    )
+    if assigned_spot is None:
+        raise ParkingFullException("No available spot for this vehicle type")
+
+    assigned_spot.parking_spot_status = ParkingSpotStatus.OCCUPIED
+    self.parking_spot_repository.save(assigned_spot)
+
+    ticket = Ticket(
+        number=str(uuid.uuid4()),
+        entry_time=datetime.now(),
+        vehicle=vehicle,
+        assigned_spot=assigned_spot,
+        generated_at=gate,
+        generated_by=None,
+    )
+    return self.ticket_repository.save(ticket)
+Repository Layer
+Purpose: Interface for data operations such as fetching, saving, and deleting records.
+Design: Designed to be generic, allowing easy adaptation to various data models like Gate, Ticket, etc.
+Managing Concurrency
+The Concurrency Issue
+Problem: Simultaneous requests from different gates could potentially issue the same parking spot to multiple vehicles.
+Solution: Use locking mechanisms to ensure that only one thread can process a spot assignment at a time.
+Implementation
+Locks: Implement threading.Lock() to handle synchronization between threads.
+lock = threading.Lock()  # Ensures only one thread can execute the logic at a time
+
+with lock:
+    # Critical section begins
+    assigned_spot = self.allotment_strategy.find_spot(
+        self.parking_spot_repository.find_all(), vehicle_type
+    )
+    # Update spot status and save to repository
+Example
+Issuing a Ticket
+Fetch gate and validate type.
+Initialize vehicle object.
+Use strategy to find an appropriate parking spot.
+Adjust states (mark as occupied, save the state).
+Conclusion
+The class covered designing a robust parking lot management system employing layered architecture patterns to manage requests, implement business logic, and ensure thread safety in concurrent environments. These patterns are crucial for building scalable and maintainable software solutions. Understanding these concepts equips developers to tackle complex software design problems effectively.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/r1ADiWxYfe
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/SJFvo-xtMe
+
+
+Lesson 8:
+
+Comprehensive Revision Notes: Designing BookMyShow (LLD)
+Overview
+In this session, we explored the design of a simplified version of BookMyShow, focusing primarily on movie ticket booking. We discussed how to initiate a Low-Level Design (LLD) problem by aligning with the requirements, forming the system's class structure, and addressing concurrency issues. The emphasis was on understanding requirements, creating a class diagram, and preparing for future coding sessions, with a significant focus on handling seat availability and pricing.
+
+Initial Steps and Alignment
+Overview Stage
+Align with the Interviewer: Before diving into design, it's crucial to align the project's perspective by discussing the system's perception with the interviewer or stakeholders.
+Define the System: BookMyShow is primarily conceived as a ticketing platform focusing on movies (ignoring non-movie events for simplicity). Users can search for films by area and language, view show timings and available seats, and make bookings.
+Gathering Requirements
+Step 0: Project Setup
+Design Paradigm: Identify whether to design a web app, API, or storage mechanism.
+Input Method: Use command-line inputs for this MVP (Minimum Viable Product).
+Step 1: Capturing Requirements
+Phase: Gather requirements using the "outside to inside" and "generic to specific" method.
+Goal: Align with future planning, distinguishing requirements between MVP and future versions.
+Identified Requirements
+User Interactions:
+
+Book movie tickets.
+Select seats actively.
+Handle payments via online portals.
+See booking history (authentication might be required for detail tracking).
+System Features:
+
+Supports Multiple Cities: Each city contains various theaters.
+Multi-Theater Structure: Each theater has multiple screens, which support multiple seats divided into types like Silver, Gold, and Platinum.
+Show Dynamics: A show consists of a movie, screen, time, and seat status (should reflect seat occupation per show, not overall).
+Pricing: Subject to seat type, timing, and possibly movie/release factors.
+Key Design Components
+Show and Seat Handling
+Show Definition: Comprised of a movie, theater, screen, timing, and associated seats.
+Seat Management:
+No two users should book the same seat within the same show.
+The seat status is determined per show, preventing double bookings through timed locks during payment phases.
+Class Diagram Structure
+Region/City Class:
+
+Encompasses multiple theaters with distinct IDs and theater collections.
+Theater and Screen Classes:
+
+Multiple screens per theater, each comprising numerous seats.
+Movie Class Data:
+
+Holds details about available films, their casting, genre, and language support.
+Pricing and Seat Type Management:
+
+Price as a function of Show and Seat Type.
+Handle different seat types across theaters to allow dynamic pricing according to configurations like LEAN, GOLD, and PLATINUM.
+Code Insight
+class Show:
+    def __init__(self, id, movie, theater, screen, time):
+        self.id = id
+        self.movie = movie
+        self.theater = theater
+        self.screen = screen
+        self.time = time
+        self.seat_status = {}  # Stores seat status per show
+Example: Analogies and Application
+Analogies
+Aligning a movie session has similar constraints to a parking spot model – parallel to ParkingLot, ParkingFloor, ParkingSpot. Similarly, City, Theater, Screen, and Seat present a hierarchical tree.
+Example Use Case
+Movie Show Booking: For ongoing appreciation, consider the whole flow from selecting a movie, viewing available shows and screens, picking seats, processing payments, and confirming bookings.
+Conclusion
+In this session, we successfully outlined an MVP for a movie ticket booking system like BookMyShow. This instruction mainly concentrated on gathering pertinent requirements, constructing efficient class diagrams, and understanding pricing and seat booking nuances. Introducing concurrency solutions and discussing real MySQL persistence provided a solid foundation for subsequent coding lectures. Reasoned design approaches ensure robustness against common pitfalls like race conditions and aid in maintaining coherent, scalable structural design.
+
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rJA-gvZYMx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/HJbqlwWKfg
+
+
+Lesson 9:
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rJGrUsUFzx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/BktrUsIFzl
+
+
+Lesson 10:
+
+Comprehensive Revision Notes: Concurrency Problems in Ticket Booking Systems
+Overview
+This session focused on understanding the concurrency problems encountered when booking a ticket, specifically in systems like BookMyShow. These issues are crucial in interviews and real-world applications, particularly concerning race conditions and booking consistency. We explored the implications of using reserved keywords in databases, the specific challenges posed by race conditions, and strategies to mitigate them using locking mechanisms.
+
+Database Reserved Keywords
+Definition and Problem
+Reserved Keywords: Words reserved by the database language for internal use, like SELECT, FROM, USER.
+Using these as table names can cause conflicts and errors depending on the database used.
+Solution
+Use plural forms for table names (e.g., users, shows) to avoid using reserved words, ensuring compatibility across different databases.
+This simple practice mitigates potential conflicts and maintains consistency in naming conventions.
+Booking Flow and Race Conditions
+Booking Process
+Seat Selection: Users select seats, but at this point, no actual booking occurs.
+Confirmation: A temporary hold is placed on seats during payment processing.
+Payment: If completed within the hold period, the booking is confirmed.
+Race Condition Problem
+Check-Then-Act Race Condition: This occurs when two users simultaneously select the same seat. Both threads may see the seat as available and proceed to book it, leading to double booking.
+Database Isolation Levels
+Repeatable Read: Default in MySQL, allows reading consistency within a transaction but does not prevent race conditions.
+Serializable: Enforces sequential transaction execution, preventing concurrent transactions from modifying the same data simultaneously, thus avoiding race conditions.
+Solutions to Mitigate Race Conditions
+Hard Locks and Their Pitfalls
+Acquiring a database lock during booking could prevent double booking but holds resources for too long, impacting performance.
+Soft Locks
+Use a status field to represent locks (e.g., BLOCKED status) to indicate that a seat is temporarily held, without maintaining long database transactions.
+Soft locks allow for shorter transaction windows, consuming fewer resources.
+Hybrid Approach
+Combine soft locks with a higher isolation level (SERIALIZABLE) to ensure that only one booking transaction can proceed when targeting the same seat, effectively using both soft and hard locking strategies where appropriate.
+Why Python Locks Don't Suffice
+Process-specific Locks: Thread locks in Python apply only to a single process and won't manage race conditions across multiple processes or distributed systems, which BookMyShow uses.
+Conclusion
+Today's class delved into how concurrency is managed in ticket booking systems through careful application of database locks and strategic use of system design to avoid race conditions. The takeaway is that understanding how to manage concurrent processes effectively is critical in ensuring data integrity and that proper system design prevents conflicts in multi-user environments. This knowledge has broad applicability in both interviews and software development.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/ByQ4pHttzx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rJAtaSKYze
+
+
+Lesson 11:
+
+Comprehensive Revision Notes: Building the "BookMyShow" System
+Overview
+In this session, we completed the implementation of the BookMyShow project, focusing on key features necessary for a basic ticket booking system. We covered the development of service classes for booking tickets, handled concurrency issues, implemented password hashing for security, and discussed lazy updates for handling seat expiry. The session illustrated how to structure code effectively using Python's libraries within a project framework.
+
+Developing the Booking Service
+Concurrency Handling
+Problem: Concurrent booking attempts could result in the same seat being booked by multiple users.
+Key Term: Check and Set Deadlock: Occurs when a check and update on data are non-atomic, leading to race conditions.
+Solution:
+Database Locks: Initially considered using database transactions from booking initiation through payment, but this was inefficient.
+Python Locks: Disregarded due to limitations in distributed environments where applications run on multiple servers.
+Hybrid Approach: Combined lightweight database locks with Python logic, using SERIALIZABLE isolation level for transactions to manage concurrency effectively.
+Lazy Seat Expiry
+Implemented a lazy approach to handle the expiry of blocked seats.
+Logic:
+Check if the seat status was blocked.
+Determine if the block time exceeded the allowed period (e.g., 15 minutes).
+If yes, free up the seat for new booking attempts.
+Code Example
+from datetime import datetime, timedelta
+
+EXPIRY_MINUTES = 15
+
+for show_seat in show_seats:
+    is_available = (show_seat.show_seat_status == ShowSeatStatus.AVAILABLE)
+
+    is_expired_block = (
+        show_seat.show_seat_status == ShowSeatStatus.BLOCKED
+        and datetime.now() - show_seat.blocked_at > timedelta(minutes=EXPIRY_MINUTES)
+    )
+
+    if not (is_available or is_expired_block):
+        raise RuntimeError(f"Seat {show_seat.seat.num} is not available")
+Implementing User Authentication
+Password Hashing with bcrypt
+Problem: Storing passwords in plaintext is insecure.
+
+Solution: Use bcrypt to hash passwords with a random salt, ensuring that even identical passwords result in different hashes each time.
+
+Key Terms:
+
+Salt: A random string added to the password before hashing to ensure unique hash outputs.
+encode() and matches(): Bcrypt functions to hash passwords and verify hashes against stored values.
+Code Example
+import bcrypt
+
+class PasswordHasher:
+    def encode(self, raw_password):
+        raw_bytes = raw_password.encode("utf-8")
+        hashed_bytes = bcrypt.hashpw(raw_bytes, bcrypt.gensalt())
+        return hashed_bytes.decode("utf-8")
+
+    def matches(self, raw_password, stored_hash):
+        return bcrypt.checkpw(raw_password.encode("utf-8"), stored_hash.encode("utf-8"))
+Automatic Timestamp Updates
+Used SQLAlchemy's default=datetime.utcnow and onupdate=datetime.utcnow features to automatically manage timestamp fields like created_at and last_modified_at.
+Code Example
+from datetime import datetime
+from sqlalchemy import Column, Integer, DateTime
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
+
+class BaseModel(Base):
+    __abstract__ = True
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+Conclusion
+This session demonstrated how to construct a robust application layer using Python and SQLAlchemy for a system like BookMyShow. We tackled concurrency with hybrid locking strategies, implemented secure password storage practices using bcrypt, and enhanced our data models with automatic timestamp management for better data integrity and audit trails. These principles are critical for developing scalable, secure web services and will be applicable in subsequent projects.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rkFfmifcMe
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/Sk9zQofqGl
+
+
+Lesson 12:
+
+Comprehensive Revision Notes: Designing Splitwise
+Overview
+This class focused on conceptualizing a design for the expense-tracking app Splitwise. Splitwise allows users to log expenses made by one or more people and divides the overall expenditure among the involved individuals. Today's class aimed to outline the requirements for the system and explore various methods for solving the core problem: determining the optimal way to settle expenses among a group of users using the fewest transactions.
+
+Introduction to Splitwise
+Expense-Tracking Application: Helps users manage group expenses by recording who paid what and who owes whom.
+Group Tracking: Users can form groups for specific activities or trips to simplify managing shared expenses.
+Framework for Designing Systems
+Steps to Follow:
+Overview: Understanding the scope and purpose of the system.
+Requirement Gathering: Identifying what the system needs to accomplish.
+Clarifying Requirements: Engaging with stakeholders to resolve ambiguities.
+Class Diagram: Visualizing system structure (deferred to next session).
+Schema Design: Planning database structure (deferred to next session).
+Code: Implementing the design.
+Follow-up: Addressing edge cases and scalability post-implementation.
+Requirements for Splitwise
+User Actions:
+R1: Users can register and update their profiles; must contain name, phone number, and password.
+R2: Users can participate in shared expenses.
+Group Dynamics:
+R3: Users may participate in groups, which allow visibility and tracking of shared expenses within that group.
+R4: Users can add expenses by specifying involved persons or group, indicating who paid and who owes.
+Transaction Details:
+R5: Users can see their total owed amount.
+R6: Users have access to their expense history.
+R7: Visibility of expense history in group context is allowed.
+R8: Restricted access to non-member group data.
+R9: Only group creators can modify membership.
+Settle-up Rules:
+R10: Individual settle-up lists transactions needed to nullify user’s debt.
+R11: Group settle-up processes to ensure all members equilibrate within that group context.
+Transaction Optimization:
+R12: Objective to minimize the number of transactions necessary to settle debts.
+Key Algorithmic Concepts
+Calculating Debt Balances
+Who Paid vs. Who Owes: Must balance to zero within the system's logic for each expense.
+Extra Amount Calculation: For each user, calculate total amount owed vs. paid to derive their balance.
+Greedy Algorithm for Settling Up
+Balance Computation: Calculate extra amounts for all users.
+Sorting into Pools: Group users needing to receive (GET pool) and pay (GIVE pool).
+Transaction Optimization: Use a greedy approach to pair users from the pools, minimizing transactions.
+Example of Greedy Algorithm
+Match the user needing the most payment with the user who can pay the most.
+Settle the smallest amount between what is owed or payable, ensuring at least one party clears their balance.
+Analogies
+Social Dynamics: Illustrates how settling based purely on mathematical strategies (rather than social or transactional history) can be "socially awkward."
+Conclusion
+Designing a system like Splitwise involves active engagement with requirements and recognizing the inherent complexity in settling shared expenses. While a mathematical approach can resolve balances efficiently, understanding user dynamics is equally essential to crafting a user-friendly application. Through these exercises, we highlighted the importance of functional requirements and the strategic complexity of minimizing transactions, preparing for implementation in subsequent sessions.
+
+pre:  https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rys5T5Q9Gx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/Bybop57cGg
+
+
+Lesson 13:
+
+Comprehensive Revision Notes: Building a Splitwise App with Noun Spotting and Schema Design
+Overview
+In this session, we delved into designing a Splitwise-like application using a low-level design (LLD) approach. The primary focus was on building class diagrams using the noun-spotting method from textual requirements, identifying when to expand a noun into a new class or treat it as an attribute, and deciding how to handle relationships between classes. We also addressed schema design with SQLAlchemy, particularly how to manage complex relationships like those between expenses and users.
+
+Class Diagram via Noun Spotting
+Noun Spotting Method
+Method Steps:
+Go through each requirement.
+Identify nouns in the requirements.
+Determine if the noun needs its own class based on:
+Whether it requires independent information storage.
+If not, it may be part of another class as an attribute.
+Applying Noun Spotting to Requirements
+User: Needs a class for storing user information such as name, phone number, and password.
+Expense: Requires a class to store details like amount, description, and contributors.
+Group: Needs a class to manage group information, including members and expenses.
+Example Requirements
+Paid/Owed Problem:
+Initially, concepts like "paid by" or "owed by" were considered attributes.
+Realized these need a separate handling mechanism due to their relationships with users, thus needing a mapping class (ExpenseUser).
+Handling Complex Relationships
+Paid/Owed Problem
+Understanding:
+
+Expenses and users share a many-to-many relationship regarding contributions and dues.
+A simple dictionary attribute for paid_by and owed_by on Expense led to complications.
+Solution:
+
+Introduced a new class ExpenseUser similar to how ShowSeat resolved pricing in BookMyShow:
+class ExpenseUser:
+    expense: Reference to `Expense`
+    user: Reference to `User`
+    amount: Amount involved
+    expense_user_type: Enum (PAID, HAD_TO_PAY)
+This separates the responsibility and resolves complex querying issues.
+Transaction Handling
+Initial Trap: Create a Transaction class to record settlements.
+Final Decision: Use a dummy Expense to represent settlements, distinguishing them with an expense_type flag (enum).
+Schema Design
+Tables and Enums
+Developed a schema using noun spotting and resolved complex relationships:
+Tables:
+users: Stores user information.
+user_groups: Stores groups and their members.
+expenses: Stores expenses, distinguished by normal or settlement.
+expense_users: Manages user-specific contributions and dues.
+Enums:
+ExpenseType with values NORMAL and PAYMENT.
+ExpenseUserType with values PAID and HAD_TO_PAY.
+Enum Decision
+Test for Enum or Lookup:
+Are values likely to change dynamically or user-specific? If no, it's an enum.
+Both expense types and user types were implemented as enums.
+Commands via the Command Line
+Command Pattern Overview
+Problem: Naive command handling in main() violates Single Responsibility Principle (SRP).
+
+Solution:
+
+Implement a Command interface with methods to match and execute commands.
+CommandExecutor iterates through commands, handling execution based on input.
+class Command(ABC):
+    @abstractmethod
+    def matches(self, user_input): ...
+
+    @abstractmethod
+    def execute(self, user_input): ...
+
+class CommandExecutor:
+    def __init__(self, commands):
+        self.commands = commands
+
+    def execute(self, user_input):
+        for command in self.commands:
+            if command.matches(user_input):
+                command.execute(user_input)
+                return
+        print("Invalid command")
+Conclusion
+This session reinforced the importance of carefully mapping textual requirements to class diagrams using the noun-spotting method. By breaking down relationships and mapping out schemas correctly, particularly using SQLAlchemy, we ensure our application is structured to handle real-world complexities effectively. This foundational design will allow us to build robust applications with scalable architecture, ready for the integrations and expansions necessary in future sessions.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/HyIHIydqGx
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/HJDSL1_9zg
+
+Lessson:
+
+Comprehensive Revision Notes: Command Strategy and Management in CLI-Based Systems
+Overview
+Today's class covered the implementation of the command strategy to handle operations in CLI-based systems effectively. We focused on organizing backend components needed for a system similar to Splitwise, building on familiar patterns and introducing how to manage complex interactions with command execution. This session revisited creating models and explored the architectural setup necessary to manage commands within a CLI environment.
+
+Introduction to Command Strategy
+Command Strategy: A design pattern used for encapsulating all information needed to perform an action or trigger an event at a later time.
+Purpose: Simplifies the handling of operations in CLI-based systems by delegating responsibilities to different command classes.
+Structure:
+Define a Command Interface with basic methods like matches() to check if the command matches the user input, and execute() for executing the command.
+Implement concrete command classes for each functionality that inherit from the command interface.
+Project Structure and Initial Setup
+Key Directories and Files
+Models: Define entities like User, Group, Expense, and ExpenseUser. Includes attributes and relationships using SQLAlchemy.
+Repositories: Encapsulate database operations for models, extending a generic repository base to handle repetitive actions like find_by_id.
+Controllers: Interface between the frontend commands and the backend logic, managing data exchange via DTOs.
+Services: Implement business logic, often interacting through patterns like Strategy for operations such as settling expenses.
+Commands: Houses specific command implementations such as settling up user or group expenses.
+Main.py: Integrates the whole system, setting up dependencies and configurations, especially for command execution.
+Building and Managing Models
+Important Models and Relationships
+User, Group, and Expense Models: Handle basic attributes and foreign key relationships.
+ExpenseUser Model: Specialized model to track user participation in expenses with attributes like amount and expense_user_type.
+BaseModel: Defines common fields like id, created_at, and updated_at for inheritance by other models.
+Relationships and Join Tables
+Foreign Keys and Relationships: Use relationship and back_populates to manage navigation and synchronization between related tables.
+Join Tables: Simple tables like group_members to handle many-to-many relationships without needing full model definitions, utilizing SQLAlchemy's Table.
+Enum Management
+Define enums like ExpenseType and ExpenseUserType to handle categorical data, ensuring correct association within models.
+DTOs and Controllers
+DTO (Data Transfer Objects): Used to encapsulate data transferred between layers, minimizing the data exposure and preserving separation of concerns.
+SettleUpController: Handles the settle-up functionality using DTOs, acting as a middle layer between commands and the settle-up logic in services.
+Implementing Services and Strategy Pattern
+Strategy Pattern in Services: Enables flexible choice of algorithms (like settling expenses) by abstracting settle-up logic into interchangeable strategy implementations.
+SettleUpService: Utilizes defined strategies to compute balances and necessary transactions to settle debts.
+NaiveSettleUpStrategy: A straightforward approach to process balancing by sorting users and resolving debts sequentially.
+Command Handling
+Command Class Structure
+Command Interface: Abstracts basic matching and execution functionalities required by all command implementations.
+Command Executor: Handles orchestration of commands, parsing user input, matching against available commands, and executing the correct one.
+Specific Command Implementations
+SettleUpUser Command: Illustrates parsing and executing a settle-up operation for a specified user.
+Command Matching and Execution: Validates user input format and delegates execution to the corresponding command object's execute() method.
+Conclusion
+This session demonstrated how to structure a system to manage multiple CLI commands efficiently using the command strategy pattern. We learned about enhancing software design by implementing a flexible architecture, enabling easy scaling and maintainability. Mastery of these concepts ensures a solid foundation for handling complex user interactions in CLI-based applications. This structured approach to problem-solving and development will be invaluable in contest scenarios and real-world applications.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/HJg7fU95Mg
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/H1QQG8q9Me
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,85 @@
+Comprehensive Revision Notes on Structural Design Patterns
+Agenda for the Session:
+Overview of Decorator and Flyweight Patterns
+Practical applications and issues
+Real-world examples and coding exercises
+Decorator Pattern
+Introduction to Decorator Pattern:
+Concept: The Decorator pattern allows behavior to be added to individual objects, dynamically, without affecting the behavior of other objects from the same class.
+Analogy: Similar to adding toppings to a basic coffee order, each topping changes the description and price but doesn't alter the fundamental nature of the coffee itself .
+Use Case:
+In a coffee shop order system:
+
+Start with a base object, e.g., Espresso.
+Add decorators (Mocha, Whip), each wrapping the previous object and adding new attributes or behavior .
+Code Example:
+class Espresso:
+    def cost(self):
+        return 80.0
+
+class Mocha:
+    def __init__(self, beverage):
+        self.beverage = beverage
+
+    def cost(self):
+        return 20.0 + self.beverage.cost()
+
+# Usage
+order = Espresso()
+order = Mocha(order)
+order = Whip(order)
+print(order.cost())  # Result is the cumulative cost with all added layers
+Decorator in the Python Standard Library:
+Used in Python’s io module where file operations stack layers like TextIOWrapper over BufferedReader over FileIO.
+Also reflected in Python's decorator syntax, e.g. @staticmethod or custom decorators【6:6†source】 .
+Advantages:
+Flexibility to extend object functionalities.
+Promotes code reuse and separation of concerns.
+Disadvantages:
+Can result in complex and hard-to-maintain code if overused or not properly managed.
+Flyweight Pattern
+Introduction to Flyweight Pattern:
+Concept: Flyweight is a structural design pattern that allows for less memory-intensive management of a large number of objects by sharing as much data as possible.
+Analogy: A library having one copy of a book that many people can read, rather than a copy for each person .
+Use Case in Game Development:
+In a game like PUBG:
+
+To minimize memory use for bullets by sharing common data (like image, color) among instances .
+Code Example:
+class BulletType:
+    def __init__(self, color, image):
+        self.color = color
+        self.image = image
+
+class Bullet:
+    def __init__(self, bullet_type, position, direction):
+        self.bullet_type = bullet_type
+        self.position = position
+        self.direction = direction
+
+# Usage
+bullet_type = BulletType("red", "bullet_image.png")
+bullet = Bullet(bullet_type, (0,0), (1,0))
+Memory Savings:
+By splitting data into intrinsic (shared) and extrinsic (unique) parts, memory usage can be significantly reduced .
+Real-World Application:
+CPython’s small integer caching is a Flyweight use case where numbers like -5 to 256 are cached and reused .
+Backend scenarios like caching categories in a food delivery app .
+Advantages:
+Reduces memory usage by sharing object data.
+Efficient for a high number of objects with repetitive characteristics.
+Disadvantages:
+Adds complexity in differentiating between intrinsic and extrinsic data.
+Sometimes more difficult to implement than straightforward object instantiations.
+Conclusion:
+Decorator and Flyweight are essential for efficient, clean, and memory-friendly code structure.
+Practically applied in various real-world scenarios from GUI components to backend optimizations.
+Understanding and mastering these patterns can significantly enhance code maintainability and efficiency .
+Next Steps:
+Homework to implement these patterns in personalized project examples .
+Explore further in contexts such as Python’s decorator functions and class design in large applications .
+This session offers a robust understanding of two fundamental design patterns, making their application intuitive and relevant in both interviews and real-world coding challenges.
+
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/HyNfCk1DMg
+post:https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/B1SW0yJPGg

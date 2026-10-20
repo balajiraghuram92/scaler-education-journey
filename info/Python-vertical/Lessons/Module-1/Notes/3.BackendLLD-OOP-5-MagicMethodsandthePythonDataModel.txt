@@ -1,0 +1,40 @@
+Based on the provided transcripts, here are the detailed revision notes for the class session, highlighting key concepts around dunder methods, context managers, and hashability in Python:
+
+Python Dunder (Magic) Methods and Context Managers
+Overview
+In this session, we delved into Python's dunder methods (also known as magic methods), how they play a crucial role in Python's data model, and how they can be used to enable a variety of operations on objects. Additionally, we covered context managers and their implementation using with statements.
+
+Key Dunder Methods Discussed
+Dunder Methods for Iteration and Subscription
+
+__iter__(): Makes an object iterable, allowing it to be used in a for-loop.
+__getitem__(): Allows the object to support indexing, enabling the use of the subscription syntax (e.g., obj[0]).
+Dunder String Methods
+
+__str__(): Provides a human-readable string representation of the object, primarily used with the print() function.
+__repr__(): Gives a more technical string representation that should be unambiguous. Used in the Python shell and debugging.
+Equality and Hashing
+
+__eq__(): Defines behavior for the equality operator (==).
+__hash__(): Returns an integer hash value and makes an object usable as a dictionary key or a set element. Only immutable types like tuples can be hashed, while mutable types like lists can't 【6:0†source】【6:12†source】.
+Callable Objects with __call__()
+
+__call__(): Allows an instance of a class to be called as if it were a function. This can be particularly useful for creating classes with a primary focus on performing actions【6:13†source】.
+Context Managers and Resource Management
+Using with Statements:
+
+The with statement simplifies exception handling by encapsulating common preparation and cleanup tasks in __enter__() and __exit__() methods.
+__enter__() is executed before the block inside the with statement, typically returning the resource to be used.
+__exit__() is executed at the end of the block, gracefully handling exceptions and cleanup.
+Example of a Timer with Context Manager: A Timer class can be used to measure execution time, leveraging the __enter__() and __exit__() methods to start and stop timers respectively【6:5†source】 .
+
+Importance of Immutability in Hashing
+Only immutable objects are hashable, which allows them to be keys in a dictionary or elements in a set without risking mutable state changes that would affect their hash value. Lists and dictionaries are mutable and therefore unhashable【6:14†source】【6:12†source】【6:10†source】.
+Key Takeaways
+Understanding and utilizing dunder methods can greatly enhance the functionality and usability of your classes.
+Context managers provide a robust mechanism for managing resources and ensure that setup and teardown occur predictably and safely.
+Proper use of mutable vs. immutable types in Python is crucial to prevent common pitfalls related to hashing and data integrity.
+This session highlighted the extensibility of Python objects through rich interfaces provided by dunder methods and context managers, reinforcing best practices in Python programming for resource management and object-oriented design.
+
+Pre lecture  notes: https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/rklFexRE4Me
+Post lecture notes: https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/HktelCNNMe

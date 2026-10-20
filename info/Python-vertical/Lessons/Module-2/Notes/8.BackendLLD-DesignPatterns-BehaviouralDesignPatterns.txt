@@ -1,0 +1,115 @@
+Revision Notes: Behavioral Design Patterns - Strategy and Observer
+Introduction to Behavioral Design Patterns
+Behavioral design patterns are concerned with algorithms and the assignment of responsibilities between objects. These patterns describe not just patterns of objects or classes but also the patterns of communication between them. They characterize complex flow of control that is difficult to follow at run-time.
+
+Class Recap: Strategy and Observer Design Patterns
+The class covered two major behavioral design patterns: the Strategy Pattern and the Observer Pattern, with practical examples and implementation details using Google Maps and a simulated order placement system (Amazon).
+
+Strategy Design Pattern
+Concept and Problem
+Scenario: Suppose you are using Google Maps. When you request a route from point A to point B, based on your mode of transportation (car, bike, or walk), a different path is computed.
+Problem: Traditionally, handling multiple conditions could have been done using if-elif blocks. However, this approach violates the Open/Closed Principle and Single Responsibility Principle.
+Solution with Strategy Pattern
+Shared Interface: Implement a shared interface, PathCalculator, which defines the method find_path(source, destination).
+
+from abc import ABC, abstractmethod
+
+class PathCalculator(ABC):
+    @abstractmethod
+    def find_path(self, source, destination):
+        ...
+Concrete Strategy Classes: Each mode of transportation implements the PathCalculator interface:
+
+class CarPathCalculator(PathCalculator):
+    def find_path(self, source, destination):
+        return Path()  # Specific logic for cars
+
+class BikePathCalculator(PathCalculator):
+    def find_path(self, source, destination):
+        return Path()  # Specific logic for bikes
+
+class WalkPathCalculator(PathCalculator):
+    def find_path(self, source, destination):
+        return Path()  # Specific logic for walking
+Factory Pattern for Strategy Selection:
+
+A factory is used to select the appropriate PathCalculator without directly using conditional logic in GoogleMaps.
+It leverages a static dictionary to maintain a singleton instance of each calculator class, thus implementing the Singleton pattern alongside the Strategy pattern【4:13†transcript.txt】【17:transcript.txt】.
+class PathCalculatorFactory:
+    _calculators = {
+        "car": CarPathCalculator(),
+        "bike": BikePathCalculator(),
+        "walk": WalkPathCalculator(),
+    }
+
+    @staticmethod
+    def get_pc(mode):
+        calculator = PathCalculatorFactory._calculators.get(mode)
+        if calculator is None:
+            raise ValueError(f"Unknown mode: {mode}")
+        return calculator
+Implementation in GoogleMaps:
+
+class GoogleMaps:
+    def find_path(self, source, destination, mode):
+        pc = PathCalculatorFactory.get_pc(mode)
+        return pc.find_path(source, destination)
+Key Insights:
+Open/Closed Principle: New modes can be added without altering existing code.
+Single Responsibility Principle: Each calculator class is responsible for its path logic.
+Reuse Through Singleton: Ensures efficiency by creating calculator instances once and reusing them during subsequent calls【4:13†transcript.txt】【18:transcript.txt】.
+Observer Design Pattern
+Concept and Problem
+Scenario: Within a system like Amazon, various components like the inventory manager, invoice generator, and email notifier need to perform actions when an order is placed.
+Problem: Manual calls to each action component from a centralized point increase maintenance difficulty and reduce scalability.
+Solution with Observer Pattern
+Common Subscriber Interface: Define an interface OrderPlacedSubscriber with a method on_order_placed(order). Implementations of this interface represent different actions taken when an order is placed.
+
+from abc import ABC, abstractmethod
+
+class OrderPlacedSubscriber(ABC):
+    @abstractmethod
+    def on_order_placed(self, order):
+        ...
+Concrete Subscriber Implementations:
+
+Each action is implemented as a class inheriting from OrderPlacedSubscriber:
+class InvoiceGenerator(OrderPlacedSubscriber):
+    def __init__(self, amazon):
+        amazon.register_subscriber(self)
+
+    def on_order_placed(self, order):
+        pass  # Generate invoice
+
+class WarehouseInventory(OrderPlacedSubscriber):
+    def __init__(self, amazon):
+        amazon.register_subscriber(self)
+
+    def on_order_placed(self, order):
+        pass  # Update inventory
+Amazon Class - The Publisher:
+
+Contains methods to register/unregister subscribers and notify them when an order is placed.
+class Amazon:
+    def __init__(self):
+        self.subscribers = []
+
+    def register_subscriber(self, subscriber):
+        self.subscribers.append(subscriber)
+
+    def unregister_subscriber(self, subscriber):
+        self.subscribers.remove(subscriber)
+
+    def order_placed(self, order):
+        for subscriber in self.subscribers:
+            subscriber.on_order_placed(order)
+Key Insights:
+Decoupling: The publisher (Amazon) does not need to know about the specific subscribers.
+Dynamic Addition: New subscribers can register themselves without requiring updates to the publisher 【10:transcript.txt】.
+Conclusion
+Strategy Pattern enhances flexibility by replacing conditional logic with a family of interchangeable algorithms.
+Observer Pattern allows dynamic subscription, enabling any number of observers to be notified about changes, facilitating broader event-driven communication mechanisms.
+Both patterns improve software scalability, maintainability, and adaptability.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/rkiCi3-wzx
+post:https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/H1qCinWwfe

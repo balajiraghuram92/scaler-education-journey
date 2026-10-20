@@ -1,0 +1,52 @@
+Software Engineering Concepts Revision Notes
+Overview of Concepts Covered
+In this session, we explored fundamental Object-Oriented Programming (OOP) concepts focusing on polymorphism, inheritance, and method overriding, using Python as the demonstration language. The discussion predominantly revolved around practical examples such as a fleet management system for a ride-sharing service and coverage zone calculations for an operations team. Here's a structured breakdown of the concepts discussed:
+
+1. Object-Oriented Programming (OOP) Concepts
+1.1 Polymorphism
+Polymorphism is about letting an action appear in many different forms. We explored the concept through method names like open, which can have different meanings depending on the context—opening a file, door, or bank account. In code, it often appears when different classes implement the same method interface, allowing them to be used interchangeably .
+
+Key Analogy:
+Similar to various entities performing an "open" operation (open a file, open a door), but the action depends on the entity's nature.
+1.2 Inheritance
+Inheritance is a mechanism in which a new class derives properties and behavior of another class. The parent class passes its attributes and methods to the child class, forming an "is-a" relationship .
+
+Example: In a vehicle management system, a Car inherits from a Vehicle, allowing Car to use methods like start() and stop() defined in Vehicle.
+1.3 Method Overriding
+Method overriding is when a subclass provides a specific implementation for a method already defined in its parent class. The subclass's method takes precedence over the parent's when called from an object of the subclass .
+
+Key Analogy:
+Comparable to a Supreme Court overruling a High Court decision; the more specific subclass method overrides the generic parent class method .
+2. Implementation in Python
+2.1 Vehicle Class Hierarchy
+Illustrated with a Vehicle class hierarchy, where specific vehicle types (e.g., Car, Bike) override behavior like calculating fare based on type-specific rules .
+
+Code Example:
+
+class Vehicle:
+    def start(self):
+        print("Vehicle is starting.")
+
+class Car(Vehicle):
+    def calculate_fare(self, distance):
+        return distance * 15
+
+class Bike(Vehicle):
+    def calculate_fare(self, distance):
+        return distance * 7
+3. Advanced Topics
+3.1 MRO (Method Resolution Order)
+MRO determines the order in which base classes are looked at when searching for a method, using the C3 Linearization algorithm. This dictates how methods are overridden in more complex inheritance scenarios, like the Diamond Problem .
+
+3.2 Operator Overloading
+Python's operators can be overloaded to give them new meaning for user-defined objects. This involves defining special methods in classes, such as __eq__ for equality comparisons .
+
+Conclusion
+This class reinforced OOP principles such as polymorphism, inheritance, and method overriding, using real-world analogies and practical implementations in Python. The session emphasized understanding these concepts through examples that can be applied in real-world scenarios like managing a ride-sharing fleet or coverage zones for operations planning .
+
+These foundational concepts are crucial for building scalable and flexible software systems, allowing reusability, extensibility, and maintainability in code architectures.
+
+
+
+Pre-lecture Content => https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/By8oW5smMe
+Post-Lecture => https://hackmd.io/@7ZhgEFzKSUeDhAQFDVj8mw/HkeLs-9jQGx

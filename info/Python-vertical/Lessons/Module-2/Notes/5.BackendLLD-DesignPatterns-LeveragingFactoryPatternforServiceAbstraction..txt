@@ -1,0 +1,57 @@
+Comprehensive Revision Notes on Factory Design Patterns
+Introduction
+In this session, we explored the Factory Design Patterns with a focus on handling multiple vendor services, particularly around Large Language Models (LLMs). The lecture detailed different types of factory patterns, emphasizing their benefits and use cases within software design. The core objectives were to understand the decoupling of client code from specific implementations, utilizing a centralized point for decision-making, and applying these principles in real-world scenarios.
+
+Key Concepts Explored
+1. Factory Method Pattern
+The Factory Method Pattern is a creational pattern that uses factory methods to deal with the problem of creating objects without having to specify the exact class of the object that will be created.
+
+Purpose: This method's job is to create and return an object of another, usually related, class【7:18†typed.md】.
+Implementation: A static method in the AIServiceClientProvider class was used to select the appropriate client (e.g., OpenAIClient, AnthropicClient, GeminiClient) based on the input provider【7:18†typed.md】【7:19†transcript.txt】.
+2. Abstract Factory Pattern
+The Abstract Factory Pattern provides a way to enforce a consistent family of objects, ensuring that they are compatible with each other.
+
+Usage: More complex than the simple Factory Method, this pattern can be particularly useful when dealing with a set of related or dependent objects in a system【7:19†typed.md】.
+Example: While our focus in the class mostly centered around simple or practical factory examples, the concept was extended to note that life often requires dealing with multiple such objects【7:19†transcript.txt】.
+3. Practical Factory: Centralizing Decisions
+A major advantage of factory patterns is their ability to centralize decision-making, thereby reducing repeated logic across the codebase.
+
+Benefit: Centralizing these decisions allows for easier maintenance and scalability. Instead of modifying logic at several places in the code, changes can be made in one location【7:16†typed.md】.
+Example: In the session's context, the AIServiceClientProvider does not eliminate decision logic but centralizes it, meaning only one well-known place is responsible for making decisions. This simplifies future adjustments like adding new LLM providers【7:12†transcript.txt】.
+Practical Applications and Examples
+1. AIServiceClientProvider
+The class design emphasized the separation of concerns by utilizing a factory method to manage service client creation:
+
+class AIServiceClientProvider:
+    @staticmethod
+    def get_client(provider):
+        match provider:
+            case "openai":
+                return OpenAIClient()
+            case "anthropic":
+                return AnthropicClient()
+            case "gemini":
+                return GeminiClient()
+            case _:
+                raise ValueError(f"Unknown provider: {provider}")
+This class abstracts the logic required to create service clients and avoids duplication by providing a single, centralized interface【7:15†typed.md】.
+
+2. ChatService Example
+Another key demonstration involved redesigning the ChatService class to depend purely on the AIServiceClient abstraction interface without being tightly coupled to any concrete implementations:
+
+class ChatService:
+    def __init__(self, provider):
+        self.client = AIServiceClientProvider.get_client(provider)
+
+    def get_response(self, prompt):
+        return self.client.complete(prompt)
+This ensures that ChatService can leverage different providers effortlessly, adhering to the Open/Closed Principle【7:15†typed.md】.
+
+Discussion Points
+Open/Closed Principle: Although complete adherence to this principle isn't always possible, using a centralized approach where only the factory needs to be modified when adding new providers effectively minimizes the impact on high-level classes【7:10†transcript.txt】.
+Extension and Scalability: Adding new services or providers becomes a straightforward task with minimal disturbance to existing code. The ability to swap LLMs without altering the core service logic showcases this design's flexibility【7:12†transcript.txt】【7:14†transcript.txt】.
+Summary
+The class provided meaningful insights into the Factory Design Patterns, particularly focusing on simplifying and centralizing client-dependent logic using concrete examples like LLM providers. The discussion encapsulated the practical aspects of applying these patterns to achieve cleaner, more scalable, and maintainable code architectures, which are crucial for effective software development in real-world applications.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/B13faotLfe
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/H1oNajYUGg

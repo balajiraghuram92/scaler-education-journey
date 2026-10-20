@@ -1,0 +1,65 @@
+Scaler Class Notes: Structural Design Patterns - Adapter and Facade
+In this class, we delved into two essential structural design patterns: Adapter and Facade. These patterns are fundamental in software engineering for managing and organizing class structures by abstracting complexity and facilitating compatibility.
+
+Structural Design Patterns Overview
+Structural Design Patterns focus on how classes and objects are composed to form larger structures.
+Unlike Creational Patterns, which deal with object creation, Structural Patterns are concerned with object composition and organization, promoting an efficient system design.
+Adapter Design Pattern
+Purpose: The Adapter Pattern allows two incompatible interfaces to work together. It acts as a bridge that translates the interface of a class into an interface expected by the clients 【6:0†source】.
+Real-world Analogy:
+Just as a USB-C to HDMI adapter enables a connection between two devices with different interfaces, software adapters enable classes to cooperate without modification .
+Use in Software:
+In a scenario where a system component (e.g., PhonePe) must interface with an external component (e.g., YesBank) without modifying either component:
+Target Interface: Defines what the client expects.
+Adaptee: The existing interface that is incompatible.
+Adapter: Implements the target interface and wraps the adaptee, facilitating communication.
+Example Implementation
+class YesBankAdapter(BankAPI):
+    def __init__(self, yes_bank):
+        self.yes_bank = yes_bank
+
+    def add_bank_account(self, bank):
+        self.yes_bank.open_account(bank.account_number, bank.account_holder_name)
+
+    def pay(self, amount, account):
+        status = self.yes_bank.do_payment(account, amount)
+        return status == 0
+
+    def transfer_funds(self, source, destination, amount):
+        self.yes_bank.do_fund_transfer(source, destination, amount)
+In this example, YesBankAdapter translates the methods from PhonePe to the methods specific to YesBank .
+
+Facade Design Pattern
+Purpose: The Facade Pattern provides a simplified interface to a complex subsystem, orchestrating interactions without exposing its complexities 【6:1†source】.
+Real-world Analogy:
+A facade acts as the front of a building, presenting a clean, simple interface while all the complexity remains hidden behind it【6:1†source】.
+Use in Software:
+Helps in simplifying interactions with complex systems by providing a single, unified interface.
+Example Implementation
+class OrderPlacedFacade:
+    def __init__(self, invoice_service, wms, ims, email_service):
+        self.invoice_service = invoice_service
+        self.wms = wms
+        self.ims = ims
+        self.email_service = email_service
+
+    def on_order_place(self, order):
+        self.invoice_service.generate(order)
+        self.wms.update(order)
+        self.ims.update(order)
+        self.email_service.send_confirmation(order)
+This facade simplifies the process of placing an order by hiding the underlying complexities of multiple service interactions .
+
+Key Differences Between Adapter and Facade
+Adapter: Solves compatibility issues by translating interfaces without modifying the existing ones.
+Facade: Manages complexity by providing a simpler interface to a set of interfaces in a subsystem .
+Combining Patterns
+Real-world systems often employ both patterns together. For example, adapters might be used within a facade to communicate with different subsystems .
+
+Conceptual Understanding
+Adapters allow discrete systems to connect.
+Facades streamline interactions with complex systems by abstracting the underlying implementation details 【6:16†source】.
+By understanding and applying these patterns, developers can create systems that are both flexible and maintainable, effectively managing complexity and compatibility challenges.
+
+pre: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/HJpB27j8Ml
+post: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/H1UYh7iIzx

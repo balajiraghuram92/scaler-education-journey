@@ -1,0 +1,85 @@
+Revision Notes: Python Data Classes and Exception Handling
+Introduction to Data Classes
+What is a Data Class?
+A data class is a special type of class in Python designed primarily for storing data with less boilerplate code involved. They are part of Python's attempt to make code cleaner and more readable by eliminating the need to manually write common methods like __init__, __repr__, __eq__, etc.【6:2†source】.
+
+Why Use Data Classes?
+Less Boilerplate: Data classes automatically generate special methods for you.
+Readability: They provide more readable code since only the essential information needs to be written.
+Encapsulation: While similar to namedtuple, data classes are not immutable and better encapsulate behavior.
+When to Avoid: If a class contains significant business logic not related to data storage, traditional classes may still be a better fit .
+Creating a Data Class
+You can easily create a data class by using the @dataclass decorator:
+
+from dataclasses import dataclass
+
+@dataclass
+class Student:
+    name: str
+    marks: int
+Example Benefits
+No need to manually write an __init__ method; it is generated automatically.
+Comparison (__eq__) between instances also comes automatically.
+s1 = Student("Alice", 95)
+s2 = Student("Bob", 85)
+Just declaring the fields gives you a fully functioning class .
+
+Advanced Features of Data Classes
+Immutability with frozen
+By declaring a data class with frozen=True, you make its instances immutable; this is useful for creating "value objects":
+
+@dataclass(frozen=True)
+class Point:
+    x: int
+    y: int
+You can prevent fields from being modified after instantiation .
+
+Default Values
+Data classes support default values like regular classes but have a special way to handle mutable defaults with field(default_factory=...) to avoid shared-mutable bugs.
+
+from dataclasses import field
+
+@dataclass
+class Member:
+    name: str
+    books: list = field(default_factory=list)
+Post Initialization with __post_init__
+Allows for validation or any further initialization after the class has been instantiated:
+
+@dataclass
+class Member:
+    name: str
+
+    def __post_init__(self):
+        if not self.name:
+            raise ValueError("Name cannot be empty")
+.
+
+Exception Handling in Python
+Introduction to Exceptions
+Exceptions are errors detected during execution that interrupt the normal flow of a program. Python uses try and except blocks to handle exceptions.
+
+Structure of Exception Handling
+try: Attempt to execute code that may fail.
+except: Handle the error if one arises.
+else: Execute if no exception was raised.
+finally: Execute code regardless of an exception being raised or not .
+Custom Exceptions
+Allows you to provide more meaningful error messages and handle expected failures in a structured manner:
+
+class LibraryError(Exception): pass
+class BookNotAvailable(LibraryError): pass
+
+def borrow(book, member):
+    if not book.is_available:
+        raise BookNotAvailable(f"'{book.title}' is already loaned out")
+This structure allows catching exceptions specific to business logic rather than generic errors .
+
+Exception Philosophy: EAFP vs. LBYL
+EAFP ("Easier to Ask Forgiveness than Permission"): Assumes the availability of valid states and handles exceptions if they occur.
+LBYL ("Look Before You Leap"): Checks conditions before taking actions .
+Conclusion
+Understanding and effectively utilizing data classes and exception handling can lead to cleaner, more efficient, and more robust Python code. Keeping methods auto-generated when possible and error handling well-structured are key aspects of writing maintainable code.
+
+Pre Lecture Notes: https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/BJPBhfUrzl
+Post Lecture Notes:  https://hackmd.io/@XRwJaQu1Qxad2vlmG3_I1w/Hk4VTMIHMl
