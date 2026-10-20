@@ -14,14 +14,14 @@ Each entry lists the lesson (taken from the header of the question screenshot), 
 - **Note:** Matched by generate_invoice in booking_controller
 
 ### Q4. Add Hotel Rooms
-- **Screenshot:** `msedge_n3cwtH9UNW.png`
+- **Screenshot:** `msedge_oZitXUyYsV.png`
 - **Solution zip:** `1787845861_20673c30850cad1d.zip`
-- **Note:** Matched by add_room (15 hits)
+- **Note:** Matched by add_room DTOs and tests/test_add_rooms.py
 
 ### Q5. Browse Hotel Rooms
 - **Screenshot:** `msedge_6scSjwfyZp.png`
 - **Solution zip:** `1787929230_8ec5cea3fa96cba8.zip`
-- **Note:** Best match (get_rooms, 21 hits). 1787845861 also has get_rooms (7 hits); confirm
+- **Note:** Matched by get_rooms DTOs and tests/test_get_rooms.py
 
 ### Q6. Book Hotel Rooms
 - **Screenshot:** `msedge_LsiEDbbrHO.png`
@@ -68,12 +68,12 @@ Each entry lists the lesson (taken from the header of the question screenshot), 
 - **Note:** Named zip Create_Order_Pyt-solution
 
 ### Q3. Delivery Estimate Python
-- **Screenshot:** `msedge_pTWqtjYR1s.png`
+- **Screenshot:** `msedge_puSvK96jHW.png`
 - **Solution zip:** `1773392105_55953b4e2fa48a55.zip`
 - **Note:** Named zip Delivery_Estimat-solution
 
 ### Q4. Inventory Management Python
-- **Screenshot:** `msedge_puSvK96jHW.png`
+- **Screenshot:** `msedge_y8wa4WYEAh.png`
 - **Solution zip:** `1773392112_18ab0705f8812140.zip`
 - **Note:** Named zip Inventory_Manage-solution
 
@@ -91,7 +91,7 @@ Each entry lists the lesson (taken from the header of the question screenshot), 
 - **Note:** DUPLICATE GROUP: choose one
 
 ### Q3. Generate Tickets (Generate Ticket for Parking Lot System)
-- **Screenshot:** `msedge_oZitXUyYsV.png`
+- **Screenshot:** `msedge_n3cwtH9UNW.png`
 - **Solution zip:** `1773391733_d503150a3ed9d0be.zip`
 - **Solution zip:** `1788957509_e45bfa39e9d76bae.zip`
 - **Note:** DUPLICATE GROUP: choose one
@@ -109,7 +109,7 @@ Each entry lists the lesson (taken from the header of the question screenshot), 
 - **Note:** DUPLICATE GROUP: choose one
 
 ### Q1. Additional Services at Parking Lot
-- **Screenshot:** `msedge_y8wa4WYEAh.png`
+- **Screenshot:** `msedge_yCu7zAJ6LV.png`
 - **Solution zip:** `1773391724_87cf031e5163e151.zip`
 - **Solution zip:** `1788959212_15061759b2f59395.zip`
 - **Note:** DUPLICATE GROUP: choose one
@@ -135,7 +135,7 @@ Each entry lists the lesson (taken from the header of the question screenshot), 
 - **Note:** Same question as the Parking Lot 5 Q2 entry above
 
 ### Q4. Display parking lot capacity (same question as Parking Lot 5, Q4)
-- **Screenshot:** `msedge_yCu7zAJ6LV.png`
+- **Screenshot:** `msedge_pTWqtjYR1s.png`
 - **Solution zip:** `1773391737_6fa3c97bbde581d3.zip`
 - **Solution zip:** `1788956573_3727527e250bb69c.zip`
 - **Note:** Same question as the Parking Lot 5 Q4 entry above

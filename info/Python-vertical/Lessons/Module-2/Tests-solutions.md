@@ -163,4 +163,5 @@ Source: 34 questions, 34 screenshots, 34 zips. Every zip is matched to exactly o
 - **Two zips with the same problem name in different case:** `audio_player-solution` (Abstract Factory question) and `Audio_Player-solution` (Simple Factory question) are separate questions. Likewise `document_editor-solution` and `Document_Editor-solution`, and `notification_sys-solution` and `Notification_Sys-solution`.
 - **Java zips:** `Singleton_Log-solution` and `Builder_Message-solution` are Java (Maven) projects. Their questions are matched by the question text and the `@WithBuilder` annotation.
 - **Generic folder name:** `Mesage-solution` (Python) matches the messaging Builder question that has no `@WithBuilder` annotation.
+- **Data Analysis zip README:** `Data_Analysis-solution`'s README is titled "Facade pattern for a travel booking platform" (copied from the Booking question), but its code (`data/manager.py`, `DataAnalysisManager`) is the Data Analysis facade, so the match stands.
 - **Question wording:** Questions are identified by the title shown in each screenshot. They are not copied in full.
