@@ -2,7 +2,7 @@
 
 Each entry lists the lesson (taken from the header of the question screenshot), the question, and the solution zip(s) that hold its answer. Zip files live in `info/Python-vertical/Lessons/Module-3/Tests/`.
 
-**Status:** 24 screenshots, 24 zips. 19 unique questions. Five questions appear in two screenshots and each has two candidate zips, so those five need a choice (see the Open decisions section).
+**Status:** 24 screenshots, 24 zips, 19 unique questions. Five questions appear in two screenshots (two lessons) and have two zips each; the newer zip is the answer (see the last section).
 
 ---
 
@@ -86,75 +86,67 @@ Each entry lists the lesson (taken from the header of the question screenshot), 
 
 ### Q2. Change payment gateway (Integrate Payment Gateway for Restaurant Management System)
 - **Screenshot:** `msedge_9kSqQ4YyCs.png`
-- **Solution zip:** `1773391731_8c47439d87032778.zip`
-- **Solution zip:** `1788949803_1ff9576805eb4c27.zip`
-- **Note:** DUPLICATE GROUP: choose one
+- **Solution zip (answer):** `1788949803_1ff9576805eb4c27.zip`
+- **Older version (not the answer):** `1773391731_8c47439d87032778.zip` — earlier, partial solution to the same question
 
 ### Q3. Generate Tickets (Generate Ticket for Parking Lot System)
 - **Screenshot:** `msedge_n3cwtH9UNW.png`
-- **Solution zip:** `1773391733_d503150a3ed9d0be.zip`
-- **Solution zip:** `1788957509_e45bfa39e9d76bae.zip`
-- **Note:** DUPLICATE GROUP: choose one
+- **Solution zip (answer):** `1788957509_e45bfa39e9d76bae.zip`
+- **Older version (not the answer):** `1773391733_d503150a3ed9d0be.zip` — earlier, partial solution to the same question
 
 ### Q4. Get parking lot capacity (Display parking lot capacity)
 - **Screenshot:** `msedge_e80YaVPooC.png`
-- **Solution zip:** `1773391737_6fa3c97bbde581d3.zip`
-- **Solution zip:** `1788956573_3727527e250bb69c.zip`
-- **Note:** DUPLICATE GROUP: choose one
+- **Solution zip (answer):** `1788956573_3727527e250bb69c.zip`
+- **Older version (not the answer):** `1773391737_6fa3c97bbde581d3.zip` — earlier, partial solution to the same question
 
 ### Q5. Manage Wait List for a Restaurant
 - **Screenshot:** `msedge_Gu1LfTCN7l.png`
-- **Solution zip:** `1773391743_2ab78c5095616e3d.zip`
-- **Solution zip:** `1788955803_1c393f45b928c4a2.zip`
-- **Note:** DUPLICATE GROUP: choose one
+- **Solution zip (answer):** `1788955803_1c393f45b928c4a2.zip`
+- **Older version (not the answer):** `1773391743_2ab78c5095616e3d.zip` — earlier, partial solution to the same question
 
 ### Q1. Additional Services at Parking Lot
 - **Screenshot:** `msedge_yCu7zAJ6LV.png`
-- **Solution zip:** `1773391724_87cf031e5163e151.zip`
-- **Solution zip:** `1788959212_15061759b2f59395.zip`
-- **Note:** DUPLICATE GROUP: choose one
+- **Solution zip (answer):** `1788959212_15061759b2f59395.zip`
+- **Older version (not the answer):** `1773391724_87cf031e5163e151.zip` — earlier, partial solution to the same question
 
 ## Backend LLD: Machine Coding - 6: Code Parking Lot 1
 
 ### Q6. Additional Services at Parking Lot (same question as Parking Lot 5, Q1)
 - **Screenshot:** `msedge_JOCyBCjBj6.png`
-- **Solution zip:** `1773391724_87cf031e5163e151.zip`
-- **Solution zip:** `1788959212_15061759b2f59395.zip`
-- **Note:** Same question as the Parking Lot 5 Q1 entry above
+- **Solution zip (answer):** `1788959212_15061759b2f59395.zip`
+- **Older version (not the answer):** `1773391724_87cf031e5163e151.zip` — earlier, partial solution to the same question
 
 ### Q3. Manage Wait List for a Restaurant (same question as Parking Lot 5, Q5)
 - **Screenshot:** `msedge_Kk880ZzUES.png`
-- **Solution zip:** `1773391743_2ab78c5095616e3d.zip`
-- **Solution zip:** `1788955803_1c393f45b928c4a2.zip`
-- **Note:** Same question as the Parking Lot 5 Q5 entry above
+- **Solution zip (answer):** `1788955803_1c393f45b928c4a2.zip`
+- **Older version (not the answer):** `1773391743_2ab78c5095616e3d.zip` — earlier, partial solution to the same question
 
 ### Q2. Integrate Payment Gateway for Restaurant Management System (same question as Parking Lot 5, Q2)
 - **Screenshot:** `msedge_UYKWIcNwrU.png`
-- **Solution zip:** `1773391731_8c47439d87032778.zip`
-- **Solution zip:** `1788949803_1ff9576805eb4c27.zip`
-- **Note:** Same question as the Parking Lot 5 Q2 entry above
+- **Solution zip (answer):** `1788949803_1ff9576805eb4c27.zip`
+- **Older version (not the answer):** `1773391731_8c47439d87032778.zip` — earlier, partial solution to the same question
 
 ### Q4. Display parking lot capacity (same question as Parking Lot 5, Q4)
 - **Screenshot:** `msedge_pTWqtjYR1s.png`
-- **Solution zip:** `1773391737_6fa3c97bbde581d3.zip`
-- **Solution zip:** `1788956573_3727527e250bb69c.zip`
-- **Note:** Same question as the Parking Lot 5 Q4 entry above
+- **Solution zip (answer):** `1788956573_3727527e250bb69c.zip`
+- **Older version (not the answer):** `1773391737_6fa3c97bbde581d3.zip` — earlier, partial solution to the same question
 
 ### Q5. Generate Ticket for Parking Lot System (same question as Parking Lot 5, Q3)
 - **Screenshot:** `msedge_ed4w4KHqRe.png`
-- **Solution zip:** `1773391733_d503150a3ed9d0be.zip`
-- **Solution zip:** `1788957509_e45bfa39e9d76bae.zip`
-- **Note:** Same question as the Parking Lot 5 Q3 entry above
+- **Solution zip (answer):** `1788957509_e45bfa39e9d76bae.zip`
+- **Older version (not the answer):** `1773391733_d503150a3ed9d0be.zip` — earlier, partial solution to the same question
 
 ---
 
-## Open decisions
+## Questions with two zips
 
-The following five questions each have two zips. The named zip (1773391…) and the `__MACOSX` zip (1788…) both hold a solution to the same question. Pick one per question:
+Five questions have two zips: an older named zip (`1773391…`) and a newer `test-solution` zip (`1788…`). Both were unzipped and compared file by file. In every pair the newer zip is the answer: it matches the README spec and has a full test suite (23–40 tests vs 2–8). The older zips are earlier, partial versions:
 
-1. Integrate payment gateway (restaurant): `1773391731_8c47439d87032778.zip` or `1788949803_1ff9576805eb4c27.zip`
-2. Generate tickets: `1773391733_d503150a3ed9d0be.zip` or `1788957509_e45bfa39e9d76bae.zip`
-3. Get parking lot capacity: `1773391737_6fa3c97bbde581d3.zip` or `1788956573_3727527e250bb69c.zip`
-4. Manage wait list: `1773391743_2ab78c5095616e3d.zip` or `1788955803_1c393f45b928c4a2.zip`
-5. Additional services: `1773391724_87cf031e5163e151.zip` or `1788959212_15061759b2f59395.zip`
+| Question | Answer (newer) | Older version | Why the older one is not the answer |
+|---|---|---|---|
+| Integrate payment gateway | `1788949803_1ff9576805eb4c27.zip` | `1773391731_8c47439d87032778.zip` | Ignores GST/service charge, hardcodes PENDING status, wrong error message (spec: "Invalid bill id") |
+| Generate tickets | `1788957509_e45bfa39e9d76bae.zip` | `1773391733_d503150a3ed9d0be.zip` | Takes first free spot instead of the floor-selection rules |
+| Parking lot capacity | `1788956573_3727527e250bb69c.zip` | `1773391737_6fa3c97bbde581d3.zip` | Counts occupied spots too; controller method not named `get_parking_lot_capacity` |
+| Manage wait list | `1788955803_1c393f45b928c4a2.zip` | `1773391743_2ab78c5095616e3d.zip` | Raises an error instead of returning -1; messages differ from spec ("User not found", "Access Denied") |
+| Additional services | `1788959212_15061759b2f59395.zip` | `1773391724_87cf031e5163e151.zip` | No controllers/DTOs; weekday fee capped at 30 and hours rounded down; weekend pricing ignores slabs |
 
