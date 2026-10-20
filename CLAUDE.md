@@ -1,5 +1,13 @@
 # Neuralascent — Claude Working Rules
 
+## 🟢 TEMPORARY OVERRIDE (set 2026-10-20, until the user revokes it)
+
+This override takes precedence over "NO DIRECT CODE CHANGES" below.
+
+- Claude **may** edit, create and delete files in the .NET API (`api/`, including `api/Data/*SeedData.cs`) and the React app (`app/`), working on a branch with a PR as usual.
+- Claude **must never write a Python file** (`.py`, or Python code saved under any extension) anywhere in the repo. This includes `ai-agent/`, `scripts/`, and Python exercises under `exercises/`. The user writes all Python themselves for practice. For Python work, Claude reviews, explains, or describes what to build; it does not write the code.
+- Everything else in the rules below still applies: the AI-vertical scope boundary, the content quality standard, and read-only status for paths not named here (compose files, deploy scripts, workflows, `.env*`).
+
 ## ⛔ NO DIRECT CODE CHANGES
 
 Claude does **not** have permission to edit, create, or delete any file in this repository.
