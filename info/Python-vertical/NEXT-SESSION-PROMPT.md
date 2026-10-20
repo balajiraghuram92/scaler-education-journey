@@ -12,14 +12,14 @@ All source material is in `info/Python-vertical/`:
 
 - `Structure-lessons/Foundations of Object-Oriented Design & Scalable Systems.png`: the course structure image.
 - `Lessons/Module-{1,2,3}/Tests/`: question screenshots (`msedge_*.png`) and solution zips. Each zip is a project with a README, code and tests.
-- `Lessons/Module-{1,2,3}/Mcqs/`: MCQ screenshots (352 in total).
+- `Lessons/Module-{1,2,3}/Mcqs/`: MCQ screenshots (367 in total).
 - `Lessons/Module-{1,2,3}/Tests-solutions.md`: each coding question listed under its lesson (from the screenshot header), with the zip that is its answer. These were verified against OCR and the zip contents.
   - In Module 3, five questions have two zips. The newer `1788…` zip is the answer; the older `1773…` zip is a partial earlier version.
   - Two Module 2 zips (`Singleton_Log-solution` and `Builder_Message-solution`) are Java/Maven projects, not Python.
-- `Lessons/Module-{1,2,3}/Mcqs-by-lesson.md`: 351 unique MCQs (128 / 167 / 56).
+- `Lessons/Module-{1,2,3}/Mcqs-by-lesson.md`: 366 unique MCQs (128 / 167 / 71). Module 3 includes *Machine Coding - 14: Code Splitwise 2* (Q2–Q16, added 2026-10-20; its Q1 was not captured).
   - They are grouped by lesson, then by the page's **Assignment** and **Additional Problems** sections.
   - Options are lettered a, b, c, d.
-- `Lessons/mcqs-structured.json`: the same 351 MCQs as JSON, with the fields `module`, `lesson`, `section`, `qnum`, `title`, `question`, `options[{optionKey, optionText}]`, `correctOptionKey` (null for all), `note` and `screenshots`. Use this file as the data source rather than re-reading the screenshots.
+- `Lessons/mcqs-structured.json`: the same 366 MCQs as JSON, with the fields `module`, `lesson`, `section`, `qnum`, `title`, `question`, `options[{optionKey, optionText}]`, `correctOptionKey` (null for all), `note` and `screenshots`. Use this file as the data source rather than re-reading the screenshots.
 
 ## What is still left (confirm scope with me before starting)
 
