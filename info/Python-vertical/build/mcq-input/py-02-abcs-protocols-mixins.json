@@ -1,0 +1,426 @@
+{
+ "lessonSlug": "py-02-abcs-protocols-mixins",
+ "sourceLesson": "Backend LLD: OOP-4: ABCs, Protocols and Mixins",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-02/additional/q01",
+   "category": "Additional",
+   "title": "Abstract Method Instantiation Guarantee",
+   "question": "What does @abstractmethod on a method inside an ABC subclass guarantee?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The method runs automatically when the object is created"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Any subclass that does not implement this method cannot be instantiated — TypeError at object creation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The method is private and inaccessible from outside"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The method is optimized for performance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_XXBjnPhhdV.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/additional/q02",
+   "category": "Additional",
+   "title": "Inherited Abstract Method Satisfaction",
+   "question": "A PaymentGateway ABC has two abstract methods. StripeGateway inherits from it and implements both. StripeGateway is then subclassed by StripeGatewayV2 which adds a new method but does NOT re-implement the abstract ones. Can StripeGatewayV2() be instantiated?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "No — each subclass must re-implement all abstract methods"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Only if StripeGatewayV2 explicitly calls super()"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only if StripeGatewayV2 also inherits from ABC"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Yes — StripeGateway already satisfied the contract, and StripeGatewayV2 inherits those implementations"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_T3kCzDaBJY.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/additional/q03",
+   "category": "Additional",
+   "title": "Protocol Runtime Check Requirement",
+   "question": "A Protocol is defined without @runtime_checkable. What happens when you call isinstance(some_obj, MyProtocol)?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Returns True if methods match"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Returns False always"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "TypeError — isinstance requires @runtime_checkable to work with Protocols"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Works normally — @runtime_checkable is only for static checkers"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_69dLOGZMom.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/additional/q04",
+   "category": "Additional",
+   "title": "Purpose Of Mixin Classes",
+   "question": "A mixin named TimestampMixin adds a created_at attribute. It is designed to be combined via multiple inheritance. Which statement is true about mixins, per the lecture?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Mixins represent an \"is-a\" relationship"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Mixins should be instantiated directly and used standalone"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Mixins must inherit from ABC"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Mixins add focused, reusable capabilities — never meant to be instantiated alone, combined via multiple inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_vRVEUApzvx.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/additional/q05",
+   "category": "Additional",
+   "title": "Subclass Definition Hook Timing",
+   "question": "__init_subclass__ runs:",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Every time an instance of the class is created (__init__ equivalent for classes)"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Automatically when a new subclass is defined — at class-definition time, not at instance-creation time"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only when explicitly called with super().__init_subclass__()"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Only in metaclasses"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_Cvn4vDxSW6.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/additional/q06",
+   "category": "Additional",
+   "title": "Multiple Parent Method Priority",
+   "question": "class RGW(PaymentGateway, LoggingMixin, JSONMixin) — all three parents define describe(). Whose version does RGW().describe() call?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "LoggingMixin's — mixins override everything"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "JSONMixin's — last parent wins"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "PaymentGateway's — it appears first in the MRO after RGW itself"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "All three run in sequence"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_d4YOVSo4Fp.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/additional/q07",
+   "category": "Additional",
+   "title": "Class Type Hierarchy",
+   "question": "The type() of an ordinary Python class (e.g., type(str)) is:",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "object"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "type"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "ABCMeta"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "classmethod"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_sVSSN7djwL.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/additional/q08",
+   "category": "Additional",
+   "title": "Abstract Method Name-Only Check",
+   "question": "An ABC defines @abstractmethod def validate(self). A subclass implements validate but with a different signature (def validate(self, strict=False)). Can the subclass be instantiated?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Yes — Python only checks that a method with the name validate exists on the subclass, not its exact signature"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "No — signatures must match exactly"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only if strict has a default value"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Raises TypeError at class definition"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_pqxHQuoOvq.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/additional/q09",
+   "category": "Additional",
+   "title": "Nominal Vs Structural Typing Distinction",
+   "question": "Which is the key difference between nominal typing (ABC) and structural typing (Protocol)?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Nominal checks method presence; structural checks inheritance"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "They are the same mechanism with different names"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Structural typing does not support isinstance"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Nominal requires the class to explicitly declare lineage via inheritance; structural only checks whether the required methods exist on the object"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_9MQ2Qqo3Yn.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/additional/q10",
+   "category": "Additional",
+   "title": "Optional Keyword Registration Guard",
+   "question": "PaymentGateway uses __init_subclass__ with gateway_name keyword. A developer writes class TestGateway(PaymentGateway) (no gateway_name). Which is true?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "TypeError — missing required keyword"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "__init_subclass__ still runs, but the if gateway_name: guard means the class is NOT added to registry — it exists as a normal subclass"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "__init_subclass__ does not run at all"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "registry stores it under the key None"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_8vU5d61Hqu.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/assignment/q04",
+   "category": "Assignment",
+   "title": "Abstract Method Enforcement Check",
+   "question": "Uber's checkout team builds a PaymentGateway ABC with @abstractmethod for process_payment and refund. A new developer writes class StripeGateway(PaymentGateway) implementing only process_payment, forgetting refund. They then write s = StripeGateway(). What happens?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Object is created, AttributeError only when s.refund() is called later"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "SyntaxError at class definition time"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "TypeError at instantiation — Python refuses to create an object of a class that hasn't implemented all abstract methods"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Object is created with refund returning None by default"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_tCsZR5VIzR.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/assignment/q05",
+   "category": "Assignment",
+   "title": "Nominal Vs Structural Typing",
+   "question": "Uber integrates a third-party VendorFraudScanner (installed via pip, not editable) that has a scan(amount, location) method. The team defines class FraudChecker(ABC) with @abstractmethod def scan(...). What does isinstance(VendorFraudScanner(), FraudChecker) return, and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "True — ABC checks method presence structurally"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "False — ABC uses nominal typing; the vendor class never inherited from FraudChecker, so it fails regardless of having the right methods"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "True — all classes satisfy any ABC by default"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Raises TypeError"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_AvtlZcq2n1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/assignment/q06",
+   "category": "Assignment",
+   "title": "Protocol Structural Type Check",
+   "question": "The team rewrites the fraud contract as @runtime_checkable class FraudCheckable(Protocol) with def scan(self, amount, location) -> bool. Without touching the vendor's code, what does isinstance(VendorFraudScanner(), FraudCheckable) now return?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "False — Protocol also requires explicit inheritance"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "True — Protocol uses structural typing; it checks whether the object has a matching scan method, regardless of inheritance"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Raises NotImplementedError"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "True only if @runtime_checkable is removed"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_Jv4VCVh8Ux.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/assignment/q07",
+   "category": "Assignment",
+   "title": "Multiple Mixin Method Resolution",
+   "question": "RazorpayGateway is declared as class RazorpayGateway(PaymentGateway, LoggingMixin, JSONSerializableMixin). Both PaymentGateway and LoggingMixin define a method called describe(). When razorpay.describe() is called, whose version runs?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "PaymentGateway's — it comes before LoggingMixin in the MRO because it was listed first in the class declaration"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "LoggingMixin's — mixins always take priority"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Python raises AmbiguityError"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Both run sequentially"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_USOZeeoa22.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-02/assignment/q08",
+   "category": "Assignment",
+   "title": "Silent Registry Skip Behavior",
+   "question": "PaymentGateway uses __init_subclass__ with a gateway_name keyword to auto-register subclasses into PaymentGateway.registry. A new developer adds PaytmGateway but forgets gateway_name=... in the class declaration. What happens?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "TypeError — gateway_name is required"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "registry auto-generates a name from the class name"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "__init_subclass__ doesn't run at all"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The class is created normally, but it is NOT added to registry (the if gateway_name: guard skips it silently)"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZODkThXz5L.png"
+   ]
+  }
+ ]
+}

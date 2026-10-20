@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-33-scopes-closures-descriptors",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-33/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nfns = []\nfor i in range(3):\n    fns.append(lambda: i * 10)\ni = 7\nprint([f() for f in fns])\n```",
+      "explanation": "**Answer: (c)** `[70, 70, 70]`. The lambdas close over the module-level variable `i`, not the value it had when each lambda was created. By the time they are called, `i` has been reassigned to 7, so all three return 70.\n\n- (a) `[0, 10, 20]` would require each lambda to capture its own copy of the loop value, for example through a default argument.\n- (b) `[20, 20, 20]` is the classic late-binding answer for a loop that ended at 2, but the extra assignment `i = 7` changes it.\n- (d) There is no `NameError`; `i` still exists in module scope.\n\n**Deeper:** Closures capture variables, not values. The fixes are `lambda i=i: i * 10`, `functools.partial`, or a factory function returning the lambda. This bug is common in tool and handler registries built in loops, and interviewers often add a line like `i = 7` to see whether you reason about the variable or just memorize the loop answer.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "[0, 10, 20]", "isCorrect": false },
+        { "optionKey": "b", "optionText": "[20, 20, 20]", "isCorrect": false },
+        { "optionKey": "c", "optionText": "[70, 70, 70]", "isCorrect": true },
+        { "optionKey": "d", "optionText": "NameError, because i is out of scope after the loop", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What happens when this code runs?\n\n```python\ntotal = 0\n\ndef add(n):\n    print(total)\n    total = total + n\n\nadd(1)\n```",
+      "explanation": "**Answer: (a)** `UnboundLocalError` is raised at the `print(total)` line. Because `total` is assigned somewhere in `add`, the compiler treats it as a local variable for the whole function, so the read before assignment fails; it does not fall back to the global.\n\n- (b) Nothing is printed first: the `print` is the statement that fails.\n- (c) The global `total` is never consulted, so neither 0 nor 1 appears.\n- (d) This is not a compile-time error; the compiler only classifies `total` as local and the failure happens at run time.\n\n**Deeper:** Local-versus-global is decided at compile time per function, not at run time line by line. Fix with `global total` if you really want module state, or better, pass state in and return the new value. Interviewers use this to check whether you understand LEGB as a compile-time classification.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "UnboundLocalError is raised by print(total)", "isCorrect": true },
+        { "optionKey": "b", "optionText": "It prints 0 and then raises UnboundLocalError", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It prints 0 and the global total becomes 1", "isCorrect": false },
+        { "optionKey": "d", "optionText": "SyntaxError at compile time, because total is read before it is assigned", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "For `obj.attr`, the class of `obj` defines `attr` as a data descriptor (it has `__get__` and `__set__`), and `obj.__dict__` also contains the key `\"attr\"`. What does the attribute read return?",
+      "explanation": "**Answer: (d)** The result of the data descriptor's `__get__`. Data descriptors sit at the top of the lookup order, ahead of the instance `__dict__`.\n\n- (a) The instance dict value would win only for a non-data descriptor or a plain class attribute.\n- (b) Assignment order is irrelevant; precedence is structural, not temporal.\n- (c) There is no conflict error; Python silently prefers the descriptor.\n\n**Deeper:** This is exactly why `property` is robust: writing to `obj.__dict__[\"x\"]` cannot hide a property, whereas a method (a non-data descriptor) can be shadowed per instance. It is also why `functools.cached_property`, which is non-data, can cache by writing its result into the instance dict. The full order is: data descriptor, instance dict, non-data descriptor or class attribute, then `__getattr__` as a fallback.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The value stored in obj.__dict__", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Whichever of the two was assigned most recently", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It raises an AttributeError about the conflict", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The value returned by the descriptor's __get__", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A class defines both `__getattribute__` and `__getattr__`. When is `__getattr__` invoked?",
+      "explanation": "**Answer: (b)** Only after the normal lookup, performed by `__getattribute__`, raises `AttributeError`. `__getattr__` is a fallback hook for names that were not found.\n\n- (a) `__getattribute__` is the hook that runs on every access, not `__getattr__`.\n- (c) Attribute writes go through `__setattr__`; `__getattr__` has nothing to do with them.\n- (d) Special-method lookups such as `len(obj)` use the type and bypass both hooks on the instance.\n\n**Deeper:** If a custom `__getattribute__` raises `AttributeError`, Python then calls `__getattr__`. Overriding `__getattribute__` is risky: any `self.x` inside it re-enters it, so delegate with `super().__getattribute__(name)`. Prefer `__getattr__` for lazy or proxy attributes, and raise `AttributeError` for names you do not handle so `hasattr` and `copy` keep working.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "On every attribute read, before __getattribute__", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Only when the normal lookup raises AttributeError", "isCorrect": true },
+        { "optionKey": "c", "optionText": "On every attribute assignment", "isCorrect": false },
+        { "optionKey": "d", "optionText": "When len(obj) or obj() looks for a special method on the instance", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nclass Pos:\n    def __set_name__(self, owner, name):\n        self.n = name\n    def __get__(self, obj, objtype=None):\n        return self if obj is None else self.v\n    def __set__(self, obj, v):\n        self.v = v\n\nclass M:\n    x = Pos()\n\na, b = M(), M()\na.x = 1\nb.x = 2\nprint(a.x, b.x)\n```",
+      "explanation": "**Answer: (a)** `2 2`. The descriptor object is a single class attribute shared by every instance. It stores the value on itself (`self.v`), so the second assignment overwrites the first for both `a` and `b`.\n\n- (b) `1 2` is the behaviour you want, but it requires storing per-instance state on the instance (for example `obj.__dict__[self.n] = v`) or in a `WeakKeyDictionary`.\n- (c) `1 1` would mean the first write won, which does not happen.\n- (d) No `AttributeError` is raised because `self.v` is set by the first `__set__` call.\n\n**Deeper:** This is the most common descriptor bug. A descriptor describes the class, so mutable state on it is class-wide. Use `__set_name__` to learn the attribute name and store values in the instance's `__dict__` under a private name. Interviewers like this one because it exposes whether you understand that descriptors are shared.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "2 2", "isCorrect": true },
+        { "optionKey": "b", "optionText": "1 2", "isCorrect": false },
+        { "optionKey": "c", "optionText": "1 1", "isCorrect": false },
+        { "optionKey": "d", "optionText": "AttributeError, because b.x was never set on the instance", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What happens when `outer()` is called?\n\n```python\ndef outer():\n    items = []\n    count = 0\n\n    def add(x):\n        items.append(x)\n        count += 1\n\n    add(1)\n    return items, count\n\nouter()\n```",
+      "explanation": "**Answer: (d)** `add(1)` executes `items.append(1)` successfully, then fails on `count += 1` with `UnboundLocalError`, which propagates out of `outer()`.\n\n- (a) The tuple `([1], 1)` would need `nonlocal count` in `add`.\n- (b) `([1], 0)` is what a naive reader expects, but the rebinding does not silently fail; it errors.\n- (c) `items.append(x)` is a method call on a name that is only read, so `items` is found in the enclosing scope without error.\n\n**Deeper:** Mutating an enclosed object needs no declaration, but rebinding a name, which is what `+=` on an int does, makes the name local to `add`. The fix is `nonlocal count`. The side effect is also notable: `items` has already been mutated when the exception fires, which matters for partial-failure reasoning in real code.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It returns ([1], 1)", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It returns ([1], 0)", "isCorrect": false },
+        { "optionKey": "c", "optionText": "UnboundLocalError is raised by items.append(x)", "isCorrect": false },
+        { "optionKey": "d", "optionText": "UnboundLocalError is raised by count += 1, after items has already been mutated", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nclass A:\n    @property\n    def x(self):\n        return \"prop\"\n\nclass B:\n    def x(self):\n        return \"meth\"\n\na, b = A(), B()\na.__dict__[\"x\"] = \"inst\"\nb.__dict__[\"x\"] = \"inst\"\nprint(a.x)\nprint(b.x)\n```",
+      "explanation": "**Answer: (b)** It prints `prop` and then `inst`. A `property` is a data descriptor (it defines `__set__`, which raises when no setter exists), so it wins over the instance dict. A plain function is a non-data descriptor, so the instance dict entry shadows it.\n\n- (a) `inst inst` ignores that a property is a data descriptor.\n- (c) `prop prop` ignores that functions are only non-data descriptors, so per-instance shadowing works.\n- (d) `inst prop` reverses the two precedence rules.\n\n**Deeper:** This precedence difference is why properties enforce invariants robustly while methods can be monkeypatched per instance (a common testing technique). It is also the property that `cached_property` exploits: as a non-data descriptor, its cached value in the instance dict takes over after the first access.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "inst, then inst", "isCorrect": false },
+        { "optionKey": "b", "optionText": "prop, then inst", "isCorrect": true },
+        { "optionKey": "c", "optionText": "prop, then prop", "isCorrect": false },
+        { "optionKey": "d", "optionText": "inst, then prop", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What happens on the last line?\n\n```python\nfrom functools import cached_property\n\nclass Token:\n    __slots__ = (\"a\",)\n\n    @cached_property\n    def v(self):\n        return 1\n\nToken().v\n```",
+      "explanation": "**Answer: (c)** A `TypeError` is raised with the message \"No '__dict__' attribute on 'Token' instance to cache 'v' property.\" `cached_property` caches by writing into the instance `__dict__`, and a class with only `__slots__` has none.\n\n- (a) It cannot return 1 because the descriptor first tries to store the computed value.\n- (b) The error type is `TypeError`, not `AttributeError`; `cached_property` raises it explicitly.\n- (d) It does not silently recompute; the failure is loud, which is better than a hidden performance bug.\n\n**Deeper:** `cached_property` works because it is a non-data descriptor that shadows itself via the instance dict. For slotted classes, either add `\"__dict__\"` to the slots (giving up some of the memory saving), compute eagerly in `__init__`, or write a custom descriptor storing into a slot. Also note it is not safe to use across threads without your own locking if the computation has side effects.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It returns 1 and stores the value in a hidden slot", "isCorrect": false },
+        { "optionKey": "b", "optionText": "AttributeError is raised because v is not a slot", "isCorrect": false },
+        { "optionKey": "c", "optionText": "TypeError is raised because there is no __dict__ to cache into", "isCorrect": true },
+        { "optionKey": "d", "optionText": "It returns 1 and recomputes the value on every access", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this code do at class-definition time?\n\n```python\nclass Cfg:\n    base = 2\n    scaled = [base * i for i in range(3)]\n```",
+      "explanation": "**Answer: (c)** It raises `NameError: name 'base' is not defined`. A class body is not an enclosing scope for nested scopes. The comprehension body is its own function-like scope, and name resolution skips the class namespace; only the outermost iterable (`range(3)`) is evaluated in the class scope.\n\n- (a) `[0, 2, 4]` is what many people expect, but the class variable is not visible inside the comprehension.\n- (b) `[0, 0, 0]` would need `base` to resolve to something falsy, which it does not.\n- (d) `UnboundLocalError` applies to function locals; here the name is simply not found.\n\n**Deeper:** PEP 709 inlined comprehensions in 3.12 for speed but kept this scoping behaviour. Workarounds are to bind through the first iterable (`for base in [base]`), compute in a helper function, or define the value before the class. The same rule explains why methods cannot reference class variables by bare name.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "scaled becomes [0, 2, 4]", "isCorrect": false },
+        { "optionKey": "b", "optionText": "scaled becomes [0, 0, 0]", "isCorrect": false },
+        { "optionKey": "c", "optionText": "NameError, because the comprehension cannot see the class variable base", "isCorrect": true },
+        { "optionKey": "d", "optionText": "UnboundLocalError, because base is assigned later in the same scope", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A team writes a proxy class whose `__getattr__` returns `None` (or a no-op callable) for every unknown attribute \"to avoid crashes\". What is the main production risk?",
+      "explanation": "**Answer: (a)** Capability probes such as `hasattr(obj, \"read\")`, `getattr(obj, name, default)` and duck-typing checks in libraries always succeed, so code concludes the object supports operations it does not, and failures move far from the cause.\n\n- (b) `__getattr__` is only called after normal lookup fails, so it does not slow down successful attribute reads.\n- (c) Defining it does not break `isinstance`, which checks the type hierarchy.\n- (d) It is not a reference cycle issue; a missing attribute returns a value without creating cycles.\n\n**Deeper:** Raise `AttributeError` for anything you do not explicitly handle. Frameworks such as copy, pickle, mock objects and debuggers probe attribute names (including dunder and private names) and assume absence means absence. A permissive `__getattr__` also masks typos, which turns a loud bug into a silent wrong result.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "hasattr and getattr-with-default probes always succeed, so callers misjudge what the object supports", "isCorrect": true },
+        { "optionKey": "b", "optionText": "Every normal attribute read becomes slower because __getattr__ runs first", "isCorrect": false },
+        { "optionKey": "c", "optionText": "isinstance checks against the proxy start returning False", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The proxy creates reference cycles that the garbage collector cannot free", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What is the output?\n\n```python\nclass V:\n    def __get__(self, obj, objtype=None):\n        return \"desc\"\n    def __set__(self, obj, value):\n        print(\"set\")\n\nclass A:\n    x = V()\n\na = A()\na.x = 1\nA.x = 2\na.x = 3\nprint(a.x, a.__dict__)\n```",
+      "explanation": "**Answer: (b)** It prints `set` once, then `3 {'x': 3}`. The first assignment goes through the data descriptor's `__set__`. `A.x = 2` replaces the descriptor with a plain int on the class, and assigning on the class never calls the descriptor. The last assignment therefore writes into the instance `__dict__`, which now wins over the plain class attribute.\n\n- (a) A second `set` would need the descriptor to still be installed, but it was replaced.\n- (c) The read returns the instance value 3, not the class attribute 2, because the instance dict has priority over non-descriptor class attributes.\n- (d) The first assignment does call `__set__`, so `set` is printed.\n\n**Deeper:** Class-level assignment bypasses `__set__`; only a metaclass descriptor could intercept it. This is why ORMs that need to intercept class-level changes use metaclasses or `__init_subclass__`, and why monkeypatching a property on a class silently removes its validation.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "set, set, then 3 {}", "isCorrect": false },
+        { "optionKey": "b", "optionText": "set, then 3 {'x': 3}", "isCorrect": true },
+        { "optionKey": "c", "optionText": "set, then 2 {}", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Only 3 {'x': 3}, with no set line", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-33/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You must log every attribute access on a class by overriding `__getattribute__`. Which body is correct and avoids infinite recursion?",
+      "explanation": "**Answer: (d)** `return super().__getattribute__(name)` (or `object.__getattribute__(self, name)`) performs the normal lookup without re-entering your override.\n\n- (a) `self.__dict__[name]` itself performs an attribute access (`__dict__`), which calls `__getattribute__` again and recurses until `RecursionError`.\n- (b) `getattr(self, name)` calls `type(self).__getattribute__` again, so it recurses immediately.\n- (c) `self._data[name]` is another attribute access on `self` and recurses on `_data`.\n\n**Deeper:** Inside `__getattribute__`, every use of `self.<anything>` re-enters the hook. Delegate to `object.__getattribute__` for real lookups and use it for any private bookkeeping too. Logging every access can be expensive, so in practice you would use it for tracing and proxies, and reach for `__getattr__` or descriptors for ordinary dynamic behaviour.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "return self.__dict__[name]", "isCorrect": false },
+        { "optionKey": "b", "optionText": "return getattr(self, name)", "isCorrect": false },
+        { "optionKey": "c", "optionText": "return self._data[name]", "isCorrect": false },
+        { "optionKey": "d", "optionText": "return super().__getattribute__(name)", "isCorrect": true }
+      ]
+    }
+  ]
+}

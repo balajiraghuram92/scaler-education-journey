@@ -45,11 +45,28 @@ public static class AuthEndpoints
             .WithName("AuthTotpVerify")
             .RequireRateLimiting("AuthPolicy");
 
-        group.MapPost("/logout", Logout)
+        group.MapPost("/logout", LogoutAsync)
             .WithName("AuthLogout");
 
         group.MapGet("/me", GetCurrentUserAsync)
             .WithName("AuthGetCurrentUser");
+
+        // Session management
+        group.MapPost("/refresh", RefreshAsync)
+            .WithName("AuthRefresh")
+            .RequireRateLimiting("RefreshPolicy");
+
+        group.MapGet("/sessions", ListSessionsAsync)
+            .WithName("AuthListSessions")
+            .RequireAuthorization();
+
+        group.MapDelete("/sessions/{sessionId:guid}", RevokeSessionAsync)
+            .WithName("AuthRevokeSession")
+            .RequireAuthorization();
+
+        group.MapPost("/logout-all", LogoutAllAsync)
+            .WithName("AuthLogoutAll")
+            .RequireAuthorization();
     }
 
     private static async Task<IResult> SignupAsync(
@@ -224,8 +241,7 @@ public static class AuthEndpoints
         StudyTrackerContext db,
         ITotpService totpService,
         TotpSecretProtector secretProtector,
-        IJwtTokenService jwtTokenService,
-        IOptions<AuthOptions> authOptions,
+        SessionService sessionService,
         HttpContext httpContext,
         CancellationToken ct)
     {
@@ -284,7 +300,7 @@ public static class AuthEndpoints
         challenge.ConsumedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
 
-        SetAuthCookie(httpContext, jwtTokenService, authOptions, user);
+        await sessionService.StartSessionAsync(user, request.RememberMe, httpContext, ct);
 
         return Results.Ok(new UserDto(
             user.Id,
@@ -301,8 +317,7 @@ public static class AuthEndpoints
         StudyTrackerContext db,
         ITotpService totpService,
         TotpSecretProtector secretProtector,
-        IJwtTokenService jwtTokenService,
-        IOptions<AuthOptions> authOptions,
+        SessionService sessionService,
         HttpContext httpContext,
         CancellationToken ct)
     {
@@ -360,7 +375,7 @@ public static class AuthEndpoints
         challenge.ConsumedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
 
-        SetAuthCookie(httpContext, jwtTokenService, authOptions, user);
+        await sessionService.StartSessionAsync(user, request.RememberMe, httpContext, ct);
 
         return Results.Ok(new UserDto(
             user.Id,
@@ -372,46 +387,100 @@ public static class AuthEndpoints
             user.LastLoginAt));
     }
 
-    private static void SetAuthCookie(
+    private static async Task<IResult> LogoutAsync(
+        SessionService sessionService,
+        ICurrentUser currentUser,
         HttpContext httpContext,
-        IJwtTokenService jwtTokenService,
-        IOptions<AuthOptions> authOptions,
-        AppUser user)
+        CancellationToken ct)
     {
-        var cookieName = !string.IsNullOrWhiteSpace(authOptions.Value.CookieName)
-            ? authOptions.Value.CookieName
-            : "na_auth";
-
-        var token = jwtTokenService.GenerateToken(user);
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = httpContext.Request.IsHttps,
-            SameSite = SameSiteMode.Lax,
-            Expires = jwtTokenService.GetExpiration(),
-            Path = "/"
-        };
-
-        httpContext.Response.Cookies.Append(cookieName, token, cookieOptions);
+        await sessionService.SignOutAsync(httpContext, currentUser.UserId, currentUser.SessionId, ct);
+        return Results.Ok(new { message = "Logged out successfully." });
     }
 
-    private static IResult Logout(
-        IOptions<AuthOptions> authOptions,
-        HttpContext httpContext)
+    private static async Task<IResult> RefreshAsync(
+        SessionService sessionService,
+        HttpContext httpContext,
+        CancellationToken ct)
     {
-        var cookieName = !string.IsNullOrWhiteSpace(authOptions.Value.CookieName)
-            ? authOptions.Value.CookieName
-            : "na_auth";
-
-        httpContext.Response.Cookies.Delete(cookieName, new CookieOptions
+        var result = await sessionService.RefreshAsync(httpContext, ct);
+        if (result.Outcome != RefreshOutcome.Refreshed || result.User == null)
         {
-            HttpOnly = true,
-            Secure = httpContext.Request.IsHttps,
-            SameSite = SameSiteMode.Lax,
-            Path = "/"
-        });
+            var detail = result.Outcome switch
+            {
+                RefreshOutcome.Missing => "No active session. Please sign in.",
+                RefreshOutcome.Expired => "Your session has expired. Please sign in again.",
+                RefreshOutcome.ReuseDetected => "This session was signed out for security. Please sign in again.",
+                RefreshOutcome.UserInactive => "Your account is no longer active.",
+                _ => "Your session is no longer valid. Please sign in again."
+            };
+            return Problem(httpContext, StatusCodes.Status401Unauthorized, "Session ended.", detail);
+        }
 
-        return Results.Ok(new { message = "Logged out successfully." });
+        var user = result.User;
+        return Results.Ok(new UserDto(
+            user.Id,
+            user.Email,
+            user.DisplayName,
+            user.Role,
+            user.Status,
+            user.CreatedAt,
+            user.LastLoginAt));
+    }
+
+    private static async Task<IResult> ListSessionsAsync(
+        SessionService sessionService,
+        ICurrentUser currentUser,
+        CancellationToken ct)
+    {
+        if (currentUser.UserId is not int userId)
+        {
+            return Results.Unauthorized();
+        }
+
+        var sessions = await sessionService.ListActiveAsync(userId, currentUser.SessionId, ct);
+        return Results.Ok(sessions);
+    }
+
+    private static async Task<IResult> RevokeSessionAsync(
+        Guid sessionId,
+        SessionService sessionService,
+        ICurrentUser currentUser,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        if (currentUser.UserId is not int userId)
+        {
+            return Results.Unauthorized();
+        }
+
+        var revoked = await sessionService.RevokeAsync(sessionId, userId, "RevokedByUser", ct);
+        if (!revoked)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Session not found.", "No session with that id belongs to your account.");
+        }
+
+        if (sessionId == currentUser.SessionId)
+        {
+            sessionService.ClearCookies(httpContext);
+        }
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> LogoutAllAsync(
+        SessionService sessionService,
+        ICurrentUser currentUser,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        if (currentUser.UserId is not int userId)
+        {
+            return Results.Unauthorized();
+        }
+
+        var count = await sessionService.RevokeAllAsync(userId, exceptSessionId: null, "LogoutAll", ct);
+        sessionService.ClearCookies(httpContext);
+        return Results.Ok(new { message = "Signed out of all devices.", revokedSessions = count });
     }
 
     private static async Task<IResult> GetCurrentUserAsync(

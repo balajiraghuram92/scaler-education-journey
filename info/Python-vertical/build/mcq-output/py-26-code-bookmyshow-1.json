@@ -1,0 +1,395 @@
+{
+  "lessonSlug": "py-26-code-bookmyshow-1",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In SQLAlchemy, what does setting __abstract__ = True on a base class actually do?",
+      "explanation": "**Answer: (a)** `__abstract__ = True` makes the class a pure column provider: subclasses inherit its columns and get their own tables, but the abstract class itself is never mapped to a table.\n- (b) is wrong because you can still instantiate it in Python; the flag is about mapping, not instantiation.\n- (c) is wrong because there is no read-only concept in this flag.\n- (d) is wrong because no table is created for it at all, empty or otherwise.\n\n**Deeper:** use an abstract base for `id`, `created_at` and `updated_at`. Remember that foreign keys and relationships on an abstract base or mixin must be wrapped in `declared_attr`, because each subclass needs its own copy of the object.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It tells SQLAlchemy that this class's columns should be inherited by subclasses, but the class itself does not get its own table",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prevents the class from ever being instantiated in Python",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It marks the class as read-only in the database",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It automatically creates a table with no rows allowed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Two model classes, Screen and Seat, each declare a relationship() describing the connection between them, but neither uses back_populates. What is the direct consequence of this?",
+      "explanation": "**Answer: (b)** `back_populates` links two relationship halves so the session keeps them consistent in memory. Without it, each side still loads correctly from the database, but a live session may show `screen.seats` and `seat.screen` out of step until a refresh.\n- (a) is wrong because the foreign key column comes from `ForeignKey`, not from `relationship()`.\n- (c) is wrong because two independent relationships are valid; SQLAlchemy only warns about overlapping ones in some cases.\n- (d) is wrong because cardinality comes from the foreign key location and `secondary`, not from a missing `back_populates`.\n\n**Deeper:** interviewers use this to test whether you separate schema (FK) from ORM navigation (relationship).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The database foreign key column will not be created",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The two in-memory Python attributes (e.g. screen.seats and seat.screen) may not automatically stay in sync with each other, even though the underlying foreign key is set correctly",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "SQLAlchemy will throw an error when the program starts",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The relationship becomes many-to-many automatically",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A SeatType table stores rows like \"GOLD\" and \"SILVER\". Both Seat and ShowSeatType reference SeatType using a foreign key rather than storing a copy of the name. What is the main benefit of this design?",
+      "explanation": "**Answer: (c)** A foreign key stores a reference to one canonical row, so renaming \"GOLD\" to \"Premium Gold\" is a single-row update that every referencing row sees.\n- (a) is wrong because normalisation usually adds joins, not removes them.\n- (b) is wrong because a single foreign key column holds one value, so a seat still has one type.\n- (d) is wrong because the referenced table still needs a primary key; a foreign key must point at a unique key.\n\n**Deeper:** the same trade-off drives the enum-versus-table decision. If values are configurable or carry data such as a price, make them a table and reference them. If they are fixed by code, an enum avoids the join.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It makes queries run without needing joins",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It allows a Seat to have multiple seat types at once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Renaming a SeatType (e.g. \"GOLD\" to \"Premium Gold\") only requires updating one row, and it reflects everywhere that type is referenced",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It removes the need for a primary key on SeatType",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Consider this code, where BaseModel gives every class an auto-incrementing integer id, and a table is created fresh (it didn't exist before):\n\n```python\nclass Movie(BaseModel):\n    __tablename__ = \"movies\"\n    name = Column(String)\n\nmovie1 = Movie(name=\"Inception\")\nmovie2 = Movie(name=\"Interstellar\")\nsession.add(movie1)\nsession.add(movie2)\nsession.commit()\n\nprint(movie1.id, movie2.id)\n```\nWhat gets printed?",
+      "explanation": "**Answer: (d)** The base class gives an auto-incrementing integer primary key, so on a fresh table the two inserts receive ids `1` and `2` in the order the objects were added. The ids are assigned at flush and read back after commit.\n- (a) is wrong because the ids are populated by the database during flush, and `commit()` refreshes them on access.\n- (b) is wrong because auto-increment sequences start at 1 in SQLite, PostgreSQL and MySQL.\n- (c) is wrong because primary keys are not required to be set manually.\n\n**Deeper:** never rely on id values in tests that share a database across cases, since sequences are not reset by a rollback.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "None None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "0 1",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It throws an error because id was never set manually",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "1 2",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Given this enum and column definition:\n\n```python\nclass BookingStatus(Enum):\n    CONFIRMED = auto()\n    CANCELLED = auto()\n    PENDING = auto()\n\nbooking_status = Column(Enum(BookingStatus))\n```\nIf a Booking row is saved with booking_status = BookingStatus.CONFIRMED, what value is actually stored as text in the database column by default?",
+      "explanation": "**Answer: (a)** SQLAlchemy persists an `Enum` by the member **name**, so `BookingStatus.CONFIRMED` is stored as the text `CONFIRMED`.\n- (b) is wrong because the value from `auto()` is never written unless you pass `values_callable`.\n- (c) is wrong because the qualified `ClassName.MEMBER` string is only what `str()` of the member shows.\n- (d) is wrong because a boolean is unrelated to enum storage.\n\n**Deeper:** storing names makes renames a data migration. If you rename `PAYMENT` to `SETTLEMENT`, old rows fail to load with a `LookupError`. With a native PostgreSQL enum you also need `ALTER TYPE`, which is why many teams use `native_enum=False`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "\"CONFIRMED\" (the member's name)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "1 (the position of CONFIRMED in the enum)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "\"BookingStatus.CONFIRMED\" (the full qualified name)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "True",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A team defines all their 12 model classes across multiple files, correctly using `Base` and `__tablename__`, but only imports 10 of them into `main.py` before calling this:\n\n```python\nBase.metadata.create_all(engine)\n```\nWhat happens to the 2 model classes that were never imported?",
+      "explanation": "**Answer: (b)** A model registers on `Base.metadata` when its class body executes, which only happens once its module is imported. `create_all` then creates tables for registered models only.\n- (a) is wrong because SQLAlchemy never scans the filesystem for models.\n- (c) is wrong because there is no error; the failure is silent, which is what makes it dangerous.\n- (d) is wrong because unregistered tables are not created at all, empty or not.\n\n**Deeper:** import every model module in `models/__init__.py`. In production, use Alembic migrations with autogenerate pointed at the same metadata, and have CI fail if a model has no migration.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SQLAlchemy scans the whole project automatically and creates their tables anyway",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Their tables are silently not created, because SQLAlchemy only registers a class once Python has actually run that class's definition",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The program throws an error immediately, refusing to start",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Their tables are created but left empty",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Here is a class meant to represent a Region that has many Theatres:\n\n```python\nclass Region(BaseModel):\n    def __init__(self, name, region):\n        super().__init__()\n        self.name = name\n        self.region = region\n```\nWhat is wrong with this code, and what's the correct fix?",
+      "explanation": "**Answer: (c)** A `Region` is the top of the hierarchy, so a `region` field on it makes no sense. It looks like a leftover from copying `Theatre`, which is the class that holds a reference to its parent region.\n- (a) is wrong because relationships are not mandatory immediately, and the real problem is a field that should not exist.\n- (b) is wrong because calling `super().__init__()` in a subclass is normal and required for cooperative initialisation.\n- (d) is wrong because renaming `name` fixes nothing.\n\n**Deeper:** in declarative models the fix is the relationship `theatres: Mapped[list[\"Theatre\"]] = relationship(back_populates=\"region\")`, with the foreign key on `Theatre`. Copy-paste bugs like this are exactly what reviewers look for in machine-coding rounds.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It's missing a theatres list, which must always be added immediately",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "super().__init__() should not be called in a subclass",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The region parameter/field doesn't make sense on a Region class — it looks like a copy-paste leftover from Theatre, which is the class that should hold a reference to its parent Region",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "name should be renamed to region_name",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A junior developer writes the ShowSeat model like this, believing a simple foreign key back to Booking is enough to track which booking a seat belongs to:\n\n```python\nclass ShowSeat(BaseModel):\n    __tablename__ = \"show_seats\"\n\n    show_id = Column(Integer, ForeignKey(\"shows.id\"))\n    seat_id = Column(Integer, ForeignKey(\"seats.id\"))\n    show_seat_status = Column(Enum(ShowSeatStatus))\n    booking_id = Column(Integer,\nForeignKey(\"bookings.id\")) # <-- added by the junior dev\n\n    show = relationship(\"Show\")\n    seat = relationship(\"Seat\")\n    booking = relationship(\"Booking\")\n```\nWhy is adding booking_id directly on ShowSeat an incorrect way to link Booking and ShowSeat over time?",
+      "explanation": "**Answer: (d)** A single foreign key column on `ShowSeat` can only record one booking. The same show seat can be linked to different bookings across its life (booked, cancelled, rebooked), so the link needs an association table that keeps every pairing.\n- (a) is wrong because one seat can be sold again after cancellation or expiry.\n- (b) is wrong because `relationship(\"Booking\")` is valid syntax.\n- (c) is wrong because pointing at `users.id` would link a seat to a user, not a booking.\n\n**Deeper:** an association table also lets you add attributes later (price paid, refund state) by promoting it to a mapped class. The next lesson adds a partial unique index so only one **active** booking per show seat can exist.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It's fine — one seat can only ever belong to one booking for all time, so a direct foreign key is correct",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "relationship(\"Booking\") is invalid syntax and will not run",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "ForeignKey(\"bookings.id\") should instead point to \"users.id\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A single foreign key on ShowSeat can only point to one Booking at a time, but the same ShowSeat can legitimately be linked to more than one Booking over time (e.g., after a cancellation and a later rebooking) — this needs a proper many-to-many association table instead",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A Screen can physically support both 3D and Dolby Audio (this is stored as Screen.features). However, a specific 6 PM showing of a movie on that screen is only actually running in 2D that day. Why does the system also need a separate Show.features list, instead of just relying on Screen.features?",
+      "explanation": "**Answer: (a)** `Screen.features` is a capability of the hardware, while `Show.features` is what that one showing actually runs. The same screen can host a 2D matinee and a 3D night show.\n- (b) is wrong because forcing them to be identical would make the show-level list pointless.\n- (c) is wrong because SQLAlchemy has no such requirement.\n- (d) is wrong because a show must belong to a screen; that is what places it in a theatre.\n\n**Deeper:** you can also validate that `Show.features` is a subset of `Screen.features` at the service layer. Modelling \"capability\" and \"configuration\" separately is a recurring pattern in scheduling and inventory systems.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because Screen.features describes what the screen is physically capable of, while Show.features describes what is actually active for that one specific showing — these are two different questions and can have different answers",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because Screen.features and Show.features must always contain identical values",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because SQLAlchemy requires every enum to be duplicated across two tables",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Because Show cannot have any relationship to Screen",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A repository layer needs a method to list every Show playing in a given region. The relationships are: Show belongs to a Screen, Screen belongs to a Theatre, and Theatre belongs to a Region. Which approach correctly fetches all shows for a region named \"Bangalore\"?",
+      "explanation": "**Answer: (b)** Walk the foreign-key chain with joins: `Show` to `Screen` to `Theatre` to `Region`, then filter on the region name. The database does the work in one query.\n- (a) is wrong because copying the region name onto every show duplicates data and breaks when a region is renamed.\n- (c) is wrong because a `Region` object does not know its shows unless you navigate two levels of relationships, which costs extra queries.\n- (d) is wrong because ORMs fully support multi-table joins, and looping in application code is slow.\n\n**Deeper:** add `selectinload` for collections you will read afterwards to avoid N+1 queries.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Query Show directly by a region_name column, since every Show should store its region name directly for fast lookups",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Query Show, then join through Screen, then through Theatre, then through Region, filtering where the Region's name equals \"Bangalore\"",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Query Region only, since regions automatically know all shows happening inside them without any joins",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Fetch all Show rows, then manually loop through every one checking screen and theatre in application code, since joins across four tables are not supported by an ORM",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`ShowSeat` has `UniqueConstraint(\"show_id\", \"seat_id\")`. A scheduler job that creates inventory for a new show is retried by a queue after a timeout and runs twice. What does the constraint do?",
+      "explanation": "**Answer: (c)** A composite unique constraint is enforced by the database for the pair of columns, so a second insert of the same (show, seat) fails with an integrity error that SQLAlchemy raises as `IntegrityError`.\n- (a) is wrong because composite uniqueness is supported and common.\n- (b) is wrong because nothing is skipped unless you write `ON CONFLICT DO NOTHING` explicitly.\n- (d) is wrong because databases do not merge rows on a violation.\n\n**Deeper:** make the job idempotent by design. Either catch the error and treat it as success, or use a dialect-specific insert with `on_conflict_do_nothing`. The same constraint is what later stops two buyers from owning one seat.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing, because unique constraints only apply to single columns",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It silently skips the duplicate rows during the second run",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The second run's inserts violate the constraint and raise `IntegrityError`, so the same seat cannot exist twice for one show",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It merges the duplicate rows into one by updating the first",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A test suite runs on in-memory SQLite and passes. In staging on PostgreSQL, `Theatre(name=\"PVR\", region_id=999)` is rejected, although no such region exists. Why did the SQLite tests pass?",
+      "explanation": "**Answer: (a)** SQLite parses foreign keys but ignores them by default. Enforcement is a per-connection pragma, so tests that insert orphan rows pass silently.\n- (b) is wrong because the DDL is accepted; only enforcement is off.\n- (c) is wrong because unique and not-null constraints are still enforced in memory.\n- (d) is wrong because `relationship()` and `back_populates` never change database constraints.\n\n**Deeper:** register a `connect` event listener on the engine that runs `PRAGMA foreign_keys=ON`, or better, run integration tests against the production dialect with a throwaway PostgreSQL container. Dialect differences are a classic source of \"worked in CI\" bugs.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SQLite does not enforce foreign keys unless `PRAGMA foreign_keys=ON` is executed on each connection",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "SQLite does not support the `ForeignKey` construct at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In-memory databases skip every constraint for speed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`relationship()` disables the foreign key check when `back_populates` is set",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-26/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nshows = session.scalars(select(Show)).all()\nfor show in shows:\n    print(show.screen.theatre.name)\n```\n`Show.screen` and `Screen.theatre` use default lazy loading. For 200 shows spread over 20 screens in 5 theatres, what is the best description of the SQL issued?",
+      "explanation": "**Answer: (d)** Default relationship loading is lazy: the first access of `show.screen` emits a query, and so does the first access of each theatre. The identity map avoids re-querying an object that is already loaded, so the count depends on distinct parents, but it still grows with the data.\n- (a) is wrong because joined loading is opt-in.\n- (b) is wrong because the number of queries is not fixed per table.\n- (c) is wrong because shared screens are served from the session's identity map after the first load.\n\n**Deeper:** this is the N+1 problem. Add `.options(joinedload(Show.screen).joinedload(Screen.theatre))` for many-to-one chains, and `selectinload` for collections, then assert the query count in a test.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "One query, because relationships are always loaded with joins",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Exactly 3 queries, one per table",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "One query per show, regardless of how many screens are shared",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "One query for shows plus lazy loads as each screen and theatre is first touched, so extra queries scale with the data and can be removed with `joinedload` or `selectinload`",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

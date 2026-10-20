@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-19-approach-design-problems",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-19/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An interviewer says only: \"Design a parking lot.\" It is a 90-minute machine-coding round. Which opening behaviour best matches the approach taught here?",
+      "explanation": "**Answer: (b)** Alignment plus suggested, scoped requirements gives a shared contract in five to seven minutes and shows judgement.\n\n- (a) a diagram built on unconfirmed assumptions is the classic way to model the wrong system; the diagram follows requirements.\n- (c) asking for the full list is passive and unbounded; interviewers expect you to suggest and let them accept or reject.\n- (d) leaves-before-roots is a coding-order rule that applies after requirements and design are agreed, not a substitute for them.\n\n**Deeper:** In a real forward-deployed engagement the same move, proposing a scoped version one and naming what is deferred, is what prevents scope creep and the \"that is not what I meant\" surprise at demo time.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Start drawing the class diagram immediately so the interviewer can see progress, and fix requirements as they surface.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Align on entity versus application, persistence and interaction, then propose five to eight core requirements from the outside in, marking some as version 2, and ask the interviewer to confirm.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Ask the interviewer to enumerate every requirement, since guessing risks building the wrong system.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Write the enums and model classes first, because leaves-before-roots means no discussion is needed.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Requirement: \"A customer reserves a seat for a show and pays by card or UPI.\" Which noun-and-verb reading is most defensible for a first class diagram?",
+      "explanation": "**Answer: (c)** Nouns with their own attributes become classes, fixed choices become enums or strategies, and verbs become methods on the class that owns the data.\n\n- (a) a payment mode is not a kind of customer, and a verb should not become a class without state of its own.\n- (b) a manager holding everything is a god object: it compiles, but nothing is extensible and nothing maps to the requirements.\n- (d) `Reserve` is an action, not a fixed choice of values; only the payment mode is enum-shaped.\n\n**Deeper:** Graders look for a one-to-one mapping between requirements and boxes or lines. If payment behaviour differs per mode (fees, refunds), promote the enum to a Strategy; if it is only a label, keep the enum.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`Card` and `Upi` are subclasses of `Customer`, and `reserve` becomes a class named `Reserve`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "One `BookingManager` class holding dictionaries of customers, seats and payments, with a `reserve()` method.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`Customer`, `Show`, `Seat` and `Reservation` are classes; payment mode is an enum or a strategy on `Payment`; `reserve` is a method on the owner of the seat-availability data.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`Card`, `Upi` and `Reserve` are enums, since all three are fixed choices.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using the Pen model from the lesson (`Closure` strategy, `Pen.write`), what happens?\n\n```python\npen = BallPen(Nib(0.5), BodyMaterial.PLASTIC, Refill(\"red\", 10), CapClosure())\nprint(pen.write(\"ok\"))\n```",
+      "explanation": "**Answer: (a)** `Closure.__init__` sets `is_open = False`, and `Pen.write` raises `PenNotOpenError` before any ink is consumed.\n\n- (b) `BallPen` inherits `UNITS_PER_CHAR = 1`, so it does consume ink, but execution never gets that far.\n- (c) the open check runs first; ink is never touched, so nothing prints.\n- (d) \"ok\" needs 2 units and 10 are available; `OutOfInkError` would only be raised after the open check passes.\n\n**Deeper:** The ordering of guard clauses is itself a design decision: validate state (open?) before mutating resources (ink), so a failed call leaves the object unchanged. I ran this snippet and it raised `PenNotOpenError`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It raises `PenNotOpenError`, because a new `Closure` starts closed and `write` checks `closure.is_open`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prints `[red] ok` and leaves 10 units, because ball pens do not consume ink per character.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It prints `[red] ok` and leaves 8 units of ink.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises `OutOfInkError`, because 10 units is below the minimum needed.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A pen can close with a cap or a click, and can be ball, gel or fountain. Modelling both axes with inheritance gives how many leaf classes, and what is the better design?",
+      "explanation": "**Answer: (d)** Two independent axes multiply under inheritance (2 x 3 = 6); composition keeps them additive (3 + 2).\n\n- (a) three would only cover one axis; the other axis would have to be duplicated or ignored.\n- (b) the count is wrong, and a Builder controls construction, not behavioural variation.\n- (c) a boolean cannot represent behaviour that differs, and two leaves cannot cover three pen types.\n\n**Deeper:** This \"Cartesian explosion\" is the standard justification for Strategy or Bridge. Adding a fourth pen type or a third closure then costs one class, not four, and no existing class is edited.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Three leaf classes; inheritance is already optimal.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Five leaf classes; use a Builder for the closure.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Two leaf classes; closure should be a boolean field.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Six leaf classes (2 x 3); make closure a Strategy held by the pen, leaving three pen subclasses plus two closure classes.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "In a review of a machine-coding submission you see this controller. What is the main structural problem?\n\n```python\nclass PenController:\n    def add_pen(self, req: AddPenRequest) -> AddPenResponse:\n        if req.ink_units <= 0:\n            return AddPenResponse(ok=False, error=\"a new pen needs ink\")\n        pen = BallPen(Nib(req.nib_mm), BodyMaterial.PLASTIC, Refill(req.ink_color, req.ink_units), CapClosure())\n        return AddPenResponse(ok=True, pen_id=self.repo.save(pen))\n```",
+      "explanation": "**Answer: (c)** Validation of ink and construction of the pen are business rules, which belong in the service; the controller should only unwrap and wrap DTOs.\n\n- (a) validating transport shape is acceptable, but domain rules and construction are not controller work.\n- (b) importing a class is not circular by itself; nothing in the snippet shows a cycle.\n- (d) frozen dataclasses are readable, which is all validation needs; freezing is not the issue.\n\n**Deeper:** The symptom to name aloud is \"I cannot call this rule from a CLI, a test, or a batch job without going through the controller\". That is the practical cost of leaky layers.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "There is no problem; controllers should validate and construct domain objects.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The controller imports `Refill`, which is a circular dependency.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The controller holds business rules and builds domain objects itself, bypassing the service layer, so rules cannot be reused or tested without the transport.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The DTO is frozen, which prevents the controller from validating it.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "At minute 40 of a 90-minute round you have a class diagram and the enums, but the Bot player and the pricing engine are unstarted and nothing runs end to end. What should you do?",
+      "explanation": "**Answer: (a)** A runnable thin slice, with deferred parts named and stubbed, is what the round rewards; hard parts come after the path works.\n\n- (b) hardest-first is a trap listed in the pitfalls: it leaves nothing runnable if time runs out.\n- (c) more diagramming at minute forty trades the scarce resource, coding time, for polish nobody asked for.\n- (d) tests without a runnable system have nothing to exercise; a few tests come after the slice works.\n\n**Deeper:** Saying \"I am deferring X, here is why\" is a positive signal. Silent omissions look like missed requirements, whereas announced ones look like prioritisation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Tell the interviewer what you are deferring, write the thinnest end-to-end path (stubbing bot and pricing with `NotImplementedError`), and run it before adding anything else.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Start with the pricing engine because it is the hardest part and carries the most marks.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Stop coding and redraw the class diagram to be more complete.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Write all the tests first so that coverage is high even though nothing runs.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Given the `PenService`, `PenController` and `PenKind` enum from the lesson, what is the response for this call?\n\n```python\ncontroller = PenController(PenService(InMemoryPenRepository()))\nprint(controller.add_pen(AddPenRequest(\"quill\", 0.7, \"black\", 40, click=False)))\n```",
+      "explanation": "**Answer: (d)** `PenKind(\"quill\")` raises `ValueError` inside the controller's `try`, so it is caught and reported in the response.\n\n- (a) \"quill\" is not one of `ball` or `gel`, so construction never succeeds.\n- (b) the ink value is 40, so that rule passes; the failure happens earlier, converting the string to the enum.\n- (c) the enum lookup raises `ValueError`, not `KeyError`; the controller catches both anyway.\n\n**Deeper:** Converting strings to enums at the boundary is a good habit because bad input fails fast with a precise message. I ran this and the printed error text was exactly as in option (b).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`AddPenResponse(ok=True, pen_id=1, error=None)`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`AddPenResponse(ok=False, pen_id=None, error='a new pen needs ink')`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "An uncaught `KeyError` propagates out of `add_pen`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`AddPenResponse(ok=False, pen_id=None, error=\"'quill' is not a valid PenKind\")`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You design the schema for `Pen` and `Refill` where one pen can have many refills over its lifetime. Where should the foreign key go, and how should the `kind` enum be stored?",
+      "explanation": "**Answer: (b)** In a one-to-many relationship the foreign key lives on the \"many\" side, and enums need a constraint or lookup table to stay valid.\n\n- (a) that puts the key on the \"one\" side, so a pen could only ever point at a single refill, and free text invites typos.\n- (c) mutual foreign keys create a circular dependency that complicates inserts and deletes for no benefit.\n- (d) application-level guarantees disappear with a second writer, a script or a migration; the database should enforce it.\n\n**Deeper:** Interviewers often ask \"how do you add a new pen type?\" A lookup table makes that a data change, whereas a CHECK constraint makes it a schema migration. State which you chose and why.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`pens.refill_id` references `refills.id`; store `kind` as a free-text column.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`refills.pen_id` references `pens.id` (the \"many\" side holds the key); store `kind` as a constrained column or lookup table.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both tables hold a foreign key to each other so either can be loaded first.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "No foreign key is needed because the application guarantees consistency.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "The controller currently returns the domain `Pen` object inside `AddPenResponse`. Six months later `Pen` gains an `owner_email` field. What is the most likely consequence of having skipped a response DTO shape?",
+      "explanation": "**Answer: (a)** Returning domain objects couples the public contract to internals, so a model change becomes an accidental API change and may expose private data.\n\n- (b) callers that only read the response do not call the constructor, so no `TypeError` arises there.\n- (c) nothing drops the field; attribute access and serialisation will see it.\n- (d) if the object is serialised or inspected by clients, new fields are visible immediately.\n\n**Deeper:** DTOs are cheap insurance: they let the model evolve, they act as an allow-list for what leaves the system, and in an AI product they stop a prompt or log from capturing personal data by accident.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Internal fields leak to every client that serialises the object, and the public contract now changes whenever the model does.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Python raises `TypeError` for every existing caller because the constructor signature changed.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The extra field is silently dropped because dataclasses ignore unknown attributes.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing: adding a field to a class never affects callers.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A candidate writes a request DTO like this. What is true?\n\n```python\n@dataclass(frozen=True)\nclass Req:\n    ids: list\n\nr = Req([1])\nr.ids.append(2)\nprint(r)\nhash(r)\n```",
+      "explanation": "**Answer: (c)** `frozen=True` blocks rebinding attributes, not mutating the list they point to, and the generated `__hash__` hashes the fields, including the unhashable list.\n\n- (a) `FrozenInstanceError` is raised only when assigning an attribute such as `r.ids = []`, not for in-place mutation of the list.\n- (b) dataclasses do not copy field values; `r.ids` is the same list that was passed in.\n- (d) the hash is computed from the field values; a list field makes the instance unhashable.\n\n**Deeper:** Use tuples for sequence fields in frozen DTOs if you want real immutability. I ran this exact snippet: it printed `Req(ids=[1, 2])` and then raised `TypeError`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`r.ids.append(2)` raises `FrozenInstanceError`, and nothing is printed.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prints `Req(ids=[1])` because frozen dataclasses copy their fields.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It prints `Req(ids=[1, 2])`, then `hash(r)` raises `TypeError: unhashable type: 'list'`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It prints `Req(ids=[1, 2])` and `hash(r)` succeeds, because frozen dataclasses are always hashable.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which test strategy for `PenService` best fits a machine-coding round and the layering taught here?",
+      "explanation": "**Answer: (d)** A fake that honours the same interface lets you test rules fast and deterministically, and assert on behaviour instead of implementation.\n\n- (a) console-driven tests are slow, brittle and only exist because logic was mixed into I/O.\n- (b) real databases belong in a small integration suite; using them for every rule test slows feedback and adds setup noise.\n- (c) call-count assertions pin the implementation and pass even when behaviour is wrong; fakes verify outcomes.\n\n**Deeper:** In the interview, a handful of fast tests built on a fake repository demonstrates that your layering works. It is also the same approach you will use for LLM clients, where the fake returns canned model output.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Patch `input()` and `print()` and drive the program from the console.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Use a real SQLite file for every test so that persistence is truly verified.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Mock every method of the repository with `MagicMock` and assert on call counts only.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Inject the in-memory repository (a fake) through the `PenRepository` protocol, and assert on observable state and returned values.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-19/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`InMemoryPenRepository` does not inherit from `PenRepository`, which is a `typing.Protocol`. `PenService.__init__` is annotated `repo: PenRepository`. What is the correct understanding?",
+      "explanation": "**Answer: (b)** Protocols use structural typing: conformance is decided by the shape of the class, checked by mypy or pyright, not by inheritance.\n\n- (a) protocols are not enforced at runtime unless decorated with `@runtime_checkable` and used with `isinstance`; the call proceeds normally.\n- (c) `register` belongs to `abc.ABC` virtual subclassing and is not required for protocols.\n- (d) the lesson's `PenRepository` is a `Protocol`, not an ABC with abstract methods.\n\n**Deeper:** Prefer a Protocol when the dependency is owned by the consumer (the service defines what it needs) and an ABC when you want shared behaviour or enforced subclassing. State that trade-off when asked \"ABC or Protocol?\".",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is a type error at runtime, because Python enforces protocols when objects are passed.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It is fine: protocols are structural, so any object with compatible `save` and `find` signatures satisfies the annotation, and a static checker verifies it.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It only works if the class registers itself with `PenRepository.register(...)`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It is fine, but only because `PenRepository` is an abstract base class with `@abstractmethod`.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

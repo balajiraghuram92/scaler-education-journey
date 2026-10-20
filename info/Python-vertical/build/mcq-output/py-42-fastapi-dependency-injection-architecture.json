@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-42-fastapi-dependency-injection-architecture",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-42/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Given the code below, how many times is `\"settings\"` printed while FastAPI handles one request to `GET /`? (Assume FastAPI's default caching behaviour.)\n\n```python\nfrom fastapi import Depends, FastAPI\n\napp = FastAPI()\n\ndef get_settings():\n    print(\"settings\")\n    return {\"env\": \"prod\"}\n\ndef a(s=Depends(get_settings)):\n    return s\n\ndef b(s=Depends(get_settings, use_cache=False)):\n    return s\n\n@app.get(\"/\")\ndef root(x=Depends(a), y=Depends(b), z=Depends(get_settings)):\n    return {}\n```",
+      "explanation": "**Answer: (b)** Dependencies are resolved eagerly and cached per request by callable; only the injection with `use_cache=False` bypasses the cache.\n\n- (a) Wrong: `use_cache=False` explicitly forces a fresh call at that injection point.\n- (c) Wrong: `a` and `z` both hit the same cache entry, so declaring a dependency in several places does not mean calling it several times.\n- (d) Wrong: FastAPI resolves every declared dependency before calling the path function, whether or not the handler uses the value.\n\nWhichever order the parameters are resolved in, exactly one call is cache-bypassing and the rest share a result, so the count is two.\n\n**Deeper:** The cache key is the callable plus security scopes, and it dies with the request. Interviewers use this to check that you can separate per-request reuse from per-process singletons (`lifespan`, `lru_cache`), and to see whether you know a side-effecting dependency will not run once per injection point.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Once, because `get_settings` is cached for the whole request.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Twice: the `use_cache=False` injection re-runs it, while the other two injections share one cached result.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Three times, because each of `a`, `b` and `root` declares its own dependency on it.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Zero times, because the dependencies are resolved lazily and none of the values are used.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A team's tests build a client with `client = TestClient(app)` (no `with` block) and call `POST /quote`. The handler's dependency reads `request.app.state.session_maker`, which is assigned inside the app's `lifespan`. In production everything works. What do the tests hit, and what is the correct fix?",
+      "explanation": "**Answer: (d)** Starlette's `TestClient` only runs startup and shutdown events when it is used as a context manager, so `app.state.session_maker` was never assigned.\n\n- (a) Wrong: this is not an event-loop problem; the attribute simply does not exist, and an async test runner would not change that.\n- (b) Wrong: constructing `TestClient` does not enter lifespan, which is exactly why the failure appears only in tests.\n- (c) Wrong: a 422 is a request-validation outcome; `app.state` is a plain per-app namespace unrelated to parameter declarations.\n\nThe two reasonable fixes are entering the context manager so lifespan runs, or overriding the dependency so the test never touches `app.state` at all. `httpx.ASGITransport` has the same behaviour and does not run lifespan either.\n\n**Deeper:** \"Works in prod, `AttributeError` in tests\" is a classic lifespan symptom. Strong candidates explain that process-wide resources live in lifespan, that the test harness must opt in to running it, and that overriding at the service seam is usually cleaner than spinning up real resources.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A `RuntimeError` from the event loop; fix it by running the tests with `pytest-asyncio` in auto mode.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing special; `TestClient` always runs lifespan on construction, so the failure must be a database problem.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A 422 validation error, because `app.state` is only populated for requests that declare `Request` as a parameter.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An `AttributeError` for `session_maker`, because lifespan has not run; use `with TestClient(app) as client:` (or override the dependency).",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this program print?\n\n```python\nfrom typing import Protocol\n\nclass Pricer(Protocol):\n    def multiplier(self, zone: str) -> float: ...\n\nclass Fixed:\n    def multiplier(self, zone: str) -> float:\n        return 1.0\n\ndef quote(p: Pricer) -> float:\n    return p.multiplier(\"x\")\n\nprint(quote(Fixed()))\ntry:\n    print(isinstance(Fixed(), Pricer))\nexcept TypeError as e:\n    print(\"TypeError:\", e)\n```",
+      "explanation": "**Answer: (a)** Protocol conformance is structural and is checked by type checkers, not at the call, so `quote(Fixed())` simply works and returns `1.0`. `isinstance` against a Protocol that is not decorated with `@runtime_checkable` raises `TypeError`.\n\n- (b) Wrong: the program never reaches a boolean; the `isinstance` call itself raises.\n- (c) Wrong: only `@runtime_checkable` protocols support `isinstance`, and even then only method presence is checked, not signatures.\n- (d) Wrong: Python does not enforce parameter annotations at call time, and structural typing needs no subclassing.\n\nOutput verified by running the snippet.\n\n**Deeper:** This is why ports as Protocols are safe for dependency injection: no inheritance coupling, and the static checker verifies the wiring. In interviews, mention that `runtime_checkable` only verifies attribute presence, so it is a poor substitute for tests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`1.0`, then `TypeError: Instance and class checks can only be used with @runtime_checkable protocols`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`1.0`, then `False`, because `Fixed` does not inherit from `Pricer`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`1.0`, then `True`, because Protocols are always checkable with `isinstance`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A `TypeError` on the call to `quote`, because `Fixed` is not a declared subclass of `Pricer`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `Settings(BaseSettings)` class has `llm_timeout_s: float = 30.0` and `env_prefix=\"APP_\"`. The environment has `APP_LLM_TIMEOUT_S=5`, the `.env` file contains `APP_LLM_TIMEOUT_S=10`, and the code calls `Settings(llm_timeout_s=1)`. Which value does `settings.llm_timeout_s` hold?",
+      "explanation": "**Answer: (c)** pydantic-settings applies sources in a fixed priority: init arguments, then environment variables, then the dotenv file, then the secrets directory, then field defaults.\n\n- (a) Wrong: environment variables beat dotenv and defaults, but not explicit init arguments.\n- (b) Wrong: the dotenv file is below real environment variables, which is what lets deployments override a checked-in or developer `.env`.\n- (d) Wrong: defaults are the lowest priority and apply only when no source supplies a value.\n\nThe order can be customised through `settings_customise_sources`, but the default is what you should be able to recite.\n\n**Deeper:** Priority order is the reason tests can construct `Settings(...)` explicitly and ignore the developer's machine, and why a production deploy can override a baked-in `.env`. Pair it with `SecretStr` and `extra=\"ignore\"` when you discuss config hygiene.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`5.0`, because real environment variables always override constructor arguments.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`10.0`, because the dotenv file is the most specific source and is read last.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`1.0`, because arguments passed to the initializer outrank environment variables, which outrank the dotenv file, which outranks defaults.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`30.0`, because a field with a default ignores every external source.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "This is the stdlib model of how FastAPI runs a `yield` dependency (via an `AsyncExitStack`). What does it print?\n\n```python\nimport asyncio\nfrom contextlib import AsyncExitStack, asynccontextmanager\n\n@asynccontextmanager\nasync def dep():\n    print(\"setup\")\n    try:\n        yield \"db\"\n    except Exception as exc:\n        print(\"caught\", type(exc).__name__)\n    finally:\n        print(\"teardown\")\n\nasync def handler():\n    async with AsyncExitStack() as stack:\n        await stack.enter_async_context(dep())\n        raise KeyError(\"missing\")\n        print(\"unreachable\")\n    print(\"after stack\")\n    return \"ok\"\n\nprint(asyncio.run(handler()))\n```",
+      "explanation": "**Answer: (c)** The handler's exception is thrown into the generator at the `yield`. The `except` swallows it and does not re-raise, so the context manager reports the exception as handled and the `async with` block exits normally.\n\n- (a) Wrong: the dependency catches the error, so no traceback escapes and `caught` is printed.\n- (b) Wrong: nothing re-raises the `KeyError`, so no traceback appears.\n- (d) Wrong: `unreachable` sits after the `raise` inside the block and never executes.\n\nOutput verified by running the snippet.\n\n**Deeper:** In a real service this is a silent-success bug: a yield dependency that logs and swallows errors turns failed requests into apparent successes and hides rollbacks. The rule is to catch only to clean up or translate, and to re-raise. Interviewers like this because it tests whether you know the generator-based context manager protocol beneath `Depends`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`setup`, `teardown`, then a `KeyError` traceback.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`setup`, `caught KeyError`, `teardown`, then a `KeyError` traceback.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`setup`, `caught KeyError`, `teardown`, `after stack`, `ok`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`setup`, `caught KeyError`, `teardown`, `unreachable`, `after stack`, `ok`.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A ride-booking endpoint returns `201 Created`, yet the booking row is sometimes missing and the logs show an `IntegrityError` at commit. The session dependency looks like this:\n\n```python\nasync def get_session() -> AsyncIterator[AsyncSession]:\n    async with maker() as session:\n        yield session\n        await session.commit()\n```\n\nWhich diagnosis and fix is most appropriate?",
+      "explanation": "**Answer: (a)** Commit in post-`yield` code happens at teardown. Depending on the FastAPI version the response may already have been built or even sent, so a constraint violation surfaces too late to change the status code.\n\n- (b) Wrong: leaving the block without committing rolls everything back, so rows would never persist; autoflush does not commit.\n- (c) Wrong: the dependency cache is per request, not across requests, and caching has no bearing on commit failures.\n- (d) Wrong: nothing indicates a double call, and running in the threadpool would not change when the commit fires.\n\nDoing the commit in the service lets constraint errors map to `409` or `422` before the response is created.\n\n**Deeper:** Teardown timing relative to the response changed across FastAPI releases (0.106 and 0.118), which is a reason not to rely on it for correctness. Senior answers keep transaction boundaries explicit in the application layer and use the dependency only for resource lifetime.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The commit runs in teardown, after the handler has already produced its success response; move the commit into the service's unit of work so a failure becomes an error response.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`async with maker()` rolls back automatically, so the fix is to remove `session.commit()` entirely and rely on autoflush.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The row is lost because FastAPI caches the session across requests; add `use_cache=False` to the dependency.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The `IntegrityError` proves the dependency runs twice; make `get_session` synchronous so it executes in the threadpool exactly once.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An endpoint injects `session: SessionDep` and schedules `background_tasks.add_task(send_receipt, session, ride_id)`, where `send_receipt` runs `await session.execute(...)`. It works in development but fails intermittently with errors about a closed or invalid session in production. What is the right fix?",
+      "explanation": "**Answer: (d)** Request-scoped resources are torn down when the request finishes, and background tasks may run after that point. The task must own its lifetime: take plain data (the ID) and open a fresh session.\n\n- (a) Wrong: running in the threadpool does not extend the life of the request-scoped session, and `AsyncSession` is not for thread use anyway.\n- (b) Wrong: `expire_on_commit` controls attribute expiry after commit; it cannot reopen a closed session.\n- (c) Wrong: this is a lifetime problem, not capacity; a larger pool changes nothing.\n\nPassing identifiers rather than ORM objects also avoids detached-instance and lazy-load surprises inside the task.\n\n**Deeper:** Where teardown falls relative to background tasks has differed across FastAPI versions, which is why this bug appears \"intermittently\" after upgrades. For work that must not be lost, interviewers expect you to move past `BackgroundTasks` to a durable queue with the same rule: tasks receive IDs, never request-scoped objects.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Switch the endpoint to `def` so the background task runs in the threadpool with the session still open.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Mark the session `expire_on_commit=True` so the data is reloaded automatically inside the task.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Increase the connection pool size, since the task is starved of connections.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Pass identifiers into the task and have it open its own session from the `async_sessionmaker`, because the request-scoped session is closed by teardown.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `def get_report_context()` dependency calls `time.sleep(1)` to simulate a blocking client library, and 100 concurrent requests arrive. Compared with declaring it `async def get_report_context()` containing the same `time.sleep(1)`, what happens with the `def` version (default AnyIO limiter of 40 threads)?",
+      "explanation": "**Answer: (b)** FastAPI runs plain `def` dependencies and handlers in a threadpool. Blocking calls there occupy a worker thread, not the event loop, so roughly 40 run concurrently. An `async def` containing `time.sleep` stalls the loop for everyone.\n\n- (a) Wrong: this is exactly reversed; it is the `async def` version that runs on the event loop.\n- (c) Wrong: `time.sleep` is a blocking call that never yields control to the loop.\n- (d) Wrong: FastAPI does not forbid this; it is the supported way to call blocking libraries.\n\nThe 100 requests finish in about three waves (roughly three seconds) for `def`, versus about 100 seconds when serialised.\n\n**Deeper:** Deciding between `def` and `async def` is a lifetime-and-blocking decision, not style. The senior answer adds that the 40-thread limit is itself a cap on concurrency, so heavy blocking work belongs in a dedicated executor or worker, and the limiter can be tuned if you really need to.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is strictly worse: sync dependencies execute on the event loop and block it for all requests.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It is much better: blocking work runs in the threadpool, so about 40 calls overlap at a time while the event loop stays responsive; the `async def` version blocks the loop and serialises all 100.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both behave identically, because `time.sleep` releases the event loop in either case.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The `def` version raises an error, since FastAPI forbids blocking calls in dependencies.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You declare `SessionDep = Annotated[AsyncSession, Depends(get_session)]` and use `session: SessionDep` in routers. In a test you write `app.dependency_overrides[SessionDep] = fake_session` and the real session is still used. Why, and what is the fix?",
+      "explanation": "**Answer: (c)** `dependency_overrides` is a dict keyed by the original callable. The `Annotated` alias is just a type with `Depends(get_session)` in its metadata, so using the alias as a key matches nothing.\n\n- (a) Wrong: overrides work for sync and async callables alike.\n- (b) Wrong: overrides are looked up at request time, so registration order relative to `include_router` is irrelevant.\n- (d) Wrong: `Annotated` dependencies resolve through the same machinery, and overriding them works as soon as the real callable is the key.\n\nThe replacement can declare its own parameters, and FastAPI resolves them as usual.\n\n**Deeper:** A mismatched override key fails silently, so tests appear to run but hit the real thing. Teach the habit of asserting the override took effect (for example a fake that records calls) and of overriding at the service seam so route behaviour is still exercised.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Overrides only work for `async def` functions; convert `get_session` to a plain `def`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Overrides must be registered before the router is included; move the line above `include_router`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The override key must be the dependency callable, `get_session`, not the `Annotated` alias; use `app.dependency_overrides[get_session] = fake_session`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`Annotated` aliases bypass the dependency system entirely, so overrides can never apply; remove `Annotated`.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A test sets `monkeypatch.setenv(\"APP_TIMEOUT\", \"1\")` but the service still behaves as though the timeout is 5. The code is a process-wide `get_timeout` decorated with `@lru_cache`, and an earlier test already called it with `APP_TIMEOUT=5`. Per this stdlib model, what does the sequence print?\n\n```python\nimport os\nfrom functools import lru_cache\n\n@lru_cache\ndef get_timeout() -> float:\n    print(\"reading env\")\n    return float(os.environ.get(\"APP_TIMEOUT\", \"30\"))\n\nos.environ[\"APP_TIMEOUT\"] = \"5\"\nprint(get_timeout())\nos.environ[\"APP_TIMEOUT\"] = \"1\"\nprint(get_timeout())\nget_timeout.cache_clear()\nprint(get_timeout())\n```",
+      "explanation": "**Answer: (a)** `lru_cache` on a zero-argument function memoises the first result forever. The second call returns the cached `5.0` without reading the environment; only `cache_clear()` forces a re-read.\n\n- (b) Wrong: it would require the function body to run on every call, which defeats the cache.\n- (c) Wrong: the third call follows `cache_clear()`, so it re-reads and prints `reading env` before `1.0`.\n- (d) Wrong: the second call is a cache hit and returns `5.0`, not `1.0`.\n\nOutput verified by running the snippet.\n\n**Deeper:** Cached settings are great for production and a trap for tests. The clean pattern is an app factory plus `dependency_overrides[get_settings]`, with `cache_clear()` as a fixture-level fallback. Mentioning this shows you have actually debugged leaking global config between tests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`reading env`, `5.0`, `5.0`, `reading env`, `1.0`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`reading env`, `5.0`, `reading env`, `1.0`, `reading env`, `1.0`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`reading env`, `5.0`, `5.0`, `1.0`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`reading env`, `5.0`, `reading env`, `1.0`, `1.0`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A developer creates one module-level `AsyncSession` (`session = AsyncSession(engine)`) and injects it into every route with `Depends(lambda: session)` \"to save connections\". Under 50 concurrent requests, what is the most accurate description of the outcome?",
+      "explanation": "**Answer: (d)** A session represents one unit of work: one transaction, one identity map, one connection at a time. Sharing it across concurrent requests mixes their transactions and objects, and concurrent use of one `AsyncSession` is not supported.\n\n- (a) Wrong: sessions are explicitly not thread-safe nor concurrency-safe.\n- (b) Wrong: there is no per-query isolation; all work flows through the same transaction.\n- (c) Wrong: there is no lock that serialises use; overlapping operations fail or interleave instead.\n\n\"Saving connections\" is the job of the engine's pool, which lends a connection to each short-lived session.\n\n**Deeper:** Interviewers phrase this as \"where does each object live\": engine and sessionmaker per process, session per request. If you can articulate that a session is a transaction scope rather than a connection, you are answering at the level the lesson aims for.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is fine: SQLAlchemy sessions are thread-safe and designed to be shared across requests.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It only wastes memory; each query still gets its own isolated transaction.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It works but reduces throughput, because queries are serialised through a lock inside the session.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Requests share one transaction and identity map, so a rollback in one request undoes others' work, and overlapping awaits can raise concurrent-operation errors; a session must be scoped per request.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-42/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Two routes are protected as shown. Assuming `RequireRole` defines `__call__` and has no custom `__eq__` or `__hash__`, how many times does the role check run for a single request to each route?\n\n```python\nadmin_a = RequireRole(\"admin\")\n\n@app.get(\"/a\", dependencies=[Depends(admin_a), Depends(admin_a)])\ndef a(): ...\n\n@app.get(\"/b\", dependencies=[Depends(RequireRole(\"admin\")), Depends(RequireRole(\"admin\"))])\ndef b(): ...\n```",
+      "explanation": "**Answer: (b)** The cache key is derived from the callable object and its scopes. With no custom `__hash__`, instances hash by identity, so the same instance is one key and two instances are two keys.\n\n- (a) Wrong: FastAPI does not compare instances by their attributes, so equal roles do not collapse into one call.\n- (c) Wrong: dependencies in the `dependencies=[...]` list go through the same resolver and cache as parameter dependencies.\n- (d) Wrong: both the direction and the premise are wrong; value-based comparison does not exist here.\n\nThe extra check in `/b` is harmless for a pure role check but matters if the dependency does I/O.\n\n**Deeper:** Parametrized dependencies are usually instantiated once at import time and reused. Knowing the cache key explains why, and why a factory function that returns a new closure each call defeats caching.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`/a` once, `/b` once, because both instances have the same role.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`/a` once, `/b` twice, because `/a` reuses one instance (one cache key) while `/b` builds two distinct instances (two keys).",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`/a` twice, `/b` twice, because list dependencies are never cached.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`/a` twice, `/b` once, because FastAPI compares instances by attribute values.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

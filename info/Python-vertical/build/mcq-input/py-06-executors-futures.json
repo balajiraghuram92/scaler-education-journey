@@ -1,0 +1,502 @@
+{
+ "lessonSlug": "py-06-executors-futures",
+ "sourceLesson": "Backend LLD: Concurrency-2: Executors and Futures",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-06/additional/q01",
+   "category": "Additional",
+   "title": "`ProcessPoolExecutor` over `ThreadPoolExecutor`?",
+   "question": "Which is the best use case for ProcessPoolExecutor over ThreadPoolExecutor?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Waiting on 5 API calls with sleep/network delay"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Reading multiple files from disk"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Performing heavy numerical computation on 4 independent large datasets"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Fetching 10 web pages concurrently"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_PJIV2tWaTy.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/additional/q02",
+   "category": "Additional",
+   "title": "`ProcessPoolExecutor` speed up an I/O-bound task like web scraping, compared to `ThreadPoolExecutor`",
+   "question": "Why doesn't ProcessPoolExecutor speed up an I/O-bound task like web scraping, compared to ThreadPoolExecutor?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "ProcessPoolExecutor doesn't support .map()"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The GIL blocks all network calls in processes"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Processes cannot perform network requests"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "There's no computation to parallelize — the bottleneck is waiting, and processes add extra startup/communication overhead for no benefit"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_5r58lschFl.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/additional/q03",
+   "category": "Additional",
+   "title": "True or False: Using ThreadPoolExecutor automatically protects shared variables from race conditions (like counter += 1 from multiple threads).",
+   "question": "True or False: Using ThreadPoolExecutor automatically protects shared variables from race conditions (like counter += 1 from multiple threads).",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "True — executors serialize all writes automatically"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "False — executors only manage task launching/collection; shared-state protection still needs tools like Lock"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_BCZwfGRmXy.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/additional/q04",
+   "category": "Additional",
+   "title": "What is `results`, and in what order, once this finishes?",
+   "question": "What is results, and in what order, once this finishes?\n```python\nimport time\nfrom concurrent.futures import ThreadPoolExecutor\n\ndef work(n):\n    time.sleep(n)\n    return n\n\nwith ThreadPoolExecutor(max_workers=3) as executor:\n    results = list(executor.map(work, [3, 1, 2]))\nprint(results)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Raises a TimeoutError"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "[2, 1, 3] — random order"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "[1, 2, 3] — sorted by finish time"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "[3, 1, 2] — same order as input list"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_xBiG74JDty.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/additional/q05",
+   "category": "Additional",
+   "title": "A student benchmarks CPU-heavy work and is confused why threads didn't help. Identify the flaw in their reasoning.",
+   "question": "A student benchmarks CPU-heavy work and is confused why threads didn't help. Identify the flaw in their reasoning.\n\n```python\ndef cpu_heavy(n):\n    return sum(i * i for i in range(n))\n\nwith ThreadPoolExecutor(max_workers=4) as executor:\n    list(executor.map(cpu_heavy, [50_000_000] * 4))\n```\n\n\"I used 4 workers for 4 tasks, so this should be 4x faster than sequential.\"",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "max_workers=4 should be max_workers=1 for correctness"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "executor.map doesn't support functions with numeric arguments"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The code has a syntax error, so it never runs"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This is CPU-bound work; the GIL means only one thread executes Python bytecode at a time, so threads don't overlap computation — ProcessPoolExecutor is needed instead"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_0ChHeHejwQ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/additional/q06",
+   "category": "Additional",
+   "title": "You're processing 4 large video files, applying a CPU-intensive filter to each, independently. Which is the better choice and why?",
+   "question": "You're processing 4 large video files, applying a CPU-intensive filter to each, independently. Which is the better choice and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Doesn't matter, both give identical performance"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "ThreadPoolExecutor — video processing is I/O-bound"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Neither — must be done sequentially"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "ProcessPoolExecutor — CPU-bound work benefits from separate GILs per process, allowing true parallel computation across cores"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_cTNBVfpcgV.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/additional/q07",
+   "category": "Additional",
+   "title": "You submit 10 tasks to a `ThreadPoolExecutor(max_workers=3)`. At any given instant, what is the maximum number of tasks actually running concurrently?",
+   "question": "You submit 10 tasks to a ThreadPoolExecutor(max_workers=3). At any given instant, what is the maximum number of tasks actually running concurrently?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Depends on task type"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "1 (due to the GIL)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "3"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "10"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_slYarM5FBE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/additional/q08",
+   "category": "Additional",
+   "title": "`ThreadPoolExecutor` task that sometimes throws an exception. You use `executor.map()` instead of `submit()`",
+   "question": "You have a ThreadPoolExecutor task that sometimes throws an exception. You use executor.map() instead of submit() + individual futures. What happens when you iterate over the results and one task failed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "map() cannot raise exceptions, only submit() can"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "map() skips the failed task and continues with the rest"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The failed task's result is silently None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The exception is raised at the point of iteration when you reach that failed task's result, potentially stopping your loop from processing remaining results unless wrapped in try/except"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_SUTzXZZu3F.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q02",
+   "category": "Assignment",
+   "title": "executor.submit(fn, arg)",
+   "question": "What does executor.submit(fn, arg) return?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "None, until the task finishes"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The result of fn(arg) directly"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A new thread object"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A Future object representing work in progress"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_tqOvhbZj8H.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q03",
+   "category": "Assignment",
+   "title": "`.done()` and `.result()`",
+   "question": "Which statement about .done() and .result() is correct?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": ".done() never blocks; .result() blocks until the result is available"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Both block until the task finishes"
+    },
+    {
+     "optionKey": "c",
+     "optionText": ".done() blocks; .result() never blocks"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Both return True/False depending on task status"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_VHU0IXLtKC.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q04",
+   "category": "Assignment",
+   "title": "`threading.Thread`'s target function",
+   "question": "A raw threading.Thread's target function raises an exception. What happens?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The thread silently retries the function"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The exception prints to the terminal but the main thread has no way to catch or react to it"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The program crashes immediately"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The exception propagates to the main thread automatically"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_sKS0MhbBkk.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q05",
+   "category": "Assignment",
+   "title": "`Future` handle an exception",
+   "question": "How does a Future handle an exception raised inside the worker function?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It ignores the exception completely"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It crashes the executor immediately"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It logs the exception and returns None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It stores the exception and re-raises it when .result() is called"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_LkBGudEnbX.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q06",
+   "category": "Assignment",
+   "title": "executor.map(fn, iterable)",
+   "question": "What guarantee does executor.map(fn, iterable) give you about result order?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Only the first completed result is returned"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Order is undefined/random"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Results come back in the same order as the input iterable, regardless of finish order"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Results come back in the order tasks finish"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_2m7YZCu3Bq.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q07",
+   "category": "Assignment",
+   "title": "python -What will this print?",
+   "question": "What will this print?\n\n```python\nfrom concurrent.futures import ThreadPoolExecutor\nimport time\n\ndef task():\n    time.sleep(2)\n    return \"done\"\n\nwith ThreadPoolExecutor(max_workers=1) as executor:\n    future = executor.submit(task)\n    print(future.done())\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "done"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Raises an error"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "True"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "False"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_CdolGIAJgh.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q08",
+   "category": "Assignment",
+   "title": "python concurrency lecture 2 - What is the output of this code?",
+   "question": "What is the output of this code?\n```python\nfrom concurrent.futures import ThreadPoolExecutor\n\ndef risky(x):\n    if x == 3:\n        raise ValueError(\"bad value\")\n    return x * 2\n\nwith ThreadPoolExecutor(max_workers=3) as executor:\n    futures = [executor.submit(risky, i) for i in range(5)]\n    for f in futures:\n        try:\n            print(f.result())\n        except ValueError as e:\n            print(f\"Caught: {e}\")\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Nothing prints — .result() swallows all output"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "0 2 4 6 8 (errors silently skipped)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Program crashes at x == 3 and stops printing"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "0 2 Caught: bad value 6 8 (in order, exception caught for x=3)"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_udXtfNbQdT.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q09",
+   "category": "Assignment",
+   "title": "A student wrote this to collect driver locations. What does it get wrong relative to today's lecture taught?",
+   "question": "A student wrote this to collect driver locations. What does it get wrong relative to what today's lecture taught?\n```python\nimport threading\nresults = []\n\ndef fetch_and_store(driver_id):\n    location = fetch_driver_location(driver_id)\n    results.append(location)\n\nthreads = [threading.Thread(target=fetch_and_store, args=(d,)) for d in drivers]\nfor t in threads:\n    t.start()\nfor t in threads:\n    t.join()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "threading.Thread cannot take args"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "t.join() will deadlock"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "This code will throw a syntax error"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This works, but relies on a manually shared list instead of ThreadPoolExecutor/Future to collect results and handle errors cleanly"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_W9Xr0LBC62.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q10",
+   "category": "Assignment",
+   "title": "Find the bug: the student wants to catch the error from a failed task, but the `except` block never triggers, even though `fetch_driver_location(\"D103\")` is known to raise `ConnectionError`.",
+   "question": "Find the bug: the student wants to catch the error from a failed task, but the except block never triggers, even though fetch_driver_location(\"D103\") is known to raise ConnectionError.\n```python\nwith ThreadPoolExecutor(max_workers=1) as executor:\n    future = executor.submit(fetch_driver_location, \"D103\")\n\ntry:\n    print(future.done())\nexcept ConnectionError as e:\n    print(f\"Fetch failed: {e}\")\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The with block suppresses all exceptions"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "ConnectionError cannot be caught inside a with block"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The exception is only raised when .result() is called — .done() never raises, it only reports status"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "executor.submit doesn't accept string arguments"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_TxMDu3EtSb.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-06/assignment/q11",
+   "category": "Assignment",
+   "title": "You're building a system that downloads 100 images from different URLs. Which executor should you use, and why?",
+   "question": "You're building a system that downloads 100 images from different URLs. Which executor should you use, and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "ProcessPoolExecutor, because processes don't have a GIL limitation on network calls"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Neither — use a single thread since downloads must happen one at a time"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "ProcessPoolExecutor, because more workers = more speed always"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "ThreadPoolExecutor, because this is I/O-bound — the GIL releases during network waits, letting waits overlap"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_C8ymbb6uj0.png"
+   ]
+  }
+ ]
+}

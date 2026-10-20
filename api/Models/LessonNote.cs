@@ -19,6 +19,14 @@ public class LessonNote
     [ForeignKey(nameof(LessonId))]
     public Lesson? Lesson { get; set; }
 
+    // Owner of a PersonalNote; null for editorial notes shared with every reader.
+    [Column("user_id")]
+    public int? UserId { get; set; }
+
+    [JsonIgnore]
+    [ForeignKey(nameof(UserId))]
+    public AppUser? User { get; set; }
+
     [Required]
     [MaxLength(50)]
     [Column("note_type")]

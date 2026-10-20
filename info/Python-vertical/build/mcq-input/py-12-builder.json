@@ -1,0 +1,454 @@
+{
+ "lessonSlug": "py-12-builder",
+ "sourceLesson": "Backend LLD: Design Patterns: Builder",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-12/additional/q03",
+   "category": "Additional",
+   "title": "Builder Pattern – MCQ Homework 1",
+   "question": "In the homework assignments, the Builder class must be marked with @WithBuilder. What is the purpose of this annotation?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It makes the class run faster"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It tells the test system which class to treat as the actual Builder implementation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It automatically validates all fields"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It converts the class into an interface"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_I3pK9kkVcv.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/additional/q04",
+   "category": "Additional",
+   "title": "Builder Pattern – MCQ Homework 2",
+   "question": "In the DatabaseConfiguration homework, the config object must be immutable once built. Which design choice from the Python lecture supports this same idea?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Using a mutable default argument like subjects=[]"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Letting any part of the code change fields directly using dot notation after creation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Setting all fields once inside build()/constructor, and never changing them again afterward"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Skipping validation to make the code shorter"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_WFJcG8JNNt.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/additional/q05",
+   "category": "Additional",
+   "title": "Builder Pattern – MCQ Homework 3",
+   "question": "A developer writes a QueryBuilder where with_where(\"age > 18\") is called three times to add three different conditions. But in the final Query object, only the last condition is saved. What is the likely bug?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The build() method was never called"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "with_where() is overwriting the stored value each time instead of adding (appending) to a list of conditions"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "age > 18 is not a valid string"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The class is missing @WithBuilder"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_wk3onBYaFn.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/additional/q06",
+   "category": "Additional",
+   "title": "Builder Pattern – MCQ Homework 4",
+   "question": "Why did the problem statement for \"Builder Message\" say the old way (multiple overloaded constructors) was \"error-prone and hard to maintain\"?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Because overloaded constructors are slower to run"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because adding a new message type or field means creating or changing many constructors, which is easy to get wrong"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because constructors cannot have parameters"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Because Java does not support constructors"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_oztcYH5c5H.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/additional/q07",
+   "category": "Additional",
+   "title": "Builder Pattern – MCQ Homework 5",
+   "question": "A student writes a MessageBuilder where build() just returns new Message(this) with no checks at all, even though a text message must always have non-empty content. What problem does this cause, based on what was taught?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "No problem, it will still work fine"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "An invalid Message (with missing content) could be created and used elsewhere in the program"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The code will not compile"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The Builder pattern requires no validation ever"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_keceYuIeKu.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/additional/q08",
+   "category": "Additional",
+   "title": "Builder Pattern – MCQ Homework 6",
+   "question": "```python\nbuilder = DatabaseConfigurationBuilder()\nbuilder.with_allowed_hosts([\"localhost\"])\nconfig1 = builder.build()   // build() does: self.allowed_hosts =\nlist(builder.allowed_hosts)\n\nbuilder.get_allowed_hosts_list().add(\"192.168.1.1\")\n\nprint(config1.allowed_hosts)\n```\n\nIf the Builder correctly follows what was taught in class (making a fresh copy of any list, not just pointing to it), what should this print?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "[\"localhost\", \"192.168.1.1\"], because both objects share the same list"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "[\"localhost\"], because config1 got its own independent copy of the list when it was built"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "An error, because lists cannot be copied"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "An empty list, because copying clears the original values"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_uAQzfL8YbH.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/additional/q09",
+   "category": "Additional",
+   "title": "Builder Pattern - MCQ Homework 7",
+   "question": "Which of these is the best reason to write validation logic inside build() rather than inside each individual setter (like with_username())?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Setters are not allowed to have any logic at all"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Some validation rules depend on more than one field together, so they can only be checked once all fields are set"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It makes the code run faster"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It is required by the @WithBuilder annotation"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_zZLuWeFpcW.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/additional/q10",
+   "category": "Additional",
+   "title": "Builder Pattern – MCQ Homework 8",
+   "question": "A teammate says: \"I don't need the Builder pattern for my Point class with just x and y. I'll just do Point(x, y) directly.\" Based on the lecture's wrap-up, is this reasonable?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "No, Builder must always be used for every class"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Yes, for a very small class with few fields and no complex validation, a plain constructor is simpler and Builder would be unnecessary extra code"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "No, because Point needs immutability and only Builder can provide that"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Yes, but only if the class is written in Java"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_d4MsTUsUBE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/assignment/q04",
+   "category": "Assignment",
+   "title": "Builder Pattern – MCQ Assignment 1",
+   "question": "What is the main reason we use the Builder pattern instead of one big constructor with many parameters?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It makes the code run faster"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It helps us avoid using classes"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It makes object creation easier to read and lets us validate before the object is created"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It automatically saves the object to a database"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_tPGPhEp3iS.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/assignment/q05",
+   "category": "Assignment",
+   "title": "Builder Pattern – MCQ Assignment 2",
+   "question": "```python\ndef add_item(cart=[]):\n    cart.append(\"apple\")\n    return cart\n\nprint(add_item())\nprint(add_item())\n```\n\nWhat will this print?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "['apple'] then ['apple']"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "['apple'] then ['apple', 'apple']"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "[] then ['apple']"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Error"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ukuqhLfPAE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/assignment/q06",
+   "category": "Assignment",
+   "title": "Builder Pattern – MCQ Assignment 3",
+   "question": "In the Builder pattern, why should every setter method (like set_name()) return self?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "So the object gets deleted after use"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "So we can chain multiple setter calls together in one line"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "So Python does not show an error"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It is not necessary, it is just a style choice"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_BBRbsUIANs.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/assignment/q07",
+   "category": "Assignment",
+   "title": "Builder Pattern – MCQ Assignment 4",
+   "question": "```python\nclass Builder:\n    def set_name(self, name):\n        self.name = name\n\n    def build(self):\n        return self.name\n\nb = Builder().set_name(\"Naman\").build()\nprint(b)\n```\n\nWhat is wrong with this code?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "build() should not return anything"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "set_name() does not return self, so chaining will fail"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "self.name cannot be set inside a method"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Nothing is wrong, it will work fine"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_tcqPh7ozOk.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/assignment/q08",
+   "category": "Assignment",
+   "title": "Builder Pattern – MCQ Assignment 5",
+   "question": "You are building a Student object. The rule is: grad_year must not be greater than 2022. Where should this check be written, based on what we learned in class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Inside the Student.__init__ or inside Builder.build(), before the Student object is created"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Anywhere in the code, it does not matter"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only inside a separate function called after the object is created"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Inside set_grad_year() only, and nowhere else"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_L4pW2cMaoB.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/assignment/q09",
+   "category": "Assignment",
+   "title": "Builder Pattern – MCQ Assignment 6",
+   "question": "```python\nclass Helper:\n    __slots__ = (\"name\", \"age\")\n    def __init__(self):\n        self.name = None\n        self.age = None\n\nh = Helper()\nh.nmae = \"Riya\"\n```\n\nWhat happens when this code runs?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It runs fine, h.nmae is created silently"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It prints None"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It raises an AttributeError because nmae is not in __slots__"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It automatically fixes the typo to name"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_L104QX3IJw.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/assignment/q10",
+   "category": "Assignment",
+   "title": "Builder Pattern – MCQ Assignment 7",
+   "question": "You ask an AI tool to generate a Builder for a class that has a tags list field. After build() runs, you change the original list you passed into the builder, and notice the already-built object's tags also change. What is the most likely mistake in the generated code?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The build() method was never called"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The constructor copied the reference to the list (self.tags = builder.tags) instead of making a new copy"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "__slots__ was used incorrectly"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The setter method did not return self"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_Hz3tY5XJtw.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-12/assignment/q11",
+   "category": "Assignment",
+   "title": "Builder Pattern – MCQ Assignment 8",
+   "question": "Which of these is NOT a good reason to use the Builder pattern for a class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The class has many optional fields"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The object must be validated before it is allowed to exist"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The class is very small, like a Point class with only x and y"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Values for the object arrive gradually, over several steps"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_aqOXO46f73.png"
+   ]
+  }
+ ]
+}

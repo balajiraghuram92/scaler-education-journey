@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-46-pytest-fixtures",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-46/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A teammate wants one shared scratch directory for the whole run and writes:\n\n```python\n@pytest.fixture(scope=\"session\")\ndef model_cache(tmp_path):\n    d = tmp_path / \"models\"\n    d.mkdir()\n    return d\n```\n\nWhat happens when a test requests `model_cache`?",
+      "explanation": "**Answer: (b)** `tmp_path` is function-scoped, and a fixture may only depend on fixtures of the same or a wider scope, so pytest reports a `ScopeMismatch` error when it tries to set up `model_cache`.\n\n- (a) is wrong: a wider fixture cannot hold a narrower one, because the narrower one would be torn down while the wider one still points at it.\n- (c) is wrong: pytest never silently widens a built-in fixture's scope.\n- (d) is wrong: scope errors are reported as errors, not skips.\n\nThe fix is `tmp_path_factory`, which is session-scoped and exists exactly for this: `tmp_path_factory.mktemp(\"models\")`.\n\n**Deeper:** Interviewers use this to check that you understand fixtures as a dependency graph with lifetimes. The same rule explains why a session-scoped database engine can be built from settings, but a per-test transaction fixture must depend on the engine and not the other way round.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It works; `tmp_path` is created once and reused for every test in the run.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "pytest raises a `ScopeMismatch` error, because a session fixture cannot request a function-scoped one; use `tmp_path_factory` instead.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "pytest silently promotes `tmp_path` to session scope for this fixture.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Every test that requests `model_cache` is skipped with a warning.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n@pytest.fixture\ndef resources():\n    conn = open_connection()\n    lock = acquire_lock()      # raises TimeoutError\n    yield conn, lock\n    lock.release()\n    conn.close()\n```\n\nA test requests `resources` and `acquire_lock()` raises. What is the state afterwards?",
+      "explanation": "**Answer: (c)** The exception is raised before the `yield`, so the fixture never reaches its teardown section. The connection opened on the first line is never closed.\n\n- (a) is wrong: code after `yield` only runs if the fixture got as far as yielding.\n- (b) is wrong: pytest does not track resources you opened by hand; it only runs registered teardown.\n- (d) is wrong: the test is reported as an error at setup, not a failure, and it never runs, so no assertion is involved.\n\nThe robust pattern is one resource per fixture, so each one registers its teardown the moment it is acquired. Alternatively wrap the setup in `try/finally`, or use `contextlib.ExitStack` and put the whole thing in `with ExitStack() as stack:` around the `yield`.\n\n**Deeper:** This is the classic leaked-connection bug in integration suites: tests only fail on a slow CI box, and the leaked connections then exhaust the database's connection limit for the next run.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The teardown lines run anyway, so both resources are released.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "pytest closes `conn` automatically because it was created in the fixture's frame.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "The test errors at setup and `conn` is left open, because nothing after the `yield` runs; splitting into two fixtures or using `ExitStack` fixes it.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "The test runs and fails with the `TimeoutError` as an assertion failure.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`tests/helpers.py` is a plain module containing `def check_body(resp, expected): assert resp.json() == expected`. Test modules import and call it. Compared with the same `assert` written directly inside a test function, what is different when it fails?",
+      "explanation": "**Answer: (a)** pytest rewrites asserts in test modules, `conftest.py` files and registered plugins. A helper module that is imported by tests is an ordinary module, so its asserts are not rewritten and a failing bare `assert` shows no intermediate values.\n\n- (b) is wrong: the assertion still raises `AssertionError` and fails the test; only the introspection is lost.\n- (c) is wrong: pytest does not rewrite arbitrary imported modules, because that would slow imports of every library.\n- (d) is wrong: `-O` removes asserts entirely, but it has nothing to do with this default behaviour.\n\nFix it by calling `pytest.register_assert_rewrite(\"tests.helpers\")` before the module is imported, typically in the top-level `conftest.py`, or by moving the helper into the `tests` package that is already collected.\n\n**Deeper:** A shared assertion helper that gives bare `AssertionError` is a common reason teams think pytest output is \"unhelpful\". Knowing the rewrite hook lets you explain and fix it.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The bare assert is not rewritten, so the failure has no value introspection unless the module is registered with `pytest.register_assert_rewrite` before import.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "The assert does not fail the test, because asserts outside test functions are ignored.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "pytest rewrites every module imported during the test run, so there is no difference.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The assert is stripped, because pytest runs with the `-O` flag by default.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`tests/conftest.py` defines fixture `settings` returning `Settings(limit=1000)`. `tests/billing/conftest.py` contains:\n\n```python\n@pytest.fixture\ndef settings(settings):\n    return dataclasses.replace(settings, limit=10)\n```\n\nWhich statement is correct?",
+      "explanation": "**Answer: (d)** Fixture lookup is nearest-first: for tests under `tests/billing/` the local `settings` overrides the parent. Because the override takes a parameter named `settings`, pytest injects the parent fixture's value, so the override wraps it and returns a copy with `limit=10`. Tests elsewhere still get 1000.\n\n- (a) is wrong: the same-name parameter does not create infinite recursion; pytest resolves it to the next definition up the hierarchy.\n- (b) is wrong: overriding is scoped to the directory, not global.\n- (c) is wrong: two fixtures with the same name are legal at different levels; pytest only complains about invalid dependencies, not about shadowing.\n\n**Deeper:** This layering is how you keep a repo-wide default (clock, settings, fake LLM client) and still tune one domain's behaviour without copy-pasting the fixture.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It recurses forever, because the fixture requests itself.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The override changes `settings` for every test in the whole repo, since fixture names are global.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "pytest raises an error because two fixtures share the name `settings`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Tests under `tests/billing/` see `limit=10` derived from the parent fixture; tests elsewhere still see `limit=1000`.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "The service raises `ValueError(\"tokens must be positive\")`. Three tests wrap the call in `pytest.raises(ValueError, match=...)`, using the patterns `\"positive\"`, `\"tokens.*positive\"` and `\"^positive\"`. How many of the three tests fail?",
+      "explanation": "**Answer: (c)** `match` is applied with `re.search` to `str(excinfo.value)`. The first two patterns occur somewhere in `tokens must be positive`, so they pass. `^positive` is anchored to the start of the string, and the message starts with `tokens`, so exactly one test fails. I confirmed this by running `re.search` for each pattern against the message: the results were True, True, False.\n\n- (a) is wrong: it assumes `match` uses `re.match`-like anchoring at the start for every pattern, which would fail two of three.\n- (b) is wrong: that would require failing `\"positive\"`, which clearly occurs in the message.\n- (d) is wrong: a regex mismatch raises an `AssertionError` that fails the test, but only for the pattern that does not match.\n\n**Deeper:** Regex metacharacters in `match` also bite: `match=\"1.5\"` matches `1x5`. Use `re.escape` for literal text, and prefer asserting on exception attributes for structured errors.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Two of them, because `match` anchors at the start of the message.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "None of them, because `match` compares with `==` against the message.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "One: the `^positive` test, because `match` uses `re.search` on `str(exception)`.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "All three, because `match` is only checked when `strict=True`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n@pytest.mark.parametrize(\"model,ctx\", [(\"s\", 8), (\"m\", 32), (\"l\", 128), (\"xl\", 200)])\n@pytest.mark.parametrize(\"retries\", [0, 1, 2])\ndef test_plan(model, ctx, retries): ...\n```\n\nHow many test items does pytest collect for `test_plan`?",
+      "explanation": "**Answer: (a)** Stacked `parametrize` decorators multiply. The first decorator supplies four `(model, ctx)` tuples (one decorator, two argnames, four cases), the second supplies three `retries` values, so 4 x 3 = 12 items.\n\n- (b) is wrong: 7 would be the sum of cases, which is how a single flat list behaves, not stacked decorators.\n- (c) is wrong: 8 would be 4 x 2, as if `retries` had two values or only the first decorator counted.\n- (d) is wrong: 24 would be 4 x 2 x 3, which treats `model` and `ctx` as independent axes; argnames in one decorator are zipped, not crossed.\n\n**Deeper:** Cartesian growth is a real cost in CI. Three stacked decorators with five values each is 125 tests. When only some combinations are valid, list the valid tuples explicitly in one decorator with `pytest.param(..., id=...)` instead.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "12", "isCorrect": true },
+        { "optionKey": "b", "optionText": "7", "isCorrect": false },
+        { "optionKey": "c", "optionText": "8", "isCorrect": false },
+        { "optionKey": "d", "optionText": "24", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n@pytest.fixture(scope=\"module\")\ndef cache():\n    return {}\n\ndef test_a(cache):\n    cache[\"k\"] = 1\n    assert cache == {\"k\": 1}\n\ndef test_b(cache):\n    assert cache == {}\n```\n\nWhat is the outcome?",
+      "explanation": "**Answer: (d)** The module-scoped fixture returns the same dict object to both tests. In file order `test_a` mutates it, so `test_b` sees `{\"k\": 1}` and fails. If a random-order plugin or `-n` runs `test_b` first, both pass. The result therefore depends on execution order.\n\n- (a) is wrong: both pass only when `test_b` happens to run before `test_a`.\n- (b) is wrong: `test_a` passes in either order, because it sets the key itself.\n- (c) is wrong: pytest does not copy fixture values or reset them between tests of the same scope.\n\nMake the fixture function-scoped, or keep the wide fixture immutable and give each test its own copy.\n\n**Deeper:** This is the textbook source of \"works on my machine, flaky on CI\". Order-dependence is a design smell you can detect mechanically by running with `pytest-randomly` on every PR.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Both tests always pass, because pytest gives each test a fresh copy of the dict.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`test_a` fails, because the cache is read-only inside tests.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Both tests always fail, because module-scoped fixtures cannot return mutable objects.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "In file order `test_a` passes and `test_b` fails; if `test_b` runs first both pass, so the suite is order-dependent.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n# app/llm.py\nfrom time import sleep\n\ndef backoff(attempt: int) -> None:\n    sleep(2 ** attempt)\n\n# tests/test_llm.py\ndef test_backoff(monkeypatch):\n    monkeypatch.setattr(\"time.sleep\", lambda s: None)\n    backoff(3)\n```\n\nWhat does the test do?",
+      "explanation": "**Answer: (b)** `from time import sleep` binds the function into the `app.llm` module namespace at import time. Patching `time.sleep` replaces the attribute on the `time` module only; `backoff` still calls the original through its own `sleep` name and really sleeps 8 seconds. I ran an equivalent snippet: the patched replacement was never called and the real sleep ran.\n\n- (a) is wrong: the patch only affects code that looks the name up on the `time` module at call time.\n- (c) is wrong: `monkeypatch.setattr` with a dotted string resolves fine; it does not raise.\n- (d) is wrong: `backoff(3)` returns normally; nothing is skipped.\n\nPatch where the name is looked up: `monkeypatch.setattr(\"app.llm.sleep\", ...)`, or write `import time; time.sleep(...)` in the module.\n\n**Deeper:** \"Patch where it is used, not where it is defined\" is the most common mocking interview question, and the next lesson builds on it.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It returns immediately, because `time.sleep` is replaced everywhere.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It really sleeps for 8 seconds, because `backoff` uses the name `sleep` bound in `app.llm`; the patch target should be `app.llm.sleep`.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "It raises `AttributeError` because string targets are not supported by `monkeypatch`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It is skipped because `backoff` returns `None`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A test is marked `@pytest.mark.xfail(reason=\"rounding bug #123\", strict=True)`. A developer fixes the bug but forgets to remove the marker. What does the next run report?",
+      "explanation": "**Answer: (c)** With `strict=True` an unexpectedly passing xfail test (XPASS) is converted into a failure, so the build goes red and forces someone to delete the stale marker.\n\n- (a) is wrong: that is the non-strict behaviour, where an XPASS is reported but does not fail the run unless `xfail_strict` is set globally.\n- (b) is wrong: xfail tests are still executed; that is how pytest knows they passed.\n- (d) is wrong: the test is not reported as a plain pass; pytest never hides that an expected failure did not occur.\n\nSetting `xfail_strict = true` in `pyproject.toml` makes this the default for every xfail.\n\n**Deeper:** Strict xfail turns known-bug markers into a self-cleaning to-do list. Without it, suites accumulate dozens of xfails that quietly started passing months ago and no longer document anything true.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "XPASS is shown in the summary, but the run still exits with success.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The test is no longer executed once its reason is recorded.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "The test is reported as failed (XPASS with strict), so the build goes red until the marker is removed.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "The test is reported as an ordinary pass and the marker is deleted automatically.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Fixtures: `A` is session-scoped and autouse, `B` is module-scoped (not autouse), `C` is function-scoped and autouse, `D` is function-scoped (not autouse). `test_x(D, B)` is the first test in its module. In what order are the fixtures set up, and which is torn down last?",
+      "explanation": "**Answer: (a)** pytest instantiates higher-scoped fixtures first (session, then module, then function) and, within the same scope, autouse fixtures before explicitly requested ones. Setup order is A (session), B (module), C (function, autouse), D (function). Teardown is the reverse: D and C at the end of the test, B at the end of the module, and A last, at the end of the session.\n\n- (b) is wrong: it puts autouse ahead of scope, but scope takes priority.\n- (c) is wrong: it follows the order of the test's parameter list (D, B), which only matters between fixtures of the same scope and autouse status.\n- (d) is wrong: it tears A down first, but the widest scope always lives longest.\n\n**Deeper:** Use `--setup-show` to print this order. Hidden autouse fixtures in `conftest.py` are the usual reason a test's setup does something nobody can find in the test file.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "A, B, C, D; A is torn down last (end of session).", "isCorrect": true },
+        { "optionKey": "b", "optionText": "C, A, D, B; B is torn down last.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "D, B, A, C; C is torn down last.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "A, B, C, D; A is torn down first.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A cost-accumulation test does this:\n\n```python\ntotal = 0.0\nfor _ in range(10):\n    total += 0.1\nassert total == 1.0\n```\n\nWhat is the right diagnosis and fix?",
+      "explanation": "**Answer: (d)** Binary floating point cannot represent 0.1 exactly. Running the loop gives `0.9999999999999999`, so `== 1.0` is False. `pytest.approx(1.0)` compares within a relative tolerance (1e-6 by default) and passes. For money, use `decimal.Decimal` or integer cents so the production code itself is exact.\n\n- (a) is wrong: this is not a pytest bug; plain Python gives the same result.\n- (b) is wrong: `round(total) == 1` would hide real errors, and rounding to an integer is far too coarse.\n- (c) is wrong: `sum([0.1] * 10)` happens to return `1.0` in Python 3.12+ because `sum` now uses compensated summation, but the manual loop shown does not, so you cannot rely on it.\n\n**Deeper:** Interviewers like the 3.12 `sum` detail because it shows you know the behaviour changed between versions. The real production fix is not to use floats for currency.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It is a pytest bug in assertion rewriting; upgrade pytest.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Use `assert round(total) == 1`, which is stricter than approx.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Replace the loop with `sum([0.1] * 10)`, which has always returned exactly `1.0`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The loop yields 0.9999999999999999; assert `total == pytest.approx(1.0)`, and for money use `Decimal` or integer cents in the code under test.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-46/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Code under test calls `logging.getLogger(\"billing\").info(\"charged tenant\")`. The test is:\n\n```python\ndef test_logs(capsys):\n    charge()\n    assert \"charged tenant\" in capsys.readouterr().err\n```\n\nIt fails. What is the most accurate explanation and fix?",
+      "explanation": "**Answer: (b)** `capsys` only sees what is written to `sys.stdout` and `sys.stderr`. An unconfigured logger inherits the root level `WARNING`, so an `INFO` record is dropped before any handler sees it (I ran an unconfigured `info` call and nothing was printed, while a `warning` appeared on stderr via the last-resort handler). Use `caplog` and raise the level for the logger under test, for example `with caplog.at_level(logging.INFO, logger=\"billing\")`.\n\n- (a) is wrong: `capsys` works fine; it is simply capturing an empty stream.\n- (c) is wrong: pytest does not suppress logging; it adds its own capture handler.\n- (d) is wrong: switching to `capfd` captures file descriptors but cannot show a record that was never emitted.\n\n**Deeper:** Assert on log records (level, message, extra fields) with `caplog.records`, not on formatted text, so changing the formatter does not break tests.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`capsys` cannot capture stderr; switch to `capfd`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The INFO record is below the effective WARNING level and `capsys` is the wrong tool anyway; use `caplog` with `caplog.at_level(logging.INFO, logger=\"billing\")`.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "pytest disables the logging module during tests; set `log_disable = false`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Replace `capsys` with `capfd` and the INFO line will appear on stderr.", "isCorrect": false }
+      ]
+    }
+  ]
+}

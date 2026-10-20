@@ -1,0 +1,286 @@
+{
+ "lessonSlug": "py-24-code-parking-lot-2",
+ "sourceLesson": "Backend LLD: Machine Coding - 7: Code Parking Lot 2 .",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q03",
+   "category": "Assignment",
+   "title": "Question 01: Layering responsibility",
+   "question": "In the Controller → Service → Repository pattern used in this lecture, which statement correctly describes where responsibilities live?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The Service contains business logic and never touches a DTO; the Controller only unwraps/wraps DTOs; the Repository only saves and finds data"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The Controller contains business logic, the Service validates DTOs, and the Repository decides which spot to assign"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The Repository contains business logic since it’s closest to the data; the Service only stores objects in memory"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The Controller, Service, and Repository are interchangeable — any of them can hold validation logic"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_UHorMg0lfv.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q04",
+   "category": "Assignment",
+   "title": "Ques 02: Generic Repository",
+   "question": "Look at this code from the lecture:\n\n```python\nT = TypeVar(\"T\", bound=BaseModel)\n\nclass InMemoryRepository(Generic[T]):\n    def __init__(self):\n        self.items: List[T] = []\n        self.next_id = 1\n\n    def save(self, item: T) -> T:\n        if item.id is None:\n            item.id = self.next_id\n            self.next_id += 1\n            item.created_at = datetime.now()\n        item.last_modified_at = datetime.now()\n        self.items.append(item)\n        return item\n```\nWhy does the class use Generic[T] instead of writing separate GateRepository, TicketRepository, etc. classes from scratch, each with their own save()?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Because Generic[T] automatically creates a real database connection under the hood"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because save() and findbyid() do the exact same thing regardless of model type, so writing one generic class avoids repeating identical logic across many near-identical classes"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because Python requires all repositories to inherit from Generic[T] in order to work with TypeVar"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Because without Generic[T], Python would not allow more than one repository class in the same file"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_1muAoLhWMe.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q05",
+   "category": "Assignment",
+   "title": "Tracing - give the output",
+   "question": "Foo below is a plain class that does not inherit from BaseModel, so it has no id, createdat, or lastmodified_at attributes.\n\n```python\nclass Foo:\n    pass\n\nclass FooRepository(InMemoryRepository[Foo]):\n    pass\n\nrepo = FooRepository()\nrepo.save(Foo())\n```\nWhat actually happens when repo.save(Foo()) runs?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python silently converts Foo into a BaseModel automatically"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "This code cannot even be written — Generic[T] classes reject non-conforming types at import time"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The code raises an AttributeError at runtime, the moment it tries to read or set item.id, since TypeVar bounds are advisory and not enforced by the interpreter"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Python raises a TypeError immediately, before save() even runs, because Foo doesn’t satisfy the bound=BaseModel constraint"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_n3dAZG2f5a.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q06",
+   "category": "Assignment",
+   "title": "Question 04: Why the DTO rule matters",
+   "question": "BillController and PaymentController were left as homework, not built live. According to the lecture, why is this considered “low-risk” homework rather than a real gap in understanding?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Because Controllers are optional in Python and the system works fine without them"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because DTOs aren’t needed at all in a working system"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because BillService and PaymentService are simpler than TicketService, so their Controllers don’t really matter"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Because BillService and PaymentService already take plain values in and return models out, following the exact same rule as TicketService — so their Controllers are just wiring: unwrap Request DTO, call Service, wrap Response DTO, the exact pattern already shown in full for TicketController"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_SHpyD4H18L.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q07",
+   "category": "Assignment",
+   "title": "Debug: Find the layering violation",
+   "question": "A teammate writes this TicketService method:\n\n```python\nclass TicketService:\n    def issue_ticket(self, request: IssueTicketRequestDTO) -> Ticket:\n        gate = self.gate_repository.find_by_id(request.gate_id)\n        if gate.gate_type != GateType.ENTRY:\n            raise InvalidGateException(\"Cannot issue a ticket at an exit gate\")\n        vehicle = Vehicle(request.vehicle_number, request.vehicle_type, request.owner_name)\n```\nAccording to the rules taught in this lecture, what is wrong with this code?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "issue_ticket() takes request: IssueTicketRequestDTO directly, which violates the rule that the Service layer must never touch a DTO — it should take plain values (gate_id, vehicle_number, vehicle_type, owner_name) instead"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Nothing is wrong — this is exactly how TicketService.issue_ticket() should be written"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The gate-type check should not be inside the Service at all — it belongs in the Controller"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Vehicle objects cannot be constructed inside a Service method"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_bLEKlySs3h.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q08",
+   "category": "Assignment",
+   "title": "Scenario-based: Partial payments",
+   "question": "A customer pays ₹200 in cash and then ₹300 online for the same bill, recorded as two separate Payment objects. Given this line from\n\n```python\nPaymentService.make_payment():\n\ntotal_paid = sum( p.amount for p in bill.payments if p.payment_status == PaymentStatus.SUCCESS)\n```\nIf the online ₹300 payment FAILS (status = FAILED) but the ₹200 cash payment succeeded, and the bill amount is ₹500, what happens?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "total_paid becomes ₹500 because both payments are counted regardless of status, so the bill is marked PAID and the spot is freed"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "total_paid becomes ₹200 (only the successful cash payment counts), which is less than ₹500, so the bill stays UNPAID and the spot stays OCCUPIED"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The code crashes with an exception because a FAILED payment is not allowed to exist in bill.payments"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "total_paid becomes ₹300 because only the most recent payment is considered"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_EyKYkhRDjO.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q09",
+   "category": "Assignment",
+   "title": "Question 7: Why the GIL doesn't prevent the race condition",
+   "question": "Python’s GIL (Global Interpreter Lock) ensures only one thread executes Python bytecode at any given instant. Given this, why can two gate threads still race on the same ParkingSpot?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The GIL only applies to single-core machines, and most servers use multiple cores"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The GIL is disabled automatically whenever threading.Thread is used"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The GIL guarantees atomicity for a single bytecode instruction, but “read spot status” and “later write spot status” are separate steps — the GIL can switch which thread runs in the gap between those steps, so the overall read-then-write sequence is not atomic"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The GIL only protects integer variables, not object attributes like parkingspotstatus"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_nWEvOFvjx4.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q10",
+   "category": "Assignment",
+   "title": "Coding: Where should the lock be created?",
+   "question": "```python\nclass TicketService:\n    def __init__(self, gate_repository,\n                 parking_spot_repository,\n                 ticket_repository, allotment_strategy):\n        self.gate_repository = gate_repository\n        self.parking_spot_repository = parking_spot_repository\n        self.ticket_repository = ticket_repository\n        self.allotment_strategy = allotment_strategy\n        self._spot_lock = threading.Lock()\n\n    def issue_ticket(self, gate_id, vehicle_number,\n                     vehicle_type, owner_name):\n        with self._spot_lock:\n            pass\n```\nThe lock, self._spot_lock, is created once in init and reused on every call to issue_ticket(), instead of writing lock = threading.Lock() as the first line inside issue_ticket() itself. Why does this placement matter for correctly fixing the two-gate race condition?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It doesn’t matter — both placements behave identically, since every threading.Lock() call refers to the same global lock object in Python"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A lock only blocks other threads that are trying to acquire that exact same lock object. If the lock were created fresh inside issue_ticket(), Gate A’s thread and Gate B’s thread would each get their own private lock and would never actually wait on each other, so the race condition would still happen"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Creating the lock inside init makes TicketService immutable, which is what actually prevents the race condition"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It only matters for performance, not correctness — either placement would prevent the race condition equally well"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_02Nhfk9o5t.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q11",
+   "category": "Assignment",
+   "title": "Predicting the concurrency test result",
+   "question": "In concurrencytest.py, exactly ONE ParkingSpot exists, and two separate Gate objects (Gate A and Gate B) both call issueticket() on the SAME TicketService instance from two threads, with the correct shared-lock fix in place. What is the guaranteed outcome, no matter how many times the test is run?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Exactly one thread will print “got spot” and the other will print “found lot full” (raising ParkingFullException) — never both succeeding"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Both threads will always succeed and print “got spot,” since Python threads run independently"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The outcome is random — sometimes both succeed, sometimes both fail, since there is no way to control thread scheduling"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The program will deadlock and never finish, since both threads are waiting on the same lock forever"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_C55JKBUiOw.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-24/assignment/q12",
+   "category": "Assignment",
+   "title": "Debug: The AI Corner locking bug",
+   "question": "The AI-suggested fix uses one lock per VehicleType:\n\n```python\nself._locks_by_vehicle_type = defaultdict(threading.Lock)\n\ndef issue_ticket(self, gate_id, vehicle_number,\nvehicle_type, owner_name):\n    with self._locks_by_vehicle_type[vehicle_type]:\n        assigned_spot = self.allotment_strategy.find_spot(\n            self.parking_spot_repository.find_all(),\n            vehicle_type)\n```\nGate A is issuing a ticket for a CAR, and at the exact same moment, Gate B is issuing a ticket for a TRUCK. There is only one available spot, and it supports [TRUCK, CAR, BIKE] (per the spot-size design from the earlier lecture). What is the actual risk with this fix?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "There is no risk — different vehicle types always mean different spots, so this fix is completely safe"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Gate A and Gate B acquire two DIFFERENT lock objects (one for CAR, one for TRUCK), so neither blocks the other. Since the one available spot supports both CAR and TRUCK, both threads can read it as EMPTY at the same time and both assign it — reintroducing the original race condition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The code will raise a KeyError because defaultdict cannot be used with threading.Lock"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This fix is strictly worse than no lock at all, because defaultdict is slower than a regular dictionary"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_RVSEAqF44y.png"
+   ]
+  }
+ ]
+}

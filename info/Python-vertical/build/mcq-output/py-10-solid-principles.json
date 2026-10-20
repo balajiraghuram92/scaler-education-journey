@@ -1,0 +1,905 @@
+{
+  "lessonSlug": "py-10-solid-principles",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-10/additional/q01",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the difference between DIP (Dependency Inversion Principle) and DI (Dependency Injection)?",
+      "explanation": "**Answer: (b)** DIP is a design rule about the direction of dependencies, while DI is the mechanism that delivers a dependency from outside.\n\n- (a) is wrong because you can inject a concrete class and still violate DIP, so the two are not synonyms.\n- (c) is wrong because neither idea is tied to a particular language.\n- (d) is wrong because both apply to functions, classes and modules alike.\n\n**Deeper:** Interviewers use this question to separate people who memorised acronyms from people who can design. The strong answer adds that DIP says the abstraction is owned by the high-level module (for example a `PaymentGateway` Protocol next to checkout), and DI plus a single composition root is how that abstraction gets a real implementation at runtime.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "They are the same thing, just two different names",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "DIP tells you who to depend on (an abstraction); DI tells you how that dependency reaches you (handed in from outside)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "DIP is only for Python; DI is only for other languages",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "DIP applies to functions; DI applies only to classes",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q02",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "If a bird hierarchy has 4 independent behaviours (fly, dance, swim, sing), and you try to model each combination using plain \"can/cannot\" subclassing, how many classes would you need?",
+      "explanation": "**Answer: (c)** Four independent can/cannot behaviours give 2 x 2 x 2 x 2 = 16 combinations, and a plain subclass-per-combination design needs a class for each one.\n\n- (a) 8 is the count for only three behaviours.\n- (b) 4 counts the behaviours, not the combinations.\n- (d) 12 has no basis in the arithmetic.\n\n**Deeper:** This is the \"class explosion\" argument for ISP and composition. Adding a fifth behaviour doubles the count to 32, which is untenable. Segregated interfaces (`Flyable`, `Swimmable`, `Singable`, `Dancable`) let each bird declare only the capabilities it has, and in Python Protocols let the consumer demand just one of them without any inheritance at all.",
+      "reviewFlag": "The count assumes one subclass per combination of four independent yes/no behaviours (2^4 = 16); a different modelling of the hierarchy could justify another number, but 16 is the standard combinatorial answer.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "8",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "4",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "16",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "12",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A project has one utils.py file containing 40 unrelated functions — date logic, string logic, and file logic all mixed together. Which SRP trap is this an example of?",
+      "explanation": "**Answer: (c)** A single `utils.py` holding 40 unrelated date, string and file functions is the classic junk-drawer file, an SRP failure at module level.\n\n- (a) is wrong because the problem here is a file, not one oversized method.\n- (b) is wrong because there is no branching chain described.\n- (d) is wrong because several unrelated reasons to change share one module, which is precisely what SRP warns about.\n\n**Deeper:** The cost shows up as tangled imports, merge conflicts between unrelated teams and no clear owner. The fix is to group by the actor that drives change, not to create one class per function. Keep the stateless helpers as plain functions in cohesive modules, and resist turning them into classes just to look object-oriented.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The \"does everything\" method trap",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The \"too many if-elif branches\" trap",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The \"junk drawer\" utility file trap",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This isn't an SRP problem at all",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why does needing a try-except block (or an isinstance check) before calling a method on a subclass count as an LSP violation?",
+      "explanation": "**Answer: (b)** If callers need an `isinstance` check or `try/except` before using a subclass, the subclass cannot truly stand in for its parent, which is what LSP demands.\n\n- (a) is wrong because `try/except` is idiomatic Python; the smell is using it to cope with one particular subtype.\n- (c) is wrong because LSP is about contracts, not the speed of `isinstance`.\n- (d) is wrong because the special handling is exactly the symptom of a broken substitution.\n\n**Deeper:** Think of the Penguin that raises `NotImplementedError` from `fly()`. Every loop over birds now needs a guard. Type checkers catch signature mismatches but not this behavioural break, so seniors back the contract with a shared test suite that every implementation must pass.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because try-except blocks are always bad practice in Python - B) Because it means the subclass cannot genuinely be used in place of its",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because it means the subclass cannot genuinely be used in place of its parent without special handling",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because isinstance checks are slower than normal calls",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It is not actually an LSP violation",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "With type hints in place, what does a static type checker like mypy do differently from Python itself when this code runs?\n```python\nflying_things: List[Flyable] = []\nflying_things.append(Sparrow())\nflying_things.append(Penguin())   # Penguin is NOT a Flyable\n\nfor f in flying_things:\n    f.fly()\n```",
+      "explanation": "**Answer: (b)** A static checker such as mypy or pyright flags the `append(Penguin())` line before anything executes, whereas CPython only fails once `.fly()` is called on the Penguin.\n\n- (a) is wrong because mypy never runs or blocks the program on its own; it is a separate tool you run in CI.\n- (c) is wrong because the two behave very differently here.\n- (d) is wrong because type checkers verify types and protocol conformance, not just syntax.\n\n**Deeper:** Type hints have no runtime effect, so `List[Flyable]` does not stop a bad append. The value is shifting the failure left: a missing `fly` method becomes a CI error rather than a production `AttributeError` three calls deep. This is why a typed ISP design with small Protocols is more than style.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "mypy prevents the program from running at all, even without being called",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "mypy would flag flying_things.append(Penguin()) as an error before the program even runs; Python itself only fails when .fly() is actually called on the Penguin, at runtime",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "mypy and Python behave identically here",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "mypy only checks syntax, not types like this",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is printed when this runs?\n\n```python\nclass NotificationChannel(ABC):\n    @abstractmethod\n    def send(self, message): ...\n\nclass EmailChannel(NotificationChannel):\n    def send(self, message):\n        print(f\"Sending Email: {message}\")\n\nclass SMSChannel(NotificationChannel):\n    def send(self, message):\n        print(f\"Sending SMS: {message}\")\n\nclass NotificationService:\n    def __init__(self, channels):\n        self.channels = channels\n    def notify(self, message):\n        for channel in self.channels:\n            channel.send(message)\n\nservice = NotificationService(channels=[EmailChannel(), SMSChannel()])\nservice.notify(\"Order shipped!\")\n```",
+      "explanation": "**Answer: (c)** The service receives two already-built channel objects and calls `send` on each in list order, so both lines print, email first.\n\n- (a) is wrong because the loop visits every channel, not only the first.\n- (b) is wrong because the channels are created by the caller and injected; the service does not need to create them.\n- (d) is wrong because the abstract base is never instantiated, only its concrete subclasses.\n\n**Deeper:** This is the target shape for OCP and DIP together. Adding a WhatsApp channel means writing one class and passing it in, with no edit to `NotificationService`. The abstract class would only raise `TypeError` if you tried `NotificationChannel()` directly.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Only \"Sending Email: Order shipped!\" is printed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing is printed, because NotificationService doesn't create the channels itself",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both \"Sending Email: Order shipped!\" and \"Sending SMS: Order shipped!\" are printed, in that order",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises a TypeError because NotificationChannel is abstract",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Compare these two Penguin designs. What is the key difference in the error each one produces?\n```python\n# Design 1 (Section 4)\nclass Penguin(Bird):\n    def fly(self):\n        raise NotImplementedError(\"Penguins can't fly!\")\n\n# Design 2 (Section 5)\nclass Penguin(NonFlyingBird):\n    pass  # fly() does not exist at all\n```",
+      "explanation": "**Answer: (b)** In Design 1 `fly` exists, so callers can call it and are surprised by a `NotImplementedError`; in Design 2 the method does not exist, so the call fails with `AttributeError`.\n\n- (a) is wrong because the error types and the point of failure differ.\n- (c) is wrong because defining a method that raises does not fail at class creation time.\n- (d) is wrong because Design 2 does produce an error if someone calls `fly()` on it.\n\n**Deeper:** Design 2 is better because the base type honestly says what is shared, and a type checker will flag `penguin.fly()` statically. Design 1 lies in its interface and pushes the discovery to runtime, which is the essence of an LSP violation. Best of all is a `Flyable` Protocol that only flying birds satisfy.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both raise the exact same error, so there's no real difference",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Design 1 raises NotImplementedError from inside a method that pretends to exist; Design 2 raises AttributeError because fly() was never defined for Penguin at all",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Design 1 crashes the program immediately on class creation; Design 2 does not",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Design 2 is worse because it gives no error at all",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "This code lets a VehicleService decide how each vehicle starts. A new team wants to add \"ElectricStart\" next month. What needs to change, and which principle does this design violate?\n```python\nclass Vehicle:\n    def __init__(self, engine_type):\n        self.engine_type = engine_type\n\n    def start(self):\n        if self.engine_type == \"petrol\":\n            print(\"Starting petrol engine\")\n        elif self.engine_type == \"diesel\":\n            print(\"Starting diesel engine\")\n```",
+      "explanation": "**Answer: (b)** Supporting `\"electric\"` means reopening `start()` and adding another `elif`, and that need to edit working code for each new case is an Open/Closed violation.\n\n- (a) is wrong because the chain only knows petrol and diesel.\n- (c) is wrong because ISP concerns forcing clients to depend on unused methods, not the number of attributes.\n- (d) is wrong because DIP is about depending on abstractions, not about using inheritance as such.\n\n**Deeper:** The Pythonic fix is a small `Engine` Protocol (or just a callable) passed to `Vehicle`, so `ElectricEngine` is a new class and nothing existing changes. A `dict[str, Callable]` dispatch table is also acceptable when the cases are trivial. The same pattern applies to LLM providers keyed by a string.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No changes needed — this already supports any future engine type",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "start() must be reopened and a new elif added for \"electric\" — this violates OCP",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "This violates ISP, because Vehicle has too many attributes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This violates DIP, because Vehicle doesn't use inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Spot the issue in this OrderService code and name the principle it violates:\n\n```python\nclass RazorpayGateway:\n    def pay(self, amount):\n        print(f\"Paying {amount} via Razorpay\")\n\nclass OrderService:\n    def __init__(self):\n        self.gateway = RazorpayGateway()  # created directly, inside the class\n\n    def checkout(self, amount):\n        self.gateway.pay(amount)\n```",
+      "explanation": "**Answer: (b)** `OrderService` names the concrete `RazorpayGateway` and constructs it itself, so it depends on a detail and cannot be given a different gateway.\n\n- (a) is wrong because `checkout()` performs a single call; the problem is where its collaborator comes from.\n- (c) is wrong because LSP concerns subtypes of a base, not unrelated services.\n- (d) is wrong because testing this service without hitting Razorpay is impossible as written.\n\n**Deeper:** The repair is two small steps: define a `PaymentGateway` Protocol that checkout owns, then accept it in the constructor. The Stripe rollout and every unit test then become one-line substitutions at the composition root rather than refactors.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SRP — checkout() is doing too many jobs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "DIP — OrderService depends directly on the concrete RazorpayGateway, and also builds it itself, instead of depending on an abstraction and receiving it from outside",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "LSP — RazorpayGateway cannot substitute for OrderService",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This code has no design issues",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A new team wants to add a WhatsAppChannel to a notification system, and they are told they \"cannot touch NotificationService directly.\" If the system was built with one shared abstraction and channels injected from outside (the fixed AI Corner design), what would the new team actually need to do?",
+      "explanation": "**Answer: (b)** With a shared channel abstraction and channels injected from outside, the new team writes a `WhatsAppChannel` that implements the same interface and passes it to the service.\n\n- (a) is wrong because reopening the service with another `elif` is the OCP violation the design avoids.\n- (c) is wrong because copying and renaming duplicates code and invites drift.\n- (d) is wrong because extension without modification is exactly what this design provides.\n\n**Deeper:** The \"cannot touch the service\" constraint is a realistic one for shared platform code owned by another team. The injection seam is what lets teams ship independently. Where the channel list is built (startup code, a registry or entry points) is the only place that grows.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Reopen NotificationService and add a new elif branch for WhatsApp",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Create a new WhatsAppChannel class implementing the same NotificationChannel abstraction, and pass it into NotificationService from outside",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Copy all of NotificationService and rename it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It's impossible to add a new channel without editing NotificationService",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q11",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "An AI assistant was asked to \"write a NotificationService using good design principles,\" and it produced an if-elif chain based on a channel string, inside one send() method. Which principles does this design most clearly fail?",
+      "explanation": "**Answer: (b)** A channel-string `if/elif` chain inside one `send()` method forces an edit for every new channel (OCP) and mixes several channel implementations into one place (partly SRP).\n\n- (a) is wrong because there is no subtype or fat-interface relationship in a single method.\n- (c) is wrong because DIP is only a secondary issue here, not the most obvious failure.\n- (d) is wrong because generated code that merely uses the word \"design\" is not evidence of good structure.\n\n**Deeper:** LLM-generated code often reaches for the shortest working shape, which is an `if/elif`. In review, ask what changes when requirement number two arrives. That question quickly exposes OCP and SRP problems that a green test suite will not.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "LSP and ISP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "OCP, and to some extent SRP",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only DIP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "None — \"good design principles\" was followed correctly",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q12",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A checkout system currently uses Razorpay. The business wants to add Stripe next quarter, and possibly switch the default gateway per country later. If the system depends on a PaymentGateway abstraction (not a concrete gateway class), what is the main benefit for this business requirement?",
+      "explanation": "**Answer: (a)** When checkout depends on a `PaymentGateway` abstraction, a new provider is just a new gateway class, and the checkout flow remains unchanged.\n\n- (b) is wrong because rewriting per provider is exactly what the abstraction prevents.\n- (c) is wrong because the abstraction helps testing and extension; claiming it only helps tests ignores the stated business need.\n- (d) is wrong because hardcoding makes per-country routing a refactor rather than a lookup.\n\n**Deeper:** The per-country requirement then becomes a small router that returns the right gateway, still invisible to checkout. Be ready to admit the trade-off: the abstraction is only worth its cost when a second implementation is plausible, which the Stripe plan makes true here.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The checkout code doesn't need to change at all when a new gateway is added — only a new gateway class is created",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The business would need to rewrite the entire checkout flow for every new gateway",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "This abstraction only helps with testing, not with adding new gateways",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "There is no real benefit — hardcoding the gateway is simpler and just as flexible",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/additional/q13",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "SQLAlchemy's create_engine(url) reads the prefix of a connection string (like postgresql:// or mysql://) and automatically picks the right database driver internally. Which SOLID idea does this real-world example reflect?",
+      "explanation": "**Answer: (b)** `create_engine(url)` returns an `Engine` and picks the dialect from the URL prefix, so application code depends on a general interface without naming a specific database.\n\n- (a) is wrong because the example is not about the function having a single purpose.\n- (c) is wrong because databases do not inherit from each other.\n- (d) is wrong because it is a widely used real-world instance of programming to an abstraction.\n\n**Deeper:** Note that this is also a factory selecting an implementation from configuration, which links DIP to the Factory lesson. A caveat worth mentioning: SQL dialect differences still leak through, so the abstraction is leaky and your integration tests should run against the real database.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SRP only — because create_engine has one function name",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The application code depends on a general/abstracted interface, without hardcoding which specific database engine it's talking to — reflecting DIP-style thinking",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It reflects LSP only, because databases inherit from each other",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It has nothing to do with SOLID — it's just a convenience feature",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q01",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does the Single Responsibility Principle (SRP) actually say?",
+      "explanation": "**Answer: (b)** SRP says a class should have one reason to change, meaning a single stakeholder or concern whose requirements can force an edit.\n\n- (a) is wrong because a class can have many methods and still serve one responsibility.\n- (c) is wrong because SRP says nothing about inheritance.\n- (d) is wrong because how often a class is used is unrelated.\n\n**Deeper:** \"Does one thing\" is too vague to apply. Asking \"who would ask me to change this, and could two different people ask for conflicting changes?\" turns SRP into a concrete review question. A service mixing prompt text, billing and audit logging fails that test.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A class should have only one method",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A class should have only one reason to change",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A class should never inherit from another class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A class should only be used once in the program",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "According to the Open/Closed Principle (OCP), how should you add a new feature to an existing class?",
+      "explanation": "**Answer: (b)** OCP says you extend behaviour by adding new code, such as a new class, without modifying code that already works.\n\n- (a) is wrong because editing the class is exactly what OCP discourages.\n- (c) is wrong because rewriting from scratch throws away tested behaviour.\n- (d) is wrong because piling on `elif` branches reopens the same method every time.\n\n**Deeper:** In Python, adding a new class that satisfies a Protocol, or a new entry in a registry, is the usual way to stay closed for modification. Remember that perfect closure is unattainable; the decision on what to instantiate still lives somewhere, ideally in one place.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "By editing the class directly to add the new behaviour",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "By adding new code (like a new class), without touching old working code",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "By deleting the old class and rewriting it from scratch",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "By adding more if-elif branches inside the same method",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does the Liskov Substitution Principle (LSP) require?",
+      "explanation": "**Answer: (a)** LSP requires that a subclass can replace its parent in any code written against the parent without breaking that code.\n\n- (b) is wrong because having more methods is irrelevant to substitutability.\n- (c) is wrong because overriding everything is not required and is often a smell.\n- (d) is wrong because LSP does not forbid direct use of subclasses.\n\n**Deeper:** The test is behavioural: same preconditions or weaker, same postconditions or stronger, no new exception types. Static checkers only enforce the signature part, so write contract tests that run against every implementation of an interface.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A subclass should be replaceable in place of its parent, without breaking the program",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A subclass should have more methods than its parent class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A subclass must always override every method of the parent",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A subclass should never be used directly in code",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the core idea behind the Interface Segregation Principle (ISP)?",
+      "explanation": "**Answer: (c)** ISP says clients should not be forced to depend on methods they do not use, which pushes designs toward small, focused interfaces.\n\n- (a) is wrong because forcing every implementer to supply every method is the problem ISP names.\n- (b) is wrong because one large interface creates the fake methods ISP is meant to eliminate.\n- (d) is wrong because ISP applies at any scale.\n\n**Deeper:** With `typing.Protocol` the consumer declares the narrow interface it needs, such as an `Embedder` with only `embed`, and any class with that method conforms. This also makes fakes in tests trivial, since a fake needs one method instead of four.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Classes should be forced to implement every method of a shared interface",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "One large interface is always better than many small ones",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A class should not be forced to depend on methods it doesn't actually use",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Interfaces should only be used in large-scale applications",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does the Dependency Inversion Principle (DIP) say about two concrete classes?",
+      "explanation": "**Answer: (b)** DIP says concrete classes should not depend directly on each other; both should depend on a shared abstraction.\n\n- (a) is wrong because direct calls between concretes are the coupling DIP removes.\n- (c) is wrong because merging them would violate SRP and remove the seam.\n- (d) is wrong because inheriting from the other class is a still tighter coupling.\n\n**Deeper:** More precisely, high-level policy should own the abstraction and low-level details conform to it. In a Python service this usually means a Protocol in the domain package and adapters in an infrastructure package, wired at startup.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "They should call each other's methods directly for efficiency",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They should never depend on each other directly — they should depend on a shared abstraction",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "They should always be combined into a single class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "One concrete class should always inherit from the other",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the output of r.get_area() here?\n\n```python\nclass Rectangle:\n    def __init__(self):\n        self.width = 0\n        self.height = 0\n    def set_width(self, w):\n        self.width = w\n    def set_height(self, h):\n        self.height = h\n    def get_area(self):\n        return self.width * self.height\n\nclass Square(Rectangle):\n    def set_width(self, w):\n        self.width = w\n        self.height = w\n\nr: Rectangle = Square()\nr.set_width(5)\nr.set_height(10)\nprint(r.get_area())\n```",
+      "explanation": "**Answer: (a)** `Square` overrides only `set_width`, so `set_width(5)` sets both sides to 5, and the inherited `set_height(10)` then sets only the height. The area is 5 x 10 = 50.\n\n```python\nr.set_width(5)    # width=5, height=5\nr.set_height(10)  # width=5, height=10\nprint(r.get_area())  # 50\n```\n\n- (b) 25 would apply if the height setter had not been called.\n- (c) 100 appears only if `set_height` also kept both sides equal.\n- (d) is wrong because no exception occurs.\n\n**Deeper:** Even here the lesson stands: a caller that assumes `Rectangle` semantics would be surprised if `Square` also overrode `set_height` and gave 100. Whichever way it is coded, the subtype changes observable behaviour, which is why immutable value objects or separate types are safer.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "50",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "25",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "100",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises an error",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What happens when this code runs?\n\n```python\nclass Bird(ABC):\n    def __init__(self, name):\n        self.name = name\n    def eat(self):\n        pass\n    @abstractmethod\n    def fly(self):\n        ...\n\nclass Penguin(Bird):\n    def fly(self):\n        raise NotImplementedError(\"Penguins can't fly!\")\n\np = Penguin(name=\"Pingu\")\np.fly()\n```",
+      "explanation": "**Answer: (c)** `Penguin` does implement `fly`, so instantiation succeeds, but calling `p.fly()` raises `NotImplementedError`, and uncaught it ends the program on that line.\n\n- (a) is wrong because the method body raises rather than doing nothing.\n- (b) is wrong because the message is attached to the exception, not printed, and execution does not continue.\n- (d) is wrong because a `TypeError` for an abstract method only occurs when the method is missing at instantiation.\n\n**Deeper:** This is the textbook LSP violation: the interface promises flight and the subclass breaks the promise at runtime. Splitting out a `Flyable` Protocol means a type checker flags the call before it ever runs.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It runs silently, doing nothing",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prints \"Penguins can't fly!\" and continues normally",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises a NotImplementedError and crashes the program at that line",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises a TypeError because Penguin didn't implement fly()",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which SOLID principle does this code violate, and why?\n```python\ndef save_to_database(self):\n    connection = connect()\n    query = build_query()\n    result = run(query, connection)\n    obj = map_to_object(result)\n    connection.close()\n    return obj\n```",
+      "explanation": "**Answer: (b)** One method that connects, builds a query, runs it, maps the result and closes the connection bundles five unrelated jobs, which violates SRP.\n\n- (a) is wrong because nothing here concerns extension by new types.\n- (c) is wrong because no overriding is shown.\n- (d) is wrong because the concrete database dependency is not the main issue in this snippet.\n\n**Deeper:** Each step changes for a different reason: connection handling, SQL generation, mapping. In Python, a context manager for the connection and a small mapper function give you separation without class bloat. The refactor also lets you test mapping without a database.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "OCP — because the method can't be extended",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "SRP — because one method is doing five unrelated jobs (connect, build, run, map, close)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "LSP — because it overrides a parent method incorrectly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "DIP — because it depends on a concrete database",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What's wrong with this code, and which principle does it break?\n\n```python\ndef fly(self):\n    if self.type == \"eagle\":\n        self.fly_like_eagle()\n    elif self.type == \"penguin\":\n        self.fly_like_penguin()\n    elif self.type == \"parrot\":\n        self.fly_like_parrot()\n```",
+      "explanation": "**Answer: (c)** Adding a new bird type requires editing this working `if/elif` chain, so the method is not closed for modification, an OCP violation.\n\n- (a) is wrong because relatedness of the birds is not the issue.\n- (b) is wrong because the method takes no parameters to be too many of.\n- (d) is wrong because the name `fly` is perfectly reasonable.\n\n**Deeper:** Each bird should own its flying behaviour via polymorphism, or via a dict mapping type to behaviour when the cases are simple. Either way, adding a bird adds code instead of modifying it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "LSP — because eagles and parrots aren't related",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "ISP — because the method has too many parameters",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "OCP — because adding a new bird type means editing this already-working method",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "SRP — because fly() is not a good method name",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "This class was designed for birds that can both fly and dance. What's the problem when Ostrich (which can only dance) inherits from it?\n\n```python\nclass Performable(ABC):\n    @abstractmethod\n    def fly(self):\n        ...\n    @abstractmethod\n    def dance(self):\n        ...\n\nclass Ostrich(Bird, Performable):\n    def dance(self):\n        pass\n    def fly(self):\n        pass  # forced to write this even though Ostrich can't fly\n```",
+      "explanation": "**Answer: (b)** `Performable` bundles `fly` and `dance`, so an `Ostrich` that can only dance is forced to implement a meaningless `fly`, which is an ISP violation.\n\n- (a) is wrong because nothing here prevents extension.\n- (c) is wrong because the count of methods is not what makes the interface wrong; the mismatch with the client is.\n- (d) is wrong because a forced fake method is the classic ISP symptom.\n\n**Deeper:** Split into `Flyable` and `Dancable`, and let `Ostrich` implement only `Dancable`. In Python, with Protocols, `Ostrich` need not even name them: consumers that require `Dancable` will accept it structurally.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "This violates OCP, because Performable cannot be extended",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "This violates ISP, because Ostrich is forced to implement fly(), a method it doesn't need",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "This violates SRP, because Performable has too many method names",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This is correct design — no principle is violated",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A function process_order() validates the order, charges payment, updates inventory, and sends a confirmation email — all in one function. Which principle does this violate?",
+      "explanation": "**Answer: (a)** Validating, charging, updating inventory and sending email in one function gives it four reasons to change, so it violates SRP.\n\n- (b) is wrong because no extension mechanism is under discussion.\n- (c) is wrong because the question does not describe depending on concrete classes.\n- (d) is wrong because no interface is forcing unused methods.\n\n**Deeper:** The usual refactor is an orchestrating function that calls small collaborators, each injectable. That also turns a hard-to-test workflow into units you can fake individually, and it leaves a clean place to add idempotency or retries around only the payment step.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SRP",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "OCP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "DIP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "ISP",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q12",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A team adds a 6th discount type by adding another elif inside a apply_discount() function that already handles 5 discount types. Which principle is broken?",
+      "explanation": "**Answer: (b)** Adding a sixth discount type by appending another `elif` to existing, working code is a modification that OCP warns against.\n\n- (a) is wrong because SRP concerns the number of reasons to change, which is a separate issue.\n- (c) is wrong because there is no inheritance relationship in the snippet.\n- (d) is wrong because no interface is involved.\n\n**Deeper:** Replace the chain with a `Discount` Protocol or a dict of callables so each new discount is added code. This is also the doorway to the Strategy pattern, which you will see in the behavioural patterns lesson.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SRP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "OCP",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "LSP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "ISP",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q13",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A Machine abstract class declares print_doc(), scan(), and fax(). A class SimplePrinter inherits from it but only really prints — it raises NotImplementedError for scan() and fax(). Which principle does this violate?",
+      "explanation": "**Answer: (a)** `SimplePrinter` is forced to carry `scan()` and `fax()` that it does not support, which is the definition of an ISP violation.\n\n- (b) is wrong because the base `Machine` being abstract is fine; the issue is its breadth.\n- (c) is wrong because `SimplePrinter` is related to `Machine`, which is the problem.\n- (d) is wrong because it is a fat interface problem, not the SRP question of why a class changes.\n\n**Deeper:** This one also breaks LSP, since calling `scan()` on a `Machine` raises. Splitting into `Printer`, `Scanner` and `Fax` interfaces fixes both, and a multifunction device simply satisfies all three.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "ISP — SimplePrinter is forced to depend on methods it doesn't use",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "DIP — SimplePrinter depends on a concrete class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "LSP — SimplePrinter is not related to Machine",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "SRP — Machine has too many jobs itself",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/assignment/q14",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Inside OrderService, this line exists: self.gateway = RazorpayGateway(), where RazorpayGateway is a concrete class hardcoded directly. Which principle does this violate?",
+      "explanation": "**Answer: (c)** `self.gateway = RazorpayGateway()` hardcodes a concrete dependency inside the class, which violates DIP.\n\n- (a) is wrong because the line does not show multiple responsibilities.\n- (b) is wrong because the line does not show an if-chain or an edit-to-extend problem.\n- (d) is wrong because no interface forces unused methods.\n\n**Deeper:** The fix is to type the constructor parameter as a `PaymentGateway` Protocol and pass the implementation in. Be ready to say the constructor-injected version is also what lets you substitute a fake gateway in unit tests without patching imports.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SRP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "OCP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "DIP",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "ISP",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A team has a `ChatModel` contract where `complete(prompt, *, max_tokens=512)` must accept any `max_tokens` up to 4096. A vendor adapter overrides it with the identical signature but adds `if max_tokens > 256: raise ValueError(...)`. A summarisation job calls it with the default and starts failing in production after the adapter is swapped in. Mypy reports no errors. Which statement is correct?",
+      "explanation": "**Answer: (c)** The adapter accepts a narrower range of inputs than the contract promises, so it strengthens the precondition, and callers written against the base contract break. That is an LSP violation even though the signature is compatible.\n\n- (a) is wrong because the adapter was added without editing the service; the problem is how it behaves.\n- (b) is wrong because the job does use `complete`.\n- (d) is wrong because type checkers verify the shape of a signature, not behavioural contracts.\n\n**Deeper:** This is why the swap is dangerous only in production. A shared contract test that calls every `ChatModel` implementation with the documented maximum would have failed immediately. If the vendor really has a lower limit, expose it as a `max_output_tokens` attribute in the contract so callers can adapt.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "This violates OCP, because the adapter should have been added without editing the service",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "This violates ISP, because the adapter exposes a method the job does not use",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "This violates LSP, because the subclass strengthens the precondition even though the signature still matches",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing is violated, because the signature is compatible and mypy passes",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Review this constructor from a pull request:\n\n```python\nclass OrderService:\n    def __init__(self, gateway: PaymentGateway | None = None) -> None:\n        self.gateway = gateway or RazorpayGateway()\n```\n\n`PaymentGateway` is a Protocol. What is the most accurate assessment?",
+      "explanation": "**Answer: (d)** The parameter is injectable and typed against an abstraction, which is good, but the fallback line names `RazorpayGateway` inside the service module. The high-level code therefore still depends on the concrete detail.\n\n- (a) is wrong because DIP is judged by what the module imports and constructs, not only by parameter annotations.\n- (b) is wrong because `None` is handled explicitly and LSP is not involved.\n- (c) is wrong because the SRP concern is minor compared with the hidden concrete dependency.\n\n**Deeper:** Convenience defaults like this are how a seam quietly erodes: tests forget to pass a fake and hit the real provider. Prefer a required parameter and let the composition root choose the implementation, or put the default in a factory function outside the service module.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It fully satisfies DIP, because the parameter is typed as an abstraction",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It violates LSP, because `None` is not a valid `PaymentGateway`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It violates SRP, because the class now both builds and uses a gateway only when it receives `None`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It supports injection, but the service module still imports and constructs the concrete class, so the dependency arrow still points at a detail",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-10/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom typing import Protocol, runtime_checkable\n\n@runtime_checkable\nclass Embedder(Protocol):\n    def embed(self, texts: list[str]) -> list[list[float]]: ...\n\nclass Broken:\n    def embed(self) -> None:\n        return None\n\nprint(isinstance(Broken(), Embedder))\n```\n\nWhat is printed, and what does it tell you about `@runtime_checkable`?",
+      "explanation": "**Answer: (a)** `isinstance` against a runtime-checkable Protocol checks only that the required attributes exist, so `Broken` passes even though calling `embed(texts)` would raise `TypeError`.\n\n- (b) is wrong because parameter lists and annotations are never inspected at runtime.\n- (c) is wrong because structural matching is the whole point; no inheritance is needed.\n- (d) is wrong because runtime-checkable Protocols explicitly support `isinstance` (non-runtime ones are what raise).\n\n**Deeper:** Use `@runtime_checkable` for coarse dispatch or plugin discovery, never as proof of correctness. Real conformance comes from a static checker in CI and a contract test that exercises each implementation, which is also how you keep ISP-style small interfaces honest.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`True`: the check only verifies that an attribute named `embed` exists, not its signature",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`False`: `runtime_checkable` compares parameter lists and rejects `Broken`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`False`: a Protocol can only match classes that inherit from it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises `TypeError`, because Protocols cannot be used with `isinstance`",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

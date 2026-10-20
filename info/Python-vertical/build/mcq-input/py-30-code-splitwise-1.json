@@ -1,0 +1,454 @@
+{
+ "lessonSlug": "py-30-code-splitwise-1",
+ "sourceLesson": "Backend LLD: Machine Coding - 13: Code Splitwise 1",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q02",
+   "category": "Assignment",
+   "title": "Command Matching Loop Output",
+   "question": "What does the following code print?\n\n```python\nclass Command:\n    def __init__(self, keyword):\n        self.keyword = keyword\n\n    def matches(self, text):\n        return text.startswith(self.keyword)\n\nclass CommandExecutor:\n    def __init__(self, commands):\n        self.commands = commands\n\n    def execute(self, text):\n        for c in self.commands:\n            if c.matches(text):\n                print(\"Matched:\", c.keyword)\n                return\n        print(\"Invalid command\")\n\nex = CommandExecutor([Command(\"create\"), Command(\"settle\"), Command(\"add\")])\nex.execute(\"settle up g1\")\nex.execute(\"delete g1\")\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Matched: create followed by Invalid command"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Matched: settle followed by Invalid command"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Matched: settle followed by Matched: add"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Invalid command followed by Invalid command"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_gh55xclSkX.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q03",
+   "category": "Assignment",
+   "title": "Enum Name Value Comparison",
+   "question": "What does the following code print?\n\n```python\nfrom enum import Enum\n\nclass ExpenseType(Enum):\n    NORMAL = 1\n    PAYMENT = 2\n\ne = ExpenseType.PAYMENT\nprint(e.name, e.value)\nprint(e == ExpenseType.NORMAL)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "PAYMENT 2 followed by True"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "ExpenseType.PAYMENT 2 followed by False"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "PAYMENT 2 followed by False"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "2 PAYMENT followed by False"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZejCjVtrMM.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q04",
+   "category": "Assignment",
+   "title": "Balance Sheet From Rows",
+   "question": "Each row below is (user, kind, amount). A \"PAID\" row adds the amount to that user's balance, and a \"HAD_TO_PAY\" row subtracts it. What does the code print?**\n\n```python\nrows = [\n    (\"A\", \"PAID\", 900),\n    (\"A\", \"HAD_TO_PAY\", 300),\n    (\"B\", \"HAD_TO_PAY\", 300),\n    (\"C\", \"HAD_TO_PAY\", 300),\n]\n\nbalance = {}\nfor user, kind, amt in rows:\n    if kind == \"PAID\":\n        balance[user] = balance.get(user, 0) + amt\n    else:\n        balance[user] = balance.get(user, 0) - amt\n\nprint(balance)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "{'A': 600, 'B': -300, 'C': -300}"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "{'A': 900, 'B': 300, 'C': 300}"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "{'A': 600, 'B': 300, 'C': 300}"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "{'A': 300, 'B': -300, 'C': -300}"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_6mbOrdH51b.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q05",
+   "category": "Assignment",
+   "title": "Filtered Expense Rows For User",
+   "question": "In an expense-sharing app, each row records one person's part in one expense. What does the code print?**\n\n```python\nexpense_users = [\n    {\"expense_id\": 1, \"user\": \"A\", \"type\": \"PAID\", \"amount\": 600},\n    {\"expense_id\": 1, \"user\": \"B\", \"type\": \"HAD_TO_PAY\", \"amount\": 300},\n    {\"expense_id\": 1, \"user\": \"C\", \"type\": \"HAD_TO_PAY\", \"amount\": 300},\n    {\"expense_id\": 2, \"user\": \"B\", \"type\": \"PAID\", \"amount\": 200},\n    {\"expense_id\": 2, \"user\": \"A\", \"type\": \"HAD_TO_PAY\", \"amount\": 200},\n]\n\nrows_for_b = [\n    r for r in expense_users\n    if r[\"user\"] == \"B\" and r[\"type\"] == \"HAD_TO_PAY\"\n]\n\nids = [r[\"expense_id\"] for r in rows_for_b]\ntotal = sum(r[\"amount\"] for r in rows_for_b)\nprint(ids, total)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "[1, 2] 500"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "[2] 200"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "[1, 2] 300"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "[1] 300"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_4j9vsmcAYY.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q06",
+   "category": "Assignment",
+   "title": "Identifying Classes From Nouns",
+   "question": "While reading a written requirement to find the classes of a system, you spot the nouns \"user\", \"phone number\" and \"password\". Which conclusion is correct?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "\"User\" should become a class, while \"phone number\" and \"password\" should be attributes of it"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "All three nouns should become separate classes, because each one is a noun"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only \"password\" should become a class, because it is sensitive information"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "None of them should be a class, because they are all just pieces of data"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_8BqDr4loPl.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q07",
+   "category": "Assignment",
+   "title": "Modeling Paid/Owed Relationships",
+   "question": "An Expense must record how much each person paid and how much each person owes. Why is keeping this as a dictionary such as dict[User, int] inside Expense a poor design for a relational database?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python does not allow a dictionary to be stored inside a class"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Databases can never store JSON or any structured data in a column"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A dictionary always takes more memory than a table with the same data"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The amount depends on both the user and the expense, so one row per (expense, user) in its own table is much easier to query"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_YYmr5lyh06.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q08",
+   "category": "Assignment",
+   "title": "Enum Versus Lookup Table",
+   "question": "When should a fixed set of values, such as NORMAL and PAYMENT, be modeled as an enum instead of a separate lookup table?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "When every value is a short piece of text, because text is simple to store"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "When the set rarely changes without a code release, and every owner uses the same set"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "When the set has only two values, because a table would be too small to be useful"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "When the values are shown on screen, because tables are only for hidden data"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_P29yf0SLJ1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q09",
+   "category": "Assignment",
+   "title": "Reserved Word Table Names",
+   "question": "A developer names a database table order (or group). Which statement is most accurate?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The app will always crash at startup, because table names can never match a SQL keyword"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Only the Python class name matters to SQL, so the table name can never cause any problem"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It may still work because the ORM adds quotes, but hand-written SQL and other tools can break, so plural names like orders are a safer habit"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Reserved words are always safe as long as they are written in lowercase"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_DMOnFtlm6v.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q10",
+   "category": "Assignment",
+   "title": "Enum Import Name Collision",
+   "question": "A developer writes the code below and expects ExpenseType to be a normal Python enum, but it does not behave like one. What is the cause and the fix?\n\n```python\nfrom enum import Enum\nfrom sqlalchemy import Column, Enum\n\nclass ExpenseType(Enum):\n    NORMAL = 1\n    PAYMENT = 2\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Enum classes must define an __init__ method before their members can be used"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Enum values must be strings, so 1 and 2 should be \"1\" and \"2\""
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The second import replaces the first, so Enum now means SQLAlchemy's Enum. Import it under another name, such as from sqlalchemy import Enum as SAEnum"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Python enums cannot be used in a file that also imports from sqlalchemy"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_QJMqYEGFR4.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q11",
+   "category": "Assignment",
+   "title": "Abstract Base Model Fix",
+   "question": "This shared base class is meant to provide common columns to other models, but SQLAlchemy raises an error saying the class has no __table__ or __tablename__. What is the fix?\n\n```python\nfrom sqlalchemy import Column, Integer, DateTime\nfrom sqlalchemy.orm import declarative_base\n\nBase = declarative_base()\n\nclass BaseModel(Base):\n    id = Column(Integer, primary_key=True)\n    created_at = Column(DateTime)\n    updated_at = Column(DateTime)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Add __abstract__ = True inside BaseModel, so it gets no table of its own and only shares its columns with subclasses"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Rename Base to BaseModel"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Remove the id column"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Change the type of created_at and updated_at from DateTime to Integer"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_j34M3r7k2L.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q12",
+   "category": "Assignment",
+   "title": "Missing Return After Match",
+   "question": "A CommandExecutor should print \"Invalid command\" only when no command matches the input. Instead, it prints \"Invalid command\" after every input, even when a command ran successfully. What is the fix?\n\n```python\nclass CommandExecutor:\n    def __init__(self, commands):\n        self.commands = commands\n\n    def execute(self, text):\n        for c in self.commands:\n            if c.matches(text):\n                c.execute(text)\n        print(\"Invalid command\")\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Call matches after execute instead of before it"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Replace the for loop with a while loop"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Move the print statement into __init__"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Add a return right after c.execute(text), so the method stops at the first match"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_umh5HDc9TF.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q13",
+   "category": "Assignment",
+   "title": "Unregistered Models Skip Table Creation",
+   "question": "A developer has model files (for example, models/user.py) that define tables. In main.py, they run the code below, but no tables are created, even though echo=True is set. What is the fix?**\n\n```python\n# main.py\nfrom sqlalchemy import create_engine\nfrom models.base_model import Base\n\nengine = create_engine(\"sqlite:///:memory:\", echo=True)\nBase.metadata.create_all(engine)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Set echo=False so that the tables can be created"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Import the model files (for example, from models.user import User) before calling create_all, so that Base knows about the tables"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Replace the in-memory SQLite database with a file-based one"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Call create_all twice, so the second call creates the tables"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_L1NroDhEzM.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q14",
+   "category": "Assignment",
+   "title": "Quantity Belongs To Order-Product Pair",
+   "question": "In an online store, one order can contain several products, and for each product in an order we must record the quantity bought. Where should the quantity be stored?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "As a quantity column on the Product table"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "As a quantity column on the Order table"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "As a list stored inside the customer's profile"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "In a separate table with one row per (order, product) that also holds the quantity"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_1tb6ZpC11C.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q15",
+   "category": "Assignment",
+   "title": "Settlements Unified In One Table",
+   "question": "A group-expense app calculates balances from a table of expense records. When two people settle a debt, that payment must count in all future balance calculations. Which design avoids having two separate sources of truth for \"money moving between people\"?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Create a separate Transaction table, and make every balance calculation read both tables"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Delete the original expense once it has been settled, so it no longer affects anything"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Store the settlement as another record in the same expense table, marked with a type such as PAYMENT, so balances are computed from one table"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Keep settlements only in memory and leave them out of balance calculations"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ATd86OVC9e.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q16",
+   "category": "Assignment",
+   "title": "Adding Command Without Modifying Executor",
+   "question": "A command-line app has a main() that passes every input line to a CommandExecutor. The executor holds a list of command objects, and each command implements matches(text) and execute(text). You now need to add a LeaveGroup command. What is the correct change?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Add a new elif branch for it inside main()"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Write a new class that implements matches and execute, and add it to the list given to CommandExecutor"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Add a leave_group() method to the shared base command class"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Add a hardcoded check for LeaveGroup inside CommandExecutor"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_m4bruFRS19.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-30/assignment/q17",
+   "category": "Assignment",
+   "title": "In-Memory Database For Session Data",
+   "question": "You are building a small app that tracks shared expenses while it is running. Nothing needs to be kept after the app is closed. Which database setup fits this requirement best?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "SQLite in memory, using create_engine(\"sqlite:///:memory:\"), which is a real relational database whose data disappears when the app stops"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A MySQL server plus a driver package, because every relational database needs a separate server"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A plain text file, because SQL cannot be used unless data is saved permanently"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "No database at all, because SQLAlchemy only works with data that survives a restart"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_pIdb9ftJ0L.png"
+   ]
+  }
+ ]
+}

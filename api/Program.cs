@@ -110,6 +110,13 @@ builder.Services.AddScoped<AzureLabsReconciler>();
 builder.Services.AddScoped<AtlasReadingReconciler>();
 builder.Services.AddScoped<ReconciliationEngine>();
 builder.Services.AddScoped<McqService>();
+builder.Services.AddScoped<LearnerProgressService>();
+
+// Current-learner resolution & session management
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
+builder.Services.AddScoped<SessionService>();
 
 // Auth & Email Services DI
 builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOptions.SectionName));
@@ -188,6 +195,23 @@ builder.Services.AddAuthentication(options =>
                 context.Token = cookieToken;
             }
             return Task.CompletedTask;
+        },
+        // A session-scoped token is only valid while its session is: revoking a session
+        // (logout, "sign out other devices", refresh-token reuse) cuts it off immediately.
+        OnTokenValidated = async context =>
+        {
+            var sessionId = HttpContextCurrentUser.ReadSessionId(context.Principal);
+            if (sessionId == null)
+            {
+                return; // legacy long-lived token issued before session management
+            }
+
+            var userId = HttpContextCurrentUser.ReadUserId(context.Principal);
+            var sessions = context.HttpContext.RequestServices.GetRequiredService<SessionService>();
+            if (userId == null || !await sessions.IsSessionActiveAsync(sessionId.Value, userId.Value, context.HttpContext.RequestAborted))
+            {
+                context.Fail("Session is no longer active.");
+            }
         }
     };
 });
@@ -233,6 +257,18 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = 0;
     });
+    // Token refresh is routine (every ~25 min per open tab) but must not be brute-forceable.
+    options.AddPolicy("RefreshPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
+                Window = TimeSpan.FromMinutes(5),
+                QueueLimit = 0
+            }));
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
@@ -757,7 +793,7 @@ app.MapPut("/api/tasks/{id:int}/toggle", async (int id, StudyTrackerContext db, 
 // 2. COURSES & CURRICULUM ENDPOINTS (Hierarchical)
 // ==========================================
 
-app.MapGet("/api/courses", async (StudyTrackerContext db) =>
+app.MapGet("/api/courses", async (StudyTrackerContext db, ICurrentUser currentUser, LearnerProgressService progress) =>
 {
     var courses = await db.Courses.AsNoTracking()
         .Include(c => c.Modules)
@@ -766,21 +802,24 @@ app.MapGet("/api/courses", async (StudyTrackerContext db) =>
         .OrderBy(c => c.OrderIndex)
         .ToListAsync();
 
+    var completedIds = await progress.GetCompletedLessonIdsAsync(currentUser.UserId);
+    var solvedIds = await progress.GetSolvedProblemIdsAsync(currentUser.UserId);
+
     var dtos = courses.Select(c =>
     {
         var allLessons = c.Modules.SelectMany(m => m.Lessons).ToList();
         var allProblems = allLessons.SelectMany(l => l.Problems).ToList();
         var totalLessons = allLessons.Count;
-        var completedLessons = allLessons.Count(l => l.IsCompleted);
+        var completedLessons = allLessons.Count(l => completedIds.Contains(l.Id));
         var totalProblems = allProblems.Count;
-        var completedProblems = allProblems.Count(p => p.IsCompleted);
+        var completedProblems = allProblems.Count(p => solvedIds.Contains(p.Id));
         var progressPercent = totalLessons > 0 ? (int)Math.Round((double)completedLessons / totalLessons * 100) : 0;
 
         var moduleDtos = c.Modules.OrderBy(m => m.OrderIndex).Select(m =>
         {
             var mLessons = m.Lessons.OrderBy(l => l.OrderIndex).ToList();
             var mTotal = mLessons.Count;
-            var mCompleted = mLessons.Count(l => l.IsCompleted);
+            var mCompleted = mLessons.Count(l => completedIds.Contains(l.Id));
             var mProgress = mTotal > 0 ? (int)Math.Round((double)mCompleted / mTotal * 100) : 0;
 
             return new ModuleSummaryDto(
@@ -804,7 +843,7 @@ app.MapGet("/api/courses", async (StudyTrackerContext db) =>
                     l.ClassDate,
                     l.HorstmannRef,
                     l.EstimatedMinutes,
-                    l.IsCompleted,
+                    completedIds.Contains(l.Id),
                     l.OrderIndex,
                     l.Problems.Count
                 )).ToList()
@@ -831,8 +870,11 @@ app.MapGet("/api/courses", async (StudyTrackerContext db) =>
 })
 .WithName("GetCourses");
 
-app.MapGet("/api/courses/{slugOrId}", async (string slugOrId, StudyTrackerContext db) =>
+app.MapGet("/api/courses/{slugOrId}", async (string slugOrId, StudyTrackerContext db, ICurrentUser currentUser, LearnerProgressService progress) =>
 {
+    var completedIds = await progress.GetCompletedLessonIdsAsync(currentUser.UserId);
+    var solvedIds = await progress.GetSolvedProblemIdsAsync(currentUser.UserId);
+
     var query = db.Courses.AsNoTracking()
         .Include(c => c.Modules)
             .ThenInclude(m => m.Lessons)
@@ -853,16 +895,16 @@ app.MapGet("/api/courses/{slugOrId}", async (string slugOrId, StudyTrackerContex
     var allLessons = course.Modules.SelectMany(m => m.Lessons).ToList();
     var allProblems = allLessons.SelectMany(l => l.Problems).ToList();
     var totalLessons = allLessons.Count;
-    var completedLessons = allLessons.Count(l => l.IsCompleted);
+    var completedLessons = allLessons.Count(l => completedIds.Contains(l.Id));
     var totalProblems = allProblems.Count;
-    var completedProblems = allProblems.Count(p => p.IsCompleted);
+    var completedProblems = allProblems.Count(p => solvedIds.Contains(p.Id));
     var progressPercent = totalLessons > 0 ? (int)Math.Round((double)completedLessons / totalLessons * 100) : 0;
 
     var moduleDtos = course.Modules.OrderBy(m => m.OrderIndex).Select(m =>
     {
         var mLessons = m.Lessons.OrderBy(l => l.OrderIndex).ToList();
         var mTotal = mLessons.Count;
-        var mCompleted = mLessons.Count(l => l.IsCompleted);
+        var mCompleted = mLessons.Count(l => completedIds.Contains(l.Id));
         var mProgress = mTotal > 0 ? (int)Math.Round((double)mCompleted / mTotal * 100) : 0;
 
         return new ModuleSummaryDto(
@@ -886,7 +928,7 @@ app.MapGet("/api/courses/{slugOrId}", async (string slugOrId, StudyTrackerContex
                 l.ClassDate,
                 l.HorstmannRef,
                 l.EstimatedMinutes,
-                l.IsCompleted,
+                completedIds.Contains(l.Id),
                 l.OrderIndex,
                 l.Problems.Count
             )).ToList()
@@ -916,7 +958,7 @@ app.MapGet("/api/courses/{slugOrId}", async (string slugOrId, StudyTrackerContex
 // 3. LESSONS ENDPOINTS
 // ==========================================
 
-app.MapGet("/api/lessons/{id:int}", async (int id, StudyTrackerContext db) =>
+app.MapGet("/api/lessons/{id:int}", async (int id, StudyTrackerContext db, ICurrentUser currentUser, LearnerProgressService progress) =>
 {
     var lesson = await db.Lessons.AsNoTracking()
         .Include(l => l.Module)
@@ -926,6 +968,9 @@ app.MapGet("/api/lessons/{id:int}", async (int id, StudyTrackerContext db) =>
         .FirstOrDefaultAsync(l => l.Id == id);
 
     if (lesson == null) return Results.NotFound(new { message = "Lesson not found." });
+
+    var completedIds = await progress.GetCompletedLessonIdsAsync(currentUser.UserId);
+    var solvedIds = await progress.GetSolvedProblemIdsAsync(currentUser.UserId);
 
     var dto = new LessonDetailDto(
         lesson.Id,
@@ -941,7 +986,7 @@ app.MapGet("/api/lessons/{id:int}", async (int id, StudyTrackerContext db) =>
         lesson.ContentBody,
         lesson.HorstmannRef,
         lesson.EstimatedMinutes,
-        lesson.IsCompleted,
+        completedIds.Contains(lesson.Id),
         lesson.OrderIndex,
         lesson.Problems.Select(p => new ProblemSummaryDto(
             p.Id,
@@ -955,7 +1000,7 @@ app.MapGet("/api/lessons/{id:int}", async (int id, StudyTrackerContext db) =>
             p.RequirementsBody,
             p.WorkedExample,
             p.Hints,
-            p.IsCompleted,
+            solvedIds.Contains(p.Id),
             p.OrderIndex
         )).ToList(),
         lesson.Resources.Select(r => new LessonResourceDto(
@@ -1281,8 +1326,11 @@ app.MapGet("/api/chapters", async (
     string? vertical,
     string? course,
     string? module,
-    StudyTrackerContext db) =>
+    StudyTrackerContext db,
+    ICurrentUser currentUser,
+    LearnerProgressService progress) =>
 {
+    var completedIds = await progress.GetCompletedLessonIdsAsync(currentUser.UserId);
     var query = db.Courses.AsNoTracking()
         .Include(c => c.Vertical)
         .Include(c => c.Modules)
@@ -1316,7 +1364,7 @@ app.MapGet("/api/chapters", async (
 
     var allLessons = courseEntities.SelectMany(c => c.Modules.SelectMany(m => m.Lessons)).ToList();
     var totalChapters = allLessons.Count;
-    var completedChapters = allLessons.Count(l => l.IsCompleted);
+    var completedChapters = allLessons.Count(l => completedIds.Contains(l.Id));
     var totalReadingTimeMinutes = allLessons.Sum(l => l.EstimatedMinutes > 0 ? l.EstimatedMinutes : 15);
     var totalWords = allLessons.Sum(l => CountWords(l.ContentBody));
 
@@ -1345,7 +1393,7 @@ app.MapGet("/api/chapters", async (
                     l.EstimatedMinutes,
                     wordCount,
                     l.Difficulty ?? "Intermediate",
-                    l.IsCompleted,
+                    completedIds.Contains(l.Id),
                     l.OrderIndex,
                     c.Slug,
                     c.Title,
@@ -1580,6 +1628,7 @@ app.MapMarketplaceEndpoints();
 app.MapVendorPortalEndpoints();
 app.MapProviderHealthEndpoints();
 app.MapAuthEndpoints();
+app.MapMeEndpoints();
 app.MapAdminEndpoints();
 app.MapChatEndpoints();
 

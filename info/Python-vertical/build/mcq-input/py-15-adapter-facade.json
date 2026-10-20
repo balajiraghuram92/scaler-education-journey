@@ -1,0 +1,454 @@
+{
+ "lessonSlug": "py-15-adapter-facade",
+ "sourceLesson": "Backend LLD: Design Patterns: Adapter and Facade",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-15/additional/q04",
+   "category": "Additional",
+   "title": "Scenario based - homework question",
+   "question": "A junior developer says: “I added a wrapper class in front of our payment code, so I’ve used the Facade pattern.” Looking closer, the wrapper only calls into a single third-party payment class, translating its method names and parameter shapes to match what the rest of the codebase expects — no other subsystem is involved. What’s the more accurate assessment?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "This is actually Adapter, not Facade — it’s translating one incompatible interface, not simplifying coordination across multiple subsystems"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "This is correctly a Facade, since any wrapper class counts as one"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "This is neither pattern, since only one class is involved"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This is both patterns simultaneously, since it wraps something"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_n9k7oA1sfz.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/additional/q05",
+   "category": "Additional",
+   "title": "Scenario based - Beginner Question",
+   "question": "Your app needs to support OpenAI, Anthropic, and Gemini LLM SDKs, each with different request shapes and parameter names. You want your app to code against one common interface. Which pattern applies, and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Facade — because it hides complexity"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Adapter — because it translates each SDK’s different shape into one common interface (ChatModel) your app depends on"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Singleton — because you only need one instance"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Strategy — because you’re switching algorithms"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZbKhI8J3U0.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/additional/q06",
+   "category": "Additional",
+   "title": "Code Output - Homework Question",
+   "question": "```python\nclass ChatModel(ABC):\n    @abstractmethod\n    def generate(self, prompt, params): ...\n\nclass OpenAIAdapter(ChatModel):\n    def __init__(self, client):\n        self.client = client\n    def generate(self, prompt, params):\n        return f\"OpenAI response to: {prompt}\"\n\ndef run(model: ChatModel, prompt):\n    return model.generate(prompt, {})\n\nadapter = OpenAIAdapter(client=None)\nprint(run(adapter, \"Hello\"))\n```\n\nWhat gets printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Error — run() cannot accept an Adapter object"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "OpenAI response to: Hello"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "ChatModel response to: Hello"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_AMVSZxI6Lf.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/additional/q07",
+   "category": "Additional",
+   "title": "Debug the code - Intermediate Homework Question",
+   "question": "```python\nclass YesBank:\ndef open_account(self, acc_number, holder_name):\n...\nclass YesBankAdapter(BankAPI):\ndef __init__(self, yes_bank):\nself.yes_bank = yes_bank\n\ndef add_bank_account(self, bank):\nself.yes_bank.open_account(bank.holder_name, bank.account_number)\n```\nAssume `Bank.__init__(self, account_number, account_holder_name)` sets `self.account_number` and `self.account_holder_name`.\nWhat's the bug?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "YesBankAdapter should inherit from Bank, not BankAPI"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "open_account should not take any arguments"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "There is no bug"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "`bank.holder_name` does not exist (it's `bank.account_holder_name`), and the arguments are passed in the wrong order — it should be `open_account(bank.account_number, bank.account_holder_name)`"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_Lbi44mYZCm.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/additional/q08",
+   "category": "Additional",
+   "title": "Scenario Based -Intermediate Question",
+   "question": "An AI coding assistant receives one user message, then internally pulls context, plans steps, calls tools, updates memory, and returns one final answer. The user sees only “message in, answer out.” What pattern does this AgentFacade.run() represent, and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Facade — because it hides the coordination of multiple internal subsystems (retriever, planner, tool executor, memory) behind one simple run() entry point"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Adapter — because it translates between different tool APIs"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Singleton — because there is only one agent"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Builder — because it constructs a response step by step"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZsntiiS5kL.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/additional/q09",
+   "category": "Additional",
+   "title": "Code Output for this Question",
+   "question": "```python\nclass InvoiceService:\n    def generate(self, order): print(\"Invoice generated\")\n\nclass WMS:\n    def update(self, order): print(\"Warehouse updated\")\n\nclass OrderPlacedFacade:\n    def __init__(self, invoice_service, wms):\n        self.invoice_service = invoice_service\n        self.wms = wms\n    def on_order_place(self, order):\n        self.invoice_service.generate(order)\n        self.wms.update(order)\n\nfacade = OrderPlacedFacade(InvoiceService(), WMS())\nfacade.on_order_place(\"order123\")\n```\n\nWhat is printed, in order?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "“Warehouse updated” then “Invoice generated”"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "“Invoice generated” then “Warehouse updated”"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only “Invoice generated”"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Nothing — this raises an error"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_n8cCdvq26k.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/additional/q10",
+   "category": "Additional",
+   "title": "Debug this code - Intermediate Homework Question",
+   "question": "```python\nclass PhonePe:\n    def __init__(self, bank_api):\n        self.bank_api = bank_api\n\n    def perform_bank_operations(self, bank_name):\n        if bank_name == \"YesBank\":\n            self.bank_api = YesBankAdapter(YesBank())\n        elif bank_name == \"HDFCBank\":\n            self.bank_api = HDFCBankAdapter(HDFCBank())\n        elif bank_name == \"ICICIBank\":\n            self.bank_api = ICICIBankAdapter(ICICIBank())\n        self.bank_api.pay(100.0, \"ACC1\")\n```\n\nWhat principle does this violate, based on the lecture's Open/Closed discussion?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Single Responsibility — PhonePe should not have a constructor"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Dependency Injection — bank_api should never be passed into init"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Open/Closed Principle — PhonePe had to be edited (new elif) to support ICICI, instead of just adding a new adapter class and leaving PhonePe untouched"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Liskov Substitution — ICICIBankAdapter cannot substitute BankAPI"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_pOS4E7s7qE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/additional/q11",
+   "category": "Additional",
+   "title": "Scenario--based Homework Question",
+   "question": "A ride-hailing app needs to: (1) call three different maps SDKs — Google Maps, Mapbox, and OpenStreetMap — through one common MapProvider interface, and (2) offer callers a single book_ride() method that internally picks a map provider, calculates fare, finds a driver, and sends a confirmation. Which combination of patterns fits, and how would they relate to each other?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Only one Facade is needed — it can also handle translating the three different maps SDKs internally"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "One Adapter per maps SDK (to normalize their different APIs into MapProvider), plus one Facade around book_ride() that uses those adapters as part of its coordination"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only three Adapters are needed — book_ride() doesn’t need a Facade since it’s just one method"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This scenario doesn’t fit either pattern since it involves both APIs and multi-step coordination"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_60ywsX6ezY.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/assignment/q04",
+   "category": "Assignment",
+   "title": "Adapter & Facade - Theroy for Beginner",
+   "question": "A Builder class controls the step-by-step construction of a complex object. An Adapter class wraps an existing object so a client can call it through a different interface. Both classes \"wrap\" something in some sense. Why is Builder a Creational pattern while Adapter is a Structural pattern?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Builder is concerned with assembling an object into existence; Adapter is concerned with connecting an already-existing object to a client that can't call it directly"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Builder uses inheritance while Adapter uses composition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Builder is used for simple objects and Adapter is used for complex objects"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "There's no real difference — the classification is arbitrary"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_LYSwRPubsz.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/assignment/q05",
+   "category": "Assignment",
+   "title": "Scenario Based - Beginner",
+   "question": "Your app calls Yes Bank’s dopayment() and getacc_balance() directly everywhere in the codebase. Business now wants to add HDFC Bank, whose method names are totally different. What’s the correct fix per the lecture?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Edit Yes Bank’s source code so its method names match HDFC’s"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Create a common BankAPI interface, and write one adapter class per bank that translates calls into that bank’s real methods"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Rewrite PhonePe with if/elif branches for each bank"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Merge Yes Bank and HDFC into a single class"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ldn055HHYb.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/assignment/q06",
+   "category": "Assignment",
+   "title": "Code Output - Beginner",
+   "question": "```python\nclass YesBank:\ndef do_payment(self, account, amt):\nreturn 0 # 0 means success\nclass YesBankAdapter(BankAPI):\ndef __init__(self, yes_bank):\nself.yes_bank = yes_bank\ndef pay(self, amount, account):\nstatus = self.yes_bank.do_payment(account, amount)\nreturn status == 0\nadapter = YesBankAdapter(YesBank())\nprint(adapter.pay(100, \"ACC1\"))\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "0"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "True"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "False"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_8xRQ8ObXR7.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/assignment/q07",
+   "category": "Assignment",
+   "title": "Debug the Code - Intermediate",
+   "question": "```python\nclass Amazon:\n    def order_place(self):\n        self.invoice_generation()\n        self.wms.update()\n        self.ims.update()\n        self.emails.send_email()\n```\n\nThe team wants to apply the Facade pattern here to keep Amazon clean. What's wrong with the current code from a Facade perspective?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The method name `order_place` should be renamed to `facade_order_place`"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Amazon is missing a BankAPI interface"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "There’s nothing wrong — this already is a Facade"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Amazon.order_place() is doing the coordination job of four unrelated subsystems itself, instead of delegating to a dedicated Facade class"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_XfHajFkumR.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/assignment/q08",
+   "category": "Assignment",
+   "title": "Scenario Based - Intermediate",
+   "question": "A class talks to three different logging services, each with a different API, and combines their output into one log() method. According to the lecture, this design is:",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Both — one Adapter per logging service to normalize each API, all sitting inside one Facade that exposes a single log() method"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Only an Adapter, since it’s about translating between APIs"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only a Facade, since it exposes one simple method"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Neither — this is a Factory pattern"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_SMIUWmU8aw.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/assignment/q09",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 66630 a140",
+   "question": "```python\nclass PhonePeFacade:\n    def __init__(self, phone_pe):\n        self.phone_pe = phone_pe\n\n    def checkout(self, amount, account, bank_name):\n        if bank_name == \"YesBank\":\n            self.phone_pe.bank_api = YesBankAdapter(YesBank())\n        elif bank_name == \"HDFCBank\":\n            self.phone_pe.bank_api = HDFCBankAdapter(HDFCBank())\n        return self.phone_pe.bank_api.pay(amount, account)\n```\nWhat design flaw does the AI Corner exercise identify in this Facade?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It's missing a try/except block around pay()"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It re-introduces the exact bank-selection coupling the Adapter pattern was meant to eliminate — adding a new bank still means editing this class"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "PhonePeFacade should inherit from BankAPI"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The constructor should not take phone_pe as a parameter"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_EcQzlwdqMt.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/assignment/q10",
+   "category": "Assignment",
+   "title": "Theory Based",
+   "question": "Suppose PhonePe is later refactored so it depends directly on YesBankAdapter (not on the BankAPI interface). It still works fine today. What has actually been lost by removing the interface, even though nothing is broken yet?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Nothing — as long as it compiles and passes tests, the interface was optional"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The ability to swap in a different adapter (e.g., for HDFC) without changing PhonePe’s code — PhonePe is now coupled to one specific adapter class instead of an abstraction"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "YesBankAdapter would stop being able to wrap YesBank"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The Adaptee (YesBank) would need to change its method names"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_VdrzUJlbkG.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-15/assignment/q11",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 66632 be68",
+   "question": "Two versions of the same Facade are shown below.\nVersion1\n```python\nclass OrderPlacedFacade:\n    def __init__(self):\n        self.wms = WMS()\n        self.ims = IMS()\n```\nVersion 2\n```python\nclass OrderPlacedFacade:\n    def __init__(self, wms, ims):\n        self.wms = wms\n        self.ims = ims\n```\nA new requirement comes in: unit tests need to run OrderPlacedFacade against fake/mock warehouse and inventory systems, without touching the real ones. Which version supports this without modifying OrderPlacedFacade's code, and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Version 1 — because it's simpler and has fewer parameters"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Version 1 — because internal creation is always safer for testing"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Both are equally testable"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Version 2 — because the caller can pass in mock wms/ims objects at construction time, instead of the Facade being hardwired to the real concrete classes"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_EoG6NzQEAH.png"
+   ]
+  }
+ ]
+}

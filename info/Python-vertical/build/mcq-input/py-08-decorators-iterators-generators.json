@@ -1,0 +1,566 @@
+{
+ "lessonSlug": "py-08-decorators-iterators-generators",
+ "sourceLesson": "Backend LLD: Pythonic-1: Decorators, Iterators and Generators",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-08/additional/q01",
+   "category": "Additional",
+   "title": "Decorator Factory Extra Layer",
+   "question": "Why does a decorator that accepts an argument, like @repeat(3), need one extra layer compared to a normal decorator?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Because Python requires exactly three functions in every decorator"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because repeat(3) is called first with the setting, and only after that does it receive the function to wrap"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because arguments always slow down decorators, so an extra layer is needed for optimization"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Because functools.wraps requires three layers to work"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_0Z8l3WNqqd.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/additional/q02",
+   "category": "Additional",
+   "title": "Repeat Decorator Execution Count",
+   "question": "What does this print?\n```python\nimport functools\n\ndef repeat(times):\n    def decorator(func):\n        @functools.wraps(func)\n        def wrapper(*args, **kwargs):\n            for _ in range(times):\n                result = func(*args, **kwargs)\n            return result\n        return wrapper\n    return decorator\n\n@repeat(2)\ndef greet():\n    print(\"Hi!\")\n\ngreet()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Hi! (printed once)"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Hi! printed twice"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Error: repeat() missing arguments"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Hi! printed three times"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_UpXknGpZWt.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/additional/q03",
+   "category": "Additional",
+   "title": "Stacked Decorator Execution Order",
+   "question": "You have this stacked decorator setup:\n\n```python\n@bold\n@italic\ndef text():\n    return \"hello\"\n```\n\nWhen text() is called, which decorator's code runs on the outside (first to receive control)?\nA) B) C) D)",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "italic, because it's written closer to the function"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Both run at exactly the same time"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "bold, because it's written on top"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Neither — only text() runs directly"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ELROQpXECC.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/additional/q04",
+   "category": "Additional",
+   "title": "Class-Based Decorator State",
+   "question": "When would you choose a class-based decorator (using __call__) over a regular function decorator?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "When the decorator needs to remember and update state across multiple calls"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Class-based decorators are always faster"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Function decorators cannot use *args, **kwargs"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Class-based decorators don't need functools.wraps or update_wrapper"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_yWYhUJl5hx.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/additional/q05",
+   "category": "Additional",
+   "title": "CountCalls Class Decorator Trace",
+   "question": "What is printed?\n```python\nimport functools\n\nclass CountCalls:\n    def __init__(self, func):\n        functools.update_wrapper(self, func)\n        self.func = func\n        self.count = 0\n    def __call__(self, *args, **kwargs):\n        self.count += 1\n        print(f\"Call #{self.count}\")\n        return self.func(*args, **kwargs)\n\n@CountCalls\ndef hello():\n    print(\"Hello!\")\n\nhello()\nhello()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Call #1 Hello! Call #1 Hello!"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Hello! Hello!"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Error: CountCalls object is not callable"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Call #1 Hello! Call #2 Hello!"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_U2HnKQOyX9.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/additional/q06",
+   "category": "Additional",
+   "title": "Singleton Pattern Closure Storage",
+   "question": "In the lecture's @singleton decorator, what makes Config() always return the same object on every call?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python automatically caches all class instances"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A closure variable (a dictionary) stores the one created instance, and later calls return the stored one instead of creating a new one"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The @wraps decorator forces single-instance behavior"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Config overrides __eq__ to compare all instances as equal"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_oaiNkcxMA8.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/additional/q07",
+   "category": "Additional",
+   "title": "Return Vs Yield Behavior",
+   "question": "What is the key difference between return and yield inside a function?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "return pauses the function; yield ends it completely"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "They behave identically, just different syntax"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "yield can only be used inside a class"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "yield pauses the function and remembers where it left off; return ends the function completely"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_lGgbv1rVQn.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/additional/q08",
+   "category": "Additional",
+   "title": "Memory-Efficient Log Processing",
+   "question": "You need to process a 10 GB log file on a machine with only 8 GB of RAM. Based on the lecture, what's the correct approach?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Use a generator that yields one line at a time, so only one line is in memory at a time"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Load the whole file into a list using .readlines()"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Split the file into smaller files first using itertools.chain"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Increase Python's default memory limit before reading the file"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_iFt8fKN9Wo.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/additional/q09",
+   "category": "Additional",
+   "title": "Islice Infinite Generator Limit",
+   "question": "What does this print?\n\n```python\nfrom itertools import islice\n\ndef naturals():\n    n = 1\n    while True:\n        yield n\n        n += 1\n\nresult = list(islice(naturals(), 4))\nprint(result)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "[1, 2, 3, 4]"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The program hangs forever"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "[0, 1, 2, 3]"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Error: naturals() never stops"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_7NWhXOajb3.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/additional/q10",
+   "category": "Additional",
+   "title": "Generator Vs List Memory",
+   "question": "Why is sys.getsizeof() so much smaller for a generator expression than for an equivalent list?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Generators use a compressed storage format"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The generator hasn't stored any values — it only holds the \"recipe\" to produce them one at a time, while the list built and stored every value upfront"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Generators can only hold numbers, never strings"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Python deletes generator values automatically after creation"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_MXkGLMpjJh.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q01",
+   "category": "Assignment",
+   "title": "First-Class Functions Definition",
+   "question": "In Python, what does it mean to say functions are \"first-class\"?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Functions run faster than other code"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Functions can be stored in variables, passed as arguments, and returned from other functions"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Functions must always have a return statement"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Functions are automatically optimized by the interpreter"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_7PanYpxMNZ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q02",
+   "category": "Assignment",
+   "title": "Function Assignment Without Call",
+   "question": "What does this print?\n```python\ndef greet(name):\n    return f\"Hello, {name}\"\n\nsay_hello = greet\nprint(say_hello(\"Alice\"))\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Error: greet is not defined"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Hello, Alice"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "<function greet>"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "None"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_eVxKxL0hGy.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q03",
+   "category": "Assignment",
+   "title": "Closure Concept Definition",
+   "question": "What is a closure?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A function that has no parameters"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A function defined inside another function that remembers variables from the outer function's scope"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A function that cannot be called more than once"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A class method that returns self"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_pwX0bdge7Z.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q04",
+   "category": "Assignment",
+   "title": "UnboundLocalError In Closures",
+   "question": "Why does this code crash?\n\n```python\ndef counter():\n    count = 0\n    def increment():\n        count += 1\n        return count\n    return increment\n\nc = counter()\nprint(c())\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "count was never initialized"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "increment is missing a return statement"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Assigning to count inside increment makes Python treat it as a new local variable, so it's used before it's set"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "counter() must be called with an argument"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_98ryHRFaWO.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q05",
+   "category": "Assignment",
+   "title": "Decorator Syntax Sugar Explained",
+   "question": "What is the correct relationship between @my_decorator and manual wrapping?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "@my_decorator is faster than manual wrapping"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "@my_decorator above a function is shorthand for func = my_decorator(func)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "@my_decorator only works on class methods"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "@my_decorator requires functools.wraps to function at all"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_LxGlSsPGVN.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q06",
+   "category": "Assignment",
+   "title": "Decorator Identity Loss Bug",
+   "question": "What does add.__name__ print after this?\n```python\ndef my_decorator(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\n@my_decorator\ndef add(a, b):\n    \"\"\"Adds two numbers.\"\"\"\n    return a + b\n\nprint(add.__name__)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "add"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "wrapper"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "my_decorator"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "None"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_e0deVhDAAV.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q07",
+   "category": "Assignment",
+   "title": "Universal Wrapper Signature Design",
+   "question": "You are writing a decorator that must work on any function, regardless of how many arguments that function takes. What should the wrapper's signature look like?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "def wrapper():"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "def wrapper(a, b):"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "def wrapper(*args, **kwargs):"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "def wrapper(func):"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_m05ULWj0iE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q08",
+   "category": "Assignment",
+   "title": "Iterator Protocol Requirements",
+   "question": "What two special methods does an object need in order to work as an iterator?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "__iter__ and __next__"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "__init__ and __str__"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "__call__ and __repr__"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "__get__ and __set__"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_7zB4hEe2iE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q09",
+   "category": "Assignment",
+   "title": "Custom Iterator Countdown Trace",
+   "question": "What is printed by this loop?\n```python\nclass Countdown:\n    def __init__(self, start):\n        self.current = start\n    def __iter__(self):\n        return self\n    def __next__(self):\n        if self.current <= 0:\n            raise StopIteration\n        self.current -= 1\n        return self.current + 1\n\nfor n in Countdown(3):\n    print(n)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "1 2 3"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "3 2 1"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "0 1 2"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "An infinite loop"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_xxRrL4kSZ1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-08/assignment/q10",
+   "category": "Assignment",
+   "title": "For Loop StopIteration Mechanism",
+   "question": "Why does a for loop stop automatically without you writing any stopping condition?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python has a hidden loop counter limit"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The for loop calls __next__ repeatedly and stops when it catches a StopIteration exception"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Lists in Python have a fixed maximum size"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The for loop checks len() before each iteration"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ti5DD0UQCw.png"
+   ]
+  }
+ ]
+}

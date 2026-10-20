@@ -1,0 +1,710 @@
+{
+ "lessonSlug": "py-18-uml-diagrams",
+ "sourceLesson": "Backend LLD: UML Diagrams",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-18/additional/q01",
+   "category": "Additional",
+   "title": "Dashed Hollow Triangle Meaning",
+   "question": "In a Class Diagram, what does a dashed line with a hollow triangle arrowhead represent?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A class implementing an interface"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A class extending another class"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation between two classes"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Composition between two classes"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_WrjLwEj5be.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/additional/q02",
+   "category": "Additional",
+   "title": "Foreign Key Placement Rule",
+   "question": "One instructor teaches many courses, but each course has only one instructor. Where should the foreign key go?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "In the instructors table"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "In the courses table"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "In both tables at once"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "In a separate junction table"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_WlQWH9dkQ1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/additional/q03",
+   "category": "Additional",
+   "title": "Fixed Columns Cap Relationship",
+   "question": "A teammate wrote this schema for a blog, where one post can have many comments:\n\n```sql\nCREATE TABLE posts (\n    id INT PRIMARY KEY,\n    title VARCHAR(255),\n    comment_1 VARCHAR(500),\n    comment_2 VARCHAR(500),\n    comment_3 VARCHAR(500)\n);\n```\n\nWhat is the main problem, and what's the correct fix?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A fixed number of comment columns caps the relationship — create a separate comments table with a post_id foreign key instead"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "id should not be declared as a primary key"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "title should be split into two columns"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The comments should be merged into one column separated by commas"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_JYr9cABHGT.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/additional/q04",
+   "category": "Additional",
+   "title": "Restaurant Menu Items Composition",
+   "question": "A Restaurant class has a List<MenuItem>. If the restaurant shuts down permanently, its menu items (like \"Paneer Butter Masala\") have no meaning anywhere else in the system — they only existed as part of that restaurant's menu. What relationship is this?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Inheritance"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "An interface implementation"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_iVPEReSRDk.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/additional/q05",
+   "category": "Additional",
+   "title": "Includes Vs Extends Relationship",
+   "question": "In a Use Case Diagram, \"Enroll in Course\" always triggers \"Make Payment\" — there's no scenario where enrollment happens without it. What relationship connects these two use cases?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Extends"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Actor"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "System Boundary"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Includes"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_SZvJoL2YW8.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/additional/q06",
+   "category": "Additional",
+   "title": "Junction Table Enrollment Count",
+   "question": "Given this SQL:\n\n```sql\nCREATE TABLE students (id INT PRIMARY KEY, name VARCHAR(255));\nCREATE TABLE courses (id INT PRIMARY KEY, title VARCHAR(255));\n\nCREATE TABLE enrollments (\n    id INT PRIMARY KEY,\n    student_id INT,\n    course_id INT,\n    FOREIGN KEY (student_id) REFERENCES students(id),\n    FOREIGN KEY (course_id) REFERENCES courses(id)\n);\n```\n\nCurrent rows in enrollments: (1, 1, 1), (2, 1, 2), (3, 2, 1) (columns: id, student_id, course_id)\nHow many courses is the student with id = 1 enrolled in?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "3"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "0"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "2"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "1"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_WZh4zjuJvM.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/additional/q07",
+   "category": "Additional",
+   "title": "Doctor-Department Aggregation And FK",
+   "question": "A hospital has a Department class and a Doctor class. A doctor belongs to one department at a time, but if a department is dissolved, doctors continue to exist and can be reassigned elsewhere. Which pair correctly identifies the relationship type AND the foreign key placement?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Aggregation, with department_id placed inside the doctors table"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Composition, with department_id placed inside the doctors table"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation, with doctor_id placed inside the departments table"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Composition, with doctor_id placed inside the departments table"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_GJ22HdnToX.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/additional/q08",
+   "category": "Additional",
+   "title": "Purpose Of Database Normalization",
+   "question": "What is the main purpose of normalization in database schema design?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "To duplicate frequently-used data across tables for faster reads"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "To store each fact only once and reference it elsewhere with a foreign key, avoiding out-of-sync copies"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "To ensure every table has exactly the same number of columns"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "To turn every relationship into a many-to-many relationship"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_SYCQ0U2hDZ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/additional/q09",
+   "category": "Additional",
+   "title": "Trip Route Coordinates Composition",
+   "question": "A ride-sharing app's Trip class has a List<RouteCoordinate> — the GPS points making up that specific trip's path. If the trip record is deleted, those exact coordinates have no meaning anywhere else in the system. Which combination correctly describes the relationship and its notation?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Association without ownership — plain line, no diamond"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Inheritance — hollow triangle"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation — hollow diamond"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Composition — filled diamond"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_moHzzhcLBA.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q01",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39900 f6d0",
+   "question": "In a car manufacturing simulation, there's a class for generic vehicle properties. You have to create classes for a car, truck and motorcycle. What is the nature of the relationship between the vehicle class and the car, truck, and motorcycle classes?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Association"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_oCT9wEy7pS.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q02",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39902 2f7c",
+   "question": "In a drawing application, there's a class for a generic shape called Shape . You have to create classes for Circle , Rectangle , and Triangle . What is the nature of the relationship between the Shape class and the Circle, Rectangle, and Triangle classes?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Association"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_3rp5tO7Tz8.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q03",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39904 29a3",
+   "question": "In a software application, there's a class called Animal with properties and methods common to all animals. You have to create classes for Dog, Cat, and Bird. What is the nature of the relationship between the Animal class and the Dog, Cat, and Bird classes?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Association"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_0trMmB1DSE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q04",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39930 e2e3",
+   "question": "In a library management system, there's a class for a library and a class for a book. What is the nature of the relationship between the library class and the book class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Association"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_nLmpBczJGC.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q05",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39931 206c",
+   "question": "In a university system, there's a class for a department and a class for a professor. What is the nature of the relationship between the department class and the professor class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Association"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_tNcFBGWee3.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q06",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39932 d121",
+   "question": "In a social media application, there's a class for a user and a class for a post.\nWhat is the nature of the relationship between the user class and the post class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Association"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_3ZVVlq8hw1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q07",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39933 1e99",
+   "question": "Imagine a school enrollment system where a class represents a course. The course class contains objects representing enrolled students. However, if the course is closed or removed, the students still exist in the system and may be enrolled in other courses. What type of relationship exists between the course class and the student objects, where the student class is independent of the lifecycle of the course class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_mwK3rfcCeS.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q08",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39934 633d",
+   "question": "In a music streaming application, a class represents a playlist. The playlist class contains objects representing songs. If the playlist is deleted, the songs still exist in the system and may be part of other playlists. What type of relationship exists between the playlist class and the song objects, where the song class is independent of the lifecycle of the playlist class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_dzfp2uXEbV.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q09",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39935 da79",
+   "question": "In a social media application, a class represents a user. The user class contains objects representing posts. If the user account is deleted, the posts still exist in the system. What type of relationship exists between the user class and the post objects, where the post class is independent of the lifecycle of the user class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_Qgc28QhLIH.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q10",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39937 c101",
+   "question": "In a car manufacturing simulation, a class represents a car. The car class contains objects representing the engine, wheels, and other parts. If the car object is destroyed, the engine, wheels, and other parts are also destroyed. What type of relationship exists between the car class and the engine, wheels, and other parts, where the parts are dependent on the lifecycle of the car?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_e7tuIv7Pig.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q11",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39938 f45b",
+   "question": "In a drawing application, there is a Canvas class. The canvas class contains objects representing shapes such as circles, rectangles, and triangles. If the canvas object is destroyed, the shapes are also destroyed. What type of relationship exists between the canvas class and the shapes, where the shapes are dependent on the lifecycle of the canvas?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_LZL8ga3Ci4.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q12",
+   "category": "Assignment",
+   "title": "SCALER QUESTION 39939 8f4f",
+   "question": "Imagine a class for a notebook. The notebook class contains objects representing pages. If the notebook object is destroyed, the pages are also destroyed. What type of relationship exists between the notebook class and the pages, where the pages are dependent on the lifecycle of the notebook?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Composition"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Aggregation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_l1uCYzRlun.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q13",
+   "category": "Assignment",
+   "title": "Primary Key Core Purpose",
+   "question": "What is the primary purpose of a PRIMARY KEY in a database table?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "To uniquely identify each row in the table"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "To link one table to another"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "To make queries run faster automatically"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "To enforce a fixed number of columns"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_tXs0OAMTWL.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q14",
+   "category": "Assignment",
+   "title": "Modeling Joint Account Ownership",
+   "question": "A banking app allows joint accounts — one account can have multiple owners, and one person can be an owner on multiple accounts. How should this be modeled in the schema?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Add an owner_id column directly inside accounts"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Create a separate junction table (e.g. account_owners) holding account_id and owner_id"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Add an account_id column directly inside owners"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Store all owner names as a comma-separated list inside accounts"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_MGZU8ZUCzi.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q15",
+   "category": "Assignment",
+   "title": "Counting Employees By Department",
+   "question": "Given this schema and data:\n```sql\nCREATE TABLE employees (\n    id INT PRIMARY KEY,\n    name VARCHAR(255),\n    department_id INT\n);\n```\nRows: (1, 'A', 1), (2, 'B', 2), (3, 'C', 2), (4, 'D', 3)\nWhat does SELECT COUNT(*) FROM employees WHERE department_id = 2; return?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "1"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "2"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "3"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "4"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_GkUXN3ej6u.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q16",
+   "category": "Assignment",
+   "title": "Duplicated Customer Data Fix",
+   "question": "A teammate wrote this schema for an orders system:\n\n```sql\nCREATE TABLE orders (\n    id INT PRIMARY KEY,\n    customer_name VARCHAR(255),\n    customer_email VARCHAR(255),\n    product VARCHAR(255)\n);\n```\n\nThere's already a separate customers table storing customer details. What's wrong with this design, and what's the fix?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Nothing is wrong — storing the name and email directly avoids extra joins"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "product should be split into product_name and product_price"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "id should not be declared as a primary key since orders can repeat"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "customer_name and customer_email duplicate data that already lives in customers — replace both with a single customer_id foreign key instead"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_s6ffjFaVHJ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-18/assignment/q17",
+   "category": "Assignment",
+   "title": "Composite Primary Key Definition",
+   "question": "In a many-to-many junction table like enrollments, some teams skip a separate surrogate id column entirely and instead make the combination of both foreign keys (student_id + course_id together) the primary key. What is this called?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A composite primary key"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A duplicate key"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A foreign primary key"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A static key"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_7BkQadrifx.png"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,286 @@
+{
+ "lessonSlug": "py-27-code-bookmyshow-2",
+ "sourceLesson": "Backend LLD: Machine Coding - 10: Code BookMyShow 2",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q02",
+   "category": "Assignment",
+   "title": "Avoiding Reserved SQL Table Names",
+   "question": "A team is building a backend using SQLAlchemy. They create a model called Order. In many SQL databases, ORDER is a reserved keyword (used in ORDER BY). What is the correct and safe way to handle this?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Leave __tablename__ unset — SQLAlchemy will detect the conflict and automatically choose a safe name"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Explicitly set __tablename__ = \"orders\" — a name that avoids the reserved word"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Rename the Python class from Order to OrderModel — this alone fixes the table name conflict"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Set __tablename__ = \"Order\" exactly as the class name — SQLAlchemy automatically escapes reserved words in generated SQL"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_IiELyuhE31.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q03",
+   "category": "Assignment",
+   "title": "Double-Booking Race Condition",
+   "question": "Two application threads run the following method at nearly the same time, targeting the exact same list of seats. No database-level locking or special isolation is used:\n\n```python\ndef book_seats(seats):\n    for seat in seats:\n        if seat.status != Status.AVAILABLE:\n            raise RuntimeError(\"Seat unavailable\")\n    for seat in seats:\n        seat.status = Status.BLOCKED\n    repository.save_all(seats)\n```\nWhat is the most likely outcome if both threads run this at nearly the same time on the same seats?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The second thread will always raise RuntimeError, since a seat can't be checked twice"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "save_all() automatically detects the conflict and rejects the second thread"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Both threads can pass the availability check before either one performs the write, so both may end up marking the same seat as BLOCKED — effectively double-booking"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This code is thread-safe, because Python's GIL ensures only one thread runs at a time, so the two threads can never interleave their steps"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_2m7cPfMYh6.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q04",
+   "category": "Assignment",
+   "title": "Isolation Level Doesn't Prevent Race",
+   "question": "Under an isolation level called REPEATABLE READ (a common default in some relational databases), a transaction is guaranteed not to see changes made by other transactions to rows it has already read, until it re-reads or commits. Consider this timeline between two transactions, T-A and T-B, both updating the same row X:\n\n```\nTime 0ms: T-A starts, reads row X: value = AVAILABLE\nTime 2ms: T-B starts, reads row X: value = AVAILABLE\nTime 4ms: T-A updates row X to BLOCKED, commits successfully\nTime 5ms: T-B updates row X to BLOCKED (based on its own earlier read), commits\n```\nWhat actually happens at Time 5ms?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "T-B's commit also succeeds, because REPEATABLE READ does not stop two separate transactions from each reading the same \"before\" value and both acting on it"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "T-B's commit fails automatically, since T-A already changed the row"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "T-A's commit is retroactively rolled back once T-B commits"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Both transactions are blocked from committing until a human manually resolves the conflict"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_UQGmDHNTE9.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q05",
+   "category": "Assignment",
+   "title": "Serializable Isolation Definition",
+   "question": "Which of the following best defines what SERIALIZABLE isolation guarantees in a relational database?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Only one transaction is allowed to be active anywhere in the database at any moment"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Transactions are guaranteed to always commit in the exact order they were started"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "No transaction can ever fail, roll back, or need a retry"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The outcome of running transactions concurrently must be equivalent to some valid outcome of running those same transactions one after another, in some order"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_WDFjDtM5N0.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q06",
+   "category": "Assignment",
+   "title": "Serializable Allows Unrelated Concurrency",
+   "question": "Two transactions run under SERIALIZABLE isolation. Transaction 1 updates Row X. Transaction 2, running at the same time, updates a completely different Row Y in the same table — the two rows share no data or relationship. What is the most likely outcome?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Both transactions fail, because SERIALIZABLE permits only one active transaction across the whole database"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Both transactions commit successfully and independently, since SERIALIZABLE only prevents conflicts on rows that are actually accessed by both transactions"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only the transaction that started first is allowed to commit"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Both commit, but the transaction that commits second silently overwrites data from the first"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_xcv8aUeWfm.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q07",
+   "category": "Assignment",
+   "title": "Threading Lock Across Processes",
+   "question": "A backend application runs as multiple separate server processes (for example, behind a load balancer), all connecting to the same shared database. A developer adds a threading.Lock() inside a booking method, reasoning: \"only one thread can hold the lock at a time, so this prevents double-booking.\" Why does this NOT actually prevent two different server processes from double-booking the same database row?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A threading.Lock() object only coordinates threads within a single process's memory — a lock created in one server process has no effect on threads running in a separate server process"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "threading.Lock() objects expire automatically after a few milliseconds, so they don't stay held long enough to help"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "threading.Lock() can only be used with synchronous code, and database calls are always asynchronous"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "threading.Lock() requires a special database driver to function correctly"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_cN22B5qts2.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q08",
+   "category": "Assignment",
+   "title": "DTO Boundary Decoupling Benefit",
+   "question": "A Controller class in a layered backend application accepts a dedicated request object (a DTO — Data Transfer Object) as its parameter, instead of accepting raw domain/model objects directly or a long list of loose primitive parameters. What is the main benefit of this design choice?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "DTOs are mandatory for any class that uses an ORM like SQLAlchemy"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "DTOs make the application run measurably faster, since fewer objects are created in memory"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A DTO defines a stable, deliberate contract for exactly what a use case needs — so if the underlying domain models change shape later, callers of the use case aren't automatically broken"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "DTOs are only useful for return values, not for input parameters"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_nSdHr5VgRU.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q09",
+   "category": "Assignment",
+   "title": "SQLAlchemy Automatic Change Tracking",
+   "question": "In an application using SQLAlchemy, an object seat was fetched earlier in a session (e.g., session.query(Seat).get(seat_id)). Later in the same function, this code runs:\n\n```python\nseat.status = \"BLOCKED\"\nseat.blocked_at = datetime.now()\n# ... some other unrelated database operations using the same session ...\nsession.commit()\n```\nNotice there is no explicit session.add(seat) or repository.save(seat) call after changing seat.status. What happens when session.commit() runs?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The changes to seat.status and seat.blocked_at are silently lost, since nothing was explicitly re-saved"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The commit throws a runtime error, because SQLAlchemy requires every changed object to be explicitly re-added to the session"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only seat.status is saved; seat.blocked_at is ignored because it was set after the first attribute"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Both changes are saved automatically — SQLAlchemy tracks changes to objects that were already loaded through the session, and commit() flushes all pending changes together"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_KBhFq4eBCX.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q10",
+   "category": "Assignment",
+   "title": "AI-Generated Code Missing Business Rule",
+   "question": "A movie-ticket booking system has a business rule: the price of a seat depends on both which specific show it belongs to and its seat type — the same seat type (say, \"GOLD\") can be priced differently for a matinee show versus a night show, or between two different theatres. To support this, prices are stored in a table keyed on the pair (show, seat_type), not as a flat price on the seat type alone.\nAn AI assistant was asked to write a pricing function and returned this:\n\n```python\nclass PriceCalculator:\n    def calculate_price(self, show_seats):\n        total = 0\n        for show_seat in show_seats:\n            seat_type_name = show_seat.seat.seat_type.name\n            if seat_type_name == \"GOLD\":\n                total += 300\n            elif seat_type_name == \"SILVER\":\n                total += 200\n            else:\n                total += 150\n        return total\n```\nWhat is the most fundamental problem with this code, given the business rule above?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It uses an if/elif chain instead of a dictionary lookup, which is considered bad Python style"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It hardcodes a single flat price per seat-type name and never considers which specific show the seat belongs to, so it cannot support the (show, seat_type) pricing rule at all"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It returns an integer instead of a float, which will always cause a runtime crash in Python"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It doesn't use a try/except block, so it will always crash if show_seats is an empty list"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_no8hhTniKD.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-27/assignment/q11",
+   "category": "Assignment",
+   "title": "Show-Level Pricing",
+   "question": "In a booking system, ticket prices are stored in a table keyed on the specific (show, seat_type) pair — meaning every individual show has its own price row per seat type, rather than seat types having one single global price. A theatre now wants weekday GOLD seats priced at ₹250 and weekend GOLD seats priced at ₹400, on the exact same screen. Does this pricing design already support that, with zero code or schema changes?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "No — a day_of_week field would need to be added to the seat-type table first"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "No — the price table is keyed by screen, not by individual show, so all shows on one screen must share the same price"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Yes — a weekday show and a weekend show are two different show records, so each one already gets its own (show, seat_type) price row"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Only if the pricing function is modified to manually check the day of the week from the show's start time"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_LLtjSpL6za.png"
+   ]
+  }
+ ]
+}

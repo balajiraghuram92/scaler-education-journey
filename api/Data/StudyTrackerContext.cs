@@ -70,6 +70,11 @@ public class StudyTrackerContext : DbContext
     public DbSet<McqPresentation> McqPresentations { get; set; } = null!;
     public DbSet<McqAttempt> McqAttempts { get; set; } = null!;
 
+    // Sessions & per-learner state
+    public DbSet<UserSession> UserSessions { get; set; } = null!;
+    public DbSet<UserLessonProgress> UserLessonProgress { get; set; } = null!;
+    public DbSet<UserProblemProgress> UserProblemProgress { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -329,9 +334,15 @@ public class StudyTrackerContext : DbContext
         {
             entity.ToTable("lesson_notes");
             entity.HasIndex(n => new { n.LessonId, n.NoteType });
+            entity.HasIndex(n => new { n.UserId, n.LessonId })
+                .HasDatabaseName("ix_lesson_notes_user_lesson");
             entity.HasOne(n => n.Lesson)
                 .WithMany(l => l.Notes)
                 .HasForeignKey(n => n.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -436,9 +447,15 @@ public class StudyTrackerContext : DbContext
             entity.ToTable("learning_activity", t =>
             {
                 t.HasCheckConstraint("ck_learning_activity_event_type",
-                    "event_type IN ('LessonCompleted', 'LessonReopened', 'ProblemCompleted', 'ProblemReopened', 'TaskCompleted', 'TaskReopened', 'ReadingScheduled', 'ReadingDeferred', 'ReadingRevisited', 'NoteCreated', 'ChapterImported')");
+                    "event_type IN ('LessonCompleted', 'LessonReopened', 'ProblemCompleted', 'ProblemReopened', 'TaskCompleted', 'TaskReopened', 'ReadingScheduled', 'ReadingDeferred', 'ReadingRevisited', 'NoteCreated', 'ChapterImported', 'LessonOpened', 'McqAnswered', 'ProblemAttempted', 'SolutionRevealed')");
             });
             entity.HasKey(la => la.Id);
+            entity.HasOne(la => la.User)
+                .WithMany()
+                .HasForeignKey(la => la.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(la => new { la.UserId, la.OccurredAt })
+                .HasDatabaseName("ix_learning_activity_user");
             entity.HasOne(la => la.Lesson)
                 .WithMany()
                 .HasForeignKey(la => la.LessonId)
@@ -760,6 +777,9 @@ public class StudyTrackerContext : DbContext
             entity.Property(q => q.IsActive)
                 .HasDefaultValue(true);
 
+            entity.Property(q => q.Category)
+                .HasDefaultValue("Assignment");
+
             entity.HasOne(q => q.Lesson)
                 .WithMany()
                 .HasForeignKey(q => q.LessonId)
@@ -814,6 +834,67 @@ public class StudyTrackerContext : DbContext
             entity.HasOne(a => a.Presentation)
                 .WithOne(p => p.Attempt)
                 .HasForeignKey<McqAttempt>(a => a.PresentationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // 26. Sessions & per-learner state
+        modelBuilder.Entity<UserSession>(entity =>
+        {
+            entity.ToTable("user_sessions");
+            entity.HasKey(s => s.Id);
+            entity.HasIndex(s => s.RefreshTokenHash)
+                .IsUnique()
+                .HasDatabaseName("ux_user_sessions_refresh_token_hash");
+            entity.HasIndex(s => s.PreviousRefreshTokenHash)
+                .HasDatabaseName("ix_user_sessions_previous_refresh_token_hash");
+            entity.HasIndex(s => new { s.UserId, s.RevokedAt })
+                .HasDatabaseName("ix_user_sessions_user_active");
+            entity.HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserLessonProgress>(entity =>
+        {
+            entity.ToTable("user_lesson_progress", t =>
+            {
+                t.HasCheckConstraint("ck_user_lesson_progress_status", "status IN ('InProgress', 'Completed')");
+                t.HasCheckConstraint("ck_user_lesson_progress_scroll", "scroll_percent >= 0 AND scroll_percent <= 100");
+            });
+            entity.HasKey(p => p.Id);
+            entity.HasIndex(p => new { p.UserId, p.LessonId })
+                .IsUnique()
+                .HasDatabaseName("ux_user_lesson_progress_user_lesson");
+            entity.HasIndex(p => new { p.UserId, p.LastOpenedAt })
+                .HasDatabaseName("ix_user_lesson_progress_user_recent");
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(p => p.Lesson)
+                .WithMany()
+                .HasForeignKey(p => p.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserProblemProgress>(entity =>
+        {
+            entity.ToTable("user_problem_progress", t =>
+            {
+                t.HasCheckConstraint("ck_user_problem_progress_status", "status IN ('NotStarted', 'Attempted', 'Solved')");
+            });
+            entity.HasKey(p => p.Id);
+            entity.HasIndex(p => new { p.UserId, p.ProblemId })
+                .IsUnique()
+                .HasDatabaseName("ux_user_problem_progress_user_problem");
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(p => p.Problem)
+                .WithMany()
+                .HasForeignKey(p => p.ProblemId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

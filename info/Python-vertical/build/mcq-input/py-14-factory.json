@@ -1,0 +1,398 @@
+{
+ "lessonSlug": "py-14-factory",
+ "sourceLesson": "Backend LLD: Design Patterns: Leveraging Factory Pattern for Service Abstraction.",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-14/additional/q04",
+   "category": "Additional",
+   "title": "Homework Question 1 – Factory Pattern",
+   "question": "What problem does the Simple Factory pattern solve when a class has repeated if/elif blocks to decide which object to create?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It removes the Open/Closed Principle"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It duplicates the decision logic further"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It makes the code run faster"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It fixes Open/Closed Principle violations by keeping creation logic in one place instead of scattered across callers"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ProUtSYBVL.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/additional/q05",
+   "category": "Additional",
+   "title": "Homework Question 2 – Factory Pattern",
+   "question": "What will this print?\n\n```python\nclass Notification:\n    def __init__(self, recipient, message):\n        self.recipient = recipient\n        self.message = message\n\nclass SMSNotification(Notification):\n    def send(self):\n        return f\"SMS to {self.recipient}: {self.message}\"\n\nn = SMSNotification(\"9999999999\", \"Hello!\")\nprint(n.send())\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "SMS to 9999999999: Hello!"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Error: send() not defined in Notification"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Hello! to 9999999999"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_PSZrObW8jE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/additional/q06",
+   "category": "Additional",
+   "title": "Homework Question 3 - Factory Pattern",
+   "question": "What's wrong with this Simple Factory method?\n```python\nclass NotificationFactory:\n    @staticmethod\n    def create_notification(type_, *args):\n        if type_ == \"EMAIL\":\n            return EmailNotification(args)\n        elif type_ == \"SMS\":\n            return SMSNotification(args)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "@staticmethod should not be used here"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "args is being passed as a single tuple instead of being unpacked, so the constructor won't receive separate arguments"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "type_ should not be a string"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Nothing is wrong"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_2b8dWGRydq.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/additional/q07",
+   "category": "Additional",
+   "title": "Homework Question 4 – Factory Pattern",
+   "question": "Which of these is true about Abstract Factory according to the lecture?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It always eliminates the need for a common parent class"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It should be used even when there's only one object being created"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It's worth the extra structure only when a genuine family of related objects must stay matched together"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It replaces Simple Factory in every situation"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_43S3AwyWGA.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/additional/q08",
+   "category": "Additional",
+   "title": "Homework Question 5 - Factory Pattern",
+   "question": "A document processing app needs DocumentParser, DocumentProcessor, and DocumentPrinter objects that must always match the same document type (e.g. all Text, never Text parser + Spreadsheet printer). Which pattern should be used?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Simple Factory"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "No factory, use if/elif in the client"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Singleton"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Abstract Factory"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_HjRoOUi956.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/additional/q09",
+   "category": "Additional",
+   "title": "Homework Question 6 – Factory Pattern",
+   "question": "What will this print?\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass NotificationFactory(ABC):\n    @abstractmethod\n    def create_sender(self):\n        ...\n\nclass EmailNotificationFactory(NotificationFactory):\n    def create_sender(self):\n        return \"Email Sender Ready\"\n\nfactory = EmailNotificationFactory()\nprint(factory.create_sender())\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Email Sender Ready"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Error: abstract method not allowed"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Error: cannot instantiate NotificationFactory"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ReierjHg3w.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/additional/q10",
+   "category": "Additional",
+   "title": "Homework Question 7 – Factory Pattern",
+   "question": "Why is this design flawed based on the lecture's \"vendor leak\" discussion?\n\n```python\nclass NotificationService:\n    def notify(self, type_, recipient, message):\n        if type_ == \"EMAIL\":\n            client = EmailNotification(recipient, message)\n        client.send()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "There's nothing flawed, this is correct"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "NotificationService directly builds concrete classes instead of going through a factory, reintroducing the coupling the factory pattern is meant to remove"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "EmailNotification should not have a send() method"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "recipient and message should be swapped"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_pOmHjSgSxG.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/assignment/q04",
+   "category": "Assignment",
+   "title": "Assignment Question 1 – Factory Pattern",
+   "question": "What is the main purpose of the Simple Factory pattern?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "To centralize object-creation logic in one place instead of repeating it everywhere"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "To make a class inherit from multiple parent classes"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "To make objects communicate over a network"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "To remove the need for classes entirely"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_iL3G8Ogv77.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/assignment/q05",
+   "category": "Assignment",
+   "title": "Assignment Question 2 – Factory Pattern",
+   "question": "What will this code print?\n\n```python\nclass AudioPlayer:\n    def __init__(self, volume):\n        self.volume = volume\n    def play(self):\n        return f\"Playing at volume {self.volume}\"\n\nclass MP3AudioPlayer(AudioPlayer):\n    pass\n\nplayer = MP3AudioPlayer(50)\nprint(player.play())\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Playing at volume 0"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Playing at volume 50"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Error, MP3AudioPlayer has no play method"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "None"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_TIJOI7iskg.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/assignment/q06",
+   "category": "Assignment",
+   "title": "Assignment Question 3 – Factory Pattern",
+   "question": "What happens when this code runs?\n\n```python\nclass AudioPlayerFactory:\n    def create_audio_player(format, volume):\n        if format == \"mp3\":\n            return MP3AudioPlayer(volume)\n        elif format == \"wav\":\n            return WAVAudioPlayer(volume)\n\nfactory = AudioPlayerFactory()\nplayer = factory.create_audio_player(\"mp3\", 50)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It works fine and returns an MP3AudioPlayer"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It silently returns None"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It raises a TypeError because self is passed automatically, leaving too many arguments for format and volume"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It raises an ImportError"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_MA1XNzWrmL.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/assignment/q07",
+   "category": "Assignment",
+   "title": "Assignment Question 4 – Factory Pattern",
+   "question": "Your team needs AudioDecoder, AudioProcessor, and AudioPlayer objects that must always come from the same format (e.g. all MP3, never MP3 decoder + WAV processor). Which pattern fits best?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Simple Factory"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A single if/elif inside each class"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "No pattern is needed"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Abstract Factory"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_MqeapUIlQG.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/assignment/q08",
+   "category": "Assignment",
+   "title": "Assignment Question 5 – Factory Pattern",
+   "question": "In the Abstract Factory pattern, what does supports_format typically do?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Checks whether a given factory can handle a specific format"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Converts one audio format into another"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Plays the audio file"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Deletes unsupported audio files"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_lejEv5RvFq.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/assignment/q09",
+   "category": "Assignment",
+   "title": "Assignment Question 6 – Factory Pattern",
+   "question": "What does this print?\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass AudioFactory(ABC):\n    @abstractmethod\n    def create_audio_player(self):\n        ...\n\nclass Mp3AudioFactory(AudioFactory):\n    def create_audio_player(self):\n        return \"MP3 Player\"\n\nfactory = Mp3AudioFactory()\nprint(factory.create_audio_player())\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Error: cannot instantiate AudioFactory"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "MP3 Player"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Error: create_audio_player is abstract"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_bqM9dv9AOe.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-14/assignment/q10",
+   "category": "Assignment",
+   "title": "Assignment Question 7 – Factory Pattern",
+   "question": "Why will this code fail?\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass AudioFactory(ABC):\n    @abstractmethod\n    def create_audio_player(self):\n        ...\n\nfactory = AudioFactory()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "AudioFactory has too many methods"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "create_audio_player should not use @abstractmethod"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "You cannot instantiate a class that still has unimplemented abstract methods"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Nothing is wrong, this works fine"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_7RhYN7sqpV.png"
+   ]
+  }
+ ]
+}

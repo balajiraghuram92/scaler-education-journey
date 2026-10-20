@@ -1,0 +1,286 @@
+{
+ "lessonSlug": "py-26-code-bookmyshow-1",
+ "sourceLesson": "Backend LLD: Machine Coding - 9: Code BookMyShow 1",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q02",
+   "category": "Assignment",
+   "title": "Abstract Base Class Purpose",
+   "question": "In SQLAlchemy, what does setting __abstract__ = True on a base class actually do?**",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It tells SQLAlchemy that this class's columns should be inherited by subclasses, but the class itself does not get its own table"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It prevents the class from ever being instantiated in Python"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It marks the class as read-only in the database"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It automatically creates a table with no rows allowed"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_5anJJFvH4V.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q03",
+   "category": "Assignment",
+   "title": "Relationship Sync Without Back_Populates",
+   "question": "Two model classes, Screen and Seat, each declare a relationship() describing the connection between them, but neither uses back_populates. What is the direct consequence of this?**",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The database foreign key column will not be created"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The two in-memory Python attributes (e.g. screen.seats and seat.screen) may not automatically stay in sync with each other, even though the underlying foreign key is set correctly"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "SQLAlchemy will throw an error when the program starts"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The relationship becomes many-to-many automatically"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_s2PK6JGul9.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q04",
+   "category": "Assignment",
+   "title": "Foreign Key Avoids Data Duplication",
+   "question": "A SeatType table stores rows like \"GOLD\" and \"SILVER\". Both Seat and ShowSeatType reference SeatType using a foreign key rather than storing a copy of the name. What is the main benefit of this design?**",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It makes queries run without needing joins"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It allows a Seat to have multiple seat types at once"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Renaming a SeatType (e.g. \"GOLD\" to \"Premium Gold\") only requires updating one row, and it reflects everywhere that type is referenced"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It removes the need for a primary key on SeatType"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_iURiZypRPd.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q05",
+   "category": "Assignment",
+   "title": "Auto-Incrementing Primary Key Values",
+   "question": "Consider this code, where BaseModel gives every class an auto-incrementing integer id, and a table is created fresh (it didn't exist before):**\n\n```python\nclass Movie(BaseModel):\n    __tablename__ = \"movies\"\n    name = Column(String)\n\nmovie1 = Movie(name=\"Inception\")\nmovie2 = Movie(name=\"Interstellar\")\nsession.add(movie1)\nsession.add(movie2)\nsession.commit()\n\nprint(movie1.id, movie2.id)\n```\nWhat gets printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "None None"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "0 1"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It throws an error because id was never set manually"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "1 2"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_VxOFXTMxrG.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q06",
+   "category": "Assignment",
+   "title": "Enum Storage As Text Name",
+   "question": "Given this enum and column definition:**\n\n```python\nclass BookingStatus(Enum):\n    CONFIRMED = auto()\n    CANCELLED = auto()\n    PENDING = auto()\n\nbooking_status = Column(Enum(BookingStatus))\n```\nIf a Booking row is saved with booking_status = BookingStatus.CONFIRMED, what value is actually stored as text in the database column by default?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "\"CONFIRMED\" (the member's name)"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "1 (the position of CONFIRMED in the enum)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "\"BookingStatus.CONFIRMED\" (the full qualified name)"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "True"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_hj4WayKhVD.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q07",
+   "category": "Assignment",
+   "title": "Unimported Models Skip Table Creation",
+   "question": "A team defines all their 12 model classes across multiple files, correctly using `Base` and `__tablename__`, but only imports 10 of them into `main.py` before calling this:**\n\n```python\nBase.metadata.create_all(engine)\n```\nWhat happens to the 2 model classes that were never imported?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "SQLAlchemy scans the whole project automatically and creates their tables anyway"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Their tables are silently not created, because SQLAlchemy only registers a class once Python has actually run that class's definition"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The program throws an error immediately, refusing to start"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Their tables are created but left empty"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_32oD8iGOnM.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q08",
+   "category": "Assignment",
+   "title": "Copy-Paste Field Mistake",
+   "question": "Here is a class meant to represent a Region that has many Theatres:**\n\n```python\nclass Region(BaseModel):\n    def __init__(self, name, region):\n        super().__init__()\n        self.name = name\n        self.region = region\n```\nWhat is wrong with this code, and what's the correct fix?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It's missing a theatres list, which must always be added immediately"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "super().__init__() should not be called in a subclass"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The region parameter/field doesn't make sense on a Region class — it looks like a copy-paste leftover from Theatre, which is the class that should hold a reference to its parent Region"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "name should be renamed to region_name"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_QMk7d3iKwo.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q09",
+   "category": "Assignment",
+   "title": "Seat-Booking Link Over Time",
+   "question": "A junior developer writes the ShowSeat model like this, believing a simple foreign key back to Booking is enough to track which booking a seat belongs to:\n\n```python\nclass ShowSeat(BaseModel):\n    __tablename__ = \"show_seats\"\n\n    show_id = Column(Integer, ForeignKey(\"shows.id\"))\n    seat_id = Column(Integer, ForeignKey(\"seats.id\"))\n    show_seat_status = Column(Enum(ShowSeatStatus))\n    booking_id = Column(Integer,\nForeignKey(\"bookings.id\")) # <-- added by the junior dev\n\n    show = relationship(\"Show\")\n    seat = relationship(\"Seat\")\n    booking = relationship(\"Booking\")\n```\nWhy is adding booking_id directly on ShowSeat an incorrect way to link Booking and ShowSeat over time?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It's fine — one seat can only ever belong to one booking for all time, so a direct foreign key is correct"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "relationship(\"Booking\") is invalid syntax and will not run"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "ForeignKey(\"bookings.id\") should instead point to \"users.id\""
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A single foreign key on ShowSeat can only point to one Booking at a time, but the same ShowSeat can legitimately be linked to more than one Booking over time (e.g., after a cancellation and a later rebooking) — this needs a proper many-to-many association table instead"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZajH4JTdSt.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q10",
+   "category": "Assignment",
+   "title": "Screen Capability Vs Show Configuration",
+   "question": "A Screen can physically support both 3D and Dolby Audio (this is stored as Screen.features). However, a specific 6 PM showing of a movie on that screen is only actually running in 2D that day. Why does the system also need a separate Show.features list, instead of just relying on Screen.features?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Because Screen.features describes what the screen is physically capable of, while Show.features describes what is actually active for that one specific showing — these are two different questions and can have different answers"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because Screen.features and Show.features must always contain identical values"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because SQLAlchemy requires every enum to be duplicated across two tables"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Because Show cannot have any relationship to Screen"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_YZZ5odX9Fu.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-26/assignment/q11",
+   "category": "Assignment",
+   "title": "Multi-Level Join Query Design",
+   "question": "A repository layer needs a method to list every Show playing in a given region. The relationships are: Show belongs to a Screen, Screen belongs to a Theatre, and Theatre belongs to a Region. Which approach correctly fetches all shows for a region named \"Bangalore\"?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Query Show directly by a region_name column, since every Show should store its region name directly for fast lookups"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Query Show, then join through Screen, then through Theatre, then through Region, filtering where the Region's name equals \"Bangalore\""
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Query Region only, since regions automatically know all shows happening inside them without any joins"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Fetch all Show rows, then manually loop through every one checking screen and theatre in application code, since joins across four tables are not supported by an ORM"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_gWCktvsIsi.png"
+   ]
+  }
+ ]
+}

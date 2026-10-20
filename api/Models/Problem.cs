@@ -54,6 +54,25 @@ public class Problem
     [Column("hints")]
     public string Hints { get; set; } = string.Empty;
 
+    // "java" (Maven/JUnit exercises) or "python" (pytest assignments).
+    [MaxLength(20)]
+    [Column("language")]
+    public string Language { get; set; } = "java";
+
+    // Command the learner runs locally to check their solution, e.g. "pytest -q".
+    [MaxLength(200)]
+    [Column("run_command")]
+    public string RunCommand { get; set; } = string.Empty;
+
+    // Markdown reference solution, revealed on demand in the reader.
+    [Column("reference_solution")]
+    public string ReferenceSolution { get; set; } = string.Empty;
+
+    // FROM_MATERIAL (from the course's own tests) or LLM_GENERATED.
+    [MaxLength(30)]
+    [Column("source_type")]
+    public string SourceType { get; set; } = "FROM_MATERIAL";
+
     [Column("is_completed")]
     public bool IsCompleted { get; set; } = false;
 

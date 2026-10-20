@@ -1,0 +1,545 @@
+{
+  "lessonSlug": "py-01-inheritance-mro-polymorphism",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-01/additional/q01",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "For class D(B, C) where B and C both inherit from A, in what order does Python search for a method called on a D() instance?",
+      "explanation": "**Answer: (c)** C3 linearization keeps the declared base order (B before C) and places A after every class that inherits from it, giving D, B, C, A.\n\n- (a) puts A before its own subclasses B and C, which C3 forbids\n- (b) visits A before C, but C is also a child of A so it must come first\n- (d) reverses the declared order; the leftmost base is searched first\n\n**Deeper:** You can check this with `D.__mro__`. In an interview, state the three C3 rules (children first, declared order preserved, monotonic) rather than just reciting the answer.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "D → A → B → C",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "D → B → A → C",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "D → B → C → A",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "D → C → B → A",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/additional/q02",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "super() in a multiple-inheritance chain refers to:",
+      "explanation": "**Answer: (b)** `super()` continues the lookup in `type(self).__mro__` starting just after the class in which it is written, so the target depends on the instance, not on the lexical parent.\n\n- (a) only true in single inheritance; in a diamond the next class may be a sibling\n- (c) nothing in the MRO rule favours the leftmost parent after the first step\n- (d) the top-most ancestor is reached last, if at all, not directly\n\n**Deeper:** This is why cooperative multiple inheritance needs every participant to forward `**kwargs`. A class that does not call `super()` cuts off every class behind it in the MRO without any error.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The direct parent class always",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The next class in the current object's MRO after the class where super() is written",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The leftmost parent",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The top-most ancestor",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Given class A: pass, class B(A): pass, an object b = B(). Which is True?",
+      "explanation": "**Answer: (b)** `isinstance` walks the MRO of `type(b)`, so a `B` instance is an `A`, while `type(b) == A` compares the exact class and is false.\n\n- (a) type(b) is B, so comparing it with A is False\n- (c) the two checks differ precisely because one respects inheritance and one does not\n- (d) isinstance(b, A) is True because B subclasses A\n\n**Deeper:** Prefer `isinstance` for validation so subclasses stay substitutable. Remember `bool` is a subclass of `int`, so `isinstance(True, int)` is True and can surprise numeric validators.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "type(b) == A → True",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "isinstance(b, A) → True and type(b) == A → False",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both are True",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Both are False",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Uber's dispatch(vehicle) calls vehicle.start(). If a totally unrelated Drone class (not inheriting from Vehicle) has a .start() method, what does Python's duck typing say?",
+      "explanation": "**Answer: (b)** Duck typing means Python only looks up `.start` at call time; it never checks the class hierarchy, so an unrelated `Drone` with a `start()` works.\n\n- (a) no type check exists unless you write one with isinstance or a Protocol\n- (c) the method runs and returns whatever it returns\n- (d) NotImplementedError is raised only if code explicitly raises it\n\n**Deeper:** The flip side is the wrong-object-right-name bug from the next question. Protocols or ABCs let you keep the flexibility while making the required shape explicit and checkable.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "TypeError — Drone is not a Vehicle",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Works fine — Python only checks that .start() exists on the passed object",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Silently returns None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises NotImplementedError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will be the output:\n```python\nclass N:\n    def send(self, m): print(\"A\")\n    def send(self, m, r): print(\"B\")\nN().send(\"hi\")\n```",
+      "explanation": "**Answer: (c)** Both `def send` statements bind the same name in the class body, so the second replaces the first and `send` now requires `r`. Calling `N().send(\"hi\")` raises `TypeError` for the missing argument.\n\n- (a) the one-argument version no longer exists\n- (b) the second version needs two arguments and none were given for r, so it never runs\n- (d) only one function is bound to the name\n\n**Deeper:** Python has no overloading. Use default arguments, `functools.singledispatch` (runtime dispatch on the first argument) or distinct method names. Java chooses overloads at compile time from declared types.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Prints \"A\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Prints \"B\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "TypeError — missing arg r",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Prints both",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A Zone class defines __lt__ by area. Which of these will NOT work out of the box?",
+      "explanation": "**Answer: (d)** Sorting, `min` and `list.sort` need only `__lt__`. Set membership uses `__hash__` and `__eq__`, which are still the identity-based defaults, so a different `Zone` with the same area is not found.\n\n- (a) sorted uses only __lt__\n- (b) min uses only __lt__\n- (c) list.sort uses only __lt__\n\n**Deeper:** Ordering and equality are separate contracts, and a class can have one without the other. If you add `__eq__` for value semantics you must also define `__hash__` or the class becomes unhashable, and `functools.total_ordering` can fill in the remaining comparisons.",
+      "reviewFlag": "Ambiguous: with only __lt__ defined, all four operations run; (d) is chosen because it is the only one that does not behave by value (membership uses identity hash and equality, not area).",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "sorted(zones)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "min(zones)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "zones.sort()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "zone in some_set (membership test on a set of Zones)",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In cooperative multiple inheritance with **kwargs-passing super().__init__ calls, the shared top-most ancestor's __init__:",
+      "explanation": "**Answer: (b)** With `super().__init__(**kwargs)` everywhere, each class appears once in the MRO and is called once, so the shared base initialiser runs exactly once.\n\n- (a) that is the behaviour of calling parents by name, which visits the base once per branch\n- (c) it runs unless a class in the chain fails to call super()\n- (d) explicit naming is the non-cooperative approach that causes double initialisation\n\n**Deeper:** The chain terminates in `object.__init__`, which rejects leftover keywords, so a misspelt argument fails loudly at the end of the chain.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Runs once per parent that inherits it (twice in a diamond)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Runs exactly once, because everyone follows the same MRO chain",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Never runs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Runs only if explicitly called by name",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which best distinguishes Java overloading from Python's @singledispatch?",
+      "explanation": "**Answer: (b)** Java picks an overload at compile time from the static types; `singledispatch` looks at the runtime class of the first argument when the call happens.\n\n- (a) Python resolves at call time, not compile time\n- (c) Java overloads are resolved at compile time\n- (d) singledispatch dispatches on the first argument only; `singledispatchmethod` likewise ignores self\n\n**Deeper:** For multiple dispatch you need a library or an explicit pattern such as double dispatch. Mention that registration is by class, so `int` will not match a `float` implementation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both dispatch at compile time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Java at compile time based on declared types; @singledispatch at runtime based on actual argument type",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both dispatch at runtime",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "@singledispatch dispatches on all arguments, not just the first",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will be the output:\n```python\nclass A:\n    def __init__(self): print(\"A\")\nclass B(A):\n    def __init__(self):\n        print(\"B\") # no super() call\nb = B()\n```",
+      "explanation": "**Answer: (b)** Python never calls a parent `__init__` automatically. `B.__init__` overrides `A.__init__` and prints only \"B\".\n\n- (a) would require B.__init__ to call super().__init__() first\n- (c) same reason; A is never reached and B would not print second\n- (d) B.__init__ overrides A.__init__, so A is not printed\n\n**Deeper:** Unlike C++ or Java constructors, Python does not chain automatically, which is why a forgotten `super().__init__()` leaves parent attributes unset and surfaces later as an `AttributeError`, often far from the cause. In a diamond the same omission silently skips every class behind the offender in the MRO.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A then B",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "B only",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "B then A",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A only",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Defining __eq__ on a class without also defining __hash__ causes:",
+      "explanation": "**Answer: (b)** When a class body defines `__eq__` without `__hash__`, Python sets `__hash__ = None`, so instances raise `TypeError: unhashable type` in sets and as dict keys.\n\n- (a) the class definition is perfectly valid syntax\n- (c) the hash/equality contract means the effect is real\n- (d) Python never invents a hash; it removes the inherited one\n\n**Deeper:** The rule protects the contract that equal objects must have equal hashes, because dict and set lookups jump straight to a hash bucket before comparing. Define both over the same immutable fields, or leave the class explicitly unhashable; hashing mutable fields lets objects get lost in a set after mutation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A SyntaxError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Instances of the class become unhashable — cannot be used in set or as dict keys",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "No effect at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Python auto-generates a matching __hash__",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/assignment/q01",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Given the hierarchy class A: pass, class B(A): pass, class C(A): pass, class D(B, C): pass, what does D.__mro__ show (ignoring object)? Apply C3 merge — parents in written order, and any ancestor appears after all its descendants.",
+      "explanation": "**Answer: (b)** C3 merges the parents in declared order and requires A, the common ancestor, to come after both B and C, giving D, B, C, A, object.\n\n- (a) places A before its own children\n- (c) reverses the declared base order\n- (d) visits A before C even though C inherits from A\n\n**Deeper:** Reciting the answer is not enough in interviews; show the merge. `merge([B,A,object], [C,A,object], [B,C])` takes B, then C (A is still in the tail of C's list), then A.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "D → A → B → C",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "D → B → C → A",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "D → C → B → A",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "D → B → A → C",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In Uber's dispatch code, a function dispatch(vehicle) calls vehicle.start(). A colleague passes in an EmailNotification object (unrelated to Vehicle) which happens to have a .start() method that marks the email as \"sending\". No error is raised and the email gets marked as sending. Which best explains this per duck typing?",
+      "explanation": "**Answer: (b)** Duck typing checks only that the attribute exists when it is accessed. It never knows that `start` means different things on a vehicle and an email.\n\n- (a) Python never converts types implicitly like this\n- (c) raising a TypeError would require an explicit check, so this is expected behaviour\n- (d) inheritance is not required for the call to succeed\n\n**Deeper:** Guard boundaries with `isinstance` against an ABC or a `runtime_checkable` Protocol, and name methods so intent is clear. Static checkers like mypy flag this at review time.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python auto-converted the object into a Vehicle",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Python only checks whether the method exists on the object at runtime, never what the method means — so wrong-object-right-name bugs run silently",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "dispatch should have raised a TypeError and this is a Python bug",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "EmailNotification must secretly inherit from Vehicle",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will be the output:\n\n```python\nclass Vehicle:\n    def __init__(self, reg): self.reg = reg\nclass Bike(Vehicle):\n    def __init__(self, reg, has_carrier):\n        self.has_carrier = has_carrier\nb = Bike(\"KA02\", True)\nprint(b.reg)\n```",
+      "explanation": "**Answer: (c)** `Bike.__init__` overrides the parent initialiser and never calls `super().__init__(reg)`, so `self.reg` is never assigned and reading it raises `AttributeError`.\n\n- (a) Python does not run parent initialisers automatically\n- (b) there is no default of None; the attribute simply does not exist\n- (d) Python has no compile-time attribute checks\n\n**Deeper:** Make the call to `super().__init__` a habit; for cooperative hierarchies pass `**kwargs` along so every class in the MRO gets its turn. Dataclasses and Pydantic models generate the initialiser for you and avoid this class of bug, and a type checker flags attributes that are never assigned.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Prints \"KA02\" — parent __init__ runs automatically",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Prints None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "AttributeError — Bike.__init__ never calls super().__init__(), so reg was never set",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Compile-time error",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In the diamond class EC(EV, CV) where EV and CV both define get_priority_score() differently (20 and 30), and EC defines nothing, what does EC().get_priority_score() return, and why?",
+      "explanation": "**Answer: (b)** The MRO of `EC` is EC, EV, CV, Vehicle, object, and attribute lookup stops at the first class that defines the name, which is `EV` returning 20.\n\n- (a) there is no rightmost-wins convention\n- (c) Python has no AmbiguityError; C3 removes ambiguity by construction\n- (d) methods are never merged; only super() chains can combine results\n\n**Deeper:** If you want both scores, make each method cooperative and combine through `super()`, but then the base needs a defined terminal implementation or the chain ends in `AttributeError`. Remember the resolution is decided at class creation, so adding a base later can change which score wins.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "30 — rightmost parent wins by convention",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "20 — EV comes before CV in EC's MRO, and Python stops at the first class that defines the method",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Raises AmbiguityError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Returns the sum (50) — Python merges both",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will be the output:\n\n```python\nclass Fare:\n    def calc(self, dist): return 10*dist\n    def calc(self, dist, surge): return 10*dist*surge\nf = Fare()\nprint(f.calc(5))\n```",
+      "explanation": "**Answer: (c)** The second `def calc` rebinds the name in the class namespace, replacing the one-argument version, so `f.calc(5)` is missing `surge` and raises `TypeError`.\n\n- (a) Python does not select by argument count\n- (b) methods cannot coexist under one name\n- (d) the call fails before returning anything\n\n**Deeper:** Use a default (`surge=1.0`), `singledispatchmethod`, or two named methods. Interviewers often ask this to check that you know overloading is a compile-time feature of other languages and that you reach for the Pythonic alternative rather than a chain of `isinstance` checks or `*args` length tests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Prints 50 — Python picks the 1-arg version by overloading",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Prints 50 — both methods coexist",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "TypeError — the second def replaced the first (Python has no overloading), so calc now needs 2 args",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Prints None",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass A:\n    def hook(self): return [\"A\"]\nclass B(A):\n    def hook(self): return [\"B\"] + super().hook()\nclass C(A):\n    def hook(self): return [\"C\"] + super().hook()\nclass D(B, C):\n    def hook(self): return [\"D\"] + super().hook()\nprint(D().hook())\n```\nWhat is printed?",
+      "explanation": "**Answer: (a)** The MRO of `D` is D, B, C, A, so each `super().hook()` moves one step along it; `B` forwards to `C` (not `A`) because `C` is next in `D`'s MRO.\n\n- (b) assumes super() in B calls A, which is only true when B is used on its own\n- (c) would visit A twice; each class appears once in the MRO\n- (d) reverses the declared base order\n\n**Deeper:** This is the behaviour behind cooperative mixins: the same line in `B.hook` reaches `A` for a plain `B` and `C` for a `D`. Pin MROs in tests when order carries business meaning.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "['D', 'B', 'C', 'A']",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "['D', 'B', 'A']",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "['D', 'B', 'A', 'C', 'A']",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "['D', 'C', 'B', 'A']",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A team adds logging to a payment gateway:\n\n```python\nclass Gateway:\n    def __init__(self, name):\n        self.name = name\n\nclass LoggingMixin:\n    def __init__(self, *args, **kwargs):\n        super().__init__(*args, **kwargs)\n        self.logger = \"log:\" + self.name\n\nclass Stripe(Gateway, LoggingMixin): ...\n```\n`Stripe(\"x\").logger` raises `AttributeError` in production. What is the root cause and fix?",
+      "explanation": "**Answer: (d)** The MRO is Stripe, Gateway, LoggingMixin, object, and `Gateway.__init__` never forwards, so the mixin's initialiser is silently skipped.\n\n- (a) there is no name clash; both define __init__ and Gateway's wins by MRO position\n- (b) every class already inherits from object and the mixin is already in the MRO\n- (c) Python runs only the first __init__ found unless it chains with super(); naming the mixin directly repeats the diamond double-init problem\n\n**Deeper:** Put mixins first (`class Stripe(LoggingMixin, Gateway)`) or make the base class cooperative with `**kwargs`. Silent skipping is the characteristic failure of multiple inheritance.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "LoggingMixin.__init__ is shadowed by a name clash; rename it to setup()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Gateway must inherit from object explicitly so that the MRO includes LoggingMixin",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Python only runs the first parent's __init__ in multiple inheritance, so call LoggingMixin.__init__ by name",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Gateway.__init__ does not call super().__init__(), so the chain stops before LoggingMixin; make Gateway cooperative or list the mixin first",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-01/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom functools import singledispatch\n\n@singledispatch\ndef f(x): return \"base\"\n\n@f.register\ndef _(x: int): return \"int\"\n\n@f.register\ndef _(x: float): return \"float\"\n\nprint(f(True), f(3), f(3.0), f(\"3\"))\n```\nWhat is printed?",
+      "explanation": "**Answer: (c)** `singledispatch` walks the MRO of the argument's class: `bool` subclasses `int` so `True` uses the `int` implementation, `3.0` matches `float`, and `str` falls back to the base function.\n\n- (a) misses that bool is a subclass of int and would dispatch to int\n- (b) no implementations are registered for bool or str, so those names are never printed\n- (d) floats have their own registered implementation and are not ints\n\n**Deeper:** Dispatch is by class hierarchy, not by value or numeric tower, so `f(3)` would not match a `float` registration. Register `bool` explicitly when it must behave differently.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "base int float base",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "bool int float str",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "int int float base",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "int int int base",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

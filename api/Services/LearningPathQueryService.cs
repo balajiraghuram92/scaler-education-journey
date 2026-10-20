@@ -53,12 +53,15 @@ public class LearningPathQueryService
 {
     private readonly StudyTrackerContext _db;
 
-    public LearningPathQueryService(StudyTrackerContext db)
+    private readonly LearnerProgressService _progress;
+
+    public LearningPathQueryService(StudyTrackerContext db, LearnerProgressService progress)
     {
         _db = db;
+        _progress = progress;
     }
 
-    public async Task<List<LearningPathDto>> GetAllLearningPathsAsync()
+    public async Task<List<LearningPathDto>> GetAllLearningPathsAsync(int? userId = null)
     {
         var courses = await _db.Courses
             .Include(c => c.DomainLinks)
@@ -69,10 +72,11 @@ public class LearningPathQueryService
             .OrderBy(c => c.OrderIndex)
             .ToListAsync();
 
-        return courses.Select(MapToPathDto).ToList();
+        var completed = await _progress.GetCompletedLessonIdsAsync(userId);
+        return courses.Select(c => MapToPathDto(c, completed)).ToList();
     }
 
-    public async Task<LearningPathDto?> GetLearningPathBySlugAsync(string slug)
+    public async Task<LearningPathDto?> GetLearningPathBySlugAsync(string slug, int? userId = null)
     {
         var course = await _db.Courses
             .Include(c => c.DomainLinks)
@@ -86,10 +90,12 @@ public class LearningPathQueryService
                         .ThenInclude(cl => cl.Concept)
             .FirstOrDefaultAsync(c => c.Slug == slug);
 
-        return course == null ? null : MapToPathDto(course);
+        if (course == null) return null;
+        var completed = await _progress.GetCompletedLessonIdsAsync(userId);
+        return MapToPathDto(course, completed);
     }
 
-    private static LearningPathDto MapToPathDto(Course c)
+    private static LearningPathDto MapToPathDto(Course c, HashSet<int> completedLessonIds)
     {
         var allLessons = c.Modules.SelectMany(m => m.Lessons).ToList();
         return new LearningPathDto
@@ -102,7 +108,7 @@ public class LearningPathQueryService
             IsPublished = c.IsPublished,
             OrderIndex = c.OrderIndex,
             TotalLessons = allLessons.Count,
-            CompletedLessons = allLessons.Count(l => l.IsCompleted),
+            CompletedLessons = allLessons.Count(l => completedLessonIds.Contains(l.Id)),
             Domains = c.DomainLinks.Select(dl => dl.Domain?.Name ?? string.Empty).Where(n => !string.IsNullOrEmpty(n)).ToList(),
             Modules = c.Modules.OrderBy(m => m.OrderIndex).Select(m => new ModuleDto
             {
@@ -120,7 +126,7 @@ public class LearningPathQueryService
                     Difficulty = l.Difficulty,
                     ContentStatus = l.ContentStatus,
                     EstimatedMinutes = l.EstimatedMinutes,
-                    IsCompleted = l.IsCompleted,
+                    IsCompleted = completedLessonIds.Contains(l.Id),
                     OrderIndex = l.OrderIndex,
                     ProblemCount = l.Problems.Count,
                     ConceptSlugs = l.ConceptLinks.Select(cl => cl.Concept?.Slug ?? string.Empty).Where(s => !string.IsNullOrEmpty(s)).ToList()

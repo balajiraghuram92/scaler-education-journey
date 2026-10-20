@@ -1,0 +1,286 @@
+{
+ "lessonSlug": "py-28-code-bookmyshow-3",
+ "sourceLesson": "Backend LLD: Machine Coding - 11: Code BookMyShow 3",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q03",
+   "category": "Assignment",
+   "title": "Check-On-Demand Expiry Tradeoff",
+   "question": "A booking system needs to release a seat that a user reserved but never paid for, after a fixed hold time. One design checks and resets expired holds only at the moment a different user tries to book that same seat, instead of running a background job that scans and clears every expired hold on a fixed schedule. What is the main trade-off of this \"check-on-demand\" approach compared to a scheduled background sweep?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It keeps stale reservations invisible to nobody in particular — a seat that nobody attempts to rebook can stay stuck in its expired state indefinitely, since there is no other trigger to re-evaluate it."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It is always faster, because it avoids writing to the database entirely, even on a successful booking."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It never needs a background job at all, because the database engine automatically expires rows on its own."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It requires an extra column on every table in the database to track expiry, which a scheduled job does not need."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_kxjtxEYfYA.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q04",
+   "category": "Assignment",
+   "title": "Unexecuted Query Always Truthy",
+   "question": "A developer writes the following method to look up a user by email so that a signup flow can check whether an account already exists:\n\n```python\ndef find_by_email(self, email):\n    return self.session.query(User).filter(User.email == email)\n```\nIn the service layer, this result is used as: if existing_user: raise RuntimeError(\"already exists\"). What will actually happen when a brand-new user, whose email has never been used before, tries to sign up?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The signup will succeed normally, because the filter only matches rows where the email is equal."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The signup will always be rejected as \"already exists\", because the method returns a Query object (which is always truthy) instead of an actual User or None."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The application will raise a database connection error, because .filter() cannot be used without .first() or .all()."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The signup will succeed, but the new user's row will be saved twice into the database."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_GN7y5p0NHe.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q05",
+   "category": "Assignment",
+   "title": "Missing Self Attribute Assignment",
+   "question": "A developer writes the following constructor for a service class that depends on a password-hashing helper:\n\n```python\nclass UserService:\n    def __init__(self, user_repository, password_hasher):\n        self.user_repository = user_repository\n\n    def sign_up(self, email, password):\n        hashed = self.password_hasher.encode(password)\n        ...\n```\nWhat will happen when sign_up() is called?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It will run correctly, because Python automatically assigns every constructor parameter to an instance attribute of the same name."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It will silently hash the password using a default algorithm instead of the one passed in."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It will raise an AttributeError, because password_hasher was accepted as a parameter but never assigned to self.password_hasher, so that attribute does not exist on the instance."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It will raise a TypeError at the point the class is instantiated, before sign_up() is ever called."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_zd5cDGYsbZ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q06",
+   "category": "Assignment",
+   "title": "Salted Hash Differs Each Call",
+   "question": "A password-hashing helper is used as follows, where encode() internally generates a fresh random salt on every call before hashing:\n\n```python\nhash1 = password_hasher.encode(\"hunter2\")\nhash2 = password_hasher.encode(\"hunter2\")\nprint(hash1 == hash2)\n```\nWhat will this print?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "True, because the same input to the same function always produces the same output."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It will raise an exception, because the same password cannot be hashed twice in the same program."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "True, but only on the first run of the program; False on every run after that."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "False, because each call generates a new random salt, so the two resulting hash strings will differ even though the underlying password is identical."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_Ey6bCunb30.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q07",
+   "category": "Assignment",
+   "title": "Timestamp Update Scoped To Row",
+   "question": "A Booking model has automatic timestamp columns defined roughly as:\n\n```python\ncreated_at = Column(DateTime, default=datetime.utcnow)\nlast_modified_at = Column(DateTime,\ndefault=datetime.utcnow, onupdate=datetime.utcnow)\n```\nA Payment row (a separate table, with a foreign key pointing back to Booking) is created and linked by running booking.payments.append(new_payment) and committing the session. No column on the bookings row itself is changed. What happens to booking.last_modified_at?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It stays unchanged, because onupdate only fires when a column on that exact row (the bookings row) is modified, and appending a related Payment only touches the payments table's foreign key column."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It updates to the current time, because appending to any related list counts as a change to the booking."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It is reset to NULL, because relationship changes invalidate cached timestamp columns."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It updates immediately, without needing a commit, because SQLAlchemy tracks relationship changes in real time."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_RHNTjqWZdQ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q08",
+   "category": "Assignment",
+   "title": "Deterministic Hash Password Correlation",
+   "question": "A system stores user passwords by running them through a plain, deterministic hash function (one where the same input always produces the same output, with no randomness involved) before saving them. Two different users, Alice and Bob, happen to choose the exact same password. What problem does this create, specifically because the hash function is deterministic?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Nothing — as long as the function is one-way, it does not matter whether it is deterministic."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Their stored hash values will be identical, so if an attacker ever figures out one of them, they immediately know that the other account has the same password too."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The database will refuse to store two identical hash values in the same column, causing one of the signups to fail."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Deterministic hashing makes the password recoverable in plain text directly from the hash."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_fZLFH8ENwF.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q09",
+   "category": "Assignment",
+   "title": "Correct Salted Hash Verification",
+   "question": "A password-hashing library provides two methods: encode(raw_password), which produces a new salted hash from a plain password, and matches(raw_password, stored_hash), which checks a login attempt against a previously stored hash. Why is it incorrect to check a login by writing if password_hasher.encode(login_password) == stored_hash: instead of using matches()?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Because encode() cannot be called more than once per program run."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because encode() only works on the first password a user ever sets, not on subsequent login attempts."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because encode() generates a brand-new random salt every time it runs, so re-encoding the login attempt produces a hash with a different salt than the one embedded in the originally stored hash — the two will almost never match, even for the correct password."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Because == cannot be used to compare two strings in Python."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_hlNGlChok1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q10",
+   "category": "Assignment",
+   "title": "Stale Status Until Re-Evaluated",
+   "question": "A seat-booking system marks a seat as \"held\" the moment a user selects it, and treats a held seat as available again if more than 15 minutes have passed since it was held — but only re-checks this at the moment a new booking attempt reads that seat's row; nothing proactively rewrites the row when the 15 minutes pass. Seat C4 is marked \"held\" at 2:00 PM by a user who then abandons the booking. At 2:19 PM, before anyone else has attempted to book it, what does the seat's stored status literally say in the database at that exact moment?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "\"Available\", because the database automatically flips the status back after the hold period elapses."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "\"Expired\", a distinct status that gets set automatically once 15 minutes pass."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The row is deleted automatically once the hold expires."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "\"Held\", because nothing has re-evaluated or rewritten that row since it was set — the status only changes at the moment a fresh booking attempt reads and re-evaluates it."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_8QH8qL89cG.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q11",
+   "category": "Assignment",
+   "title": "Missing Foreign Key Existence Check",
+   "question": "A generated Service class for adding a new Theatre under a Region looks like this:\n\n```python\nclass TheatreService:\n    def __init__(self, theatre_repository):\n        self.theatre_repository = theatre_repository\n\n    def add_theatre(self, name, region_id):\n        theatre = Theatre(name=name, region_id=region_id)\n        return self.theatre_repository.save(theatre)\n```\nElsewhere in the same codebase, every other place that accepts a foreign-key-style ID (such as a user ID or a show ID) looks up the referenced entity through its repository first and raises an error if it is not found, before using it. Judged against that established convention, what is the most important gap in this Service?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It never checks whether region_id actually refers to an existing Region — it builds and saves a Theatre pointing at a region_id that could be completely invalid, unlike the validation convention used everywhere else for foreign IDs."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It does not hash or encrypt the theatre's name before saving it."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It is missing a try/except block around the database call."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It should not accept region_id as a plain integer parameter at all."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_HJ3oaL13BZ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-28/assignment/q12",
+   "category": "Assignment",
+   "title": "Default Vs Onupdate Column Behavior",
+   "question": "An ORM lets you declare a timestamp column with both a default value and an onupdate value, roughly as Column(DateTime, default=some_function, onupdate=some_function). What do these two arguments each control?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "default sets the value once when the application starts up; onupdate sets it once when the application shuts down."
+    },
+    {
+     "optionKey": "b",
+     "optionText": "default fills the column the moment a row is first inserted; onupdate refreshes the column's value whenever that row is later updated."
+    },
+    {
+     "optionKey": "c",
+     "optionText": "default and onupdate do the same thing — onupdate is simply required for older versions of the ORM."
+    },
+    {
+     "optionKey": "d",
+     "optionText": "default sets a fixed, unchanging value; onupdate overrides it with a random value on every read."
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_hbvmUP1WGW.png"
+   ]
+  }
+ ]
+}
