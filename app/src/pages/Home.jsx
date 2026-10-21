@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Layers, Terminal } from 'lucide-react';
 import KnowledgeAtlasGraph, { DEFAULT_DOMAINS, DEFAULT_CONCEPTS, DEFAULT_CONNECTIONS } from '../components/KnowledgeAtlasGraph';
 import RecentLearningPathTracker from '../components/RecentLearningPathTracker';
+import ResumeCard from '../components/learning/ResumeCard';
 import { api } from '../api/client';
 import { ErrorState, LoadingState, DevFixturesBanner } from '../components/common/StateViews';
 import { readRecentLearningPathActivity, sortLearningPathsByRecency } from '../utils/recentLearningPaths';
@@ -158,6 +159,8 @@ export default function Home() {
               />
             </main>
           )}
+
+          <ResumeCard />
 
           {sortedLearningPaths.length > 0 && (
             <>

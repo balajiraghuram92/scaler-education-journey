@@ -1,0 +1,137 @@
+/* Shared Markdown rendering (chapter prose + quiz text). Uses the editorial tokens. */
+
+.md-block > :last-child {
+  margin-bottom: 0;
+}
+
+.md-block p {
+  margin: 0 0 0.75rem;
+}
+
+.md-code {
+  position: relative;
+  margin: 0.8rem 0 1.35rem;
+}
+
+.md-code > pre {
+  margin: 0;
+}
+
+.md-code--labelled > pre {
+  padding-top: 1.9rem;
+}
+
+.md-code__label {
+  position: absolute;
+  top: 0.55rem;
+  left: 1rem;
+  z-index: 1;
+  color: var(--chamber-ink-muted, #64748B);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.md-code .concept-check__code-block {
+  margin: 0;
+}
+
+.md-code:has(.concept-check__code-block) .md-code__label {
+  color: rgba(230, 237, 243, 0.62);
+}
+
+.md-table-wrap {
+  max-width: 100%;
+  margin: 0.8rem 0 1.35rem;
+  overflow-x: auto;
+  border: 1px solid var(--chamber-rule-border, #E5E0D8);
+  border-radius: 8px;
+  background: var(--chamber-bg-card, #FFFFFF);
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.md-table th,
+.md-table td {
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid var(--chamber-rule-border, #E5E0D8);
+  text-align: left;
+  vertical-align: top;
+}
+
+.md-table th {
+  background: var(--chamber-bg-card-warm, #FAF8F3);
+  color: var(--chamber-ink-display, #111111);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.md-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.md-callout {
+  margin: 1rem 0 1.4rem;
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--accent-sage, #2C5E55);
+  border-radius: 0 6px 6px 0;
+  background: var(--accent-sage-light, rgba(44, 94, 85, 0.08));
+  color: var(--chamber-ink-body, #1C2421);
+}
+
+.md-callout--caution {
+  border-left-color: var(--accent-terracotta, #C85A32);
+  background: var(--accent-terracotta-light, rgba(200, 90, 50, 0.1));
+}
+
+.md-callout__label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--accent-sage, #2C5E55);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.md-callout--caution .md-callout__label {
+  color: var(--accent-terracotta, #C85A32);
+}
+
+.md-callout > p:last-child,
+.md-callout > :last-child {
+  margin-bottom: 0;
+}
+
+.md-link {
+  color: var(--chamber-accent-sage, #2C5E55);
+  text-decoration: underline;
+  text-decoration-color: rgba(44, 94, 85, 0.35);
+  text-underline-offset: 2px;
+}
+
+.md-link:hover {
+  color: var(--accent-sage-hover, #234B44);
+  text-decoration-color: currentColor;
+}
+
+.md-rule {
+  margin: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--chamber-rule-border, #E5E0D8);
+}
+
+.md-minor-heading {
+  font-size: 0.85rem;
+}

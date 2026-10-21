@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, Clock3, Compass, Layers3, Route } from 'lucide-re
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/StateViews';
+import ResumeCard from '../components/learning/ResumeCard';
 import { pathwayCatalog } from '../content/curriculumCatalog';
 import './ChaptersIndex.css';
 
@@ -53,6 +54,8 @@ export default function ChaptersIndex() {
           </div>
         </div>
       </header>
+
+      <ResumeCard />
 
       <section className="chapters-library-section" aria-labelledby="active-pathways-heading">
         <div className="chapters-section-heading">
