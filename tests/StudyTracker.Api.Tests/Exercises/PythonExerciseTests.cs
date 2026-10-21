@@ -184,6 +184,40 @@ public class PythonExerciseTests
     }
 
     [Fact]
+    public void PythonCompilerOutput_KeepsLearnerErrorLines_AndDropsFrameworkFrames()
+    {
+        const string raw = """
+            ==================================== ERRORS ====================================
+            __________________ ERROR collecting tests/test_count_freq.py ___________________
+            /usr/local/lib/python3.13/site-packages/_pytest/python.py:498: in importtestmodule
+                mod = import_path(
+            <frozen importlib._bootstrap>:1404: in _gcd_import
+                ???
+            tests/test_count_freq.py:3: in <module>
+                from config.countFreq import count_frequency
+            config/helpers.py:2: in <module>
+                import missing_module
+            E     File "/workspace/config/countFreq.py", line 1
+            E       def count_frequency(arr)
+            E                               ^
+            E   SyntaxError: expected ':'
+            =========================== short test summary info ============================
+            """;
+
+        var cleaned = ExerciseService.PythonCompilerOutput(raw)!;
+
+        Assert.Contains("SyntaxError: expected ':'", cleaned);
+        Assert.Contains("File \"config/countFreq.py\", line 1", cleaned);
+        Assert.Contains("config/helpers.py:2: in <module>", cleaned);
+        Assert.Contains("import missing_module", cleaned);
+        Assert.DoesNotContain("site-packages", cleaned);
+        Assert.DoesNotContain("<frozen", cleaned);
+        Assert.DoesNotContain("tests/test_count_freq.py", cleaned); // hidden tests stay hidden
+        Assert.DoesNotContain("/workspace/", cleaned);
+        Assert.Equal("unparsed output", ExerciseService.PythonCompilerOutput("unparsed output"));
+    }
+
+    [Fact]
     public async Task ProgressService_RecordsRuns_RestoresDraft_AndAutoSolvesOnSuccess()
     {
         using var db = new StudyTrackerContext(new DbContextOptionsBuilder<StudyTrackerContext>()

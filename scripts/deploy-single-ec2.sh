@@ -392,13 +392,18 @@ verify_host_image_platform "${runner_ref}" "Java runner image"
 
 python_runner_ref=""
 if [ -n "${PYTHON_RUNNER_REF}" ]; then
-    python_runner_ref="${PYTHON_RUNNER_REF}"
-    verify_digest_ref "${python_runner_ref}" "PYTHON_RUNNER_REF"
-    verify_image_digest_ref "${python_runner_ref}" "PYTHON_RUNNER_REF" "${PYTHON_RUNNER_IMAGE}"
-    docker pull "${python_runner_ref}"
-    # Like the Java runner, keep the pulled digest tagged so image cleanup never removes it.
-    docker tag "${python_runner_ref}" "${PYTHON_RUNNER_IMAGE}:deployed"
-    verify_host_image_platform "${python_runner_ref}" "Python runner image"
+    verify_digest_ref "${PYTHON_RUNNER_REF}" "PYTHON_RUNNER_REF"
+    verify_image_digest_ref "${PYTHON_RUNNER_REF}" "PYTHON_RUNNER_REF" "${PYTHON_RUNNER_IMAGE}"
+    # Non-fatal: if the Python runner can't be pulled (e.g. registry token lacks access to the
+    # new package), the release still ships; only Python live exercises report "runner unavailable".
+    if docker pull "${PYTHON_RUNNER_REF}"; then
+        python_runner_ref="${PYTHON_RUNNER_REF}"
+        # Like the Java runner, keep the pulled digest tagged so image cleanup never removes it.
+        docker tag "${python_runner_ref}" "${PYTHON_RUNNER_IMAGE}:deployed"
+        verify_host_image_platform "${python_runner_ref}" "Python runner image"
+    else
+        log "WARNING: could not pull the Python exercise runner ${PYTHON_RUNNER_REF}; Python live exercises will be unavailable until it is pulled."
+    fi
 fi
 verify_host_image_platform "${api_ref}" "API image"
 verify_host_image_platform "${ai_agent_ref}" "AI agent image"

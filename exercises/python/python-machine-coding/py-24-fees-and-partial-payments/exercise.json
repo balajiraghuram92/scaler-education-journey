@@ -30,13 +30,8 @@
   },
   "evidence": [
     {
-      "id": "started-hours-rounds-up-with-a-one-hour-minimum",
-      "label": "started_hours rounds up to started hours with a minimum of one",
-      "testMethod": "test_started_hours_rounds_up_with_a_one_hour_minimum"
-    },
-    {
       "id": "weekday-rounds-started-hours-up",
-      "label": "Weekday pricing is 10 per started hour for every vehicle type",
+      "label": "Weekday pricing is 10 per started hour for every vehicle type, with started_hours rounding up to a one hour minimum",
       "testMethod": "test_weekday_rounds_started_hours_up"
     },
     {
@@ -71,13 +66,8 @@
     },
     {
       "id": "a-failed-payment-does-not-count-and-a-retry-settles-the-bill",
-      "label": "A failed payment adds nothing and a retry settles the bill, freeing the spot",
+      "label": "A failed payment adds nothing, every attempt is recorded and a retry settles the bill, freeing the spot",
       "testMethod": "test_a_failed_payment_does_not_count_and_a_retry_settles_the_bill"
-    },
-    {
-      "id": "every-attempt-is-recorded",
-      "label": "Every attempt, failed or not, is appended to the bill with its amount and mode",
-      "testMethod": "test_every_attempt_is_recorded"
     },
     {
       "id": "overpayment-is-rejected-before-the-gateway-is-called",

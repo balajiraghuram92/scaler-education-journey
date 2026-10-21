@@ -21,20 +21,15 @@ def weekend_fee():
     return WeekendSlabFee({VehicleType.CAR: CAR_SLABS})
 
 
-def test_started_hours_rounds_up_with_a_one_hour_minimum():
-    t = datetime(2026, 1, 5, 10, 0)
-    assert started_hours(t, t) == 1, "minimum is one hour"
-    assert started_hours(t, datetime(2026, 1, 5, 10, 1)) == 1
-    assert started_hours(t, datetime(2026, 1, 5, 11, 0)) == 1
-    assert started_hours(t, datetime(2026, 1, 5, 11, 1)) == 2
-    assert started_hours(t, datetime(2026, 1, 6, 10, 0)) == 24
-
-
 @pytest.mark.parametrize("vehicle_type", list(VehicleType))
 def test_weekday_rounds_started_hours_up(vehicle_type):
     start = datetime(2026, 1, 5, 10, 0)
     assert WeekdayFee().calculate(start, datetime(2026, 1, 5, 11, 30), vehicle_type) == 20.0
     assert WeekdayFee().calculate(start, datetime(2026, 1, 5, 11, 0), vehicle_type) == 10.0
+    assert started_hours(start, start) == 1, "minimum is one hour"
+    assert started_hours(start, datetime(2026, 1, 5, 10, 1)) == 1
+    assert started_hours(start, datetime(2026, 1, 5, 11, 1)) == 2
+    assert started_hours(start, datetime(2026, 1, 6, 10, 0)) == 24
 
 
 def test_slab_fees_match_the_published_examples():
@@ -98,18 +93,12 @@ def test_a_failed_payment_does_not_count_and_a_retry_settles_the_bill():
     failed = service.make_payment(bill, 300, "upi")
     assert failed.status is PaymentStatus.FAILED
     assert bill.total_paid == 200 and not bill.is_paid and bill.spot.status is SpotStatus.OCCUPIED
-    service.make_payment(bill, 300, "upi")
+    retry = service.make_payment(bill, 300, "upi")
     assert bill.is_paid and bill.spot.status is SpotStatus.AVAILABLE
-
-
-def test_every_attempt_is_recorded():
-    outcomes = iter([False, True])
-    service, bill = PaymentService(lambda a, m: next(outcomes)), Bill(100, Spot(1), [])
-    p1 = service.make_payment(bill, 100, "card")
-    p2 = service.make_payment(bill, 100, "upi")
-    assert bill.payments == [p1, p2]
-    assert (p1.amount, p1.mode, p1.status) == (100, "card", PaymentStatus.FAILED)
-    assert (p2.amount, p2.mode, p2.status) == (100, "upi", PaymentStatus.SUCCESS)
+    assert [(p.amount, p.mode, p.status) for p in bill.payments] == [
+        (200, "cash", PaymentStatus.SUCCESS), (300, "upi", PaymentStatus.FAILED), (300, "upi", PaymentStatus.SUCCESS)
+    ], "every attempt is recorded, failed ones included"
+    assert bill.payments[-1] is retry
 
 
 def test_overpayment_is_rejected_before_the_gateway_is_called():

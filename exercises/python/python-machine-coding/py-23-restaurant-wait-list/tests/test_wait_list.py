@@ -86,10 +86,6 @@ def test_non_admin_is_denied():
     with pytest.raises(UnauthorizedAccessException, match="Access Denied"):
         w.service.update_wait_list(w.customers[0].id, 1)
     assert len(w.waits.find_all()) == 4
-
-
-def test_update_unknown_user():
-    w = World()
     with pytest.raises(UserNotFoundException, match="User not found"):
         w.service.update_wait_list(999, 1)
 

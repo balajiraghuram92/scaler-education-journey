@@ -336,13 +336,8 @@
     },
     {
       "id": "unsupported-service-for-vehicle-issues-no-ticket",
-      "label": "A service the vehicle type does not support raises and issues no ticket or spot",
+      "label": "An unknown service or one the vehicle type does not support raises and issues no ticket or spot",
       "testMethod": "test_unsupported_service_for_vehicle_issues_no_ticket"
-    },
-    {
-      "id": "unknown-service-name-is-rejected",
-      "label": "An unknown service name raises UnsupportedAdditionalService",
-      "testMethod": "test_unknown_service_name_is_rejected"
     },
     {
       "id": "gate-and-ticket-validation-on-invoice",

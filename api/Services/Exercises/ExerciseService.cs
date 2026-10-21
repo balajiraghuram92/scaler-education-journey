@@ -56,7 +56,7 @@ public sealed class ExerciseService
             workspace = await _workspaceBuilder.BuildAsync(runId, definition, submission, cancellationToken);
             var runnerResult = await _runner.RunAsync(workspace, cancellationToken);
             var classified = _classifier.Classify(definition, runnerResult);
-            var response = ToResponse(exerciseId, classified);
+            var response = ToResponse(exerciseId, classified, ExerciseRuntimeProfiles.IsPython(definition.Manifest));
 
             _logger.LogInformation(
                 "Completed exercise execution {RunId} for {ExerciseId} with status {Status} in {DurationMilliseconds} ms.",
@@ -96,7 +96,8 @@ public sealed class ExerciseService
 
     private static ExerciseExecutionResponse ToResponse(
         string exerciseId,
-        ClassifiedExerciseExecution classified)
+        ClassifiedExerciseExecution classified,
+        bool isPython = false)
     {
         var parsed = classified.SurefireResult;
         var evidence = parsed?.Tests
@@ -110,7 +111,7 @@ public sealed class ExerciseService
             .ToList() ?? new List<ExerciseEvidenceResultDto>();
 
         var compilerOutput = classified.Status == ExerciseExecutionStatus.CompilationFailure
-            ? CombineOutput(classified.RunnerResult)
+            ? (isPython ? PythonCompilerOutput(CombineOutput(classified.RunnerResult)) : CombineOutput(classified.RunnerResult))
             : null;
         var runtimeOutput = classified.Status == ExerciseExecutionStatus.TestFailure
             ? CombineOutput(classified.RunnerResult)
@@ -130,6 +131,44 @@ public sealed class ExerciseService
                 parsed?.Skipped ?? 0),
             evidence,
             new ExerciseDiagnosticsDto(compilerOutput, runtimeOutput));
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex LearnerFrame =
+        new(@"^(?!tests/|/usr/|<frozen)[\w./-]+\.py:\d+: in ", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>
+    /// pytest reports a learner's syntax/import error as a collection error buried in framework frames.
+    /// Keep what the learner can act on: the error lines ("E ...") and frames inside their own files.
+    /// </summary>
+    public static string? PythonCompilerOutput(string? combined)
+    {
+        if (string.IsNullOrWhiteSpace(combined))
+        {
+            return combined;
+        }
+
+        var lines = combined.Replace("\r", string.Empty).Split('\n');
+        var kept = new List<string>();
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i];
+            if (line.StartsWith("E ", StringComparison.Ordinal))
+            {
+                kept.Add(line.Length > 4 ? line[4..] : string.Empty);
+            }
+            else if (LearnerFrame.IsMatch(line))
+            {
+                kept.Add(line);
+                if (i + 1 < lines.Length && lines[i + 1].StartsWith("    ", StringComparison.Ordinal))
+                {
+                    kept.Add(lines[++i]);
+                }
+            }
+        }
+
+        return kept.Count == 0
+            ? combined
+            : string.Join('\n', kept).Replace("/workspace/", string.Empty);
     }
 
     private static string? CombineOutput(RunnerExecutionResult result)

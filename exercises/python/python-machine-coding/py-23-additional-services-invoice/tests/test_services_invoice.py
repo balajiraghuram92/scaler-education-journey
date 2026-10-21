@@ -91,10 +91,6 @@ def test_unsupported_service_for_vehicle_issues_no_ticket():
         w.ticket("car", ["CAR_WASH", "EV_CAR_CHARGING"])
     assert w.tickets.get_ticket_by_id(1) is None
     assert all(s.status is ParkingSpotStatus.AVAILABLE for s in w.floor.spots), "no spot may be taken"
-
-
-def test_unknown_service_name_is_rejected():
-    w = World()
     with pytest.raises(UnsupportedAdditionalService):
         w.ticket("car", ["TIME_TRAVEL"])
     assert w.tickets.get_ticket_by_id(1) is None

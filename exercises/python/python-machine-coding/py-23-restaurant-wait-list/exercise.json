@@ -169,13 +169,8 @@
     },
     {
       "id": "non-admin-is-denied",
-      "label": "A non-admin gets UnauthorizedAccessException(\"Access Denied\") and nothing is removed",
+      "label": "A non-admin gets UnauthorizedAccessException(\"Access Denied\") and an unknown user UserNotFoundException; nothing is removed",
       "testMethod": "test_non_admin_is_denied"
-    },
-    {
-      "id": "update-unknown-user",
-      "label": "Update with an unknown user raises UserNotFoundException",
-      "testMethod": "test_update_unknown_user"
     },
     {
       "id": "controller-success-responses",
