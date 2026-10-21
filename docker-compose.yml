@@ -77,6 +77,8 @@ services:
       ExerciseExecution__WorkspaceRoot: /tmp/studytracker-exercises
       ExerciseExecution__RunnerImage: ${EXERCISE_RUNNER_IMAGE:-neuralascent-java-runner:dev}
       ExerciseExecution__RunnerImagesByProfile__java-maven-spring: ${EXERCISE_RUNNER_IMAGE_SPRING:-neuralascent-java-spring-runner:dev}
+      # Python live exercises (build locally: docker build -t neuralascent-python-runner:dev runner/python)
+      ExerciseExecution__PythonRunnerImage: ${EXERCISE_PYTHON_RUNNER_IMAGE:-neuralascent-python-runner:dev}
       ExerciseExecution__DockerEndpoint: unix:///var/run/docker.sock
       ExerciseExecution__MavenCacheVolume: ${EXERCISE_MAVEN_CACHE_VOLUME:-neuralascent-maven-cache}
 
