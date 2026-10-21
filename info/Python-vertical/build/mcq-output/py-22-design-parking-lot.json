@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-22-design-parking-lot",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-22/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "In the parking-lot diagram, which relationship description is the most defensible?",
+      "explanation": "**Answer: (d)** Composition expresses ownership of lifecycle (lot to floors to spots); a reference expresses a link between independent things (ticket to vehicle, spot, gate).\n\n- (a) composition means the part cannot outlive the whole; a vehicle and a payment record clearly can.\n- (b) floors and spots have no meaning outside a lot, so the lot should own their lifecycle.\n- (c) the vehicle returns on later visits; deleting it with a ticket would lose history.\n\n**Deeper:** The choice decides who creates and deletes the part and where the foreign key sits in the schema. Interviewers ask \"why a diamond here and a line there\" precisely to see whether you can justify lifecycle ownership.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Everything is composition, because every class belongs to the parking lot in some way.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Everything is a reference, so floors and spots can be created without any lot.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A ticket composes the vehicle, so deleting a ticket deletes the vehicle record.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A lot composes its floors and a floor composes its spots, while a ticket merely references a vehicle, a spot and a gate, which exist independently of the ticket.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "The parking fee depends on vehicle type, duration, day of week, holidays and monthly passes, and the business will keep adding rules. Where should the calculation live?",
+      "explanation": "**Answer: (b)** Fee rules are the likeliest part to change, so they belong behind an interface where a new rule is a new class.\n\n- (a) every new rule would edit an existing class, violating open-closed and making the ticket a growing god object.\n- (c) a spot has no idea about time or holidays, and the fee is not a property of a spot.\n- (d) it hides business rules from the code under test and does not answer the design question being asked.\n\n**Deeper:** The same reasoning applies to spot assignment. When asked \"how would you add a weekend pricing model\", the answer should be \"one new class and one line in the factory\", and you should have already drawn the interface.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "In `Ticket.calculate_fee()` with an `if/elif` per rule, since the ticket has the entry time.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Behind a `FeeStrategy` interface with one implementation per pricing model, selected (for example by a small factory) when the bill is created.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In `ParkingSpot`, because each spot knows its vehicle type.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "In the database as a stored procedure, so the application stays simple.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using the lesson's dataclasses, what does this print?\n\n```python\nf0 = ParkingFloor(0, [ParkingSpot(2, VehicleType.CAR)])\nf1 = ParkingFloor(1, [ParkingSpot(2, VehicleType.CAR)])\nspot = f1.spots[0]\nprint(spot in f0.spots, spot is f0.spots[0], spot == f0.spots[0])\n```",
+      "explanation": "**Answer: (a)** A dataclass compares by fields, so two separate spots with the same number, type and status are `==`, and `in` finds one on the wrong floor.\n\n- (b) `@dataclass` generates `__eq__` over fields, and the fields here are identical, so equality is true.\n- (c) equality and identity differ: they are two distinct instances.\n- (d) `in` on a list uses `==` (after an identity shortcut), so it finds the equal spot.\n\n**Deeper:** The lesson's demo uses `any(s is spot ...)` to find the floor, and the first version of that demo printed floor 0 for both strategies because of this exact bug. For domain entities, compare by id or identity, or declare `@dataclass(eq=False)`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`True False True`: the spots are equal by value but are different objects.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`False False False`, because the spots belong to different floors.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`True True True`, because equal objects are the same object.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`False True False`, because `in` uses identity.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which constraint correctly captures \"a spot number is unique within a floor\" in the schema?",
+      "explanation": "**Answer: (c)** The pair (floor, number) identifies a spot, so the uniqueness belongs on the pair.\n\n- (a) that forbids spot 1 on any floor if another floor already has a spot 1, which is a perfectly normal layout.\n- (b) that would allow only one spot per floor.\n- (d) application guarantees disappear with a second writer, a script or a data load; the database should enforce it.\n\n**Deeper:** I ran this DDL in SQLite and a duplicate (floor 1, number 1) was rejected with `UNIQUE constraint failed: parking_spots.parking_floor_id, parking_spots.spot_number`. Composite keys that mirror a composition in the diagram are a good thing to point out.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`UNIQUE (spot_number)`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`UNIQUE (parking_floor_id)`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`UNIQUE (parking_floor_id, spot_number)` on `parking_spots`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "No constraint: the application assigns numbers sequentially, so duplicates cannot occur.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Three operational floors have this many free CAR spots: floor 0 has 3, floor 1 has 1, floor 2 has 1. Under `LeastAvailableFloorStrategy` (fewest free spots greater than zero, ties to the lowest floor number), which floor is chosen?",
+      "explanation": "**Answer: (a)** Sorting candidates by `(free_count, floor_number)` puts floor 1 first.\n\n- (b) the strategy deliberately prefers the fullest floor, not the emptiest.\n- (c) ties are broken by the lowest floor number, not by position.\n- (d) the key `(count, floor_number)` totally orders candidates, so there is always a winner.\n\n**Deeper:** Tuple keys are the idiomatic way to express a priority with tie-breakers. The product reason is compaction: filling the fullest floor first lets you close empty floors for maintenance or energy savings. I confirmed the result by running the `min(...)` expression.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Floor 1, because it ties with floor 2 on the fewest free spots and has the lower floor number.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Floor 0, because it has the most free spots and is the lowest-numbered floor.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Floor 2, because the last candidate with the minimum count wins.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "No floor, because two floors tie and the strategy cannot choose.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "With the lesson's `HourlyFeeStrategy` (started hours rounded up, one-hour minimum, car rate 20), what are the fees for a car that enters at 10:00 and leaves at 11:01, at 10:00, and at 12:00?",
+      "explanation": "**Answer: (c)** A started hour counts: 61 minutes is 2 hours (40), zero minutes is clamped to a one-hour minimum (20), and exactly 120 minutes is 2 hours (40).\n\n- (a) hours are rounded up, and the `max(1, ...)` gives a one-hour minimum, so neither is free.\n- (b) two hours is two started hours, so the fee is 40.\n- (d) 61 minutes is more than one hour, so a second hour has started.\n\n**Deeper:** Boundary conditions are what interviewers probe: exactly on the hour, zero duration, and one second over. State the rule (\"ceil, minimum one hour\") before writing the code. I ran the three cases and got those numbers.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`[20.0, 0.0, 40.0]`, because partial hours are free and an instant stay costs nothing.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`[40.0, 20.0, 20.0]`, because exactly two hours is charged as one.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`[40.0, 20.0, 40.0]`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`[20.0, 20.0, 40.0]`, because 61 minutes still counts as one hour.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this raise?\n\n```python\nParkingLotBuilder(\"X\").add_gate(Gate(1, GateType.ENTRY)).build()\n```",
+      "explanation": "**Answer: (d)** `build()` accumulates all problems and raises once, so a missing floor and a missing exit gate are reported together.\n\n- (a) the Builder requires at least one floor and both gate types.\n- (b) `build()` collects every problem before raising, so both messages appear.\n- (c) the lesson's `add_gate` returns `self`, so the chain works.\n\n**Deeper:** Reporting every configuration error at once is friendlier than fail-fast for a setup step, and it is the reason a Builder earns its place. For single-field checks, fail fast instead. I ran the snippet and saw exactly this message.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing: a lot with one entry gate is valid.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`InvalidParkingLotConfigError: at least one floor is required` only, because the first failing rule stops validation.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`AttributeError`, because `add_gate` does not return the builder.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`InvalidParkingLotConfigError: at least one floor is required; need at least one entry gate and one exit gate`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A candidate implements `ParkingLot` as a module-level Singleton \"because the problem says there is one lot\". What is the strongest objection?",
+      "explanation": "**Answer: (b)** Global state couples every caller to one instance, so tests interfere and multi-lot support needs a rewrite.\n\n- (a) a module-level object is common in Python; the objection is design, not language support.\n- (c) performance is irrelevant here; the problem is coupling and shared state.\n- (d) a Singleton can hold floors; that is not the issue.\n\n**Deeper:** The pragmatic alternative is a composition root that creates one lot and injects it. You get \"only one lot\" from wiring, not from the class, and tests can build their own. See the Singleton lesson for thread-safety details.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Singletons are not allowed in Python.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It hides a global dependency, makes tests share state and order-dependent, and breaks the moment the requirement becomes several lots; pass the lot (or its repository) in explicitly.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It makes the lot slower to construct.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It prevents the lot from having floors.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which schema choice best supports split and retried payments for a bill?",
+      "explanation": "**Answer: (a)** One-to-many from bill to payment, with a status per row, models partial and retried payments and keeps an audit trail.\n\n- (b) it cannot represent a partial payment or a retry after a failed attempt.\n- (c) that rules out split payments and retries, the exact cases being designed for.\n- (d) it cannot be queried or constrained and breaks first normal form.\n\n**Deeper:** A failed attempt followed by a successful one are two rows, and only the successful ones count towards the total. In a trace with 200 successful and 300 failed against a 500 bill, the paid total is 200, so the bill stays unpaid; this is the same rule the next lessons implement.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A `payments` table with a foreign key to `bills`, an amount and a status per row; the service sums the `SUCCESS` rows and compares the total with the bill amount.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A single `paid` boolean on `bills`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A unique foreign key from `payments` to `bills`, so each bill has at most one payment.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Store payments as a comma-separated string on the bill row.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A spot-assignment strategy finds no free spot. Which contract is best for `assign()`?",
+      "explanation": "**Answer: (d)** The strategy answers \"which spot, if any\"; what to do about \"none\" is business policy and belongs in the service.\n\n- (a) a bare `Exception` is unnamed and forces policy into every strategy.\n- (b) a sentinel object that looks valid will be stored on a ticket and corrupt data.\n- (c) blocking inside a strategy hides latency and can deadlock the gate.\n\n**Deeper:** This keeps strategies pure and easy to test with a one-line assertion on `None`. In the lesson tests, `test_no_spot_returns_none_instead_of_raising` pins the contract. Returning `None` also composes naturally with `or`-chains when you want a fallback strategy.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Raise `Exception(\"no spot\")` inside the strategy.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Return a dummy spot with number `-1` so callers never handle `None`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Loop until a spot becomes free.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Return `None` (or an explicit \"no spot\" result) and let the service decide to raise a `ParkingFullError`, queue the vehicle, or reject the ticket.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Two entry gates, served by different worker processes, race for the last free spot in a shared database. Which fix actually prevents a double assignment?",
+      "explanation": "**Answer: (c)** Only the shared resource (the database) can arbitrate between processes; the check and the update must be one atomic statement or transaction.\n\n- (a) a thread lock exists only inside one process, so a second worker process does not see it.\n- (b) a delay only shifts the race window; it does not remove it.\n- (d) the GIL is per process and does not make read-then-write sequences atomic.\n\n**Deeper:** Inside one process a lock is correct and cheap, which is what the Parking Lot 2 lesson builds. In production, with several workers, you push the guarantee down to the database. Say both in the interview and say where each applies.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Wrap the Python assignment code in a `threading.Lock`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Add `time.sleep(0.1)` before reading the spot status.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Make the assignment atomic in the database, for example an `UPDATE ... WHERE status = 'AVAILABLE'` whose affected-row count you check, or a row lock, or a unique constraint on the active ticket per spot.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Rely on the GIL, since only one thread runs bytecode at a time.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-22/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using SQLite from Python, you create `bills` with `ticket_id INTEGER NOT NULL REFERENCES tickets(id)` and insert a bill for ticket 99, which does not exist. What happens on a new connection without any pragma, and with `PRAGMA foreign_keys = ON`?",
+      "explanation": "**Answer: (b)** SQLite leaves foreign-key enforcement off by default, per connection, for backward compatibility.\n\n- (a) SQLite parses the declaration but enforces it only when the pragma is on for that connection.\n- (c) enforcement exists and works once enabled.\n- (d) that is the reverse of the actual behaviour.\n\n**Deeper:** I ran both variants and saw `inserted` then `rejected`. When you use SQLite for tests of a schema that will run on PostgreSQL, enable the pragma on every connection, otherwise your tests pass on data the real database would refuse.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Rejected in both cases, because the foreign key is declared in the schema.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Without the pragma the insert succeeds (foreign keys are not enforced by default); with `ON` it is rejected with an `IntegrityError`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Accepted in both cases, because SQLite ignores foreign keys entirely.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Rejected without the pragma and accepted with it.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

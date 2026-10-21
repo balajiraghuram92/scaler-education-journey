@@ -1,0 +1,545 @@
+{
+  "lessonSlug": "py-03-magic-methods-data-model",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-03/additional/q01",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Uber's Trip class defines __repr__ but not __str__. What is the output of print(trip)?",
+      "explanation": "**Answer: (c)** `object.__str__` delegates to `repr(self)`, so a class that defines only `__repr__` prints its `__repr__` output.\n\n- (a) print uses str(), which always has a default\n- (b) the default memory-address repr is used only if `__repr__` is also missing\n- (d) `__str__` is inherited from object and never empty\n\n**Deeper:** The fallback runs one way only: `__repr__` does not fall back to `__str__`. Always define a useful `__repr__` first, because logs, tracebacks and containers all show the repr. In interviews this question usually leads to `__format__` and f-string conversions: `!r` forces repr and `!s` forces str.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Raises TypeError since print() requires __str__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The default <Trip object at 0x…> memory address",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The __repr__ output, since __str__ falls back to __repr__ when undefined",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An empty string, since __str__ is missing",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/additional/q02",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A Vehicle class overrides __eq__ to compare by reg_number, but never defines __hash__. A developer runs Vehicle.__hash__ in the REPL. What does it show?",
+      "explanation": "**Answer: (b)** When a class body defines `__eq__` without `__hash__`, the type machinery sets `__hash__` to `None`, so `Vehicle.__hash__` shows `None` in the REPL.\n\n- (a) the inherited object.__hash__ is explicitly blocked once equality changes\n- (c) the attribute exists; its value is None\n- (d) there is no constant-zero hash fallback\n\n**Deeper:** Calling `hash(vehicle)` then raises `TypeError: unhashable type`. The same rule applies if you define `__eq__` in a subclass of a hashable parent: the subclass loses hashability unless it restores `__hash__`. In an interview, connect this to the dataclass rule: `@dataclass(eq=True)` without `frozen=True` or `unsafe_hash=True` also sets `__hash__` to `None` for the same reason.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A working hash function inherited from object",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "None — Python automatically disables hashing when __eq__ is overridden without a matching __hash__",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "AttributeError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A function that always returns 0",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Two Driver objects d1 and d2 have the same driver_id. __eq__ compares by driver_id, and __hash__ is defined as return hash(self.driver_id). What is d1 in {d2}?",
+      "explanation": "**Answer: (d)** Equal objects must hash alike, so `hash(d1) == hash(d2)` lands both in the same bucket, and then `__eq__` confirms a match. Therefore `d1 in {d2}` is `True`.\n\n- (a) identity is not used once __eq__ and __hash__ are defined by driver_id\n- (b) the class is hashable because __hash__ is defined\n- (c) identity is not required; equality plus matching hash is enough\n\n**Deeper:** This only holds while `driver_id` never changes after insertion. Hash from immutable identity fields, and keep volatile data such as ratings out of both methods. A related trap is that `1 == 1.0 == True` and they hash alike, so `{1: \"a\"}.get(1.0)` returns `\"a\"`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "False — different objects in memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Raises TypeError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "True only if d1 is d2",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "True — equal objects hash to the same \"shelf,\" so membership lookup finds it",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "a + b on custom objects is secretly routed through which mechanism?",
+      "explanation": "**Answer: (b)** The `+` operator compiles to a call of `type(a).__add__(a, b)`, falling back to `type(b).__radd__(b, a)` when the left side returns `NotImplemented`.\n\n- (a) operators are not special syntax; they dispatch through dunders\n- (c) this is not a hidden compiler path; it is the documented data model\n- (d) the left operand is tried first; the reflected method is only a fallback\n\n**Deeper:** Return `NotImplemented` for operands you do not understand so the reflected method gets a chance, and define `__radd__` to let `sum()` start from the integer 0. This is also why `NotImplemented` is a singleton value you return, not an exception you raise: raising would prevent Python from trying the other operand.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python parses + as raw syntax with no method call involved",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "a.__add__(b) — operators are method calls \"wearing a costume\"",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A hidden compiler-level operation invisible to the data model",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "b.__add__(a) always, regardless of order",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why does Python set __hash__ to None automatically the instant a class defines __eq__ (without also defining __hash__)?",
+      "explanation": "**Answer: (c)** The default `__hash__` is identity-based. Once equality is by content, two equal objects would get different hashes, silently breaking sets and dicts, so Python removes the hash instead.\n\n- (a) it is a deliberate guard for a real invariant\n- (b) it has no connection to __str__\n- (d) performance is not the reason\n\n**Deeper:** You restore hashability by defining `__hash__` over the same immutable fields as `__eq__`, or by using `@dataclass(frozen=True)` which generates a consistent pair. Python 3 made this change deliberately after years of silent set and dict corruption in Python 2, where a class with a custom equality still inherited an identity hash.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It's an arbitrary restriction with no real reason",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "To force you to also implement __str__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because the default identity-based hash would now disagree with your new content-based equality — letting \"equal\" objects land on different hash \"shelves,\" silently breaking sets/dicts",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "To improve performance of the class",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Inside a with Resource() as r: block that raises an exception, which statement is TRUE about __exit__?",
+      "explanation": "**Answer: (b)** `__exit__` runs on every exit path from the `with` block, and receives the exception details. A truthy return value suppresses the exception; a falsy one lets it continue propagating.\n\n- (a) skipping cleanup on error would defeat the purpose of with\n- (c) the manager does not depend on outer handlers\n- (d) it runs on both the normal and exceptional path\n\n**Deeper:** Return `True` only for the specific exception you can handle. A blanket `return True` hides real bugs, and an exception raised inside `__exit__` replaces the original one.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "__exit__ is skipped entirely if an exception occurs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "__exit__ always runs, exception or not; its return value (True/False) decides whether the exception is suppressed or re-raised",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "__exit__ only runs if the exception is caught elsewhere first",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "__exit__ runs only on the normal (non-exception) exit path",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A class defines __getitem__ by delegating to an internal list (return self._data[index]) but does NOT write any special slicing logic. What happens when a user calls obj[:2]?",
+      "explanation": "**Answer: (b)** In `obj[:2]`, Python builds a `slice(None, 2)` object and passes it to `__getitem__`, which forwards it to the internal list, and lists understand slices.\n\n- (a) Python has no __slice__ method in Python 3\n- (c) the list returns the slice result\n- (d) slicing works because the index is just an object passed through\n\n**Deeper:** Note the result is a plain `list` unless you wrap it. If callers expect your container type back, handle `isinstance(index, slice)` explicitly and build a new container.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "TypeError — slicing requires a separate __slice__ method",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Works correctly — the slice object is passed through to the internal list, which already knows how to slice itself",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Returns None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Only single-index access works; slicing always fails",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A SurgePricing object is configured with multiplier and base_fare, then used as surge(4.2). Which dunder makes this possible, and what's the risk of overusing this pattern?",
+      "explanation": "**Answer: (a)** `__call__` makes instances callable, so `surge(4.2)` invokes `type(surge).__call__(surge, 4.2)`. The risk is that callers assume a stateless function.\n\n- (b) __init__ runs once at construction, not when the object is called\n- (c) __getattr__ handles missing attributes, not calls\n- (d) __new__ creates instances and is not involved in calling them\n\n**Deeper:** It is a good fit for configured policies, validators and callbacks. Prefer a plain function or closure when there is no meaningful state, and document hidden state when there is. In FastAPI, callable class instances are a common way to build parameterised dependencies, for example a rate limiter configured once and used in `Depends(limiter)`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "__call__; risk is that readers may assume it's a plain function and be confused it carries hidden state — use only when the object genuinely represents \"a function with memory\"",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "__init__; no risk, it's always safe",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "__getattr__; no meaningful risk",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "__new__; risk of infinite recursion",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A class defines __contains__ for membership tests (x in obj). Which best describes when Python calls it?",
+      "explanation": "**Answer: (d)** Python rewrites `x in obj` to `type(obj).__contains__(obj, x)`, so defining the method is enough and callers never invoke it by name.\n\n- (a) the operator exists to hide the call\n- (b) in works with any class that defines __contains__, __iter__ or __getitem__\n- (c) the operator is not limited to loops\n\n**Deeper:** Without `__contains__` Python falls back to iterating via `__iter__` and then to the legacy `__getitem__` protocol, so membership is still linear unless you provide a faster implementation. For a large collection, back `__contains__` with a set or dict so membership is constant time.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Only when explicitly invoked as obj.__contains__(x)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Never — in only works on built-in types",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only inside for loops",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Automatically, whenever the in operator is used on an instance of that class",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which of these is the most accurate summary of the \"one rule\" for deciding whether to add a dunder method to a class?",
+      "explanation": "**Answer: (c)** Dunders exist so objects can take part in Python's existing vocabulary. Add one when a caller needs that syntax, not by default.\n\n- (a) more dunders mean more contracts to honour and test\n- (b) hashability is only one reason; len, in, with and == are others\n- (d) dunders and regular methods mix freely\n\n**Deeper:** Every dunder is a promise: `__eq__` implies `__hash__` consistency, `__len__` affects truthiness, `__iter__` must be repeatable. Unneeded dunders create surprises that reviewers must audit. A quick review test: for each dunder you add, name the call site in the codebase that needs it, and add a test that exercises the syntax rather than the method name.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Add as many dunders as possible to make the class feel powerful",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Only add dunders if the class will be used in a set or dict",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add a dunder only when a real caller needs the object to speak Python's existing language (len, in, ==, with) — don't wire buttons nobody presses or create surprising behavior behind familiar syntax",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Dunders should only be added to classes without any regular methods",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/assignment/q01",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Uber's Driver class originally has no custom dunders. A dispatcher writes d1 = Driver(\"Ramesh\", 4.8, driver_id=\"D101\") and d2 = Driver(\"Ramesh\", 4.8, driver_id=\"D101\") — two separately-loaded copies of the same real driver record. Without any __eq__ defined, what does d1 == d2 evaluate to, and why?",
+      "explanation": "**Answer: (d)** `object.__eq__` compares identity, so two separately created `Driver` objects are different objects and `d1 == d2` is `False`.\n\n- (a) Python does not compare attributes without dataclass-style generation\n- (b) driver_id is only an ordinary attribute until you use it in __eq__\n- (c) equality is defined for every object by default\n\n**Deeper:** Use `@dataclass` (`eq=True` by default) or write `__eq__` and `__hash__` over the identity fields when separately loaded copies of the same record should be interchangeable. Interviewers often follow up with: and what happens to the hash? Without `__eq__` the identity hash is still consistent, so adding `__eq__` is exactly when the trouble starts.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "True — Python compares all attributes by default",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "True — because driver_id matches",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Raises TypeError — objects can't be compared without __eq__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "False — the default __eq__ is an identity check (same object in memory), not a content check",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "After adding def __eq__(self, other): return self.driver_id == other.driver_id to Driver (with no hash defined), a dispatch engineer runs online_drivers = {d1, d2}. What happens, and why?",
+      "explanation": "**Answer: (b)** Defining `__eq__` in the class body without `__hash__` sets `__hash__` to `None`, so building the set raises `TypeError: unhashable type: 'Driver'`.\n\n- (a) Python never invents a hash from equality\n- (c) the set cannot be built at all, so there are no entries\n- (d) the error is about hashing, not about attributes\n\n**Deeper:** Fix by adding `__hash__ = lambda self: hash(self.driver_id)` (as a method), over fields that never change while the object is in a set. A subtle follow-up is that a subclass inherits the `None` hash too, so a hashable base plus an `__eq__` override in a subclass quietly makes the subclass unhashable.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Works fine — Python auto-generates a matching __hash__ from __eq__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "TypeError: unhashable type — defining __eq__ sets __hash__ to None automatically, since a hash based on identity would now contradict content-based equality",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Silently creates two separate entries in the set",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "AttributeError — sets require a driver_id attribute",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A class defines only __repr__, no __str__. A developer runs print(some_object). What is printed?",
+      "explanation": "**Answer: (c)** The default `__str__` calls `__repr__`, so `print` shows the `__repr__` text.\n\n- (a) the default address is the object.__repr__ fallback, used only when you did not define repr\n- (b) print works with any object through str()\n- (d) the default is never an empty string\n\n**Deeper:** That fallback is one-directional, so always implement `__repr__` and add `__str__` only when users need a different presentation. Logging frameworks and exception messages typically format with `%r` or `!r`, so a clear repr turns \"object at 0x7f...\" lines into debuggable output.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The default memory address, ignoring __repr__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "TypeError — print() requires __str__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The __repr__ output — __str__'s default implementation falls back to calling __repr__",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An empty string",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Inside a with TripTimer(trip) as t: block, a ValueError is raised (not the TripCancelledError that __exit__ explicitly checks for and returns True on). What happens?",
+      "explanation": "**Answer: (d)** `__exit__` always runs, so cleanup and logging happen. Because the exception is not the one it handles, it returns a falsy value and the `ValueError` propagates.\n\n- (a) __exit__ is invoked for every exception type\n- (b) only TripCancelledError is swallowed\n- (c) execution does not skip errors; it leaves the block via the exception\n\n**Deeper:** Make suppression explicit and narrow (`return exc_type is TripCancelledError`) and log what you swallow so the behaviour is auditable. You can verify the order of events by printing from `__enter__` and `__exit__` and raising inside the block; the log shows begin, exit, then the traceback.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "__exit__ never runs since the exception isn't the one it checks for",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The ValueError is silently swallowed just like TripCancelledError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Python skips straight to the next line after the with block, ignoring the error entirely",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "__exit__ runs (cleanup/logging happens), returns False since the type doesn't match, and the ValueError propagates normally after cleanup",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A SurgePricing class is configured once via __init__(multiplier, base_fare) and defines __call__(self, distance). A developer then writes surge = SurgePricing(15, 50) followed by fare = surge(4.2). What allows surge(4.2) to work syntactically, and what's the main benefit over a plain function calculate_surge(distance, multiplier, base_fare)?",
+      "explanation": "**Answer: (b)** `__call__` enables the call syntax, and the benefit is that configuration lives on the instance, so each call receives only the argument that varies.\n\n- (a) it is not inherently faster than a function\n- (c) __init__ runs once, when the object is created\n- (d) objects with __call__ are callable\n\n**Deeper:** This is the \"function with memory\" pattern. It composes well with `map`, sorting keys and framework hooks, but prefer a closure or `functools.partial` when a function is clearer. In an interview, mention that `functools.partial` and closures achieve the same effect with less ceremony when no other methods or inspection are needed.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "__call__ button; benefit is it's always faster than a function",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "__call__ button; benefit is the object remembers configuration (multiplier, base_fare) across calls, so each call only needs what actually varies",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "__init__ is called again each time; no real benefit over a function",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This is invalid syntax — objects cannot be called like functions in Python",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Bad:\n    def __init__(self, k): self.k = k\n    def __eq__(self, o): return self.k == o.k\n    def __hash__(self): return hash(self.k)\n\nb = Bad(1)\ns = {b}\nb.k = 2\nprint(b in s, Bad(2) in s, len(s))\n```\nWhat is printed?",
+      "explanation": "**Answer: (b)** The object was stored in the bucket for `hash(1)`. After mutation its hash is `hash(2)`, so both lookups probe a different bucket and miss, while the set still holds one entry.\n\n- (a) would require lookups to find the stored object regardless of its new hash\n- (c) the original object is not found by its own new hash because it sits in the old bucket\n- (d) Bad(2) probes the new bucket, which is empty\n\n**Deeper:** This is the \"lost key\" bug behind many cache problems: a hashed object mutated after insertion. Hash only immutable fields, or freeze the key with `@dataclass(frozen=True)`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "True True 1",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "False False 1",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "True False 1",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "False True 1",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nimport copy\n\nclass Proxy:\n    def __init__(self):\n        self.x = 1\n        self._data = {\"a\": 1}\n    def __getattr__(self, name):\n        return self._data[name]\n\ncopy.copy(Proxy())\n```\nWhat happens?",
+      "explanation": "**Answer: (d)** `copy.copy` creates a blank instance without running `__init__` and probes it with `hasattr(y, \"__setstate__\")`. Missing `__setstate__` calls `__getattr__`, which reads `self._data`, which is also missing, so `__getattr__(\"_data\")` calls itself until the stack overflows.\n\n- (a) the blank instance has no _data, so the copy never completes\n- (b) the failure occurs before any dictionary lookup can raise KeyError\n- (c) the code never reaches a plain AttributeError because it recurses first\n\n**Deeper:** Guard `__getattr__` by raising `AttributeError` for names starting with an underscore, or look up through `self.__dict__`. The same bug appears with `pickle` and multiprocessing, which copy objects the same way.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It returns a shallow copy with _data copied",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "KeyError: _data",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "AttributeError: _data",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "RecursionError",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-03/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Guard:\n    def __enter__(self): return self\n    def __exit__(self, et, ev, tb): return True\n\ndef f():\n    with Guard():\n        return \"from with\"\n    return \"after\"\n\ndef g():\n    with Guard():\n        raise RuntimeError\n    return \"after\"\n\nprint(f(), g())\n```\nWhat is printed?",
+      "explanation": "**Answer: (a)** In `f` the `return` leaves the block normally, so `__exit__` gets no exception and the function returns `\"from with\"`. In `g` the `RuntimeError` is suppressed by the truthy return, so execution continues after the block and returns `\"after\"`.\n\n- (b) a return inside with is not an exception and is not discarded\n- (c) the truthy __exit__ result swallows it\n- (d) g never reaches a return statement inside the block\n\n**Deeper:** A context manager that always returns `True` hides every error, including programming bugs such as `TypeError` and `KeyboardInterrupt`. Suppress narrowly and log, as `contextlib.suppress` does for one exception class.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "from with after",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "after after",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "RuntimeError is raised",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "from with from with",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

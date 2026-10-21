@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-35-bytecode-gil-internals",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-35/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Several threads execute `counter += 1` on a shared global on a standard (GIL) build. Why can updates still be lost in principle?",
+      "explanation": "**Answer: (a)** `counter += 1` is not one atomic operation. It loads the value, adds, and stores the result back, and a thread switch can occur between the load and the store, so two threads can both read the same old value and write the same new one.\n\n- (b) The GIL is not released per arithmetic instruction; switches are requested at a time interval and take effect at specific points in the evaluation loop.\n- (c) Ints are immutable; `+=` rebinds the name to a new object.\n- (d) There is no thread-local copy; globals are shared module state.\n\n**Deeper:** In recent CPython versions the switch points are sparse enough that this race is hard to reproduce for plain ints, which is why the bug survives testing. It becomes easy to trigger when the operands run Python-level code (`__add__`) or on a free-threaded build, so protect such updates with a lock.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The statement compiles to several bytecodes (load, add, store), and the interpreter may switch threads between them",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The GIL is released on every arithmetic instruction",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Integers are mutable, so two threads can modify the same int object at once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`+=` always creates a new thread-local copy of the global",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "On a standard GIL build, which workload gains the most from a `ThreadPoolExecutor` with 32 threads?",
+      "explanation": "**Answer: (c)** Blocking network calls release the GIL while waiting for the socket, so many threads can have requests in flight at once. The total time approaches that of the slowest request rather than the sum.\n\n- (a), (b) and (d) are CPU-bound pure-Python work. Threads take turns holding the GIL, so adding threads gives no speed-up and adds switching overhead.\n\n**Deeper:** The rule of thumb is that threads help when the code spends its time waiting (network, disk, `time.sleep`) or inside C code that releases the GIL (NumPy kernels, compression, hashing of large buffers). For async-friendly clients `asyncio` is usually lighter than 32 threads, and for pure-Python CPU work you need processes, subinterpreters or a free-threaded build.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A pure-Python prime sieve over 10 million integers",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A pure-Python tokenizer that splits and normalizes text in memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Fetching 200 URLs with a blocking HTTP client",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A pure-Python matrix multiplication over nested lists",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What is `sys.getswitchinterval()` and what does its default value of 0.005 mean?",
+      "explanation": "**Answer: (b)** The switch interval is a time, in seconds. If a thread has been waiting for the GIL longer than the interval, it requests that the holder release it, and the holder does so at the next check point in the evaluation loop.\n\n- (a) A count of bytecodes was the old `sys.setcheckinterval` mechanism, replaced by a time-based interval in Python 3.2.\n- (c) Blocking I/O releases the GIL entirely; the interval does not limit it.\n- (d) It is a request handled inside the interpreter; the OS scheduler is separate.\n\n**Deeper:** Lowering the interval reduces the latency for a waiting thread at the price of more handoffs. It does not give parallelism. Interviewers ask this to see whether you know that GIL switching is cooperative and time-based, not arbitrary preemption.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The number of bytecode instructions a thread may execute before it must yield",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "How long (5 ms) a waiting thread waits before asking the running thread to release the GIL",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The maximum time a single I/O call may hold the GIL",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A fixed timeslice after which the OS scheduler preempts the thread",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You run a free-threaded 3.13t interpreter with default settings and import a C extension that has not declared support for running without the GIL. What typically happens?",
+      "explanation": "**Answer: (d)** Extensions must opt in to free-threaded operation. If an extension does not declare that it is safe without the GIL, the interpreter turns the GIL back on when importing it, with a warning, so that unsafe C code is not run concurrently.\n\n- (a) Per-object locks protect built-in containers, not arbitrary C extension state.\n- (b) The import normally succeeds; the interpreter chooses safety over failing.\n- (c) There is no automatic subinterpreter isolation.\n\n**Deeper:** This is why adopting 3.13t depends on your dependency tree. Check `sys._is_gil_enabled()` at start-up in a canary, and watch for the warning. The environment variable `PYTHON_GIL=0` can force the GIL off, but then you take responsibility for extension safety.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`sys._is_gil_enabled()` stays `False`, and the extension runs safely because of per-object locks",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The import always fails with `ImportError`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The extension is loaded into a separate subinterpreter automatically",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The interpreter re-enables the GIL for the process, emitting a warning",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nLIMIT = 10\n\ndef f(x):\n    return x + LIMIT\n```\n\nIn the `dis` output of `f`, which opcode loads `LIMIT`?",
+      "explanation": "**Answer: (b)** `LIMIT` is neither a parameter/local nor a variable of an enclosing function, so the compiler emits `LOAD_GLOBAL`, which looks the name up in the module globals and then builtins at run time (with inline caching in 3.11+). Disassembling this function shows `RESUME`, `LOAD_FAST`, `LOAD_GLOBAL`, `BINARY_OP`, `RETURN_VALUE`.\n\n- (a) `LOAD_FAST` is for local variables and parameters like `x`.\n- (c) Python does not treat a never-reassigned global as a constant; it could be rebound by any module.\n- (d) `LOAD_DEREF` is for closure cells, and the module scope is not an enclosing function scope.\n\n**Deeper:** This is the origin of the local-binding micro-optimization (`local_limit = LIMIT` inside a hot function). In 3.11+ inline caches reduce the cost considerably, so measure before applying it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`LOAD_FAST`, because the compiler inlines module constants",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`LOAD_GLOBAL`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`LOAD_CONST`, because `LIMIT` is never reassigned",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`LOAD_DEREF`, because `f` is a closure over the module",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A hot function `add(a, b)` returns `a + b` and runs a million times with ints. Later the same function is occasionally called with `str` and `float` arguments. What is the most accurate description of the effect on the specializing interpreter?",
+      "explanation": "**Answer: (d)** Specialized instructions guard their assumptions. When a guard fails, the instruction falls back to the generic path and may later specialize again for the new types. Semantics never change; only speed does, and mixed types make the site less predictable.\n\n- (a) Specialization is a transparent optimization and never changes behaviour.\n- (b) Deoptimization is per instruction and temporary, not a process-wide slowdown.\n- (c) Specialization happens in memory on the code object's bytecode; `.pyc` files are not rewritten.\n\n**Deeper:** This is one reason hot paths benefit from consistent types. You can inspect the effect with `dis.dis(func, adaptive=True)` after a warm-up loop. The exact opcodes are version-specific, so use them to learn, not to build tooling.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "After specialization the function raises `TypeError` for non-int arguments",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The function is permanently slowed for all argument types until the process restarts",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The `.pyc` file is rewritten with new bytecode for each new argument type",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The specialized `BINARY_OP` deoptimizes when it sees other types and can re-specialize, so results stay correct but the type-unstable site loses much of the speedup",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A function stores an exception for later reporting:\n\n```python\ndef work():\n    big = load_huge_object()\n    raise ValueError(\"boom\")\n\ntry:\n    work()\nexcept ValueError as e:\n    saved = e\n```\n\nAfter the `except` block finishes, is `big` still alive?",
+      "explanation": "**Answer: (a)** An exception carries a traceback, and the traceback keeps references to the frames it passed through, including their local variables. Because `saved` still references the exception, `big` stays alive. I confirmed this with a weak-reference probe: it stays alive until `saved` is deleted.\n\n- (b) Frames referenced by a traceback are kept alive; they are not freed on propagation.\n- (c) `except ... as e` deletes only the name `e` at the end of the block (which is why the code copies it to `saved`), not what the exception refers to.\n- (d) Retention does not depend on the type of the local.\n\n**Deeper:** Store `traceback.format_exception(e)` text or specific fields, or call `e.with_traceback(None)` (or `del e.__traceback__`), to avoid pinning frames. This is a common cause of mysterious memory growth in retry queues and error aggregators.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Yes, because `saved.__traceback__` references the frame of `work`, whose locals include `big`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "No, because the frame of `work` is destroyed as soon as the exception propagates",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "No, because `except ... as e` deletes everything the exception refers to",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Only if `load_huge_object` returns a container, since ints and strings are never retained",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "On a free-threaded build, which of the following still requires explicit synchronization in your own code?",
+      "explanation": "**Answer: (c)** Individual operations on built-in containers are protected by per-object locks, but a check followed by a set is two separate operations. Two threads can both see the key as missing and both compute and store, which causes duplicate work or inconsistent state. It needs a lock (or `dict.setdefault` when the computation is cheap and side-effect free).\n\n- (a) Containers do not corrupt under concurrent `append` on the free-threaded build.\n- (b) Concurrent reads of an unmodified dict are safe.\n- (d) `len()` is a single safe operation.\n\n**Deeper:** Free-threading removes the global lock, not the need to design for concurrent access. Code that quietly relied on the GIL making sequences \"almost atomic\" must now use explicit locks, queues or immutable data. Also remember that the check-then-act race exists on GIL builds too; it was merely harder to hit.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Many threads calling `list.append` on one shared list, to avoid corrupting the list",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Many threads reading values from a dictionary that no thread modifies",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Many threads running `if key not in cache: cache[key] = compute(key)` on a shared dict",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Many threads calling `len()` on a shared list",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A service runs 8 threads, each calling `numpy.dot` on large arrays, and scales across cores on a standard GIL build. Why?",
+      "explanation": "**Answer: (a)** The GIL only needs to be held while running Python bytecode and touching Python objects. Well-written extensions release it around long native computations such as BLAS kernels, letting other threads run in parallel.\n\n- (b) NumPy computes in-process.\n- (c) Shared memory does not remove the GIL's role for Python objects.\n- (d) The GIL is not disabled automatically; each extension must release it explicitly.\n\n**Deeper:** This is why \"Python threads are useless for CPU work\" is an over-simplification: it holds for pure-Python work. The nuance matters in interviews. It also explains BLAS oversubscription: eight threads each launching multi-threaded BLAS can contend for cores, so limit the BLAS thread count in such services.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "NumPy's C code releases the GIL during the heavy computation, so threads run concurrently",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "NumPy starts a separate process for each call",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Arrays live in shared memory, so the GIL does not apply to them",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The GIL is automatically disabled for any C extension",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which statement about subinterpreters (PEP 684 and PEP 734) is correct?",
+      "explanation": "**Answer: (c)** Subinterpreters are isolated runtimes within a process. Since 3.12 they can have a per-interpreter GIL, enabling parallelism without free-threading, and PEP 734 provides a standard-library API for them (`concurrent.interpreters`, 3.14). Objects live in one interpreter; communication uses queues or channels, with limits on what can be passed.\n\n- (a) Sharing objects and the lock describes threads, not subinterpreters.\n- (b) Threads provide no isolation; subinterpreters have separate modules and globals.\n- (d) They work on a standard GIL build, because each interpreter has its own lock.\n\n**Deeper:** Subinterpreters sit between threads and processes: lighter than processes, safer than shared-memory threads, but constrained by extension-module support and by the cost of copying data across the boundary. Check each dependency before adopting them.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "They share all Python objects with the main interpreter and use the same GIL",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They are OS threads with a separate call stack but no isolation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Each can run with its own GIL, so several can execute Python in parallel inside one process, but objects are not shared and data is passed explicitly",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "They require the free-threaded build to work",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\ndef f(a, b=2):\n    c = a + b\n    return c\n\nprint(f.__code__.co_varnames, f.__code__.co_argcount, f.__defaults__)\n```",
+      "explanation": "**Answer: (d)** `co_varnames` lists parameters first and then other locals, so it is `('a', 'b', 'c')`. `co_argcount` counts positional parameters (`a`, `b`), which is 2. Default values live on the function object, not the code object, in `f.__defaults__`, which is `(2,)`.\n\n- (a) forgets the local `c` and the default.\n- (b) counts `c` as an argument.\n- (c) misses that the defaults tuple holds `2`.\n\n**Deeper:** The split between immutable code objects and per-function data (defaults, globals, closure) is why one code object can back many function objects, for example every closure created by a factory. It also explains why default values are evaluated once, at function definition time.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`('a', 'b') 2 ()`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`('a', 'b', 'c') 3 (2,)`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`('a', 'b', 'c') 2 ()`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`('a', 'b', 'c') 2 (2,)`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-35/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A latency-sensitive thread starves while a CPU-bound thread runs. You call `sys.setswitchinterval(0.0005)` (lowering it from 5 ms). What is the most accurate expected effect?",
+      "explanation": "**Answer: (b)** A smaller interval makes waiting threads request the lock sooner, which lowers their latency but increases the number of handoffs and contention overhead. The GIL still allows one thread to run Python bytecode at a time, so throughput does not improve.\n\n- (a) Parallel execution of Python bytecode needs a free-threaded build or separate interpreters or processes.\n- (c) Sleeping already releases the GIL, regardless of the interval.\n- (d) More frequent switching can expose races more often; it never removes them.\n\n**Deeper:** Treat the switch interval as a niche tuning knob. In production the better fixes are to move CPU-bound work off the latency-sensitive path (a process pool, a queue, a separate service) and to measure tail latency before and after any change.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The CPU-bound work now runs in parallel on several cores",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The waiting thread gets the GIL sooner, at the cost of more switching overhead; total CPU-bound throughput does not improve",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The GIL is disabled for threads that call `sleep`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Race conditions disappear because switches become more predictable",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

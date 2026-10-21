@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-21-tictactoe-2",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-21/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An interviewer asks for the cheapest correct per-move win check on an N x N board. Which statement describes the O(1) approach and its true cost?",
+      "explanation": "**Answer: (b)** Running counters turn \"is this line full?\" into one increment and one comparison, so the work per move does not grow with N.\n\n- (a) scanning a row or column is O(N), not O(1), because every cell in the line must be examined.\n- (c) the number of winning configurations is huge and the copies cost O(N^2) memory per move, so neither time nor space is constant.\n- (d) that is the brute-force O(N^3) approach; the player count does not make a full scan constant.\n\n**Deeper:** Walk the ladder aloud in an interview: all players x all lines (O(N^3)), only the mover (O(N^2)), only the last move's lines (O(N)), then counters (O(1)). Each step is justified by one observation, and the counters trade memory and a reversibility obligation for speed.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Check only the row and column of the last move; that is O(1) because there are only two lines.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Keep a counter per (row, symbol), (column, symbol) and (diagonal, symbol); a move updates at most four counters and compares them with N, at the cost of about 2N + 2 counters per symbol and having to keep them in sync.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Store a full copy of the board after each move and compare it with a precomputed list of winning boards.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Check every player's rows and columns after each move, which is O(1) because there are few players.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A candidate keeps one shared counter per row, ignoring the symbol, and declares a win when it reaches 3. A 3 x 3 board gets X, O, X in row 0. What does this check report after each of the three moves?\n\n```python\nshared = defaultdict(int)\nwins = []\nfor sym in [\"X\", \"O\", \"X\"]:\n    shared[0] += 1\n    wins.append(shared[0] == 3)\nprint(wins)\n```",
+      "explanation": "**Answer: (d)** One counter per row cannot tell X from O, so three mixed marks look like a complete line.\n\n- (a) the code increments one shared counter regardless of the symbol, so it reaches 3.\n- (b) the counter starts at zero and is 1 after the first move, so it is not equal to 3.\n- (c) `defaultdict(int)` creates the missing key with zero, so no error occurs.\n\n**Deeper:** This is why the counters are keyed by (line, symbol), and why `defaultdict(lambda: defaultdict(int))` is used. I ran the snippet and it printed `[False, False, True]`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`[False, False, False]`: the counter only counts the symbol that just moved.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`[True, True, True]`: the comparison is true from the first move.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises `KeyError` on the first iteration because `shared[0]` does not exist.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`[False, False, True]`: the third move triggers a false win because the counter counts marks of any symbol.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nfrom collections import defaultdict\nd = defaultdict(lambda: defaultdict(int))\nd[\"a\"][\"x\"] += 1\nprint(dict(d[\"a\"]), \"b\" in d)\n```",
+      "explanation": "**Answer: (a)** The outer factory creates an inner `defaultdict(int)` for \"a\", and the inner one creates the zero for \"x\" before the increment.\n\n- (b) only reading `d[\"a\"]` created a key; `\"b\"` was never accessed, so it is absent.\n- (c) a `defaultdict` calls its factory for a missing key, so the inner dict is created.\n- (d) the factory stores the new inner dict in `d`, so the increment persists.\n\n**Deeper:** Note the side effect: merely reading a missing key from a `defaultdict` inserts it, so use `in` or `.get` when you need to test membership without mutation. A plain dict would raise `KeyError: 'a'` on the same line, which is why the lesson avoids it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`{'x': 1} False`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`{'x': 1} True`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises `KeyError: 'a'` because the outer key does not exist.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`{} False`, because the increment applies to a temporary dict.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A candidate's `undo` clears the cell, rewinds the turn and resets the state, but never calls `strategy.handle_undo`. Alice wins on row 0, the win is undone, and Alice replays the same winning cell. What is the game state afterwards?",
+      "explanation": "**Answer: (c)** Counters are derived state; if undo does not reverse them, they drift and an equality test against N silently stops matching.\n\n- (a) detection relies on the counters, not on rescanning the board, so the full row is not noticed.\n- (b) a draw needs a full board; the board has only a handful of marks.\n- (d) that exception is only raised when undo is called with no moves, which is not the case here.\n\n**Deeper:** I reproduced this with a deliberately sloppy `undo` and the game stayed `IN_PROGRESS`. It is the reason the lesson's test \"an undone winning move can win again\" exists, and why a differential test against a rescan oracle is worth having.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`ENDED` with Alice as the winner, because the board contains a full row.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`DRAW`, because the move list is now full.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`IN_PROGRESS`: the stale row counter is already 3 and becomes 4 on the replay, so `== N` is false and the second win is missed.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The program raises `EmptyMovesError` on the replay.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Undo hands the turn back with `self.next_player_index = (self.next_player_index - 1) % len(self.players)`. A colleague who writes mostly C and Java asks why this does not go negative when the index is 0. What is the right answer?",
+      "explanation": "**Answer: (c)** Python defines `a % b` so that the result has the same sign as `b`, which makes the wrap-around correct.\n\n- (a) the modulo result is never negative here, and relying on negative indexing would hide errors elsewhere.\n- (b) Python integers are signed and unbounded; `0 - 1` is `-1` until the modulo is applied.\n- (d) the guard is unnecessary in Python, though it would be required in C, where `%` can return a negative value.\n\n**Deeper:** I ran `(-1) % 2`, `(-1) % 3` and `(0 - 1) % 4` and got 1, 2 and 3. This is a tiny, concrete example of a language difference an interviewer may probe when you port a solution from another language.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It does go negative, but negative list indices count from the end, so it happens to work the same way.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Python integers are unsigned, so subtracting from zero stays at zero.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In Python the result of `%` takes the sign of the divisor, so `(-1) % 3` is `2` and the index wraps to the last player without a special case.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The code is wrong and needs an `if index < 0` guard.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this show, and why does it matter for stateful strategies?\n\n```python\ncalls = []\ndef fa(): calls.append(\"a\"); return True\ndef fb(): calls.append(\"b\"); return False\nany(f() for f in (fa, fb))\nprint(calls)\ncalls.clear()\nany([f() for f in (fa, fb)])\nprint(calls)\n```",
+      "explanation": "**Answer: (a)** Generators are lazy and `any` short-circuits, so side effects of later elements are skipped; a list comprehension runs them all first.\n\n- (b) `any` is lazy and stops at the first truthy element when fed a generator.\n- (c) a list comprehension is eager: every element is evaluated when the list is built.\n- (d) `any` accepts any iterable, including generators.\n\n**Deeper:** With counting strategies each `check_winner` has a side effect (increment). Skipping one means its counters no longer reflect the board, which matters when undo lets the game continue. I ran this exact code and saw both outputs.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It prints `['a']` then `['a', 'b']`: `any` over a generator stops at the first `True`, so the second function never runs; building a list first runs them all.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prints `['a', 'b']` twice, because `any` always evaluates every element.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It prints `['a']` twice, because lists are also evaluated lazily.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises `TypeError` because `any` cannot take a generator.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "On a 100 x 100 board a game can last up to 10,000 moves. Comparing undo by full snapshots with undo by inverse operations (stack of moves plus `handle_undo`), which statement is accurate?",
+      "explanation": "**Answer: (d)** Snapshots trade memory for simplicity; inverse operations trade the need for correct reversal code for constant space and time.\n\n- (a) snapshots copy the full state each move, so memory grows with N^2 per move, whereas a move record is constant size.\n- (b) they reverse only the last move's effects, which is constant work.\n- (c) lists and nested structures can be copied (for example with `copy.deepcopy`); the problem is the cost, not feasibility.\n\n**Deeper:** A senior answer names the hybrid too: take occasional snapshots and replay the moves after them, which bounds both memory and undo time. State which option you chose and why, and note that the differential test is what makes inverse operations safe to trust.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both use identical memory; the difference is only speed.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Inverse operations are always slower because they replay the whole game.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Snapshots are impossible in Python because lists cannot be copied.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Snapshots cost O(N^2) memory per move, about 10^8 cells over the game, while inverse operations need only the move stack, O(1) per move, but every derived structure must provide a correct inverse.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "The first draft of the bot interface was `make_move(self, board) -> Move`. The medium bot must block the opponent. What is the fault, and the least invasive fix?",
+      "explanation": "**Answer: (b)** The interface was one level too thin for the algorithm; the information must arrive as a parameter.\n\n- (a) globals make strategies untestable and break with multiple games; an explicit argument is simpler and safer.\n- (c) a cell has no concept of the turn, and it would duplicate game state in thousands of objects.\n- (d) an empty cell carries no player information, so inference is impossible.\n\n**Deeper:** Call it the identity gap. When an implementation needs data its interface does not carry, widen the interface at the narrowest point (here, one argument) instead of reaching for globals. An AI-generated draft that calls a non-existent `_determine_players(board)` is the same mistake.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The strategy needs a global variable holding the current player.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The board does not say whose turn it is, so the strategy cannot tell its own symbol from the opponent's; pass the player into the strategy (`make_move(board, me)`).",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add a `current_player` field to `Cell`, so each cell knows who is to move.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing is wrong: the bot can infer its symbol from the first empty cell.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "The board has X on (1,0) and (1,1) and O on (0,0). The medium bot plays O. Using the lesson's `MediumBotPlayingStrategy` (win, then block, then first empty cell, scanning row by row), which cell does it choose?",
+      "explanation": "**Answer: (a)** No cell wins for O, but X would complete row 1 at (1, 2), and the block rule is checked before the first-empty fallback.\n\n- (b) that cell is already filled by O; the strategy only considers empty cells.\n- (c) the first-empty fallback is used only if there is neither a win nor a block; here a block exists.\n- (d) the strategy has no \"build\" rule; it wins, blocks, or takes the first empty cell.\n\n**Deeper:** I ran this position and the strategy returned row 1, column 2. Notice the ordering of rules encodes priorities, and that checking \"would this complete a line for symbol S\" is reused for both win and block, which keeps the class small.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "(1, 2), because O has no winning cell, and X would complete row 1 there, so it blocks.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "(0, 0)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "(0, 1), the first empty cell in row-major order.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "(2, 2), to extend its own diagonal.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Two games are created with the same list of counting strategies. In game 1, X plays (0,0) and (0,1). In game 2, which has an empty board, X plays a single move at (0,2). What is the state of game 2?",
+      "explanation": "**Answer: (c)** The counters live inside the strategy instances, so sharing instances between games shares their state.\n\n- (a) the strategies, not the board, decide the winner; their counters are shared with game 1.\n- (b) each game has its own board, so the cell is empty in game 2.\n- (d) strategies return a boolean; a draw needs a full board.\n\n**Deeper:** Stateful strategies must be created per game (or deep-copied from a template). I verified this by running two games that shared one list: game 2 ended after a single move. The same bug appears when a service reuses a stateful object across requests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`IN_PROGRESS`, because game 2 has only one mark on the board.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It raises `InvalidMoveError` because (0,2) was used in game 1.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`ENDED` with X as winner, a false win, because the shared row-0 counter already holds 2 from game 1 and reaches 3.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`DRAW`, because the strategies return `None`.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which test would most reliably catch a missing `handle_undo` decrement in the diagonal strategy, together with other subtle counter drifts?",
+      "explanation": "**Answer: (d)** A rescan oracle plus randomised moves and undos exercises many sequences and compares behaviour, not internals.\n\n- (a) without undo the decrement never runs, so the bug is invisible.\n- (b) call counts say nothing about whether the counters ended up correct.\n- (c) it checks one scenario and couples the test to a private field, so other drifts (anti-diagonal, columns) slip by.\n\n**Deeper:** Seed the RNG so a failing sequence reproduces. Differential testing is the standard way to trust an optimisation, and in production AI work it is how you compare a cached or approximate path with the slow reference path.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A test that plays one complete game without any undo.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A test asserting `Game.undo` is called once per request.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A test that inspects the private `_main` dictionary after one undo.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A differential test: apply the same seeded random moves and undos to a game using counting strategies and one using simple scanning strategies, and assert that state and winner match at every step.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-21/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You add `BotDifficultyLevel.INSANE` to the enum but forget to register it in `BotPlayingStrategyFactory._BY_LEVEL`. With `_BY_LEVEL[level]()`, what happens when a bot of that level is created, and is that desirable?",
+      "explanation": "**Answer: (b)** A direct dictionary lookup fails at the point of misconfiguration, which is the cheapest place to discover it.\n\n- (a) nothing in the dictionary lookup supplies a default, and a silent fallback would hide the missing registration.\n- (c) the lookup happens in the factory when the bot is constructed, not later.\n- (d) dictionary contents are checked at run time, not at compile time.\n\n**Deeper:** I ran this with a stand-in enum member and got `KeyError`. If you want a friendlier message, catch it and raise a domain error; a test that iterates over every enum member and builds a strategy for it will catch the omission in CI.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The factory quietly returns an easy bot, which is desirable because the game still runs.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A `KeyError` is raised immediately at bot creation, which is desirable because it fails fast and loudly instead of silently picking a default.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The bot is created and the error appears on its first move.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Python reports a compile-time error for the incomplete mapping.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

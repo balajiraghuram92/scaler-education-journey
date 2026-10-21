@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-55-agents-tool-use",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-55/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using `run_agent` from the lesson (`token_budget=2000`; the budget is checked right after each model reply, before the tool executes), a scripted model returns three `get_order` tool calls, each with `tokens=900`. What is the outcome?",
+      "explanation": "**Answer: (c)** After reply 1 the total is 900, after reply 2 it is 1800 (both within budget, so both tools run). Reply 3 raises the total to 2700, which exceeds 2000, so the loop returns `stop_reason='budget'` at step 3 **before** executing the third call. Two tool executions, three model calls.\n\n- (a) is wrong: the loop does not wait for a final answer once the budget is gone.\n- (b) is wrong: the budget check runs before the tool, so the third tool does not execute.\n- (d) is wrong: it would apply if the budget were checked after each tool and before the model reply, but the lesson checks right after the reply.\n\n**Deeper:** Checking limits before side effects means an over-budget reply cannot cause an action. Real systems also budget dollars and wall-clock time, per run and per tenant.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`final` after 3 steps, because the model eventually answers", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`budget` after 3 steps, with all three tools executed", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`budget` at step 3, with two tools executed", "isCorrect": true },
+        { "optionKey": "d", "optionText": "`budget` at step 2, with one tool executed", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "The model calls a tool named `delete_database` that is not in the registry. What should the agent runtime do?",
+      "explanation": "**Answer: (a)** Return an error observation that names the available tools and continue the loop. The model sees the message and usually corrects itself; the runtime stays in control.\n\n- (b) is wrong: crashing the run turns a recoverable mistake into an outage.\n- (c) is wrong: mapping to the 'closest' tool executes a guess, which may be a harmful or irreversible action.\n- (d) is wrong: ignoring the call silently leaves the model without feedback, so it will usually repeat the call.\n\n**Deeper:** Count hallucinated-tool events as a metric. A sudden rise signals a prompt, schema or model regression. Failures as data, not exceptions, is the core design rule of a tool registry.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Return an `ERROR unknown tool ... Available: ...` observation and keep looping", "isCorrect": true },
+        { "optionKey": "b", "optionText": "Raise an exception and terminate the run", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Fuzzy-match the name to the nearest registered tool and execute it", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Silently skip the call and send nothing back to the model", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A scripted model emits the identical call `get_order({\"order_id\": \"ord_a1b2\"})` four times in a row. `run_agent` uses `max_repeats=2` and counts `(name, arguments)` pairs, stopping when a count exceeds `max_repeats`. What is the result?",
+      "explanation": "**Answer: (d)** `stop_reason='loop'` at step 3, with two tool executions. Calls 1 and 2 are within the limit and run. On call 3 the count is 3, which exceeds 2, so the loop returns before executing it.\n\n- (a) is wrong: the loop detector exists precisely to stop at the third identical call.\n- (b) is wrong: that would be step 4, after executing the third call.\n- (c) is wrong: `max_steps` (6) is not reached.\n\n**Deeper:** Detecting loops by counting identical calls is cheap and effective. Canonicalise arguments first (parse and re-serialise with sorted keys), because the model can vary whitespace and key order, and also consider detecting A-B-A-B oscillation.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`final` at step 4, since each call succeeds", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`loop` at step 4, after executing three calls", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`max_steps` at step 6", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`loop` at step 3, after executing two calls", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Two graph nodes run in sequence: node `a` returns `{\"log\": [\"a\"]}` and node `b` returns `{\"log\": [\"b\"]}`. The initial state is `{\"log\": []}`. What is the final `log` without a reducer for `log`, and with `operator.add` as the reducer?",
+      "explanation": "**Answer: (b)** Without a reducer each update overwrites the key, so the final value is `['b']`. With `operator.add` the updates concatenate: `[] + ['a'] + ['b'] = ['a', 'b']`. I ran both variants and got exactly these results.\n\n- (a) assumes lists always append; that requires a reducer.\n- (c) swaps the two behaviours.\n- (d) assumes an error on conflicting writes; the default is last-writer-wins.\n\n**Deeper:** Reducers are how graph frameworks let multiple nodes contribute to one field (messages, logs, partial results). Choose them deliberately: for parallel branches an overwrite becomes a race, while an appending reducer gives deterministic accumulation.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`['a', 'b']` in both cases", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`['b']` without a reducer; `['a', 'b']` with `operator.add`", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`['a', 'b']` without a reducer; `['b']` with `operator.add`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "A conflict error without a reducer; `['a', 'b']` with `operator.add`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Message history (character costs from `content` plus the stringified `tool_call`): system (10), user (40), assistant tool_call `{'id': '1'}` (11), tool result (60), assistant tool_call `{'id': '2'}` (11), tool result (30). `trim_messages` keeps the system prompt, then the newest messages while the running total stays within `max_chars`, and finally drops any leading tool message.\n\n```python\nprint([m[\"role\"] for m in trim_messages(msgs, 80)])\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (b)** `['system', 'assistant', 'tool']`. The system prompt costs 10. Walking backwards: the last tool result adds 30 (total 40), the last assistant call adds 11 (51). The next message back, the 60-character tool result, would take it to 111, over 80, so the loop stops. The kept tail starts with an assistant message, so nothing is dropped.\n\n- (a) keeps the user message and older calls, which exceeds the budget.\n- (c) would start with a tool message, an orphan whose originating call was dropped; the final loop would remove it anyway.\n- (d) omits the system prompt, which is always kept.\n\n**Deeper:** Providers reject a tool result with no matching tool call. Always trim at message-group boundaries, and prefer summarising dropped turns to forgetting them silently.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`['system', 'user', 'assistant', 'tool', 'assistant', 'tool']`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`['system', 'assistant', 'tool']`", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`['system', 'tool', 'assistant', 'tool']`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`['assistant', 'tool']`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "With the lesson's `MiniGraph` refund workflow, a run pauses before `execute_refund` with checkpoint log `['classify', 'draft_refund']`. A fresh `MiniGraph` sharing the checkpoint store resumes with `{\"approved\": False}`. What is `final.state[\"result\"]` and `final.state[\"log\"]`?",
+      "explanation": "**Answer: (d)** `'refund rejected'` and `['classify', 'draft_refund', 'execute_refund(rejected)', 'reply']`. The resume merges `approved=False` into the saved state, runs `execute_refund` (skipping the interrupt once), which sees no approval and records the rejection, then `reply` runs and the graph ends.\n\n- (a) assumes the graph stops at the interrupt forever after a rejection.\n- (b) would require the node to skip execution entirely, which this node does not do.\n- (c) reports a refund as done, which only happens when `approved` is true.\n\n**Deeper:** Because state lives in the checkpoint, the approver can act hours later in another process. In production the resume call comes from an authenticated review endpoint and the decision is stored for audit.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`None` and `['classify', 'draft_refund']`: the run stays paused", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`'refund rejected'` and `['classify', 'draft_refund']`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`'refunded 20.00'` and `['classify', 'draft_refund', 'execute_refund', 'reply']`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`'refund rejected'` and `['classify', 'draft_refund', 'execute_refund(rejected)', 'reply']`", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A resumed or retried agent run issued the same refund twice. The refund tool calls a payments API with no deduplication. What is the correct fix?",
+      "explanation": "**Answer: (a)** Give every side-effecting call a deterministic idempotency key (for example derived from the thread id and the tool-call id or step) and pass it to the payments API, so a replay of the same step is recognised and not applied twice. Also record the outcome in the checkpoint.\n\n- (b) is wrong: a prompt instruction cannot guarantee exactly-once behaviour.\n- (c) is wrong: removing retries and checkpoints gives up resilience, and crashes between the call and the response would still duplicate on manual rerun.\n- (d) is wrong: lowering temperature does not change how many times your code executes a step.\n\n**Deeper:** Exactly-once effects come from idempotent operations plus durable state, not from the model. This is the same principle as retrying an HTTP POST with an Idempotency-Key header.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Derive an idempotency key from run id and step, and send it with the payment call", "isCorrect": true },
+        { "optionKey": "b", "optionText": "Add 'never refund twice' to the system prompt", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Disable retries and checkpointing so a step can never replay", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Set the model temperature to 0", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Product asks that refunds 'always require human approval'. Which implementation actually guarantees it?",
+      "explanation": "**Answer: (c)** Mark the refund tool as needing approval and enforce it inside the tool-execution path: the call is validated, execution pauses (or the call is denied), and only an authenticated approval lets the handler run. The model cannot bypass it because it never executes the tool itself.\n\n- (a) is wrong: a system prompt instruction can be overridden by injected text or ignored.\n- (b) is wrong: asking the model to emit an `approved` argument lets the model approve itself.\n- (d) is wrong: logging after the fact records the problem but does not prevent it.\n\n**Deeper:** Controls on irreversible actions belong in deterministic code. The model proposes; the runtime disposes.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Tell the model in the system prompt to ask the user before refunding", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Add a boolean `approved` argument to the refund tool and trust the model to set it correctly", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Gate the tool in the registry so the handler only runs after an authenticated approval", "isCorrect": true },
+        { "optionKey": "d", "optionText": "Log every refund and review the log weekly", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An agent resends its whole history on every step (no prompt caching). The system prompt plus question is 1,000 tokens, and each step adds 500 tokens of tool call and result. About how many prompt tokens does a 20-step run consume in total (step k sends `1000 + 500 * (k - 1)` tokens)?",
+      "explanation": "**Answer: (b)** 115,000. Summing `1000 + 500 * k` for k = 0..19 gives `20 * 1000 + 500 * (0 + 1 + ... + 19) = 20,000 + 500 * 190 = 115,000`. I confirmed this by running the sum.\n\n- (a) 20,000 counts only the fixed 1,000-token prefix per step.\n- (c) 10,000 is the size of the final history alone.\n- (d) 500,000 grossly overestimates; it multiplies the largest prompt by the step count and then more.\n\n**Deeper:** Cost grows roughly quadratically with step count because history is re-sent. That is why context trimming, summarisation, prompt caching (where the provider supports it) and step limits matter for cost, not only for quality.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "About 20,000", "isCorrect": false },
+        { "optionKey": "b", "optionText": "About 115,000", "isCorrect": true },
+        { "optionKey": "c", "optionText": "About 10,000", "isCorrect": false },
+        { "optionKey": "d", "optionText": "About 500,000", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nraw = Counter(['{\"a\":1,\"b\":2}', '{\"b\": 2, \"a\": 1}'])\ncanon = Counter(json.dumps(json.loads(s), sort_keys=True)\n                for s in ['{\"a\":1,\"b\":2}', '{\"b\": 2, \"a\": 1}'])\nprint(len(raw), sorted(raw.values()), len(canon), list(canon.values()))\n```\n\nWhat is printed, and why does it matter for loop detection?",
+      "explanation": "**Answer: (a)** `2 [1, 1] 1 [2]`. The two JSON strings are semantically identical but textually different, so the raw counter sees two distinct calls, each seen once, and never trips a repeat limit. Canonicalising (parse, then dump with sorted keys) makes them equal, giving one key with count 2.\n\n- (b) assumes `Counter` compares JSON semantically; it compares strings.\n- (c) assumes the canonical form still differs.\n- (d) gives wrong counts for both.\n\n**Deeper:** Models vary whitespace and key order between calls, so loop detection on raw strings can be bypassed by accident. Canonicalise before counting and cap total calls per tool as a second line of defence.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`2 [1, 1] 1 [2]`", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`1 [2] 1 [2]`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`2 [1, 1] 2 [1, 1]`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`1 [2] 2 [1, 1]`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nasync def handler():\n    try:\n        await asyncio.sleep(1)\n    except BaseException:\n        return \"swallowed\"\n\ntry:\n    async with asyncio.timeout(0.05):\n        r = await handler()\n    print(\"returned\", r)\nexcept TimeoutError:\n    print(\"TimeoutError\")\n```\n\nWhat is printed on Python 3.12, and what changes if the handler uses `except Exception` instead?",
+      "explanation": "**Answer: (d)** `returned swallowed`. The timeout works by cancelling the task, which raises `CancelledError` (a `BaseException`) inside `sleep`. The `except BaseException` handler swallows it, so nothing propagates to the timeout context manager and no `TimeoutError` is produced. With `except Exception` the cancellation passes through and the program prints `TimeoutError`; I ran both versions.\n\n- (a) assumes the timeout always raises regardless of what the handler does.\n- (b) assumes `except Exception` swallows cancellation; it does not.\n- (c) swaps which handler defeats the timeout.\n\n**Deeper:** One broad `except BaseException` (or a bare `except:`) in a tool defeats your per-tool timeout and your shutdown handling. If a tool must clean up on cancellation, catch, clean up, and re-raise.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`TimeoutError` in both versions", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`returned swallowed` with `except Exception`, and `TimeoutError` with `except BaseException`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`TimeoutError` with `except BaseException`, and `returned swallowed` with `except Exception`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`returned swallowed`; with `except Exception` it prints `TimeoutError`", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-55/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "In `MiniGraph._run`, each node receives `copy.deepcopy(state)` and must return a partial update dict. Why is this design preferable to handing nodes the live state object to mutate?",
+      "explanation": "**Answer: (c)** Updates flow through the reducers and are then checkpointed, so every change is explicit and reproducible. A node mutating shared state in place would bypass the reducers, could alias objects stored in earlier checkpoints, and make resumed runs differ from the original.\n\n- (a) is wrong: copying costs time, not saves it; the motivation is correctness.\n- (b) is wrong: deep copies do not make nodes thread-safe by themselves.\n- (d) is wrong: nodes can still read everything; they just cannot change it in place.\n\n**Deeper:** Treat state as immutable and updates as data. That is what makes checkpoints, replay and time-travel debugging trustworthy, and it mirrors the reducer model of real graph frameworks.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It makes the graph faster because copies are cheaper than references", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It makes nodes thread-safe automatically", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Changes must go through reducers and checkpoints, so in-place mutation cannot bypass or alias them", "isCorrect": true },
+        { "optionKey": "d", "optionText": "It prevents nodes from reading fields written by other nodes", "isCorrect": false }
+      ]
+    }
+  ]
+}

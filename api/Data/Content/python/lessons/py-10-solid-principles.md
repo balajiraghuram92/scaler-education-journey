@@ -88,8 +88,7 @@ class NotificationService:
             channel.send(recipient, message)
 
 
-# A different team adds WhatsApp; NotificationService is untouched.
-class WhatsAppChannel:
+class WhatsAppChannel:  # added by another team; NotificationService is untouched
     def send(self, recipient: str, message: str) -> None:
         print(f"whatsapp -> {recipient}: {message}")
 

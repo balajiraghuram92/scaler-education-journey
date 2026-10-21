@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-40-fastapi-fundamentals",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-40/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "With FastAPI and Pydantic v2, what does the client receive?\n\n```python\nclass UserOut(BaseModel):\n    id: int\n    email: str\n\nclass UserRecord(UserOut):\n    password_hash: str\n\n@app.get(\"/users/1\")\nasync def get_user() -> UserOut:\n    return UserRecord(id=1, email=\"a@b.io\", password_hash=\"x1y2\")\n```",
+      "explanation": "**Answer: (a)** A JSON object with only `id` and `email`. FastAPI uses the return annotation as the response model, validates the returned object against `UserOut`, and drops fields it does not declare.\n\n- (b) is wrong: leaking requires bypassing the response model, for example by returning a `JSONResponse`, not by returning a subclass.\n- (c) is wrong: returning a subclass instance is valid because it is a `UserOut`; no error is raised.\n- (d) is wrong: nothing is withheld by default; the status is 200 with the filtered body.\n\n**Deeper:** Separate input, output and storage models are the standard defence against accidental data exposure. The caveat to rehearse is that returning a `Response` object directly skips `response_model` filtering altogether, so leaking fields that way is a real bug class in code review.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A JSON object containing only id and email",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A JSON object containing id, email and password_hash",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A 500 error, because UserRecord is not exactly UserOut",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An empty body with status 204",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A team has two endpoints that both call `time.sleep(2)` to stand in for a blocking vendor SDK: `/a` is declared `async def` and `/b` is declared `def`. Ten requests to each arrive at the same time on one uvicorn worker. What is the expected behaviour?",
+      "explanation": "**Answer: (c)** The `async def` endpoint blocks the event loop thread, so its ten requests are served one after another (and block everything else on that worker). The `def` endpoint runs in the threadpool, so its blocking calls overlap, up to the pool limit of 40 threads.\n\n- (a) is wrong: `async def` does not make a blocking call concurrent; it is the cause of the stall.\n- (b) is wrong: the two declarations are not equivalent, because FastAPI treats them differently.\n- (d) is wrong: FastAPI does not detect blocking calls inside `async def` and move them; that is the developer's responsibility.\n\n**Deeper:** This is the number one FastAPI production mistake. The rule is that `async def` is only for code that awaits non-blocking I/O, and `def` (or `asyncio.to_thread`) is for blocking libraries. Interviewers pair it with the follow-up that too many slow `def` endpoints exhaust the 40-thread pool and requests queue.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both endpoints finish all ten requests in about 2 seconds, because async is concurrent",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Both endpoints behave identically, because FastAPI wraps them the same way",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "/a serialises the requests (about 20 seconds) and stalls the worker; /b overlaps them (about 2 seconds)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "FastAPI detects time.sleep inside /a and runs it in a thread automatically",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Given these routes in this order, what happens on `GET /users/me`?\n\n```python\n@app.get(\"/users/{user_id}\")\nasync def get_user(user_id: int): ...\n\n@app.get(\"/users/me\")\nasync def get_me(): ...\n```",
+      "explanation": "**Answer: (b)** A 422 validation error. Routes are matched in declaration order, so `/users/{user_id}` captures `me`, and parsing `\"me\"` as an `int` fails before the handler runs.\n\n- (a) is wrong: FastAPI does not prefer the literal path over a parameterised one; order decides.\n- (c) is wrong: a 404 would mean no route matched, but the first route does match the path.\n- (d) is wrong: there is no automatic fallback to the next route after a validation error.\n\n**Deeper:** Declare fixed paths before parameterised ones. A related trap is that a `str` parameter would capture `me` successfully and return a confusing 404 from the lookup instead of a 422. Both are common interview and code-review catches.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "get_me runs, because the literal path is more specific",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A 422 response, because /users/{user_id} matches first and \"me\" is not a valid int",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A 404 response, because the two routes conflict",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "FastAPI falls through to get_me after the int parse fails",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An endpoint is declared as `async def submit(item: Item, user: User)`, where `Item` and `User` are both Pydantic models. What request body does FastAPI expect?",
+      "explanation": "**Answer: (d)** A JSON object with keys named after the parameters, like `{\"item\": {...}, \"user\": {...}}`. With multiple body parameters FastAPI embeds each under its parameter name.\n\n- (a) is wrong: a single flat object is only used when there is exactly one body parameter.\n- (b) is wrong: neither model is read from the query string; models are bodies by default.\n- (c) is wrong: merging fields of two models is not something FastAPI does.\n\n**Deeper:** For a single body parameter you can force the keyed form with `Body(embed=True)`, which is useful when you expect to add a second body field later without breaking clients. This question appears frequently because the behaviour changes silently when someone adds a second model parameter.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "One flat JSON object whose fields are the union of Item and User",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Two query strings, one per model",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The fields of Item at the top level, with User ignored",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A JSON object with keys \"item\" and \"user\", each containing that model's fields",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A sync `def` endpoint calls a vendor API that takes about 2 seconds. Under a burst of 200 concurrent requests on one worker, p99 climbs to many seconds while CPU stays near 5%. Which explanation best fits?",
+      "explanation": "**Answer: (b)** `def` endpoints run in AnyIO's threadpool, which allows 40 concurrent threads by default. With 200 requests that each hold a thread for 2 seconds, most requests wait in the queue for a free thread, so latency grows while the CPU is idle.\n\n- (a) is wrong: sync endpoints do not block the event loop; they are moved off it.\n- (c) is wrong: Python's GIL is released while a thread waits on network I/O, so it is not the limit here.\n- (d) is wrong: uvicorn does not impose a per-request CPU quota.\n\n**Deeper:** Remedies are an async client (`httpx.AsyncClient`) in an `async def` endpoint, which removes the thread-per-request cost, or raising the limiter size as a stopgap. Say that you would measure thread-pool saturation, not just CPU, when diagnosing this.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Sync endpoints block the event loop, so all requests are serialised",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The threadpool (40 threads by default) is saturated, so requests queue waiting for a thread",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The GIL prevents threads from waiting on the network concurrently",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "uvicorn limits each request to a CPU time budget",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A teammate writes `async def report(db: Session = Depends(get_db))` and queries with a synchronous SQLAlchemy `Session` inside it. Load tests show other endpoints becoming slow whenever `/report` is hit. What is the right diagnosis and fix?",
+      "explanation": "**Answer: (d)** The synchronous query blocks the event loop thread for its whole duration, stalling every other request on the worker. Fix it by declaring the endpoint with plain `def` so FastAPI runs it in the threadpool, by using `asyncio.to_thread`, or by moving to an async driver and `AsyncSession`.\n\n- (a) is wrong: the database is not necessarily slow; the problem is where the blocking call runs.\n- (b) is wrong: `Depends` has no effect on concurrency by itself.\n- (c) is wrong: adding more workers hides the symptom and multiplies connections, but each worker still stalls.\n\n**Deeper:** The principle is that the declaration (`def` or `async def`) must match the nature of the calls inside. In interviews, mention that mixing a sync session into async code is precisely what the SQLAlchemy asyncio extension and `asyncpg` exist to avoid.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The database is slow; add an index",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Depends serialises all requests; remove it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Run four uvicorn workers so the stall is hidden",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A sync query inside async def blocks the loop; make the endpoint def, use to_thread, or switch to an async driver",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A response model has `nickname: str | None = None`. Most users have no nickname, and the mobile team wants the key omitted rather than sent as `null`. Which is the cleanest change?",
+      "explanation": "**Answer: (a)** Set `response_model_exclude_none=True` on the route decorator. FastAPI then omits fields whose value is `None` from the response.\n\n- (b) is wrong: changing the default to an empty string changes the data semantics and sends noise instead of omitting the key.\n- (c) is wrong: `response_model_exclude_unset` omits fields that were never set when the object was created, which is related but different; a field explicitly set to `None` would still be sent, so it is not a reliable way to omit nulls.\n- (d) is wrong: filtering in a middleware is fragile and bypasses the declared schema.\n\n**Deeper:** Distinguish `exclude_none` (value is None), `exclude_unset` (never assigned) and `exclude_defaults` (equals the default). Interviewers like it when you can say which one fits PATCH-style partial updates (`exclude_unset`) and which fits \"hide nulls\" (`exclude_none`).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Add response_model_exclude_none=True to the route",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Change the default to an empty string",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Use response_model_exclude_unset=True, which always drops null values",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Write middleware that regex-replaces \"nickname\": null in the response text",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An app creates `app.state.http = httpx.AsyncClient()` in a lifespan handler. Tests use `client = TestClient(app)` at module level, and fail with `AttributeError: 'State' object has no attribute 'http'`. Why?",
+      "explanation": "**Answer: (c)** `TestClient` only runs the lifespan handlers when it is used as a context manager (`with TestClient(app) as client:`). Without the `with`, start-up never runs, so `app.state.http` was never set.\n\n- (a) is wrong: `app.state` is available on any FastAPI app; the attribute was just never assigned.\n- (b) is wrong: httpx clients can be created in lifespan; the handler simply did not execute.\n- (d) is wrong: `TestClient` does not need a running uvicorn server; it calls the ASGI app in-process.\n\n**Deeper:** Use a fixture that yields the client inside a `with` block so start-up and shutdown run for each test session, and use dependency overrides to replace the real HTTP client with a fake. This is a recurring cause of tests that pass locally in one file and fail in another.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "app.state does not exist on FastAPI applications",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "httpx.AsyncClient cannot be created inside a lifespan handler",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "TestClient does not run lifespan handlers unless it is used as a context manager",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "TestClient requires a running uvicorn server to execute start-up code",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A trip service stores data in a module-level dict. It works with `uvicorn main:app`, but after deploying with four workers, `GET /trips/{id}` intermittently returns 404 right after a successful `POST /trips`. What is the cause?",
+      "explanation": "**Answer: (b)** Each uvicorn worker is a separate process with its own memory, so the dict created by one worker is invisible to the others. A GET routed to a different worker cannot find the trip.\n\n- (a) is wrong: the `response_model` has no influence on lookups.\n- (c) is wrong: the GIL is per process and does not make the dict shared or unsafe across processes.\n- (d) is wrong: HTTP keep-alive does not change which worker holds the data.\n\n**Deeper:** State that must survive across requests belongs in an external store such as PostgreSQL or Redis. The same reasoning applies to in-process caches, rate limiters and background job queues, which need a shared backend as soon as you scale beyond one process.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The response_model drops the id field on some responses",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Each worker process has its own copy of the dict, so state is not shared across workers",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The GIL corrupts the dict when four workers write to it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "HTTP keep-alive pins requests to a stale worker",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "For a PATCH endpoint with a Pydantic v2 model where every field is optional, how do you apply only the fields the client actually sent, including fields explicitly sent as `null`?",
+      "explanation": "**Answer: (d)** `body.model_dump(exclude_unset=True)` returns only the fields that were present in the request, including those explicitly set to `None`, which you can then apply to the stored object.\n\n- (a) is wrong: `model_dump(exclude_none=True)` also drops fields the client sent as `null`, so clients cannot clear a value.\n- (b) is wrong: `model_dump()` includes every field with its default, which would overwrite stored values with `None`.\n- (c) is wrong: `.dict()` is the deprecated Pydantic v1 name; in v2 the method is `model_dump`.\n\n**Deeper:** `model_fields_set` exposes the same information. Distinguishing \"absent\" from \"null\" is the core of PATCH semantics, and it is a favourite question when discussing v1 to v2 migration.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "body.model_dump(exclude_none=True)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "body.model_dump() and assign every value",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "body.dict(exclude_unset=True), the current v2 method",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "body.model_dump(exclude_unset=True)",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An endpoint declares `response_model=UserOut` but ends with `return JSONResponse(content=user_record.model_dump())`, where `user_record` includes `password_hash`. What reaches the client?",
+      "explanation": "**Answer: (c)** The full dictionary including `password_hash`. When a path operation returns a `Response` subclass such as `JSONResponse`, FastAPI sends it as-is and skips `response_model` validation and filtering.\n\n- (a) is wrong: the filter is part of FastAPI's own serialisation path, which is bypassed here.\n- (b) is wrong: FastAPI does not raise a conflict between `response_model` and a returned `Response`.\n- (d) is wrong: an internal error is not raised; the response is valid JSON.\n\n**Deeper:** Returning a `Response` is legitimate for custom headers or streaming, but then you own the data you serialise. In review, grep for `JSONResponse(` and `Response(` in endpoints that also declare a response model. The safer pattern is to return the model and set headers through an injected `Response` parameter.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Only the UserOut fields, because response_model always filters",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A 500 error because response_model and the returned Response conflict",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The full dictionary including password_hash, because returning a Response bypasses response_model",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A 422 error because the content does not match UserOut",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-40/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A security review asks you to stop exposing API documentation on an internal production service that is reachable from the public internet. You set `FastAPI(docs_url=None, redoc_url=None)`. What remains reachable?",
+      "explanation": "**Answer: (a)** `/openapi.json` is still served, because it is controlled by `openapi_url`. Only the Swagger UI and ReDoc pages were disabled, so the full machine-readable schema remains public.\n\n- (b) is wrong: disabling the UI does not remove the schema endpoint.\n- (c) is wrong: `/docs` is gone, since `docs_url=None` disables it.\n- (d) is wrong: the endpoints themselves are unaffected; only documentation routes change.\n\n**Deeper:** To hide the schema too, set `openapi_url=None`, or protect those routes with authentication or network rules. Remember that obscurity is not authorisation: the real fix is auth on the endpoints. Interviewers use this to check attention to default routes FastAPI adds on your behalf.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "/openapi.json, until openapi_url=None is also set",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing; all documentation routes are disabled",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "/docs, because docs_url=None only hides the link",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "None of the application endpoints, because they are disabled together with the docs",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

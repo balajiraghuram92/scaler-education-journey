@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-39-async-patterns-backpressure",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-39/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An ingestion job runs `await asyncio.gather(*(fetch(line) for line in huge_file))` over 5 million lines, where `fetch` starts with `async with sem:` and `sem = asyncio.Semaphore(20)`. Upstream load is fine, but the process is killed for running out of memory. What is the most accurate explanation?",
+      "explanation": "**Answer: (b)** The semaphore limits how many bodies run at once, but `gather` still creates 5 million coroutine objects and tasks up front, and almost all of them sit parked waiting for the semaphore.\n\n- (a) is wrong: a semaphore holds waiters in a deque but does not leak permits; the memory is the task objects themselves.\n- (c) is wrong: `gather` returns results in order, but that is not the dominant cost here; the tasks exist whether or not results are kept.\n- (d) is wrong: the semaphore does not prevent task creation, so lowering its value would not reduce memory.\n\n**Deeper:** The fix is a fixed worker pool fed by a bounded queue (or a lazily consumed iterator), so memory is proportional to workers plus queue size. Interviewers use this to see whether you distinguish bounding concurrency from bounding work in flight. Backpressure must reach the producer, not just the callee.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "asyncio.Semaphore leaks a permit per waiter, so memory grows with the line count",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The semaphore caps concurrency, not task creation: 5 million tasks exist at once; use a bounded queue and a fixed worker pool",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "gather stores every result in order, so use as_completed to avoid the memory cost",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The limit of 20 is too high; lowering it to 5 prevents tasks from being created",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Three items are queued and one consumer runs this loop. After it dies on item 1, `await asyncio.wait_for(q.join(), 0.2)` times out. Why?\n\n```python\nasync def consumer():\n    while True:\n        item = await q.get()\n        if item == 1:\n            raise ValueError(\"bad\")\n        q.task_done()\n```",
+      "explanation": "**Answer: (d)** `join()` waits until the unfinished-task counter hits zero. Item 0 was marked done, but item 1 was fetched and never `task_done()`d, and item 2 was never fetched, so the counter stays at 2 forever.\n\n- (a) is wrong: `join()` does not look at whether the queue is empty, only at the unfinished counter.\n- (b) is wrong: an exception in the consumer task does not propagate to the code awaiting `join()`; it stays on the task object.\n- (c) is wrong: `put_nowait` does not affect the counter in this direction; `task_done()` is the only decrement.\n\n**Deeper:** Always pair `get()` with `task_done()` in a `finally`, and supervise consumers so a dead consumer is noticed (a `TaskGroup` makes the producer side fail fast). Otherwise shutdown logic that awaits `join()` hangs silently, a classic cause of pods that never terminate.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "join() returns only when the queue is empty, and item 2 is still queued, so it can never finish",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The ValueError is re-raised inside join(), which is then cancelled by wait_for",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "put_nowait increments the counter twice for each item",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Item 1 was fetched but never marked done, and item 2 was never fetched, so the unfinished counter never reaches zero",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nimport asyncio, contextvars\n\nrid = contextvars.ContextVar(\"rid\", default=\"none\")\n\nasync def child():\n    rid.set(\"child\")\n    print(\"in child:\", rid.get())\n\nasync def main():\n    rid.set(\"parent\")\n    await asyncio.create_task(child())\n    print(\"after task:\", rid.get())\n    await child()\n    print(\"after await:\", rid.get())\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (a)** `in child: child`, `after task: parent`, `in child: child`, `after await: child`.\n\n- A task runs in a copy of the context taken at creation, so the `set` inside the task is invisible to the parent.\n- Awaiting a plain coroutine runs it inline in the caller's context, so its `set` is visible afterwards.\n- (b) is wrong because it assumes both calls isolate the change.\n- (c) is wrong because it assumes both calls leak the change; the task copy prevents that.\n- (d) is wrong because the `ContextVar` has a default, but `set` always succeeds; nothing raises.\n\n**Deeper:** This is why request-scoped IDs set in middleware reach everything awaited downstream, and why concurrent requests (each in their own task) never see each other's value. A helper that sets a ContextVar and is merely awaited can silently leak state into the caller; wrap temporary changes with `token = var.set(...)` and `var.reset(token)`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "in child: child / after task: parent / in child: child / after await: child",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "in child: child / after task: parent / in child: child / after await: parent",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "in child: child / after task: child / in child: child / after await: child",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "LookupError at the first rid.set, because the variable was never initialised",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A middleware sets a `ContextVar` request ID. A handler calls a blocking function with `await loop.run_in_executor(None, blocking_fn)`, and log lines written inside `blocking_fn` show request ID \"-\" (the default). What is the cause and the right fix?",
+      "explanation": "**Answer: (c)** `run_in_executor` does not copy the caller's context into the worker thread, so the `ContextVar` has its default there. `asyncio.to_thread` does copy it, so switching to `to_thread`, or wrapping the call as `ctx.run`, fixes it.\n\n- (a) is wrong: logging handlers are thread-safe; the issue is the value of the variable, not the handler.\n- (b) is wrong: thread-local storage is a different mechanism and is not needed; context propagation is what is missing.\n- (d) is wrong: the default executor is a thread pool, and processes would not share the variable either.\n\n**Deeper:** In practice you either use `asyncio.to_thread`, or take `ctx = contextvars.copy_context()` and call `loop.run_in_executor(None, ctx.run, fn)`. Missing request IDs in thread-executed code is a recurring observability bug, and it is a good interview probe for whether you know the two APIs are not equivalent.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Logging handlers are not thread-safe; add a lock around the logger",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "ContextVars are thread-local; store the ID in threading.local() instead",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "run_in_executor does not copy the context; use asyncio.to_thread or run the function through a copied context's run",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The default executor uses processes; switch to a ThreadPoolExecutor",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An LLM gateway shows p99 latency spikes of about 300 ms on every endpoint, including `/healthz`, while CPU averages 25%. Which approach most directly identifies the culprit?",
+      "explanation": "**Answer: (c)** Latency that hits unrelated endpoints at once is the signature of something holding the event loop. Asyncio debug mode logs any step that exceeds `slow_callback_duration` (default 0.1 s) with the task involved, and a loop-lag metric or sampling profiler such as py-spy catches the same thing in production.\n\n- (a) is wrong: adding replicas spreads load but does not fix a blocking call, and each replica still stalls.\n- (b) is wrong: a bigger connection pool helps pool exhaustion, which would not delay `/healthz`.\n- (d) is wrong: raising the log level hides information; slow-callback warnings are logged at WARNING by asyncio.\n\n**Deeper:** Low average CPU with periodic stalls usually means short bursts of blocking work such as a sync SDK call, `json.loads` on a large body, or a regex backtrack. Export loop lag as a metric so you can alert on it before users complain.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Add replicas until the p99 drops",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Increase the HTTP client's max_connections",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Enable asyncio debug mode (or a loop-lag metric / py-spy) to find the step that holds the loop for ~300 ms",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raise the log level to ERROR so slow-callback noise stops hiding real errors",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print (times rounded to one decimal place)?\n\n```python\nimport asyncio, time\n\nasync def blocking():    time.sleep(0.1)\nasync def nonblocking(): await asyncio.sleep(0.1)\n\nasync def main():\n    for fn in (blocking, nonblocking):\n        t0 = time.perf_counter()\n        await asyncio.gather(fn(), fn(), fn())\n        print(fn.__name__, round(time.perf_counter() - t0, 1))\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (a)** `blocking 0.3` and `nonblocking 0.1`. The blocking version holds the single loop thread, so the three calls run back to back; the non-blocking version overlaps all three waits.\n\n- (b) is wrong: `gather` cannot overlap `time.sleep` because it never yields to the loop.\n- (c) is wrong: it swaps the two results.\n- (d) is wrong: the coroutines are valid; `async def` with a blocking body simply runs sequentially, no error is raised.\n\n**Deeper:** This is the one-line demonstration that `async def` does not mean concurrent. The same applies to `requests.get`, sync database drivers and heavy parsing. The remedy is an async client, `asyncio.to_thread`, or a process pool for CPU-bound work.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "blocking 0.3, nonblocking 0.1",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "blocking 0.1, nonblocking 0.1",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "blocking 0.1, nonblocking 0.3",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "RuntimeError: time.sleep cannot be used inside async def",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Three coroutines each run `async with sem:` (with `sem = asyncio.Semaphore(2)`), print `start i`, await `asyncio.sleep(0.01)`, then print `end i`, and are launched together with `gather`. Which statement is guaranteed?",
+      "explanation": "**Answer: (d)** `start 2` can only be printed after at least one of jobs 0 and 1 has left the `async with sem:` block, because only two permits exist. The exact interleaving of the `end` prints around it is an implementation detail.\n\n- (a) is wrong: with two permits, jobs 0 and 1 hold both permits first, since tasks run in creation order.\n- (b) is wrong: that would require a permit count of 3.\n- (c) is wrong: a semaphore does not impose a strict ordering between two jobs that both hold a permit.\n\n**Deeper:** A semaphore is a counter, not a scheduler. Do not write tests that depend on which waiter wakes first or on the order of prints around a release. Assert invariants instead, such as the maximum number concurrently inside the section never exceeding the limit.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Job 2 prints start before job 0 or job 1 because it waits the shortest time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "All three jobs print start before any of them prints end",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Job 0 always prints end before job 1 prints end",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Job 2 prints start only after job 0 or job 1 has finished its block",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A FastAPI endpoint calls an LLM provider like this: `async with httpx.AsyncClient() as client: resp = await client.post(url, json=payload)`. Under load, latency rises and the host reports many sockets in TIME_WAIT. What is the best change?",
+      "explanation": "**Answer: (b)** Create one `AsyncClient` per upstream at application start (for example in the lifespan handler), share it across requests, configure `Limits` and `Timeout`, and close it at shutdown. This keeps connections alive and avoids a new TCP and TLS handshake per request.\n\n- (a) is wrong: a longer timeout does not address handshake overhead or socket churn.\n- (c) is wrong: `requests` is blocking and would stall the event loop; it also opens connections per call unless a `Session` is reused.\n- (d) is wrong: closing sooner makes churn worse; the aim is reuse.\n\n**Deeper:** The pool also gives you a natural concurrency ceiling (`max_connections`) and a `PoolTimeout` signal when you are saturated. Creating clients per call is one of the most common FDE-level performance mistakes in LLM integrations, because TLS setup to a provider can cost tens of milliseconds each time.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Increase the client's timeout to 60 seconds",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Create one shared AsyncClient at startup with explicit limits and timeouts, and close it on shutdown",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Switch to requests.post inside the async endpoint",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Close each connection immediately after the response to free sockets sooner",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A pure-Python tokeniser takes about 200 ms per document. A team moves it to `await asyncio.to_thread(tokenize, text)` on an 8-core machine under a CPython 3.12 build and expects 8x throughput. Which statement is accurate?",
+      "explanation": "**Answer: (c)** The event loop stays responsive because the work runs off the loop thread, but the GIL lets only one thread execute Python bytecode at a time, so throughput barely improves. For CPU-bound pure-Python work use a `ProcessPoolExecutor` through `run_in_executor`.\n\n- (a) is wrong: that would be true only for code that releases the GIL, such as some C extensions, or on a free-threaded build.\n- (b) is wrong: the loop is not blocked, since the work is executed in a worker thread.\n- (d) is wrong: `to_thread` always uses the default thread pool; it never picks processes.\n\n**Deeper:** Remember the process-pool costs: arguments and results are pickled, start-up is slower, and the work must be a top-level function. Interviewers like the nuance that threads fix *responsiveness*, processes fix *CPU throughput*.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Throughput scales roughly 8x because each thread runs on its own core",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The event loop is still blocked, because to_thread runs the function on the loop thread",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The loop stays responsive, but the GIL serialises the CPU work; use a process pool for throughput",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "to_thread detects CPU-bound functions and runs them in a process pool",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A reader task pushes 20 million log lines into `asyncio.Queue()` while four consumers call a slow classification API. After a few minutes the pod is OOM-killed, though the consumers have no bugs. What is the root cause and fix?",
+      "explanation": "**Answer: (a)** The queue is unbounded (`maxsize=0`), so `put` never suspends and the fast reader outruns the slow consumers; the backlog sits in memory. Set a finite `maxsize` so `await queue.put()` suspends the reader and pushes the slowness back to the source.\n\n- (b) is wrong: more consumers only help if the API can absorb the traffic, and an unbounded queue still fails when production outpaces consumption.\n- (c) is wrong: `put_nowait` would raise `QueueFull` for a bounded queue and does not create backpressure by itself.\n- (d) is wrong: `asyncio.Queue` does not spill to disk or leak; it simply stores what you give it.\n\n**Deeper:** Choose the size from the latency you can tolerate and the memory per item. Backpressure only works if it propagates end to end, so the reader should stop pulling from its own source when `put` blocks.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The queue is unbounded, so the fast reader never waits; set maxsize so put() suspends the reader",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "There are too few consumers; with 40 consumers an unbounded queue is safe",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Replace put with put_nowait to avoid holding references",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "asyncio.Queue leaks memory for each get; use a list instead",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Three consumers loop on `queue.get()` and each returns on a `None` sentinel, calling `task_done()` in a `finally`. The producer puts exactly one `None`. What happens?",
+      "explanation": "**Answer: (b)** One consumer receives the sentinel and exits. `join()` returns, because every item, including the sentinel, was marked done. The other two consumers remain suspended on `get()` forever, so awaiting the consumer tasks hangs.\n\n- (a) is wrong: a sentinel is consumed by exactly one `get()`; it is not broadcast.\n- (c) is wrong: `join()` counts `task_done()` calls, and they all occurred, so it returns.\n- (d) is wrong: consumers do not time out, and an idle `get()` raises nothing.\n\n**Deeper:** The trap is that `join()` succeeding makes shutdown look finished. Put one sentinel per consumer, or on Python 3.13 use `queue.shutdown()` so all consumers see `QueueShutDown`. Tests for shutdown should assert that the consumer tasks themselves are done.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "All three consumers stop, because the sentinel is broadcast",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "One consumer stops and join() returns, but two consumers wait on get() forever",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "join() hangs forever because the sentinel is never marked done",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The idle consumers time out and raise TimeoutError after a few seconds",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-39/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An embedding provider allows 50 requests per second. Each call takes about 20 ms. A team limits calls with `asyncio.Semaphore(10)` and still receives HTTP 429 responses. Why, and what is the fix?",
+      "explanation": "**Answer: (d)** A semaphore caps concurrency, not rate. Ten concurrent 20 ms calls can complete 500 requests per second, ten times the quota. Add a rate limiter such as a token bucket (rate 50 per second with a small burst) in addition to the concurrency cap.\n\n- (a) is wrong: lowering concurrency to 1 would give roughly 50 requests per second only by accident of latency, and it breaks as soon as latency changes.\n- (b) is wrong: the provider counts requests, not connections, so a larger pool does not help.\n- (c) is wrong: retries on 429 without pacing add load and make throttling worse.\n\n**Deeper:** Concurrency limits protect your resources; rate limits protect the dependency's quota. They interact through Little's law: throughput equals concurrency divided by latency. With several replicas you also need a shared limiter or a divided quota.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Lower the semaphore to 1, which always yields 50 requests per second",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Increase the HTTP connection pool so the provider sees fewer connections",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Retry immediately on 429 until the call succeeds",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A semaphore limits concurrency, not rate: 10 x (1/0.02 s) is about 500 rps; add a token bucket at 50 rps",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

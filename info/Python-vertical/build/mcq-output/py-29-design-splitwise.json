@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-29-design-splitwise",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-29/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A new expense arrives with these rows. What should write-time validation do?\n\n| User | Row type | Amount |\n|---|---|---|\n| A | PAID | 600 |\n| B | HAD_TO_PAY | 250 |\n| C | HAD_TO_PAY | 250 |",
+      "explanation": "**Answer: (b)** Every expense must satisfy the invariant \"sum of PAID rows equals sum of HAD_TO_PAY rows\". Here 600 is paid but only 500 is assigned as owed, so 100 has no owner.\n- (a) is wrong because a plausible-looking split is not enough; the totals must match.\n- (c) is wrong because inventing a category hides data-entry errors and breaks the zero-sum property.\n- (d) is wrong because one payer is perfectly valid; multiple payers are also allowed.\n\n**Deeper:** if you accepted this row set, the net balances of all users would sum to 100 instead of zero, and every settle-up algorithm downstream would produce payments that cannot clear. Enforce the invariant when the expense is written.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Accept it, because B and C each owe something",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Reject it, because total paid (600) does not equal total owed (500)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Accept it and treat the missing 100 as a tip",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Reject it, because only one person paid",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Net balances are A = +500 and B = -200 (positive means \"should receive\"). B settles by paying A 200, recorded as a `PAYMENT` expense with B as a `PAID` row and A as a `HAD_TO_PAY` row, both 200. What are the balances afterwards?",
+      "explanation": "**Answer: (d)** B's `PAID` row adds 200 to B's balance (-200 + 200 = 0), and A's `HAD_TO_PAY` row subtracts 200 from A's (500 - 200 = 300). B is cleared, and A is still owed 300 by someone else.\n- (a) is wrong because modelling a settlement as an expense is exactly what makes it count in balances.\n- (b) is wrong because the signs are reversed; that would increase the debt.\n- (c) is wrong because A was owed 500 in total, and B only owed 200 of it.\n\n**Deeper:** recording settlements as ordinary ledger rows keeps one source of truth, so balance code does not need to know that settlements exist.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A = +500, B = -200, because a settlement is not an expense",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A = +700, B = -400",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A = 0, B = 0",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A = +300, B = 0",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Every expense in group G passes the paid-equals-owed check. Yet when you sum the net balances computed for group G's members, the total is 40, not 0. Which cause is the most likely?",
+      "explanation": "**Answer: (a)** Zero-sum holds over **complete** sets of rows. If a former member's rows are filtered out, the remaining rows of those expenses no longer balance.\n- (b) is wrong because integer arithmetic in minor units is exact.\n- (c) is wrong because, with complete rows, balances always sum to zero by the invariant.\n- (d) is wrong because summation order does not change the total.\n\n**Deeper:** compute balances from all `ExpenseUser` rows of the selected expenses, then filter the presentation. Treat \"net balances do not sum to zero\" as a data-integrity alarm in production and log it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The query summed rows only for current members, so rows belonging to a member who left the group were excluded from otherwise complete expenses",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Integer arithmetic is inexact, so totals drift",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Net balances of a group never sum to zero",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Expenses must be summed per user before being summed per group",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ntotal = 10  # currency units\nshares = [round(total / 3, 2)] * 3\nprint(shares, sum(shares), sum(shares) == total)\n```\nWhat does this print, and what is the lesson?",
+      "explanation": "**Answer: (c)** `round(10 / 3, 2)` is `3.33` for every share, and three of them sum to 9.99, not 10. A cent has vanished, so the ledger no longer conserves money.\n- (a) is wrong because `round` never distributes remainders; each call is independent.\n- (b) is wrong because the sum is 9.99, and binary floats are not exact decimals anyway.\n- (d) is wrong because `round` accepts floats.\n\n**Deeper:** work in integer minor units and use `divmod(total, n)`, giving the remainder to the first few users, so shares always add back to the total. `Decimal` with an explicit rounding policy is the other correct option.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`[3.33, 3.33, 3.34] 10.0 True`, because `round` distributes the remainder",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`[3.33, 3.33, 3.33] 10.0 True`, because floats are exact to two decimals",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`[3.33, 3.33, 3.33] 9.99 False`, so one unit is lost; split integer minor units with `divmod` and hand out the remainder",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises a `ValueError`, because `round` cannot take a float",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndef split_equally(total_minor, users):\n    base, extra = divmod(total_minor, len(users))\n    return {u: base + (1 if i < extra else 0) for i, u in enumerate(users)}\n\nprint(split_equally(100, [\"a\", \"b\", \"c\"]))\n```\nWhat does this print?",
+      "explanation": "**Answer: (b)** `divmod(100, 3)` is `(33, 1)`: base share 33 and one leftover unit. The enumerate index `i` is 0, 1, 2 and `i < extra` is true only for `i == 0`, so user `a` gets 34 and the others 33.\n- (a) is wrong because it drops the remainder and sums to 99.\n- (c) is wrong because there is only one leftover unit to hand out, not two.\n- (d) is wrong because the extra unit goes to the first user, not the last.\n\n**Deeper:** which users receive the remainder is a policy choice. A rotating or payer-first rule avoids the same person always paying the extra paisa. What matters is that the shares sum exactly to the total.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`{'a': 33, 'b': 33, 'c': 33}`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`{'a': 34, 'b': 33, 'c': 33}`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`{'a': 34, 'b': 34, 'c': 32}`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`{'a': 33, 'b': 33, 'c': 34}`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom collections import defaultdict\n\nexpenses = [\n    [(\"A\", \"P\", 300), (\"A\", \"O\", 100), (\"B\", \"O\", 100), (\"C\", \"O\", 100)],\n    [(\"B\", \"P\", 90), (\"A\", \"O\", 30), (\"B\", \"O\", 30), (\"C\", \"O\", 30)],\n    [(\"C\", \"P\", 60), (\"A\", \"O\", 60)],\n]\nbal = defaultdict(int)\nfor rows in expenses:\n    for user, kind, amount in rows:\n        bal[user] += amount if kind == \"P\" else -amount\nprint(dict(bal), sum(bal.values()))\n```\nWhat does this print?",
+      "explanation": "**Answer: (c)** A: +300 - 100 - 30 - 60 = 110. B: -100 + 90 - 30 = -40. C: -100 - 30 + 60 = -70. The total is 110 - 40 - 70 = 0, as it must be when every expense has paid equal to owed.\n- (a) is wrong because it sums only the paid rows.\n- (b) is wrong because it adds owed amounts instead of subtracting them.\n- (d) is wrong because the signs are reversed: A paid the most, so A should receive.\n\n**Deeper:** a zero total is a cheap invariant check you can assert in production after every balance computation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`{'A': 300, 'B': 90, 'C': 60} 450`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`{'A': 110, 'B': 40, 'C': 70} 220`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`{'A': 110, 'B': -40, 'C': -70} 0`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`{'A': -110, 'B': 40, 'C': 70} 0`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nimport heapq\n\ndef settle(balances):\n    creditors = [(-v, u) for u, v in balances.items() if v > 0]\n    debtors = [(v, u) for u, v in balances.items() if v < 0]\n    heapq.heapify(creditors)\n    heapq.heapify(debtors)\n    out = []\n    while creditors and debtors:\n        c, cu = heapq.heappop(creditors)\n        d, du = heapq.heappop(debtors)\n        c, d = -c, -d\n        pay = min(c, d)\n        out.append(f\"{du} pays {cu} {pay}\")\n        if c > pay:\n            heapq.heappush(creditors, (-(c - pay), cu))\n        if d > pay:\n            heapq.heappush(debtors, (-(d - pay), du))\n    return out\n\nprint(settle({\"A\": -500, \"B\": -100, \"C\": 350, \"D\": 250}))\n```\nWhat does this print?",
+      "explanation": "**Answer: (d)** Both heaps are max-heaps (negated values). The largest debtor A (500) pays the largest creditor C (350), leaving A with 150 and C settled. Next the largest debtor is A (150, ahead of B's 100) and the largest creditor is D (250): A pays D 150, leaving D with 100. Finally B pays D 100.\n- (a) is wrong because B (100) is not the largest debtor while A still owes 150.\n- (b) is wrong because the largest creditor is C (350), not D.\n- (c) is wrong because B pays last, not first.\n\n**Deeper:** each iteration settles at least one person, so at most n-1 payments occur, each costing O(log n) heap work. Heap ties break on the second tuple element, so keep user ids comparable.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`['A pays C 350', 'B pays D 100', 'A pays D 150']`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`['A pays D 250', 'A pays C 250', 'B pays C 100']`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`['B pays D 100', 'A pays C 350', 'A pays D 150']`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`['A pays C 350', 'A pays D 150', 'B pays D 100']`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Net balances are A = -4, B = -3, C = +2, D = +2, E = +3. Greedy (largest debtor pays largest creditor) produces 4 payments. Which statement is correct?",
+      "explanation": "**Answer: (a)** The balances split into two zero-sum groups: {A, C, D} (-4 + 2 + 2) and {B, E} (-3 + 3). A group of k people clears in k-1 payments, so 2 + 1 = 3 payments suffice.\n- (b) is wrong because the 3-payment plan beats greedy's 4.\n- (c) is wrong because payments are bounded by n-1 = 4, not n.\n- (d) is wrong because the number of payments depends on the zero-sum partition, not the number of debtors.\n\n**Deeper:** finding the maximum number of zero-sum groups is NP-hard, so production systems ship greedy and accept near-minimal plans. The exact subset DP is only practical for small groups.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A plan with only 3 payments exists (A covers C and D, B pays E), so greedy is not always minimal",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "4 is the proven minimum, because greedy is optimal",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "At least 5 payments are needed, because there are 5 people",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Any plan needs exactly 4 payments, because there are two debtors",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Requirement: a user sees every expense they participate in, plus every expense in groups they belong to, even if they are not part of that expense; nothing else. Which visibility rule is correct?",
+      "explanation": "**Answer: (c)** Participation is defined by an `ExpenseUser` row, and group visibility by group membership, so the rule is the union of those two conditions.\n- (a) is wrong because creating an expense is neither necessary nor sufficient; a participant who did not create it must still see it.\n- (b) is wrong because it would show every group expense to every user, including non-members.\n- (d) is wrong because being in some group says nothing about this expense's group.\n\n**Deeper:** implement it as one query with `EXISTS` for the participation clause and an `IN` over the user's group ids, and test the negative cases (non-member, non-participant in a private expense). Authorisation bugs are usually missing negative tests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`expense.created_by == user.id`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`expense.group_id IS NOT NULL`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "the user has an `ExpenseUser` row for the expense, OR the expense's group is one of the user's groups",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "the user is a member of any group",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Balances for n people are all non-zero. Greedy repeatedly pays between the largest debtor and the largest creditor. Which bound holds on the number of payments?",
+      "explanation": "**Answer: (b)** Each payment is `min(debt, credit)`, so at least one of the two people reaches zero. The process ends when everyone is zero, and the last payment clears two people at once, so there are at most n-1 payments.\n- (a) is wrong because several people may be cleared by one payment, giving fewer than n-1.\n- (c) is wrong because greedy can be beaten by a zero-sum partition plan.\n- (d) is wrong because each step removes at least one person, so the loop cannot run more than n times.\n\n**Deeper:** with heaps each step costs O(log n), so the whole settle-up is O(n log n). The same bound also holds for the naive sorted-chain strategy.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Exactly n-1 payments, always",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "At most n-1 payments, because every payment fully settles at least one person and the final payment settles two",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Always the minimum possible, because the choice is greedy",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Up to n squared payments in the worst case",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Settle-up loads PAID rows with one query and HAD_TO_PAY rows with a second query. While it runs, another member commits a new expense. The computed balances do not sum to zero. What is the best fix?",
+      "explanation": "**Answer: (d)** The two queries saw different database states: the PAID row of the new expense was visible, but its HAD_TO_PAY rows were not (or the reverse). One query or one snapshot transaction guarantees a consistent view.\n- (a) is wrong because retrying without fixing the cause is non-deterministic.\n- (b) is wrong because a thread lock does not stop other processes from committing.\n- (c) is wrong because the difference is real data, not rounding noise.\n\n**Deeper:** writers should also insert an expense and all its rows in one transaction, so readers never see half an expense. The invariant is only meaningful at transaction boundaries.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Retry the computation until the totals happen to match",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Take a Python `threading.Lock` around the two queries",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Ignore the discrepancy and round small differences away",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Read all rows of the relevant expenses in one query, or in one transaction with a consistent snapshot, so both row types come from the same point in time",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-29/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Requirement: only a group's creator may add or remove members. The React client hides the buttons for non-creators. Where must the rule be enforced?",
+      "explanation": "**Answer: (a)** Authorisation is a business rule and must be enforced where requests are handled, using the authenticated user's id. Any client, script or LLM tool can call the API directly.\n- (b) is wrong because hiding UI controls is usability, not security.\n- (c) is wrong because a read-only table would block legitimate changes by the creator.\n- (d) is wrong because membership controls who can see expenses (R8), so it is sensitive.\n\n**Deeper:** take the acting user from the authenticated session, never from the request body, and add a test that a non-creator gets a permission error. Controllers translate that error into a 403.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "In the service layer, comparing the acting user's id with the group's creator and raising a permission error, because clients can be bypassed",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Only in the client, because hidden buttons cannot be clicked",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only in the database, by making `group_members` read-only",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nowhere; group membership is not sensitive",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

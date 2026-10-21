@@ -1,0 +1,395 @@
+{
+  "lessonSlug": "py-05-processes-threads-gil",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-05/additional/q02",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does the GIL (Global Interpreter Lock) actually guarantee?",
+      "explanation": "**Answer: (b)** The GIL lets one thread at a time run bytecode, and a single bytecode instruction is not interrupted. That protects the interpreter's internals, not your multi-step logic.\n\n- (a) a statement like x += 1 is several bytecodes, so shared variables can still be updated incorrectly\n- (c) the scheduler gives no ordering guarantee between threads\n- (d) CPU-bound pure-Python work does not speed up, because only one thread executes at a time\n\n**Deeper:** In interviews add that the guarantee is an implementation detail of the standard build, and that the free-threaded build in 3.13 and 3.14 removes it, so correct code must use locks, queues or confinement. The GIL is a CPython implementation detail, not part of the Python language definition, and other implementations such as PyPy with STM or Jython differ.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "That your shared variables will always update correctly across threads",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "That only one thread can execute Python bytecode at a time, and each individual bytecode instruction runs without interruption",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "That threads always run in the order they were started",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "That CPU-bound tasks will run faster with more threads",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Two threads both run this function, then the final value is printed:\n\n```python\ncounter = 0\ndef increment():\n    global counter\n    for _ in range(1_000_000):\n        counter += 1\n```\n\nWhat is the most likely printed value after both threads finish?",
+      "explanation": "**Answer: (c)** `counter += 1` is a read, an add and a write, so two threads can read the same value and one update is lost. The language does not guarantee 2,000,000, and the result may vary run to run.\n\n- (a) nothing makes the read-modify-write atomic\n- (b) each thread adds a million, so the total cannot be a single thread's share\n- (d) a race produces wrong values, not an exception\n\n**Deeper:** Modern CPython checks for thread switches only at certain instructions, so this exact loop often passes by accident; add a function call between load and store, or use a free-threaded build, and the lost updates appear. Always guard shared state with a `Lock`. To make the race visible deterministically in a test, insert a `time.sleep(0)` between the read and the write.",
+      "reviewFlag": "On CPython 3.10+ this exact loop often prints 2,000,000, because thread switches are checked only at calls and backward jumps; option (c) is the intended answer and the race is real in older versions, with any call between read and write, and on free-threaded builds.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Always exactly 2,000,000",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Always exactly 1,000,000",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Some number less than 2,000,000, and it may differ each time the program runs",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The program crashes with a RuntimeError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why does the scenario in H2 happen even though the GIL only lets one thread run at a time?",
+      "explanation": "**Answer: (a)** The statement compiles to a load of `counter`, an add and a store, and the GIL may hand over to another thread between those bytecodes, not just between source lines.\n\n- (b) the GIL applies to every bytecode, including loops\n- (c) globals are protected only per bytecode, not per statement\n- (d) the loop runs exactly as written; lost updates come from interleaving\n\n**Deeper:** `dis.dis` shows the sequence. The exact interleaving is version dependent, which is why the correct answer is \"use a lock\", not \"it works on my machine\".",
+      "reviewFlag": "Correct in principle (LOAD, ADD, STORE are separate bytecodes) but on 3.10+ the interpreter switches threads only at calls and backward jumps, so the race for this exact loop is rarely observed.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "counter += 1 is actually four separate bytecode steps, and the GIL can switch threads between those steps, not just between lines",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The GIL doesn't apply to loops",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "global variables are not protected by the GIL at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Python re-runs the loop twice by mistake",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A student wants to speed up a task that makes 5 slow network API calls (each takes 1 second, mostly spent waiting). They're deciding between threading and multiprocessing. What should they pick, and why?",
+      "explanation": "**Answer: (b)** Five one-second waits are I/O-bound. A thread releases the GIL while it blocks, so five threads overlap their waits and finish in about one second at far lower cost than five processes.\n\n- (a) processes are heavier and unnecessary for waiting\n- (c) overlapping the waits is exactly what speeds this up\n- (d) network calls spend their time waiting, not computing\n\n**Deeper:** For thousands of concurrent calls prefer `asyncio` or a bounded thread pool. Measure with `time.perf_counter` rather than asserting, as an interviewer may ask for numbers. Also mention connection limits and rate limits: ten thousand threads hammering one API is a different failure than the GIL.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "multiprocessing, because it always beats threading for any task",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "threading, because I/O-bound waits release the GIL, letting waits overlap — cheaper than spinning up separate processes",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Neither will help; only rewriting the API calls can speed this up",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "multiprocessing, because network calls are CPU-bound",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the key difference in output/behavior between using raw multiprocessing.Process objects versus multiprocessing.Pool.map() for running the same function on 4 inputs?",
+      "explanation": "**Answer: (c)** With raw `Process` objects you create, start and join each one and must add a `Queue` or `Pipe` to get results; `Pool.map` manages workers, distributes tasks and returns results in input order.\n\n- (a) Process has no built-in way to return a value\n- (b) Pool.map runs in parallel across worker processes\n- (d) Pool is more than shorthand: it reuses workers and collects results\n\n**Deeper:** Both pickle arguments and results, and both need the `__main__` guard under `spawn`. `ProcessPoolExecutor` gives the same convenience with futures and cleaner exception propagation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Process automatically collects and returns results in a list; Pool.map() does not",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Pool.map() runs the function sequentially, while Process runs it in parallel",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Process requires manually creating, starting, and joining each process with no built-in result collection, while Pool.map() handles all of that and returns results in order automatically",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "There is no real difference; Pool is just a shorter way to write Process",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the main difference between concurrency and parallelism?",
+      "explanation": "**Answer: (b)** Concurrency is about structure: several tasks in progress, switching between them. Parallelism is about execution: tasks running at the same instant on separate cores.\n\n- (a) concurrency works on one core, parallelism needs several\n- (c) they are related but different ideas\n- (d) both concepts apply to every language\n\n**Deeper:** Python threads give concurrency for I/O and, with the standard GIL, no CPU parallelism; processes and free-threaded builds give parallelism. `asyncio` is concurrency on a single thread. A one-line summary for interviews is: concurrency is dealing with many things at once, parallelism is doing many things at once.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Concurrency needs multiple CPU cores; parallelism doesn't",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Concurrency is switching between tasks to make progress on all of them; parallelism is tasks actually running at the same instant",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "They are the same thing, just different names",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Parallelism only applies to Python; concurrency applies to all languages",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will this print?\n\n```python\nt1 = threading.Thread(target=notify_driver, args=(\"D101\",))\nt1.start()\nprint(\"Main thread is done!\")\n```",
+      "explanation": "**Answer: (d)** `start()` returns immediately and the new thread runs independently, so the main thread usually prints first. Without `join()`, the order is not guaranteed.\n\n- (a) only a join would force that order\n- (b) the thread runs and the interpreter waits for non-daemon threads at exit\n- (c) omitting join is legal\n\n**Deeper:** Use `join()` when you need the result before continuing. Remember that a non-daemon thread keeps the process alive after `main` returns. A related trap is a daemon thread, which is killed abruptly at interpreter exit, so do not use it for writes that must complete.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "\"Main thread is done!\" always prints after notify_driver finishes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "notify_driver never runs because .join() was skipped",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "This code throws an error because .join() was not called",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "\"Main thread is done!\" prints almost immediately, likely before notify_driver finishes",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In Python's threading module, what does .join() do?",
+      "explanation": "**Answer: (c)** `join()` blocks the calling thread until the target thread has finished, optionally up to a timeout.\n\n- (a) threads cannot be merged\n- (b) start() starts a thread\n- (d) Python cannot kill a thread; it can only ask it to stop\n\n**Deeper:** After `join(timeout)` check `is_alive()` to detect a timeout. Cooperative cancellation through an `Event` is the usual pattern for stopping workers. To retrieve a result from a thread, store it on the thread object or use a `Queue` or `Future`, because `join()` returns `None`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Merges two threads into one",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Starts a thread that was created but not yet running",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Pauses the calling code until that specific thread has finished",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Kills the thread immediately",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A student wrote:\n```python\nt1 = threading.Thread(target=notify_driver, args=(\"D101\"))\nt1.start()\n```\nThis crashes with a TypeError about arguments not being iterable correctly. What's the mistake?",
+      "explanation": "**Answer: (b)** `(\"D101\")` is just the string `\"D101\"` because the comma makes a tuple. `args` is unpacked, so the thread calls `notify_driver(\"D\", \"1\", \"0\", \"1\")` and raises `TypeError` inside the new thread.\n\n- (a) target takes a function reference\n- (c) the target is assigned in the constructor\n- (d) notify_driver can take arguments, as long as the count matches\n\n**Deeper:** Write `args=(\"D101\",)`. Note the error is raised in the worker and printed by `threading.excepthook`; the main thread continues, which is why swallowed thread exceptions are easy to miss.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "target should be a string, not a function reference",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "args is missing a trailing comma — (\"D101\") is just a string, not a one-item tuple, so Python tries to unpack each character as a separate argument",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": ".start() must be called before target is assigned",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "notify_driver cannot accept any arguments",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Given a single CPU-bound function cpu_heavy() that takes 4 seconds to run alone, what is the most likely total time if it's run twice using two threading.Thread instances (started and joined) on a machine with free cores?",
+      "explanation": "**Answer: (a)** Pure-Python CPU work holds the GIL, so two threads take turns and the total is about the sum, around 8 seconds, even with free cores.\n\n- (b) threads in a GIL build do not run Python bytecode in parallel\n- (c) work is not split automatically between threads\n- (d) threads never speed up CPU-bound pure Python work\n\n**Deeper:** Use `multiprocessing` or a process pool for CPU-bound work, or a library that releases the GIL. On a free-threaded build this exact test would take about 4 seconds, which is the point of that build.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "About 8 seconds — roughly the same as running both sequentially, since the GIL prevents real parallel CPU execution",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "About 4 seconds total, since threads run in true parallel",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "About 2 seconds (threads split the CPU work evenly)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Less than 1 second, since threads always speed up computation",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nimport threading\n\ndef work():\n    print(threading.current_thread().name)\n\nt = threading.Thread(target=work, name=\"w1\")\nt.run()\n```\nWhat is printed?",
+      "explanation": "**Answer: (b)** `run()` is an ordinary method call that executes the target in the **calling** thread; only `start()` creates a new OS thread that then calls `run()`.\n\n- (a) the name only applies to a started thread\n- (c) run() executes the function synchronously\n- (d) that error comes from calling start() twice\n\n**Deeper:** Calling `run()` by mistake is a classic bug in thread-pool code that \"works\" but serialises everything. After `run()`, calling `start()` on the same object also fails, because `run` clears the target.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "w1",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "MainThread",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing, because the thread was never started",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "RuntimeError: threads can only be started once",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A document service must (1) make 200 concurrent LLM API calls that each wait about 2 seconds and (2) parse large PDFs with pure-Python CPU-heavy code taking about 300 ms each. Which architecture fits best?",
+      "explanation": "**Answer: (d)** The API calls are waits, so threads or `asyncio` overlap them cheaply; the parsing is CPU-bound pure Python, so it needs separate processes. Passing a key instead of megabytes keeps pickling cost low.\n\n- (a) threads cannot parallelise the CPU stage under the GIL\n- (b) two hundred processes for waiting is heavy and wastes memory\n- (c) this assigns each stage to the wrong mechanism\n\n**Deeper:** Size the process pool near the core count and the thread or async stage by the provider's rate limit, not by CPU. Mixed workloads are usually pipelines of two differently scaled stages.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "One large ThreadPoolExecutor for both stages, because threads are cheapest",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "One ProcessPoolExecutor for both stages, because processes avoid the GIL",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "asyncio for the PDF parsing and a process pool for the API calls",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Threads or asyncio for the API calls, and a process pool for PDF parsing that receives storage keys rather than file bytes",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-05/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "On Windows or macOS (start method `spawn`), a script contains this at module top level, with no `if __name__ == \"__main__\":` guard:\n\n```python\nimport multiprocessing as mp\n\ndef square(x):\n    return x * x\n\npool = mp.Pool(4)\nprint(pool.map(square, range(4)))\n```\nWhat happens?",
+      "explanation": "**Answer: (a)** Under `spawn` each child re-imports the main module, which executes `mp.Pool(4)` again at import time; `multiprocessing` detects this and raises a `RuntimeError` explaining that the main module must be guarded.\n\n- (b) the guard is required precisely so that re-imports do not start pools\n- (c) module-level functions pickle by reference without trouble\n- (d) the library detects the recursion and fails loudly\n\n**Deeper:** On Linux with `fork` the same script appears to work, which hides the bug until it runs on a laptop or in a spawn-based environment. Always guard, and keep side effects out of import time.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A RuntimeError reports an attempt to start a new process before bootstrapping finished",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prints [0, 1, 4, 9]",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "PicklingError, because square is defined at module level",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It deadlocks with no error message",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

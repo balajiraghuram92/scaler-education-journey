@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-43-sqlalchemy-async-persistence",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-43/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A FastAPI handler uses `async_sessionmaker(engine)` with default settings. It does the following and then returns the object to a Pydantic serializer:\n\n```python\nasync with SessionMaker() as session:\n    user = await session.get(User, 7)\n    user.plan = \"pro\"\n    await session.commit()\n    return {\"plan\": user.plan}\n```\n\nWhat happens on the last line?",
+      "explanation": "**Answer: (b)** With the default `expire_on_commit=True`, `commit()` marks all loaded attributes expired. Reading one needs a refresh `SELECT`, which in an `AsyncSession` cannot happen implicitly and surfaces as `MissingGreenlet`.\n\n- (a) Wrong: the assigned value is discarded from the instance state at commit, so it must be reloaded.\n- (c) Wrong: expired attributes are never read as `None`; they trigger a load.\n- (d) Wrong: `commit()` does not close the session or detach the object; the session is still open inside the `async with`, and the failure is the implicit load.\n\nFixes: capture the value before commit, call `await session.refresh(user)`, or configure the sessionmaker with `expire_on_commit=False`.\n\n**Deeper:** This is the most common first async SQLAlchemy crash. A strong answer names the trade-off of `expire_on_commit=False` (stale reads, server-generated values not reloaded) and prefers building the response model explicitly inside the unit of work.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It returns `\"pro\"`, because the attribute was just assigned in Python.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It raises `MissingGreenlet`: `commit()` expired the instance (`expire_on_commit=True`), so reading `user.plan` tries to refresh it with implicit blocking I/O.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It returns `None`, because expired attributes read as `None` until the next query.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises `DetachedInstanceError`, because `commit()` closes the session and detaches `user`.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A developer replaces `selectinload` with `joinedload` on a collection relationship:\n\n```python\nstmt = select(Conversation).options(joinedload(Conversation.messages))\nconversations = (await session.scalars(stmt)).all()\n```\n\nWhat is the outcome in SQLAlchemy 2.0?",
+      "explanation": "**Answer: (d)** A `LEFT OUTER JOIN` to a collection returns one row per child, so the same parent appears several times. In 2.0 style SQLAlchemy refuses to guess and demands an explicit `.unique()` call.\n\n- (a) Wrong: SQLAlchemy raises instead of returning duplicates.\n- (b) Wrong: the identity map keeps one object per primary key, but the result would still repeat it, and the library requires you to acknowledge that.\n- (c) Wrong: that describes `selectinload`, which uses a second `IN` query. `joinedload` uses a single joined statement.\n\nThe fix is `(await session.scalars(stmt)).unique().all()`, or better, `selectinload` for collections.\n\n**Deeper:** Choosing a loader strategy is a product of cardinality and pagination. `joinedload` suits many-to-one; for collections prefer `selectinload`, which also works correctly with `LIMIT`, whereas joined collection loading forces subquery wrapping.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It works and returns one `Conversation` per row of the join, including duplicates.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It works and silently de-duplicates conversations because the identity map prevents duplicates.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It issues one query for conversations and one for messages, exactly like `selectinload`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises `InvalidRequestError`: results containing joined eager loads against collections require `.unique()` on the result, because the join multiplies parent rows.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A service method starts with `rows = await session.scalars(select(Job))` and later does `async with session.begin(): ...` on the same session. What happens?",
+      "explanation": "**Answer: (a)** A 2.0 session autobegins on first use. Calling `session.begin()` while a transaction is already in progress raises `InvalidRequestError`.\n\n- (b) Wrong: joining is the behaviour of `begin_nested()` (as a savepoint) or of the legacy `subtransactions`, not of `begin()`.\n- (c) Wrong: nothing is rolled back; the call is rejected.\n- (d) Wrong: commits only happen when you ask for them.\n\nChoose one style per code path: either wrap the whole unit of work in `async with session.begin():` from the start, or let autobegin run and call `commit()` yourself.\n\n**Deeper:** Interviewers ask this to see whether you know what a session is. Explaining autobegin, `flush()` versus `commit()`, and that the transaction boundary belongs in the application layer shows you have used the 2.0 API rather than copying legacy snippets.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`InvalidRequestError: A transaction is already begun`, because the first `execute` autobegan a transaction.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing special: `begin()` joins the existing transaction automatically.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The first query is rolled back and a new transaction starts.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`begin()` commits the first transaction, then opens a fresh one.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Postgres has `max_connections = 100`, and you want to keep 20 in reserve for migrations, admin tools and other services. Your deployment will run 2 replicas, each with 3 uvicorn workers, and each worker's engine uses `pool_size=10, max_overflow=5`. What is the right conclusion?",
+      "explanation": "**Answer: (c)** Each worker process has its own engine, so the budget multiplies: replicas x workers x (pool_size + max_overflow) = 2 x 3 x 15 = 90, above the 80 connections available after the reserve.\n\n- (a) Wrong: this counts a single worker (or ignores multiplication across processes).\n- (b) Wrong: overflow connections are created under burst, which is exactly when you are least able to afford a failure.\n- (d) Wrong: SQLAlchemy pools connect lazily, so the problem appears under load as `TooManyConnectionsError`, not at boot.\n\n**Deeper:** The failure looks like a mysterious production incident only at peak traffic. Show the arithmetic in the interview, then mention the levers: smaller `pool_size`, a short `pool_timeout`, fewer workers per replica, or PgBouncer in transaction mode with prepared-statement caches disabled for asyncpg.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is fine: the pool total is 30 connections.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It is fine because `max_overflow` connections are only created if the pool is full, so overflow never counts.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The worst case is 2 x 3 x 15 = 90 connections, which exceeds the 80 you can spend; shrink the pools or workers, or add PgBouncer.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It fails immediately at startup, because the pool eagerly opens 90 connections.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "After hitting `MissingGreenlet` in several endpoints, a team sets `lazy=\"selectin\"` on every relationship in the model layer. What is the most important downside?",
+      "explanation": "**Answer: (b)** A mapper-level `lazy=\"selectin\"` is a global default: it silences the error by always paying for the loading, whether or not the endpoint needs the data.\n\n- (a) Wrong: `selectin` loading works in async; it executes as part of the awaited query.\n- (c) Wrong: it removes implicit lazy loads rather than re-enabling them; the cost is extra queries and memory.\n- (d) Wrong: `selectin` issues a separate `IN` query and does not multiply parent rows, so `.unique()` is not required.\n\nThe more explicit approach is `lazy=\"raise\"` on the relationship plus `options(selectinload(...))` in each query that needs the data, so forgotten loads fail in tests.\n\n**Deeper:** Loading policy belongs to the use case, not the model. Interviewers like candidates who say that each endpoint should declare its loading plan, and that a statement-count assertion in tests catches both under-loading (N+1) and over-loading.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It makes relationships unusable in async code, because `selectin` requires a synchronous driver.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Every query that loads a parent now also runs the extra relationship query and holds those rows in memory, even on endpoints that never read the relationship, and the cost is invisible at the call site.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It re-enables implicit lazy loading, so `MissingGreenlet` will come back.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It forces `joinedload` semantics, so every result needs `.unique()`.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "To speed up a dashboard, a developer writes:\n\n```python\nasync with SessionMaker() as session:\n    a, b = await asyncio.gather(\n        session.scalars(select(Order)),\n        session.scalars(select(Refund)),\n    )\n```\n\nWhat is the correct assessment?",
+      "explanation": "**Answer: (d)** A session owns a single connection and a single transaction state machine. Overlapping awaits on it are unsupported and typically raise an error such as \"This session is provisioning a new connection; concurrent operations are not permitted\".\n\n- (a) Wrong: the pool lends connections to sessions, not to coroutines sharing a session.\n- (b) Wrong: read-only does not matter; the problem is the shared connection and session state.\n- (c) Wrong: the restriction comes from SQLAlchemy's session design, independent of driver.\n\nThe fix is `async with SessionMaker() as s1, SessionMaker() as s2:` and gather the two executions, each on its own session (and connection).\n\n**Deeper:** Parallel queries cost extra connections from the pool, so they interact with pool sizing. Say that parallelism helps latency only when the queries are independent and the pool has headroom.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is the recommended way to parallelise queries; the pool hands each coroutine its own connection.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It is safe as long as the queries are read-only.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is safe on asyncpg but not on psycopg.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An `AsyncSession` is not safe for concurrent use; it can raise errors about concurrent operations or interleave state. Use one session per task, or run the queries sequentially.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You rename `Message.body` to `Message.content` in the model and run `alembic revision --autogenerate`. What does the generated migration most likely contain, and what should you do?",
+      "explanation": "**Answer: (a)** Autogenerate compares names, so a missing old column plus a new column is emitted as drop and add. It cannot know it was a rename.\n\n- (b) Wrong: Alembic does not detect renames; type similarity is not considered.\n- (c) Wrong: added and removed columns are always detected; `compare_type` only governs type changes on columns that exist in both.\n- (d) Wrong: it generates the destructive pair without complaint.\n\nAlways read the generated script. For zero-downtime deploys, do it as expand and contract: add the new column, dual-write, backfill, switch reads, then drop the old column in a later release.\n\n**Deeper:** Interviewers use this to see whether you treat autogenerate as a draft. Mention `alembic check` in CI and that a rename during a rolling deploy breaks the old pods still reading the old column.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`drop_column('messages', 'body')` plus `add_column('messages', 'content')`, which would destroy data; rewrite it as `op.alter_column('messages', 'body', new_column_name='content')`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A single `alter_column(new_column_name=...)`, because Alembic detects renames by comparing column types.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing, because autogenerate ignores column changes unless `compare_type=True`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An error, because autogenerate refuses ambiguous diffs.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You must add `Message.token_count INTEGER NOT NULL` to a table with 80 million rows in Postgres. Which plan is safest?",
+      "explanation": "**Answer: (c)** Expand and contract: adding a nullable column is cheap, application code starts writing it, a batched backfill fills history, and the constraint is added last.\n\n- (a) Wrong: existing rows would violate `NOT NULL`, so the statement fails on a populated table.\n- (b) Wrong: that has the same failure, and the backfill cannot come \"afterwards\" because the statement is rejected up front.\n- (d) Wrong: it is destructive, and unnecessary downtime.\n\nThe final constraint step can itself be staged on Postgres (add a `CHECK ... NOT VALID`, validate it separately, then set `NOT NULL`) to avoid a long lock.\n\n**Deeper:** The skill being tested is operational: lock levels, batching, and compatibility between old and new pods during a rolling deploy. Mention running `upgrade head` as a pre-deploy job rather than from replica startup.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Autogenerate and apply it as is; Postgres fills existing rows with `NULL`, which satisfies `NOT NULL`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Add the column as `NOT NULL` without a default in a single statement, and backfill afterwards.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add the column nullable, deploy code that writes it, backfill in batches, then add the `NOT NULL` constraint once every row has a value.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Drop and recreate the table with the new column during a maintenance window.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An endpoint opens a session in a dependency (`pool_size=10, max_overflow=5, pool_timeout=30`) and, inside the handler, queries the user once and then awaits a five-second LLM call before returning. Under 40 concurrent requests the logs fill with `QueuePool limit of size 10 overflow 5 reached, connection timed out`. What is the best fix?",
+      "explanation": "**Answer: (b)** After the first query the session is inside a transaction and still holds its connection, so each request pins one of 15 connections for five seconds. Shorten the connection hold time.\n\n- (a) Wrong: waiting longer converts errors into latency and does not add capacity.\n- (c) Wrong: `expire_on_commit` is about attribute expiry; it does not release connections.\n- (d) Wrong: `NullPool` opens a new connection per checkout, which hammers Postgres and does not address the pinned-connection problem.\n\nTypical shape: load inputs, commit or close, call the model, then open a short session to persist the output.\n\n**Deeper:** Connection hold time times request rate is the real capacity formula (Little's law). Senior engineers measure it, keep transactions short, and never place network calls to slow third parties inside an open transaction.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Raise `pool_timeout` to 120 so requests wait long enough.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Do not hold a connection across the LLM call: finish the database work, release the session (or scope it to a short unit of work), then call the LLM and open a new unit of work only to store the result.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Set `expire_on_commit=False`, which releases connections earlier.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Switch to `NullPool` so each request opens its own connection.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "This stdlib model of a savepoint-based importer was run. What does it print?\n\n```python\nimport sqlite3\nconn = sqlite3.connect(\":memory:\", isolation_level=None)\nconn.execute(\"create table messages (conversation_id int, external_id text, unique(conversation_id, external_id))\")\nconn.execute(\"begin\")\nsaved = skipped = 0\nfor ext in [\"a\", \"b\", \"a\", \"c\", \"b\"]:\n    conn.execute(\"savepoint sp\")\n    try:\n        conn.execute(\"insert into messages values (1, ?)\", (ext,))\n        conn.execute(\"release sp\")\n        saved += 1\n    except sqlite3.IntegrityError:\n        conn.execute(\"rollback to sp\")\n        conn.execute(\"release sp\")\n        skipped += 1\nconn.execute(\"commit\")\nprint(saved, skipped, sorted(r[0] for r in conn.execute(\"select external_id from messages\")))\n```",
+      "explanation": "**Answer: (c)** The explicit `BEGIN` keeps one outer transaction. Each iteration opens a savepoint; duplicates raise `IntegrityError`, are rolled back to the savepoint, and counted as skipped. Unique values `a`, `b`, `c` survive.\n\n- (a) Wrong: the unique constraint rejects the second `a` and `b`.\n- (b) Wrong: processing does not stop at the first duplicate, so `c` is still inserted.\n- (d) Wrong: the transaction is active because of the explicit `begin`, and `isolation_level=None` stops the module from interfering.\n\nOutput verified by running the snippet.\n\n**Deeper:** This is exactly what `begin_nested()` does in SQLAlchemy: emit `SAVEPOINT`, and on exception `ROLLBACK TO SAVEPOINT`. Knowing the SQL beneath the abstraction is what interviewers look for.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`5 0 ['a', 'a', 'b', 'b', 'c']`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`2 3 ['a', 'b']`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`3 2 ['a', 'b', 'c']`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises `OperationalError: cannot rollback - no transaction is active`.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "With `expire_on_commit=False`, worker A loads `Account(id=1, balance=100)` and commits an unrelated change. Meanwhile worker B updates the balance to 40 and commits. Worker A then reads `account.balance` without refreshing. What does A see and what is the correct remedy when fresh data matters?",
+      "explanation": "**Answer: (d)** Without expiry the instance keeps its loaded state, so A still sees `100`. SQLAlchemy does not poll the database; staleness is the cost of `expire_on_commit=False`.\n\n- (a) Wrong: the identity map is a per-session cache, not a live view of the table.\n- (b) Wrong: `StaleDataError` arises at flush time when an UPDATE matches no row (for example with version counters), not when reading an attribute.\n- (c) Wrong: the object remains attached to the open session and keeps its loaded values.\n\nFor balances and similar read-modify-write logic use `select(...).with_for_update()` or a version column (`version_id_col`) rather than trusting loaded state.\n\n**Deeper:** Turning off expiry is a trade, not a free fix. Explain what you then own: explicit refreshes, locking for concurrency-sensitive updates, and short-lived sessions so staleness windows stay small.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`40`, because the identity map always reflects the latest committed row.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It raises `StaleDataError` on the read.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`None`, because the object is detached after commit.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`100`, the stale in-memory value; call `await session.refresh(account)` or re-query (and use row locking or optimistic version checks for read-modify-write logic).",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-43/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "After putting PgBouncer in transaction-pooling mode in front of Postgres, an asyncpg-based service starts failing intermittently with `prepared statement \"__asyncpg_stmt_1__\" does not exist`. What is the right fix?",
+      "explanation": "**Answer: (a)** In transaction pooling a client may be handed a different server connection for each transaction. asyncpg prepared a statement on one connection and later executes it on another that never saw it, so the named statement does not exist.\n\n- (b) Wrong: capacity is unrelated; the error is about statement identity across server connections.\n- (c) Wrong: pre-ping issues a lightweight check and does not cause this error; disabling it would only hide dead connections.\n- (d) Wrong: `expire_on_commit` concerns ORM attribute state, not driver statements.\n\nBoth caches need disabling: asyncpg's own (`statement_cache_size`) and SQLAlchemy's adapter-level cache (`prepared_statement_cache_size`).\n\n**Deeper:** This ties pool sizing to infrastructure: PgBouncer is the standard answer to connection explosion, and the driver-level consequences are a favourite follow-up question. Newer PgBouncer versions can support protocol-level prepared statements, so check what your proxy supports.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Disable the prepared-statement caches: `connect_args={\"statement_cache_size\": 0, \"prepared_statement_cache_size\": 0}`, since server connections are shared between clients between transactions.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Increase `pool_size`, because the error is caused by pool exhaustion.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Set `pool_pre_ping=False`, because pre-ping consumes prepared statements.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Switch the session to `expire_on_commit=True` so statements are re-prepared after commit.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

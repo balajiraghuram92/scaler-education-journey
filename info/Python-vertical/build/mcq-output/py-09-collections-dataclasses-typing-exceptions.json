@@ -1,0 +1,395 @@
+{
+  "lessonSlug": "py-09-collections-dataclasses-typing-exceptions",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-09/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the main benefit of using @dataclass on a class instead of writing it manually?",
+      "explanation": "**Answer: (a)** `@dataclass` inspects the annotated fields and generates `__init__`, `__repr__` and `__eq__` (plus optional ordering, hashing and slots), removing repetitive boilerplate.\n\n- (b) A dataclass is an ordinary class; it does not run faster.\n- (c) It does not turn the class into a dictionary, though `dataclasses.asdict` can convert an instance on request.\n- (d) Dataclass instances can be stored in lists like any other object.\n\n**Deeper:** The generated methods are only as good as your field declarations. Know the sharp edges: mutable defaults need `default_factory`, `eq=True` without `frozen=True` makes instances unhashable, and `frozen` is shallow. Use dataclasses for domain objects and Pydantic where input must be validated.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It automatically generates methods like __init__, __repr__, and __eq__ based on the fields you declare",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It automatically makes the class run faster than a normal class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It automatically converts the class into a dictionary",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It prevents the class from ever being used inside a list",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Consider the following code snippet:\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass(frozen=True)\nclass Point:\n    x: int\n    y: int\n\np = Point(2, 3)\np.x = 10\nprint(p.x)\n```\n\nWhat happens when this code runs?",
+      "explanation": "**Answer: (b)** With `frozen=True` the generated `__setattr__` blocks assignment, so `p.x = 10` raises `dataclasses.FrozenInstanceError`, and the following `print` never runs.\n\n- (a) The assignment never succeeds, so 10 is never printed.\n- (c) Nothing is printed because the exception stops the program before the `print`.\n- (d) The class definition is valid; the error happens on assignment, at runtime.\n\n**Deeper:** `FrozenInstanceError` is a subclass of `AttributeError`. Frozen instances are the natural fit for value objects, cache keys and config, and you \"modify\" them with `dataclasses.replace`. Remember immutability is shallow: a list inside a frozen dataclass can still be mutated.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It prints 10",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It raises a FrozenInstanceError",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It prints 2",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises a TypeError at class definition itself",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A student tries to give every Member object an empty list of borrowed books:\n```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass Member:\n    name: str\n    books: list = []\n```\nRunning this raises an error. What is the correct fix?",
+      "explanation": "**Answer: (c)** `field(default_factory=list)` builds a new list for each instance, which is what you want.\n\n- (a) A tuple default is allowed, but `= []` would still be wrong, and it changes the meaning of the field.\n- (b) Removing the annotation turns it into a plain class attribute shared by all instances, which is the bug the check prevents.\n- (d) Field order does not matter here, since the error is about the mutable default.\n\nThe class creation raises `ValueError: mutable default <class 'list'> for field books is not allowed: use default_factory`.\n\n**Deeper:** In a plain class, `def __init__(self, books=[])` has the same shared-state bug and Python does not warn. The idiom there is `books=None` followed by `self.books = books or []`, or better, `if books is None`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Change list to tuple and keep = []",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Remove the type hint list completely",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Change books: list = [] to books: list = field(default_factory=list)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Move books above name in the class",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You're writing a borrow(book, member) function for a library system. If the book isn't available, you want the caller to know exactly why it failed (not just get a False or a generic error) and be able to catch that specific failure separately from other library errors. What's the best approach?",
+      "explanation": "**Answer: (a)** A domain exception such as `BookNotAvailable(LibraryError)` says exactly what went wrong, carries a message and data, and can be caught separately from other library failures or together through the base class.\n\n- (b) `False` loses the reason and is easy to ignore.\n- (c) Printing and returning `None` pushes the problem to the caller as an unexplained `None`.\n- (d) A bare `except:` that ignores errors hides bugs and also traps `KeyboardInterrupt`.\n\n**Deeper:** Define one base exception per service, then leaf classes for failures callers may recover from differently. Include structured attributes (provider, status, book id) rather than only a message, so retry logic and logging do not parse strings.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Raise a custom exception like BookNotAvailable that inherits from a base LibraryError class",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Return False from the function when the book isn't available",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Print an error message and return None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Use a bare except: block inside borrow() to silently ignore the problem",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Consider the following code snippet:\n\n```python\nfrom enum import Enum\n\nclass LoanStatus(Enum):\n    ACTIVE = \"active\"\n    RETURNED = \"returned\"\n\nstatus = LoanStatus.ACTIVE\nprint(status.value)\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (b)** `LoanStatus.ACTIVE` is an enum member, and its `.value` attribute is the associated value, `\"active\"`.\n\n- (a) `LoanStatus.ACTIVE` is what `print(status)` would show, since that is the member's string form.\n- (c) `\"ACTIVE\"` is `status.name`.\n- (d) Both `.value` and `.name` exist on every member.\n\n```text\nactive\n```\n\n**Deeper:** Enums replace magic strings, make invalid states unrepresentable for type checkers, and look up by value with `LoanStatus(\"active\")`. In API code prefer `StrEnum` (3.11+) when the value must also behave as a string, for example in JSON. Members are singletons, so compare them with `is` or `==`, never by their string values.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "LoanStatus.ACTIVE",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "active",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "ACTIVE",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises an AttributeError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You need to create a Student class with name and marks attributes for the sorting problem. You want it to have __init__, __repr__, and __eq__ automatically, without typing them by hand. Which approach is correct?",
+      "explanation": "**Answer: (d)** `@dataclass` with annotated fields `name: str` and `marks: int` generates `__init__`, `__repr__` and `__eq__`, and the instance remains mutable.\n\n- (a) Writing them by hand works but is the boilerplate the decorator removes.\n- (b) A plain dict has no methods, no attribute access and no type checking of field names.\n- (c) A `namedtuple` is immutable, so it cannot update `marks` after creation, contrary to the option's claim.\n\n**Deeper:** For sorting students, use `sorted(students, key=lambda s: s.marks)`, or `order=True` if the natural order is by fields. If the data comes from a request, validate it with Pydantic before turning it into the dataclass.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Write __init__, __repr__, and __eq__ yourself inside the class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Store each student as a plain dict like {\"name\": ..., \"marks\": ...}",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Use a namedtuple, since it also updates marks easily after creation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Use @dataclass and declare name: str and marks: int as the fields",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Consider the following code snippet:\n```python\nfrom collections import defaultdict\n\ngroups = defaultdict(list)\ngroups[\"a\"].append(1)\ngroups[\"a\"].append(2)\ngroups[\"b\"].append(3)\n\nprint(groups[\"c\"])\n```\nWhat gets printed?",
+      "explanation": "**Answer: (b)** Reading a missing key on a `defaultdict(list)` calls `list()` to create an empty list, stores it under `\"c\"`, and returns it, so `[]` is printed.\n\n- (a) A `KeyError` would come from a plain `dict`.\n- (c) The factory returns a list, not `None`.\n- (d) `[1, 2]` is the value for key `\"a\"`.\n\n```text\n[]\n```\n\n**Deeper:** The lookup inserts the key, so `\"c\" in groups` is now true and `len(groups)` has grown. If you only want to read without side effects, use `groups.get(\"c\")`, which returns `None` and inserts nothing.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "KeyError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "[]",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "[1, 2]",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A student wrote this to group anagrams but it's not grouping correctly:\n```python\ndef group_anagrams(strs):\n    groups = {}\n    for word in strs:\n        key = word          # BUG is here\n        if key not in groups:\n            groups[key] = []\n        groups[key].append(word)\n    return list(groups.values())\n```\nWhat is the bug, and how should it be fixed?",
+      "explanation": "**Answer: (a)** The key must be identical for all anagrams. Using `\"\".join(sorted(word))` maps \"eat\", \"tea\" and \"ate\" to `\"aet\"`, so they land in the same list.\n\n- (b) A dict is exactly the right structure; the key logic is what is wrong.\n- (c) Replacing the list with the word would discard the grouping.\n- (d) With `key = word`, only exact duplicates group together, so the code is wrong.\n\n**Deeper:** Sorting costs O(k log k) per word. A faster key for lowercase ASCII is a 26-count tuple, which is O(k). A `defaultdict(list)` removes the `if key not in groups` check, and you should handle `None` or empty input by returning `[]`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The key should be sorted(word) converted to a string, so that anagrams map to the same key",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The bug is using a dict — a list should be used instead",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The bug is in groups[key].append(word) — it should be groups[key] = word",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "There is no bug; the code is correct as is",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You need to count how many times each word appears in a large paragraph, and then quickly find the 3 most frequent words. Which tool is the most convenient choice?",
+      "explanation": "**Answer: (c)** `Counter` tallies hashable items in one pass, and `most_common(3)` returns the top three pairs directly.\n\n- (a) `deque` is a double-ended queue and does not count.\n- (b) `namedtuple` defines record types and does not count.\n- (d) Nested loops over a list are O(n squared) and verbose.\n\n```python\nCounter(paragraph.split()).most_common(3)\n```\n\n**Deeper:** `most_common(k)` uses a heap-based selection when `k` is given, so it does not sort every item. Remember to normalise text first (lowercase, strip punctuation), and `Counter` supports `+`, `-`, `&` and `|` for combining tallies across shards. If you need a strictly bounded memory footprint over a huge vocabulary, consider an approximate structure such as a count-min sketch instead.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "deque",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "namedtuple",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Counter from collections",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A plain list with nested loops",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Consider the following code snippet:\n```python\ndef compare(x, y, key=None):\n    if key:\n        x, y = key(x), key(y)\n    if x < y:\n        return -1\n    elif x > y:\n        return 1\n    return 0\n\nresult = compare(5, 3)\nprint(result)\n```\nWhat does this print?",
+      "explanation": "**Answer: (d)** `key` is `None`, so the values are compared directly. `5 < 3` is false and `5 > 3` is true, so the function returns `1`.\n\n- (a) `0` would mean the values are equal.\n- (b) `-1` would mean `x < y`.\n- (c) The function returns an integer, never a boolean.\n\n**Deeper:** The `if key:` test treats any falsy key as missing, which is a subtle bug if someone passes a callable object that defines `__bool__` returning `False`; `key is not None` is the correct test. Note also that `compare` is a three-way comparison, like the old `cmp`, and `functools.cmp_to_key` adapts such functions for `sorted`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "0",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "-1",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "True",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "1",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What happens when this code runs, and what is the minimal correct fix?\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass Key:\n    id: int\n\nseen = {Key(1): \"a\"}\n```",
+      "explanation": "**Answer: (c)** By default `@dataclass` generates `__eq__`. Defining equality without hashing would break the contract that equal objects have equal hashes, so dataclass sets `__hash__` to `None` when `eq=True` and `frozen=False`. Using the instance as a dict key raises `TypeError`.\n\n- (a) Identity hashing is lost as soon as `__eq__` is generated.\n- (b) Fields without a default are fine; only fields with a default must come after them.\n- (d) Dict literals do not copy keys; they need them hashable.\n\n`@dataclass(frozen=True)` generates a field-based `__hash__`, which is the right fix for a value object.\n\n**Deeper:** `unsafe_hash=True` also generates `__hash__` but leaves instances mutable, so a changed key can no longer be found in the dict. Prefer frozen for any object used as a key or stored in a set.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It works: dataclass instances are hashable by identity by default",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`ValueError` at class creation, because `id` has no default value",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`TypeError: unhashable type: 'Key'`, because `eq=True` without `frozen=True` sets `__hash__` to `None`; use `@dataclass(frozen=True)`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing is stored, because dict literals copy their keys and drop the mutable ones",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\ntry:\n    try:\n        {}[\"k\"]\n    except KeyError:\n        raise ValueError(\"bad config\") from None\nexcept ValueError as e:\n    print(repr(e.__cause__), repr(e.__context__), e.__suppress_context__)\n```",
+      "explanation": "**Answer: (a)** `raise ... from None` sets `__cause__` to `None` and sets `__suppress_context__` to `True`, so the traceback does not display the original. The interpreter still records the `KeyError` in `__context__` because the new exception was raised while handling it.\n\n- (b) That is the result of `raise ValueError(...) from exc`, apart from the suppress flag, which would be `True` there too.\n- (c) `__context__` is still set automatically.\n- (d) `from None` removes the cause, it does not set it.\n\n**Deeper:** Use `from exc` when the original explains the failure and `from None` when it is noise. Without `from`, you get `__context__` and the \"During handling of the above exception, another exception occurred\" traceback, which suggests a bug in the handler rather than deliberate translation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`None KeyError('k') True`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`KeyError('k') KeyError('k') False`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`None None False`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`KeyError('k') None True`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-09/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this program do?\n\n```python\ndef run():\n    try:\n        raise RuntimeError(\"boom\")\n    finally:\n        return \"done\"\n\nprint(run())\n```",
+      "explanation": "**Answer: (d)** A `return` in a `finally` block runs while the exception is propagating and replaces the unwinding with a normal return, so the exception is discarded and `done` is printed.\n\n- (a) The exception never reaches the caller.\n- (b) The message is lost along with the exception.\n- (c) Nothing is raised afterwards; the exception is gone.\n\nPython 3.14 starts emitting a `SyntaxWarning` for `return`, `break` or `continue` that exit a `finally` block (PEP 765), because this pattern hides errors.\n\n**Deeper:** Keep `finally` for cleanup only (closing files, releasing locks). If you must translate an error, do it in `except` with `raise ... from`. Linters such as ruff flag this pattern, and it is a classic code-review catch.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Prints a `RuntimeError` traceback and exits",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Prints `boom`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Prints `done` and then a `RuntimeError` traceback",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Prints `done`; the `RuntimeError` is silently discarded",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-50-errors-logging-resilience",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-50/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nasync def child():\n    raise TimeoutError(\"t\")\n\nasync def main():\n    try:\n        async with asyncio.TaskGroup() as tg:\n            tg.create_task(child())\n    except TimeoutError:\n        print(\"handled\")\n```\n\nWhat happens when `main()` runs on Python 3.12?",
+      "explanation": "**Answer: (d)** `TaskGroup` always wraps child failures in an `ExceptionGroup`, even when only one task failed. `except TimeoutError` matches a plain `TimeoutError`, not a group that contains one, so the handler never runs. I ran this: the exception escaped as an `ExceptionGroup` containing `['TimeoutError']`. Use `except* TimeoutError` instead.\n\n- (a) is wrong: it assumes a single child exception is unwrapped, which is how `asyncio.gather` behaves, not `TaskGroup`.\n- (b) is wrong: nothing converts the group to its first member automatically.\n- (c) is wrong: `TimeoutError` is a normal exception class and is catchable; the problem is the wrapper type.\n\n**Deeper:** This is the most common migration bug when moving from `gather` to `TaskGroup`. Interviewers like candidates who know `except*` semantics: it matches subgroups, runs each handler once, and re-raises the rest as a new group.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It prints `handled`, because a lone child exception is unwrapped.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It prints `handled`, because `ExceptionGroup` is a subclass of `TimeoutError`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It raises `SyntaxError`, since `TimeoutError` cannot be caught in async code.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The exception escapes as an `ExceptionGroup` containing the `TimeoutError`; the handler needs `except*`.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndef load():\n    try:\n        {}[\"key\"]\n    except KeyError:\n        raise RuntimeError(\"config broken\")\n\ntry:\n    load()\nexcept RuntimeError as e:\n    print(repr(e.__cause__), repr(e.__context__))\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (a)** Raising inside an `except` block without `from` sets `__context__` to the exception being handled but leaves `__cause__` as `None`. The output is `None KeyError('key')`. The traceback then shows \"During handling of the above exception, another exception occurred\", which reads like a bug in the handler.\n\n- (b) is wrong: `__cause__` is only set by `raise ... from ...`.\n- (c) is wrong: Python does keep the implicit chain in `__context__`; it is not lost.\n- (d) is wrong: it describes `from None`, which sets `__suppress_context__` to `True` but still keeps `__context__`.\n\nWhen translating a low-level error into a domain error, write `raise RuntimeError(\"config broken\") from exc` so the traceback says \"direct cause\", and use `from None` only when the original is irrelevant noise.\n\n**Deeper:** Preserving cause chains is what makes production tracebacks debuggable across layers. Reviewers should flag bare `raise NewError(...)` inside `except`.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`None KeyError('key')`", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`KeyError('key') None`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`None None`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`KeyError('key') KeyError('key')`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nlogging.basicConfig(level=logging.WARNING, format=\"%(name)s:%(message)s\", stream=sys.stdout)\nlogging.getLogger(\"app\").setLevel(logging.DEBUG)\nlogging.getLogger(\"app.db\").debug(\"a\")\nlogging.getLogger(\"other\").info(\"b\")\nlogging.getLogger(\"other\").warning(\"c\")\n```\n\nWhich lines are printed?",
+      "explanation": "**Answer: (c)** The level check happens on the logger where the call is made, using its *effective* level (the nearest ancestor with a level set). `app.db` inherits `DEBUG` from `app`, so the record is created. It then propagates to the root logger's handler, and handler levels are what is checked next, not the root *logger's* level. `basicConfig` created a handler with no level, so `app.db:a` prints. `other` inherits `WARNING` from root, so `b` is dropped and `c` prints. I ran it and got `app.db:a` and `other:c`.\n\n- (a) is wrong: it applies the root logger's `WARNING` level to propagated records, which is not how propagation works.\n- (b) is wrong: `other.info` is below the effective `WARNING` level.\n- (d) is wrong: it expects the `app` level to affect `other`, which is a sibling.\n\n**Deeper:** Understanding \"logger level at the source, handler level at the sink, propagation in between\" is what lets you debug missing or duplicated log lines.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Only `other:c`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`other:b` and `other:c`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`app.db:a` and `other:c`.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "`app.db:a`, `other:b` and `other:c`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A payment endpoint dedupes with `if key in processed: return processed[key]`, then charges the card, then does `processed[key] = result`. Under load, customers are occasionally charged twice for one key. What is the root cause and the fix?",
+      "explanation": "**Answer: (b)** Check-then-act is not atomic. Two concurrent requests with the same key can both see the key as absent, and both proceed to charge. The fix is an atomic claim before doing the side effect: insert the key with an `in_progress` marker under a unique constraint (or Redis `SET key value NX EX ttl`), let exactly one request win, and make the loser wait for or return the stored result.\n\n- (a) is wrong: a longer key does not change the race.\n- (c) is wrong: retries are exactly why idempotency keys exist; removing client retries only trades duplicates for lost requests.\n- (d) is wrong: a bigger dict or a TTL does not remove the window between the check and the write, and a per-process dict does not work across workers.\n\n**Deeper:** This is the standard answer for \"how do you make an endpoint idempotent\": caller-supplied key, atomic claim, stored response, payload hash to detect key reuse, and expiry.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Keys are too short; use a longer random key.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The check and the write are separate steps, so concurrent requests both pass the check; claim the key atomically (unique insert or `SET NX`) before charging.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "Clients should never retry; disable retries in the client library.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Use a bigger in-memory dict with a TTL.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An API handler wraps its vendor call in 3 attempts. The SDK it calls also retries 3 attempts internally, and the service mesh in front of the vendor retries 3 attempts per request. During a sustained outage, what is the worst-case number of requests the vendor sees for one user request, and what is the fix?",
+      "explanation": "**Answer: (b)** Retries multiply across layers: 3 x 3 x 3 = 27 vendor requests for one user request. During an outage this *amplifies* load on the failing dependency by up to 27x and delays recovery.\n\n- (a) is wrong: 9 would be two layers, not three; 3 + 3 + 3 = 9 adds the counts as if retries did not nest.\n- (c) is wrong: 81 would require four layers of three attempts.\n- (d) is wrong: layers are independent, so the total is not capped at the outermost count unless you design it that way.\n\nThe fix is to retry at one layer (usually the outermost one that knows the whole operation and its deadline), disable the others, and add a retry budget or circuit breaker so retries are limited as a fraction of traffic.\n\n**Deeper:** Retry amplification is a classic cause of outages that lasted longer than the original fault. Quote the multiplication in an interview and you signal real production experience.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "9, because the layers' attempts add up; keep all three layers.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "27, because attempts multiply; retry at a single layer and add a deadline or breaker.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "81, because each layer also retries the retries; remove the service mesh.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "3, because only the outermost retry counts; nothing needs to change.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A client uses full-jitter backoff: `delay = uniform(0, min(cap, base * 2 ** attempt))` with `base=0.5`, `cap=20`, attempts counted from 0. For `attempt=6`, what values can `delay` take?",
+      "explanation": "**Answer: (d)** The exponential term is `0.5 * 2**6 = 32`, which exceeds the cap, so the upper bound is `min(20, 32) = 20`. Full jitter then draws uniformly from `[0, 20]`, with an expected delay of 10 seconds.\n\n- (a) is wrong: `[0, 32]` forgets to apply the cap.\n- (b) is wrong: a delay of exactly 20 would be capped exponential backoff with no jitter at all.\n- (c) is wrong: `[10, 20]` is a different strategy (\"equal jitter\" keeps half of the delay fixed), not full jitter.\n\nFull jitter's zero lower bound is deliberate: it spreads a synchronized herd across the whole window, at the cost of occasionally retrying almost immediately. Combine it with a cap on attempts and total elapsed time so a retry loop cannot run forever.\n\n**Deeper:** A good interview answer names the failure mode that jitter prevents (synchronized retries after a shared outage) and the cap's purpose (bounding the worst-case wait).",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Uniform over `[0, 32]`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Exactly 20 seconds.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Uniform over `[10, 20]`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Uniform over `[0, 20]`, because the exponential term (32) is capped at 20.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nasync def worker():\n    try:\n        await asyncio.sleep(10)\n    except asyncio.CancelledError:\n        print(\"cleanup\")\n    return \"done\"\n\nasync def main():\n    task = asyncio.create_task(worker())\n    await asyncio.sleep(0)\n    task.cancel()\n    res = await task\n    print(res, task.cancelled())\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (a)** `worker` catches `CancelledError` and does not re-raise it, so the task finishes normally. The output is `cleanup`, then `done False`: the awaited task returned its value and `task.cancelled()` is `False`. I ran it and saw exactly that.\n\n- (b) is wrong: it expects `await task` to raise `CancelledError`, which only happens if the coroutine lets cancellation propagate.\n- (c) is wrong: `cleanup` is printed because the `except` block runs.\n- (d) is wrong: `task.cancelled()` is `False` since the task did not end in the cancelled state.\n\nSwallowing `CancelledError` breaks timeouts, `TaskGroup` cancellation and graceful shutdown: `asyncio.timeout` relies on cancellation propagating. Do cleanup in `finally`, or catch it, clean up and `raise`.\n\n**Deeper:** \"Never swallow CancelledError\" is a core async-correctness rule, and a common reason a service hangs on shutdown.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`cleanup`, then `done False`.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`cleanup`, then `await task` raises `CancelledError`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Only `done True`; `cleanup` is never printed.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`cleanup`, then `done True`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ntry:\n    try:\n        raise ExceptionGroup(\"g\", [ValueError(1), TypeError(2)])\n    except* ValueError:\n        print(\"V\")\nexcept* TypeError as eg:\n    print(\"T\", len(eg.exceptions))\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (c)** The inner `except* ValueError` matches the `ValueError` subgroup, runs once, and prints `V`. The unmatched `TypeError` is re-raised automatically as a new exception group, which the outer `except* TypeError` handles, printing `T 1`. I ran it and got those two lines in that order.\n\n- (a) is wrong: it stops after the inner handler and ignores the re-raised remainder.\n- (b) is wrong: the order is reversed; the inner handler runs first.\n- (d) is wrong: the outer handler receives a group with only the `TypeError`, so its length is 1, not 2.\n\nKey `except*` rules: handlers receive a group containing only matching exceptions, each handler can run at most once per raise, unmatched exceptions propagate, and you cannot combine `except` and `except*` in the same `try`.\n\n**Deeper:** This models what happens when several concurrent vendor calls fail in different ways: you can handle timeouts one way and validation errors another without losing either.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Only `V`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`T 1`, then `V`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`V`, then `T 1`.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "`V`, then `T 2`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A developer logs a failure like this and later finds the production logs useless:\n\n```python\ndef handle(job):\n    try:\n        run(job)\n    except Exception as e:\n        log.error(f\"job failed: {e}\")\n\ndef report():\n    log.exception(\"unexpected state\")   # called outside any except block\n```\n\nWhich statement is correct?",
+      "explanation": "**Answer: (b)** `log.error(f\"...{e}\")` records only the message text: no traceback, no exception type, and the f-string formats eagerly. `log.exception(...)` (or `log.error(..., exc_info=True)`) attaches the active traceback, but it only has one *inside* an `except` block. Called elsewhere it logs the message followed by `NoneType: None`, which I confirmed by running it.\n\n- (a) is wrong: `log.error` does not add a traceback unless `exc_info` is set.\n- (c) is wrong: `log.exception` outside an `except` does not raise; it silently produces a useless `NoneType: None` line.\n- (d) is wrong: the f-string only affects formatting cost, not whether the traceback is attached; lazy `%s` arguments are an efficiency preference.\n\nUse `log.exception(\"job failed\", extra={...})` in the handler, and pass the exception object explicitly (`exc_info=exc`) when logging from somewhere other than the active handler.\n\n**Deeper:** A missing traceback is the most common reason an incident takes hours instead of minutes.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`log.error(f\"job failed: {e}\")` already includes the traceback; the issue is the f-string.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`log.error` with just the message drops the traceback, and `log.exception` outside an `except` logs `NoneType: None`; use `log.exception` inside the handler.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`log.exception` outside an `except` block raises `RuntimeError`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The traceback is attached if you switch to lazy `%s` formatting.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nrid = contextvars.ContextVar(\"rid\", default=\"-\")\n\nasync def handler(n):\n    rid.set(f\"req-{n}\")\n    await asyncio.sleep(0)\n    return rid.get()\n\nasync def main():\n    r = await asyncio.gather(handler(1), handler(2))\n    print(r, rid.get())\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (d)** `gather` wraps each coroutine in a task, and each task runs in its own **copy** of the current context. Each handler sets and reads its own value, so the results are `['req-1', 'req-2']` even though they interleave at the `await`. The `set` calls happen inside the tasks' copies, so the parent's `rid.get()` still returns the default `-`. Output: `['req-1', 'req-2'] -` (I ran it).\n\n- (a) is wrong: it assumes a shared global; a plain global would give both handlers the last value.\n- (b) is wrong: it expects the parent to see the last `set`, but child tasks cannot modify the parent's context.\n- (c) is wrong: it mixes the values; context isolation is exactly what prevents that.\n\nThis is why `ContextVar` is the right tool for request ids in async servers, whereas `threading.local` is unsafe there (many requests share one thread).\n\n**Deeper:** Mention that values set before creating a task *are* inherited, and that thread pools need `contextvars.copy_context().run` or `asyncio.to_thread`, which propagates context.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`['req-2', 'req-2'] req-2`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`['req-1', 'req-2'] req-2`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`['req-1', 'req-1'] -`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`['req-1', 'req-2'] -`", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Your circuit breaker opens after repeated vendor failures. After the cool-down it moves to half-open and lets *every* waiting request through at once. The vendor is still recovering. What is wrong, and what is the better design?",
+      "explanation": "**Answer: (c)** Half-open is meant to be a cautious probe. Releasing all waiting traffic at once is a thundering herd that can knock the recovering vendor over again, which reopens the circuit and repeats the cycle. Allow a single probe (or a small fixed number) in half-open, fail the others fast, and close the circuit only after the probe(s) succeed.\n\n- (a) is wrong: shortening the cool-down makes the herd arrive sooner and does not limit its size.\n- (b) is wrong: never closing the circuit means a human must intervene after every incident.\n- (d) is wrong: retrying inside the breaker is the amplification the breaker exists to prevent.\n\nIn practice also add jitter to the reopen time so that a fleet of instances does not probe in lockstep, and expose the breaker state as a metric so you can see flapping.\n\n**Deeper:** Circuit breaker design questions are about the state machine and about load shape during recovery, not just about counting failures.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The cool-down is too long; shorten it so recovery is detected sooner.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The breaker should never return to closed automatically.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Half-open should admit one (or a few) probe requests and fail the rest fast, closing only after the probe succeeds.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "Wrap each probe in 5 retries so at least one succeeds.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-50/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A client sends `Idempotency-Key: abc` with `{\"amount\": 500}`, later sends the same key with `{\"amount\": 900}`. What should the server do?",
+      "explanation": "**Answer: (a)** The key promises \"this is the same operation\". A different payload under the same key is a client bug (or a key collision), so the server should reject it with a clear error (commonly 422 or 409), which is why the stored record includes a hash of the original request.\n\n- (b) is wrong: returning the first response hides the mismatch, so the client believes a 900 charge succeeded when it did not.\n- (c) is wrong: processing it as new defeats the purpose of the key and can double charge.\n- (d) is wrong: silently overwriting the stored request makes the retry semantics unpredictable and loses the audit trail.\n\nAlso define the lifetime of keys (for example 24 hours), what happens to a request that is still `in_progress` (return 409 or wait), and which responses are stored (typically both successes and permanent failures, but not transient 5xx).\n\n**Deeper:** Mirroring well-known payment APIs in this behaviour is a good way to justify the design in an interview.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Reject the request with an error (e.g. 422/409), because the key was reused with a different payload.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "Return the stored response for the 500 charge as if the new payload matched.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Process it as a new charge, since the payload is different.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Overwrite the stored request with the new payload and charge 900.", "isCorrect": false }
+      ]
+    }
+  ]
+}

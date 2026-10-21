@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-36-profiling-performance",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-36/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "When benchmarking a snippet with `timeit.repeat`, why is the minimum of the repeats usually the best estimate of the code's cost?",
+      "explanation": "**Answer: (b)** Noise from the operating system and other workloads only ever makes a run slower than the code's intrinsic cost. The smallest observed time therefore has the least contamination. `timeit` also disables garbage collection during timing by default, to remove one source of noise.\n\n- (a) Timing distributions are skewed with a long tail of slow outliers; the minimum is not the mean.\n- (c) Warm-up effects exist, but the rule is not \"drop the first and average the rest\", which would still include noisy runs.\n- (d) Garbage collection is turned off by `timeit`, and later runs are not systematically invalid.\n\n**Deeper:** For comparing two implementations, report the minimum (or a low percentile) of several repeats with realistic data sizes. For service latency you want the opposite: percentiles such as p95 and p99, because the tail is what users feel.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The minimum is always the average, since timings follow a normal distribution",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Interference such as scheduling, caches and other processes can only add time, so the fastest run is the least disturbed",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The first run is always the slowest, so it is excluded and the rest are averaged",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Garbage collection makes later runs slower, so only the first run is valid",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A worker uses a plain list as a FIFO queue (`q.append(x)` to enqueue, `q.pop(0)` to dequeue). Throughput collapses once the queue holds around 100,000 items. What is the best fix?",
+      "explanation": "**Answer: (d)** `list.pop(0)` shifts every remaining element, which is O(n), so draining the queue is O(n²). `deque.popleft()` and `append()` are O(1), which restores linear behaviour.\n\n- (a) Caching has nothing to do with removing an element from a sequence.\n- (b) Sorting costs O(n log n) per insertion and does not change the cost of removing the first element.\n- (c) `pop()` removes the last element, which turns the FIFO queue into a stack.\n\n**Deeper:** If threads share the queue use `queue.Queue` (a thread-safe wrapper around a deque), and for asyncio use `asyncio.Queue`. If you need priorities, use `heapq`. Remember that indexing in the middle of a deque is O(n), so it is not a drop-in list replacement.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Wrap the dequeue in `functools.lru_cache`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Sort the list after every insertion so `pop(0)` is faster",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Replace `pop(0)` with `pop()`, which preserves FIFO order",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Use `collections.deque` and `popleft()`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `cProfile` report shows a function `build_index` with `ncalls = 1`, `tottime` of 4.2 s and `cumtime` of 4.3 s. What does that tell you?",
+      "explanation": "**Answer: (c)** `tottime` excludes time in sub-calls and `cumtime` includes it. When they are nearly equal, the callees contribute almost nothing, so the cost is in the function's own bytecode, for example an inner loop, an `in` check on a list, or a comprehension.\n\n- (a) That would show a `cumtime` much larger than `tottime`.\n- (b) `ncalls = 1` means it is not called repeatedly.\n- (d) Equal values are normal for leaf-like functions.\n\n**Deeper:** The next step is per-line timing with `line_profiler`, or reading the code for algorithmic problems (linear scans, repeated sorting). A deterministic profiler cannot see inside a single function, which is why it narrows you to a function and not a line.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The time is spent in functions that `build_index` calls",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The function is called too often and should be cached",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Almost all of the time is spent in `build_index`'s own code, such as a loop or an operator, not in its callees",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The profiler is broken, because `cumtime` must be several times larger than `tottime`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Memory in a service grows after a deployment. Which technique most directly shows which source lines allocate the growing memory?",
+      "explanation": "**Answer: (a)** `tracemalloc` records the allocation site of live memory blocks. Comparing two snapshots lists the lines whose allocated size and block count increased, which is what you need to locate a leak or a bloated structure.\n\n- (b) `sys.getsizeof` is shallow and reports one object, not who allocated what.\n- (c) `cProfile` measures time, not memory.\n- (d) GC thresholds change when cycles are collected and do not identify allocation sites.\n\n**Deeper:** Run it in a staging replica with realistic traffic, because `tracemalloc` slows the process and increases memory use. Group by `\"traceback\"` with several frames when the allocation happens in a shared helper, otherwise every line in the report points into the helper.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Take `tracemalloc` snapshots before and after a workload and use `compare_to(..., \"lineno\")`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Call `sys.getsizeof` on the top-level request object",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Run `cProfile` and sort by `tottime`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Increase the garbage collector's thresholds",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You time a function that deduplicates a list at several input sizes and get these results:\n\n| n | time |\n|---|---|\n| 10,000 | 0.5 s |\n| 20,000 | 2.0 s |\n| 40,000 | 8.0 s |\n\nWhich growth rate does this most closely suggest?",
+      "explanation": "**Answer: (d)** Each doubling of n multiplies the time by about four (0.5, 2.0, 8.0), which is the signature of quadratic growth. This pattern typically comes from a linear search (`x not in some_list`) inside a loop.\n\n- (a) Linear growth would roughly double the time with each doubling of n.\n- (b) O(n log n) grows by slightly more than two times per doubling.\n- (c) Exponential growth would explode far faster than 4x per doubling.\n\n**Deeper:** Empirical growth analysis (time at n, 2n, 4n) is a fast way to classify a hot spot before you read the code. Fix it by replacing the linear lookup with a set or dict, for example `list(dict.fromkeys(items))` for order-preserving deduplication.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "O(n)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "O(n log n)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "O(2^n)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "O(n^2)",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nfrom functools import lru_cache\n\n@lru_cache(maxsize=2)\ndef f(x):\n    return x * x\n\nfor v in [1, 2, 1, 3, 1, 2]:\n    f(v)\nprint(f.cache_info())\n```",
+      "explanation": "**Answer: (a)** Trace the cache (most recently used on the right): `1` miss `[1]`, `2` miss `[1,2]`, `1` hit `[2,1]`, `3` miss and evicts the least recently used `2` giving `[1,3]`, `1` hit `[3,1]`, `2` miss and evicts `3` giving `[1,2]`. That is 2 hits and 4 misses, and the cache is full at size 2.\n\n- (b) Counts the final `2` as a hit, but it was evicted earlier.\n- (c) Treats only the first repeat as a hit.\n- (d) Ignores that a two-entry cache cannot hold the three distinct values 1, 2 and 3.\n\n**Deeper:** `cache_info()` is how you verify that a cache earns its memory. A low hit ratio means `maxsize` is too small, the keys are too varied, or caching was the wrong tool. Remember that the arguments must be hashable and that a decorated method pins `self` in the cache.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`CacheInfo(hits=2, misses=4, maxsize=2, currsize=2)`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`CacheInfo(hits=3, misses=3, maxsize=2, currsize=2)`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`CacheInfo(hits=1, misses=5, maxsize=2, currsize=2)`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`CacheInfo(hits=4, misses=2, maxsize=2, currsize=2)`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A report builder concatenates a million lines with `report += line + \"\\n\"` in a loop. Which fix is guaranteed to be linear on every Python implementation?",
+      "explanation": "**Answer: (c)** `\"\".join(parts)` computes the total length, allocates once, and copies each piece once, so it is O(total length) everywhere. Repeated `+=` can be quadratic because each concatenation may copy the growing string.\n\n- (a) CPython sometimes resizes in place when the refcount is one, but it is an implementation detail that does not hold in every case or on other implementations.\n- (b) A set discards order and duplicates, which would change the output.\n- (d) Caching does not help a loop that builds one big string.\n\n**Deeper:** For writing to files or sockets, skip the intermediate string and stream chunks. `io.StringIO` is also linear when you need a file-like builder. The same principle applies to bytes (`bytearray` or `b\"\".join`).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Keep the loop and rely on CPython's in-place string concatenation optimization",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Convert `report` to a `set` of lines before looping",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Collect the lines in a list and call `\"\".join(lines)` once",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Wrap the loop in `functools.lru_cache`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nprint(list(dict.fromkeys(\"banana\")))\n```",
+      "explanation": "**Answer: (b)** `dict.fromkeys` creates a dict with the given keys, in iteration order, and duplicates collapse onto the first occurrence. Since dicts preserve insertion order, the keys are `b`, `a`, `n`, and `list()` of a dict gives its keys.\n\n- (a) Sorted order would require `sorted(set(...))`; sets and sorting are not involved here.\n- (c) Duplicates are removed, not preserved.\n- (d) Passing the dict through `list()` yields only the keys, not a dict display.\n\n**Deeper:** This is the idiomatic O(n) order-preserving deduplication for hashable items, replacing the quadratic `if x not in out` pattern. It requires hashable elements; for unhashable items, key by a stable representation (such as a content hash).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`['a', 'b', 'n']`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`['b', 'a', 'n']`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`['b', 'a', 'n', 'a', 'n', 'a']`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`{'b': None, 'a': None, 'n': None}`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A single worker of a production service appears hung and you cannot restart it yet. Which tool lets you see what every thread is doing right now, without modifying the code?",
+      "explanation": "**Answer: (d)** `py-spy dump` reads the target interpreter's memory from outside the process and prints the current Python stack of every thread. It needs no code changes and no restart, which is exactly what you want for a stuck worker.\n\n- (a) `timeit` benchmarks isolated snippets and cannot inspect a running process.\n- (b) A redeploy would destroy the state you want to inspect.\n- (c) `tracemalloc` tracks memory allocations, not what the threads are doing, and needs code changes.\n\n**Deeper:** Typical findings: a thread blocked on a lock held by another thread, a synchronous HTTP call inside an async handler, or a tight loop. In containers you may need the `SYS_PTRACE` capability, so plan that before the incident. `py-spy record` then builds a flame graph over time.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`timeit` run against the service module",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`cProfile` added to the entry point and a redeploy",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`tracemalloc.start()` in the next release",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`py-spy dump --pid <pid>` run against the live process",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which of these workloads is least likely to benefit from rewriting with NumPy vectorization?",
+      "explanation": "**Answer: (b)** Vectorization helps when the same simple numeric operation is applied across large homogeneous arrays, so the loop moves into compiled code. Irregular control flow, strings and per-item Python callbacks cannot be expressed as whole-array operations, so you would still pay interpreter overhead per element.\n\n- (a), (c) and (d) are textbook array math where NumPy replaces a Python loop with one C loop.\n\n**Deeper:** For the log-line workload, look at algorithmic fixes (precompiled regexes, avoiding repeated parsing), `str` methods, or a process pool for parallelism. If a profile points to a small numeric inner loop, Numba or Cython may fit better than NumPy.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Computing pairwise squared distances between two arrays of one million floats",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Processing a list of log lines where each item needs data-dependent branching and calls to a Python function that returns strings",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Normalizing every column of a large numeric matrix",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Applying `exp` and a sum across a large array of floats",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nimport sys\n\na = [i for i in range(1000)]\ng = (i for i in range(1000))\nprint(sys.getsizeof(a) > sys.getsizeof(g), sum(g), sum(g))\n```",
+      "explanation": "**Answer: (a)** A list stores 1000 pointers (about 8 KB), while a generator object has a small fixed size regardless of how many items it will produce, so the comparison is `True`. The first `sum(g)` consumes the generator and returns 499500 (the sum of 0 to 999). The second `sum(g)` finds it exhausted and returns 0.\n\n- (b) Generators are single-use; they cannot be iterated twice.\n- (c) The list's own size is larger than the generator's.\n- (d) The first sum sees all 1000 values.\n\n**Deeper:** Generators trade memory for single-pass access. Streaming pipelines process data one item at a time with constant memory, which matters for large files and API result sets. If you need multiple passes, materialize once or recreate the generator.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`True 499500 0`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`True 499500 499500`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`False 499500 0`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`True 0 0`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-36/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "With `cProfile` enabled, function `normalize` appears to consume 70% of the runtime, but without the profiler it accounts for only about 20%. What is the most likely explanation?",
+      "explanation": "**Answer: (c)** `cProfile` instruments every function call event. Code made of very many small calls pays that fixed overhead repeatedly, so its share of the profile grows relative to code with fewer, longer calls.\n\n- (a) `cProfile` is deterministic, not a sampling profiler; sampling is what `py-spy` does.\n- (b) Caching would make later calls cheaper in both runs.\n- (d) GC frequency is not the main effect of instrumentation.\n\n**Deeper:** Cross-check suspicious profiles with a sampling profiler such as py-spy, or with wall-clock timing around the code section. Use profiles to find candidates and then confirm each fix by an end-to-end measurement, not by the profiler's percentages alone.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`cProfile` samples only the busiest function, so it overstates it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`normalize` is cached after the first call",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Deterministic profiling adds a fixed cost to each call and return, which inflates functions that consist of many tiny calls",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The garbage collector runs more often under the profiler",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

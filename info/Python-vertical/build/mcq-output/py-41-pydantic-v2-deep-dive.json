@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-41-pydantic-v2-deep-dive",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-41/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A v1 codebase is migrated to Pydantic v2 without changing the models. Callers of this model that omit `note` start failing. Why?\n\n```python\nfrom typing import Optional\nfrom pydantic import BaseModel\n\nclass Refund(BaseModel):\n    order_id: int\n    note: Optional[str]\n\nRefund(order_id=5)\n```",
+      "explanation": "**Answer: (c)** In Pydantic v2, `Optional[str]` only means the value may be `None`. Without a default the field is required, so `Refund(order_id=5)` raises `ValidationError` for the missing `note`.\n\n- (a) is wrong: that was the v1 behaviour, where `Optional` implicitly gave a default of `None`.\n- (b) is wrong: the model does not fail because of `order_id`; the error is on `note`.\n- (d) is wrong: `Optional` does not make validation lax; coercion rules are unrelated to this.\n\n**Deeper:** The fix is `note: str | None = None`. This is the most common silent behavioural change in v1 to v2 migrations, because the code still imports and the type checker is happy; only callers fail at runtime. Review migrations for every `Optional[...]` without a default.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It does not fail: Optional fields default to None in v2, as they did in v1",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "order_id is rejected because int fields are strict in v2",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "note is now required: Optional only allows None as a value and does not supply a default",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Optional switches the model to strict mode, which rejects omitted fields",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Given `class M(BaseModel): n: int`, which statement is correct for Pydantic v2 defaults?",
+      "explanation": "**Answer: (b)** In the default lax mode, `M(n=\"42\")` coerces the string to the integer `42`, while `M.model_validate({\"n\": \"42\"}, strict=True)` raises `ValidationError` because strict mode forbids the string-to-int conversion.\n\n- (a) is wrong: lax mode does coerce numeric strings.\n- (c) is wrong: `3.5` is rejected even in lax mode because it would lose information; only floats with no fractional part, such as `3.0`, are accepted.\n- (d) is wrong: strict is opt-in per field, model or call; it is not the default.\n\n**Deeper:** Lax coercion is convenient for form and query data and risky for money and identifiers, where a string silently accepted as a number can hide a client bug. Use strict for security-sensitive fields, and remember to test the actual input path, because JSON and Python inputs differ slightly in strict mode.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "M(n=\"42\") raises ValidationError, because strings are never converted to int",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "M(n=\"42\") gives n == 42, but validating the same data with strict=True raises ValidationError",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "M(n=3.5) gives n == 3 because lax mode truncates floats",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Strict mode is the default, and lax mode must be enabled with ConfigDict",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A model has `age: int` and a validator `@field_validator(\"age\", mode=\"before\")`. The request body contains `\"age\": \"42\"`. What type does the validator receive as `v`?",
+      "explanation": "**Answer: (d)** The `str` `\"42\"`. A `before` validator runs before Pydantic parses the field, so it sees whatever the caller sent. The conversion to `int` happens afterwards.\n\n- (a) is wrong: that is what an `after` validator would receive.\n- (b) is wrong: Pydantic does not convert JSON numbers or strings before invoking `before` validators.\n- (c) is wrong: the input is the raw value; it is not wrapped in a field-info object.\n\n**Deeper:** Because the input is untyped, a `before` validator must check `isinstance` before acting and return the value unchanged when it is not interested. Use `before` to normalise shapes, `after` for business rules on typed values, `wrap` to run the standard validation inside your own try/except, and `plain` only when you intend to replace parsing completely.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "An int, 42",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A float, 42.0",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A FieldInfo object describing the field",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The raw str \"42\"",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A webhook payload is either a `Card`, `Upi` or `BankTransfer` object, each with a `kind: Literal[...]` field. Why prefer `Annotated[Card | Upi | BankTransfer, Field(discriminator=\"kind\")]` over a plain union?",
+      "explanation": "**Answer: (a)** Pydantic reads the `kind` tag first and validates only the matching model. Errors then refer to that single variant (or report an invalid tag), and validation avoids trying every member.\n\n- (b) is wrong: a plain union is also supported in v2; it just uses smart mode and tries members.\n- (c) is wrong: the discriminator does not change the Python class hierarchy or generate subclasses.\n- (d) is wrong: validation still happens; the discriminator makes it targeted, it does not skip it.\n\n**Deeper:** Without a discriminator a bad payload produces one error per union member, which is noisy for API consumers, and ambiguous data can match the wrong class. With one, the schema also documents the tag, which helps generated clients. Interviewers like this question because it connects correctness, error quality and performance.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Only the variant named by the tag is validated, giving precise errors and faster validation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Plain unions are not supported in Pydantic v2",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The discriminator makes Card, Upi and BankTransfer subclasses of one base class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The discriminator skips validation of the variant fields to save time",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which migration of this v1 model to v2 is fully correct?\n\n```python\nclass User(BaseModel):\n    name: str\n\n    @validator(\"name\")\n    def strip(cls, v):\n        return v.strip()\n\n    class Config:\n        orm_mode = True\n```",
+      "explanation": "**Answer: (a)** Replace `@validator` with `@field_validator` stacked on `@classmethod`, and replace the inner `Config` with `model_config = ConfigDict(from_attributes=True)`.\n\n- (b) is wrong: `@root_validator` is the old whole-model hook, not the field-level replacement.\n- (c) is wrong: `orm_mode` was renamed to `from_attributes`; the old key is not a valid v2 setting.\n- (d) is wrong: `populate_by_name` replaces `allow_population_by_field_name`, which is about aliases and unrelated to ORM objects.\n\n**Deeper:** `bump-pydantic` automates part of this, but behaviour changes (required `Optional`, no int-to-str coercion, new error types) need tests. Mention that old method names such as `.dict()` still exist with deprecation warnings, so a half-migrated codebase can run for a long time and hide problems.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "@field_validator(\"name\") with @classmethod, and model_config = ConfigDict(from_attributes=True)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "@root_validator(\"name\"), and model_config = ConfigDict(orm_mode=True)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "@field_validator(\"name\"), and model_config = ConfigDict(orm_mode=True)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "@field_validator(\"name\"), and model_config = ConfigDict(populate_by_name=True)",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A handler builds `payload = receipt.model_dump()` for a model with `UUID`, `Decimal` and `datetime` fields, then runs `json.dumps(payload)`, which raises `TypeError`. What is the cleanest fix?",
+      "explanation": "**Answer: (c)** Use `receipt.model_dump_json()` for a string, or `receipt.model_dump(mode=\"json\")` for a dictionary that contains only JSON-compatible values.\n\n- (a) is wrong: `exclude_none` removes `None` values but leaves the `UUID`, `Decimal` and `datetime` objects untouched.\n- (b) is wrong: `by_alias` changes key names, not value types.\n- (d) is wrong: writing a `default=str` handler works but throws away Pydantic's own type-aware serialisation (for example the ISO format for datetimes) and needs to be repeated everywhere.\n\n**Deeper:** `model_dump()` defaults to Python mode, which keeps rich types for in-process use. `model_dump_json()` is also faster because it serialises in Rust without building an intermediate dictionary. Custom representations, such as money as a fixed two-decimal string, belong in a `field_serializer`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Pass exclude_none=True to model_dump()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Pass by_alias=True to model_dump()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Use model_dump_json(), or model_dump(mode=\"json\")",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Wrap json.dumps with default=str in every handler",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An invoice model has `subtotal` implemented as a plain `@property` and `total` implemented with `@computed_field` on a `@property`. What does `invoice.model_dump()` contain?",
+      "explanation": "**Answer: (d)** It includes `total`, because `computed_field` registers the property for serialization, but not `subtotal`, because a plain property is invisible to Pydantic.\n\n- (a) is wrong: plain properties are not serialised.\n- (b) is wrong: `computed_field` properties are serialised in both Python and JSON modes.\n- (c) is wrong: the opposite of what happens; the decorated property is the one included.\n\n**Deeper:** Computed fields also appear in the serialization-mode JSON schema (and so in OpenAPI response schemas) but are ignored on input, so clients cannot set them. That makes them ideal for derived values such as totals, which must never be trusted from the caller. The property must declare a return type so Pydantic knows how to serialise it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both subtotal and total",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Neither; model_dump only includes declared fields",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "subtotal only",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "total only",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A profiler shows an endpoint spending most of its time inside Pydantic, even though the payloads are small. The handler runs `TypeAdapter(list[Item]).validate_python(items)` on every request. What is the best fix?",
+      "explanation": "**Answer: (b)** Create the `TypeAdapter` once at module level and reuse it. Building a `TypeAdapter` constructs and compiles the validator for the whole type, and that is the expensive part; validation with an existing adapter is fast.\n\n- (a) is wrong: threads add overhead and do not fix a per-request build cost, and validation is CPU-bound.\n- (c) is wrong: `model_construct` skips validation, which is unsafe for untrusted request data.\n- (d) is wrong: switching to `validate_python` on a list comprehension of dictionaries does not remove the repeated adapter construction.\n\n**Deeper:** The same applies to models defined inside functions: the class is rebuilt on each call. Also use `validate_json` when you have raw bytes, so parsing and validation happen in a single Rust pass.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Validate in a thread pool so that the event loop is not blocked",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Build the TypeAdapter once at module level and reuse it",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Replace validation with model_construct for speed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Validate each item separately with a list comprehension",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `Settings(BaseSettings)` class with `model_config = SettingsConfigDict(env_file=\".env\")` and no `extra` option works in CI but fails on a developer laptop whose `.env` also contains `EDITOR=vim` and other unrelated keys. What happens and why?",
+      "explanation": "**Answer: (c)** Validation fails with an `extra_forbidden` error for the unrelated keys. `BaseSettings` forbids extra inputs by default, and values read from a dotenv file are checked against the fields, so unknown keys are rejected. Setting `extra=\"ignore\"` in `SettingsConfigDict` fixes it.\n\n- (a) is wrong: the file is read; that is exactly why the unknown keys are seen.\n- (b) is wrong: `.env` values never override real environment variables; the problem is the unknown keys, not precedence.\n- (d) is wrong: `SecretStr` is unrelated to unknown keys.\n\n**Deeper:** CI passes because there is no `.env`, which makes this a classic works-on-CI failure. Make the choice explicit: `extra=\"ignore\"` for permissive local files, and an env prefix so that only your own variables are considered.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The .env file is ignored when its keys do not match, so defaults are used silently",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Values in .env override real environment variables, so CI and laptop values differ",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Settings construction raises ValidationError for the unknown keys, because BaseSettings forbids extras by default; use extra=\"ignore\"",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "SecretStr fields cannot be loaded from a .env file",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Given the model below (no `populate_by_name`), which statement is correct?\n\n```python\nclass User(BaseModel):\n    user_id: int = Field(alias=\"userId\")\n```",
+      "explanation": "**Answer: (a)** `User(userId=1)` works, `User(user_id=1)` raises a validation error because the alias is the only accepted input name, and `User(userId=1).model_dump()` returns the field name `user_id` unless `by_alias=True` is passed.\n\n- (b) is wrong: without `populate_by_name=True` the Python field name is not accepted as input.\n- (c) is wrong: `model_dump()` uses field names by default; aliases are only used when `by_alias=True` is requested.\n- (d) is wrong: a plain `alias` applies to both validation and serialization (with `by_alias`), it does not make the model reject the aliased key.\n\n**Deeper:** For asymmetric APIs use `validation_alias` and `serialization_alias`, and note that FastAPI serialises response models by alias by default. Newer Pydantic versions add `validate_by_name`/`validate_by_alias` options, but the default input behaviour is what is tested here.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "User(userId=1) works; User(user_id=1) fails; model_dump() returns {\"user_id\": 1}",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Both User(userId=1) and User(user_id=1) work by default",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "model_dump() returns {\"userId\": 1} by default",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "User(userId=1) fails, because aliases are only used for output",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `@field_validator(\"payload\")` looks up `v[\"items\"][0]`, and a client sends `{\"payload\": {}}`. The validator raises `KeyError`. What does the API client see?",
+      "explanation": "**Answer: (b)** The `KeyError` is not converted into a validation error, because only `ValueError`, `AssertionError` and `PydanticCustomError` are. It propagates out of the validation call, and in a FastAPI service it becomes an unhandled exception and a 500 response.\n\n- (a) is wrong: Pydantic does not catch arbitrary exceptions inside validators.\n- (c) is wrong: there is no automatic 400; the status for ordinary validation errors is 422, and this is not one.\n- (d) is wrong: nothing silently falls back to a default.\n\n**Deeper:** Treat validators as part of your input boundary: check `isinstance` and key presence, and raise `ValueError` with a clear message. A request that can crash the server is also a denial-of-service and information-leak risk. Add tests that send malformed shapes to every validator.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A 422 response listing the KeyError as a validation error",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A 500 response, because KeyError is not turned into a ValidationError",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A 400 response with the message \"items\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The default value for payload is used silently",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-41/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An LLM request model uses the default configuration and declares `max_tokens: int = 1024`. A client mistypes the key and sends `{\"max_tokenz\": 10}`. What happens, and what is the right guard?",
+      "explanation": "**Answer: (d)** The unknown key is silently ignored, because the default is `extra=\"ignore\"`, so the request runs with `max_tokens=1024` instead of 10. Set `model_config = ConfigDict(extra=\"forbid\")` on request models so typos produce a validation error.\n\n- (a) is wrong: the default does not raise for unknown keys.\n- (b) is wrong: Pydantic does not fuzzy-match field names.\n- (c) is wrong: the unknown value is not stored on the instance unless you set `extra=\"allow\"`.\n\n**Deeper:** Silent defaults on cost-bearing parameters are a real production risk: the caller thinks they capped output at 10 tokens and gets billed for 1024. Forbid extras at API boundaries, but stay lenient for provider responses that you do not control, where new fields appear without notice.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "ValidationError, because unknown keys are forbidden by default",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Pydantic maps max_tokenz to max_tokens by fuzzy matching",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The key is stored on the instance as an extra attribute",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The key is ignored and max_tokens stays 1024; use extra=\"forbid\" on request models",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

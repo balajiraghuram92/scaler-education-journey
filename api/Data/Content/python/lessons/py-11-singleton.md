@@ -6,19 +6,19 @@ Design patterns are named, reusable answers to recurring structural problems, an
 
 ### What patterns are for, and what they cost
 
-A pattern is a vocabulary item: saying "the gateway is a factory behind a Protocol" compresses a paragraph of design into one sentence. Patterns fall into creational (how objects are made: Singleton, Builder, Prototype, Factory), structural (how they are composed: Adapter, Facade, Decorator) and behavioural (how they interact: Strategy, Observer). Python's first-class functions, modules and duck typing make several of them nearly free, so the senior question is never "which pattern fits?" but "does this problem actually exist here, and is the pattern's cost lower than the problem's?"
+A pattern is a vocabulary item: "the gateway is a factory behind a Protocol" compresses a paragraph of design into one sentence. Python's first-class functions, modules and duck typing make several patterns nearly free, so the senior question is never "which pattern fits?" but "does this problem exist here, and is the pattern cheaper than the problem?"
 
 ### The Singleton contract and its legitimate uses
 
-The Singleton guarantees one instance per process and a global access point. The guarantee is justified when a resource is expensive to create or must be coordinated: a database engine and its connection pool, an HTTP client with a shared connection pool and rate-limit state, a loaded embedding model, a logging registry, a settings object. Python itself ships examples: `logging.getLogger(name)` returns the same logger for the same name, and `Enum` members are unique, so `Mode.SINGLE is Mode.SINGLE` is always `True`. A class whose only trait is "I have lots of methods" is not a candidate.
+The Singleton guarantees one instance per process and a global access point. It is justified when a resource is expensive or must be coordinated: a database engine and its pool, an HTTP client with shared connections, a loaded embedding model, a settings object. Python ships examples: `logging.getLogger(name)` returns the same logger for the same name, and Enum members are unique, so `Mode.SINGLE is Mode.SINGLE`.
 
 ### Module-level instance: the default answer
 
-The import system caches a module in `sys.modules` after its first import, so every importer gets the same module object and therefore the same attributes. If `config.py` defines `value = 10`, then `import config` and `import config as config2` give two names for one module, and after `config.increase()` runs, `config2.value` is `15`. For most services, an instance created at module scope (`settings = Settings()`, `llm = build_client()`) is the whole pattern with no ceremony. Its cost is eager construction at import time: a slow constructor makes startup and every test import slow, and any failure surfaces at import.
+A module is cached in `sys.modules` after its first import, so every importer shares one module object. If `config.py` defines `value = 10`, then `import config` and `import config as config2` are two names for one module, and after `config.increase()` runs, `config2.value` is `15`. For most services, `settings = Settings()` at module scope is the whole pattern. Its cost is eager construction: a slow constructor slows startup and every test import, and failures surface at import time.
 
 ### Lazy options and what goes wrong
 
-Laziness delays construction until first use. The textbook version overrides `__new__`, and it hides a trap the first time you add `__init__`:
+The textbook lazy version overrides `__new__` and hides a trap once you add `__init__`:
 
 ```python
 class DBConnection:
@@ -41,7 +41,7 @@ print(db1 is db2, db1.url)
 True db.staging
 ```
 
-`__new__` returns the cached object, but Python then calls `__init__` on whatever `__new__` returned, every time. The second call silently re-points the "single" production connection at staging. Guard initialisation or, better, avoid constructor arguments on a singleton. A class-decorator variant (`def singleton(cls): ...` returning a function) avoids the re-init but replaces the class with a function, so `isinstance(x, DBConnection)` and subclassing break, and `a is b` is `True` while `a.url` stays `db.prod`.
+`__new__` returns the cached object, but Python then calls `__init__` on whatever `__new__` returned, every time. The second call silently re-points the "single" production connection at staging. Avoid constructor arguments on a singleton, or guard initialisation. A decorator variant returning a function avoids the re-init but replaces the class, so `isinstance` and subclassing break.
 
 The bigger issue is concurrency. The GIL does not make "check, then create, then assign" atomic, because a thread switch can happen between the `is None` test and the assignment. With a slow constructor the race is easy to see:
 
@@ -75,7 +75,7 @@ class Registry:
         return cls._instance
 ```
 
-Dropping the outer check is still correct but takes the lock on every call, which is wasted contention. On free-threaded 3.13t the lock matters even more, since the GIL no longer serialises bytecode at all. Reading a plain attribute without the lock is safe here because the assignment happens last, after the object is fully built.
+Dropping the outer check is still correct but locks on every call. On free-threaded 3.13t the lock matters even more, since no GIL serialises bytecode.
 
 ### Reusing the behaviour: metaclass and `functools.cache`
 
@@ -101,11 +101,11 @@ Because `__call__` intercepts construction itself, `__init__` runs once. For a f
 
 ### Pickle, copy and subprocesses
 
-A metaclass or decorator singleton can be duplicated by `pickle.loads`, which rebuilds the object without calling your `__call__`; the `__new__` variant returns the singleton on unpickle but overwrites its state. If a singleton can cross a pickle boundary (multiprocessing, caches), define `__reduce__` to return `(get_instance, ())`. Also remember scope: a singleton lives in one process. Four `uvicorn` workers mean four "singletons", and a pool created before `fork` is shared with children in a way most drivers cannot survive, so create engines and clients in the app's lifespan or after the fork.
+A metaclass or decorator singleton can be duplicated by `pickle.loads`, which bypasses your `__call__`; the `__new__` variant returns the singleton but overwrites its state. If it must cross a pickle boundary, define `__reduce__` returning `(get_instance, ())`. Also remember scope: four `uvicorn` workers mean four "singletons", and a pool created before `fork` is shared with children in ways most drivers cannot survive, so create clients in the app lifespan.
 
 ### Why singletons hurt testability
 
-A singleton is global mutable state. One test mutates it, and the next test inherits the mutation, which produces order-dependent failures that disappear when run alone. It also hides dependencies: a function that calls `get_settings()` internally has an invisible input you cannot supply from a test without patching.
+A singleton is global mutable state: one test mutates it and the next inherits the mutation, giving order-dependent failures. It also hides dependencies: a function calling `get_settings()` internally has an invisible input.
 
 ```python
 os.environ["LLM_MODEL"] = "test-model"
@@ -115,7 +115,7 @@ print(get_settings())      # still 'test-model': cached
 get_settings.cache_clear() # needed between tests
 ```
 
-The mitigation is to keep the singleton at the edges and inject values inward. Build one instance at the composition root, pass it to constructors, and in FastAPI expose it through `Depends(get_settings)` so tests can use `app.dependency_overrides`. You keep "one instance" without making everything depend on a global.
+Build one instance at the composition root and inject it; in FastAPI expose it through `Depends(get_settings)` so tests can use `app.dependency_overrides`. You keep "one instance" without a global dependency.
 
 ## Practical Backend Scenario
 
@@ -131,17 +131,16 @@ An LLM gateway builds an `httpx.AsyncClient` per request, paying a TLS handshake
 
 ## Evidence of Understanding
 
-- You can explain why module-level instances are the default Python singleton and what they cost at import time.
+- You can explain why a module-level instance is the default Python singleton and its import-time cost.
 - You can predict that `__new__`-based singletons re-run `__init__` on every call.
-- You can describe the check-then-act race, why the GIL does not prevent it, and why double-checked locking needs both checks.
+- You can describe the check-then-act race, why the GIL does not prevent it, and why both checks are needed.
 - You can say when `functools.cache` is and is not a safe singleton.
-- You can name two ways pickling or multiple worker processes break the "one instance" claim.
-- You can argue for injection over global access in a testable service.
+- You can name two ways pickling or multiple workers break "one instance".
 
 ## Interview Questions to Rehearse
 
 ### Q: How would you implement a thread-safe singleton in Python?
-Start with the module-level instance, since module import is already once-only and, for imports, guarded by the import lock. If it must be lazy, use double-checked locking: an unlocked check for the fast path, then acquire a lock and check again before creating. For many classes, use a metaclass `__call__` with the same logic. I would also say I avoid constructor arguments on singletons.
+Start with a module-level instance, since import is already once-only. If it must be lazy, use double-checked locking: an unlocked fast-path check, then the lock, then a second check before creating. For many classes, use a metaclass `__call__` with the same logic.
 
 ### Q: Why is the second `None` check inside the lock necessary?
 Because another thread may have created the instance while this one was blocked waiting for the lock. Without the inner check, each waiting thread would create its own object in turn, and the guarantee of a single instance would be lost. The outer check exists only to avoid taking the lock after warm-up.
@@ -157,13 +156,13 @@ No. Each worker is a separate process with its own memory, so you get one instan
 
 ## Common Pitfalls
 
-- Calling the constructor with different arguments and getting the first instance back (or, with `__new__`, a silently re-initialised one).
-- Checking `_instance is None` without a lock when construction is slow or has side effects.
-- Using the decorator form and then breaking `isinstance`, subclassing, or type hints, because the name now refers to a function.
+- Passing different constructor arguments and silently getting the first instance (or a re-initialised one).
+- Checking `_instance is None` without a lock when construction is slow.
+- Using the decorator form and breaking `isinstance` and type hints.
 - Assuming `@functools.cache` runs the factory exactly once under concurrency.
-- Letting module-level construction connect to a database at import time, which breaks tooling, tests and docs builds.
-- Forgetting that pickling, `fork` and multiple workers each defeat "one instance per application".
-- Using Singleton to avoid passing parameters, when the real fix is dependency injection.
+- Connecting to a database at import time.
+- Forgetting that pickling, `fork` and multiple workers defeat "one instance".
+- Using Singleton to avoid passing parameters instead of using dependency injection.
 
 ## Suggested Extension
 

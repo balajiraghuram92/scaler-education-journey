@@ -1,0 +1,845 @@
+{
+  "lessonSlug": "py-18-uml-diagrams",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-18/additional/q01",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a Class Diagram, what does a dashed line with a hollow triangle arrowhead represent?",
+      "explanation": "**Answer: (a)** A dashed line with a hollow triangle is realization: a class implementing an interface (or fulfilling a protocol).\n\n- (b) is wrong because extending a concrete or abstract class uses inheritance, drawn as a solid line with a hollow triangle.\n- (c) is wrong because aggregation uses a hollow diamond at the whole's end.\n- (d) is wrong because composition uses a filled diamond.\n\n**Deeper:** Solid versus dashed is the whole difference between inheritance and realization. In Python, a class satisfying a `Protocol` realises it structurally, with no explicit base class, and you still draw the dashed triangle.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A class implementing an interface",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A class extending another class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation between two classes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Composition between two classes",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/additional/q02",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "One instructor teaches many courses, but each course has only one instructor. Where should the foreign key go?",
+      "explanation": "**Answer: (b)** In a one-to-many relationship the foreign key lives on the \"many\" side. Each course row stores the id of its single instructor, so `courses.instructor_id` references `instructors.id`.\n\n- (a) is wrong because an instructor row would need a variable number of course ids.\n- (c) is wrong because duplicating the key in both tables creates two copies that can disagree.\n- (d) is wrong because a junction table is for many-to-many relationships.\n\n**Deeper:** Read the multiplicities off the class diagram: `Instructor 1 --> 0..* Course` means the FK is on `Course`. Getting this backwards is the most common schema mistake in design interviews.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "In the instructors table",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "In the courses table",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In both tables at once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "In a separate junction table",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A teammate wrote this schema for a blog, where one post can have many comments:\n\n```sql\nCREATE TABLE posts (\n    id INT PRIMARY KEY,\n    title VARCHAR(255),\n    comment_1 VARCHAR(500),\n    comment_2 VARCHAR(500),\n    comment_3 VARCHAR(500)\n);\n```\n\nWhat is the main problem, and what's the correct fix?",
+      "explanation": "**Answer: (a)** Fixed `comment_1..comment_3` columns cap the relationship at three comments per post and leave most columns null. The fix is a `comments` table with a `post_id` foreign key.\n\n- (b) is wrong because `id` as the primary key is correct.\n- (c) is wrong because splitting `title` is unrelated to the problem.\n- (d) is wrong because a comma-separated column cannot be indexed, constrained or joined, and violates first normal form.\n\n**Deeper:** A repeating group in columns is a one-to-many relationship in disguise. Recognising that from the class diagram (`Post 1 --> 0..* Comment`) is exactly what the translation rules are for.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A fixed number of comment columns caps the relationship — create a separate comments table with a post_id foreign key instead",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "id should not be declared as a primary key",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "title should be split into two columns",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The comments should be merged into one column separated by commas",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A Restaurant class has a List<MenuItem>. If the restaurant shuts down permanently, its menu items (like \"Paneer Butter Masala\") have no meaning anywhere else in the system — they only existed as part of that restaurant's menu. What relationship is this?",
+      "explanation": "**Answer: (b)** Menu items have no meaning outside the restaurant that owns them, so their lifetime is bound to it. That is composition (filled diamond at the `Restaurant` end).\n\n- (a) is wrong because there is no \"is-a\" relationship between a restaurant and a menu item.\n- (c) is wrong because aggregation would mean the items can exist and be shared independently.\n- (d) is wrong because no interface is being implemented.\n\n**Deeper:** The test is the lifecycle question: if the container is deleted, does the part still make sense elsewhere? Here, no. In code the `Restaurant` constructs and owns its `MenuItem`s; in SQL a cascading delete expresses the same thing.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Composition",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An interface implementation",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a Use Case Diagram, \"Enroll in Course\" always triggers \"Make Payment\" — there's no scenario where enrollment happens without it. What relationship connects these two use cases?",
+      "explanation": "**Answer: (d)** If enrollment always triggers payment, with no path that skips it, \"Make Payment\" is a mandatory sub-step of \"Enroll in Course\". That is an include relationship.\n\n- (a) is wrong because extends describes an optional addition that applies only in some scenarios.\n- (b) is wrong because an actor is a role, not a relationship.\n- (c) is wrong because the system boundary is the box around all use cases.\n\n**Deeper:** Use includes for always-on steps and extends for optional behaviour (printing a receipt). In interviews, these matter only when scoping features; most of your time goes to class and sequence diagrams.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Extends",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Actor",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "System Boundary",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Includes",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Given this SQL:\n\n```sql\nCREATE TABLE students (id INT PRIMARY KEY, name VARCHAR(255));\nCREATE TABLE courses (id INT PRIMARY KEY, title VARCHAR(255));\n\nCREATE TABLE enrollments (\n    id INT PRIMARY KEY,\n    student_id INT,\n    course_id INT,\n    FOREIGN KEY (student_id) REFERENCES students(id),\n    FOREIGN KEY (course_id) REFERENCES courses(id)\n);\n```\n\nCurrent rows in enrollments: (1, 1, 1), (2, 1, 2), (3, 2, 1) (columns: id, student_id, course_id)\nHow many courses is the student with id = 1 enrolled in?",
+      "explanation": "**Answer: (c)** The `enrollments` rows are (student 1, course 1), (student 1, course 2) and (student 2, course 1). Student 1 appears twice, so they are enrolled in 2 courses.\n\n- (a) counts every row, including the other student's enrollment.\n- (b) is wrong because rows for student 1 exist.\n- (d) counts only one of student 1's rows.\n\n**Deeper:** The junction table turns a many-to-many relationship into two one-to-many relationships. `SELECT COUNT(*) FROM enrollments WHERE student_id = 1` is the query that table is designed to answer; a composite primary key on `(student_id, course_id)` prevents duplicate enrollments.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "3",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "0",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "2",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "1",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A hospital has a Department class and a Doctor class. A doctor belongs to one department at a time, but if a department is dissolved, doctors continue to exist and can be reassigned elsewhere. Which pair correctly identifies the relationship type AND the foreign key placement?",
+      "explanation": "**Answer: (a)** Doctors survive the dissolution of a department and can be reassigned, so the part is independent: aggregation. A doctor belongs to one department at a time, so the foreign key (`department_id`) goes on the many side, in the `doctors` table.\n\n- (b) is wrong because composition requires the part's life to end with the whole.\n- (c) and (d) put the key on the one side, which would require a department row to hold a list of doctors.\n\n**Deeper:** Two independent decisions (relationship type and FK placement) are combined in one question. Make both explicit when you narrate. Because the department can vanish, the FK is typically nullable or the dissolve operation must reassign first.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Aggregation, with department_id placed inside the doctors table",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Composition, with department_id placed inside the doctors table",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation, with doctor_id placed inside the departments table",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Composition, with doctor_id placed inside the departments table",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the main purpose of normalization in database schema design?",
+      "explanation": "**Answer: (b)** Normalisation stores each fact once and references it elsewhere by foreign key, so there are no copies that can fall out of sync.\n\n- (a) describes denormalisation, a deliberate trade-off for read speed, not the purpose of normalisation.\n- (c) is wrong because tables have whatever columns their entity needs.\n- (d) is wrong because normalisation does not convert relationships into many-to-many ones; it removes redundancy.\n\n**Deeper:** The coding analogy is DRY. Normalise by default, then denormalise specific hot paths on purpose and own the consistency problem (for example, a cached customer name on an order that must reflect the name at purchase time).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "To duplicate frequently-used data across tables for faster reads",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "To store each fact only once and reference it elsewhere with a foreign key, avoiding out-of-sync copies",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "To ensure every table has exactly the same number of columns",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "To turn every relationship into a many-to-many relationship",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A ride-sharing app's Trip class has a List<RouteCoordinate> — the GPS points making up that specific trip's path. If the trip record is deleted, those exact coordinates have no meaning anywhere else in the system. Which combination correctly describes the relationship and its notation?",
+      "explanation": "**Answer: (d)** A trip's route coordinates are meaningless without that trip, and deleting the trip deletes them: composition, drawn with a filled diamond at the `Trip` end.\n\n- (a) is wrong because a plain association would imply independent lifetimes.\n- (b) is wrong because a coordinate is not a kind of trip.\n- (c) is wrong because aggregation's hollow diamond signals independent parts.\n\n**Deeper:** Composition also tells you the implementation: the `Trip` owns a list of coordinates, and in the database a `route_coordinates` table with `trip_id` and `ON DELETE CASCADE`. State the multiplicity too: `Trip 1 *-- 0..* RouteCoordinate`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Association without ownership — plain line, no diamond",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Inheritance — hollow triangle",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation — hollow diamond",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Composition — filled diamond",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q01",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a car manufacturing simulation, there's a class for generic vehicle properties. You have to create classes for a car, truck and motorcycle. What is the nature of the relationship between the vehicle class and the car, truck, and motorcycle classes?",
+      "explanation": "**Answer: (d)** Car, Truck and Motorcycle are kinds of the generic vehicle. Each specific class is a more specific kind of the general class, which is an \"is-a\" relationship: inheritance (a solid line with a hollow triangle pointing at the general class).\n\n- (a) is wrong because association is a \"has a reference to\" link, not \"is a\".\n- (b) is wrong because composition means the child cannot exist without the owner, which is not what is described.\n- (c) is wrong because aggregation is a whole/part relationship between independent objects.\n\n**Deeper:** Use the \"is-a versus has-a\" sentence test. In Python, favour a shared ABC or Protocol and composition for behaviour, and reserve inheritance for genuine substitutability (the Liskov test).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Association",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Composition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Inheritance",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a drawing application, there's a class for a generic shape called Shape . You have to create classes for Circle , Rectangle , and Triangle . What is the nature of the relationship between the Shape class and the Circle, Rectangle, and Triangle classes?",
+      "explanation": "**Answer: (d)** Circle, Rectangle and Triangle are kinds of Shape. Each specific class is a more specific kind of the general class, which is an \"is-a\" relationship: inheritance (a solid line with a hollow triangle pointing at the general class).\n\n- (a) is wrong because association is a \"has a reference to\" link, not \"is a\".\n- (b) is wrong because composition means the child cannot exist without the owner, which is not what is described.\n- (c) is wrong because aggregation is a whole/part relationship between independent objects.\n\n**Deeper:** Use the \"is-a versus has-a\" sentence test. In Python, favour a shared ABC or Protocol and composition for behaviour, and reserve inheritance for genuine substitutability (the Liskov test).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Association",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Composition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Inheritance",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a software application, there's a class called Animal with properties and methods common to all animals. You have to create classes for Dog, Cat, and Bird. What is the nature of the relationship between the Animal class and the Dog, Cat, and Bird classes?",
+      "explanation": "**Answer: (d)** Dog, Cat and Bird are kinds of Animal. Each specific class is a more specific kind of the general class, which is an \"is-a\" relationship: inheritance (a solid line with a hollow triangle pointing at the general class).\n\n- (a) is wrong because association is a \"has a reference to\" link, not \"is a\".\n- (b) is wrong because composition means the child cannot exist without the owner, which is not what is described.\n- (c) is wrong because aggregation is a whole/part relationship between independent objects.\n\n**Deeper:** Use the \"is-a versus has-a\" sentence test. In Python, favour a shared ABC or Protocol and composition for behaviour, and reserve inheritance for genuine substitutability (the Liskov test).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Association",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Composition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Inheritance",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a library management system, there's a class for a library and a class for a book. What is the nature of the relationship between the library class and the book class?",
+      "explanation": "**Answer: (c)** A library holds many books, but a book is an independent object (it can be transferred, lent or catalogued elsewhere), so this is a whole/part relationship with independent lifetimes: aggregation.\n\n- (a) is a weaker claim; association is correct but says nothing about the whole/part nature the question hints at.\n- (b) is wrong only if you assume books disappear with the library, which is not the natural reading.\n- (d) is wrong because a library is not a kind of book.\n\n**Deeper:** This stem is underspecified. In an interview, state your assumption (\"books are catalogued entities that outlive a branch\") and choose accordingly; the explicit statement matters more than the label.",
+      "reviewFlag": "Ambiguous: the stem gives no lifecycle detail. Association and composition are also defensible; aggregation chosen because books are normally independent objects in a library system.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Association",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Composition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a university system, there's a class for a department and a class for a professor. What is the nature of the relationship between the department class and the professor class?",
+      "explanation": "**Answer: (c)** A department groups professors, but professors continue to exist if a department is merged or closed and can move elsewhere. That is whole/part with independent lifetimes: aggregation.\n\n- (a) is a weaker statement that omits the grouping semantics.\n- (b) is wrong because professors do not cease to exist with the department; composition would require them to be destroyed with it, and a university would not delete its staff records when a department is closed.\n- (d) is wrong because a department is not a kind of professor, so there is no \"is-a\" relationship to model.\n\n**Deeper:** The mapping is the same as doctors and departments: aggregation, with the foreign key on the many side (`professors.department_id`), possibly nullable.",
+      "reviewFlag": "Ambiguous: stem gives no lifecycle detail; aggregation chosen because professors exist independently of a department (they can be reassigned). Association is also defensible.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Association",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Composition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a social media application, there's a class for a user and a class for a post.\nWhat is the nature of the relationship between the user class and the post class?",
+      "explanation": "**Answer: (a)** With only \"a user class and a post class\" and no statement about ownership or lifetime, the safe and correct modelling is association: a user writes posts and each post refers to its author.\n\n- (b) is wrong because nothing says posts are destroyed with the user.\n- (c) would need the extra statement that the user is a container of posts with independent lifetimes, as q09 provides.\n- (d) is wrong because a post is not a kind of user.\n\n**Deeper:** Choose the weakest relationship the facts support, and strengthen it only when you can justify it with a lifecycle statement. The FK still goes on the many side (`posts.user_id`).",
+      "reviewFlag": "Ambiguous: no lifecycle detail in the stem. Association chosen as the least committal correct answer; aggregation is defensible, and the later user/post stem (q09) uses aggregation explicitly.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Association",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Composition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Aggregation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Imagine a school enrollment system where a class represents a course. The course class contains objects representing enrolled students. However, if the course is closed or removed, the students still exist in the system and may be enrolled in other courses. What type of relationship exists between the course class and the student objects, where the student class is independent of the lifecycle of the course class?",
+      "explanation": "**Answer: (b)** The students outlive a closed course and may be enrolled elsewhere. The part's lifecycle is independent of the container, which is the definition of aggregation (hollow diamond at the whole).\n\n- (a) is wrong because composition requires the part to be destroyed with the whole.\n- (c) is wrong because inheritance means \"is-a\", and no type here is a kind of the other.\n\n**Deeper:** In code, aggregation shows up as injection and shared references; in SQL, a plain foreign key, with a delete of the parent either blocked, nulling the reference or preceded by reassignment, never cascading.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Composition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Aggregation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a music streaming application, a class represents a playlist. The playlist class contains objects representing songs. If the playlist is deleted, the songs still exist in the system and may be part of other playlists. What type of relationship exists between the playlist class and the song objects, where the song class is independent of the lifecycle of the playlist class?",
+      "explanation": "**Answer: (b)** The songs survive the deletion of a playlist and can appear on other playlists. The part's lifecycle is independent of the container, which is the definition of aggregation (hollow diamond at the whole).\n\n- (a) is wrong because composition requires the part to be destroyed with the whole.\n- (c) is wrong because inheritance means \"is-a\", and no type here is a kind of the other.\n\n**Deeper:** In code, aggregation shows up as injection and shared references; in SQL, a plain foreign key, with a delete of the parent either blocked, nulling the reference or preceded by reassignment, never cascading.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Composition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Aggregation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a social media application, a class represents a user. The user class contains objects representing posts. If the user account is deleted, the posts still exist in the system. What type of relationship exists between the user class and the post objects, where the post class is independent of the lifecycle of the user class?",
+      "explanation": "**Answer: (b)** The posts survive the deletion of the user account. The part's lifecycle is independent of the container, which is the definition of aggregation (hollow diamond at the whole).\n\n- (a) is wrong because composition requires the part to be destroyed with the whole.\n- (c) is wrong because inheritance means \"is-a\", and no type here is a kind of the other.\n\n**Deeper:** In code, aggregation shows up as injection and shared references; in SQL, a plain foreign key, with a delete of the parent either blocked, nulling the reference or preceded by reassignment, never cascading.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Composition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Aggregation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a car manufacturing simulation, a class represents a car. The car class contains objects representing the engine, wheels, and other parts. If the car object is destroyed, the engine, wheels, and other parts are also destroyed. What type of relationship exists between the car class and the engine, wheels, and other parts, where the parts are dependent on the lifecycle of the car?",
+      "explanation": "**Answer: (a)** Engine, wheels and other parts are destroyed with the car. The parts' lifecycle is bound to the container, which is composition (filled diamond at the whole).\n\n- (b) is wrong because aggregation means the parts survive the container.\n- (c) is wrong because inheritance means \"is-a\", which does not describe a whole and its parts.\n\n**Deeper:** In code, composition is construction inside the owner (`self.parts = [Part() for ...]`); in SQL it is a foreign key with `ON DELETE CASCADE`. If you ever hand a part out to be shared, you have silently turned it into an aggregation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Composition",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Aggregation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a drawing application, there is a Canvas class. The canvas class contains objects representing shapes such as circles, rectangles, and triangles. If the canvas object is destroyed, the shapes are also destroyed. What type of relationship exists between the canvas class and the shapes, where the shapes are dependent on the lifecycle of the canvas?",
+      "explanation": "**Answer: (a)** The shapes are destroyed with the canvas. The parts' lifecycle is bound to the container, which is composition (filled diamond at the whole).\n\n- (b) is wrong because aggregation means the parts survive the container.\n- (c) is wrong because inheritance means \"is-a\", which does not describe a whole and its parts.\n\n**Deeper:** In code, composition is construction inside the owner (`self.parts = [Part() for ...]`); in SQL it is a foreign key with `ON DELETE CASCADE`. If you ever hand a part out to be shared, you have silently turned it into an aggregation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Composition",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Aggregation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q12",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Imagine a class for a notebook. The notebook class contains objects representing pages. If the notebook object is destroyed, the pages are also destroyed. What type of relationship exists between the notebook class and the pages, where the pages are dependent on the lifecycle of the notebook?",
+      "explanation": "**Answer: (a)** The pages are destroyed with the notebook. The parts' lifecycle is bound to the container, which is composition (filled diamond at the whole).\n\n- (b) is wrong because aggregation means the parts survive the container.\n- (c) is wrong because inheritance means \"is-a\", which does not describe a whole and its parts.\n\n**Deeper:** In code, composition is construction inside the owner (`self.parts = [Part() for ...]`); in SQL it is a foreign key with `ON DELETE CASCADE`. If you ever hand a part out to be shared, you have silently turned it into an aggregation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Composition",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Aggregation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Inheritance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q13",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the primary purpose of a PRIMARY KEY in a database table?",
+      "explanation": "**Answer: (a)** A primary key uniquely identifies each row of a table, which also makes the row addressable for foreign keys to reference.\n\n- (b) is wrong because linking tables is the job of a foreign key; the primary key is what a foreign key points to.\n- (c) is wrong because an index is created as a side effect in most databases, but speed is not its purpose.\n- (d) is wrong because a primary key has no bearing on the number of columns.\n\n**Deeper:** Choose stable keys; a natural key like an email can change, so many designs use a surrogate id and add a unique constraint on the natural attribute.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "To uniquely identify each row in the table",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "To link one table to another",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "To make queries run faster automatically",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "To enforce a fixed number of columns",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q14",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A banking app allows joint accounts — one account can have multiple owners, and one person can be an owner on multiple accounts. How should this be modeled in the schema?",
+      "explanation": "**Answer: (b)** A joint account has many owners and a person can own many accounts: many-to-many. That needs a junction table (for example `account_owners`) holding `account_id` and `owner_id`.\n\n- (a) puts a single owner on the account, so a second owner cannot be represented.\n- (c) puts a single account on each owner, with the same limitation reversed.\n- (d) stores a list in one column, which breaks first normal form and cannot be joined or constrained.\n\n**Deeper:** The junction table can carry relationship attributes such as ownership percentage or role. Use `PRIMARY KEY (account_id, owner_id)` to prevent duplicates.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Add an owner_id column directly inside accounts",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Create a separate junction table (e.g. account_owners) holding account_id and owner_id",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add an account_id column directly inside owners",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Store all owner names as a comma-separated list inside accounts",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q15",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Given this schema and data:\n```sql\nCREATE TABLE employees (\n    id INT PRIMARY KEY,\n    name VARCHAR(255),\n    department_id INT\n);\n```\nRows: (1, 'A', 1), (2, 'B', 2), (3, 'C', 2), (4, 'D', 3)\nWhat does SELECT COUNT(*) FROM employees WHERE department_id = 2; return?",
+      "explanation": "**Answer: (b)** The rows with `department_id = 2` are (2, 'B', 2) and (3, 'C', 2). `COUNT(*)` over the filtered rows is 2.\n\n- (a) counts only one matching row, but both employee B and employee C belong to department 2.\n- (c) would include another department's employee, which the `WHERE` clause filters out.\n- (d) counts every row in the table, ignoring the `WHERE` clause entirely.\n\n**Deeper:** `department_id` on `employees` is the foreign key on the many side. In production, put an index on it, since filtering by foreign key is one of the most common query shapes.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "1",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "2",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "3",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "4",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q16",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A teammate wrote this schema for an orders system:\n\n```sql\nCREATE TABLE orders (\n    id INT PRIMARY KEY,\n    customer_name VARCHAR(255),\n    customer_email VARCHAR(255),\n    product VARCHAR(255)\n);\n```\n\nThere's already a separate customers table storing customer details. What's wrong with this design, and what's the fix?",
+      "explanation": "**Answer: (d)** `customer_name` and `customer_email` duplicate data that already lives in `customers`. Replace both with a single `customer_id` foreign key so each fact is stored once.\n\n- (a) is wrong because duplicated data drifts out of sync when a customer changes email.\n- (b) addresses a different, unrelated issue.\n- (c) is wrong because an order table with an `id` primary key is correct; orders do not repeat ids.\n\n**Deeper:** One real exception: snapshot data that must not change retroactively (a shipping address at order time) is stored deliberately on the order as a historical fact, not as a live reference.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing is wrong — storing the name and email directly avoids extra joins",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "product should be split into product_name and product_price",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "id should not be declared as a primary key since orders can repeat",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "customer_name and customer_email duplicate data that already lives in customers — replace both with a single customer_id foreign key instead",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/assignment/q17",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a many-to-many junction table like enrollments, some teams skip a separate surrogate id column entirely and instead make the combination of both foreign keys (student_id + course_id together) the primary key. What is this called?",
+      "explanation": "**Answer: (a)** Making the combination of both foreign keys the primary key is a composite primary key. It also guarantees a student cannot enrol in the same course twice.\n\n- (b) is not a standard term.\n- (c) is wrong because a foreign key and a primary key are different roles, even though a column can be both.\n- (d) is not a database concept.\n\n**Deeper:** The trade-off against a surrogate `id` column: a composite key gives uniqueness for free and keeps the table narrow, while a surrogate is easier for ORMs and for other tables that need to reference an enrollment row.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A composite primary key",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A duplicate key",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A foreign primary key",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A static key",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Order:\n    def __init__(self, skus: list[str]) -> None:\n        self.lines = [OrderLine(s) for s in skus]\n\nclass Cart:\n    def __init__(self, pricing: PricingService) -> None:\n        self.pricing = pricing\n\n    def total(self, coupon: Coupon) -> float:\n        return self.pricing.price(self, coupon)\n```\nWhich set of relationships does this code express?",
+      "explanation": "**Answer: (b)** `Order` constructs its `OrderLine`s internally, so they live and die with it: composition. `Cart` receives `PricingService` through the constructor and stores it, so the service is independent and shared: aggregation (or a plain association). `Coupon` appears only as a method parameter, which is a dependency.\n\n- (a) reverses the first two: construction inside the owner is composition, injection is not.\n- (c) mislabels the parameter, the field and the construction.\n- (d) is wrong because nothing here uses a base class.\n\n**Deeper:** In code review, \"who creates it?\" is the quickest lifecycle test. Constructed inside means composition, injected means aggregation or association, and only appears in a signature means dependency.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`Order` aggregates `OrderLine`; `Cart` composes `PricingService`; `Cart` is associated with `Coupon`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`Order` composes `OrderLine`; `Cart` aggregates or is associated with the injected `PricingService`; `Cart` depends on `Coupon`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`Order` depends on `OrderLine`; `Cart` inherits `PricingService`; `Cart` composes `Coupon`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "All three are plain inheritance because every class refers to another class",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "In an order system, one order contains many products, and one product appears in many orders. Each line also records a quantity and the unit price at the time of purchase. Which schema models this best?",
+      "explanation": "**Answer: (c)** Many-to-many relationships need a junction table. `quantity` and `unit_price` describe the relationship between one order and one product, so they belong on the junction row. Storing the unit price there also preserves the price at purchase even if the catalogue price changes later.\n\n- (a) allows each product to appear in only one order and puts line attributes on the wrong entity.\n- (b) breaks first normal form and cannot be joined, indexed or constrained.\n- (d) caps and hard-codes the catalogue into the schema.\n\n**Deeper:** Note the deliberate non-normalisation of `unit_price`: it is a historical fact about the sale, not a copy of the live product price, so it is correct to store it on the junction row.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Add `order_id` to `products`, and store `quantity` and `unit_price` on `orders`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Add a `product_ids` column to `orders` holding a comma-separated list",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add an `order_items` junction table with `order_id`, `product_id`, `quantity` and `unit_price`, keyed by `(order_id, product_id)`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Add one column per product to `orders`, since the catalogue is small",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-18/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A reviewer looks at your sequence diagram for \"ask a question\" (client, API, cache, retriever, LLM) and says it shows only the happy path with a cache miss. What should you add to make it represent the real design?",
+      "explanation": "**Answer: (d)** Sequence diagrams express branching with combined fragments. An `alt` fragment with guards models the cache-hit shortcut versus the full miss path, and a further `alt` or `opt` shows the timeout or fallback branch.\n\n- (a) is wrong because each participant has one lifeline; direction is shown by solid calls and dashed returns.\n- (b) is wrong because includes belong to use-case diagrams, not sequence diagrams.\n- (c) is wrong because composition is a class-diagram relationship and does not describe message order.\n\n**Deeper:** Interviewers use the failure branches to judge production thinking. Showing the cheap path (cache hit) and one failure path (LLM timeout and fallback) is usually enough; more makes the diagram unreadable.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A second lifeline for each message so that both directions are shown",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "An include relationship between the cache and the LLM",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A composition diamond between the API and the cache",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An `alt` fragment with guards such as `[cache hit]` returning immediately, and `[else]` containing the retriever and LLM calls, plus a timeout branch for the LLM call",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

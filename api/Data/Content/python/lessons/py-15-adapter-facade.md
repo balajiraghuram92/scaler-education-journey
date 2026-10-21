@@ -6,15 +6,15 @@ Almost every AI or backend system you will touch at work sits on top of code you
 
 ### Structural patterns in one paragraph
 
-Creational patterns (Singleton, Builder, Factory) decide how objects come into existence. Structural patterns decide how existing objects are composed into larger structures. Adapter, Facade, Decorator, Proxy and Flyweight are all structural. A Builder assembles an object; an Adapter connects an object that already exists to a client that cannot call it as-is. That is the whole classification argument.
+Creational patterns decide how objects come into existence; structural patterns (Adapter, Facade, Decorator, Proxy, Flyweight) decide how existing objects are composed. A Builder assembles an object; an Adapter connects an existing object to a client that cannot call it as-is.
 
 ### Adapter: one interface over several LLM SDKs
 
 The Adapter translates an interface you cannot change (the **adaptee**) into the interface your code expects (the **target**). Three roles: the client depends on the target, the adaptee is foreign, and the adapter implements the target by delegating to the adaptee. The translation covers more than method names. It covers parameter shapes, units, response structure, status codes and, critically, **errors**.
 
-In Python the target is usually a `typing.Protocol` or an ABC, and the adapter uses composition (an object adapter). The class-adapter variant, inheriting from the adaptee as well as the target, works through multiple inheritance but welds you to the vendor class and its MRO, so it is rarely the right call.
+In Python the target is usually a `typing.Protocol` or an ABC, and the adapter uses composition (an object adapter). The class-adapter variant, inheriting from the adaptee too, welds you to the vendor class and its MRO and is rarely right.
 
-The two vendor classes below are stand-ins with deliberately different shapes. Real SDKs differ in the same ways: message lists versus plain prompts, nested dicts versus attribute access, different names for token limits.
+The vendor classes below are stand-ins with deliberately different shapes, as real SDKs differ: message lists versus plain prompts, nested dicts versus attributes, different names for token limits.
 
 ```python
 from __future__ import annotations
@@ -193,7 +193,7 @@ class IngestionFacade:
         return IngestReport(doc_id=uri, chunks=len(chunks))
 ```
 
-Two design rules. First, the facade is **not a wall**: the subsystems stay public, so a power user can still call the embedder directly. Second, the collaborators are injected through the constructor. A facade that builds its own `Embedder()` inside `__init__` cannot be unit tested without hitting the real service, whereas an injected one runs against in-memory fakes:
+Two rules. The facade is **not a wall**: subsystems stay public for power users. And collaborators are injected, since a facade that builds its own `Embedder()` cannot be tested without the real service, whereas an injected one runs against in-memory fakes:
 
 ```python
 class FakeLoader:
@@ -237,7 +237,7 @@ They compose naturally. A `book_ride()` facade coordinates fare calculation, dri
 
 ## Practical Backend Scenario
 
-You join a customer engagement as a forward deployed engineer. The prototype calls one LLM vendor directly in forty places, reading `response["choices"][0]["message"]["content"]`. The customer's security team now mandates a different, self-hosted model, and finance wants token usage per request regardless of provider. If the vendor SDK is spread through the code, you are rewriting forty call sites. If you introduce a `ChatModel` target and one adapter per provider that returns a normalised `ChatReply` (text plus token counts) and raises `ModelUnavailable`, the migration is one new adapter, and usage metering sits in one place. On top, an `AnswerService` facade (retrieve, prompt, generate, post-process) gives the web layer a single `answer(question)` call. The outcome of the engagement hinges on those seams, not on prompt cleverness.
+You join a customer engagement as a forward deployed engineer. The prototype calls one LLM vendor directly in forty places, reading `response["choices"][0]["message"]["content"]`. The customer's security team now mandates a self-hosted model, and finance wants token usage per request. With the SDK spread through the code, that is forty call sites. With a `ChatModel` target and one adapter per provider returning a normalised `ChatReply` and raising `ModelUnavailable`, the migration is one new adapter and metering sits in one place. An `AnswerService` facade (retrieve, prompt, generate, post-process) gives the web layer a single `answer(question)` call. The engagement hinges on those seams, not on prompt cleverness.
 
 ## Practice Loop
 
@@ -245,8 +245,8 @@ You join a customer engagement as a forward deployed engineer. The prototype cal
 2. Add a third stand-in vendor whose client raises `TimeoutError` and returns the reply as a plain string. Write its adapter and map the error to `ModelUnavailable`. Notice that `summarise` does not change.
 3. Write `FakeChatModel` that returns canned replies. Test `summarise` with it and without any vendor class on the import path.
 4. Implement `IngestionFacade` and run it against the fakes. Then add a second `ingest_many(uris)` method and decide what should happen when the third of five documents fails.
-5. Remove the constructor injection from the facade (build the collaborators inside `__init__`) and try to test it. Write down exactly what you can no longer do.
-6. Replace the dictionary in `PhonePe` with an `if/elif` chain, add one more bank, and count how many classes you had to edit in each version.
+5. Build the collaborators inside the facade's `__init__` instead and try to test it. Write down what you can no longer do.
+6. Replace the dictionary in `PhonePe` with an `if/elif` chain, add a bank, and count the classes you had to edit in each version.
 
 ## Evidence of Understanding
 
@@ -266,10 +266,6 @@ Adapter fixes an interface mismatch: it makes an existing class usable through t
 
 I define my own `ChatModel` Protocol with provider-neutral request and reply types, then write one adapter per SDK that translates request shape, response shape, token accounting and exceptions into those types. The application only imports the Protocol. Provider choice is wiring (a registry or config), not branching in business code. Retries, caching and metrics are layered on afterwards with decorators, not inside the adapters.
 
-### Q: Why is an if/elif on the bank name inside the client a smell even when adapters exist?
-
-Because the client again knows every concrete adapter, so adding a provider means editing the client, violating Open/Closed. Inject the adapter, or look it up in a registry keyed by name, so the client depends only on the abstraction.
-
 ### Q: Where do exceptions belong in an adapter?
 
 At the boundary. Vendor-specific exceptions and error codes should be translated into your own exception hierarchy inside the adapter, chaining the original with `raise ... from exc`. Otherwise `except vendor.RateLimitError` leaks into the domain and you have not actually isolated the vendor.
@@ -285,8 +281,7 @@ Inject the collaborators through the constructor and pass in-memory fakes that r
 - Letting vendor types (response dicts, SDK enums) escape the adapter into domain code.
 - Building collaborators inside the facade, which kills testability and swapping.
 - Turning the facade into a god class that owns state and business rules.
-- Hiding the subsystems entirely, so advanced callers have no escape hatch.
-- Adapters that compare against the wrong type, for example checking `status == "APPROVED"` when the vendor returns an Enum. Unit tests that mock the vendor with a string will never catch it; add one integration-style test against the real vendor type.
+- Comparing against the wrong type, for example `status == "APPROVED"` when the vendor returns an Enum; mocks with strings never catch it.
 
 ## Suggested Extension
 

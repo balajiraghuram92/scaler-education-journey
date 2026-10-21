@@ -1,0 +1,695 @@
+{
+  "lessonSlug": "py-08-decorators-iterators-generators",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-08/additional/q01",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why does a decorator that accepts an argument, like @repeat(3), need one extra layer compared to a normal decorator?",
+      "explanation": "**Answer: (b)** `@repeat(3)` is an expression: `repeat(3)` is called first with the configuration and must return the real decorator, which then receives the function and returns the wrapper.\n\n- (a) Python does not require any particular number of layers; the count follows from what is being called.\n- (c) Arguments have no special performance cost; the extra layer is a structural need.\n- (d) `functools.wraps` is applied to the innermost wrapper and has no layer requirement.\n\n**Deeper:** The three levels are factory (configuration), decorator (function) and wrapper (call arguments). Many libraries support both `@deco` and `@deco(...)` by checking whether the first argument is callable; that convenience is a common source of bugs when the decorated thing is itself callable.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because Python requires exactly three functions in every decorator",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because repeat(3) is called first with the setting, and only after that does it receive the function to wrap",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because arguments always slow down decorators, so an extra layer is needed for optimization",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Because functools.wraps requires three layers to work",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/additional/q02",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does this print?\n```python\nimport functools\n\ndef repeat(times):\n    def decorator(func):\n        @functools.wraps(func)\n        def wrapper(*args, **kwargs):\n            for _ in range(times):\n                result = func(*args, **kwargs)\n            return result\n        return wrapper\n    return decorator\n\n@repeat(2)\ndef greet():\n    print(\"Hi!\")\n\ngreet()\n```",
+      "explanation": "**Answer: (b)** `repeat(2)` configures two iterations, and the wrapper calls `greet()` in a loop twice, so `Hi!` is printed twice.\n\n- (a) Once would be the result with `times=1`.\n- (c) `repeat(2)` supplies its argument, then the result decorates `greet`, so nothing is missing.\n- (d) The loop is `range(2)`, which runs exactly two times.\n\nThe wrapper returns the last `result`, which is `None` because `greet` returns nothing.\n\n**Deeper:** Note the subtle bug if `times=0`: `result` is never assigned and the wrapper raises `UnboundLocalError` at `return result`. Decorators that loop should initialise their result or validate arguments up front.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Hi! (printed once)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Hi! printed twice",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Error: repeat() missing arguments",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Hi! printed three times",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You have this stacked decorator setup:\n\n```python\n@bold\n@italic\ndef text():\n    return \"hello\"\n```\n\nWhen text() is called, which decorator's code runs on the outside (first to receive control)?",
+      "explanation": "**Answer: (c)** `@bold` above `@italic` means `text = bold(italic(text))`, so the `bold` wrapper is the outermost layer and receives control first.\n\n- (a) Being written closer to the function means it is applied first, but it ends up inside.\n- (b) Wrappers nest; they never run \"at the same time\".\n- (d) The decorated name refers to the wrapper chain, so the original function runs only at the centre.\n\n**Deeper:** Decoration order is bottom-up, call order is top-down. This matters in real code: put `@app.route` (registration) at the top so it registers the fully decorated function, and put authentication outside caching if the cached value must not be served to unauthenticated callers.",
+      "reviewFlag": "The printed question text contained a stray \"A) B) C) D)\" line from the source rendering; it was removed.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "italic, because it's written closer to the function",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Both run at exactly the same time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "bold, because it's written on top",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Neither — only text() runs directly",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "When would you choose a class-based decorator (using __call__) over a regular function decorator?",
+      "explanation": "**Answer: (a)** A class instance can hold mutable state in attributes across calls, which fits counters, rate limiters and circuit breakers.\n\n- (b) Class-based decorators are not inherently faster; instance calls add `__call__` overhead.\n- (c) Function decorators accept `*args, **kwargs` perfectly well.\n- (d) Class-based decorators still need `functools.update_wrapper` (the class form of `wraps`) to keep metadata.\n\n**Deeper:** A function decorator can also hold state through closure variables or attributes on the wrapper, so state alone is not decisive. The cost of the class form is the method-binding problem: an instance with no `__get__` does not receive `self` when used on a method. Mentioning that shows you have actually used both.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "When the decorator needs to remember and update state across multiple calls",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Class-based decorators are always faster",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Function decorators cannot use *args, **kwargs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Class-based decorators don't need functools.wraps or update_wrapper",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is printed?\n```python\nimport functools\n\nclass CountCalls:\n    def __init__(self, func):\n        functools.update_wrapper(self, func)\n        self.func = func\n        self.count = 0\n    def __call__(self, *args, **kwargs):\n        self.count += 1\n        print(f\"Call #{self.count}\")\n        return self.func(*args, **kwargs)\n\n@CountCalls\ndef hello():\n    print(\"Hello!\")\n\nhello()\nhello()\n```",
+      "explanation": "**Answer: (d)** `CountCalls` replaces `hello` with an instance whose `__call__` increments the counter, prints `Call #n`, then runs the function. Two calls print `Call #1`, `Hello!`, `Call #2`, `Hello!`.\n\n- (a) The counter is stored on the instance, so it keeps increasing and does not restart.\n- (b) The `Call #` lines are printed by the wrapper before each call.\n- (c) The object is callable because it defines `__call__`.\n\n```text\nCall #1\nHello!\nCall #2\nHello!\n```\n\n**Deeper:** The count lives on the single instance created at decoration time, so it is shared across all callers and threads. In a threaded service, `self.count += 1` is a race, and you would guard it with a lock.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Call #1 Hello! Call #1 Hello!",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Hello! Hello!",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Error: CountCalls object is not callable",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Call #1 Hello! Call #2 Hello!",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In the lecture's @singleton decorator, what makes Config() always return the same object on every call?",
+      "explanation": "**Answer: (b)** The decorator keeps a dictionary (or similar) in a closure. The first call creates the instance and stores it; later calls find it in the closure and return it.\n\n- (a) Python does not cache instances; every class call normally builds a new object.\n- (c) `@wraps` copies metadata and has no effect on instance creation.\n- (d) Defining `__eq__` changes comparison and does not make `Config()` return the same object.\n\n**Deeper:** A closure-based `@singleton` replaces the class with a function, so `isinstance(x, Config)` fails and subclassing breaks. A module-level instance, or dependency injection of one shared object, is usually the cleaner and more testable choice. You will see this again with design patterns.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python automatically caches all class instances",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A closure variable (a dictionary) stores the one created instance, and later calls return the stored one instead of creating a new one",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The @wraps decorator forces single-instance behavior",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Config overrides __eq__ to compare all instances as equal",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the key difference between return and yield inside a function?",
+      "explanation": "**Answer: (d)** `yield` suspends the function, keeping local variables and position, and `next()` resumes from there. `return` ends the function for good.\n\n- (a) It is the reverse: `return` ends, `yield` pauses.\n- (b) They differ fundamentally, since only `yield` makes a function a generator.\n- (c) `yield` works in any function, not just inside classes.\n\n**Deeper:** A `return value` inside a generator becomes the `value` attribute of the `StopIteration` that ends it, and `yield from` surfaces that value as the expression result. This is what makes generator-based pipelines and early coroutine designs composable.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "return pauses the function; yield ends it completely",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They behave identically, just different syntax",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "yield can only be used inside a class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "yield pauses the function and remembers where it left off; return ends the function completely",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You need to process a 10 GB log file on a machine with only 8 GB of RAM. Based on the lecture, what's the correct approach?",
+      "explanation": "**Answer: (a)** Iterating a file object, or a generator wrapped around it, yields one line at a time, so memory is bounded by the largest line.\n\n- (b) `readlines()` builds a list of every line and would exceed the 8 GB of RAM.\n- (c) `itertools.chain` joins iterables and does not split files.\n- (d) There is no such \"memory limit\" switch that creates more RAM.\n\n```python\nwith open(\"app.log\") as f:\n    errors = (line for line in f if \"ERROR\" in line)\n    for line in errors:\n        handle(line)\n```\n\n**Deeper:** Add batching (`itertools.batched`) when you need bulk writes, and count bad lines rather than letting one corrupt record abort the run. Remember that the `with` block closes the file only when the loop ends, so keep the whole pipeline inside it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Use a generator that yields one line at a time, so only one line is in memory at a time",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Load the whole file into a list using .readlines()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Split the file into smaller files first using itertools.chain",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Increase Python's default memory limit before reading the file",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does this print?\n\n```python\nfrom itertools import islice\n\ndef naturals():\n    n = 1\n    while True:\n        yield n\n        n += 1\n\nresult = list(islice(naturals(), 4))\nprint(result)\n```",
+      "explanation": "**Answer: (a)** `naturals()` is infinite but lazy, and `islice(..., 4)` takes only the first four values, so the output is `[1, 2, 3, 4]`.\n\n- (b) The program stops because `islice` stops pulling after four items.\n- (c) The generator starts at `n = 1`, not 0.\n- (d) An endless generator is not an error; it is the point of lazy evaluation.\n\n**Deeper:** `list(naturals())` would hang and consume all memory, so infinite sources are always bounded with `islice` or `takewhile`. Also remember that `islice` consumes items it skips, and a generator you pass in is advanced by exactly what `islice` took.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "[1, 2, 3, 4]",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The program hangs forever",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "[0, 1, 2, 3]",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Error: naturals() never stops",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why is sys.getsizeof() so much smaller for a generator expression than for an equivalent list?",
+      "explanation": "**Answer: (b)** A generator expression holds its code, its frame and its current state, not its output, so its size is small and constant. The list stores a million integer references up front.\n\n- (a) There is no compressed storage.\n- (c) Generators can produce any object type.\n- (d) Values are never created ahead of time, so there is nothing to delete.\n\n**Deeper:** `sys.getsizeof` is shallow and tells you the container size only, so benchmark real memory with `tracemalloc`. The trade-off: generators are single-pass and give no `len()` or indexing, so materialise with `list()` only when you need those.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Generators use a compressed storage format",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The generator hasn't stored any values — it only holds the \"recipe\" to produce them one at a time, while the list built and stored every value upfront",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Generators can only hold numbers, never strings",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Python deletes generator values automatically after creation",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q01",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In Python, what does it mean to say functions are \"first-class\"?",
+      "explanation": "**Answer: (b)** \"First-class\" means functions are ordinary values: they can be bound to names, stored in containers, passed as arguments and returned from other functions.\n\n- (a) Nothing to do with speed.\n- (c) A function with no explicit `return` simply returns `None`.\n- (d) Python does not specially optimise functions because they are first-class.\n\n**Deeper:** First-class functions plus closures are what make decorators, callbacks, strategy-style dispatch and dependency injection simple in Python. Where Java needs an interface and a class, a function reference does the job. This is also why Python needs far fewer design-pattern classes than Java: a function parameter often replaces a whole strategy hierarchy.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Functions run faster than other code",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Functions can be stored in variables, passed as arguments, and returned from other functions",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Functions must always have a return statement",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Functions are automatically optimized by the interpreter",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does this print?\n```python\ndef greet(name):\n    return f\"Hello, {name}\"\n\nsay_hello = greet\nprint(say_hello(\"Alice\"))\n```",
+      "explanation": "**Answer: (b)** `say_hello = greet` binds a second name to the same function object, so calling `say_hello(\"Alice\")` runs `greet` and prints `Hello, Alice`.\n\n- (a) `greet` is defined, and the assignment uses it without calling it.\n- (c) The `print` shows the call result, not the function object; it would only show `<function greet at 0x...>` if you printed `say_hello` itself.\n- (d) The function returns a string, not `None`.\n\n**Deeper:** Both names refer to one object, and `say_hello.__name__` is still `\"greet\"`. This aliasing is the same mechanism by which `@decorator` rebinds the original name to a wrapper.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Error: greet is not defined",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Hello, Alice",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "<function greet>",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "None",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is a closure?",
+      "explanation": "**Answer: (b)** A closure is a function that retains access to variables from its enclosing function's scope after the outer function has returned.\n\n- (a) Parameter count has nothing to do with it.\n- (c) A closure can be called any number of times, and each call can see updated captured state.\n- (d) Returning `self` describes a fluent method, not a closure.\n\n**Deeper:** The captured variables live in cells, which you can inspect via `fn.__closure__`. Closures capture variables, not values, so loop variables captured by multiple closures all see the final value. Bind per-iteration state with a default argument or `functools.partial`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A function that has no parameters",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A function defined inside another function that remembers variables from the outer function's scope",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A function that cannot be called more than once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A class method that returns self",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why does this code crash?\n\n```python\ndef counter():\n    count = 0\n    def increment():\n        count += 1\n        return count\n    return increment\n\nc = counter()\nprint(c())\n```",
+      "explanation": "**Answer: (c)** Because `count += 1` assigns to `count`, Python treats `count` as a local variable of `increment`. Reading it before it has a value raises `UnboundLocalError`.\n\n- (a) `count = 0` runs in `counter()`; the problem is the scope.\n- (b) The function does have a `return`.\n- (d) `counter()` takes no arguments by design.\n\nThe fix is to declare `nonlocal count` inside `increment`, so the assignment rebinds the enclosing variable.\n\n**Deeper:** Mutable captured state (a list or object) can be modified without `nonlocal`, because you are not rebinding the name. Seniors use `nonlocal` sparingly and prefer a small class or `functools.partial` when state grows.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "count was never initialized",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "increment is missing a return statement",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Assigning to count inside increment makes Python treat it as a new local variable, so it's used before it's set",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "counter() must be called with an argument",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the correct relationship between @my_decorator and manual wrapping?",
+      "explanation": "**Answer: (b)** `@my_decorator` on `def func` is exactly `func = my_decorator(func)`, executed when the definition is evaluated.\n\n- (a) The syntax is sugar, so there is no performance difference.\n- (c) Decorators apply to any function or class, not only methods.\n- (d) `functools.wraps` is good practice for metadata but not required for a decorator to work.\n\n**Deeper:** Because it runs at definition time, a decorator with side effects (registering routes, patching globals) runs at import. That is why import order and circular imports matter in frameworks like FastAPI and Flask.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "@my_decorator is faster than manual wrapping",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "@my_decorator above a function is shorthand for func = my_decorator(func)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "@my_decorator only works on class methods",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "@my_decorator requires functools.wraps to function at all",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does add.__name__ print after this?\n```python\ndef my_decorator(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\n@my_decorator\ndef add(a, b):\n    \"\"\"Adds two numbers.\"\"\"\n    return a + b\n\nprint(add.__name__)\n```",
+      "explanation": "**Answer: (b)** Without `functools.wraps`, the name `add` refers to the inner `wrapper` function, so `add.__name__` is `\"wrapper\"`.\n\n- (a) It would print `add` only if the wrapper copied the metadata.\n- (c) `my_decorator` is the outer factory and is never the name of the result.\n- (d) Functions always have a `__name__`.\n\nThe docstring is also lost: `add.__doc__` is `None`.\n\n**Deeper:** Lost names make logs, tracebacks and metrics useless, and break signature introspection in FastAPI and pytest. `@functools.wraps(func)` on the wrapper fixes the metadata and sets `__wrapped__`. In an interview, add that `__wrapped__` lets you reach the undecorated function for testing.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "add",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "wrapper",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "my_decorator",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "None",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You are writing a decorator that must work on any function, regardless of how many arguments that function takes. What should the wrapper's signature look like?",
+      "explanation": "**Answer: (c)** `def wrapper(*args, **kwargs)` accepts any positional and keyword arguments and forwards them unchanged, so the decorator works for any signature.\n\n- (a) A zero-argument wrapper breaks any function that takes parameters.\n- (b) A fixed `(a, b)` pair only suits two-argument functions.\n- (d) That is the decorator's signature, not the wrapper's.\n\n**Deeper:** For typed code use `ParamSpec`: `def wrapper(*args: P.args, **kwargs: P.kwargs) -> T`, so type checkers keep the original signature. Also forward the return value; forgetting `return func(...)` is a classic bug that silently turns every result into `None`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "def wrapper():",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "def wrapper(a, b):",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "def wrapper(*args, **kwargs):",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "def wrapper(func):",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What two special methods does an object need in order to work as an iterator?",
+      "explanation": "**Answer: (a)** The iterator protocol is `__iter__` (returning the iterator itself) and `__next__` (returning the next value or raising `StopIteration`).\n\n- (b) `__init__` and `__str__` are construction and formatting.\n- (c) `__call__` and `__repr__` make an object callable and printable.\n- (d) `__get__` and `__set__` belong to the descriptor protocol.\n\n**Deeper:** An iterable only needs `__iter__`, and `for` calls `iter()` on it. Old-style iteration via `__getitem__` with integer indexes also works as a fallback. Generators implement the whole protocol automatically. Any object with `__iter__` returning an iterator can be used in a for loop, in `list()`, in unpacking and in comprehensions, which is why the protocol is so central.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "__iter__ and __next__",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "__init__ and __str__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "__call__ and __repr__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "__get__ and __set__",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is printed by this loop?\n```python\nclass Countdown:\n    def __init__(self, start):\n        self.current = start\n    def __iter__(self):\n        return self\n    def __next__(self):\n        if self.current <= 0:\n            raise StopIteration\n        self.current -= 1\n        return self.current + 1\n\nfor n in Countdown(3):\n    print(n)\n```",
+      "explanation": "**Answer: (b)** `current` starts at 3. Each `__next__` decrements it and returns the previous value, so the loop prints 3, 2, 1, then `current` is 0 and `StopIteration` ends the loop.\n\n- (a) The order is descending, not ascending.\n- (c) `0` is never returned: the check stops iteration when `current <= 0`.\n- (d) `StopIteration` terminates the loop.\n\n```text\n3\n2\n1\n```\n\n**Deeper:** Because `__iter__` returns `self`, running the loop a second time yields nothing. A reusable iterable returns a fresh iterator each time, for example via a generator in `__iter__`. This single-pass behaviour is the usual cause of the bug where a second pass over a result silently produces no rows.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "1 2 3",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "3 2 1",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "0 1 2",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An infinite loop",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why does a for loop stop automatically without you writing any stopping condition?",
+      "explanation": "**Answer: (b)** A `for` loop calls `iter()` once, then `next()` repeatedly, and treats a `StopIteration` exception as the signal to finish.\n\n- (a) There is no hidden loop limit.\n- (c) Lists are not limited by a fixed maximum size.\n- (d) `len()` is not consulted; many iterables, like generators, have no length.\n\n**Deeper:** This is why infinite generators work with `for` and `break`, and why a `StopIteration` raised accidentally inside a generator is converted into a `RuntimeError` since 3.7 (PEP 479), preventing a silent early stop. It also means any iterator you write must raise `StopIteration` exactly when exhausted, and keep raising it on later calls.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python has a hidden loop counter limit",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The for loop calls __next__ repeatedly and stops when it catches a StopIteration exception",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Lists in Python have a fixed maximum size",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The for loop checks len() before each iteration",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nimport functools\n\ndef tag(name):\n    def deco(fn):\n        print(f\"decorating with {name}\")\n        @functools.wraps(fn)\n        def wrapper(*a, **k):\n            print(f\"enter {name}\")\n            return fn(*a, **k)\n        return wrapper\n    return deco\n\n@tag(\"A\")\n@tag(\"B\")\ndef f():\n    print(\"body\")\n\nf()\n```",
+      "explanation": "**Answer: (d)** Decoration happens bottom-up: `tag(\"B\")` wraps `f` first, then `tag(\"A\")` wraps that result. Both decoration messages print at definition time, B first. Calling `f()` enters the outermost wrapper (A) first, then B, then the body.\n\n- (a) Reverses the decoration order.\n- (b) Gets decoration right but reverses call order.\n- (c) Reverses both the decoration order and the call order.\n\nThe mnemonic is \"applied bottom-up, executed top-down\".\n\n**Deeper:** This ordering decides behaviour in production code, such as putting authentication outside caching, or registering routes only after all other decorators have wrapped the handler. The decoration messages also show that decorator side effects fire at import time.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`decorating with A`, `decorating with B`, `enter A`, `enter B`, `body`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`decorating with B`, `decorating with A`, `enter B`, `enter A`, `body`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`decorating with A`, `decorating with B`, `enter B`, `enter A`, `body`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`decorating with B`, `decorating with A`, `enter A`, `enter B`, `body`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this program print?\n\n```python\ndef take_evens(limit):\n    if limit < 0:\n        raise ValueError(\"negative\")\n    for n in range(0, limit, 2):\n        yield n\n\ngen = take_evens(-1)\nprint(\"created\")\ntry:\n    list(gen)\nexcept ValueError:\n    print(\"caught\")\n```",
+      "explanation": "**Answer: (b)** Calling a generator function runs none of its body; it returns a generator object. `created` prints, and the validation executes only when `list(gen)` calls `next()` for the first time, where the `ValueError` is caught.\n\n- (a) The exception is raised on first iteration, not at the call.\n- (c) Generators do not swallow exceptions; they raise them from `next()`.\n- (d) The call succeeds, so the traceback does not appear before `created`.\n\n**Deeper:** Lazy validation delays failures far from the cause, for example into a consumer in another thread. To fail fast, make the public function a normal function that validates, then returns an inner generator. The same applies to any argument checking in a generator-based API.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "only `caught`, because the call to `take_evens(-1)` raises immediately",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`created`, then `caught`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "only `created`, because generators swallow exceptions",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "an uncaught `ValueError` traceback before `created` is printed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-08/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\ndef inner():\n    got = yield \"ready\"\n    print(\"inner got\", got)\n    return got * 2\n\ndef outer():\n    res = yield from inner()\n    yield f\"outer got {res}\"\n\no = outer()\nprint(next(o))\nprint(o.send(21))\n```",
+      "explanation": "**Answer: (a)** `yield from` forwards `send` to the sub-generator. `send(21)` resumes `inner`, whose paused `yield` evaluates to 21. `inner` prints `inner got 21` and returns 42, and `yield from` evaluates to that return value, so `outer` yields `outer got 42`.\n\n- (b) The generator was already primed by `next(o)`, and `send` is forwarded transparently.\n- (c) The sub-generator's `return` value becomes the value of the `yield from` expression, not `None`.\n- (d) After the send, `outer` reaches its next `yield`, so `send` returns that value.\n\n**Deeper:** Transparent forwarding of `send`, `throw` and `close`, plus return-value capture, is exactly what `yield from` adds over `for x in inner(): yield x`. It is the mechanism that `await` later reused.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`ready`, `inner got 21`, `outer got 42`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`TypeError` on `send`, because `outer` does not receive values directly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`ready`, `inner got 21`, `outer got None`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`ready`, then it hangs waiting for another `next()`",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

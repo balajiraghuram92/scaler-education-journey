@@ -1,0 +1,575 @@
+{
+  "lessonSlug": "py-12-builder",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-12/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In the homework assignments, the Builder class must be marked with @WithBuilder. What is the purpose of this annotation?",
+      "explanation": "**Answer: (b)** In the homework harness the annotation marks which class is the builder implementation, so the test system knows what to exercise.\n\n- (a) is wrong because an annotation does not change runtime speed.\n- (c) is wrong because it validates nothing; validation is your code's job.\n- (d) is wrong because it does not turn a class into an interface.\n\n**Deeper:** It is a grading convention from the Java variant, not part of the pattern. In Python you would expose a `builder()` static method on the product class instead, which gives the same discoverability with no annotation machinery.",
+      "reviewFlag": "The @WithBuilder annotation belongs to the Java version of the assignments and does not exist in Python; (b) is the only option consistent with how the grader was described.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It makes the class run faster",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It tells the test system which class to treat as the actual Builder implementation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It automatically validates all fields",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It converts the class into an interface",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In the DatabaseConfiguration homework, the config object must be immutable once built. Which design choice from the Python lecture supports this same idea?",
+      "explanation": "**Answer: (c)** Setting all fields once in the constructor or `build()` and never changing them afterwards is how the lecture achieves an immutable configuration.\n\n- (a) is wrong because a mutable default such as `subjects=[]` is shared across calls and is a bug.\n- (b) is wrong because free mutation by dot notation is what immutability forbids.\n- (d) is wrong because skipping validation removes the main benefit of building before use.\n\n**Deeper:** In Python you can enforce this with `@dataclass(frozen=True)` or `__slots__`, and copy list arguments into tuples so no caller keeps a handle that can change the object. `dataclasses.replace` then provides \"copy with one change\" without breaking immutability.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Using a mutable default argument like subjects=[]",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Letting any part of the code change fields directly using dot notation after creation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Setting all fields once inside build()/constructor, and never changing them again afterward",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Skipping validation to make the code shorter",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A developer writes a QueryBuilder where with_where(\"age > 18\") is called three times to add three different conditions. But in the final Query object, only the last condition is saved. What is the likely bug?",
+      "explanation": "**Answer: (b)** If three `with_where` calls leave only the last condition, the setter is overwriting a single value instead of appending to a list of conditions.\n\n- (a) is wrong because without `build()` there would be no Query object at all.\n- (c) is wrong because `\"age > 18\"` is a perfectly valid string.\n- (d) is wrong because the Java annotation has no bearing on how the setter stores values.\n\n**Deeper:** Fields that accumulate (conditions, messages, tags) need list storage and append semantics, then a copy into a tuple in `build()`. A test that calls the setter twice and inspects the result catches this class of bug immediately.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The build() method was never called",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "with_where() is overwriting the stored value each time instead of adding (appending) to a list of conditions",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "age > 18 is not a valid string",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The class is missing @WithBuilder",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why did the problem statement for \"Builder Message\" say the old way (multiple overloaded constructors) was \"error-prone and hard to maintain\"?",
+      "explanation": "**Answer: (b)** With overloaded constructors, every new message type or field means adding or changing several constructors, and it is easy to get one of them wrong.\n\n- (a) is wrong because constructor overloads are not slower at runtime.\n- (c) is wrong because constructors can take parameters.\n- (d) is wrong because Java does support constructors; the issue is their combinatorial growth.\n\n**Deeper:** Python sidesteps overloads altogether, since a second `__init__` simply replaces the first. Keyword-only arguments with defaults, a `kw_only` dataclass, or a builder are the Python equivalents, chosen by how complex assembly and validation are.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because overloaded constructors are slower to run",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because adding a new message type or field means creating or changing many constructors, which is easy to get wrong",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because constructors cannot have parameters",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Because Java does not support constructors",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A student writes a MessageBuilder where build() just returns new Message(this) with no checks at all, even though a text message must always have non-empty content. What problem does this cause, based on what was taught?",
+      "explanation": "**Answer: (b)** Without checks in `build()`, an invalid message with empty text content can be created and passed around until something fails far from the cause.\n\n- (a) is wrong because it only appears to work until the invalid object is used.\n- (c) is wrong because a missing check is not a compile-time matter, and Python has no compile step for this.\n- (d) is wrong because validation before creation is a core benefit of the pattern.\n\n**Deeper:** The principle is that an invalid object should be unrepresentable. Fail at the boundary with a precise error message, so the traceback points at the code that assembled the message instead of at the worker that tried to send it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No problem, it will still work fine",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "An invalid Message (with missing content) could be created and used elsewhere in the program",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The code will not compile",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The Builder pattern requires no validation ever",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nbuilder = DatabaseConfigurationBuilder()\nbuilder.with_allowed_hosts([\"localhost\"])\nconfig1 = builder.build()   // build() does: self.allowed_hosts =\nlist(builder.allowed_hosts)\n\nbuilder.get_allowed_hosts_list().add(\"192.168.1.1\")\n\nprint(config1.allowed_hosts)\n```\n\nIf the Builder correctly follows what was taught in class (making a fresh copy of any list, not just pointing to it), what should this print?",
+      "explanation": "**Answer: (b)** Because `build()` copied the list, `config1.allowed_hosts` is independent, so adding another host to the builder's list afterwards does not change it and it prints `[\"localhost\"]`.\n\n- (a) is wrong because it describes the shared-reference bug the copy prevents.\n- (c) is wrong because copying a list never raises.\n- (d) is wrong because copying preserves the values.\n\n**Deeper:** The same applies to any mutable argument: copy lists, dicts and sets at the boundary, or convert them to tuples and frozensets. In real Python the equivalent is `self.allowed_hosts = tuple(builder._allowed_hosts)`, and a test that mutates the source list after `build()` proves it.",
+      "reviewFlag": "The snippet mixes Java idioms into Python (a `//` comment, `.add` on a list); the answer assumes the intended meaning, that `build()` copies the list so later changes to the builder's list do not reach `config1`.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "[\"localhost\", \"192.168.1.1\"], because both objects share the same list",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "[\"localhost\"], because config1 got its own independent copy of the list when it was built",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "An error, because lists cannot be copied",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An empty list, because copying clears the original values",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which of these is the best reason to write validation logic inside build() rather than inside each individual setter (like with_username())?",
+      "explanation": "**Answer: (b)** Some rules depend on several fields together, and those can only be checked once everything has been set, which is at `build()` time.\n\n- (a) is wrong because setters may contain logic; per-field checks there are fine.\n- (c) is wrong because speed is not the reason.\n- (d) is wrong because no annotation requires it.\n\n**Deeper:** A good split is per-field validation in setters for fast feedback, and relational validation in `build()` or the product's `__post_init__`. Putting the final checks in the product's constructor also protects against code that bypasses the builder.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Setters are not allowed to have any logic at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Some validation rules depend on more than one field together, so they can only be checked once all fields are set",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It makes the code run faster",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It is required by the @WithBuilder annotation",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A teammate says: \"I don't need the Builder pattern for my Point class with just x and y. I'll just do Point(x, y) directly.\" Based on the lecture's wrap-up, is this reasonable?",
+      "explanation": "**Answer: (b)** For a tiny class with very few fields and no complex validation, a plain constructor is simpler, and a builder would be extra code.\n\n- (a) is wrong because Builder is a tool, not a rule for every class.\n- (c) is wrong because immutability is available without a builder (`frozen=True`).\n- (d) is wrong because the judgement has nothing to do with the language.\n\n**Deeper:** This is the senior-level point of the lesson. A builder pays for itself when objects have many optional parts, staged assembly or cross-field rules. For `Point(x, y)` or a small `kw_only` dataclass it is ceremony.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No, Builder must always be used for every class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Yes, for a very small class with few fields and no complex validation, a plain constructor is simpler and Builder would be unnecessary extra code",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "No, because Point needs immutability and only Builder can provide that",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Yes, but only if the class is written in Java",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the main reason we use the Builder pattern instead of one big constructor with many parameters?",
+      "explanation": "**Answer: (c)** A builder makes creation readable through named steps and lets you validate everything before the object comes into existence.\n\n- (a) is wrong because speed is not a benefit.\n- (b) is wrong because the product is still a class.\n- (d) is wrong because persistence is unrelated.\n\n**Deeper:** The two benefits are readability (named setters instead of positional arguments) and a single validation point. In Python also weigh keyword-only arguments, which deliver the readability half with no extra class, and `__post_init__` on a frozen dataclass, which covers the validation half. A builder is the right call when assembly is staged or spread across several steps or modules.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It makes the code run faster",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It helps us avoid using classes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It makes object creation easier to read and lets us validate before the object is created",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It automatically saves the object to a database",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\ndef add_item(cart=[]):\n    cart.append(\"apple\")\n    return cart\n\nprint(add_item())\nprint(add_item())\n```\n\nWhat will this print?",
+      "explanation": "**Answer: (b)** The default list is created once when the function is defined, so both calls append to the same list and print `['apple']` then `['apple', 'apple']`.\n\n```python\nadd_item()   # cart is the one shared default list -> ['apple']\nadd_item()   # same list again                      -> ['apple', 'apple']\n```\n\n- (a) would require a fresh list on every call.\n- (c) is wrong because the list is never empty after the append.\n- (d) is wrong because nothing raises.\n\n**Deeper:** Use `cart=None` and create the list inside, or `field(default_factory=list)` in a dataclass. It matters for builders because a shared default list becomes shared state across every built object.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "['apple'] then ['apple']",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "['apple'] then ['apple', 'apple']",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "[] then ['apple']",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Error",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In the Builder pattern, why should every setter method (like set_name()) return self?",
+      "explanation": "**Answer: (b)** Returning `self` lets the caller chain setter calls in one readable expression, which is the fluent interface.\n\n- (a) is wrong because nothing is deleted.\n- (c) is wrong because Python would not complain without it; the failure appears later when chaining.\n- (d) is wrong because it is functionally necessary for chaining, not merely style.\n\n**Deeper:** On Python 3.11+ annotate setters as `-> Self` so subclasses of the builder keep correct types through the chain. Forgetting one `return self` produces the confusing `'NoneType' object has no attribute ...` error mid-chain.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "So the object gets deleted after use",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "So we can chain multiple setter calls together in one line",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "So Python does not show an error",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It is not necessary, it is just a style choice",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass Builder:\n    def set_name(self, name):\n        self.name = name\n\n    def build(self):\n        return self.name\n\nb = Builder().set_name(\"Naman\").build()\nprint(b)\n```\n\nWhat is wrong with this code?",
+      "explanation": "**Answer: (b)** `set_name()` returns `None` because it lacks `return self`, so the `.build()` call in the chain fails.\n\n```python\nBuilder().set_name(\"Naman\")   # returns None\nNone.build()                  # AttributeError: 'NoneType' object has no attribute 'build'\n```\n\n- (a) is wrong because `build()` should return the product.\n- (c) is wrong because assigning `self.name` inside a method is normal.\n- (d) is wrong because the code raises.\n\n**Deeper:** The error message names `NoneType`, not your builder, which is why this bug confuses newcomers. A type checker with return annotations flags it before runtime, which is a good reason to annotate fluent setters with `-> Self` and run mypy or pyright in CI. A unit test that exercises the full chain once would also have caught it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "build() should not return anything",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "set_name() does not return self, so chaining will fail",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "self.name cannot be set inside a method",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing is wrong, it will work fine",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You are building a Student object. The rule is: grad_year must not be greater than 2022. Where should this check be written, based on what we learned in class?",
+      "explanation": "**Answer: (a)** The rule should be enforced before the Student object exists, either in `Student.__init__` or in `Builder.build()`.\n\n- (b) is wrong because where you validate decides whether invalid objects can exist.\n- (c) is wrong because checking after creation allows an invalid object to be used in the meantime.\n- (d) is wrong because a setter-only check misses the case where the field is never set or is set through another path.\n\n**Deeper:** Prefer the product's constructor (or `__post_init__`) as the last line of defence, because it also protects code that bypasses the builder. Use `build()` for rules that need the builder's staged state.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Inside the Student.__init__ or inside Builder.build(), before the Student object is created",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Anywhere in the code, it does not matter",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only inside a separate function called after the object is created",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Inside set_grad_year() only, and nowhere else",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass Helper:\n    __slots__ = (\"name\", \"age\")\n    def __init__(self):\n        self.name = None\n        self.age = None\n\nh = Helper()\nh.nmae = \"Riya\"\n```\n\nWhat happens when this code runs?",
+      "explanation": "**Answer: (c)** With `__slots__` defined, assigning an attribute that is not listed raises `AttributeError`, so the typo `nmae` is caught immediately.\n\n- (a) is wrong because that is the behaviour without `__slots__`.\n- (b) is wrong because nothing is printed.\n- (d) is wrong because Python never corrects typos.\n\n**Deeper:** The message reads `'Helper' object has no attribute 'nmae' and no __dict__ for setting new attributes`. `@dataclass(slots=True)` gives you the same guard with less code and also saves memory per instance. The trade-off is that slotted classes have no `__dict__`, so dynamic attributes and some monkeypatching stop working, which is usually what you want in a value object.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It runs fine, h.nmae is created silently",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prints None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises an AttributeError because nmae is not in __slots__",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It automatically fixes the typo to name",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You ask an AI tool to generate a Builder for a class that has a tags list field. After build() runs, you change the original list you passed into the builder, and notice the already-built object's tags also change. What is the most likely mistake in the generated code?",
+      "explanation": "**Answer: (b)** The built object holds a reference to the same list the builder holds, so later changes to that list show up in the already built object.\n\n- (a) is wrong because `build()` clearly ran; the object exists.\n- (c) is wrong because `__slots__` is unrelated to shared references.\n- (d) is wrong because returning `self` affects chaining, not data sharing.\n\n**Deeper:** The fix is to copy at the boundary: `self.tags = tuple(builder.tags)`. AI-generated builders often miss this, so add a test that mutates the source list after `build()` and asserts the product is unchanged.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The build() method was never called",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The constructor copied the reference to the list (self.tags = builder.tags) instead of making a new copy",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "__slots__ was used incorrectly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The setter method did not return self",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which of these is NOT a good reason to use the Builder pattern for a class?",
+      "explanation": "**Answer: (c)** A very small class such as `Point(x, y)` is not a good reason to use a builder because a plain constructor is simpler.\n\n- (a) is wrong because many optional fields are a classic reason for a builder.\n- (b) is wrong because validate-before-existence is a core reason.\n- (d) is wrong because gradual assembly over several steps is the textbook scenario.\n\n**Deeper:** Interviewers like this question because it tests restraint. Mention the middle ground: a `kw_only=True`, frozen dataclass with `__post_init__` validation solves most Python cases without a separate builder class.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The class has many optional fields",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The object must be validated before it is allowed to exist",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The class is very small, like a Point class with only x and y",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Values for the object arrive gradually, over several steps",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Cfg:\n    def __init__(self):\n        self.v = 0\n\nclass CfgBuilder:\n    def __init__(self):\n        self._instance = Cfg()\n\n    def v(self, x):\n        self._instance.v = x\n        return self\n\n    def build(self):\n        return self._instance\n\nbuilder = CfgBuilder()\nc1 = builder.v(1).build()\nc2 = builder.v(2).build()\nprint(c1.v, c1 is c2)\n```\n\nWhat does it print?",
+      "explanation": "**Answer: (b)** `build()` hands back the builder's own mutable instance, so `c1` and `c2` are the same object, and the second `v(2)` mutated it. It prints `2 True`.\n\n- (a) and (c) wrongly assume that `build()` returns a fresh object each time.\n- (d) gets the identity right but forgets that the earlier product sees the later mutation.\n\n**Deeper:** This is the most common builder bug and it is invisible if you only build once. `build()` should construct a new product from the collected values, and the product should be frozen. A test that builds twice from one builder, then compares results, catches it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`1 False`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`2 True`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`2 False`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`1 True`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A client class needs four independently optional settings (`url`, `timeout`, `retries`, `verify_ssl`) with sensible defaults, plus a rule that `retries` must not be negative. Objects are created in a single call and never change. What is the most appropriate Python design?",
+      "explanation": "**Answer: (c)** All values are independent, one-shot and immutable, with a single trivial rule. Keyword-only fields with defaults and a `__post_init__` check give readability, immutability and validation with no extra classes.\n\n- (a) is wrong because there is no family of related products.\n- (b) is wrong because configuration objects should not share one global instance.\n- (d) is wrong because staged assembly is not needed, so a builder and Director are ceremony.\n\n**Deeper:** Pick the lightest tool that gives you named arguments, validation and immutability. Move to a builder when assembly becomes staged, conditional or spread across modules, as with a prompt built from several pipeline steps.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "An abstract factory that returns families of clients",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A Singleton, so every caller shares the same configured client",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A frozen, keyword-only dataclass with defaults and a `__post_init__` check",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A builder with a separate Director class and a fluent interface",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-12/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `ChatRequestBuilder` must enforce that `max_tokens` plus the estimated prompt length does not exceed the model's context window. The prompt length is only known after all `system()` and `user()` messages have been added, and callers may set `max_tokens` before or after adding messages. Where should this check live?",
+      "explanation": "**Answer: (d)** The rule depends on several fields and callers may set them in any order, so it can only be evaluated when assembly is finished, in `build()` or the product's `__post_init__`.\n\n- (a) is wrong because the setter may run before the messages exist, giving a false pass.\n- (b) is wrong because it would reject valid partial states and still miss later changes to `max_tokens`.\n- (c) is wrong because the builder is empty at construction time.\n\n**Deeper:** Order independence is the reason relational rules belong at the end. Also copy messages into a tuple in `build()` so the validated state is the state that ships, and the request cannot change after the check.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "In the `max_tokens()` setter, because that is where the value arrives",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "In each `user()` setter, so that it runs after every new message",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In the builder's `__init__`, so a bad builder cannot exist",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "In `build()` (or the product's `__post_init__`), once all values are present",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

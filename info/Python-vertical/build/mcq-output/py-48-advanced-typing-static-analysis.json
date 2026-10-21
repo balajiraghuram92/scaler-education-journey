@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-48-advanced-typing-static-analysis",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-48/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass UserId(str): ...\n\ndef pick_a[S: (str, bytes)](a: S, b: S) -> S: ...\ndef pick_b[S: str](a: S, b: S) -> S: ...\n\nx = UserId(\"u1\")\nreveal_type(pick_a(x, x))\nreveal_type(pick_b(x, x))\n```\n\nWhat do a standard type checker (mypy or pyright) report for the two calls?",
+      "explanation": "**Answer: (c)** `pick_a` uses **constraints**: the type variable must resolve to exactly one of the listed types, so a `UserId` argument is matched to the constraint `str` and the result is `str`. `pick_b` uses a **bound**: any subtype is accepted and preserved, so the result is `UserId`.\n\n- (a) is wrong: it ignores the constraint behaviour and claims both preserve the subclass.\n- (b) is wrong: it reverses the two cases.\n- (d) is wrong: constraints do not make the call an error; `UserId` is a `str`, so it satisfies the first constraint.\n\nThis is the practical difference: use a bound for \"anything with these capabilities, give me back what I gave you\", and constraints when the implementation really branches between a closed set of types (`str` versus `bytes`).\n\n**Deeper:** Interviewers use this to see whether you have actually used `TypeVar`s rather than memorised the syntax. The inline PEP 695 spellings `[S: str]` and `[S: (str, bytes)]` map exactly onto bound and constraints.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`UserId` for both calls.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`UserId` for `pick_a` and `str` for `pick_b`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`str` for `pick_a` (solved to the constraint) and `UserId` for `pick_b` (bound keeps the subtype).", "isCorrect": true },
+        { "optionKey": "d", "optionText": "An error on `pick_a`, because `UserId` is not exactly `str`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom collections.abc import Callable\nfrom typing import Any\n\ndef timed(fn: Callable[..., Any]) -> Callable[..., Any]:\n    ...\n\n@timed\ndef complete(prompt: str, *, max_tokens: int = 256) -> str: ...\n```\n\nA caller writes `complete(42, max_tokens=\"lots\")`. What does a strict type checker say, and what is the fix?",
+      "explanation": "**Answer: (a)** The decorator is typed `Callable[..., Any] -> Callable[..., Any]`, so the decorated `complete` has the type \"any arguments, returns `Any`\". The bad call is accepted and the return type is lost. Retyping with `ParamSpec` (`def timed[**P, R](fn: Callable[P, R]) -> Callable[P, R]`) makes the wrapper carry `(prompt: str, *, max_tokens: int = 256) -> str`, so the bad call is reported.\n\n- (b) is wrong: strict mode would only flag the explicit `Any` usage with extra flags; it cannot infer the lost signature.\n- (c) is wrong: `functools.wraps` copies runtime metadata, not static signatures.\n- (d) is wrong: `TypeVar` alone cannot describe a variable argument list; that is the job of `ParamSpec`.\n\n**Deeper:** Erased decorator signatures are the most common hole in otherwise typed Python services, because the call sites are the bugs. A one-line `ParamSpec` fix restores checking everywhere the decorator is used.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It accepts the call, because the decorator erased the signature; use `ParamSpec` and a return `TypeVar` to preserve it.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "It reports both arguments as wrong, because strict mode reads the original function through the decorator.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It accepts the call, and adding `functools.wraps` inside the decorator restores the static signature.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It accepts the call; replacing `Callable[..., Any]` with a single `TypeVar` for the whole callable restores the argument checking.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n@runtime_checkable\nclass Closer(Protocol):\n    def close(self) -> None: ...\n\nclass Conn:\n    def close(self, force: bool, extra: int) -> int:\n        return 1\n\nprint(isinstance(Conn(), Closer))\n```\n\nWhat is printed, and why?",
+      "explanation": "**Answer: (d)** `isinstance` against a `runtime_checkable` protocol only checks that the required attribute names exist on the object. It never compares signatures or return types, so `Conn` passes even though `close` needs two arguments and returns `int`. I ran this and it printed `True`. A static checker, by contrast, would reject assigning `Conn()` to a `Closer`.\n\n- (a) is wrong: that would require signature comparison, which Python does not perform at runtime here.\n- (b) is wrong: `False` is what many people expect because the signatures differ.\n- (c) is wrong: `isinstance` with a runtime-checkable protocol is allowed, so no `TypeError` is raised for a method-only protocol.\n\nSo `runtime_checkable` is useful for plugin discovery (\"does this object look like it has a `close`?\"), but it is not validation. Use the static checker, or explicit adapter/validation code, for contracts that matter.\n\n**Deeper:** This is a frequent interview trap, since the decorator's name suggests more safety than it provides.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`False`, because the signatures are incompatible.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`False`, because the return type is `int` instead of `None`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It raises `TypeError`, because protocols cannot be used with `isinstance`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`True`, because the runtime check only verifies that a `close` attribute exists, not its signature.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Movie(TypedDict):\n    title: str\n\nm = Movie(title=5)   # a type checker flags this line\nprint(m, type(m).__name__)\n```\n\nIf the script is run directly with Python (no type checker), what happens?",
+      "explanation": "**Answer: (b)** `TypedDict` exists only for static analysis. At runtime `Movie(...)` builds an ordinary `dict` and does no validation, so the script prints `{'title': 5} dict`. I ran it with the checker comment silenced and got exactly that.\n\n- (a) is wrong: Python raises `TypeError` only for unsupported call forms, not for a wrong value type.\n- (c) is wrong: `TypedDict` classes cannot be instantiated as a distinct type; the instance is a plain `dict`.\n- (d) is wrong: nothing coerces `5` into `\"5\"`; coercion is a Pydantic behaviour, not a typing one.\n\nThe consequence for architecture: use `TypedDict` for static shape of data you already trust, and validate untrusted data (HTTP bodies, LLM JSON) with Pydantic at the boundary.\n\n**Deeper:** \"Types are not validation\" is the key sentence an interviewer wants to hear when you discuss typed Python services.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It raises `TypeError: title must be str` when `Movie(...)` is called.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It prints `{'title': 5} dict`; nothing is validated at runtime.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "It prints `{'title': 5} Movie`, because `TypedDict` creates a new class.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It prints `{'title': '5'} dict`, because the value is coerced to `str`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndef mean(xs: list[float]) -> float:\n    return sum(xs) / len(xs)\n\nscores: list[int] = [1, 2, 3]\nmean(scores)\n```\n\nA strict checker rejects the call, although `int` is acceptable where `float` is expected. What is the best fix to the signature?",
+      "explanation": "**Answer: (a)** `list` is invariant: a `list[int]` is not a `list[float]`, since the callee could append a `float` to it and break the caller's list of ints. `mean` only reads, so `Sequence[float]` is correct: `Sequence` is covariant and the checker also treats `int` as acceptable for `float`.\n\n- (b) is wrong: `list[Any]` silences the checker and loses element checking.\n- (c) is wrong: `cast` at every call site moves the problem to callers and hides real mistakes.\n- (d) is wrong: `list[int | float]` is still a different invariant parameterisation from `list[int]`, so the call is still rejected.\n\nThe rule of thumb is to accept the widest read-only abstraction in parameters (`Sequence`, `Mapping`, `Iterable`) and return concrete types.\n\n**Deeper:** Variance questions test whether you understand mutability, not just syntax. It also explains why public APIs typed with `list[...]` annoy callers.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Change the parameter to `Sequence[float]`, because a read-only sequence is covariant.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "Change the parameter to `list[Any]`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Wrap each call in `cast(list[float], scores)`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Change the parameter to `list[int | float]`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndef is_text(x: str | int) -> TypeIs[str]: ...\ndef is_text_g(x: str | int) -> TypeGuard[str]: ...\n\ndef f(v: str | int) -> None:\n    if is_text(v):\n        reveal_type(v)     # (1)\n    else:\n        reveal_type(v)     # (2)\n\ndef g(v: str | int) -> None:\n    if is_text_g(v):\n        pass\n    else:\n        reveal_type(v)     # (3)\n```\n\nWhat do (2) and (3) reveal?",
+      "explanation": "**Answer: (c)** `TypeIs[str]` narrows in both branches, so in the `else` of `is_text` the checker knows `v` is not a `str` and reveals `int`. `TypeGuard[str]` only narrows the positive branch, so after a failed `is_text_g` the type is still `str | int`.\n\n- (a) is wrong: it assumes both functions narrow the negative branch.\n- (b) is wrong: it reverses the behaviour of the two forms.\n- (d) is wrong: neither form narrows the negative branch to `str`; (1) is the one that is `str`.\n\n`TypeIs` (PEP 742, in `typing` since 3.13, `typing_extensions` earlier) requires the narrowed type to be consistent with the parameter type and the function to be an exact check. `TypeGuard` is the escape hatch for unsound or non-subtype narrowing.\n\n**Deeper:** Reach for `TypeIs` by default in new code, since it makes `if/else` chains and early returns type-check naturally.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "(2) `int`, (3) `int`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "(2) `str | int`, (3) `int`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "(2) `int`, (3) `str | int`", "isCorrect": true },
+        { "optionKey": "d", "optionText": "(2) `str`, (3) `str`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nRole = Literal[\"system\", \"user\", \"assistant\"]\n\ndef label(r: Role) -> str:\n    match r:\n        case \"system\": return \"S\"\n        case \"user\": return \"U\"\n        case \"assistant\": return \"A\"\n        case _ as other:\n            assert_never(other)\n```\n\nLater someone adds `\"tool\"` to `Role` but forgets `label`. What is the effect?",
+      "explanation": "**Answer: (d)** With the new member, the `case _` branch is no longer unreachable, so the argument to `assert_never` has type `Literal['tool']`, not `Never`, and the type checker reports an error at that line in CI. If it ships anyway, the runtime behaviour is that `assert_never` raises `AssertionError: Expected code to be unreachable, but got: 'tool'`. I ran the equivalent call and got that message.\n\n- (a) is wrong: `assert_never` is precisely what prevents the silent fall-through.\n- (b) is wrong: `label` does not return `None`; it never returns for `\"tool\"`.\n- (c) is wrong: the `match` statement raises nothing when no case matches; it is `assert_never` that raises.\n\nThis gives exhaustiveness checking for enums, `Literal` unions and tagged unions at zero runtime cost.\n\n**Deeper:** It is a strong senior signal to use exhaustiveness checks for LLM message roles, event types and state machines, where new variants are added over time.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Nothing: `label` silently returns `None` for `\"tool\"`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`label(\"tool\")` returns `\"\"`, since no branch matches.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "The `match` statement raises `MatchError` at runtime for `\"tool\"`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The type checker flags the `assert_never` call, and at runtime `label(\"tool\")` raises `AssertionError`.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndef tag(**fields: int) -> None:\n    reveal_type(fields)\n\ndef tag2(**fields: dict[str, int]) -> None:\n    reveal_type(fields)\n```\n\nWhat do the two `reveal_type` calls show?",
+      "explanation": "**Answer: (b)** The annotation on `*args` or `**kwargs` describes each individual element. `**fields: int` means every keyword value is an `int`, so `fields` is `dict[str, int]`. `**fields: dict[str, int]` means every value is itself a `dict[str, int]`, so `fields` is `dict[str, dict[str, int]]`.\n\n- (a) is wrong: it assumes the annotation describes the whole mapping, which is the most common misreading.\n- (c) is wrong: `kwargs` keys are always `str`, but values are typed by the annotation, not `Any`.\n- (d) is wrong: `tuple` is the type of `*args`, not `**kwargs`.\n\nIf you need to type a heterogeneous set of named options, use `Unpack[SomeTypedDict]` (PEP 692) so each key gets its own type, or explicit keyword parameters.\n\n**Deeper:** Mis-annotated `**kwargs` shows up in wrappers and client libraries and is an easy code-review catch once you know the rule.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`dict[str, int]` and `dict[str, int]`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`dict[str, int]` and `dict[str, dict[str, int]]`", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`dict[str, Any]` for both", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`tuple[int, ...]` and `tuple[dict[str, int], ...]`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n@overload\ndef parse(x: str) -> int: ...\n@overload\ndef parse(x: bytes) -> float: ...\ndef parse(x: str | bytes) -> int | float: ...\n\ndef run(arg: str | bytes) -> None:\n    out = parse(arg)\n    reveal_type(out)\n```\n\nWhat does a modern checker (mypy or pyright) do with `parse(arg)`?",
+      "explanation": "**Answer: (c)** Both checkers expand a union argument over the overloads (\"union math\"). They evaluate `parse(str)` and `parse(bytes)` separately and union the results, so the call is accepted and `out` is `int | float`.\n\n- (a) is wrong: that would be right if overloads were matched only against the whole argument type; the implementation signature is never used for matching anyway.\n- (b) is wrong: the implementation signature is invisible to callers; only the `@overload` signatures count.\n- (d) is wrong: it claims the result is `Any`, which would be an accidental loss of type information.\n\nThe implementation signature only needs to be compatible with every overload; if you want callers with a union to get a precise answer, add a third overload for `str | bytes`.\n\n**Deeper:** Overloads let a function's return type depend on argument types (for example `stream: Literal[True]` versus `Literal[False]`). Knowing the union-expansion rule explains surprising `int | float` results in real code.",
+      "reviewFlag": "Union expansion over overloads is documented behaviour for mypy and pyright, but the exact revealed text differs slightly between tools; type checkers were not installed to run it.",
+      "options": [
+        { "optionKey": "a", "optionText": "Error: no overload matches the argument type `str | bytes`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It matches the implementation signature and reveals `int | float` only because that is the implementation's return type.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It accepts the call by trying each union member against the overloads, and reveals `int | float`.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "It accepts the call and reveals `Any`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndef deco[**P, R](fn: Callable[P, R]) -> Callable[P, R]:\n    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:\n        return fn(*args, **kwargs)\n    return wrapper\n\n@deco\ndef a(x: int) -> int:\n    \"\"\"doc\"\"\"\n    return x\n\nprint(a.__name__, a.__doc__)\n```\n\nThe signature is typed perfectly with `ParamSpec`. What is printed?",
+      "explanation": "**Answer: (a)** `ParamSpec` is purely a static-typing feature. The wrapper is still a plain function named `wrapper` with no docstring, because nothing copies runtime metadata. The script prints `wrapper None`; I ran it, and the same decorator with `@functools.wraps(fn)` prints `a doc`.\n\n- (b) is wrong: that output requires `functools.wraps`.\n- (c) is wrong: `ParamSpec` does not rewrite names or docstrings at runtime.\n- (d) is wrong: `__doc__` is `None` for the wrapper, not an empty string.\n\nIn practice you need both: `ParamSpec` for what the checker sees, and `functools.wraps` for what tracebacks, `help()`, FastAPI dependency introspection and logging see. FastAPI in particular inspects the signature of the endpoint, so a decorator without `wraps` can break it.\n\n**Deeper:** \"Static types and runtime behaviour are separate layers\" is the theme behind many typing interview questions.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`wrapper None`; `ParamSpec` affects only the checker, so `functools.wraps` is still needed for metadata.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`a doc`, because `ParamSpec` copies the wrapped function's metadata.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`deco doc`, because the decorator's name is used.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`wrapper ` (an empty docstring).", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A developer fixes a bug but leaves `value = compute()  # type: ignore[arg-type]` in place, although the line is now correct. `mypy --strict` is configured in CI. What happens?",
+      "explanation": "**Answer: (d)** `--strict` enables `warn_unused_ignores`, so an ignore comment that no longer suppresses any error is itself reported (\"Unused 'type: ignore' comment\") and fails the build. This keeps suppressions from outliving the problem they were added for.\n\n- (a) is wrong: mypy does not silently accept stale ignores in strict mode.\n- (b) is wrong: the error code is irrelevant to whether the comment is unused; a code-less ignore would be reported as well.\n- (c) is wrong: mypy never edits source files.\n\nTwo companion habits: always use the specific error code (`[arg-type]`) so an ignore cannot hide a different error on the same line, and keep ignores rare, with a reason in a nearby comment.\n\n**Deeper:** A senior answer ties this to team practice: strictness is only sustainable when suppressions are visible and self-expiring.",
+      "reviewFlag": "Based on documented mypy --strict flag set; mypy was not installed to run it.",
+      "options": [
+        { "optionKey": "a", "optionText": "Nothing; ignore comments are never validated.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Nothing, because the comment includes an error code.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "mypy deletes the comment automatically.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "mypy reports the unused ignore as an error (via `warn_unused_ignores`), so CI fails until it is removed.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-48/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Sink[T]:\n    def put(self, item: T) -> None: ...\n\ns1: Sink[int] = Sink[float]()\ns2: Sink[float] = Sink[int]()\n```\n\nAssuming the checker infers variance from PEP 695 syntax, which assignments are accepted?",
+      "explanation": "**Answer: (b)** `T` appears only in a parameter position of a method, so the inferred variance is **contravariant**: a consumer of a wider type can stand in for a consumer of a narrower type. A `Sink[float]` can accept any `int` that a `Sink[int]` is asked to take, so `s1` is fine. A `Sink[int]` cannot accept every `float`, so `s2` is rejected.\n\n- (a) is wrong: it describes covariance, which applies to producers (`T` only in return positions).\n- (c) is wrong: that would be invariance, which is inferred when `T` is both read and written (for example a mutable attribute).\n- (d) is wrong: the two assignments go in opposite directions, so they cannot both be rejected or both accepted.\n\nThe mental model is \"producers covariant, consumers contravariant\", just like `Callable` parameters.\n\n**Deeper:** PEP 695 removes `covariant=True` and `contravariant=True` bookkeeping, but you still need this model to read checker errors.",
+      "reviewFlag": "Variance inference is specified in PEP 695; the checker run itself was not available in the authoring environment.",
+      "options": [
+        { "optionKey": "a", "optionText": "Only `s2`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Only `s1`.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "Neither; `Sink` is invariant.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Both are accepted.", "isCorrect": false }
+      ]
+    }
+  ]
+}

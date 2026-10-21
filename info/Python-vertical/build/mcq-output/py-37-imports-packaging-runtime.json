@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-37-imports-packaging-runtime",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-37/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A module `counter.py` contains `print(\"loading counter\")` and `COUNT = 0`. How many times is \"loading counter\" printed by this script?\n\n```python\nimport counter\nimport counter\nfrom counter import COUNT\nimport importlib\nimportlib.reload(counter)\n```",
+      "explanation": "**Answer: (c)** The first `import counter` finds no entry in `sys.modules`, so it executes the module body and prints once. The second import and the `from counter import COUNT` are served from the `sys.modules` cache without re-running the body. `importlib.reload(counter)` deliberately re-executes the module, printing a second time.\n\n- (a) forgets that `reload` re-runs the module body.\n- (b) and (d) assume that every `import` statement re-executes the module, which the cache prevents.\n\n**Deeper:** The `sys.modules` cache is why module-level state behaves like a singleton and why import-time side effects run once per process. It also means `reload` does not update names that other modules bound with `from counter import COUNT`, so treat it as a debugging aid, not a deployment strategy.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Three times",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Twice",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Four times",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Module `a` runs `from b import b_value` at the top, and `b` runs `from a import a_value` at the top, before `a` defines `a_value`. Why does `import a` as a plain statement succeed in such a cycle, but `from a import a_value` fail?",
+      "explanation": "**Answer: (a)** A module is registered in `sys.modules` before its body executes. A plain `import a` only needs the module object, so it gets the partially filled one. `from a import a_value` needs the attribute at that exact moment, and it does not exist yet, so Python raises `ImportError: cannot import name ... (most likely due to a circular import)`.\n\n- (b) There is no compile-time restriction; the failure is at run time and depends on import order.\n- (c) `sys.modules` is not cleared; the entry is what makes the partial object visible.\n- (d) No copy is made; both forms refer to the same module object.\n\n**Deeper:** Because the failure depends on which module is imported first, it often appears only in tests or in one entry point. Fix the design (extract a shared module) before reaching for local imports.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The partially initialised module object exists in `sys.modules`, but the attribute `a_value` has not been defined yet",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Python forbids `from ... import` statements in circular dependencies at compile time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`sys.modules` is cleared while a module is importing",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The `import` statement copies the module, while `from` imports reference a stale copy",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A project directory contains `random.py` (your own file) and a script `app.py` that does `import random` and is started with `python app.py` from that directory. What is imported?",
+      "explanation": "**Answer: (d)** When a script runs, its directory is placed at `sys.path[0]`, ahead of the standard library and `site-packages`. The path finder returns the first match, so the local file shadows the stdlib module. Code in the standard library that imports `random` can break too.\n\n- (a) There is no special priority for the standard library for ordinary modules.\n- (b) Installation time is irrelevant; search order decides.\n- (c) Python does not detect ambiguity; the first match wins silently.\n\n**Deeper:** Shadowing produces confusing errors such as missing attributes or \"partially initialized module\". Diagnose with `print(module.__file__)`, and avoid names from the stdlib or popular packages. Using a `src/` layout and running tests against an installed package also reduces accidental shadowing.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The standard library `random`, because the standard library always has priority",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Whichever module was installed most recently",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises `ImportError` because of the ambiguity",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Your local `random.py`, because the script's directory is first on `sys.path`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`pkg/cli.py` contains `from .util import helper` and works when started with `python -m pkg.cli`. Why does `python pkg/cli.py` fail with \"attempted relative import with no known parent package\"?",
+      "explanation": "**Answer: (b)** Relative imports resolve against the module's `__package__`. Running a file as a script sets `__name__ = \"__main__\"` with no package information, so `.util` has no anchor. With `-m pkg.cli`, Python imports the module as part of the `pkg` package, so `__package__` is `pkg` and the import resolves.\n\n- (a) Relative imports work in normal modules and packages.\n- (c) A missing `__init__.py` would not by itself cause this message, and namespace packages also support `-m`.\n- (d) No such restriction exists.\n\n**Deeper:** Prefer `python -m pkg.cli` or a console-script entry point. Hacking `sys.path` to make a script work hides the layout problem and breaks tools that import the module normally.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Relative imports only work in interactive sessions",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Run as a script, the file is `__main__` with no package context, so there is nothing to resolve the leading dot against",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The `pkg` directory is missing `__init__.py`, which is required for relative imports",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Python 3 bans relative imports in modules that have a `main` function",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Two modules import each other by module name:\n\n```python\n# gw_a.py\nimport gw_b\na_value = 1\ndef total():\n    return a_value + gw_b.b_value\n\n# gw_b.py\nimport gw_a\nb_value = 2\ndef total():\n    return b_value + gw_a.a_value\n```\n\nWith both files on `sys.path`, what does this print?\n\n```python\nimport gw_a\nprint(gw_a.total())\n```",
+      "explanation": "**Answer: (b)** `import gw_a` starts executing `gw_a`, which imports `gw_b`, which imports `gw_a` and receives the partially initialised module object, without needing any attribute at that time. Both modules finish loading. When `total()` is called later, all names exist, so it returns 1 + 2 = 3.\n\n- (a) A plain `import` of a module in a cycle does not fail; only `from m import name` of a missing name does.\n- (c) `b_value` is defined by the time `total()` runs, because attribute access happens after loading completes.\n- (d) `total()` adds both values.\n\n**Deeper:** This is the \"import the module, not the name\" fix. It works because attribute lookup is deferred to call time. It remains a design smell, so consider extracting the shared dependency into a third module.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`ImportError` because of the circular import",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`3`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`AttributeError` because `gw_b.b_value` is not yet defined",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`1`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Two directories `/x` and `/y` are both on `sys.path`. Each contains a directory `acme/` with no `__init__.py`, and each `acme/` has different subpackages. What is `import acme`?",
+      "explanation": "**Answer: (c)** Under PEP 420, directories without `__init__.py` are namespace portions. The import system gathers every matching `acme/` directory on `sys.path` into one namespace package whose `__path__` includes all of them. Such a package has no `__file__` (it is `None` or absent).\n\n- (a) That was the Python 2 rule; Python 3.3+ supports namespace packages.\n- (b) The finder collects all portions rather than stopping at the first, unless one of them is a regular package.\n- (d) There are no `__init__.py` files to merge.\n\n**Deeper:** Namespace packages let separately distributed plugins share a top-level name (`acme.billing`, `acme.search`). If any portion on the path is a regular package with `__init__.py`, that one wins instead, a common source of confusion.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "An `ImportError`, because packages require `__init__.py`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Only the first directory is used; the second is ignored",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A namespace package whose `__path__` spans both directories, and which has no `__file__`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A regular package merged from both `__init__.py` files",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `pyproject.toml` has `[project.scripts]` with `gw = \"gateway.cli:main\"`. What does installing the project produce?",
+      "explanation": "**Answer: (a)** Installers (pip, uv) read `[project.scripts]` and generate a small launcher in the environment's `bin` (or `Scripts` on Windows). It uses that environment's interpreter, imports the module `gateway.cli` and calls `main()`, and its return value becomes the exit status.\n\n- (b) It is a generated launcher, not a symlink to the source file.\n- (c) Scheduling is unrelated.\n- (d) `PYTHONPATH` is not involved; the launcher runs under the environment's own interpreter and site-packages.\n\n**Deeper:** Because the launcher is bound to its environment, the same command in a different venv can run different code. In containers, make sure the image's `PATH` points at the venv that contains the installed project.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "An executable named `gw` in the environment's scripts directory that imports `gateway.cli` and calls `main()`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A symlink named `gw` to the file `gateway/cli.py`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A system-wide cron job that runs `main` periodically",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing, until you add `gw` to `PYTHONPATH`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which check reliably tells code at run time whether it is executing inside a virtual environment created by `venv`?",
+      "explanation": "**Answer: (d)** In a `venv`, `sys.prefix` points to the environment while `sys.base_prefix` points to the interpreter it was created from. They differ only inside a venv, regardless of how the interpreter was launched.\n\n- (a) The working directory says nothing about the interpreter in use.\n- (b) `VIRTUAL_ENV` is set by activation scripts. Running `.venv/bin/python` directly works inside the venv without activation, so the variable can be absent, and it can be stale in other situations.\n- (c) `sys.path[0]` reflects how Python was started, not the environment.\n\n**Deeper:** This distinction explains why \"activate\" is a convenience and not a requirement: the interpreter binary decides the environment. In Docker and CI, call the venv's `python` explicitly rather than relying on activation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`os.getcwd()` contains `.venv`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The environment variable `VIRTUAL_ENV` is set",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`sys.path[0]` is empty",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`sys.prefix != sys.base_prefix`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "How should code that supports third-party providers discover them without a hard-coded list, so that installing a package is enough to register it?",
+      "explanation": "**Answer: (c)** Entry points are the standard, declarative plugin mechanism: each distribution advertises `name = \"module:attribute\"` under a group, and the host reads them with `importlib.metadata.entry_points(group=...)` and calls `.load()`. Installing the plugin is enough, and the host can validate and isolate failures per plugin.\n\n- (a) `sys.modules` contains only modules already imported, so uninstalled or not-yet-imported plugins are invisible.\n- (b) Importing arbitrary files is fragile, unsafe and ignores installation metadata.\n- (d) `PYTHONPATH` only changes where modules are found; it does not register anything.\n\n**Deeper:** Load lazily and wrap each `.load()` in error handling so a broken plugin does not stop start-up. Check that each loaded object satisfies the expected `Protocol`, and log `ep.dist` name and version for supportability.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Scan `sys.modules` for names containing \"provider\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "List the files in `site-packages` and import any `*.py`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Define an entry-point group in each plugin's `pyproject.toml` and read it with `importlib.metadata.entry_points(group=...)`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Ask users to add each provider's module path to `PYTHONPATH`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What happens when this code runs inside the module `gwpkg.core`, where `gwpkg` is a top-level package?\n\n```python\nfrom ..outside import x\n```",
+      "explanation": "**Answer: (a)** Each leading dot goes one level up the package hierarchy. `gwpkg.core` lives in `gwpkg`, so one dot is `gwpkg` and two dots would be the parent of the top-level package, which does not exist. Python raises `ImportError` with \"attempted relative import beyond top-level package\".\n\n- (b) The failure happens while resolving the relative name, before any search for `outside`.\n- (c) Relative imports never consult the working directory.\n- (d) Multiple leading dots are valid syntax.\n\n**Deeper:** This usually signals that a module was moved or that the package root is wrong. Switch to absolute imports from the true root, or restructure so the shared module lives inside the package.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`ImportError: attempted relative import beyond top-level package`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`ModuleNotFoundError: No module named 'outside'`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It imports `outside` from the current working directory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`SyntaxError`, because two dots are not valid",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "After a Docker build runs `pip install -r requirements.txt`, the container starts with `python app.py` and raises `ModuleNotFoundError: No module named 'httpx'`. What is the most likely cause?",
+      "explanation": "**Answer: (d)** If `pip` and `python` resolve to different installations (a system Python versus a venv, or two Python versions), packages land in one `site-packages` and the app searches another. Use `python -m pip install ...` with the interpreter you will run, or install into a venv and put its `bin` first on `PATH`.\n\n- (a) `httpx` is pure Python and installs on Linux.\n- (b) There is no cross-process import cache that needs a restart.\n- (c) Memory pressure would produce different errors.\n\n**Deeper:** Verify with `python -c \"import sys; print(sys.executable, sys.path)\"` and `python -m pip --version`, which prints the environment pip is tied to. In multi-stage images, copy the whole venv (or `site-packages`) from the build stage and keep the Python minor version identical.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`httpx` cannot be installed on Linux",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Python caches imports from the build stage and needs a restart",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The container is out of memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The `pip` that ran the install belongs to a different interpreter or environment than the `python` that runs the app",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-37/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`models.py` imports `Service` only to use it in type annotations, and `service.py` imports `models.Order` at runtime, which creates a cycle. What is the least invasive fix that keeps the type information?",
+      "explanation": "**Answer: (b)** Imports guarded by `typing.TYPE_CHECKING` are evaluated only by static type checkers, never at run time, so they cannot take part in a runtime cycle. With postponed evaluation of annotations (`from __future__ import annotations`, or quoted names) the annotations are not evaluated at definition time either, so no `NameError` occurs.\n\n- (a) Dropping annotations loses type safety and documentation unnecessarily.\n- (c) A trailing import can work by accident but depends on import order and is fragile.\n- (d) `reload` re-executes the module and does not resolve a design cycle.\n\n**Deeper:** Remember that tools that evaluate annotations at run time (Pydantic models, `typing.get_type_hints`, FastAPI dependencies) need the real name available, so for those classes extract shared types into a third module or import them normally. TYPE_CHECKING is best for annotation-only references.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Delete the annotations so no import is needed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Import `Service` under `if TYPE_CHECKING:` and use `from __future__ import annotations` (or string annotations)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Move the import to the very end of `service.py` and add `# noqa`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Call `importlib.reload(models)` after importing `service`",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}
