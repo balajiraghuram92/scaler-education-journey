@@ -1069,27 +1069,27 @@ app.MapPut("/api/lessons/{id:int}", async (int id, UpdateLessonRequest req, Stud
 })
 .WithName("UpdateLesson");
 
-app.MapPatch("/api/lessons/{id:int}/progress", async (int id, StudyTrackerContext db) =>
+app.MapPatch("/api/lessons/{id:int}/progress", async (int id, ICurrentUser currentUser, LearnerProgressService progress) =>
 {
-    var lesson = await db.Lessons.FindAsync(id);
-    if (lesson == null) return Results.NotFound();
+    var userId = currentUser.UserId!.Value;
+    var completed = await progress.GetCompletedLessonIdsAsync(userId);
+    var result = await progress.SetLessonCompletionAsync(userId, id, !completed.Contains(id));
+    if (result == null) return Results.NotFound();
 
-    lesson.IsCompleted = !lesson.IsCompleted;
-    lesson.UpdatedAt = DateTime.UtcNow;
-    await db.SaveChangesAsync();
-
-    return Results.Ok(new ToggleProgressResponse(lesson.Id, lesson.IsCompleted, $"Lesson status toggled to {(lesson.IsCompleted ? "Completed" : "Pending")}"));
+    return Results.Ok(new ToggleProgressResponse(id, result.IsCompleted, $"Lesson status toggled to {(result.IsCompleted ? "Completed" : "Pending")}"));
 })
+.RequireAuthorization()
 .WithName("ToggleLessonProgress");
 
 // ==========================================
 // 4. PROBLEMS ENDPOINTS
 // ==========================================
 
-app.MapGet("/api/problems/{id:int}", async (int id, StudyTrackerContext db) =>
+app.MapGet("/api/problems/{id:int}", async (int id, StudyTrackerContext db, ICurrentUser currentUser, LearnerProgressService progress) =>
 {
     var p = await db.Problems.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
     if (p == null) return Results.NotFound();
+    var solvedIds = await progress.GetSolvedProblemIdsAsync(currentUser.UserId);
 
     var dto = new ProblemSummaryDto(
         p.Id,
@@ -1103,7 +1103,7 @@ app.MapGet("/api/problems/{id:int}", async (int id, StudyTrackerContext db) =>
         p.RequirementsBody,
         p.WorkedExample,
         p.Hints,
-        p.IsCompleted,
+        solvedIds.Contains(p.Id),
         p.OrderIndex
     );
     return Results.Ok(dto);
@@ -1145,17 +1145,17 @@ app.MapPost("/api/problems", async (CreateProblemRequest req, StudyTrackerContex
 })
 .WithName("CreateProblem");
 
-app.MapPatch("/api/problems/{id:int}/progress", async (int id, StudyTrackerContext db) =>
+app.MapPatch("/api/problems/{id:int}/progress", async (int id, ICurrentUser currentUser, LearnerProgressService progress) =>
 {
-    var problem = await db.Problems.FindAsync(id);
-    if (problem == null) return Results.NotFound();
+    var userId = currentUser.UserId!.Value;
+    var solved = await progress.GetSolvedProblemIdsAsync(userId);
+    var result = await progress.SetProblemStatusAsync(userId, id, new ProblemStatusRequest(solved.Contains(id) ? "Attempted" : "Solved", null));
+    if (result == null) return Results.NotFound();
 
-    problem.IsCompleted = !problem.IsCompleted;
-    problem.UpdatedAt = DateTime.UtcNow;
-    await db.SaveChangesAsync();
-
-    return Results.Ok(new ToggleProgressResponse(problem.Id, problem.IsCompleted, $"Problem status toggled to {(problem.IsCompleted ? "Completed" : "Pending")}"));
+    var isSolved = result.Status == "Solved";
+    return Results.Ok(new ToggleProgressResponse(id, isSolved, $"Problem status toggled to {(isSolved ? "Completed" : "Pending")}"));
 })
+.RequireAuthorization()
 .WithName("ToggleProblemProgress");
 
 // ==========================================
@@ -1455,9 +1455,9 @@ app.MapGet("/api/chapters", async (
 .WithName("GetChaptersList");
 
 // GET /api/chapters/{slug} — Retrieve chapter by slug or composite slug
-app.MapGet("/api/chapters/{slug}", async (string slug, StudyTrackerContext db) =>
+app.MapGet("/api/chapters/{slug}", async (string slug, StudyTrackerContext db, ICurrentUser currentUser, LearnerProgressService progress) =>
 {
-    return await BuildChapterDetailResponse(slug, null, null, db);
+    return await BuildChapterDetailResponse(slug, null, null, db, currentUser.UserId, progress);
 })
 .WithName("GetChapterBySlug");
 
@@ -1466,15 +1466,24 @@ app.MapGet("/api/chapters/{verticalOrCourseSlug}/{moduleSlug}/{lessonSlug}", asy
     string verticalOrCourseSlug,
     string moduleSlug,
     string lessonSlug,
-    StudyTrackerContext db) =>
+    StudyTrackerContext db,
+    ICurrentUser currentUser,
+    LearnerProgressService progress) =>
 {
-    return await BuildChapterDetailResponse(lessonSlug, moduleSlug, verticalOrCourseSlug, db);
+    return await BuildChapterDetailResponse(lessonSlug, moduleSlug, verticalOrCourseSlug, db, currentUser.UserId, progress);
 })
 .WithName("GetChapterByPath");
 
 // POST /api/chapters/{id:int}/notes — Add personal note or marginalia
-app.MapPost("/api/chapters/{id:int}/notes", async (int id, CreateChapterNoteRequest req, StudyTrackerContext db) =>
+app.MapPost("/api/chapters/{id:int}/notes", async (int id, CreateChapterNoteRequest req, StudyTrackerContext db, ICurrentUser currentUser) =>
 {
+    // Personal notes belong to the signed-in learner; editorial note types remain admin content.
+    var isPersonal = string.IsNullOrWhiteSpace(req.NoteType) || string.Equals(req.NoteType.Trim(), "PersonalNote", StringComparison.OrdinalIgnoreCase);
+    if (currentUser.UserId == null)
+    {
+        return Results.Unauthorized();
+    }
+
     var lesson = await db.Lessons.FindAsync(id);
     if (lesson == null) return Results.NotFound(new { message = "Chapter/Lesson not found." });
 
@@ -1491,7 +1500,8 @@ app.MapPost("/api/chapters/{id:int}/notes", async (int id, CreateChapterNoteRequ
     var note = new LessonNote
     {
         LessonId = id,
-        NoteType = string.IsNullOrWhiteSpace(req.NoteType) ? "FieldNote" : req.NoteType.Trim(),
+        UserId = isPersonal ? currentUser.UserId : null,
+        NoteType = isPersonal ? "PersonalNote" : req.NoteType!.Trim(),
         AnchorSection = req.AnchorSection?.Trim(),
         Title = req.Title.Trim(),
         ContentBody = req.ContentBody.Trim(),
@@ -1640,8 +1650,12 @@ async Task<IResult> BuildChapterDetailResponse(
     string lessonSlug,
     string? moduleSlug,
     string? courseOrVerticalSlug,
-    StudyTrackerContext db)
+    StudyTrackerContext db,
+    int? userId,
+    LearnerProgressService progress)
 {
+    var completedIds = await progress.GetCompletedLessonIdsAsync(userId);
+    var solvedIds = await progress.GetSolvedProblemIdsAsync(userId);
     var query = db.Lessons.AsNoTracking()
         .Include(l => l.Module)
             .ThenInclude(m => m!.Course)
@@ -1699,7 +1713,7 @@ async Task<IResult> BuildChapterDetailResponse(
     var siblingLessons = await db.Lessons.AsNoTracking()
         .Where(l => l.ModuleId == lesson.ModuleId)
         .OrderBy(l => l.OrderIndex)
-        .Select(l => new { l.Id, l.Slug, l.Title, l.EstimatedMinutes, l.IsCompleted, l.OrderIndex })
+        .Select(l => new { l.Id, l.Slug, l.Title, l.EstimatedMinutes, l.OrderIndex })
         .ToListAsync();
 
     var siblingDtos = siblingLessons.Select(s => new ChapterNavDto(
@@ -1709,7 +1723,7 @@ async Task<IResult> BuildChapterDetailResponse(
         s.Title,
         module?.Title ?? string.Empty,
         s.EstimatedMinutes,
-        s.IsCompleted
+        completedIds.Contains(s.Id)
     )).ToList();
 
     var currentIndex = siblingLessons.FindIndex(s => s.Id == lesson.Id);
@@ -1790,7 +1804,9 @@ async Task<IResult> BuildChapterDetailResponse(
         d.OrderIndex
     )).ToList();
 
-    var notes = lesson.Notes.Select(n => new ChapterNoteDto(
+    var notes = lesson.Notes
+        .Where(n => (n.UserId != null && n.UserId == userId) || (n.UserId == null && n.NoteType != "PersonalNote"))
+        .Select(n => new ChapterNoteDto(
         n.Id,
         n.NoteType,
         n.AnchorSection,
@@ -1824,7 +1840,7 @@ async Task<IResult> BuildChapterDetailResponse(
         lesson.EstimatedMinutes > 0 ? lesson.EstimatedMinutes : 45,
         CountWords(lesson.ContentBody),
         lesson.Difficulty ?? "Intermediate",
-        lesson.IsCompleted,
+        completedIds.Contains(lesson.Id),
         lesson.OrderIndex,
         lesson.ContentBody,
         lesson.HorstmannRef,
@@ -1846,7 +1862,7 @@ async Task<IResult> BuildChapterDetailResponse(
             p.RequirementsBody,
             p.WorkedExample,
             p.Hints,
-            p.IsCompleted,
+            solvedIds.Contains(p.Id),
             p.OrderIndex
         )).ToList(),
         lesson.Resources.Select(r => new LessonResourceDto(

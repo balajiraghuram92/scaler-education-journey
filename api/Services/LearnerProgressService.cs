@@ -160,10 +160,10 @@ public class LearnerProgressService
         if (!await _db.Lessons.AnyAsync(l => l.Id == lessonId, ct)) return null;
 
         var now = DateTime.UtcNow;
-        var row = await UpsertLessonRowAsync(userId, lessonId, ct);
-        var isNewVisit = row.Id == 0 || now - row.LastOpenedAt > VisitWindow;
+        var (row, created) = await UpsertLessonRowAsync(userId, lessonId, ct);
+        var isNewVisit = created || now - row.LastOpenedAt > VisitWindow;
 
-        if (row.Id != 0 && isNewVisit)
+        if (!created && isNewVisit)
         {
             row.VisitCount += 1;
         }
@@ -186,7 +186,7 @@ public class LearnerProgressService
         if (!await _db.Lessons.AnyAsync(l => l.Id == lessonId, ct)) return null;
 
         var now = DateTime.UtcNow;
-        var row = await UpsertLessonRowAsync(userId, lessonId, ct);
+        var (row, _) = await UpsertLessonRowAsync(userId, lessonId, ct);
 
         if (!string.IsNullOrWhiteSpace(request.SectionId))
         {
@@ -215,7 +215,7 @@ public class LearnerProgressService
         if (!await _db.Lessons.AnyAsync(l => l.Id == lessonId, ct)) return null;
 
         var now = DateTime.UtcNow;
-        var row = await UpsertLessonRowAsync(userId, lessonId, ct);
+        var (row, _) = await UpsertLessonRowAsync(userId, lessonId, ct);
         var wasCompleted = row.Status == "Completed";
 
         row.Status = isCompleted ? "Completed" : "InProgress";
@@ -244,6 +244,7 @@ public class LearnerProgressService
 
         var now = DateTime.UtcNow;
         var row = await _db.UserProblemProgress.FirstOrDefaultAsync(p => p.UserId == userId && p.ProblemId == problemId, ct);
+        var created = row == null;
         if (row == null)
         {
             row = new UserProblemProgress { UserId = userId, ProblemId = problemId, CreatedAt = now };
@@ -261,7 +262,7 @@ public class LearnerProgressService
             AddActivity(userId, "SolutionRevealed", lessonId: problem.LessonId, problemId: problemId);
         }
 
-        if (previous != status || row.Id == 0)
+        if (previous != status || created)
         {
             var eventType = status switch
             {
@@ -464,10 +465,10 @@ public class LearnerProgressService
 
     public sealed record LatestAttemptRow(int QuestionId, int LessonId, bool IsCorrect, DateTime AnsweredAt);
 
-    private async Task<UserLessonProgress> UpsertLessonRowAsync(int userId, int lessonId, CancellationToken ct)
+    private async Task<(UserLessonProgress Row, bool Created)> UpsertLessonRowAsync(int userId, int lessonId, CancellationToken ct)
     {
         var row = await _db.UserLessonProgress.FirstOrDefaultAsync(p => p.UserId == userId && p.LessonId == lessonId, ct);
-        if (row != null) return row;
+        if (row != null) return (row, false);
 
         var now = DateTime.UtcNow;
         row = new UserLessonProgress
@@ -481,7 +482,7 @@ public class LearnerProgressService
             VisitCount = 1
         };
         _db.UserLessonProgress.Add(row);
-        return row;
+        return (row, true);
     }
 
     private async Task SaveWithUniqueRetryAsync(CancellationToken ct)
