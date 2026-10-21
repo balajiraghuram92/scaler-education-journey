@@ -82,6 +82,7 @@ public static class McqMigrationSeedData
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         int addedCount = 0;
+        int updatedCount = 0;
         int skippedCount = 0;
         int totalQuestions = 0;
 
@@ -121,6 +122,13 @@ public static class McqMigrationSeedData
                 totalQuestions++;
                 if (!string.IsNullOrWhiteSpace(q.LegacyKey) && existingKeys.Contains(q.LegacyKey))
                 {
+                    // Courses whose JSON is canonical get existing rows re-synced, so a
+                    // corrected answer key or explanation reaches the database.
+                    if (SyncedCourseSlugs.Contains(group.CourseSlug) && SyncExistingQuestion(db, q))
+                    {
+                        updatedCount++;
+                    }
+
                     skippedCount++;
                     continue;
                 }
@@ -131,6 +139,7 @@ public static class McqMigrationSeedData
                     LegacyKey = string.IsNullOrWhiteSpace(q.LegacyKey) ? null : q.LegacyKey.Trim(),
                     QuestionText = q.QuestionText ?? string.Empty,
                     SourceType = string.IsNullOrWhiteSpace(q.SourceType) ? "FROM_MATERIAL" : q.SourceType.Trim(),
+                    Category = NormalizeCategory(q.Category),
                     Explanation = q.Explanation ?? string.Empty,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
@@ -165,12 +174,62 @@ public static class McqMigrationSeedData
             }
         }
 
-        if (addedCount % 250 != 0)
+        if (addedCount % 250 != 0 || updatedCount > 0)
         {
             db.SaveChanges();
         }
 
-        Console.WriteLine($"[INFO] MCQ dynamic seeding completed. Added {addedCount} questions, skipped {skippedCount} existing questions (total evaluated: {totalQuestions}).");
+        Console.WriteLine($"[INFO] MCQ dynamic seeding completed. Added {addedCount} questions, re-synced {updatedCount}, skipped {skippedCount} existing questions (total evaluated: {totalQuestions}).");
+    }
+
+    // Courses whose MCQ JSON is the source of truth (existing rows are updated in place).
+    private static readonly HashSet<string> SyncedCourseSlugs = new(StringComparer.OrdinalIgnoreCase) { "python-engineering" };
+
+    private static string NormalizeCategory(string? category) => category?.Trim() switch
+    {
+        "Checkpoint" => "Checkpoint",
+        "Additional" => "Additional",
+        _ => "Assignment"
+    };
+
+    /// <summary>
+    /// Updates text, explanation, category and option correctness of an existing question.
+    /// Options are matched by key; learner attempts keep their recorded result.
+    /// </summary>
+    private static bool SyncExistingQuestion(StudyTrackerContext db, QuestionMigrationItem q)
+    {
+        var key = q.LegacyKey.Trim();
+        var existing = db.McqQuestions.Include(x => x.Options).FirstOrDefault(x => x.LegacyKey == key);
+        if (existing == null) return false;
+
+        var changed = false;
+        void Set<T>(T current, T next, Action<T> apply)
+        {
+            if (!EqualityComparer<T>.Default.Equals(current, next)) { apply(next); changed = true; }
+        }
+
+        Set(existing.QuestionText, q.QuestionText ?? string.Empty, v => existing.QuestionText = v);
+        Set(existing.Explanation, q.Explanation ?? string.Empty, v => existing.Explanation = v);
+        Set(existing.Category, NormalizeCategory(q.Category), v => existing.Category = v);
+        if (!string.IsNullOrWhiteSpace(q.SourceType))
+        {
+            Set(existing.SourceType, q.SourceType.Trim(), v => existing.SourceType = v);
+        }
+
+        foreach (var opt in q.Options ?? new List<OptionMigrationItem>())
+        {
+            var match = existing.Options.FirstOrDefault(o => string.Equals(o.OptionKey, opt.OptionKey?.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (match == null) continue;
+            Set(match.OptionText, opt.OptionText ?? string.Empty, v => match.OptionText = v);
+            Set(match.IsCorrect, opt.IsCorrect, v => match.IsCorrect = v);
+        }
+
+        if (changed)
+        {
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+
+        return changed;
     }
 
     private sealed class LessonMigrationGroup
@@ -186,6 +245,7 @@ public static class McqMigrationSeedData
         public string LegacyKey { get; set; } = string.Empty;
         public string QuestionText { get; set; } = string.Empty;
         public string SourceType { get; set; } = "FROM_MATERIAL";
+        public string? Category { get; set; }
         public string Explanation { get; set; } = string.Empty;
         public List<OptionMigrationItem> Options { get; set; } = new();
     }

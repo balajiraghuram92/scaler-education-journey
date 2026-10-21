@@ -1,0 +1,566 @@
+{
+ "lessonSlug": "py-11-singleton",
+ "sourceLesson": "Backend LLD: Design Patterns: Introduction and Singleton",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-11/additional/q03",
+   "category": "Additional",
+   "title": "Homework 1: Design Patterns - Introduction and Singleton",
+   "question": "Which of these real-world examples does the lecture NOT list as an existing Singleton in production systems?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A brand-new list object created inside a loop"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Framework-managed settings objects (like FastAPI Settings)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Python's logging.getLogger(name) returning the same logger object for a given name"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Connection pool managers like SQLAlchemy's engine"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_iAMdwtvTDG.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/additional/q04",
+   "category": "Additional",
+   "title": "Homework 2: Design Patterns – Introduction and Singleton",
+   "question": "What does this print?\n\n```python\ndef singleton(cls):\n    instances = {}\n\n    def get_instance(*args, **kwargs):\n        if cls not in instances:\n            instances[cls] = cls(*args, **kwargs)\n        return instances[cls]\n\n    return get_instance\n\n@singleton\nclass DBConnection:\n    def __init__(self, url):\n        self.url = url\n\na = DBConnection(\"db.prod\")\nb = DBConnection(\"db.staging\")\n\nprint(a is b)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "False"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It raises an error"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "True"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_yfG2eMOlDr.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/additional/q05",
+   "category": "Additional",
+   "title": "Homework 3: Design Patterns – Introduction and Singleton",
+   "question": "This metaclass-based Singleton is supposed to be thread-safe, but a bug was introduced. Spot it.\n\n```python\nimport threading\n\nclass SingletonMeta(type):\n    _instances = {}\n    _lock = threading.Lock()\n\n    def __call__(cls, *args, **kwargs):\n        with cls._lock:\n            if cls not in cls._instances:\n                cls._instances[cls] = super().__call__(*args, **kwargs)\n        return cls._instances[cls]\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "There is no bug — this is a correct (if slightly less optimized) thread-safe singleton"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "_lock should be an instance variable, not a class variable"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "__call__ should be renamed to __init__"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "_instances should be a list, not a dictionary"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_qvgd9zgqF2.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/additional/q06",
+   "category": "Additional",
+   "title": "Homework 4: Design Patterns – Introduction and Singleton",
+   "question": "Why do some engineers avoid a class-based Singleton for objects that might get pickled?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Pickling always deletes the object"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "pickle doesn't support classes with __init__"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Unpickling can reconstruct a brand-new object, bypassing custom __new__ logic and breaking the \"one instance\" guarantee"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Pickled objects can't have class variables"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_PEGkcEF5Gy.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/additional/q07",
+   "category": "Additional",
+   "title": "Homework 5: Design Patterns – Introduction and Singleton",
+   "question": "A test suite creates a DBConnection singleton, mutates some state on it, then finishes. The next test runs and unexpectedly sees leftover state from the previous test. What is the root cause?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "pytest doesn't support singletons"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A Singleton is shared for the entire life of the program, so it doesn't reset itself between tests"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The test file has a typo"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Singletons cannot hold any state"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZWMsSD1Tna.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/additional/q08",
+   "category": "Additional",
+   "title": "Homework 6: Design Patterns – Introduction and Singleton",
+   "question": "What does this print?\n\n```python\nfrom enum import Enum\n\nclass Mode(Enum):\n    SINGLE = \"single\"\n\na = Mode.SINGLE\nb = Mode.SINGLE\n\nprint(a is b)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "True"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "False"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Raises a TypeError"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_yjzFg5KUlk.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/additional/q09",
+   "category": "Additional",
+   "title": "Homework 7: Design Patterns – Introduction and Singleton",
+   "question": "What is a genuine downside (con) of using the Singleton pattern, according to the lecture?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It uses too much memory since many objects are created"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It cannot be used in Python at all"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It requires a database to work"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It makes unit testing harder because you can't easily swap in a mock — everyone shares the same global instance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_y0VszHLLXU.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/additional/q10",
+   "category": "Additional",
+   "title": "Homework 8: Design Patterns - Introduction and Singleton",
+   "question": "A junior engineer wrote this thinking it's thread-safe double-checked locking. What's actually wrong with it?\n```python\nimport threading\n\nclass DBConnection:\n    _instance = None\n    _lock = threading.Lock()\n\n    def __new__(cls, *args, **kwargs):\n        with cls._lock:\n            if cls._instance is None:\n                cls._instance = super().__new__(cls)\n        return cls._instance\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "This is fully correct double-checked locking"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "_instance needs to be an instance variable"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "threading.Lock() doesn't exist in Python"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This locks on every single call (not just the risky first-creation moment) because it's missing the outer, unlocked check before entering with cls._lock"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_0Jqk7Ko0J6.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/additional/q11",
+   "category": "Additional",
+   "title": "Homework 9: Design Patterns – Introduction and Singleton",
+   "question": "Your team needs ten different classes to all become singletons, with minimal repeated code and full thread-safety. Based on the lecture's comparison of approaches, which option fits best?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Copy-paste the __new__ override into all ten classes"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Use a metaclass (metaclass=SingletonMeta) so all ten classes get the behavior automatically and safely"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Make each class a single-member Enum"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Convert all ten classes into module-level variables"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_9DtitXRmmO.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/additional/q12",
+   "category": "Additional",
+   "title": "Homework 10: Design Patterns – Introduction and Singleton",
+   "question": "Given the module below, what does the second script print?\nconfig.py:\n```python\nvalue = 10\n\ndef increase():\n    global value\n    value += 5\n```\nmain.py:\n```python\nimport config\nimport config as config2\n\nconfig.increase()\n\nprint(config2.value)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "10"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "15"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Raises an ImportError"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_oDMHPuz7XV.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q04",
+   "category": "Assignment",
+   "title": "Assignment 1: Design Patterns – Introduction and Singleton",
+   "question": "What is the main idea behind the Singleton pattern?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A class that can create unlimited objects quickly"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A class that ensures only one object of it ever exists, with one shared access point"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A class that stores data in a database"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A class that cannot be inherited"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_qh14ks0i9v.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q05",
+   "category": "Assignment",
+   "title": "Assignment 2: Design Patterns – Introduction and Singleton",
+   "question": "Which of the following is a valid reason to use a Singleton?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The class has private variables"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The class needs to support multiple inheritance"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A shared resource sits behind the class, OR creating the object is genuinely expensive"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The class has many public methods"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_nuj3RYayo4.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q06",
+   "category": "Assignment",
+   "title": "Assignment 3: Design Patterns – Introduction and Singleton",
+   "question": "What will this code print?\n\n```python\nclass DBConnection:\n    _instance = None\n\n    def __new__(cls, *args, **kwargs):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self, url):\n        self.url = url\n\ndb1 = DBConnection(\"db.prod\")\ndb2 = DBConnection(\"db.staging\")\n\nprint(db1 is db2)\nprint(db1.url)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "False followed by db.prod"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "True followed by db.prod"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "True followed by db.staging"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "False followed by db.staging"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_o9PehN9V9Q.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q07",
+   "category": "Assignment",
+   "title": "Assignment 4: Design Patterns - Introduction and Singleton",
+   "question": "Why can't we just put the \"only one instance\" check inside __init__ instead of __new__?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "__init__ doesn't have access to self"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "__init__ runs before the object is created"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "__init__ runs after the object already exists, so it's too late to refuse creation"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "__init__ cannot access class-level variables"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_04rD1MH6u8.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q08",
+   "category": "Assignment",
+   "title": "Assignment 5: Design Patterns – Introduction and Singleton",
+   "question": "This code is meant to be a Singleton but has a bug. What's wrong?\n\n```python\nclass Logger:\n    _instance = None\n\n    def __new__(cls, *args, **kwargs):\n        cls._instance = super().__new__(cls)\n        return cls._instance\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Nothing is wrong, this is correct"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It's missing an if cls._instance is None: check, so a new object is created on every single call"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "super().__new__(cls) should be super().__init__(cls)"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "_instance should be an instance variable, not a class variable"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_N28WpayyC8.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q09",
+   "category": "Assignment",
+   "title": "Scenario",
+   "question": "Your team's app creates its DBConnection singleton eagerly at module import time. QA reports that app startup has become noticeably slower. What is the most likely cause, based on the lecture?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Eager loading builds the object immediately at import time, whether or not it's ever used, adding to startup time"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Singletons are always slower than regular classes"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The __new__ method is broken"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Python caches modules incorrectly"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_6lY2uIMg5O.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q10",
+   "category": "Assignment",
+   "title": "Assignment 7: Design Patterns – Introduction and Singleton",
+   "question": "Two threads, A and B, run this __new__ at nearly the same time, with _instance starting as None and no lock in place:\n\n```python\nclass DBConnection:\n    _instance = None\n\n    def __new__(cls, *args, **kwargs):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n```\n\nWhat is the most likely outcome under real concurrent traffic?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python's GIL guarantees only one object is ever created, so this is always safe"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The program will crash with a RuntimeError"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "_instance will always end up as None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Both threads could see _instance is None at the same time and each create a separate object, breaking the Singleton guarantee"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_xBxSPoCMYK.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q11",
+   "category": "Assignment",
+   "title": "Assignment 8: Design Patterns – Introduction and Singleton",
+   "question": "In double-checked locking, why is the second None check (inside the lock) necessary if we already checked None once outside the lock?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It isn't necessary — one check is always enough"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because the lock might not work correctly otherwise"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because Python requires two checks by syntax rules"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Because another thread could have already created the instance while this thread was waiting for the lock"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_AJiAZNtX1O.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q12",
+   "category": "Assignment",
+   "title": "Assignment 9: Design Patterns – Introduction and Singleton",
+   "question": "A teammate wrote this \"quick and simple\" singleton after asking an AI assistant. What important detail is missing, based on the AI Corner discussion in the lecture?\n\n```python\nclass DBConnection:\n    _instance = None\n\n    def __new__(cls, *args, **kwargs):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It's missing a threading.Lock to make it safe under concurrent access"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It's missing a __del__ method"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It's missing type hints"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It's missing a docstring"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_6xFULGyrJD.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-11/assignment/q13",
+   "category": "Assignment",
+   "title": "Assignment 10: Design Patterns – Introduction and Singleton",
+   "question": "You import a module-level settings object (plain variables, no class) in five different files across your FastAPI app. How many actual objects/copies of settings exist across the whole app?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Five — one per file that imports it"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It depends on how many threads are running"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "One — Python caches a module after its first import, and every later import returns the same module object"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Zero, until the app finishes starting up"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_WboQqmJrs9.png"
+   ]
+  }
+ ]
+}

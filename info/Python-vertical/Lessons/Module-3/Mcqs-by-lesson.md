@@ -2,7 +2,7 @@
 
 Multiple-choice questions transcribed from the screenshots in `info/Python-vertical/Lessons/Module-3/Mcqs/`, grouped by the lesson named in each screenshot's page header. Lessons are in class-date order. Within a lesson, questions are split into the page's two sections (**Assignment** and **Additional Problems**), each numbered as on the page (Qn). Options are lettered a, b, c, … in on-screen order. The screenshots show no answers, so none are given.
 
-**56 questions** from 56 screenshots, across 5 lessons.
+**71 questions** from 71 screenshots, across 6 lessons.
 
 ## Contents
 
@@ -11,6 +11,7 @@ Multiple-choice questions transcribed from the screenshots in `info/Python-verti
 - [MCQs for lesson: Backend LLD: Machine Coding - 10: Code BookMyShow 2](#mcqs-for-lesson-backend-lld-machine-coding---10-code-bookmyshow-2) — 10 questions
 - [MCQs for lesson: Backend LLD: Machine Coding - 11: Code BookMyShow 3](#mcqs-for-lesson-backend-lld-machine-coding---11-code-bookmyshow-3) — 10 questions
 - [MCQs for lesson: Backend LLD: Machine Coding - 13: Code Splitwise 1](#mcqs-for-lesson-backend-lld-machine-coding---13-code-splitwise-1) — 16 questions
+- [MCQs for lesson: Backend LLD: Machine Coding - 14: Code Splitwise 2](#mcqs-for-lesson-backend-lld-machine-coding---14-code-splitwise-2) — 15 questions
 
 ---
 
@@ -992,3 +993,230 @@ You are building a small app that tracks shared expenses while it is running. No
 
 <sub>Screenshot: `msedge_pIdb9ftJ0L.png`</sub>
 
+## MCQs for lesson: Backend LLD: Machine Coding - 14: Code Splitwise 2
+
+_Class date: Mon, 5 Oct 2026_
+
+_Q1 of this Assignment was not captured in the screenshots._
+
+### Assignment
+
+#### Q2. Which Enum On Which Model
+
+In our Splitwise models, which enum belongs on the Expense model?
+
+- **a)** ExpenseType (NORMAL / PAYMENT)
+- **b)** ExpenseUserType (PAID / HAD_TO_PAY)
+- **c)** Both enums
+- **d)** Neither. Enums are not stored on models
+
+<sub>Screenshot: `msedge_HjkmEuMXNM.png`</sub>
+
+#### Q3. Default Evaluated Once At Import
+
+A student writes this in BaseModel:
+
+```python
+created_at = Column(DateTime, default=datetime.now(timezone.utc))
+```
+What is the problem?
+
+- **a)** DateTime columns cannot have a default
+- **b)** timezone.utc is not allowed inside datetime.now
+- **c)** The code crashes when the file loads
+- **d)** datetime.now(...) runs only once when the file loads, so every new row gets that same old time
+
+<sub>Screenshot: `msedge_ZrSMBF6uF7.png`</sub>
+
+#### Q4. Keeping Both Sides In Sync
+
+What is the main job of back_populates on expense.expense_users and expense_user.expense?
+
+- **a)** It creates an extra table in the database
+- **b)** It makes the foreign key column optional
+- **c)** It keeps both sides in sync in memory, so changing one side also updates the other side
+- **d)** It makes database queries faster
+
+<sub>Screenshot: `msedge_zLNtNieFED.png`</sub>
+
+#### Q5. Many-To-Many Group Membership
+
+Riya is a member of the "Goa Trip" group and also of the "Roommates" group. Each group has many members. Which relationship fits Group.members?
+
+- **a)** One-to-one
+- **b)** Many-to-many, using secondary=group_members_table
+- **c)** One-to-many, with the foreign key on User
+- **d)** One-to-many, with the foreign key on Group
+
+<sub>Screenshot: `msedge_3KOmMTH0bt.png`</sub>
+
+#### Q6. Renamed Enum Breaks Old Rows
+
+A teammate saves expense_type with Column(SAEnum(ExpenseType)). Later they rename PAYMENT to SETTLEMENT in the Python enum. Old rows in the database still have the text PAYMENT. What happens when such an old row is loaded?
+
+- **a)** Loading fails with an error, because the stored name PAYMENT no longer matches any enum member
+- **b)** SQLAlchemy silently converts it to SETTLEMENT
+- **c)** The value becomes None with no error
+- **d)** SQLAlchemy updates all the old rows automatically
+
+<sub>Screenshot: `msedge_4JaTLsu4uZ.png`</sub>
+
+#### Q7. Type Hints Unenforced At Runtime
+
+```python
+class SettleUpController:
+    def settle_up_user(self, request: SettleUpUserResponseDto):
+        expenses = self.settle_up_service.settle_up_user(request.user_id)
+        return SettleUpUserResponseDto(expenses=expenses)
+```
+The type hint on request is wrong. It should be SettleUpUserRequestDto. If we pass a real SettleUpUserRequestDto object to this method, what happens when the program runs?
+
+- **a)** Python raises a TypeError immediately
+- **b)** Python raises a SyntaxError when the file loads
+- **c)** It runs fine, because Python does not check type hints. A type checker like pyright or mypy would flag it
+- **d)** It returns an empty list
+
+<sub>Screenshot: `msedge_tGqLpdvza0.png`</sub>
+
+#### Q8. Settlement Reuses Expense Structure
+
+Why did we use a dummy Expense with expense_type = PAYMENT for a settlement, instead of creating a new Transaction class?
+
+- **a)** SQLAlchemy allows only a small number of model classes
+- **b)** A Transaction class cannot have foreign keys
+- **c)** Dummy expenses are never saved, so they are always faster
+- **d)** A settlement is also money moving between people, so it can reuse Expense and ExpenseUser, and the balance logic stays the same
+
+<sub>Screenshot: `msedge_8GnSt7Mwx2.png`</sub>
+
+#### Q9. Calculating Net Balance From Expense
+
+Seed data for one expense (Dinner, total 1000):
+
+| Person | Row type | Amount |
+|---|---|---|
+| Alice | PAID | 1000 |
+| Alice | HAD_TO_PAY | 500 |
+| Bob | HAD_TO_PAY | 500 |
+
+NaiveSettleUpStrategy calculates each person's net_balance as (total paid) minus (total owed). A positive balance means the person should receive money. What are the balances?
+
+- **a)** Alice = 1000, Bob = 500
+- **b)** Alice = +500, Bob = -500
+- **c)** Alice = -500, Bob = +500
+- **d)** Alice = 0, Bob = 0
+
+<sub>Screenshot: `msedge_GdHK4PlPRb.png`</sub>
+
+#### Q10. Naive Settle-Up Transaction Order
+
+Net balances are A = -300, B = -200, C = +500. NaiveSettleUpStrategy sorts users from the lowest balance to the highest. Then it goes through them one by one. Each person settles fully with the next person, and the remaining amount moves to that next person. Which transactions are produced?
+
+- **a)** A pays C 300, and B pays C 200
+- **b)** C pays A 300, and C pays B 200
+- **c)** A pays B 300, then B pays C 500
+- **d)** A pays B 500, then B pays C 300
+
+<sub>Screenshot: `msedge_pj0MU8bZst.png`</sub>
+
+#### Q11. Settlement Rows Must Balance
+
+A student writes _build_dummy_expense like this:
+
+```python
+expense.expense_users = [
+    ExpenseUser(user=payer, amount=amount,
+                expense_user_type=ExpenseUserType.PAID),
+    ExpenseUser(user=receiver, amount=amount,
+                expense_user_type=ExpenseUserType.PAID),
+]
+```
+What is wrong?
+
+- **a)** The receiver should be HAD_TO_PAY. With two PAID rows, total paid is 2 × amount and total owed is 0, so the rule "total paid = total owed" breaks
+- **b)** Nothing. Both people are involved, so both are PAID
+- **c)** The receiver's amount should be different from the payer's amount
+- **d)** ExpenseUser cannot be created without a group
+
+<sub>Screenshot: `msedge_BNUruN2zhz.png`</sub>
+
+#### Q12. Finding All Expenses For A User
+
+Aman is in five groups and also has some one-on-one expenses that have no group. In settle_up_user, how do we find every expense Aman is part of?
+
+- **a)** Take only the expenses of his first group
+- **b)** Find all ExpenseUser rows for Aman, then take the Expense of each row
+- **c)** Take only the expenses where group_id is not None
+- **d)** Take only the expenses that Aman created
+
+<sub>Screenshot: `msedge_X15vVAWvAw.png`</sub>
+
+#### Q13. Filtering Settlement For One User
+
+settle_up_user runs the strategy on all expenses that user P is part of. The strategy returns 3 transactions:
+
+1. "Q pays P 400"
+2. "R pays P 100"
+3. "Q pays R 250"
+
+The service keeps only the transactions where P appears. Which transactions are returned, and is P fully settled?
+
+- **a)** Only transaction 1, because the loop stops at the first match
+- **b)** All 3 transactions
+- **c)** None, because Q and R have a transaction between them
+- **d)** Transactions 1 and 2. P is fully settled by them, and transaction 3 does not affect P
+
+<sub>Screenshot: `msedge_J0oQlCWnNV.png`</sub>
+
+#### Q14. Command Matcher Rule Trace
+
+```python
+cmd = SettleUpUser(controller)
+
+print(cmd.matches("u12 SettleUp"))
+print(cmd.matches("g1 SettleUp"))
+print(cmd.matches("U3 settleup"))
+print(cmd.matches("u1 SettleUp now"))
+```
+matches() returns True only if all of these are true: the input has exactly 2 words, the second word is settleup (ignoring upper/lower case), the first word starts with u (ignoring case), and the rest of the first word is only digits. What is printed?
+
+- **a)** True, False, True, False
+- **b)** True, True, True, False
+- **c)** True, False, False, False
+- **d)** False, False, True, False
+
+<sub>Screenshot: `msedge_vf3O3YMF0O.png`</sub>
+
+#### Q15. List Has No Matches Method
+
+```python
+class CommandExecutor:
+    def __init__(self, commands):
+        self.commands = commands
+
+    def execute(self, user_input):
+        for command in self.commands:
+            if self.commands.matches(user_input):
+                command.execute(user_input)
+                return
+        print("Invalid command")
+```
+self.commands is a list of Command objects. What happens the first time execute() runs?
+
+- **a)** It prints "Invalid command" for every input
+- **b)** It raises AttributeError, because a list has no matches method
+- **c)** It runs the first command every time
+- **d)** It works correctly
+
+<sub>Screenshot: `msedge_z6vvAyTPMh.png`</sub>
+
+#### Q16. Swapping Strategy At Wiring Point
+
+You finish a new HeapSettleUpStrategy class that follows the same SettleUpStrategy interface. You want the app to use it instead of NaiveSettleUpStrategy. What is the smallest correct change?
+
+- **a)** Rewrite SettleUpService to call the heap logic directly
+- **b)** Change the SettleUpUser command
+- **c)** In main.py, pass HeapSettleUpStrategy() to SettleUpService instead of NaiveSettleUpStrategy()
+- **d)** Change SettleUpController so it chooses the algorithm on every call
+
+<sub>Screenshot: `msedge_sJi2Sf1rDO.png`</sub>

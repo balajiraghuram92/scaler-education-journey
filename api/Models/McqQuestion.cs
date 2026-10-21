@@ -38,6 +38,12 @@ public class McqQuestion
     [Column("explanation")]
     public string Explanation { get; set; } = string.Empty;
 
+    // Checkpoint (shown mid-lesson after the concepts) | Assignment | Additional (practice loop).
+    [Required]
+    [MaxLength(30)]
+    [Column("category")]
+    public string Category { get; set; } = "Assignment";
+
     [Column("is_active")]
     public bool IsActive { get; set; } = true;
 

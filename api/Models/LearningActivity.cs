@@ -20,6 +20,14 @@ public class LearningActivity
     [Column("occurred_at")]
     public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
 
+    // The learner who caused the event; null for system events (imports, legacy toggles).
+    [Column("user_id")]
+    public int? UserId { get; set; }
+
+    [JsonIgnore]
+    [ForeignKey(nameof(UserId))]
+    public AppUser? User { get; set; }
+
     [Column("lesson_id")]
     public int? LessonId { get; set; }
 

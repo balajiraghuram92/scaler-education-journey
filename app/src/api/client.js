@@ -15,7 +15,81 @@ export class ApiError extends Error {
   }
 }
 
+export const SESSION_ENDED_EVENT = 'na:session-ended';
+
+// Auth endpoints that must never trigger a transparent refresh: the refresh call itself,
+// the credential steps (a 401 there is a real "wrong password / code" answer) and logout.
+const NO_REFRESH_PATHS = [/^\/api\/auth\/refresh$/, /^\/api\/auth\/login$/, /^\/api\/auth\/totp\//, /^\/api\/auth\/logout$/];
+
+let refreshInFlight = null;
+
+function endpointPath(endpoint) {
+  let path = endpoint;
+  if (path.startsWith('http')) {
+    try {
+      path = new URL(path).pathname;
+    } catch {
+      return path;
+    }
+  }
+  if (!path.startsWith('/')) path = `/${path}`;
+  return path.split(/[?#]/)[0];
+}
+
+function canRefreshFor(endpoint) {
+  const path = endpointPath(endpoint);
+  return !NO_REFRESH_PATHS.some((pattern) => pattern.test(path));
+}
+
+function emitSessionEnded(endpoint) {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
+  window.dispatchEvent(new CustomEvent(SESSION_ENDED_EVENT, { detail: { endpoint } }));
+}
+
+/**
+ * Rotates the session via the refresh cookie. Concurrent callers share one in-flight
+ * request, so a burst of 401s produces a single POST /api/auth/refresh.
+ */
+export function refreshSession() {
+  if (!refreshInFlight) {
+    refreshInFlight = performRequest('/api/auth/refresh', { method: 'POST' })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+}
+
+/**
+ * Sends a request. On a 401 it refreshes the session once and retries the original
+ * request once; if the refresh fails it emits `na:session-ended` and rethrows the 401.
+ * Pass `skipAuthRefresh: true` to opt out (used for the initial session probe).
+ */
 export async function apiClient(endpoint, options = {}) {
+  const { skipAuthRefresh = false, ...requestOptions } = options;
+
+  try {
+    return await performRequest(endpoint, requestOptions);
+  } catch (err) {
+    const shouldRefresh = !skipAuthRefresh
+      && err instanceof ApiError
+      && err.status === 401
+      && canRefreshFor(endpoint);
+
+    if (!shouldRefresh) throw err;
+
+    try {
+      await refreshSession();
+    } catch {
+      emitSessionEnded(endpoint);
+      throw err;
+    }
+
+    return performRequest(endpoint, requestOptions);
+  }
+}
+
+async function performRequest(endpoint, options = {}) {
   const {
     method = 'GET',
     headers = {},
@@ -156,6 +230,49 @@ export const api = {
         method: 'POST',
         body: { selectedOptionKey }
       }),
+    retryPracticeQuestion: (presentationId) =>
+      apiClient(`/api/v2/practice-questions/${encodeURIComponent(presentationId)}/retry`, { method: 'POST' }),
+  },
+
+  // Signed-in learner state (all routes return 401 when signed out)
+  me: {
+    summary: () => apiClient('/api/me/summary'),
+    resume: () => apiClient('/api/me/resume'),
+    recordVisit: (lessonId) =>
+      apiClient(`/api/me/lessons/${encodeURIComponent(lessonId)}/visit`, { method: 'POST' }),
+    updatePosition: (lessonId, { sectionId, scrollPercent, secondsDelta }, options = {}) =>
+      apiClient(`/api/me/lessons/${encodeURIComponent(lessonId)}/position`, {
+        ...options,
+        method: 'PUT',
+        body: { sectionId, scrollPercent, secondsDelta }
+      }),
+    // Last heartbeat when the tab is hidden or the reader unmounts: keepalive lets the
+    // browser finish the request after the page goes away. Failures are ignored.
+    sendPositionBeacon: (lessonId, position) =>
+      api.me.updatePosition(lessonId, position, { keepalive: true, skipAuthRefresh: true }).catch(() => null),
+    setLessonCompletion: (lessonId, isCompleted) =>
+      apiClient(`/api/me/lessons/${encodeURIComponent(lessonId)}/completion`, {
+        method: 'PUT',
+        body: { isCompleted }
+      }),
+    setProblemStatus: (problemId, status, solutionRevealed) =>
+      apiClient(`/api/me/problems/${encodeURIComponent(problemId)}/status`, {
+        method: 'PUT',
+        body: solutionRevealed === undefined ? { status } : { status, solutionRevealed }
+      }),
+    mcqPerformance: (courseSlug) =>
+      apiClient(`/api/me/mcq-performance${courseSlug ? `?course=${encodeURIComponent(courseSlug)}` : ''}`),
+    activity: (limit = 50) =>
+      apiClient(`/api/me/activity?limit=${encodeURIComponent(limit)}`),
+  },
+
+  // Chapter notes (personal notes require sign-in)
+  notes: {
+    create: (lessonId, { title, contentBody, anchorSection = null, noteType = 'PersonalNote' }) =>
+      apiClient(`/api/chapters/${encodeURIComponent(lessonId)}/notes`, {
+        method: 'POST',
+        body: { noteType, title, contentBody, anchorSection, orderIndex: null }
+      }),
   },
 
   // Legacy Endpoints
@@ -175,14 +292,21 @@ export const api = {
       apiClient('/api/auth/login', { method: 'POST', body: { email, password } }),
     totpEnrollStart: (challengeId) =>
       apiClient('/api/auth/totp/enroll/start', { method: 'POST', body: { challengeId } }),
-    totpEnrollConfirm: (challengeId, code) =>
-      apiClient('/api/auth/totp/enroll/confirm', { method: 'POST', body: { challengeId, code } }),
-    totpVerify: (challengeId, code) =>
-      apiClient('/api/auth/totp/verify', { method: 'POST', body: { challengeId, code } }),
+    totpEnrollConfirm: (challengeId, code, rememberMe = false) =>
+      apiClient('/api/auth/totp/enroll/confirm', { method: 'POST', body: { challengeId, code, rememberMe: Boolean(rememberMe) } }),
+    totpVerify: (challengeId, code, rememberMe = false) =>
+      apiClient('/api/auth/totp/verify', { method: 'POST', body: { challengeId, code, rememberMe: Boolean(rememberMe) } }),
     logout: () =>
       apiClient('/api/auth/logout', { method: 'POST' }),
-    me: () =>
-      apiClient('/api/auth/me', { method: 'GET' }),
+    me: (options = {}) =>
+      apiClient('/api/auth/me', { ...options, method: 'GET' }),
+    refresh: () => refreshSession(),
+    sessions: () =>
+      apiClient('/api/auth/sessions', { method: 'GET' }),
+    revokeSession: (sessionId) =>
+      apiClient(`/api/auth/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }),
+    logoutAll: () =>
+      apiClient('/api/auth/logout-all', { method: 'POST' }),
   },
 
   // Admin User Management Endpoints

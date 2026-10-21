@@ -1,0 +1,695 @@
+{
+  "lessonSlug": "py-11-singleton",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-11/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which of these real-world examples does the lecture NOT list as an existing Singleton in production systems?",
+      "explanation": "**Answer: (a)** A fresh list created inside a loop is a new object on every iteration, so it is the opposite of a singleton and was not offered as an example.\n\n- (b) is wrong because framework-managed settings objects are a standard example of one shared instance.\n- (c) is wrong because `logging.getLogger(name)` returns the same logger for the same name, a registry-style singleton.\n- (d) is wrong because an SQLAlchemy engine owns a connection pool and is normally created once per process.\n\n**Deeper:** Notice the common thread in the real examples: each wraps an expensive or coordinated resource (a pool, a shared configuration, a handler hierarchy). That is the test to apply in an interview before reaching for the pattern: what exactly breaks if two copies exist?",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A brand-new list object created inside a loop",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Framework-managed settings objects (like FastAPI Settings)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Python's logging.getLogger(name) returning the same logger object for a given name",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Connection pool managers like SQLAlchemy's engine",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does this print?\n\n```python\ndef singleton(cls):\n    instances = {}\n\n    def get_instance(*args, **kwargs):\n        if cls not in instances:\n            instances[cls] = cls(*args, **kwargs)\n        return instances[cls]\n\n    return get_instance\n\n@singleton\nclass DBConnection:\n    def __init__(self, url):\n        self.url = url\n\na = DBConnection(\"db.prod\")\nb = DBConnection(\"db.staging\")\n\nprint(a is b)\n```",
+      "explanation": "**Answer: (d)** The decorator stores the first instance in a dictionary, so the second call returns that same object and `a is b` is `True`.\n\n```python\na = DBConnection(\"db.prod\")      # creates and stores\nb = DBConnection(\"db.staging\")   # returns the stored object, args ignored\nprint(a is b)                    # True\n```\n\n- (a) is wrong because both names refer to one object.\n- (b) is wrong because nothing here raises.\n- (c) is wrong because `is` returns a bool, never `None`.\n\n**Deeper:** The second set of arguments is silently discarded, so `b.url` is still `db.prod`. That is a real production hazard when two call sites believe they configured different databases. Also note the decorator replaces the class with a function, which breaks `isinstance` and subclassing.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "False",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It raises an error",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "True",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "This metaclass-based Singleton is supposed to be thread-safe, but a bug was introduced. Spot it.\n\n```python\nimport threading\n\nclass SingletonMeta(type):\n    _instances = {}\n    _lock = threading.Lock()\n\n    def __call__(cls, *args, **kwargs):\n        with cls._lock:\n            if cls not in cls._instances:\n                cls._instances[cls] = super().__call__(*args, **kwargs)\n        return cls._instances[cls]\n```",
+      "explanation": "**Answer: (a)** This metaclass is correct and thread-safe. It takes the lock on every call, which costs a little contention but does not break the single-instance guarantee.\n\n- (b) is wrong because `cls._lock` resolves to the metaclass attribute, which is exactly the shared lock you want.\n- (c) is wrong because `__call__` on the metaclass is what intercepts `Cls()`; `__init__` is for building the metaclass itself.\n- (d) is wrong because a dictionary keyed by class is what lets many classes share one metaclass.\n\n**Deeper:** Adding an unlocked outer check, as in double-checked locking, would remove the contention after warm-up. Running the code with two classes confirms each gets its own single instance, because the registry is keyed by `cls`.",
+      "reviewFlag": "The question says a bug was introduced, but the code is correct; it only takes the lock on every call (a performance cost), so option (a) is the only defensible answer.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "There is no bug — this is a correct (if slightly less optimized) thread-safe singleton",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "_lock should be an instance variable, not a class variable",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "__call__ should be renamed to __init__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "_instances should be a list, not a dictionary",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why do some engineers avoid a class-based Singleton for objects that might get pickled?",
+      "explanation": "**Answer: (c)** Unpickling rebuilds an object from saved state, and for a metaclass or decorator singleton it never goes through your instance-control logic, so a second instance can appear.\n\n- (a) is wrong because pickling does not delete anything.\n- (b) is wrong because pickle supports classes with `__init__` (it simply does not call it on load).\n- (d) is wrong because class attributes are not part of an instance pickle at all.\n\n**Deeper:** Running a metaclass singleton through `pickle.loads(pickle.dumps(x))` yields a different object. With a `__new__` guard you get the singleton back but its state is overwritten by the pickled one. The robust fix is `__reduce__` returning `(get_instance, ())`, and the better fix is not to pickle singletons.",
+      "reviewFlag": "Option (c) holds for metaclass and decorator singletons; for a __new__-based singleton, unpickling calls __new__ and returns the live instance but overwrites its state. It is still the best option offered.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Pickling always deletes the object",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "pickle doesn't support classes with __init__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Unpickling can reconstruct a brand-new object, bypassing custom __new__ logic and breaking the \"one instance\" guarantee",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Pickled objects can't have class variables",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A test suite creates a DBConnection singleton, mutates some state on it, then finishes. The next test runs and unexpectedly sees leftover state from the previous test. What is the root cause?",
+      "explanation": "**Answer: (b)** A singleton lives for the whole process, so state left on it by one test is still there when the next test runs.\n\n- (a) is wrong because pytest runs fine with singletons; it simply does not reset them.\n- (c) is wrong because no typo is implied, and the behaviour is deterministic.\n- (d) is wrong because singletons hold state freely, which is the problem.\n\n**Deeper:** This is the testability cost in the lecture. The mitigations are a reset hook (`cache_clear()` for `functools.cache`, or a `clear()` on your registry) applied in a fixture, and, better, injecting the dependency so each test builds its own instance. Order-dependent failures that vanish when a test runs alone are the signature symptom.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "pytest doesn't support singletons",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A Singleton is shared for the entire life of the program, so it doesn't reset itself between tests",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The test file has a typo",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Singletons cannot hold any state",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does this print?\n\n```python\nfrom enum import Enum\n\nclass Mode(Enum):\n    SINGLE = \"single\"\n\na = Mode.SINGLE\nb = Mode.SINGLE\n\nprint(a is b)\n```",
+      "explanation": "**Answer: (a)** Enum members are created once at class definition and are unique, so `Mode.SINGLE is Mode.SINGLE` is `True`.\n\n- (b) is wrong because both names refer to the same member object.\n- (c) is wrong because `is` returns a boolean.\n- (d) is wrong because nothing here is invalid.\n\n**Deeper:** A single-member Enum is a legitimate, thread-safe singleton idiom that also survives pickling, because Enum unpickles by name and returns the existing member. Its limitation is that it is awkward when the singleton needs constructor arguments or a lot of mutable state.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "True",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "False",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises a TypeError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is a genuine downside (con) of using the Singleton pattern, according to the lecture?",
+      "explanation": "**Answer: (d)** Because everyone shares one global instance, it is hard to swap in a mock or fake, which makes unit testing harder.\n\n- (a) is wrong because a singleton creates fewer objects, not more.\n- (b) is wrong because Python supports singletons in several ways.\n- (c) is wrong because a database is irrelevant to the pattern.\n\n**Deeper:** Hidden global dependencies are the root issue: the code under test reaches for the instance itself, so the test cannot supply one. The answer interviewers want pairs the criticism with a remedy: create the instance once at the composition root and inject it, or expose it through `Depends` and override it in tests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It uses too much memory since many objects are created",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It cannot be used in Python at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It requires a database to work",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It makes unit testing harder because you can't easily swap in a mock — everyone shares the same global instance",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A junior engineer wrote this thinking it's thread-safe double-checked locking. What's actually wrong with it?\n```python\nimport threading\n\nclass DBConnection:\n    _instance = None\n    _lock = threading.Lock()\n\n    def __new__(cls, *args, **kwargs):\n        with cls._lock:\n            if cls._instance is None:\n                cls._instance = super().__new__(cls)\n        return cls._instance\n```",
+      "explanation": "**Answer: (d)** The outer unlocked check is missing, so every call acquires the lock even after the instance exists.\n\n- (a) is wrong because the version is correct but not double-checked.\n- (b) is wrong because `_instance` is correctly a class attribute shared by all constructions.\n- (c) is wrong because `threading.Lock()` exists and is the standard primitive.\n\n**Deeper:** This code is thread-safe; it is only slower under contention, since every caller serialises on the lock for the whole life of the process. Double-checked locking buys the fast path: after warm-up the unlocked check fails immediately and no lock is touched. It is an optimisation, so say so rather than calling the simple form a bug.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "This is fully correct double-checked locking",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "_instance needs to be an instance variable",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "threading.Lock() doesn't exist in Python",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This locks on every single call (not just the risky first-creation moment) because it's missing the outer, unlocked check before entering with cls._lock",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/additional/q11",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Your team needs ten different classes to all become singletons, with minimal repeated code and full thread-safety. Based on the lecture's comparison of approaches, which option fits best?",
+      "explanation": "**Answer: (b)** A metaclass such as `SingletonMeta` gives all ten classes the behaviour from one tested, thread-safe implementation.\n\n- (a) is wrong because copy-pasting `__new__` ten times invites divergent bugs.\n- (c) is wrong because single-member Enums do not suit classes with real constructors and mutable state.\n- (d) is wrong because ten module-level variables lose lazy construction and the class-based design.\n\n**Deeper:** A metaclass also means `__init__` runs once, avoiding the re-initialisation trap of `__new__`. Be ready to add that the simplest alternative, a module-level instance, needs no machinery at all, and that a `functools.cache` accessor is the lazy equivalent when no per-class variation is needed.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Copy-paste the __new__ override into all ten classes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Use a metaclass (metaclass=SingletonMeta) so all ten classes get the behavior automatically and safely",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Make each class a single-member Enum",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Convert all ten classes into module-level variables",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/additional/q12",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Given the module below, what does the second script print?\nconfig.py:\n```python\nvalue = 10\n\ndef increase():\n    global value\n    value += 5\n```\nmain.py:\n```python\nimport config\nimport config as config2\n\nconfig.increase()\n\nprint(config2.value)\n```",
+      "explanation": "**Answer: (b)** Both import statements return the same cached module object, so the increment is visible through either name and `config2.value` is 15.\n\n```python\nimport config\nimport config as config2   # same module, second name\nconfig.increase()          # value: 10 -> 15\nprint(config2.value)       # 15\n```\n\n- (a) is wrong because the mutation happened on the shared module.\n- (c) is wrong because the attribute exists and has a value.\n- (d) is wrong because both imports succeed.\n\n**Deeper:** `sys.modules` caching is why a module-level object is the default Python singleton. One subtlety: `from config import value` copies the current binding, so it would not see later changes.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "10",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "15",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises an ImportError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the main idea behind the Singleton pattern?",
+      "explanation": "**Answer: (b)** The Singleton ensures that a class has exactly one instance and provides a single shared access point to it.\n\n- (a) is wrong because that describes the opposite.\n- (c) is wrong because storage is unrelated to the pattern.\n- (d) is wrong because preventing inheritance is a different concept (`final` in other languages).\n\n**Deeper:** Two promises are bundled in the pattern: uniqueness and global access. In interviews it helps to separate them, because you can often keep uniqueness (create once at startup) while dropping global access (inject it), which keeps most of the benefit and avoids the testing cost.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A class that can create unlimited objects quickly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A class that ensures only one object of it ever exists, with one shared access point",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A class that stores data in a database",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A class that cannot be inherited",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which of the following is a valid reason to use a Singleton?",
+      "explanation": "**Answer: (c)** A Singleton is justified when a shared resource sits behind the class or when creating the object is genuinely expensive.\n\n- (a) is wrong because private variables are an encapsulation matter.\n- (b) is wrong because multiple inheritance has no link to instance counts.\n- (d) is wrong because the number of public methods is irrelevant.\n\n**Deeper:** Think connection pools, HTTP clients with pooled sockets, loaded models and shared configuration. In each case a second instance would waste memory or sockets or cause inconsistent state. If the honest answer to \"what breaks with two copies?\" is \"nothing\", skip the pattern.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The class has private variables",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The class needs to support multiple inheritance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A shared resource sits behind the class, OR creating the object is genuinely expensive",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The class has many public methods",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will this code print?\n\n```python\nclass DBConnection:\n    _instance = None\n\n    def __new__(cls, *args, **kwargs):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self, url):\n        self.url = url\n\ndb1 = DBConnection(\"db.prod\")\ndb2 = DBConnection(\"db.staging\")\n\nprint(db1 is db2)\nprint(db1.url)\n```",
+      "explanation": "**Answer: (c)** `db1 is db2` is `True` because `__new__` returns the cached object, but `__init__` runs again on that same object, so the URL becomes `db.staging`.\n\n```python\ndb1 = DBConnection(\"db.prod\")      # __new__ creates, __init__ sets url\ndb2 = DBConnection(\"db.staging\")   # __new__ returns same, __init__ resets url\nprint(db1 is db2)  # True\nprint(db1.url)     # db.staging\n```\n\n- (a) and (d) are wrong because the identity check is `True`.\n- (b) is wrong because it assumes the first URL is kept.\n\n**Deeper:** This is the most common trap in the `__new__` form. Guard `__init__` with a flag, avoid constructor arguments, or use a metaclass whose `__call__` runs `__init__` only once.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "False followed by db.prod",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "True followed by db.prod",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "True followed by db.staging",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "False followed by db.staging",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why can't we just put the \"only one instance\" check inside __init__ instead of __new__?",
+      "explanation": "**Answer: (c)** `__init__` is called after the object has already been created, so it is too late to refuse creation there. `__new__` is the hook that actually builds the instance.\n\n- (a) is wrong because `__init__` does receive `self`.\n- (b) is wrong because it runs after, not before, the object exists.\n- (d) is wrong because it can read class attributes freely.\n\n**Deeper:** The two-step protocol is `__new__` allocates, then `__init__` initialises. A singleton must intercept the first step or, alternatively, the whole call via a metaclass `__call__`. This is a standard question to confirm you understand the object model, not just the pattern.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "__init__ doesn't have access to self",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "__init__ runs before the object is created",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "__init__ runs after the object already exists, so it's too late to refuse creation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "__init__ cannot access class-level variables",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "This code is meant to be a Singleton but has a bug. What's wrong?\n\n```python\nclass Logger:\n    _instance = None\n\n    def __new__(cls, *args, **kwargs):\n        cls._instance = super().__new__(cls)\n        return cls._instance\n```",
+      "explanation": "**Answer: (b)** The `None` check is missing, so every call creates a brand-new object and overwrites `_instance`.\n\n- (a) is wrong because the class returns a different object on every call.\n- (c) is wrong because `super().__new__(cls)` is correct and `__init__` is not how objects are allocated.\n- (d) is wrong because a class attribute is exactly where the shared instance should live.\n\n**Deeper:** This is the kind of subtle bug an LLM assistant can produce: it looks like a singleton, passes a trivial type check, and still allocates every time. A one-line test (`assert Logger() is Logger()`) catches it, which is why a singleton deserves its own identity test.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing is wrong, this is correct",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It's missing an if cls._instance is None: check, so a new object is created on every single call",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "super().__new__(cls) should be super().__init__(cls)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "_instance should be an instance variable, not a class variable",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Your team's app creates its DBConnection singleton eagerly at module import time. QA reports that app startup has become noticeably slower. What is the most likely cause, based on the lecture?",
+      "explanation": "**Answer: (a)** Eager loading builds the singleton as soon as the module is imported, whether or not it is used, which adds to startup time.\n\n- (b) is wrong because singletons are not inherently slower to use.\n- (c) is wrong because nothing suggests `__new__` is broken.\n- (d) is wrong because module caching works correctly and is what makes the singleton one object.\n\n**Deeper:** The fix is to make creation lazy, either with a guarded `__new__`, a metaclass or a `functools.cache` accessor, or to move heavy initialisation into the application lifespan. Eager creation also makes imports fail when the database is down, which hurts tooling and tests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Eager loading builds the object immediately at import time, whether or not it's ever used, adding to startup time",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Singletons are always slower than regular classes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The __new__ method is broken",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Python caches modules incorrectly",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Two threads, A and B, run this __new__ at nearly the same time, with _instance starting as None and no lock in place:\n\n```python\nclass DBConnection:\n    _instance = None\n\n    def __new__(cls, *args, **kwargs):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n```\n\nWhat is the most likely outcome under real concurrent traffic?",
+      "explanation": "**Answer: (d)** Two threads can both pass the `is None` check before either assigns, so each can create its own object and the guarantee is broken.\n\n- (a) is wrong because the GIL does not make a check-then-assign sequence atomic.\n- (b) is wrong because no error is raised; the bug is silent.\n- (c) is wrong because `_instance` ends up set, just possibly to the second thread's object.\n\n**Deeper:** The window is widest when construction does I/O or is otherwise slow. With a sleeping constructor, eight threads easily create eight objects. The cure is a lock with a second check inside it, and on free-threaded builds there is no global lock to lean on at all.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python's GIL guarantees only one object is ever created, so this is always safe",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The program will crash with a RuntimeError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "_instance will always end up as None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Both threads could see _instance is None at the same time and each create a separate object, breaking the Singleton guarantee",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In double-checked locking, why is the second None check (inside the lock) necessary if we already checked None once outside the lock?",
+      "explanation": "**Answer: (d)** While one thread waited for the lock, another may have created the instance, so the inside check prevents creating a second.\n\n- (a) is wrong because a single outer check leaves exactly this race open.\n- (b) is wrong because the lock works correctly; it just does not re-test the condition for you.\n- (c) is wrong because the language has no such syntax rule.\n\n**Deeper:** The outer check is a performance optimisation and the inner check is the correctness guarantee. Interviewers often ask which one you could drop: dropping the outer one is still correct, while dropping the inner one is a bug.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It isn't necessary — one check is always enough",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because the lock might not work correctly otherwise",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because Python requires two checks by syntax rules",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Because another thread could have already created the instance while this thread was waiting for the lock",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q12",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A teammate wrote this \"quick and simple\" singleton after asking an AI assistant. What important detail is missing, based on the AI Corner discussion in the lecture?\n\n```python\nclass DBConnection:\n    _instance = None\n\n    def __new__(cls, *args, **kwargs):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n```",
+      "explanation": "**Answer: (a)** The code has no lock, so concurrent first calls can each create an instance. Thread safety is the key detail an AI-generated quick singleton tends to omit.\n\n- (b) is wrong because `__del__` is unrelated and usually undesirable.\n- (c) is wrong because type hints do not affect instance counts.\n- (d) is wrong because a docstring is cosmetic.\n\n**Deeper:** Review generated code by asking \"what happens under concurrency, tests and multiple processes?\" The same snippet also re-runs `__init__` on every call if it defines one. Add double-checked locking, or prefer a module-level instance.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It's missing a threading.Lock to make it safe under concurrent access",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It's missing a __del__ method",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It's missing type hints",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It's missing a docstring",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/assignment/q13",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You import a module-level settings object (plain variables, no class) in five different files across your FastAPI app. How many actual objects/copies of settings exist across the whole app?",
+      "explanation": "**Answer: (c)** Python caches a module after its first import, and every later import returns that same module object, so there is exactly one settings object.\n\n- (a) is wrong because importing in five files does not copy anything.\n- (b) is wrong because thread count does not change the module cache.\n- (d) is wrong because the object exists as soon as the module is first imported.\n\n**Deeper:** This makes a module-level instance the lowest-effort singleton. Two caveats: it is one per process, so multiple workers each hold their own, and `from settings import x` binds a name at import time, so reassigning `settings.x` later is not seen by that importer.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Five — one per file that imports it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It depends on how many threads are running",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "One — Python caches a module after its first import, and every later import returns the same module object",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Zero, until the app finishes starting up",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A team makes the HTTP client a lazy singleton with `functools.cache`. At startup, eight request threads hit it at the same moment while construction takes 50 ms:\n\n```python\nimport functools, time\n\nbuilt = []\n\n@functools.cache\ndef get_client():\n    time.sleep(0.05)          # opening pools, loading TLS config\n    client = object()\n    built.append(client)\n    return client\n```\n\nWhat can you rely on?",
+      "explanation": "**Answer: (c)** The cache protects its own data structure but does not stop the wrapped function from running in several threads during the cold-start window, so the factory may run more than once.\n\n- (a) is wrong because `functools.cache` does not serialise calls to the wrapped function.\n- (b) is wrong because concurrent misses are allowed, not an error.\n- (d) is wrong because there is no per-key blocking; other threads simply compute too.\n\n**Deeper:** The documentation says this explicitly for `lru_cache`. If construction opens real pools or has side effects, serialise the first call with a lock (or create the object in the app lifespan before serving traffic). Running the code with a `threading.Barrier` reproduces eight constructions.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`len(built)` is always exactly 1, because `functools.cache` serialises calls",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The cache raises `RuntimeError` if two threads miss at the same time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`len(built)` can be greater than 1 on a cold start, although the cache stays internally consistent and later calls return a stored object",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Only the first thread runs the function; the other seven always block until it finishes",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A FastAPI service defines a module-level in-memory singleton `limiter = RateLimiter(limit=100, window_seconds=60)` and is deployed with `gunicorn -w 4`. Roughly what is the effective global limit per window for one client?",
+      "explanation": "**Answer: (a)** Each worker is a separate process with separate memory, so each imports the module and builds its own limiter. A client whose requests spread across all four can consume the limit four times.\n\n- (b) is wrong because the module import cache is per process, not per deployment.\n- (c) is wrong because nothing divides the limit automatically.\n- (d) is wrong because the GIL is per interpreter; it does not share memory across processes.\n\n**Deeper:** \"Singleton\" means one per process. Anything that must be globally unique, such as rate limits, locks or counters, needs a shared store like Redis or the database. This is a frequent forward-deployed-engineer incident: the limiter works perfectly in a single-process dev server and fails silently in production.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Up to about 400, because each of the four worker processes has its own singleton instance",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Exactly 100, because the module is imported once per application",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "About 25, because the limiter divides its limit across workers",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Exactly 100, because the GIL shares memory between the processes",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-11/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nimport pickle, threading\n\nclass SingletonMeta(type):\n    _instances = {}\n    _lock = threading.Lock()\n    def __call__(cls, *args, **kwargs):\n        if cls not in cls._instances:\n            with cls._lock:\n                if cls not in cls._instances:\n                    cls._instances[cls] = super().__call__(*args, **kwargs)\n        return cls._instances[cls]\n\nclass Cache(metaclass=SingletonMeta):\n    pass\n\nc = Cache()\nprint(pickle.loads(pickle.dumps(c)) is c)\n```\n\nWhat does it print, and what is the right repair if pickling is genuinely required?",
+      "explanation": "**Answer: (d)** Unpickling rebuilds the object without invoking `SingletonMeta.__call__`, so a second `Cache` appears and the `is` check is `False`. Defining `__reduce__` to return a callable that fetches the live instance restores the guarantee.\n\n- (a) is wrong because the metaclass `__call__` runs on `Cache()`, not on unpickle.\n- (b) is wrong because pickle has no such caching.\n- (c) is wrong because the registry location is not the cause.\n\n**Deeper:** Prefer not to pickle singletons at all. Pass configuration across process boundaries instead and let each process construct its own instance, which is also correct under `multiprocessing` spawn.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`True`, because the metaclass is applied during unpickling",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`True`, because pickle always returns the cached instance of a class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`False`; the repair is to make `_instances` an instance attribute",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`False`; define `__reduce__` returning `(get_cache, ())`, where `get_cache` returns the live singleton",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

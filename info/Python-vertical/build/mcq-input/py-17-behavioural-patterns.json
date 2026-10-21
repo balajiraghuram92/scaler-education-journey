@@ -1,0 +1,398 @@
+{
+ "lessonSlug": "py-17-behavioural-patterns",
+ "sourceLesson": "Backend LLD: Design Patterns: Behavioural Design Patterns",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-17/additional/q04",
+   "category": "Additional",
+   "title": "Identify Problem",
+   "question": "When many unrelated parts of a system need to react to the same event, what problem shows up if that event source calls each one of them by name directly inside its own code?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The code becomes faster"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The event source needs less memory"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Every time a new reactor is added, the event source's code must be edited again"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The reactors stop working entirely"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_BejxrB4Ap4.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/additional/q05",
+   "category": "Additional",
+   "title": "[Code Output].",
+   "question": "```python\nclass Discount:\n    def apply(self, price):\n        return price\n\nclass PercentDiscount(Discount):\n    def __init__(self, percent):\n        self.percent = percent\n    def apply(self, price):\n        return price - (price * self.percent / 100)\n\nclass FlatDiscount(Discount):\n    def __init__(self, amount):\n        self.amount = amount\n    def apply(self, price):\n        return price - self.amount\n\ndef checkout(price, discount):\n    return discount.apply(price)\n\nprint(checkout(200, PercentDiscount(10)))\nprint(checkout(200, FlatDiscount(30)))\n```\n\nWhat is printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "200 and 200"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "180.0 and 170"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "20 and 30"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "An error, since Discount has no real apply logic"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_jd1B0Flnod.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/additional/q06",
+   "category": "Additional",
+   "title": "[Debug the Code].",
+   "question": "```python\nclass Shipper:\n    def ship(self, order):\n        pass\n\nclass ExpressShipper(Shipper):\n    def ship(self, order):\n        return f\"Shipping {order} quickly\"\n\nclass StandardShipper(Shipper):\n    def ship(self, order):\n        return f\"Shipping {order} normally\"\n\nclass OrderService:\n    def __init__(self, shipper):\n        self.shipper = shipper\n\n    def process(self, order):\n        return self.shipper.ship(order)\n\nservice = OrderService(Shipper())\nprint(service.process(\"Book\"))\n```\n\nWhat will happen when this code runs?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It prints \"Shipping Book quickly\""
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It prints \"Shipping Book normally\""
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It prints \"Shipping Book\" with nothing else"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It prints None, because Shipper's ship() method has no real logic and simply returns nothing"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_MBpGvbS8oo.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/additional/q07",
+   "category": "Additional",
+   "title": ".[Scenario].",
+   "question": "A music app wants to let users pick between three ways to sort their playlist: by song name, by artist, or by most recently added. Only one sorting method runs at a time, based on what the user picked. What is the best way to design this?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Give each sorting method its own class behind a shared interface, and let the app use whichever class matches the user's choice"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Write one function with three separate if-else blocks that never change"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Create a new playlist every time the user changes the sort option"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Store every possible sorted order in advance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZWkSmS7Ko0.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/additional/q08",
+   "category": "Additional",
+   "title": "[Theory]",
+   "question": "What is the key difference between choosing one way to do something and letting many things react to the same event?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "There is no real difference between the two"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Choosing one way runs exactly one piece of logic; letting many things react means every registered piece of logic runs, one after another"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Choosing one way always runs slower"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Letting many things react only works with numbers"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_gc2bsWdWhx.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/additional/q09",
+   "category": "Additional",
+   "title": "[Code Output].",
+   "question": "What is printed, in order?\n```python\nclass Alert:\n    def notify(self, msg):\n        pass\n\nclass SmsAlert(Alert):\n    def notify(self, msg):\n        print(f\"SMS: {msg}\")\n\nclass EmailAlert(Alert):\n    def notify(self, msg):\n        print(f\"Email: {msg}\")\n\nclass System:\n    def __init__(self):\n        self.alerts = []\n\n    def subscribe(self, alert):\n        self.alerts.append(alert)\n\n    def trigger(self, msg):\n        for a in self.alerts:\n            a.notify(msg)\n\nnotify_system = System()\nnotify_system.subscribe(SmsAlert())\nnotify_system.trigger(\"Low battery\")\nnotify_system.subscribe(EmailAlert())\nnotify_system.trigger(\"Battery critical\")\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "SMS: Low battery only"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Email: Battery critical only"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "SMS: Low battery, then SMS: Battery critical, then Email: Battery critical"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "SMS: Low battery, then Email: Low battery, then SMS: Battery critical, then Email: Battery critical"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_HjeqyDnfbL.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/additional/q10",
+   "category": "Additional",
+   "title": "[Scenario]#2",
+   "question": "An online store wants three different systems — inventory, accounting, and marketing — to each react on their own whenever a sale happens, without the checkout code needing to know anything about what each system does. What fits best?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The checkout code must call each system by name every time a new one is added"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Only one system should be allowed to react to a sale"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The checkout code should stop working until all three systems are ready"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The checkout code should just announce that a sale happened, and let each interested system register itself and react independently"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_oYv4AsEs3y.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/assignment/q04",
+   "category": "Assignment",
+   "title": "shared interface",
+   "question": "What is the main idea behind having one shared interface with many classes that each do a task in their own way?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It hides all the code so nobody can read it"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It lets you add a new way of doing the task without changing the code that already works"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It forces every class to behave exactly the same way"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It removes the need for interfaces completely"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_GIOUaTA7Zv.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/assignment/q05",
+   "category": "Assignment",
+   "title": "code output.",
+   "question": "```python\nclass Shape:\n    def area(self):\n        pass\n\nclass Square(Shape):\n    def __init__(self, side):\n        self.side = side\n    def area(self):\n        return self.side * self.side\n\nclass Circle(Shape):\n    def __init__(self, radius):\n        self.radius = radius\n    def area(self):\n        return 3.14 * self.radius * self.radius\n\nshapes = [Square(4), Circle(2)]\nfor s in shapes:\n    print(round(s.area(), 2))\n```\nWhat does this code print?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "16 and 12.56"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "16 and 12.6"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "8 and 6.28"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "An error, because Shape has no area logic"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_zvDdtlFnz2.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/assignment/q06",
+   "category": "Assignment",
+   "title": "debug the code",
+   "question": "```python\nclass Notifier:\n    def notify(self, message):\n        pass\n\nclass EmailNotifier(Notifier):\n    def notify(self, message):\n        print(\"Email: \" + message)\n\nclass App:\n    def __init__(self):\n        self.notifier = EmailNotifier()\n\n    def send(self, message):\n        self.notifier.alert(message)\n\napp = App()\napp.send(\"Server is down\")\n```\n\nWhat is wrong with this code?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "EmailNotifier does not inherit from Notifier"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The send method never calls a notifier at all"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "send() calls alert(), but EmailNotifier only has a notify() method, so this will throw an error"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "print() cannot be used inside a class method"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_IA0bSKC1mL.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/assignment/q07",
+   "category": "Assignment",
+   "title": "[Scenario]",
+   "question": "A photo editing app lets users choose between three ways to compress an image: high quality, balanced, or high compression. The user picks one option at a time, and the app runs only that one compression method. Which design idea best fits this situation?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Print the same message repeatedly"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Keep all compression logic in one long if-else chain"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Use a database table for every image"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Give each compression option its own class behind a shared interface, and let the app use whichever one the user picked"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_11CZSiYRsT.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/assignment/q08",
+   "category": "Assignment",
+   "title": "[Theory]",
+   "question": "Why is it usually a bad idea to check if type == \"x\" inside a class that's supposed to work with many different types generically?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It ties that class to knowing specific details it shouldn't need to know about, making it harder to add new types later"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It makes the code run faster"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It is required by every programming language"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It automatically creates new classes for you"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_KSRWxhSIq1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/assignment/q09",
+   "category": "Assignment",
+   "title": "[Code Output]",
+   "question": "```python\nclass Listener:\n    def update(self, value):\n        pass\n\nclass Printer(Listener):\n    def update(self, value):\n        print(f\"Got: {value}\")\n\nclass Doubler(Listener):\n    def update(self, value):\n        print(f\"Doubled: {value * 2}\")\n\nclass Source:\n    def __init__(self):\n        self.listeners = []\n\n    def add(self, listener):\n        self.listeners.append(listener)\n\n    def fire(self, value):\n        for l in self.listeners:\n            l.update(value)\n\nsource = Source()\nsource.add(Printer())\nsource.add(Doubler())\nsource.fire(5)\n```\n\nWhat does this code print?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Got: 5"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Doubled: 10"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Got: 5 followed by Doubled: 10"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Nothing, because fire() was never called correctly"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_zBt4xadGel.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-17/assignment/q10",
+   "category": "Assignment",
+   "title": "[Scenario].",
+   "question": "A news app lets many different screens (Home screen, Widget, Push Notification service) know whenever a new headline is published. The app doesn't need to know how many screens exist or what each one does with the headline — it just announces that a new headline arrived. What best describes this setup?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Each screen must edit the app's main publishing code to add itself"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "One publisher announces an event, and every interested party reacts on its own without the publisher knowing details about them"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The app must pick exactly one screen to update at a time"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The app needs a factory to create new headlines"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_yXbMJsfd61.png"
+   ]
+  }
+ ]
+}

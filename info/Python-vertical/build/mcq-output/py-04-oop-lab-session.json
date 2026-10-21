@@ -1,0 +1,545 @@
+{
+  "lessonSlug": "py-04-oop-lab-session",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-04/additional/q01",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "User is an ABC with abstract methods display_dashboard and can_borrow. Member implements both. PremiumMember(Member) adds a loyalty field but does NOT re-implement either abstract method. Can PremiumMember(\"X\", \"x@x\") be instantiated?",
+      "explanation": "**Answer: (a)** `Member` implemented both abstract methods, so `PremiumMember` inherits concrete versions and its abstract set is empty; it can be instantiated.\n\n- (b) only names that are still abstract must be implemented\n- (c) it already inherits the ABC machinery through Member\n- (d) super() is for extending behaviour, not for satisfying the contract\n\n**Deeper:** The abstract set is recomputed per class, so adding a new abstract method to `Member` later would break `PremiumMember` at instantiation. Keep ABC changes backward compatible or version them.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Yes — Member already satisfied the contract, and PremiumMember inherits those implementations",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "No — every subclass must re-implement all abstract methods directly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only if PremiumMember also inherits from ABC",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Only if PremiumMember calls super()",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/additional/q02",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "user_id is stored as self._user_id with only a @property getter (no setter). What happens when code runs member.user_id = \"NEW\"?",
+      "explanation": "**Answer: (c)** A `@property` without a setter is a read-only data descriptor, so assigning to it raises `AttributeError` (\"property 'user_id' ... has no setter\").\n\n- (a) the descriptor intercepts assignment\n- (b) ValueError would need a setter that validates\n- (d) a data descriptor takes precedence, so no instance attribute is created\n\n**Deeper:** This is convention-level protection: `member._user_id` is still reachable. For genuine immutability use a frozen dataclass or `__slots__` with a guarded `__setattr__`. In interviews, add that a property is a data descriptor, which is why it takes precedence over the instance dictionary and why assignment is intercepted.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Overwrites the ID silently",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "ValueError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "AttributeError — property has no setter, so assignment is blocked",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Creates a second attribute called user_id on the instance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Member.MAX_BORROW_LIMIT is a class attribute set to 5. At runtime, Member.MAX_BORROW_LIMIT = 2 is executed. What happens to an existing Member who checks can_borrow()?",
+      "explanation": "**Answer: (b)** `can_borrow` looks up `MAX_BORROW_LIMIT` on each call, finds it on the class, and so sees the new value 2 for every member that has no instance override.\n\n- (a) class attributes are read at call time, not frozen at creation\n- (c) class attributes can be reassigned freely\n- (d) existing instances share the class attribute, so they see it too\n\n**Deeper:** Beware of instance assignment (`m.MAX_BORROW_LIMIT = 9`) which shadows the class value for that one object, and of mutable class attributes shared by all instances. A common follow-up is the mutable default: a list as a class attribute is shared across every instance, so mutate through `self.items = []` in `__init__` instead.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Unaffected — the old value 5 is frozen at object creation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Now uses 2 — class attributes are shared and can_borrow reads Member.MAX_BORROW_LIMIT live at each call",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "AttributeError — constants can't be changed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Only new Member objects see 2",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A MagazineArchive has a borrow() method (meaning \"log a photocopy\"). lend_item checks isinstance(item, Borrowable) before calling borrow(). Does the archive pass the check?",
+      "explanation": "**Answer: (b)** `Borrowable` is an ABC, so `isinstance` is a nominal check; `MagazineArchive` never inherited from or registered with it, so the check fails despite the `borrow()` method.\n\n- (a) duck typing applies to calls, not to isinstance against an ABC\n- (c) nothing in the statement makes Borrowable a Protocol\n- (d) isinstance simply returns False, with no exception\n\n**Deeper:** Nominal checks protect actions with side effects, like lending, from objects that merely share a method name. Use a Protocol when a shape match is the correct standard, as for searching. Remember `ABC.register` makes a class a virtual subclass without inheritance, a deliberate escape hatch for classes you cannot edit.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Yes — duck typing checks methods",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "No — Borrowable is an ABC; isinstance checks inheritance, and MagazineArchive never inherited from Borrowable",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Yes — Borrowable is a Protocol",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises NotImplementedError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Searchable is a @runtime_checkable Protocol. A third-party JournalDB class (uneditable) has matches(query) -> bool. Does isinstance(JournalDB(), Searchable) return True?",
+      "explanation": "**Answer: (c)** A `@runtime_checkable` Protocol checks that the required member names exist. `JournalDB` has `matches`, so `isinstance` returns `True` without any inheritance.\n\n- (a) protocols are structural by design\n- (b) inheritance is optional for protocols\n- (d) the decorator is what permits isinstance to work\n\n**Deeper:** The check ignores signatures and return types, so keep a static type checker in the loop. This pattern lets third-party classes plug in without wrappers. A concrete example: pass the vendor client to `Library.search` and let your own `Book` classes inherit the ABC for lending.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No — Protocol also checks inheritance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Only if JournalDB explicitly inherits Searchable",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Yes — @runtime_checkable Protocol checks shape (structural typing); JournalDB has a matching matches method",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises TypeError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Loan.__init__ calls super().__init__() where Loan inherits from TimestampedMixin. TimestampedMixin.__init__ also calls super().__init__(**kwargs). What determines the order of these calls?",
+      "explanation": "**Answer: (b)** `super()` resolves to the next class in the MRO of the instance's type, so the call order is decided by the linearization, not by the file layout or the name.\n\n- (a) names play no part in resolution\n- (c) source position is irrelevant once classes exist\n- (d) the algorithm (C3) is deterministic\n\n**Deeper:** Print `Loan.__mro__` when debugging initialisation order. Mixins must forward `*args, **kwargs` to keep the chain intact. The same rule explains why `super().__init__()` in `Loan` may call a mixin's `__init__` before reaching `object`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Alphabetical order of parent class names",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The MRO (Method Resolution Order) — super() means \"next in the MRO,\" not \"my parent\"",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The order they appear in the source file",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Python picks randomly",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Library defines __contains__(self, isbn) checking against internal _books. What does \"N-1\" in lib do under the hood?",
+      "explanation": "**Answer: (c)** `\"N-1\" in lib` compiles to `type(lib).__contains__(lib, \"N-1\")`, and the implementation scans the stored books comparing ISBNs.\n\n- (a) `in` never looks in `__dict__`\n- (b) `__getitem__` is only a legacy fallback when `__contains__` and `__iter__` are missing\n- (d) `in` works with any class that defines the method\n\n**Deeper:** This is linear in the number of books; keep a dict keyed by ISBN if membership is hot. Note the oddity of `__contains__` taking an ISBN while iteration yields books. The same dispatch applies to `len(lib)` via `__len__` and iteration via `__iter__`, so a small set of dunders makes a domain class feel built-in.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Searches lib.__dict__ for a key \"N-1\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Calls lib.__getitem__(\"N-1\")",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Calls lib.__contains__(\"N-1\"), which iterates _books checking isbn matches",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises TypeError — in only works with built-in types",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In the code review, Design A has Book.borrow(member) owning lending logic. Design B has Library.lend(member, book) owning it. Which statement best captures the trade-off?",
+      "explanation": "**Answer: (d)** Behaviour on the entity keeps data and rules together but spreads policy across classes; a central service gives one place for policy but can become a god object.\n\n- (a) neither design is always better\n- (b) simplicity is not the only criterion; coupling matters\n- (c) the two designs distribute responsibilities differently\n\n**Deeper:** A balanced answer: entities expose small intention-revealing methods, and a service owns rules that span entities and raises domain exceptions. In a design round, say which you picked and why, and name the failure mode you accepted, since that shows you can reason about trade-offs.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Design A is always better because it follows OOP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Design B is always better because it's simpler",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "There is no meaningful difference",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Design A keeps behaviour with its data (encapsulation) but spreads policy across classes; Design B centralizes policy but risks the Library becoming a god object reaching into internals",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Book.__eq__ compares by isbn. Two books with different titles but same isbn are added to a set. How many entries does the set contain?",
+      "explanation": "**Answer: (a)** With `__eq__` and a matching `__hash__` over the ISBN, both books map to the same bucket and compare equal, so the set keeps one entry.\n\n- (b) titles are not part of equality here\n- (c) sets accept hashable objects\n- (d) insertion order does not change which objects are equal\n\n**Deeper:** The set keeps whichever object was inserted first. Without a matching `__hash__` the first insertion would instead raise `TypeError: unhashable type`. Equal books collapsing in a set is exactly what makes ISBN a good identity; titles and timestamps are attributes, not identity.",
+      "reviewFlag": "The stem does not say __hash__ is defined; (a) is chosen because it assumes hash is also by isbn, as the option itself states, and the other options are clearly wrong.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "1 — __eq__ says they're equal, __hash__ (also by isbn) puts them on the same shelf, so the set deduplicates",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "2 — different titles means different objects",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "0 — the set rejects both",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Depends on insertion order",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Library defines __getitem__ delegating to self._books[index] but writes NO slicing logic. A user runs lib[:2]. What happens?",
+      "explanation": "**Answer: (b)** Slicing passes a `slice` object to `__getitem__`; delegating to a list handles it, so `lib[:2]` returns the first two books.\n\n- (a) Python 3 has no __slice__ method\n- (c) a slice returns a value\n- (d) a slice of two items returns two items\n\n**Deeper:** The result is a plain list. If callers expect a `Library`, handle `isinstance(index, slice)` and build a new library from the sliced list. Slicing also covers `lib[::-1]` and `lib[1:3]` with no extra code, which is a good reason to delegate to the built-in list.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "TypeError — slicing requires a separate __slice__ method",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Works correctly — the slice is passed through to the internal list, which already handles slicing",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Returns None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Returns only the first element",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/assignment/q01",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "The User class is an ABC with two abstract methods: display_dashboard and can_borrow. A developer creates class Volunteer(User) implementing only display_dashboard, then runs v = Volunteer(\"Priya\", \"p@x.com\"). What happens, and which OOP concept is enforcing this?",
+      "explanation": "**Answer: (b)** `Volunteer` leaves `can_borrow` abstract, so `Volunteer(...)` raises `TypeError`. The abstract-method check happens at instantiation and is enforced by `ABCMeta`.\n\n- (a) the check happens at creation, not at call time\n- (c) class definition succeeds\n- (d) Python never fills in a default body\n\n**Deeper:** This makes \"forgot to implement\" a loud failure during development. Pair it with a type checker to catch signature mismatches that the runtime check ignores. Interviewers often ask how this differs from raising `NotImplementedError` in a base method: that only fails when the method is called, possibly in production.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Object is created - Python only checks abstract methods when they're called",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "TypeError at instantiation - ABC (the licence-test rule) refuses to create an object until ALL abstract methods are implemented",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "SyntaxError at class definition time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Object is created with can_borrow returning None",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "User._id_counter is a class attribute incremented in User.__init__. Three users are created: two Members and one Librarian. What is User._id_counter after all three, and why does it work correctly despite being three different objects across two different subclasses?",
+      "explanation": "**Answer: (b)** `_id_counter` lives on `User` and each subclass constructor reaches `User.__init__` through `super()`, which increments the same class attribute, so three objects give 3.\n\n- (a) subclasses do not copy a class attribute unless they assign their own\n- (c) every constructor chain reaches User.__init__\n- (d) class attributes can be modified from methods\n\n**Deeper:** The code must write `User._id_counter += 1` (or use `itertools.count`). Writing `self._id_counter += 1` would create an instance attribute and leave the shared counter untouched. A thread-safe version would use `itertools.count` (atomic `next` in CPython) or a lock, and a multi-process deployment would use database sequences or UUIDs.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "1 — each subclass has its own counter",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "3 — it's a class attribute on User, shared by all subclasses; super().__init__() in each child routes to User.__init__, which increments the single shared counter",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "2 — Librarian doesn't increment it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "0 — class attributes can't be modified inside __init__",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "lend_item checks isinstance(item, Borrowable) before lending. A third-party AudioGuide class (you can't edit it) happens to have borrow, return_item, and is_borrowable methods with correct signatures. Will lend_item(AudioGuide(...), member) pass the check?",
+      "explanation": "**Answer: (a)** Against an ABC, `isinstance` checks declared inheritance (or registration). `AudioGuide` declares neither, so the check fails despite matching methods.\n\n- (b) method presence is irrelevant for a nominal check\n- (c) abstractmethod only enforces completeness on subclasses\n- (d) isinstance returns False and does not raise\n\n**Deeper:** If you cannot edit the class, either `Borrowable.register(AudioGuide)` it deliberately or wrap it in an adapter that inherits. This is the lesson's main design rule: use nominal typing for permissioned actions and structural typing for read-only capabilities.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No — Borrowable is an ABC, and isinstance against an ABC checks inheritance (nominal typing), not method presence; AudioGuide never inherited from Borrowable",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Yes — it has all the right methods",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Yes — @abstractmethod makes it structural",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises AttributeError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Searchable is defined as a @runtime_checkable Protocol requiring matches(query) -> bool. Book implements matches but does NOT inherit from Searchable. What does isinstance(Novel(\"N-1\",\"Dune\",\"Herbert\",\"SciFi\"), Searchable) return, and why does this differ from Q3?",
+      "explanation": "**Answer: (c)** A runtime-checkable Protocol is structural: it asks whether the object has a `matches` attribute. `Novel` does, so `isinstance` is `True` without inheritance, unlike the ABC in the previous question.\n\n- (a) protocols do not use inheritance for conformance\n- (b) isinstance works with runtime_checkable protocols\n- (d) explicit inheritance is optional for protocols\n\n**Deeper:** The difference between the two questions is the heart of this lesson: nominal contracts for what you control and lend, structural contracts for what you only read or search. A Protocol also documents the minimal surface a function needs, which keeps functions easy to test with simple fakes.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "False — Protocol also checks inheritance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Raises TypeError — Protocols can't be used with isinstance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "True — Protocol uses structural typing (checks shape, not lineage), so any object with a matching matches method satisfies it without inheriting",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "True only if Novel explicitly inherits Searchable",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Loan defines __eq__ (comparing by book.isbn + member.user_id) but a developer forgets __hash__. They create two Loan objects for the same member/book and run len({l1, l2}). What happens?",
+      "explanation": "**Answer: (d)** Defining `__eq__` without `__hash__` sets `__hash__` to `None`. Building the set calls `hash` on each loan and raises `TypeError: unhashable type: 'Loan'`.\n\n- (a) Python never generates a hash from __eq__\n- (b) the set cannot be built at all\n- (c) the TypeError happens before any length is computed\n\n**Deeper:** A frozen dataclass generates a consistent `__eq__`/`__hash__` pair. Otherwise define both over the same immutable fields. In interviews, mention that this is also true of dataclasses with `eq=True` and no `frozen`, which silently set `__hash__` to `None`, so choose `frozen=True` for value records used as set members.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Returns 1 — Python auto-generates __hash__ from __eq__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Returns 2 — duplicates aren't detected",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Returns 0",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "TypeError: unhashable type 'Loan' — defining __eq__ without __hash__ causes Python to set __hash__ = None, making the object unusable in sets",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Counter:\n    n = 0\n    def bump(self):\n        self.n += 1\n\nx = Counter()\nx.bump(); x.bump()\nprint(Counter.n, x.n)\n```\nWhat is printed?",
+      "explanation": "**Answer: (b)** `self.n += 1` reads `n` through the class (0), adds one, and assigns the result to a new **instance** attribute, so the class attribute stays 0 while the instance reaches 2.\n\n- (a) would require the augmented assignment to write back to the class\n- (c) reverses which object holds the value\n- (d) the instance attribute is incremented twice\n\n**Deeper:** To share a counter across all instances and subclasses, write `Counter.n += 1` (or `type(self)` if per-subclass counting is intended) or use `itertools.count`. This is the bug behind many \"my ID counter always returns 1\" reports.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "2 2",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "0 2",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "2 0",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "0 0",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A lending service checks `book.is_available` in Python, then sets it to `False`. Under load, two web workers lend the same physical copy to two members. Where should the fix live?",
+      "explanation": "**Answer: (a)** The race spans processes, so the invariant must be enforced where the shared state lives: a conditional `UPDATE ... WHERE available > 0` or a `SELECT ... FOR UPDATE` transaction makes the check-and-set atomic.\n\n- (b) a property validates one object in one process and cannot see another worker's copy\n- (c) a threading.Lock only protects threads inside a single process, not separate workers\n- (d) a stricter abstract method does not change the race on availability\n\n**Deeper:** In-process locks are still right for in-memory services (the reference assignment uses one), but a horizontally scaled API needs database-level guarantees plus an idempotency key for retries.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "In the persistence layer: an atomic conditional update (or row lock) so only one of the concurrent requests can change availability",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "In the Book class: make is_available a property so assignment is validated",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In Library.lend: wrap the check in a threading.Lock, which serialises all workers",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "In the Member class: add an @abstractmethod can_borrow so the check is stricter",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-04/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom abc import ABC, abstractmethod\n\nclass Base(ABC):\n    @abstractmethod\n    def a(self): ...\n    @abstractmethod\n    def b(self): ...\n\nclass Mid(Base):\n    def a(self): return 1\n\nclass Leaf(Mid):\n    def b(self): return 2\n\nprint(Leaf().a() + Leaf().b())\ntry:\n    Mid()\nexcept TypeError:\n    print(\"TypeError\")\n```\nWhat is the output?",
+      "explanation": "**Answer: (c)** `Leaf` implements `b` and inherits `a` from `Mid`, so its abstract set is empty and it prints `3`. `Mid` still lacks `b`, so `Mid()` raises `TypeError`.\n\n- (a) Leaf has no unimplemented abstract names\n- (b) Mid is still abstract, because b is unimplemented\n- (d) no attribute is accessed that does not exist\n\n**Deeper:** Each class in a hierarchy is checked independently, because the abstract set is rebuilt at every class creation, so intermediate classes can stay abstract by design. Use this to build partial base classes without tripping the check.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "TypeError at Leaf(); nothing printed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "3, then Mid() succeeds and nothing more is printed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "3, then TypeError",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "AttributeError",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

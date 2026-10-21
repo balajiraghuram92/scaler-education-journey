@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-45-fastapi-production",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-45/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Your LLM gateway needs (1) a request ID on every response, including 404s and error responses, and (2) tenant resolution that reads the API key, queries Postgres, and must be replaceable by a fake in tests. Which placement is most appropriate?",
+      "explanation": "**Answer: (d)** The request ID is a cross-cutting concern that must cover every response, including unmatched routes and errors, so middleware fits; a pure ASGI implementation avoids `BaseHTTPMiddleware` pitfalls. Tenant resolution needs typed request data, a database session and test overrides, which is exactly what dependencies provide.\n\n- (a) Wrong: middleware cannot use `dependency_overrides`, and hiding database access in middleware makes testing and per-route control hard.\n- (b) Wrong: a dependency only runs for matched routes, so 404s and some error paths would lack the ID.\n- (c) Wrong: this reverses the strengths of each mechanism.\n\n**Deeper:** The decision rule to state in interviews is: does it apply to every request and work on raw headers or bytes (middleware), or does it need parsed inputs, composition and overridability (dependency)? Add that middleware ordering matters because the last one added is outermost.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both as `@app.middleware(\"http\")` functions, since middleware is more powerful than dependencies.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Both as dependencies declared on every router.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Request ID as a dependency and tenant resolution as middleware.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Request ID as a pure ASGI middleware, and tenant resolution as a dependency.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A shutdown routine marks the service as draining, then waits up to a timeout for in-flight work. One request (`llm-call`) needs 0.2 seconds and started 0.05 seconds before shutdown began. Using the lesson's `Drainer` and calling `scenario(0.05)`, what is printed?\n\n```python\nasyncio.run(scenario(0.05))\n```",
+      "explanation": "**Answer: (b)** The call needs another 0.15 seconds but the drain budget is only 0.05, so `wait_for` times out and `drained_cleanly` is `False`. New work is refused while draining, and the slow task is cancelled.\n\n- (a) Wrong: that is the 1.0-second timeout outcome, where the request finishes inside the grace period.\n- (c) Wrong: requests that arrive after draining begins get the 503 response, not a 200.\n- (d) Wrong: a timeout cannot report a clean drain.\n\nOutput verified by running the lesson snippet with this timeout.\n\n**Deeper:** This is the deploy story in miniature: if the grace period is shorter than your slowest legitimate request, those requests die on every release. The fix is to align timeouts (server, orchestrator, load balancer) and move long LLM or embedding work to a resumable queue job.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`timeout=0.05: drained_cleanly=True; late-request: 503 shutting down` then `llm-call: 200`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`timeout=0.05: drained_cleanly=False; late-request: 503 shutting down` then `llm-call: cancelled`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`timeout=0.05: drained_cleanly=False; late-request: 200` then `llm-call: cancelled`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`timeout=0.05: drained_cleanly=True; late-request: 503 shutting down` then `llm-call: cancelled`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An endpoint raises an unexpected `KeyError` that no exception handler covers. What does the client see, and what is the right production behaviour?",
+      "explanation": "**Answer: (a)** Unhandled exceptions bubble to `ServerErrorMiddleware`, which returns a plain 500 and re-raises so the server logs the traceback. The client should get nothing sensitive; operators correlate by request ID.\n\n- (b) Wrong: exposing tracebacks leaks internals (paths, library versions, sometimes data) and is a security finding.\n- (c) Wrong: `422` is reserved for request validation failures.\n- (d) Wrong: the response is sent; the exception is re-raised for logging rather than swallowed.\n\nNote that this 500 is produced outside `CORSMiddleware`, so browsers report a CORS error for crashes.\n\n**Deeper:** Mature services map expected failures to problem+json via handlers and treat everything else as an incident: log with the request and trace IDs, return a generic body, and alert on the 5xx rate rather than on individual exceptions.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A generic `500 Internal Server Error` from Starlette's outermost error layer, while the server logs the traceback; return no stack trace to the client and log the request ID with the error.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The `KeyError` message and traceback in JSON, so developers can debug quickly.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A `422` response, because FastAPI converts every exception into a validation error.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The request hangs until the client times out, because unhandled exceptions are swallowed.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A team points the Kubernetes liveness probe at `/healthz`, which runs `SELECT 1` against Postgres. During a 90-second database failover, what happens?",
+      "explanation": "**Answer: (c)** A failing liveness probe makes the kubelet restart the container. If all pods depend on the same database, they all restart together, amplifying the incident.\n\n- (a) Wrong: liveness is evaluated for running pods continuously.\n- (b) Wrong: removal from endpoints is the effect of a failing readiness probe, not liveness.\n- (d) Wrong: probes keep running regardless of what is down.\n\nThe pattern is a trivial liveness endpoint (process responsive) and a readiness endpoint that checks hard dependencies with a short timeout.\n\n**Deeper:** Readiness failure sheds traffic without killing the process, so recovery is immediate once the dependency returns. Mention also `startupProbe` for slow boots such as model loading, so liveness does not kill pods before they finish starting.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing: liveness failures only matter for new pods.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Pods are removed from the Service endpoints but keep running, which is the desired behaviour.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Every pod fails liveness and is restarted, turning a database blip into a full restart storm with cold caches and reconnect floods; liveness should not check dependencies, readiness should.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Kubernetes pauses probes while the database is down.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An exception handler returns `JSONResponse(content=problem_body, status_code=409)` with fields `type`, `title`, `status`, `detail`. API clients that branch on `Content-Type: application/problem+json` treat the errors as unstructured. What is the fix?",
+      "explanation": "**Answer: (b)** `JSONResponse` defaults to `application/json`. RFC 9457 defines `application/problem+json`, and clients and gateways may key on it, so set `media_type` explicitly. The lesson's handler does this and the resulting responses were verified with `TestClient`.\n\n- (a) Wrong: problem documents carry any HTTP status; 409 is fine.\n- (c) Wrong: the media type is an HTTP header, not a JSON field.\n- (d) Wrong: they are different registered media types, although a `+json` type is parseable as JSON.\n\n**Deeper:** Pair the envelope with a stable machine-readable `type` URI per error class and keep `detail` free of user-supplied data. Override the validation and `HTTPException` handlers too so framework errors do not leak a second format.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Change `status_code` to 400, because problem documents require 400.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Pass `media_type=\"application/problem+json\"` to `JSONResponse` (or build the response with that content type) so the header matches the body format.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add a `Content-Type` header inside the JSON body.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing: `application/json` is the same media type as `application/problem+json`.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "After moving to Kubernetes, every deploy takes the full 30 seconds and in-flight requests fail even though uvicorn is configured with graceful shutdown. The Dockerfile ends with `CMD uvicorn app.main:app --host 0.0.0.0`. What is the most likely cause?",
+      "explanation": "**Answer: (d)** With shell-form `CMD`, Docker runs the command under `/bin/sh -c`. The shell is PID 1 and typically does not forward signals, so uvicorn never starts its graceful shutdown and is hard-killed after the grace period.\n\n- (a) Wrong: uvicorn handles `SIGTERM` and `SIGINT` by shutting down gracefully.\n- (b) Wrong: unbuffered output affects log flushing, not signal delivery.\n- (c) Wrong: image size has no bearing on termination.\n\nUsing exec form means uvicorn (or the gunicorn master) receives the signal directly.\n\n**Deeper:** Also align `--timeout-graceful-shutdown` with `terminationGracePeriodSeconds` and add a short `preStop` delay so the load balancer stops routing before the server stops accepting connections.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Uvicorn does not support `SIGTERM`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`PYTHONUNBUFFERED` must be set to receive signals.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The image is too large, so the pod takes 30 seconds to stop.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The shell form wraps the command in `/bin/sh -c`, so the shell is PID 1 and the `SIGTERM` is not forwarded to uvicorn; use exec form `CMD [\"uvicorn\", ...]`.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Uploads return `202`, but after each rolling deploy some documents never get embedded. Embedding runs through `BackgroundTasks.add_task(embed, document_id)`. Which redesign best fixes the root cause?",
+      "explanation": "**Answer: (a)** `BackgroundTasks` lives in the memory of the worker process, so a restart loses pending work and there is no retry or visibility. A durable queue persists the job and a separate worker with retries finishes it.\n\n- (b) Wrong: a longer grace period helps but does not cover crashes, OOM kills or tasks that outlive any grace period.\n- (c) Wrong: background tasks run after the response regardless of `def` or `async def`.\n- (d) Wrong: inline embedding ties up a request for long documents and still loses work if the client disconnects or the pod dies.\n\n**Deeper:** Idempotency is the other half: the job may run twice (retries, redelivery), so key it by document ID and make the handler safe to repeat. Add a status endpoint so clients can see `queued`, `running`, `done` or `failed`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Enqueue an idempotent job in a durable queue (arq, Celery or RQ) with a stable job ID, retries and a worker process, and let the API only record and enqueue.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Increase the pod's termination grace period so background tasks always finish.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Switch the endpoint to `async def` so background tasks run before the response.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Run the embedding inline in the request, which is always acceptable for LLM work.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A service loads a 2 GB embedding model at import time and runs `gunicorn -w 4`. Pods are OOM-killed under modest load on 6 GB nodes. What is the best reading of the problem and the most defensible fix?",
+      "explanation": "**Answer: (c)** Workers are separate processes; unless memory is explicitly shared (for example with copy-on-write after `--preload`, which Python's reference counting tends to defeat), each holds its own copy. Four copies of 2 GB exceed the node budget.\n\n- (a) Wrong: restarting each request would reload the model constantly and does not address the cause.\n- (b) Wrong: Python does not share heap objects between processes automatically.\n- (d) Wrong: threads inside a worker do not create sharing across workers, and the issue is duplicated process memory.\n\n**Deeper:** This is a typical FDE sizing question. State the arithmetic (workers times model size plus overhead), then give the options: fewer workers, a separate model server with batching, or memory-mapped weights where the library supports it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Gunicorn leaks memory; add `--max-requests 1` to restart workers after each request.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Python shares the model across workers automatically, so the leak must be in application code.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Each worker process holds its own copy of the model (about 8 GB total), so run one worker per container and scale replicas, or move the model behind a dedicated inference service shared by the API pods.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Add more event loop threads inside each worker to share the model.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Tracing is set up at import time in the gunicorn master with `--preload` and `BatchSpanProcessor`. In production, the spans from API workers never reach the collector, but a manual test in the master does. What is the likely cause and fix?",
+      "explanation": "**Answer: (b)** Threads are not copied across `fork`, so the processor's export thread exists only in the master. Workers create spans, but nothing is exporting them. Per-worker initialisation fixes it.\n\n- (a) Wrong: the collector has no notion of forked processes.\n- (c) Wrong: gunicorn is fully supported with correct initialisation.\n- (d) Wrong: a missing `service.name` yields an `unknown_service` resource, not dropped spans.\n\n**Deeper:** The same fork rule applies to database engines and HTTP clients created before forking. Create connections in lifespan, which runs inside each worker, and keep `--preload` only for read-only data you genuinely want shared.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The collector rejects spans from forked processes; configure it to accept them.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The batch exporter's background thread and connections do not survive `fork()` into the workers; initialise the SDK inside each worker (a `post_fork` hook or application lifespan).",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "OpenTelemetry cannot be used with gunicorn; switch to a different server.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Spans are dropped because `service.name` is missing; add it and everything works.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`/readyz` checks Postgres, Redis and the third-party LLM provider's health endpoint. During a provider outage, every pod becomes unready and the whole API returns 503, including endpoints that never call the provider. What is the best change?",
+      "explanation": "**Answer: (d)** Readiness should answer \"can this instance do useful work?\". A soft or external dependency outage should degrade the affected feature, not take the entire service out of rotation.\n\n- (a) Wrong: without readiness, traffic reaches pods that are not ready, for instance during startup.\n- (b) Wrong: liveness restarts make a dependency outage worse; restarting does not fix the provider.\n- (c) Wrong: tolerating more failures only delays the same all-pods-unready outcome.\n\n**Deeper:** Model each dependency as hard (required for any traffic) or soft (feature-specific), and expose soft-dependency state in metrics and a status page rather than in the probe. A circuit breaker around the provider call keeps failed calls cheap.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Remove the readiness probe entirely.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Move all three checks into the liveness probe so unhealthy pods restart.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Increase `failureThreshold` until the outage is over.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Make readiness check only dependencies the pod cannot serve without (for example Postgres), and handle the provider outage per request with timeouts, a circuit breaker and a clear degraded response.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this program print?\n\n```python\nimport asyncio, contextvars\nv = contextvars.ContextVar(\"rid\", default=\"-\")\n\nasync def child() -> None:\n    v.set(\"child\")\n\nasync def main() -> None:\n    v.set(\"parent\")\n    await asyncio.create_task(child())\n    print(v.get())\n    await child()\n    print(v.get())\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (a)** `asyncio.create_task` runs the coroutine in a copy of the current context, so the task's `set` is invisible to the parent. Awaiting the coroutine directly runs it in the same context, so its `set` changes the parent's value.\n\n- (b) Wrong: the first print happens after the task, whose change stayed in its own context copy.\n- (c) Wrong: the direct `await child()` shares the caller's context and overwrites the value.\n- (d) Wrong: the parent set `\"parent\"` before anything printed.\n\nOutput verified by running the snippet.\n\n**Deeper:** This explains request-ID logging behaviour: values set before spawning tasks propagate into them, but values set inside a spawned task do not flow back. It is also why code run via `run_in_threadpool` still sees the request ID: the context is copied into the thread.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`parent` then `child`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`child` then `child`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`parent` then `parent`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`-` then `-`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-45/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A pod runs `uvicorn --timeout-graceful-shutdown 60`, while the manifest keeps the Kubernetes default `terminationGracePeriodSeconds: 30`. Requests that take 45 seconds are cut off on every deploy. What is the correct fix?",
+      "explanation": "**Answer: (c)** After the grace period expires the kubelet sends `SIGKILL`, regardless of what uvicorn is configured to wait. The orchestrator's period must be longer than the server's drain timeout plus the `preStop` delay.\n\n- (a) Wrong: a longer server timeout without a longer pod grace period makes the mismatch worse; the pod is killed at 30 seconds.\n- (b) Wrong: the orchestrator does not wait indefinitely; it enforces the grace period.\n- (d) Wrong: keeping the pod in rotation sends it new requests while it is trying to stop.\n\n**Deeper:** Treat timeouts as a chain: client timeout, load balancer timeout, server drain timeout and pod grace period must be ordered consistently. Work that regularly exceeds the chain should become an asynchronous job with a status URL.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Raise the uvicorn timeout to 120 so requests have more time.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Remove `--timeout-graceful-shutdown`; the orchestrator will wait as long as needed.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Set `terminationGracePeriodSeconds` higher than the uvicorn timeout (for example 90), keep a short `preStop` delay for load balancer deregistration, and move genuinely long work to a queue.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Disable readiness probes so the pod is not removed from the Service during shutdown.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

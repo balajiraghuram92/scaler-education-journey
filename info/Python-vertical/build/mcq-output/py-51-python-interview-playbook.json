@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-51-python-interview-playbook",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-51/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nwords = [\"a\", \"bb\", \"ccc\"]\nvals = (len(w) for w in words)\nmean = sum(vals) / len(list(vals))\nprint(mean)\n```\n\nWhat happens?",
+      "explanation": "**Answer: (b)** A generator expression is single-pass. `sum(vals)` consumes it completely, so `list(vals)` is `[]` and the division is by zero. I ran it and got `ZeroDivisionError: division by zero`.\n\n- (a) is wrong: that would be the result if the values were re-iterable, such as a list.\n- (c) is wrong: `len(list(vals))` is evaluated after `sum(vals)` finished, so it is `0`, not `3`, and no `TypeError` occurs.\n- (d) is wrong: Python does not rewind generators or cache their values.\n\nMaterialise the values once (`vals = [len(w) for w in words]`) or use `statistics.fmean` on a list. In a streaming setting, accumulate the count and the total in one pass.\n\n**Deeper:** Exhausted-generator bugs are a classic reason \"the second call returns nothing\". Saying \"generators are lazy and single-pass\" unprompted is a good signal in the idioms part of an interview.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It prints `2.0`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It raises `ZeroDivisionError`, because `sum` exhausted the generator and `list(vals)` is empty.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "It prints `2.0`, because `len(list(vals))` is `3`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It raises `TypeError`, because a generator has no length.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nhandlers = {name: (lambda: name) for name in [\"a\", \"b\"]}\nprint(handlers[\"a\"](), handlers[\"b\"]())\n```\n\nWhat is printed, and what is the minimal fix?",
+      "explanation": "**Answer: (d)** Each lambda closes over the *variable* `name`, not its value at creation time. By the time the lambdas are called the comprehension has finished and `name` is `\"b\"`, so both return `b`: the output is `b b` (verified by running it). Bind the value at definition time with a default argument, `lambda name=name: name`, or use `functools.partial`.\n\n- (a) is wrong: it expects each lambda to remember its own loop value, which is what early binding would do.\n- (b) is wrong: it describes the reverse order; the last value wins, not the first.\n- (c) is wrong: the lambdas are valid; the comprehension has its own scope but closures still share one variable cell.\n\n**Deeper:** Late binding is why callbacks registered in a loop all fire with the final value. It is the same idea as the mutable default argument: state is captured at definition or by reference, not copied at call time.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`a b`; each lambda keeps its own value.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`a a`; the first value wins.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`NameError`; the comprehension variable is out of scope.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`b b`; closures capture the variable, so bind with `lambda name=name: name` or `functools.partial`.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nt = ([1], 2)\ntry:\n    t[0] += [5]\nexcept TypeError as e:\n    print(\"TypeError\")\nprint(t)\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (a)** `t[0] += [5]` first calls `list.__iadd__` on the inner list, which mutates it in place to `[1, 5]`, and then tries to assign the result back to `t[0]`. The tuple rejects the assignment, raising `TypeError`, but the mutation already happened. Output: `TypeError` then `([1, 5], 2)`. I verified this by running it.\n\n- (b) is wrong: it assumes the failed assignment rolled back the mutation, but Python has no such transaction.\n- (c) is wrong: it assumes the operation succeeds; tuples cannot be assigned to by index.\n- (d) is wrong: it expects no mutation and an unchanged tuple, which is what many candidates guess.\n\nUse `t[0].extend([5])` if you intend to mutate the inner list; it has no assignment step and raises nothing.\n\n**Deeper:** This is a favourite question because it combines immutability, augmented assignment and exception semantics in four lines.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`TypeError`, then `([1, 5], 2)`: the list was mutated before the assignment failed.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`TypeError`, then `([1], 2)`: the failed assignment rolled back the change.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Only `([1, 5], 2)`; no error is raised.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`([1], 2)` with no error.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You must de-duplicate one million document ids while keeping first-seen order. Which solution is both correct and `O(n)` on average?",
+      "explanation": "**Answer: (c)** `list(dict.fromkeys(ids))` builds a dict keyed by id; dicts keep insertion order (guaranteed since 3.7) and ignore repeated keys, so the first occurrence's position is kept. It is average `O(n)`. For `xs = [3, 1, 3, 2, 1]` it gives `[3, 1, 2]`.\n\n- (a) is wrong: `list(set(ids))` is `O(n)` but loses the order, which the requirement forbids.\n- (b) is wrong: `if x not in out_list: out_list.append(x)` is correct but each `in` check scans a list, making it `O(n^2)`; for a million ids that is on the order of a trillion comparisons.\n- (d) is wrong: `sorted(set(ids))` returns a sorted order, not first-seen order, and costs `O(n log n)`.\n\n**Deeper:** Naming the hidden quadratic (list membership in a loop) and fixing it with a hash-based structure is the most common complexity discussion in Python interviews.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`list(set(ids))`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "A loop that appends `x` to an output list only `if x not in out_list`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`list(dict.fromkeys(ids))`", "isCorrect": true },
+        { "optionKey": "d", "optionText": "`sorted(set(ids))`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nrows = [(\"b\", 1), (\"a\", 1), (\"c\", 2), (\"d\", 2)]\nrows.sort(key=lambda r: r[0])\nrows.sort(key=lambda r: r[1], reverse=True)\nprint(rows)\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (c)** Python's sort is stable, so sorting first by the secondary key (name) and then by the primary key (score) gives a result ordered by primary key with ties in secondary order. `reverse=True` also preserves the original order of equal elements, so the final order is `[('c', 2), ('d', 2), ('a', 1), ('b', 1)]` (verified by running it).\n\n- (a) is wrong: it keeps the input order and ignores the sorts.\n- (b) is wrong: it reverses ties as well (`d` before `c`, `b` before `a`), which would happen if you reversed the already sorted list instead of using `reverse=True`.\n- (d) is wrong: it sorts by name only, as though the second sort had no effect.\n\nThe cleaner single pass is `rows.sort(key=lambda r: (-r[1], r[0]))`; the two-pass trick is useful when keys cannot be negated, such as strings that must sort descending.\n\n**Deeper:** Stability is what makes multi-pass sorting work. Interviewers ask this to see whether you know sorted() is Timsort and stable.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[('b', 1), ('a', 1), ('c', 2), ('d', 2)]`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`[('d', 2), ('c', 2), ('b', 1), ('a', 1)]`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`[('c', 2), ('d', 2), ('a', 1), ('b', 1)]`", "isCorrect": true },
+        { "optionKey": "d", "optionText": "`[('a', 1), ('b', 1), ('c', 2), ('d', 2)]`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom collections import OrderedDict\nd1 = {\"a\": 1, \"b\": 2}\nd2 = {\"b\": 2, \"a\": 1}\nprint(d1 == d2, OrderedDict(d1) == OrderedDict(d2), OrderedDict(d1) == d2)\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (a)** Regular dict equality ignores order, so `d1 == d2` is `True`. Two `OrderedDict`s compare equal only if they also have the same key order, so `OrderedDict(d1) == OrderedDict(d2)` is `False`. Comparing an `OrderedDict` with a plain dict falls back to order-insensitive comparison, so the third is `True`. Output: `True False True` (verified).\n\n- (b) is wrong: it assumes every comparison is order-insensitive.\n- (c) is wrong: it assumes plain dict equality is order-sensitive since 3.7 because dicts are ordered; ordering is guaranteed, but equality was not changed.\n- (d) is wrong: it makes the mixed comparison order-sensitive, which Python does not do.\n\n**Deeper:** \"Dicts are ordered\" and \"dict equality ignores order\" are both true. A good answer keeps them separate, and mentions `OrderedDict` only for order-sensitive equality or `move_to_end` (for example an LRU cache).",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`True False True`", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`True True True`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`False False False`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`True False False`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nerr = \"keep\"\ntry:\n    1 / 0\nexcept ZeroDivisionError as err:\n    pass\nprint(err)\n```\n\nWhat happens?",
+      "explanation": "**Answer: (d)** At the end of an `except ... as name:` block Python deletes `name` (to avoid reference cycles with the traceback). That removes the earlier binding of `err` as well, so the later `print(err)` raises `NameError: name 'err' is not defined`. I ran it and got exactly that.\n\n- (a) is wrong: it expects the original `\"keep\"` to be restored; Python does not restore it.\n- (b) is wrong: the exception object is explicitly deleted at the end of the block.\n- (c) is wrong: `print` outputs nothing wrong; the error occurs because the name no longer exists.\n\nIf you need the exception after the block, assign it to another name inside it (`saved = err`).\n\n**Deeper:** This is one of the few places where Python deletes a local name implicitly. It shows up in real code that logs the error after cleanup, and is a favourite \"gotcha\" question.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It prints `keep`; the old binding is restored after the block.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It prints `division by zero`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It prints `None`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It raises `NameError`, because `err` is deleted when the `except` block ends.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom decimal import Decimal\nprint(Decimal(0.1) + Decimal(0.2) == Decimal(\"0.3\"),\n      Decimal(\"0.1\") + Decimal(\"0.2\") == Decimal(\"0.3\"))\n```\n\nWhat is printed, and what does it say about money code?",
+      "explanation": "**Answer: (b)** `Decimal(0.1)` converts the *float* `0.1`, which is already the binary approximation, so the Decimal carries that error and the sum is not equal to `Decimal(\"0.3\")`. Constructing from strings keeps the exact decimal value, so the second comparison is `True`. Output: `False True` (verified).\n\n- (a) is wrong: it assumes any `Decimal` is exact regardless of how it was built.\n- (c) is wrong: it assumes decimal arithmetic is inexact in general; exactness depends on constructing from exact inputs.\n- (d) is wrong: it expects both comparisons to fail, but string construction is exact.\n\nRule for money: store integer minor units (cents) or `Decimal` built from strings, never floats, and round explicitly with a defined rounding mode.\n\n**Deeper:** This extends the `0.1 + 0.2 != 0.3` trap: switching to `Decimal` is not enough if the inputs came from floats. Say that in an interview and you pass the follow-up before it is asked.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`True True`; `Decimal` is always exact.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`False True`; building a `Decimal` from a float keeps the float's error, so construct from strings (or use integer cents).", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`True False`; decimal arithmetic is inexact.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`False False`; `Decimal` cannot represent 0.3.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n@dataclass\nclass P:\n    x: int\n\n@dataclass(frozen=True)\nclass Q:\n    x: int\n\nseen = {P(1)}          # (1)\nseen2 = {Q(1), Q(1)}   # (2)\n```\n\nWhat happens at (1) and (2)?",
+      "explanation": "**Answer: (c)** A default `@dataclass` generates `__eq__` and, because instances are mutable, sets `__hash__` to `None`, so `P` is unhashable and (1) raises `TypeError: unhashable type: 'P'`. With `frozen=True` (and `eq=True`) the dataclass generates a `__hash__` from the fields, so (2) works, and the two equal `Q(1)` instances collapse into one element. I verified both behaviours.\n\n- (a) is wrong: it assumes every dataclass is hashable.\n- (b) is wrong: it reverses the two cases.\n- (d) is wrong: both being unhashable would contradict the frozen dataclass behaviour.\n\nThe general rule behind it: defining `__eq__` without `__hash__` makes a class unhashable, and hashable objects must not change while in a set or dict key. Use `frozen=True` or `unsafe_hash=True` knowingly.\n\n**Deeper:** Expect the follow-up \"why does Python do that?\" The answer is the hash/equality contract: equal objects must have equal hashes, and a mutable object cannot keep a stable hash.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Both lines work; dataclasses are always hashable.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "(1) works and (2) raises `TypeError`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "(1) raises `TypeError: unhashable type`, and (2) works and yields a set of one element.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "Both lines raise `TypeError`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "The interviewer asks for the 10 most frequent items from a stream of billions of events that does not fit in memory, where the number of distinct items fits in memory. Which approach best demonstrates senior-level reasoning?",
+      "explanation": "**Answer: (a)** If the distinct items fit in memory, one pass maintaining a `Counter` is `O(n)` time and `O(d)` space (d distinct items), then `heapq.nlargest(10, counter.items(), key=...)` selects the top 10 in `O(d log 10)`. State the assumption, mention that exact counting needs `O(d)` memory, and offer a bounded-memory alternative (count-min sketch plus heap, or Misra-Gries) if distinct items do not fit.\n\n- (b) is wrong: loading everything into a list and sorting needs `O(n)` memory, which violates the premise.\n- (c) is wrong: `sorted(...)[:10]` on the full counter is correct but wasteful (`O(d log d)`), and does not address streaming.\n- (d) is wrong: sampling gives approximate answers without saying so and can miss heavy hitters; it should be offered only with explicit accuracy trade-offs.\n\n**Deeper:** The interview signal is stating assumptions, giving complexity for both time and space, and naming the next step when the assumption breaks, not just writing code.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Stream once into a `Counter`, select the top 10 with `heapq.nlargest`, and state the `O(d)` memory assumption plus a sketch-based fallback.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "Read all events into a list and call `sorted`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Build the `Counter`, then fully sort all distinct items and slice the first 10 without discussing complexity.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Take a random 1% sample and report its top 10 as the exact answer.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Fifteen minutes in, you have an `O(n^2)` solution that works. The interviewer says only: \"Can we do better?\" What is the strongest next move?",
+      "explanation": "**Answer: (d)** Identify the bottleneck (the inner scan is a membership or lookup), say which data structure removes it (a hash set or dict gives average `O(1)` lookups), state the new time and space complexity and the trade-off, confirm the approach with the interviewer, then change the code and re-run your examples. This shows structured reasoning and keeps the working solution as a baseline.\n\n- (a) is wrong: silently rewriting loses the narrative and risks breaking a correct solution.\n- (b) is wrong: claiming it cannot be improved without analysis signals weak complexity skills; at least explain why a lower bound applies.\n- (c) is wrong: deferring to \"production would use a library\" dodges the question the interviewer is asking.\n\nAlso mention what the faster version costs: extra memory, hash-collision worst cases, and ordering requirements.\n\n**Deeper:** \"Can we do better?\" is a prompt to demonstrate process. The final code matters less than your ability to locate the cost and justify the change.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Delete the solution and start a different one without comment.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Say it cannot be improved and move on.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Say that in production you would use a library for this.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Name the bottleneck, propose the hash-based fix with its complexity and memory cost, confirm, then implement and re-trace your examples.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-51/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n@lru_cache(maxsize=None)\ndef embed(text: str, tags: list[str]) -> list[float]:\n    ...\n\nembed(\"hello\", [\"greeting\"])\n```\n\nWhat is wrong with this code?",
+      "explanation": "**Answer: (b)** `lru_cache` builds its cache key from the call arguments, so every argument must be hashable. A `list` is not, so the call raises `TypeError: unhashable type: 'list'` (verified). Use a tuple for `tags`, or a frozenset if order does not matter. Also, `maxsize=None` means the cache never evicts, so with unbounded distinct inputs memory grows without limit; choose a finite `maxsize` for a long-running service.\n\n- (a) is wrong: caching functions that return lists is allowed, but note callers share the same returned list object, so mutating it corrupts the cache.\n- (c) is wrong: `lru_cache` works fine on plain functions; no class is required.\n- (d) is wrong: it does not need to be `async`; and plain `lru_cache` on an `async def` would cache the coroutine object, a different bug.\n\n**Deeper:** Caching bugs (unhashable arguments, unbounded growth, shared mutable results, caching methods that keep `self` alive) are common review findings in LLM and embedding code.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Functions that return a list cannot be cached.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The `list` argument is unhashable, so the call raises `TypeError`; pass a tuple, and use a finite `maxsize` for long-running services.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`lru_cache` can only decorate methods of a class.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`lru_cache` requires the function to be `async def`.", "isCorrect": false }
+      ]
+    }
+  ]
+}

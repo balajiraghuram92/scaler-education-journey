@@ -1,0 +1,625 @@
+{
+  "lessonSlug": "py-06-executors-futures",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-06/additional/q01",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which is the best use case for ProcessPoolExecutor over ThreadPoolExecutor?",
+      "explanation": "**Answer: (c)** Heavy numerical computation on independent datasets is CPU-bound, and separate processes each get their own GIL, so the work really runs in parallel.\n\n- (a) Waiting on API calls and sleeps is I/O-bound; threads overlap the waiting for free.\n- (b) Disk reads release the GIL during the system call, so threads are enough.\n- (d) Fetching web pages is network wait time, again a thread job.\n\n**Deeper:** The deciding question is \"what resource is saturated?\". A process pool pays for pickling, IPC and interpreter start-up, so it only wins when the computation per task is large relative to the data you ship. In interviews, mention that NumPy or C extensions that release the GIL can blur this boundary.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Waiting on 5 API calls with sleep/network delay",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Reading multiple files from disk",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Performing heavy numerical computation on 4 independent large datasets",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Fetching 10 web pages concurrently",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/additional/q02",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why doesn't ProcessPoolExecutor speed up an I/O-bound task like web scraping, compared to ThreadPoolExecutor?",
+      "explanation": "**Answer: (d)** I/O-bound work spends its time waiting, so there is no computation for extra cores to speed up, and processes add start-up and serialisation overhead.\n\n- (a) `ProcessPoolExecutor` supports `.map()` and even accepts `chunksize`.\n- (b) The GIL does not block network calls; it is released while a thread waits on a socket.\n- (c) Processes can make network requests perfectly well.\n\n**Deeper:** Choosing a process pool for I/O work is not just useless, it is actively worse: more memory, slower start, pickled results, and a much lower practical concurrency ceiling than hundreds of cheap threads or an asyncio loop. Seniors justify the executor by naming the bottleneck first.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "ProcessPoolExecutor doesn't support .map()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The GIL blocks all network calls in processes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Processes cannot perform network requests",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "There's no computation to parallelize — the bottleneck is waiting, and processes add extra startup/communication overhead for no benefit",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "True or False: Using ThreadPoolExecutor automatically protects shared variables from race conditions (like counter += 1 from multiple threads).",
+      "explanation": "**Answer: (b)** An executor schedules calls and collects results; it adds no mutual exclusion around the data those calls touch.\n\n- (a) Nothing serialises writes. `counter += 1` is a load, add and store, and threads can interleave between those steps.\n\n**Deeper:** The best fix is often to avoid shared state entirely: have each task return a partial result and reduce in the caller after `result()`. When shared mutation is unavoidable, use a `Lock`, or `queue.Queue` for hand-off. Interviewers use this question to check you do not confuse \"thread pool\" with \"thread-safe\". On free-threaded builds the same reasoning applies even more strongly.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "True — executors serialize all writes automatically",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "False — executors only manage task launching/collection; shared-state protection still needs tools like Lock",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is results, and in what order, once this finishes?\n```python\nimport time\nfrom concurrent.futures import ThreadPoolExecutor\n\ndef work(n):\n    time.sleep(n)\n    return n\n\nwith ThreadPoolExecutor(max_workers=3) as executor:\n    results = list(executor.map(work, [3, 1, 2]))\nprint(results)\n```",
+      "explanation": "**Answer: (d)** `executor.map` yields results in the order of the input iterable, whatever order the tasks finish in.\n\n- (a) Nothing times out; no timeout is passed and all three sleeps are short.\n- (b) The order is deterministic, not random.\n- (c) Completion order is what `as_completed` gives, not `map`.\n\nAll three tasks run concurrently, so the total time is about 3 seconds, and the list is printed as `[3, 1, 2]`. The consumer simply waits for the first item (the slowest) before seeing the others.\n\n**Deeper:** Head-of-line blocking is the cost of ordered output. If you want to stream results as they land, use `submit` plus `as_completed` and carry an index or a future-to-input dict to reassemble order yourself.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Raises a TimeoutError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "[2, 1, 3] — random order",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "[1, 2, 3] — sorted by finish time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "[3, 1, 2] — same order as input list",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A student benchmarks CPU-heavy work and is confused why threads didn't help. Identify the flaw in their reasoning.\n\n```python\ndef cpu_heavy(n):\n    return sum(i * i for i in range(n))\n\nwith ThreadPoolExecutor(max_workers=4) as executor:\n    list(executor.map(cpu_heavy, [50_000_000] * 4))\n```\n\n\"I used 4 workers for 4 tasks, so this should be 4x faster than sequential.\"",
+      "explanation": "**Answer: (d)** The work is CPU-bound pure Python, and the GIL lets only one thread execute bytecode at a time, so four threads take roughly as long as running sequentially, often longer due to switching.\n\n- (a) Lowering workers to 1 does not fix performance; it only removes concurrency.\n- (b) `map` accepts any picklable or plain arguments.\n- (c) The code is syntactically valid.\n\n**Deeper:** Switch to `ProcessPoolExecutor` (sized to cores), or move the hot loop into a C extension that releases the GIL, or test a free-threaded build. Always benchmark with realistic input sizes, because process start-up and pickling dominate for tiny tasks.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "max_workers=4 should be max_workers=1 for correctness",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "executor.map doesn't support functions with numeric arguments",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The code has a syntax error, so it never runs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This is CPU-bound work; the GIL means only one thread executes Python bytecode at a time, so threads don't overlap computation — ProcessPoolExecutor is needed instead",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You're processing 4 large video files, applying a CPU-intensive filter to each, independently. Which is the better choice and why?",
+      "explanation": "**Answer: (d)** A CPU-intensive filter per video is parallelisable computation, and separate processes each have their own GIL, so they can use separate cores.\n\n- (a) The performance is not identical; threads would be serialised by the GIL for pure Python filters.\n- (b) Video filtering is compute-bound; only reading the file is I/O.\n- (c) Independent files are exactly the case where parallelism helps.\n\n**Deeper:** Pass file paths rather than frames to workers, so only small arguments cross the pickle boundary. Note the nuance: if the filter is implemented in OpenCV or NumPy, those libraries often release the GIL, and threads can work too. Say that in an interview to show you measure instead of assuming.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Doesn't matter, both give identical performance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "ThreadPoolExecutor — video processing is I/O-bound",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Neither — must be done sequentially",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "ProcessPoolExecutor — CPU-bound work benefits from separate GILs per process, allowing true parallel computation across cores",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You submit 10 tasks to a ThreadPoolExecutor(max_workers=3). At any given instant, what is the maximum number of tasks actually running concurrently?",
+      "explanation": "**Answer: (c)** `max_workers=3` means three worker threads, so at most three tasks execute at once and the other seven wait in the queue.\n\n- (a) The cap does not depend on task type; the pool size is the limit.\n- (b) The GIL limits bytecode execution, but threads blocked in I/O or sleeping still count as running tasks.\n- (d) Ten would require ten workers.\n\n**Deeper:** The queue in front of the workers is unbounded, so submitting a million tasks never blocks the producer. Size the pool to the downstream limit (provider rate, DB connections) and add a semaphore around `submit` if you need real backpressure.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Depends on task type",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "1 (due to the GIL)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "3",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "10",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You have a ThreadPoolExecutor task that sometimes throws an exception. You use executor.map() instead of submit() + individual futures. What happens when you iterate over the results and one task failed?",
+      "explanation": "**Answer: (d)** The exception is stored on the underlying future and re-raised when the `map` iterator reaches that item.\n\n- (a) `map` can and does raise; it just delays the raise until iteration.\n- (b) Failed tasks are not skipped.\n- (c) No `None` is substituted; the error is not swallowed.\n\nAfter the exception propagates out of the generator it is finished, and the remaining pending futures are cancelled, so you cannot simply continue the loop even with a `try` inside the loop body. Catching it around the whole loop or iterating over futures yourself lets you control this.\n\n**Deeper:** For partial-failure tolerance use `submit` plus `as_completed` or `result()` per future. This is a classic interview probe on error-handling design in fan-out code.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "map() cannot raise exceptions, only submit() can",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "map() skips the failed task and continues with the rest",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The failed task's result is silently None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The exception is raised at the point of iteration when you reach that failed task's result, potentially stopping your loop from processing remaining results unless wrapped in try/except",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does executor.submit(fn, arg) return?",
+      "explanation": "**Answer: (d)** `submit` returns immediately with a `Future`, a handle for the pending, running or finished call.\n\n- (a) It returns a `Future`, not `None`; the future is what becomes done later.\n- (b) The result is only available via `future.result()`, which blocks until it exists.\n- (c) The thread is internal to the pool and is not exposed.\n\n**Deeper:** Because the call is decoupled from its result, you can submit many tasks, then collect them in any order, attach callbacks, set timeouts and cancel pending work. That decoupling is the main thing raw `Thread` objects lack.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "None, until the task finishes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The result of fn(arg) directly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A new thread object",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A Future object representing work in progress",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which statement about .done() and .result() is correct?",
+      "explanation": "**Answer: (a)** `done()` is a non-blocking status check, while `result()` blocks until the task finishes (or a timeout fires).\n\n- (b) Only `result()` and `exception()` block; `done()` returns instantly.\n- (c) It is the reverse of reality.\n- (d) `done()` returns a boolean, but `result()` returns the value or raises the stored exception.\n\n**Deeper:** Never poll `done()` in a tight loop, because that burns CPU for nothing; use `wait`, `as_completed` or callbacks instead. And remember that `done()` is `True` for failed and cancelled futures too, so it says nothing about whether the task succeeded.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": ".done() never blocks; .result() blocks until the result is available",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Both block until the task finishes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": ".done() blocks; .result() never blocks",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Both return True/False depending on task status",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A raw threading.Thread's target function raises an exception. What happens?",
+      "explanation": "**Answer: (b)** In a raw thread the traceback is printed by `threading.excepthook`, the thread ends, and the parent has no handle through which to observe the failure.\n\n- (a) There is no automatic retry.\n- (c) The program keeps running; only that thread dies.\n- (d) Exceptions never propagate across threads on their own; `join()` returns normally.\n\n**Deeper:** This is why futures exist: they capture the exception and re-raise it in the thread that calls `result()`. With raw threads you must catch inside the target and push the error onto a queue or a shared structure, or install a custom `threading.excepthook` for logging and metrics.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The thread silently retries the function",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The exception prints to the terminal but the main thread has no way to catch or react to it",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The program crashes immediately",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The exception propagates to the main thread automatically",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "How does a Future handle an exception raised inside the worker function?",
+      "explanation": "**Answer: (d)** The worker catches the exception, stores it on the future, and `result()` raises it, with the original traceback attached.\n\n- (a) It is not ignored; calling `result()` or `exception()` surfaces it.\n- (b) The executor keeps running and serves other tasks.\n- (c) Nothing is logged automatically and `None` is never substituted.\n\n**Deeper:** The trap is a future nobody ever inspects: the error then vanishes silently, and the first symptom is missing data downstream. In services, keep the futures, or attach `add_done_callback` that logs `fut.exception()`, so fire-and-forget work still reports failures to your monitoring.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It ignores the exception completely",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It crashes the executor immediately",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It logs the exception and returns None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It stores the exception and re-raises it when .result() is called",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What guarantee does executor.map(fn, iterable) give you about result order?",
+      "explanation": "**Answer: (c)** `map` yields results in input order, regardless of finish order.\n\n- (a) All results are returned, not only the first.\n- (b) The order is well defined.\n- (d) Finish-order delivery is what `as_completed` provides.\n\n**Deeper:** Ordered delivery means one slow early item delays everything behind it, though later tasks still run concurrently in the background and finish in their own time. If an exception occurs, it surfaces only when you reach that position in the sequence. Pick `map` for simple all-or-nothing batches and `as_completed` when latency or partial success matters.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Only the first completed result is returned",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Order is undefined/random",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Results come back in the same order as the input iterable, regardless of finish order",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Results come back in the order tasks finish",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will this print?\n\n```python\nfrom concurrent.futures import ThreadPoolExecutor\nimport time\n\ndef task():\n    time.sleep(2)\n    return \"done\"\n\nwith ThreadPoolExecutor(max_workers=1) as executor:\n    future = executor.submit(task)\n    print(future.done())\n```",
+      "explanation": "**Answer: (d)** `submit` returns at once, while the task is still sleeping for two seconds, so `done()` is `False` at the print.\n\n- (a) The string `\"done\"` is the task's return value and is never printed.\n- (b) Nothing raises.\n- (c) `True` would only be printed after the `with` block exits, because `shutdown(wait=True)` waits for the task.\n\n```python\nwith ThreadPoolExecutor(max_workers=1) as ex:\n    f = ex.submit(task)\n    print(f.done())   # False\nprint(f.done())       # True\n```\n\n**Deeper:** The context manager's implicit join is what makes executors safe to use, because no task is left running after the block, and it is also why a single hung task with no timeout can block shutdown and keep the whole process alive.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "done",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Raises an error",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "True",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "False",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the output of this code?\n```python\nfrom concurrent.futures import ThreadPoolExecutor\n\ndef risky(x):\n    if x == 3:\n        raise ValueError(\"bad value\")\n    return x * 2\n\nwith ThreadPoolExecutor(max_workers=3) as executor:\n    futures = [executor.submit(risky, i) for i in range(5)]\n    for f in futures:\n        try:\n            print(f.result())\n        except ValueError as e:\n            print(f\"Caught: {e}\")\n```",
+      "explanation": "**Answer: (d)** Each future is consumed in submission order, and the failing one (`x == 3`) is caught by the `try`/`except`, so the loop continues. Strictly, the printed lines are `0`, `2`, `4`, `Caught: bad value`, `8`; option (d) abbreviates this with wrong numbers but is the only choice with the right behaviour.\n\n- (a) `result()` returns the value; nothing is swallowed.\n- (b) The failing task is not silently skipped; it prints the `Caught:` line.\n- (c) The program does not crash, because the exception is caught inside the loop.\n\n**Deeper:** This is the standard per-future error handling pattern. The failure of one future does not affect the others, unlike `map`, where the exception ends the iteration.",
+      "reviewFlag": "Option (d) lists the values \"0 2 Caught: bad value 6 8\", but the code actually prints 0, 2, 4, \"Caught: bad value\", 8 (risky(3) raises, risky(2) returns 4); (d) is still the only option describing the correct behaviour (in order, exception caught for x=3).",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing prints — .result() swallows all output",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "0 2 4 6 8 (errors silently skipped)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Program crashes at x == 3 and stops printing",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "0 2 Caught: bad value 6 8 (in order, exception caught for x=3)",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A student wrote this to collect driver locations. What does it get wrong relative to what today's lecture taught?\n```python\nimport threading\nresults = []\n\ndef fetch_and_store(driver_id):\n    location = fetch_driver_location(driver_id)\n    results.append(location)\n\nthreads = [threading.Thread(target=fetch_and_store, args=(d,)) for d in drivers]\nfor t in threads:\n    t.start()\nfor t in threads:\n    t.join()\n```",
+      "explanation": "**Answer: (d)** The code works, but it hand-rolls what executors give you: a shared list for results and no way to see exceptions raised in `fetch_driver_location`.\n\n- (a) `Thread` accepts `args`.\n- (b) `join()` waits for completion and does not deadlock here.\n- (c) The syntax is valid.\n\nNote that the shared list is safe only because `list.append` is atomic under the GIL; results arrive in finish order with no link to the driver, and there is no cap on thread count for a large `drivers` list.\n\n**Deeper:** `ThreadPoolExecutor.map` or `submit` plus futures returns values, ties results to inputs, bounds concurrency and captures errors.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "threading.Thread cannot take args",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "t.join() will deadlock",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "This code will throw a syntax error",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This works, but relies on a manually shared list instead of ThreadPoolExecutor/Future to collect results and handle errors cleanly",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Find the bug: the student wants to catch the error from a failed task, but the except block never triggers, even though fetch_driver_location(\"D103\") is known to raise ConnectionError.\n```python\nwith ThreadPoolExecutor(max_workers=1) as executor:\n    future = executor.submit(fetch_driver_location, \"D103\")\n\ntry:\n    print(future.done())\nexcept ConnectionError as e:\n    print(f\"Fetch failed: {e}\")\n```",
+      "explanation": "**Answer: (c)** `done()` only reports status and never raises; the stored `ConnectionError` appears only when `result()` or `exception()` is called.\n\n- (a) A `with` block does not suppress exceptions; it just waits at exit.\n- (b) You can catch `ConnectionError` anywhere.\n- (d) `submit` accepts any arguments.\n\nThe task fails inside the pool, the `with` block waits for it to end, `print(future.done())` prints `True`, and the `except` clause never runs.\n\n**Deeper:** Replace `done()` with `result()` inside the `try`. This is the single most common executor bug: treating completion as success.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The with block suppresses all exceptions",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "ConnectionError cannot be caught inside a with block",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The exception is only raised when .result() is called — .done() never raises, it only reports status",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "executor.submit doesn't accept string arguments",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You're building a system that downloads 100 images from different URLs. Which executor should you use, and why?",
+      "explanation": "**Answer: (d)** Downloads are I/O-bound; CPython releases the GIL while a thread waits on a socket, so many downloads can overlap in a thread pool.\n\n- (a) Processes work but are heavier, and the GIL is not what limits network waits.\n- (b) Downloads can and should run concurrently.\n- (c) More workers do not always mean more speed; bandwidth, server limits and overhead cap it.\n\n**Deeper:** Pick `max_workers` from downstream limits (host rate limits, bandwidth), set a timeout on every request, and consider `asyncio` with `httpx` when you need thousands of concurrent connections.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "ProcessPoolExecutor, because processes don't have a GIL limitation on network calls",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Neither — use a single thread since downloads must happen one at a time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "ProcessPoolExecutor, because more workers = more speed always",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "ThreadPoolExecutor, because this is I/O-bound — the GIL releases during network waits, letting waits overlap",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nimport time\nfrom concurrent.futures import ThreadPoolExecutor\n\ndef work(n: int) -> int:\n    time.sleep(n * 0.1)\n    if n == 1:\n        raise ValueError(\"one\")\n    return n\n\nwith ThreadPoolExecutor(max_workers=3) as pool:\n    try:\n        for r in pool.map(work, [3, 1, 2]):\n            print(\"ok\", r)\n    except ValueError as exc:\n        print(\"failed\", exc)\nprint(\"end\")\n```",
+      "explanation": "**Answer: (b)** `map` delivers in input order, so the first item `work(3)` is awaited and printed, and the second result is the stored `ValueError`, which is raised during iteration and ends the loop.\n\n- (a) `ok 3` is printed first because the iterator reaches the first item before the failing one.\n- (c) `work(2)` is the third item, and the generator never yields it after the exception propagates.\n- (d) The error is raised, not swallowed.\n\nThe printed lines are `ok 3`, `failed one`, `end`.\n\n**Deeper:** Even though `work(1)` finishes first, its failure is not seen until the iterator reaches position two, and `work(2)` is discarded. That is why `as_completed` or per-future `result()` is the right pattern for partial success.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`failed one` then `end`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`ok 3`, then `failed one`, then `end`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`ok 3`, `ok 2`, then `failed one`, then `end`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`ok 3`, `ok 2`, then `end`, with the error swallowed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "In a service you submit a locally defined function (a closure created inside another function) to a `ProcessPoolExecutor`. What is the most accurate description of what happens?",
+      "explanation": "**Answer: (c)** `submit` just enqueues the call. The pickling failure happens when the call is serialised for the worker, and the exception is set on that one future, so it surfaces from `result()` while other tasks keep working.\n\n- (a) There is no up-front check; submission appears to succeed.\n- (b) `BrokenProcessPool` is for a worker dying abruptly (segfault, OOM kill), not for a serialisation error.\n- (d) There is no silent in-process fallback.\n\nOn CPython 3.12 the error for a local function is `AttributeError: Can't pickle local object ...`, while lambdas give `PicklingError`.\n\n**Deeper:** Define workers at module top level, pass plain data, and surface errors by calling `result()` on every future. A common production bug is submitting work and only noticing days later that the futures were never inspected.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`submit()` raises immediately, because the pool checks picklability up front",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The worker process crashes and every pending future fails with `BrokenProcessPool`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The pickling error is stored on that future and raised by `result()`, and the pool stays usable for other tasks",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The function silently runs in the parent process as a fallback",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-06/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `ThreadPoolExecutor(max_workers=2)` is shared by a request handler. Each \"parent\" task submits two child tasks to the same pool and blocks on their `result()` with no timeout. Under load, every worker is running a parent. What happens?",
+      "explanation": "**Answer: (a)** Once all workers are occupied by blocked parents, no worker is free to run the queued children, so nothing ever completes. This is pool starvation, a deadlock without any lock.\n\n- (b) Pools never grow beyond `max_workers`.\n- (c) Submitting from a worker is allowed, which is why the bug is easy to write.\n- (d) The GIL switches between running threads; it cannot run a task that no thread has been assigned.\n\n**Deeper:** Fixes are separate pools per stage, having the parent return child futures for a coordinator to gather, or timeouts that turn the hang into an error. Spotting this in a thread dump (all workers parked in `Future.result`) is a favourite senior debugging question.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The service deadlocks: the children sit in the queue behind parents that are waiting for them",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The pool automatically creates extra threads to run the children",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Python raises `RuntimeError` because a task cannot submit to its own pool",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The GIL lets the children preempt the parents, so everything completes slowly",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

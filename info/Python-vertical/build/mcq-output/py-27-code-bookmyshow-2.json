@@ -1,0 +1,395 @@
+{
+  "lessonSlug": "py-27-code-bookmyshow-2",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A team is building a backend using SQLAlchemy. They create a model called Order. In many SQL databases, ORDER is a reserved keyword (used in ORDER BY). What is the correct and safe way to handle this?",
+      "explanation": "**Answer: (b)** Set `__tablename__ = \"orders\"` explicitly. A plural name avoids the reserved word and works on every database.\n- (a) is wrong because SQLAlchemy does not auto-detect or rename reserved words, and without `__tablename__` a declarative class is not mapped at all.\n- (c) is wrong because the table name comes from `__tablename__`, not from the Python class name.\n- (d) is wrong because SQLAlchemy quotes only some reserved words for some dialects; hand-written SQL, migrations and other tools can still break.\n\n**Deeper:** a name valid in Python can be reserved in SQL, and it differs by database: `user` is reserved in PostgreSQL but not in MySQL. Plural table names are a cheap habit that removes the whole class of problems.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Leave __tablename__ unset — SQLAlchemy will detect the conflict and automatically choose a safe name",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Explicitly set __tablename__ = \"orders\" — a name that avoids the reserved word",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Rename the Python class from Order to OrderModel — this alone fixes the table name conflict",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Set __tablename__ = \"Order\" exactly as the class name — SQLAlchemy automatically escapes reserved words in generated SQL",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Two application threads run the following method at nearly the same time, targeting the exact same list of seats. No database-level locking or special isolation is used:\n\n```python\ndef book_seats(seats):\n    for seat in seats:\n        if seat.status != Status.AVAILABLE:\n            raise RuntimeError(\"Seat unavailable\")\n    for seat in seats:\n        seat.status = Status.BLOCKED\n    repository.save_all(seats)\n```\nWhat is the most likely outcome if both threads run this at nearly the same time on the same seats?",
+      "explanation": "**Answer: (c)** Both threads can run the availability loop before either runs the write loop, so both pass the check and both mark the seats `BLOCKED`. This is a check-then-act race.\n- (a) is wrong because nothing makes the second thread fail; it sees the same `AVAILABLE` rows as the first.\n- (b) is wrong because `save_all` just writes whatever it is given and has no conflict detection.\n- (d) is wrong because the GIL only makes single bytecode steps atomic; a thread switch can occur between the check and the write.\n\n**Deeper:** the fix is to make check and act atomic in the database: `SELECT ... FOR UPDATE`, a conditional `UPDATE ... WHERE status = 'AVAILABLE'` with a `rowcount` check, a unique constraint, or serializable isolation with retries.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The second thread will always raise RuntimeError, since a seat can't be checked twice",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "save_all() automatically detects the conflict and rejects the second thread",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both threads can pass the availability check before either one performs the write, so both may end up marking the same seat as BLOCKED — effectively double-booking",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This code is thread-safe, because Python's GIL ensures only one thread runs at a time, so the two threads can never interleave their steps",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Under an isolation level called REPEATABLE READ (a common default in some relational databases), a transaction is guaranteed not to see changes made by other transactions to rows it has already read, until it re-reads or commits. Consider this timeline between two transactions, T-A and T-B, both updating the same row X:\n\n```\nTime 0ms: T-A starts, reads row X: value = AVAILABLE\nTime 2ms: T-B starts, reads row X: value = AVAILABLE\nTime 4ms: T-A updates row X to BLOCKED, commits successfully\nTime 5ms: T-B updates row X to BLOCKED (based on its own earlier read), commits\n```\nWhat actually happens at Time 5ms?",
+      "explanation": "**Answer: (a)** Repeatable Read gives each transaction a stable snapshot for its reads. It does not make the check-then-act sequence atomic, so both transactions can act on the same \"before\" value, and on a MySQL-style engine T-B's update simply waits for T-A's row lock and then succeeds.\n- (b) is wrong for this engine behaviour; nothing detects that the value T-B read is stale.\n- (c) is wrong because a committed transaction is never retroactively rolled back.\n- (d) is wrong because databases resolve lock waits themselves; no human is involved.\n\n**Deeper:** PostgreSQL implements Repeatable Read as snapshot isolation and would abort T-B with a serialization error (`could not serialize access due to concurrent update`). Name the database before you reason about isolation, and never rely on the default level to enforce a business invariant.",
+      "reviewFlag": "Answer depends on the database: MySQL Repeatable Read lets T-B's UPDATE succeed after waiting (lost update), but PostgreSQL's Repeatable Read would abort T-B with a serialization error; (a) follows the lesson's MySQL framing.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "T-B's commit also succeeds, because REPEATABLE READ does not stop two separate transactions from each reading the same \"before\" value and both acting on it",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "T-B's commit fails automatically, since T-A already changed the row",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "T-A's commit is retroactively rolled back once T-B commits",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Both transactions are blocked from committing until a human manually resolves the conflict",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which of the following best defines what SERIALIZABLE isolation guarantees in a relational database?",
+      "explanation": "**Answer: (d)** Serializable guarantees that the outcome of concurrent transactions equals the outcome of running them one after another in some order.\n- (a) is wrong because transactions still run concurrently; only conflicting ones are prevented from interleaving badly.\n- (b) is wrong because the equivalent serial order need not match start order or commit order.\n- (c) is wrong because the usual price is that the database aborts some transactions, which the application must retry.\n\n**Deeper:** that cost is why serializable code needs a retry loop around the whole transaction, catching SQLSTATE `40001` (and deadlock `40P01` in PostgreSQL) with jittered backoff.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Only one transaction is allowed to be active anywhere in the database at any moment",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Transactions are guaranteed to always commit in the exact order they were started",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "No transaction can ever fail, roll back, or need a retry",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The outcome of running transactions concurrently must be equivalent to some valid outcome of running those same transactions one after another, in some order",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Two transactions run under SERIALIZABLE isolation. Transaction 1 updates Row X. Transaction 2, running at the same time, updates a completely different Row Y in the same table — the two rows share no data or relationship. What is the most likely outcome?",
+      "explanation": "**Answer: (b)** Under Serializable, transactions that touch disjoint rows have no conflict, so both commit independently.\n- (a) is wrong because Serializable does not mean one active transaction database-wide.\n- (c) is wrong because there is no rule that only the earlier starter may commit.\n- (d) is wrong because nothing is overwritten when the rows differ.\n\n**Deeper:** engines implement this differently (predicate locks and conflict detection in PostgreSQL, next-key and shared locks in InnoDB), so coarse locks can occasionally cause false conflicts. Keep transactions narrow and index the columns they filter on.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both transactions fail, because SERIALIZABLE permits only one active transaction across the whole database",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Both transactions commit successfully and independently, since SERIALIZABLE only prevents conflicts on rows that are actually accessed by both transactions",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only the transaction that started first is allowed to commit",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Both commit, but the transaction that commits second silently overwrites data from the first",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A backend application runs as multiple separate server processes (for example, behind a load balancer), all connecting to the same shared database. A developer adds a threading.Lock() inside a booking method, reasoning: \"only one thread can hold the lock at a time, so this prevents double-booking.\" Why does this NOT actually prevent two different server processes from double-booking the same database row?",
+      "explanation": "**Answer: (a)** A `threading.Lock` lives in one process's memory. Another server process has its own lock object, so holding one does not exclude threads in the other.\n- (b) is wrong because these locks do not expire; they stay held until released.\n- (c) is wrong because a lock works with any code, and database calls are normally synchronous or `async` independently of it.\n- (d) is wrong because locks are pure in-process primitives that need no driver.\n\n**Deeper:** the invariant lives in the database, so enforce it there with row locks, constraints, version columns or isolation. Distributed locks (Redis, advisory locks) are possible but bring lease expiry and fencing problems.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A threading.Lock() object only coordinates threads within a single process's memory — a lock created in one server process has no effect on threads running in a separate server process",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "threading.Lock() objects expire automatically after a few milliseconds, so they don't stay held long enough to help",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "threading.Lock() can only be used with synchronous code, and database calls are always asynchronous",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "threading.Lock() requires a special database driver to function correctly",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A Controller class in a layered backend application accepts a dedicated request object (a DTO — Data Transfer Object) as its parameter, instead of accepting raw domain/model objects directly or a long list of loose primitive parameters. What is the main benefit of this design choice?",
+      "explanation": "**Answer: (c)** A DTO is a deliberate, stable contract for what a use case needs. When the domain models change shape, callers keep using the same request object.\n- (a) is wrong because DTOs are a design choice, not an ORM requirement.\n- (b) is wrong because they add an object, not speed.\n- (d) is wrong because input DTOs are common and often more valuable than output ones.\n\n**Deeper:** in Python a frozen dataclass is a cheap DTO. Controllers translate input into a DTO, services work on the domain, and the response is another DTO, which also keeps ORM objects from leaking into the API layer.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "DTOs are mandatory for any class that uses an ORM like SQLAlchemy",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "DTOs make the application run measurably faster, since fewer objects are created in memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A DTO defines a stable, deliberate contract for exactly what a use case needs — so if the underlying domain models change shape later, callers of the use case aren't automatically broken",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "DTOs are only useful for return values, not for input parameters",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In an application using SQLAlchemy, an object seat was fetched earlier in a session (e.g., session.query(Seat).get(seat_id)). Later in the same function, this code runs:\n\n```python\nseat.status = \"BLOCKED\"\nseat.blocked_at = datetime.now()\n# ... some other unrelated database operations using the same session ...\nsession.commit()\n```\nNotice there is no explicit session.add(seat) or repository.save(seat) call after changing seat.status. What happens when session.commit() runs?",
+      "explanation": "**Answer: (d)** Objects loaded through a session are tracked. Changing attributes marks them dirty, and `commit()` flushes all pending changes in one go, even without `session.add`.\n- (a) is wrong because the changes are not lost; the unit of work detects them.\n- (b) is wrong because re-adding a persistent object is not required.\n- (c) is wrong because every modified attribute is included in the UPDATE.\n\n**Deeper:** this convenience hides when SQL runs. Autoflush may emit the UPDATE before other queries in the same session, and the row stays locked until the transaction ends, which matters for concurrency.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The changes to seat.status and seat.blocked_at are silently lost, since nothing was explicitly re-saved",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The commit throws a runtime error, because SQLAlchemy requires every changed object to be explicitly re-added to the session",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only seat.status is saved; seat.blocked_at is ignored because it was set after the first attribute",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Both changes are saved automatically — SQLAlchemy tracks changes to objects that were already loaded through the session, and commit() flushes all pending changes together",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A movie-ticket booking system has a business rule: the price of a seat depends on both which specific show it belongs to and its seat type — the same seat type (say, \"GOLD\") can be priced differently for a matinee show versus a night show, or between two different theatres. To support this, prices are stored in a table keyed on the pair (show, seat_type), not as a flat price on the seat type alone.\nAn AI assistant was asked to write a pricing function and returned this:\n\n```python\nclass PriceCalculator:\n    def calculate_price(self, show_seats):\n        total = 0\n        for show_seat in show_seats:\n            seat_type_name = show_seat.seat.seat_type.name\n            if seat_type_name == \"GOLD\":\n                total += 300\n            elif seat_type_name == \"SILVER\":\n                total += 200\n            else:\n                total += 150\n        return total\n```\nWhat is the most fundamental problem with this code, given the business rule above?",
+      "explanation": "**Answer: (b)** The code uses a flat price per seat type name and never looks at the show, so it cannot express the rule that price depends on the (show, seat type) pair.\n- (a) is wrong because style is secondary to a functional gap.\n- (c) is wrong because mixing `int` and `float` does not crash Python; and money should be an integer or `Decimal` anyway.\n- (d) is wrong because an empty list simply returns `0`.\n\n**Deeper:** hardcoded prices also mean a deploy for every price change. Load prices from the `show_seat_types` table and fail loudly (`MissingPriceError`) when a pair has no price, rather than defaulting silently.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It uses an if/elif chain instead of a dictionary lookup, which is considered bad Python style",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It hardcodes a single flat price per seat-type name and never considers which specific show the seat belongs to, so it cannot support the (show, seat_type) pricing rule at all",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It returns an integer instead of a float, which will always cause a runtime crash in Python",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It doesn't use a try/except block, so it will always crash if show_seats is an empty list",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In a booking system, ticket prices are stored in a table keyed on the specific (show, seat_type) pair — meaning every individual show has its own price row per seat type, rather than seat types having one single global price. A theatre now wants weekday GOLD seats priced at ₹250 and weekend GOLD seats priced at ₹400, on the exact same screen. Does this pricing design already support that, with zero code or schema changes?",
+      "explanation": "**Answer: (c)** Weekday and weekend showings are different `Show` rows, each with its own (show, seat type) price row, so weekday GOLD can cost 250 and weekend GOLD 400 on the same screen with no schema or code change.\n- (a) is wrong because day-of-week is already encoded by the show's own row.\n- (b) is wrong because prices are keyed by show, not by screen.\n- (d) is wrong because the pricing function does not need to inspect the date.\n\n**Deeper:** this is the payoff of modelling the pair as a key. If you need price changes over time for the same show, add an effective-dated column instead of mutating rows.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No — a day_of_week field would need to be added to the seat-type table first",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "No — the price table is keyed by screen, not by individual show, so all shows on one screen must share the same price",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Yes — a weekday show and a weekend show are two different show records, so each one already gets its own (show, seat_type) price row",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Only if the pricing function is modified to manually check the day of the week from the show's start time",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Two booking transactions lock rows with `SELECT ... FOR UPDATE`. T1 requests seats `[1, 2]`, T2 requests seats `[2, 1]`, and the code locks them one row at a time in the requested order. What can happen?",
+      "explanation": "**Answer: (b)** T1 holds seat 1 and waits for seat 2, while T2 holds seat 2 and waits for seat 1. That cycle is a deadlock, and the database kills one transaction with a deadlock error.\n- (a) is wrong because `FOR UPDATE` locks only the selected rows.\n- (c) is wrong because `FOR UPDATE` takes exclusive row locks.\n- (d) is wrong because rows are skipped only with `SKIP LOCKED`.\n\n**Deeper:** lock in a consistent order (`ORDER BY id`) so waits cannot form a cycle, lock all rows in one statement, and still treat deadlock errors as retryable. The same ordering rule applies to any multi-resource lock in application code.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing special, because `FOR UPDATE` locks the whole table",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Each takes its first row and waits for the other's row, so the database detects a deadlock and aborts one transaction",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both succeed, because row locks are shared between transactions",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The second transaction silently skips the locked row",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A developer implements the hold as `update(ShowSeat).where(..., status == AVAILABLE).values(status=BLOCKED)` for 3 requested seats, then ignores the result and commits. Two seats were free and one was already sold. What is the outcome?",
+      "explanation": "**Answer: (d)** An `UPDATE` with a `WHERE` clause updates whichever rows match and reports how many. Without comparing `rowcount` to the expected count, the caller cannot see the partial result.\n- (a) is wrong because a statement that matches fewer rows is not an error.\n- (b) is wrong because SQLAlchemy never rolls back on a low row count.\n- (c) is wrong because the statement is atomic, but it still applies to all matching rows.\n\n**Deeper:** compare `rowcount` with the requested seat count and call `session.rollback()` if they differ, so the whole hold is all-or-nothing. A unique-constraint-based design gets the same effect through an exception.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The whole statement fails with an error, because one row did not match",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "SQLAlchemy rolls back automatically when fewer rows match",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Zero seats are blocked, because updates are all-or-nothing per statement",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Two seats are blocked and committed while the caller thinks it holds three, because `rowcount` was never compared with the number of requested seats",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-27/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A booking endpoint runs at SERIALIZABLE isolation. Under load about 2% of requests fail with SQLSTATE `40001`. What is the correct response?",
+      "explanation": "**Answer: (a)** A serialization failure means the database aborted the transaction to preserve a serial order. The whole unit of work must be rerun, because its reads may no longer be valid.\n- (b) is wrong because it removes the errors by reintroducing the double-booking race.\n- (c) is wrong because after the failure the transaction is aborted and the earlier reads are stale.\n- (d) is wrong because a process-local lock cannot stop conflicts between processes.\n\n**Deeper:** retries must be bounded, jittered and safe: do not send emails or charge cards inside the retried block. Do side effects after commit, or make them idempotent with a key.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Retry the entire transaction (re-read and re-check) a bounded number of times with jittered backoff, and surface a conflict error if it keeps failing",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Downgrade to Read Committed so the errors disappear",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Catch the error and re-run only the failed statement in the same transaction",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Wrap the work in a `threading.Lock` so conflicts cannot occur",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

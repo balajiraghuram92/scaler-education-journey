@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-20-tictactoe-1",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-20/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "In `Game.make_move()` the cell is validated before `next_player_index` is advanced. A candidate moves the index update to the top of the method, before validation. What is the visible bug?",
+      "explanation": "**Answer: (c)** If the index advances before validation, an `InvalidMoveError` leaves the turn pointing at the next player, so the failed player is skipped.\n\n- (a) the index decides whose turn it is, which is a rule of the game, so order matters.\n- (b) strategies receive the `Move`, which carries the player; they never read the index.\n- (d) `build()` runs before any move and checks only configuration.\n\n**Deeper:** The general rule is \"validate first, mutate last\", and it is why the test `test_invalid_move_does_not_advance_the_turn` exists. Interviewers watch for exactly this ordering when they review your `make_move`, and it generalises to payments, bookings and any state machine.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "None: the index is only an integer, so the order does not matter.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The winner is computed for the wrong player because `check_winner` reads `next_player_index`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A rejected move (an occupied cell, for example) still advances the turn, so the offending player silently loses a turn and the next player is asked to move.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The `Builder` raises `InvalidGameConfigError` because the index is no longer zero at build time.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which statement best justifies creating `Game` through a nested Builder instead of passing keyword arguments to `Game.__init__`?",
+      "explanation": "**Answer: (a)** Cross-field validation in one place, before any object exists, is the reason; `build()` can also report every problem at once.\n\n- (b) a Builder adds a little work, and speed is not a design reason.\n- (c) there is no such limit; keyword arguments would work mechanically.\n- (d) mutation after construction is unrelated to the Builder, and undo uses the `moves` log.\n\n**Deeper:** State the counter-argument too: if fields were independent, keyword arguments or a dataclass would be simpler. A Builder for a three-field object is ceremony, and over-engineering is a graded mistake in a ninety-minute round.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The configuration has cross-field rules (player count depends on dimension, symbols must be unique across players), and `build()` validates them together so no invalid `Game` can exist.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Builders are always faster than constructors in Python.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Python does not allow constructors with more than three parameters.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A Builder lets `Game` be mutated after construction, which undo requires.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A candidate builds the grid like this. What does it print?\n\n```python\ngrid = [[\"-\"] * 3] * 3\ngrid[0][0] = \"X\"\nprint(grid)\n```",
+      "explanation": "**Answer: (d)** The outer `* 3` repeats a reference to one inner list three times, so writing to `grid[0][0]` shows up in every row.\n\n- (a) that needs three distinct row lists, which this expression does not create.\n- (b) the assignment succeeds and is visible through all three references.\n- (c) list repetition is legal; the problem is aliasing, not an error.\n\n**Deeper:** This is why the lesson builds the board with a nested comprehension that creates fresh `Cell` objects. I ran the snippet and it printed three identical rows beginning with `X`; the same aliasing bug appears with `[[]] * n` and mutable default values.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`[['X', '-', '-'], ['-', '-', '-'], ['-', '-', '-']]`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`[['-', '-', '-'], ['-', '-', '-'], ['-', '-', '-']]`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises `TypeError` because a list cannot be multiplied by an integer.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`[['X', '-', '-'], ['X', '-', '-'], ['X', '-', '-']]`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A diagonal strategy is written with `if r == c: ... elif r + c == n - 1: ...`. On a 3 x 3 board X holds (0, 2) and (2, 0), and then plays the centre (1, 1) to complete the anti-diagonal. What happens?",
+      "explanation": "**Answer: (b)** The centre cell satisfies both conditions; `elif` stops after the first, so the anti-diagonal check is skipped.\n\n- (a) the centre is on both diagonals, but `elif` stops after the first matching branch, so the second is never evaluated.\n- (c) indices stay within `0..n-1`, and that branch is not even reached.\n- (d) a draw needs a full board and no winner; only a few cells are filled.\n\n**Deeper:** The fix is two independent `if` statements. I verified this by running both versions: the `elif` version left the game `IN_PROGRESS`, the two-`if` version reported `ENDED`. Odd boards and their centre cell are a favourite probing edge case.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The win is detected, because the centre lies on the anti-diagonal.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The win is missed: at (1, 1) the first branch (`r == c`) is taken and checks only the main diagonal, so the anti-diagonal is never examined.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises `IndexError` when indexing `n - 1 - i`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The game ends in a draw immediately because the centre was played last.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "With the lesson's `Symbol` (a frozen dataclass) and `Game.Builder`, what does this produce?\n\n```python\nplayers = [Player(\"A\", Symbol(\"X\")), Player(\"B\", Symbol(\"X\"))]\nprint(len({p.symbol for p in players}))\nGame.builder().set_dimension(3).add_player(players[0]).add_player(players[1]) \\\n    .add_winning_strategy(RowWinningStrategy()).build()\n```",
+      "explanation": "**Answer: (b)** A frozen dataclass gets value-based `__eq__` and `__hash__`, so both symbols collapse to one set element and the uniqueness rule fails.\n\n- (a) dataclass equality compares fields, not identity, so two `Symbol(\"X\")` are equal and hash alike.\n- (c) the Builder also checks symbol uniqueness; two players satisfies the count for N = 3 but not the symbols.\n- (d) `frozen=True` with the default `eq=True` generates `__hash__`, so the symbol is hashable.\n\n**Deeper:** Value objects such as `Symbol` should be frozen dataclasses so they work in sets and as dict keys, which the O(1) counters in the next lesson rely on. I ran this snippet and saw the printed `1` and the exact error message.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It prints `2` and builds a game, because the two `Symbol` objects are different instances.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prints `1`, then `build()` raises `InvalidGameConfigError(\"every player needs a unique symbol\")`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It prints `1` and builds a game, since only the player count is checked.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises `TypeError` at the print because `Symbol` is unhashable.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A candidate's `Game.make_move` appends `requested` (the `Move` returned by the player, holding a fresh `Cell`) to `self.moves` instead of building `Move(player, cell)` from the real board cell. What breaks later?",
+      "explanation": "**Answer: (d)** A human's `Move` carries a throwaway `Cell` with the same coordinates, so changing it never touches the board.\n\n- (a) coordinates match, but identity does not; mutations on the fresh cell never reach `board.grid`.\n- (b) the Builder runs before play and never sees the move log.\n- (c) the lesson's strategies read only row, column and the player symbol, so winning still works, which is exactly why the bug hides.\n\n**Deeper:** Bugs that pass the first set of tests and surface a feature later are the dangerous kind. The lesson's note about the human/bot asymmetry (bots return the real cell, humans a fresh one) is exactly this trap, and undo is where it bites.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing: both objects have the same row and column, so they are interchangeable.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The Builder rejects the game at the next `build()` call.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The winner check fails because every strategy reads `move.cell.state`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Features that act on the logged move (undo) would modify a detached cell, leaving the real board cell filled while the log says it was cleared.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "On a 3 x 3 board the ninth and final move completes a diagonal for X. Given `make_move` evaluates winners before the draw check, what are the final `game.state` and `game.winner`?\n\n```python\nif any(s.check_winner(self.board, move) for s in self.winning_strategies):\n    self.state, self.winner = GameState.ENDED, player\nelif len(self.moves) == self.board.dimension ** 2:\n    self.state = GameState.DRAW\n```",
+      "explanation": "**Answer: (a)** The `if` branch runs first and the `elif` never executes, so a winning last move is a win, not a draw.\n\n- (b) checking the draw first would cause that bug; the branch order here prevents it.\n- (c) the state is assigned inside the same call that processes the move.\n- (d) a win sets the winner; nothing clears it for a full board.\n\n**Deeper:** Branch order encodes precedence. I ran the scenario with X on (0,0), (1,1) and (2,2), the last move at (2,2): the game ended after nine moves with X as winner. A draw test must therefore use a full board that really contains no line.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`ENDED` with X as the winner.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`DRAW` with no winner, because the board is full.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`IN_PROGRESS`, because the state is only updated on the next call.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`ENDED` with no winner, since a full board always cancels the win.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`Player.make_move` calls `self._reader(...)`, which defaults to `input`, and `ScriptedPlayer` overrides `make_move` with a list. What is the best justification for this design in a timed round?",
+      "explanation": "**Answer: (c)** Injecting the input source (or overriding `make_move`) isolates I/O from rules, making deterministic tests possible.\n\n- (a) `input` is a built-in with no import cost; speed is not the reason.\n- (b) a scripted source provides no locking; thread-safety is a separate concern.\n- (d) players return a `Move` and never write to the board, which is the opposite of this.\n\n**Deeper:** Saying \"I would inject the reader in a bigger system, and here I did it with a parameter\" shows you understand the trade-off between speed of delivery and purity, which is a favourite follow-up in machine-coding interviews.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It avoids ever importing `input`, which is slow.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It makes `Game` thread-safe because input is never blocking.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It keeps the console at the edge: the same `Player` interface works with a keyboard or a script, so the whole game is testable without patching built-ins.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It lets players modify the board directly.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "On Python 3.12 or 3.13 you delete `from __future__ import annotations` from the lesson's first block. `Move` (a frozen dataclass with `player: Player`) is defined before `Player`. What happens when the module is imported?",
+      "explanation": "**Answer: (b)** Without postponed evaluation the annotation `Player` is evaluated when the class body executes, and `Player` does not exist yet.\n\n- (a) the annotation is evaluated when the class body runs; dataclasses do not defer name resolution.\n- (c) the failure is a `NameError` from the annotation, not an import problem.\n- (d) the class is never created, because the body fails before the decorator runs.\n\n**Deeper:** This is version-specific: Python 3.14 defers annotation evaluation by default (PEP 649), so the error disappears there. For 3.12 and 3.13 use the future import or quote the name. I ran the snippet on 3.13 and got the `NameError`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It works, because dataclasses resolve annotations lazily.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It raises `NameError: name 'Player' is not defined` at class-definition time, because annotations are evaluated eagerly without the future import (3.12 and 3.13).",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises `ImportError` for the dataclass module.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It works but `Move` silently loses its frozen behaviour.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "In the Builder, a candidate writes `add_player` without `return self`:\n\n```python\ndef add_player(self, player):\n    self._players.append(player)\n\nGame.builder().set_dimension(3).add_player(a).add_player(b)\n```\nWhat happens?",
+      "explanation": "**Answer: (d)** A method without a return statement returns `None`, so the chained call is attempted on `None`.\n\n- (a) chaining works only when each call returns the builder object.\n- (b) returning nothing is legal; the failure comes from using the result of the call.\n- (c) it is not silent: Python raises immediately on the attribute access on `None`.\n\n**Deeper:** Fluent interfaces are a convention you must honour on every setter, and the type hint `-> Game.Builder` would let mypy flag the missing return. I ran an equivalent subclass and got exactly this `AttributeError`. A test that builds through the full chain catches it in seconds.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both players are added; the chain works regardless.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`add_player` raises `TypeError` because it returns nothing.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The second `add_player` is silently ignored.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`AttributeError: 'NoneType' object has no attribute 'add_player'` is raised on the second call, because the first returned `None`.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Next lesson makes each `WinningStrategy` stateful (it keeps per-row counters updated in `check_winner`). `Game` currently decides winners with `any(s.check_winner(...) for s in self.winning_strategies)`. What is the latent defect?",
+      "explanation": "**Answer: (a)** `any` stops at the first truthy result, so strategies later in the list are skipped on that move.\n\n- (b) generator expressions are lazy; `any` stops consuming at the first `True`.\n- (c) `any` accepts any iterable, including generators.\n- (d) `any` always returns a `bool`.\n\n**Deeper:** The game normally ends on that move, so a skipped update rarely matters, but with undo the game can resume and stale counters cause wrong results. Evaluate every strategy (build a list of results first) when strategies carry state, and add a test that undoes a move and then plays on.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`any` short-circuits at the first strategy that returns `True`, so later strategies never see the move and their counters drift out of date; stateful strategies must all be updated on every move.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "There is no defect: `any` evaluates every element before returning.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`any` cannot be used with generators, so it raises `TypeError`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`any` returns the winning strategy object, not a boolean.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-20/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You must prove that a rejected move does not skip a turn. Which test is the most reliable and least brittle?",
+      "explanation": "**Answer: (c)** Scripted players drive the real code path, and asserting on observable state (turn index, move log, retry success) pins the behaviour.\n\n- (a) manual checks do not run in CI and prove nothing after the next refactor.\n- (b) mocking validation removes the behaviour under test and asserts on implementation details.\n- (d) `make_move` returns `None` in both correct and buggy versions, so the assertion proves nothing.\n\n**Deeper:** Behavioural tests on state transitions survive refactors. In an interview, three such tests (win, draw, rejected move) are usually enough to demonstrate discipline within the time box, and they are the tests a reviewer reaches for first.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Run the program with real `input()` and eyeball the console output.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Mock `Game._validate` to always return a cell and assert it was called once.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Use two `ScriptedPlayer`s, have the second target an occupied cell, assert `InvalidMoveError` is raised, then assert `next_player_index` and `len(moves)` are unchanged and that a retry by the same player succeeds.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Assert that `make_move` returns `None`.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

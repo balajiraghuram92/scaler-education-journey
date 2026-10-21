@@ -1,0 +1,545 @@
+{
+  "lessonSlug": "py-02-abcs-protocols-mixins",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-02/additional/q01",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does @abstractmethod on a method inside an ABC subclass guarantee?",
+      "explanation": "**Answer: (b)** `ABCMeta` records abstract names in `__abstractmethods__`, and `object.__new__` refuses to create an instance while that set is non-empty, raising `TypeError`.\n\n- (a) abstract methods are never called automatically; they are placeholders\n- (c) abstractmethod has nothing to do with privacy; underscores do that by convention\n- (d) there is no performance effect\n\n**Deeper:** Note the check runs at instantiation, not at class definition, and it checks names only, never signatures. Use mypy or pyright for signature compatibility. In interviews, add that `__abstractmethods__` is a frozenset you can inspect, and that `@abstractmethod` only works when the metaclass is `ABCMeta` (inherit from `ABC` or pass `metaclass=ABCMeta`).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The method runs automatically when the object is created",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Any subclass that does not implement this method cannot be instantiated — TypeError at object creation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The method is private and inaccessible from outside",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The method is optimized for performance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/additional/q02",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A PaymentGateway ABC has two abstract methods. StripeGateway inherits from it and implements both. StripeGateway is then subclassed by StripeGatewayV2 which adds a new method but does NOT re-implement the abstract ones. Can StripeGatewayV2() be instantiated?",
+      "explanation": "**Answer: (d)** `StripeGateway` implemented both abstract methods, so its `__abstractmethods__` is empty and `StripeGatewayV2` inherits concrete implementations.\n\n- (a) overrides are only needed for names that are still abstract\n- (b) super() is only needed to extend behaviour, never to satisfy the contract\n- (c) inheriting from ABC indirectly through StripeGateway is already enough\n\n**Deeper:** This is why a concrete mid-level class can be extended freely. The abstract set is recomputed at each class creation, so adding a new abstract method to a middle class breaks its children at instantiation time.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No — each subclass must re-implement all abstract methods",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Only if StripeGatewayV2 explicitly calls super()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only if StripeGatewayV2 also inherits from ABC",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Yes — StripeGateway already satisfied the contract, and StripeGatewayV2 inherits those implementations",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/additional/q03",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A Protocol is defined without @runtime_checkable. What happens when you call isinstance(some_obj, MyProtocol)?",
+      "explanation": "**Answer: (c)** Protocols that are not decorated with `@runtime_checkable` refuse `isinstance` and `issubclass` with `TypeError: Instance and class checks can only be used with @runtime_checkable protocols`.\n\n- (a) no check is attempted without the decorator\n- (b) the call raises instead of returning\n- (d) the decorator is a real runtime switch, not only a hint to static checkers\n\n**Deeper:** Even with the decorator the check verifies member names only. Treat it as a guard rail at plug-in boundaries and let the type checker verify signatures.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Returns True if methods match",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Returns False always",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "TypeError — isinstance requires @runtime_checkable to work with Protocols",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Works normally — @runtime_checkable is only for static checkers",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A mixin named TimestampMixin adds a created_at attribute. It is designed to be combined via multiple inheritance. Which statement is true about mixins, per the lecture?",
+      "explanation": "**Answer: (d)** A mixin contributes one focused capability, such as a `created_at` timestamp, to classes that combine it with their primary base through multiple inheritance. It is not designed to stand alone.\n\n- (a) mixins model \"has this ability\", not \"is a\"\n- (b) instantiating a mixin alone defeats its purpose\n- (c) mixins are plain classes; ABC is optional\n\n**Deeper:** Good mixins are small, cooperative (they accept and forward `**kwargs`) and listed before the main base so their `super()` calls reach it. If a mixin grows state and collaborators, inject it as a component instead.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Mixins represent an \"is-a\" relationship",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Mixins should be instantiated directly and used standalone",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Mixins must inherit from ABC",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Mixins add focused, reusable capabilities — never meant to be instantiated alone, combined via multiple inheritance",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "__init_subclass__ runs:",
+      "explanation": "**Answer: (b)** `__init_subclass__` is called on the parent when a subclass is created, so it runs once per subclass at definition (import) time.\n\n- (a) that describes __init__, which runs per instance\n- (c) Python calls it implicitly; super().__init_subclass__ is only for chaining to other hooks\n- (d) it is an ordinary classmethod hook and needs no metaclass\n\n**Deeper:** It receives the keywords from the class statement, for example `class Razorpay(PaymentGateway, gateway_name=\"razorpay\")`. It replaced most metaclass-based registries, but it still depends on the module being imported.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Every time an instance of the class is created (__init__ equivalent for classes)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Automatically when a new subclass is defined — at class-definition time, not at instance-creation time",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only when explicitly called with super().__init_subclass__()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Only in metaclasses",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "class RGW(PaymentGateway, LoggingMixin, JSONMixin) — all three parents define describe(). Whose version does RGW().describe() call?",
+      "explanation": "**Answer: (c)** Attribute lookup follows the MRO, which for `RGW` is RGW, PaymentGateway, LoggingMixin, JSONMixin and then object, so `PaymentGateway.describe` is found first.\n\n- (a) mixins have no special priority; position decides\n- (b) Python does not let the last parent win\n- (d) methods are not chained unless super() is called explicitly\n\n**Deeper:** To make a mixin override, list it before the main base. Interviewers like this question because \"mixins override everything\" is a common but wrong intuition. The same left-to-right rule applies to every attribute, so a base-class method can silently shadow a mixin's method of the same name; keep mixin method names distinctive to avoid collisions.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "LoggingMixin's — mixins override everything",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "JSONMixin's — last parent wins",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "PaymentGateway's — it appears first in the MRO after RGW itself",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "All three run in sequence",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "The type() of an ordinary Python class (e.g., type(str)) is:",
+      "explanation": "**Answer: (b)** Classes are instances of their metaclass, and the default metaclass is `type`, so `type(str)` is `type`.\n\n- (a) object is a base class of str, not its type\n- (c) `ABCMeta` is the metaclass only for classes built from ABC\n- (d) classmethod is a descriptor type\n\n**Deeper:** Contrast `type(Gateway)`, which is `ABCMeta` for an ABC. That metaclass is what implements the abstract-method check and `register`. Knowing this chain (instance, class, metaclass) explains why `__init_subclass__` and class decorators are usually enough, and why you rarely need a custom metaclass for a registry or for validation of subclasses.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "object",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "type",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "ABCMeta",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "classmethod",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "An ABC defines @abstractmethod def validate(self). A subclass implements validate but with a different signature (def validate(self, strict=False)). Can the subclass be instantiated?",
+      "explanation": "**Answer: (a)** `ABCMeta` only tracks method names. A subclass whose `validate(self, strict=False)` differs from the base signature still removes `validate` from the abstract set, so it can be instantiated.\n\n- (b) signatures are never compared at runtime\n- (c) defaults are irrelevant to the abstract check\n- (d) nothing is checked at class definition time\n\n**Deeper:** Signature compatibility is a Liskov concern enforced by static checkers. A mypy or pyright run in CI is what catches a subclass that narrows the parameters. In an interview, contrast this with Java, where an override with a different signature is a different overload, and mention that `typing.override` (3.12) helps catch a method that no longer matches anything in the base.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Yes — Python only checks that a method with the name validate exists on the subclass, not its exact signature",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "No — signatures must match exactly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only if strict has a default value",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises TypeError at class definition",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which is the key difference between nominal typing (ABC) and structural typing (Protocol)?",
+      "explanation": "**Answer: (d)** An ABC requires the class to declare membership by inheriting or registering, while a Protocol only asks whether the required members exist.\n\n- (a) this reverses the two ideas\n- (b) they are different mechanisms with different enforcement\n- (c) runtime_checkable protocols do support isinstance, for names only\n\n**Deeper:** Choose nominal typing for hierarchies you own and structural typing at boundaries with third-party code that cannot be edited to inherit from your classes. A practical check: if you can edit every implementer and want shared code, an ABC is natural; if implementers come from SDKs or tests that cannot know your base class, a Protocol keeps coupling one-directional.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nominal checks method presence; structural checks inheritance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They are the same mechanism with different names",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Structural typing does not support isinstance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nominal requires the class to explicitly declare lineage via inheritance; structural only checks whether the required methods exist on the object",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "PaymentGateway uses __init_subclass__ with gateway_name keyword. A developer writes class TestGateway(PaymentGateway) (no gateway_name). Which is true?",
+      "explanation": "**Answer: (b)** `__init_subclass__` is called for every subclass; the optional keyword defaults to `None` and the `if gateway_name:` guard simply skips registration.\n\n- (a) the keyword has a default, so nothing is missing\n- (c) the hook runs for every subclass regardless of keywords\n- (d) the guard prevents any entry being stored under None\n\n**Deeper:** This silent skip is the design trap: forgetting the keyword removes the provider from the registry with no error. Add a test that every concrete subclass is registered, or raise when a non-abstract class has no name.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "TypeError — missing required keyword",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "__init_subclass__ still runs, but the if gateway_name: guard means the class is NOT added to registry — it exists as a normal subclass",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "__init_subclass__ does not run at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "registry stores it under the key None",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Uber's checkout team builds a PaymentGateway ABC with @abstractmethod for process_payment and refund. A new developer writes class StripeGateway(PaymentGateway) implementing only process_payment, forgetting refund. They then write s = StripeGateway(). What happens?",
+      "explanation": "**Answer: (c)** `StripeGateway` still has `refund` in `__abstractmethods__`, so `object.__new__` raises `TypeError: Can't instantiate abstract class` when `StripeGateway()` is called.\n\n- (a) the object is never created, so there is no later AttributeError\n- (b) the class statement itself is valid\n- (d) Python never supplies default bodies for abstract methods\n\n**Deeper:** This is the real value of an ABC: forgetting a method becomes an instantiation-time error rather than a production failure on the first refund. It does not check signatures, though. Pair it with a test that instantiates every registered gateway so a missing method is caught in CI before deployment rather than when the first refund request arrives.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Object is created, AttributeError only when s.refund() is called later",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "SyntaxError at class definition time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "TypeError at instantiation — Python refuses to create an object of a class that hasn't implemented all abstract methods",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Object is created with refund returning None by default",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Uber integrates a third-party VendorFraudScanner (installed via pip, not editable) that has a scan(amount, location) method. The team defines class FraudChecker(ABC) with @abstractmethod def scan(...). What does isinstance(VendorFraudScanner(), FraudChecker) return, and why?",
+      "explanation": "**Answer: (b)** `FraudChecker` is a plain ABC, and the vendor class neither inherits from it nor is registered. `isinstance` is nominal, so the result is `False` even though `scan` exists.\n\n- (a) ABCs do not check method presence unless they define a __subclasshook__\n- (c) there is no such default\n- (d) isinstance with an ABC is allowed and just returns False\n\n**Deeper:** You could call `FraudChecker.register(VendorFraudScanner)` to create a virtual subclass, but a Protocol expresses the same intent without touching the vendor type. The nominal result surprises people coming from Go or TypeScript, where interfaces are structural by default. In Python you opt into structural checks explicitly with Protocol.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "True — ABC checks method presence structurally",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "False — ABC uses nominal typing; the vendor class never inherited from FraudChecker, so it fails regardless of having the right methods",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "True — all classes satisfy any ABC by default",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Raises TypeError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "The team rewrites the fraud contract as @runtime_checkable class FraudCheckable(Protocol) with def scan(self, amount, location) -> bool. Without touching the vendor's code, what does isinstance(VendorFraudScanner(), FraudCheckable) now return?",
+      "explanation": "**Answer: (b)** A `@runtime_checkable` Protocol makes `isinstance` check for the required member names, and `VendorFraudScanner` has `scan`, so the result is `True` with no change to vendor code.\n\n- (a) protocols are structural by definition\n- (c) isinstance on a runtime-checkable protocol is supported\n- (d) removing the decorator would make isinstance raise TypeError\n\n**Deeper:** Remember the check ignores arity and types: a vendor `scan(self)` would also pass. Pair the runtime guard with static checking of your call sites. This is the main reason Protocols suit third-party integrations in AI and payments work: the vendor SDK is pinned, un-editable and still usable as your dependency without an adapter layer.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "False — Protocol also requires explicit inheritance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "True — Protocol uses structural typing; it checks whether the object has a matching scan method, regardless of inheritance",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Raises NotImplementedError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "True only if @runtime_checkable is removed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "RazorpayGateway is declared as class RazorpayGateway(PaymentGateway, LoggingMixin, JSONSerializableMixin). Both PaymentGateway and LoggingMixin define a method called describe(). When razorpay.describe() is called, whose version runs?",
+      "explanation": "**Answer: (a)** The MRO is RazorpayGateway, PaymentGateway, LoggingMixin, JSONSerializableMixin, so the first class in the declared list that defines `describe()` is `PaymentGateway`.\n\n- (b) mixins have no automatic priority\n- (c) C3 linearization always resolves such conflicts; there is no AmbiguityError\n- (d) only super() chaining runs more than one implementation\n\n**Deeper:** If the logging behaviour must win, list the mixin first. Cooperative mixins call `super().describe()` to combine results. A good answer in an interview also mentions printing `RazorpayGateway.__mro__` to confirm, and notes that cooperative `super()` calls are the way to run both implementations instead of one shadowing the other.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "PaymentGateway's — it comes before LoggingMixin in the MRO because it was listed first in the class declaration",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "LoggingMixin's — mixins always take priority",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Python raises AmbiguityError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Both run sequentially",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "PaymentGateway uses __init_subclass__ with a gateway_name keyword to auto-register subclasses into PaymentGateway.registry. A new developer adds PaytmGateway but forgets gateway_name=... in the class declaration. What happens?",
+      "explanation": "**Answer: (d)** The keyword defaults to `None`, so the hook runs but the guard skips registration. The class is created normally and is simply missing from the registry.\n\n- (a) the keyword is optional in the signature\n- (b) nothing derives a name from the class\n- (c) the hook runs for every subclass\n\n**Deeper:** Silent skips are the registry failure mode that bites in production: the provider exists but cannot be looked up. Fail loudly for concrete classes without a name, and test registry completeness.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "TypeError — gateway_name is required",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "registry auto-generates a name from the class name",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "__init_subclass__ doesn't run at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The class is created normally, but it is NOT added to registry (the if gateway_name: guard skips it silently)",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom typing import Protocol, runtime_checkable\n\n@runtime_checkable\nclass Scanner(Protocol):\n    def scan(self, amount: int, location: str) -> bool: ...\n\nclass Legacy:\n    def scan(self): return True\n\ns = Legacy()\nprint(isinstance(s, Scanner))\ntry:\n    s.scan(10, \"BLR\")\nexcept TypeError:\n    print(\"TypeError\")\n```\nWhat is printed?",
+      "explanation": "**Answer: (b)** A runtime-checkable Protocol check only verifies that an attribute named `scan` exists, so `isinstance` returns `True`; the later call with two arguments then fails because `Legacy.scan` takes none.\n\n- (a) would require the check to compare signatures, which it never does\n- (c) isinstance is allowed because the Protocol is decorated\n- (d) False would need the check to inspect the signature\n\n**Deeper:** This is why runtime protocol checks are a guard rail, not a contract: put mypy or pyright on the call sites, and write a conformance test if a plug-in boundary needs signature validation.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "False, then nothing",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "True, then TypeError",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "TypeError raised by isinstance",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "False, then TypeError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Base:\n    seen = []\n    def __init_subclass__(cls, tag=None, **kw):\n        super().__init_subclass__(**kw)\n        Base.seen.append((cls.__name__, tag))\n\nclass A(Base, tag=\"a\"): pass\nclass B(A): pass\na = A()\nprint(Base.seen)\n```\nWhat is printed?",
+      "explanation": "**Answer: (d)** The hook runs once for every class definition that has `Base` in its ancestry, so `A` and `B` each trigger it; class keywords are not inherited, so `B` receives `tag=None`.\n\n- (a) misses that B is also a subclass of Base and triggers the hook\n- (b) the tag keyword is passed explicitly per class statement, not inherited\n- (c) creating an instance of A does not call __init_subclass__\n\n**Deeper:** This is why registries need an explicit key for every concrete class, and why a derived class silently defaulting to None is a classic bug. Decide whether subclasses inherit a key and encode it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "[('A', 'a')]",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "[('A', 'a'), ('B', 'a')]",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "[('A', 'a'), ('B', None), ('A', None)]",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "[('A', 'a'), ('B', None)]",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-02/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A team writes `class RetryMixin` whose `charge()` wraps `super().charge()` in a retry loop, then declares `class Gateway(StripeBase, RetryMixin)` where `StripeBase.charge` calls the Stripe API directly. In production a transient network error is never retried. What is the cause?",
+      "explanation": "**Answer: (c)** The MRO is Gateway, StripeBase, RetryMixin, so attribute lookup stops at `StripeBase.charge` and the mixin is shadowed. Listing `RetryMixin` first makes its `charge` run and call `super().charge()`.\n\n- (a) inheriting from ABC has no bearing on lookup order\n- (b) super() delegates to the next class in the MRO; it never returns None by itself\n- (d) registration hooks do not change method resolution\n\n**Deeper:** Mixins that wrap behaviour must come before the class they decorate. Pin the order in a test (`Gateway.__mro__`) so a tidy-up of the class statement cannot disable retries without anyone noticing.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "RetryMixin must also inherit from ABC for its charge method to be visible",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "super() in a mixin always returns None unless the mixin defines __init__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "StripeBase precedes RetryMixin in the MRO, so StripeBase.charge is found first and the mixin's override is never called; list the mixin first",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "RetryMixin needs to register itself through __init_subclass__ to take effect",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

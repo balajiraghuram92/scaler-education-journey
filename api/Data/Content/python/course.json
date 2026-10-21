@@ -1,0 +1,122 @@
+{
+  "slug": "python-engineering",
+  "title": "Python Engineering for Backend & AI Systems",
+  "description": "Senior-level Python for AI Engineering and Forward Deployed Engineering interviews: the object model, concurrency, idioms, design patterns, machine coding, CPython internals, async FastAPI services, testing and code quality, and production AI applications.",
+  "verticalName": "Python Engineering",
+  "verticalDescription": "Python mastery for AI Engineering and FDE roles: language internals, design, async services, and production AI applications.",
+  "orderIndex": 2,
+  "modules": [
+    {
+      "slug": "python-object-model-concurrency",
+      "title": "Python Object Model, Concurrency & Idioms",
+      "description": "Inheritance and the MRO, ABCs and Protocols, the data model, threads, processes and the GIL, executors, synchronization, async foundations, and idiomatic Python.",
+      "badge": "Module 1",
+      "lessons": [
+        { "slug": "py-01-inheritance-mro-polymorphism", "title": "Inheritance, MRO and Polymorphism", "description": "How Python resolves attributes through the C3 MRO, cooperative super(), and polymorphism without interfaces.", "minutes": 75, "difficulty": "Intermediate", "reference": "https://docs.python.org/3/howto/mro.html", "sourceLesson": "Backend LLD: OOP-3: Inheritance, MRO and Polymorphism" },
+        { "slug": "py-02-abcs-protocols-mixins", "title": "ABCs, Protocols and Mixins", "description": "Nominal versus structural typing, abc.ABC, typing.Protocol, and when mixins help or hurt.", "minutes": 75, "difficulty": "Intermediate", "reference": "https://docs.python.org/3/library/abc.html", "sourceLesson": "Backend LLD: OOP-4: ABCs, Protocols and Mixins" },
+        { "slug": "py-03-magic-methods-data-model", "title": "Magic Methods and the Python Data Model", "description": "Dunder methods, equality and hashing, containers, context managers, and operator overloading.", "minutes": 80, "difficulty": "Advanced", "reference": "https://docs.python.org/3/reference/datamodel.html", "sourceLesson": "Backend LLD: OOP-5: Magic Methods and the Python Data Model" },
+        { "slug": "py-04-oop-lab-session", "title": "OOP Lab: Modelling a Real Domain", "description": "Applying encapsulation, inheritance, composition and the data model to a complete domain model.", "minutes": 90, "difficulty": "Intermediate", "reference": "https://docs.python.org/3/tutorial/classes.html", "sourceLesson": "Backend LLD: OOP Lab Session" },
+        { "slug": "py-05-processes-threads-gil", "title": "Processes, Threads and the GIL", "description": "What the GIL protects, CPU-bound versus I/O-bound work, threading versus multiprocessing, and free-threaded CPython.", "minutes": 80, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/threading.html", "sourceLesson": "Backend LLD: Concurrency-1: Processes, Threads and the GIL" },
+        { "slug": "py-06-executors-futures", "title": "Executors and Futures", "description": "concurrent.futures, thread and process pools, futures, exception propagation, and cancellation.", "minutes": 75, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/concurrent.futures.html", "sourceLesson": "Backend LLD: Concurrency-2: Executors and Futures" },
+        { "slug": "py-07-synchronization-async-intro", "title": "Synchronization and an Introduction to Async", "description": "Race conditions, locks, conditions, semaphores, queues, deadlock, and the first step into asyncio.", "minutes": 85, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/threading.html#lock-objects", "sourceLesson": "Backend LLD: Concurrency-3: Synchronization and Async Intro" },
+        { "slug": "py-08-decorators-iterators-generators", "title": "Decorators, Iterators and Generators", "description": "Closures and decorators, the iterator protocol, generators, yield from, and lazy pipelines.", "minutes": 80, "difficulty": "Advanced", "reference": "https://docs.python.org/3/howto/functional.html", "sourceLesson": "Backend LLD: Pythonic-1: Decorators, Iterators and Generators" },
+        { "slug": "py-09-collections-dataclasses-typing-exceptions", "title": "Collections, Dataclasses, Type Hints and Exceptions", "description": "The collections module, dataclasses, type hints that pay for themselves, and exception design.", "minutes": 80, "difficulty": "Intermediate", "reference": "https://docs.python.org/3/library/dataclasses.html", "sourceLesson": "Backend LLD: Pythonic-2: Collections, Dataclasses, Type Hints and Exceptions" }
+      ]
+    },
+    {
+      "slug": "python-solid-design-patterns",
+      "title": "SOLID & Design Patterns in Python",
+      "description": "SOLID for extensible systems with AI integrations, creational, structural and behavioural patterns written the Pythonic way, and UML.",
+      "badge": "Module 2",
+      "lessons": [
+        { "slug": "py-10-solid-principles", "title": "SOLID Principles for Extensible Systems with AI Integrations", "description": "SRP, OCP, LSP, ISP and DIP applied to Python services that call models and external providers.", "minutes": 85, "difficulty": "Advanced", "reference": "https://peps.python.org/pep-0544/", "sourceLesson": "Backend LLD: SOLID Principles for Extensible Systems with AI integrations" },
+        { "slug": "py-11-singleton", "title": "Design Patterns: Introduction and Singleton", "description": "Why patterns exist, the Singleton in Python, module-level state, thread safety, and testability costs.", "minutes": 70, "difficulty": "Intermediate", "reference": "https://refactoring.guru/design-patterns/singleton", "sourceLesson": "Backend LLD: Design Patterns: Introduction and Singleton" },
+        { "slug": "py-12-builder", "title": "Design Patterns: Builder", "description": "Step-wise construction, validation at build time, fluent interfaces, and when keyword arguments are enough.", "minutes": 65, "difficulty": "Intermediate", "reference": "https://refactoring.guru/design-patterns/builder", "sourceLesson": "Backend LLD: Design Patterns: Builder" },
+        { "slug": "py-13-prototype-registry", "title": "Design Patterns: Prototype and Registry", "description": "Cloning with copy and deepcopy, prototype registries, and plugin registration.", "minutes": 65, "difficulty": "Intermediate", "reference": "https://docs.python.org/3/library/copy.html", "sourceLesson": "Backend LLD: Design Patterns: Prototype and Registry" },
+        { "slug": "py-14-factory", "title": "Design Patterns: Factory for Service Abstraction", "description": "Simple factory, factory method and abstract factory for swapping providers behind one interface.", "minutes": 75, "difficulty": "Intermediate", "reference": "https://refactoring.guru/design-patterns/factory-method", "sourceLesson": "Backend LLD: Design Patterns: Leveraging Factory Pattern for Service Abstraction." },
+        { "slug": "py-15-adapter-facade", "title": "Design Patterns: Adapter and Facade", "description": "Wrapping third-party SDKs behind your own interface and simplifying subsystems.", "minutes": 70, "difficulty": "Intermediate", "reference": "https://refactoring.guru/design-patterns/adapter", "sourceLesson": "Backend LLD: Design Patterns: Adapter and Facade" },
+        { "slug": "py-16-decorator-flyweight", "title": "Design Patterns: Decorator and Flyweight", "description": "Structural decoration versus Python's @decorator, composing behaviour, and sharing state to save memory.", "minutes": 75, "difficulty": "Advanced", "reference": "https://refactoring.guru/design-patterns/decorator", "sourceLesson": "Backend LLD: Design Patterns: Decorator and Flyweight" },
+        { "slug": "py-17-behavioural-patterns", "title": "Behavioural Design Patterns", "description": "Strategy, Observer, Command, State and Chain of Responsibility in idiomatic Python.", "minutes": 90, "difficulty": "Advanced", "reference": "https://refactoring.guru/design-patterns/behavioral-patterns", "sourceLesson": "Backend LLD: Design Patterns: Behavioural Design Patterns" },
+        { "slug": "py-18-uml-diagrams", "title": "UML Diagrams for Design Interviews", "description": "Class and sequence diagrams, relationships and multiplicity, and communicating a design quickly.", "minutes": 60, "difficulty": "Foundational", "reference": "https://www.uml-diagrams.org/class-diagrams-overview.html", "sourceLesson": "Backend LLD: UML Diagrams" }
+      ]
+    },
+    {
+      "slug": "python-machine-coding",
+      "title": "Machine Coding in Python",
+      "description": "Approaching LLD interviews, then designing and coding TicTacToe, Parking Lot, BookMyShow and Splitwise end to end with SQLAlchemy-backed layers.",
+      "badge": "Module 3",
+      "lessons": [
+        { "slug": "py-19-approach-design-problems", "title": "How to Approach Design Problems", "description": "Clarifying requirements, finding entities, drawing the class diagram, and pacing a machine-coding round.", "minutes": 60, "difficulty": "Intermediate", "reference": "https://refactoring.guru/design-patterns", "sourceLesson": "Backend LLD: Machine Coding - 1/2: How to approach design problems" },
+        { "slug": "py-20-tictactoe-1", "title": "Code TicTacToe 1: Design and Core Game Loop", "description": "Requirements, entities, the builder for game setup, and the core move loop.", "minutes": 90, "difficulty": "Intermediate", "reference": "https://refactoring.guru/design-patterns/strategy", "sourceLesson": "Backend LLD: Machine Coding - 3: Code TicTacToe 1" },
+        { "slug": "py-21-tictactoe-2", "title": "Code TicTacToe 2: Winning Strategies, Bots and Undo", "description": "O(1) win checks, pluggable winning strategies, bot players, and undo with a move stack.", "minutes": 90, "difficulty": "Advanced", "reference": "https://refactoring.guru/design-patterns/strategy", "sourceLesson": "Backend LLD: Machine Coding - 4: Code TicTacToe 2" },
+        { "slug": "py-22-design-parking-lot", "title": "Design Parking Lot", "description": "Requirements, entities, relationships and the class diagram for a multi-floor parking lot.", "minutes": 75, "difficulty": "Intermediate", "reference": "https://refactoring.guru/design-patterns/strategy", "sourceLesson": "Backend LLD: Machine Coding - 5: Design Parking Lot" },
+        { "slug": "py-23-code-parking-lot-1", "title": "Code Parking Lot 1: Layers, Models and Ticket Issuance", "description": "Controller, service and repository layers, DTOs, and issuing a ticket with a slot-allocation strategy.", "minutes": 90, "difficulty": "Advanced", "reference": "https://docs.sqlalchemy.org/en/20/orm/quickstart.html", "sourceLesson": "Backend LLD: Machine Coding - 6: Code Parking Lot 1" },
+        { "slug": "py-24-code-parking-lot-2", "title": "Code Parking Lot 2: Payments, Fees and Concurrency", "description": "Fee strategies, partial payments, generic repositories, and preventing double allocation under concurrency.", "minutes": 90, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/threading.html#lock-objects", "sourceLesson": "Backend LLD: Machine Coding - 7: Code Parking Lot 2 ." },
+        { "slug": "py-25-design-bookmyshow", "title": "Design BookMyShow", "description": "Requirements, entities, seat and show modelling, and the class diagram for a ticket-booking system.", "minutes": 75, "difficulty": "Intermediate", "reference": "https://docs.sqlalchemy.org/en/20/orm/relationships.html", "sourceLesson": "Backend LLD: Machine Coding - 8: Design BookMyShow" },
+        { "slug": "py-26-code-bookmyshow-1", "title": "Code BookMyShow 1: SQLAlchemy Models and Relationships", "description": "Base models, foreign keys, relationships, enums and the schema for theatres, shows and seats.", "minutes": 90, "difficulty": "Advanced", "reference": "https://docs.sqlalchemy.org/en/20/orm/basic_relationships.html", "sourceLesson": "Backend LLD: Machine Coding - 9: Code BookMyShow 1" },
+        { "slug": "py-27-code-bookmyshow-2", "title": "Code BookMyShow 2: Booking, Transactions and Race Conditions", "description": "The booking flow, isolation levels, SELECT FOR UPDATE, and why a threading lock does not protect a database.", "minutes": 95, "difficulty": "Advanced", "reference": "https://www.postgresql.org/docs/current/transaction-iso.html", "sourceLesson": "Backend LLD: Machine Coding - 10: Code BookMyShow 2" },
+        { "slug": "py-28-code-bookmyshow-3", "title": "Code BookMyShow 3: Users, Passwords and Expiry", "description": "Signup with salted hashing, booking expiry, timestamps, and validating foreign keys at the service layer.", "minutes": 90, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/hashlib.html", "sourceLesson": "Backend LLD: Machine Coding - 11: Code BookMyShow 3" },
+        { "slug": "py-29-design-splitwise", "title": "Design Splitwise", "description": "Users, groups, expenses, paid and owed rows, and the settle-up problem.", "minutes": 75, "difficulty": "Intermediate", "reference": "https://refactoring.guru/design-patterns/command", "sourceLesson": "Backend LLD: Machine Coding - 12: Design Splitwise" },
+        { "slug": "py-30-code-splitwise-1", "title": "Code Splitwise 1: Commands, Models and Balances", "description": "A command-driven CLI, the Command pattern, expense models, and computing balances from rows.", "minutes": 90, "difficulty": "Advanced", "reference": "https://refactoring.guru/design-patterns/command", "sourceLesson": "Backend LLD: Machine Coding - 13: Code Splitwise 1" },
+        { "slug": "py-31-code-splitwise-2", "title": "Code Splitwise 2: Settle-Up Strategies", "description": "Many-to-many groups, settlement as an expense, naive and heap-based settle-up, and wiring strategies.", "minutes": 95, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/heapq.html", "sourceLesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2" }
+      ]
+    },
+    {
+      "slug": "python-internals-performance",
+      "title": "CPython Internals & Performance",
+      "description": "The object model and memory, scopes and descriptors, metaclasses, bytecode and the GIL, profiling, and the import system.",
+      "badge": "Module 4",
+      "lessons": [
+        { "slug": "py-32-object-model-memory", "title": "The CPython Object Model and Memory Management", "description": "PyObject, identity and mutability, reference counting, the cyclic GC, interning, and __slots__.", "minutes": 90, "difficulty": "Advanced", "reference": "https://docs.python.org/3/c-api/intro.html#objects-types-and-reference-counts", "sourceLesson": null },
+        { "slug": "py-33-scopes-closures-descriptors", "title": "Scopes, Closures and Descriptors", "description": "LEGB, closures and cell variables, the descriptor protocol, properties, and attribute lookup order.", "minutes": 90, "difficulty": "Advanced", "reference": "https://docs.python.org/3/howto/descriptor.html", "sourceLesson": null },
+        { "slug": "py-34-metaclasses-class-creation", "title": "Metaclasses and Class Creation", "description": "type, __init_subclass__, __set_name__, class decorators, and when a metaclass is justified.", "minutes": 80, "difficulty": "Advanced", "reference": "https://docs.python.org/3/reference/datamodel.html#customizing-class-creation", "sourceLesson": null },
+        { "slug": "py-35-bytecode-gil-internals", "title": "Bytecode, the Evaluation Loop and the GIL", "description": "dis, frames, the specializing interpreter, GIL switching, free-threaded CPython and subinterpreters.", "minutes": 85, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/dis.html", "sourceLesson": null },
+        { "slug": "py-36-profiling-performance", "title": "Profiling and Performance Engineering", "description": "Measuring before optimizing: timeit, cProfile, py-spy, tracemalloc, complexity of built-ins, and vectorization.", "minutes": 85, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/profile.html", "sourceLesson": null },
+        { "slug": "py-37-imports-packaging-runtime", "title": "The Import System, Packages and Runtime Environments", "description": "How import works, packages and namespaces, circular imports, entry points, and virtual environments.", "minutes": 70, "difficulty": "Intermediate", "reference": "https://docs.python.org/3/reference/import.html", "sourceLesson": null }
+      ]
+    },
+    {
+      "slug": "python-async-fastapi",
+      "title": "Async Python & FastAPI Services",
+      "description": "asyncio in depth, async patterns and backpressure, FastAPI, Pydantic v2, dependency injection, async persistence, security, and production operation.",
+      "badge": "Module 5",
+      "lessons": [
+        { "slug": "py-38-asyncio-deep-dive", "title": "asyncio in Depth", "description": "The event loop, coroutines, tasks, cancellation, TaskGroup, timeouts, and structured concurrency.", "minutes": 95, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/asyncio-task.html", "sourceLesson": null },
+        { "slug": "py-39-async-patterns-backpressure", "title": "Async Patterns, Backpressure and Blocking Calls", "description": "Semaphores and queues, producer-consumer, async HTTP clients, run_in_executor, and contextvars.", "minutes": 85, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/asyncio-queue.html", "sourceLesson": null },
+        { "slug": "py-40-fastapi-fundamentals", "title": "FastAPI Fundamentals", "description": "Path operations, request and response models, validation, status codes, errors, and OpenAPI.", "minutes": 80, "difficulty": "Intermediate", "reference": "https://fastapi.tiangolo.com/tutorial/", "sourceLesson": null },
+        { "slug": "py-41-pydantic-v2-deep-dive", "title": "Pydantic v2 in Depth", "description": "Models, field and model validators, serialization, discriminated unions, settings, and performance.", "minutes": 80, "difficulty": "Advanced", "reference": "https://docs.pydantic.dev/latest/concepts/models/", "sourceLesson": null },
+        { "slug": "py-42-fastapi-dependency-injection-architecture", "title": "Dependency Injection and Service Architecture in FastAPI", "description": "Depends, lifespan, layered architecture, repositories and services, configuration, and testable wiring.", "minutes": 85, "difficulty": "Advanced", "reference": "https://fastapi.tiangolo.com/tutorial/dependencies/", "sourceLesson": null },
+        { "slug": "py-43-sqlalchemy-async-persistence", "title": "Async Persistence with SQLAlchemy 2.0 and Alembic", "description": "Engines and sessions, async sessions, unit of work, transactions, N+1 queries, and migrations.", "minutes": 90, "difficulty": "Advanced", "reference": "https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html", "sourceLesson": null },
+        { "slug": "py-44-fastapi-auth-security", "title": "Authentication and Security for FastAPI Services", "description": "OAuth2 and JWT, password hashing, sessions versus tokens, CORS, rate limiting, and secrets.", "minutes": 80, "difficulty": "Advanced", "reference": "https://fastapi.tiangolo.com/tutorial/security/", "sourceLesson": null },
+        { "slug": "py-45-fastapi-production", "title": "Running FastAPI in Production", "description": "Middleware, error handling, structured logging, OpenTelemetry, background work, workers, and containers.", "minutes": 85, "difficulty": "Advanced", "reference": "https://fastapi.tiangolo.com/deployment/", "sourceLesson": null }
+      ]
+    },
+    {
+      "slug": "python-testing-quality",
+      "title": "Testing, Code Quality & Interview Readiness",
+      "description": "pytest and fixtures, mocking and async tests, advanced typing, tooling and project layout, resilient error handling, and a senior Python interview playbook.",
+      "badge": "Module 6",
+      "lessons": [
+        { "slug": "py-46-pytest-fixtures", "title": "pytest Fundamentals and Fixtures", "description": "Test discovery, assertions, fixtures and scopes, parametrization, markers, and conftest design.", "minutes": 75, "difficulty": "Intermediate", "reference": "https://docs.pytest.org/en/stable/how-to/fixtures.html", "sourceLesson": null },
+        { "slug": "py-47-mocking-async-tests", "title": "Mocking, Test Doubles and Async Tests", "description": "unittest.mock, patching where it is looked up, fakes versus mocks, testing async code and HTTP clients.", "minutes": 80, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/unittest.mock.html", "sourceLesson": null },
+        { "slug": "py-48-advanced-typing-static-analysis", "title": "Advanced Typing and Static Analysis", "description": "Generics, TypeVar, ParamSpec, Protocol, overloads, TypedDict, and strict mypy or pyright.", "minutes": 85, "difficulty": "Advanced", "reference": "https://typing.python.org/en/latest/", "sourceLesson": null },
+        { "slug": "py-49-tooling-project-layout", "title": "Tooling, Packaging and Project Layout", "description": "pyproject.toml, uv and dependency locking, ruff, pre-commit, src layout, and CI quality gates.", "minutes": 65, "difficulty": "Intermediate", "reference": "https://packaging.python.org/en/latest/guides/writing-pyproject-toml/", "sourceLesson": null },
+        { "slug": "py-50-errors-logging-resilience", "title": "Error Handling, Logging and Resilience", "description": "Exception hierarchies, exception groups, structured logging, retries with backoff, timeouts, and idempotency.", "minutes": 80, "difficulty": "Advanced", "reference": "https://docs.python.org/3/library/logging.html", "sourceLesson": null },
+        { "slug": "py-51-python-interview-playbook", "title": "The Senior Python Interview Playbook", "description": "Idioms interviewers look for, live-coding discipline, common traps, and how to talk about trade-offs.", "minutes": 70, "difficulty": "Advanced", "reference": "https://docs.python.org/3/faq/programming.html", "sourceLesson": null }
+      ]
+    },
+    {
+      "slug": "python-ai-applications",
+      "title": "Python for Production AI Applications",
+      "description": "LLM clients, structured output with Pydantic, retrieval pipelines, agents and tool use, and serving AI features from FastAPI.",
+      "badge": "Module 7",
+      "lessons": [
+        { "slug": "py-52-llm-api-clients", "title": "Building Robust LLM API Clients", "description": "Async clients, streaming, timeouts, retries, rate limits, token budgets and cost tracking.", "minutes": 85, "difficulty": "Advanced", "reference": "https://www.python-httpx.org/async/", "sourceLesson": null },
+        { "slug": "py-53-structured-output-pydantic", "title": "Structured Output and Tool Calling with Pydantic", "description": "JSON Schema from models, tool definitions, validating and repairing model output, and typed results.", "minutes": 80, "difficulty": "Advanced", "reference": "https://docs.pydantic.dev/latest/concepts/json_schema/", "sourceLesson": null },
+        { "slug": "py-54-rag-pipelines", "title": "Retrieval-Augmented Generation Pipelines in Python", "description": "Ingestion, chunking, embeddings, vector search, reranking, prompt assembly, and evaluation.", "minutes": 90, "difficulty": "Advanced", "reference": "https://www.pinecone.io/learn/retrieval-augmented-generation/", "sourceLesson": null },
+        { "slug": "py-55-agents-tool-use", "title": "Agents, Tool Use and Orchestration", "description": "The agent loop, tool registries, state and memory, graph orchestration, guardrails, and failure modes.", "minutes": 90, "difficulty": "Advanced", "reference": "https://langchain-ai.github.io/langgraph/concepts/low_level/", "sourceLesson": null },
+        { "slug": "py-56-serving-ai-fastapi", "title": "Serving AI Features from FastAPI", "description": "Streaming responses, background jobs, caching, observability, evaluation in CI, and cost controls.", "minutes": 85, "difficulty": "Advanced", "reference": "https://fastapi.tiangolo.com/advanced/custom-response/#streamingresponse", "sourceLesson": null }
+      ]
+    }
+  ]
+}

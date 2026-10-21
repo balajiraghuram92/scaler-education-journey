@@ -1,0 +1,286 @@
+{
+ "lessonSlug": "py-07-synchronization-async-intro",
+ "sourceLesson": "Backend LLD: Concurrency-3: Synchronization and Async Intro",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-07/additional/q04",
+   "category": "Additional",
+   "title": "`Semaphore(3)` was used to allow only 3 threads to run at once",
+   "question": "In the lecture, a Semaphore(3) was used to allow only 3 threads to run at once (like a parking lot with 3 spots). If instead you initialize Semaphore(0), what happens when a thread immediately calls acquire() on it?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It behaves exactly like Semaphore(1)"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It raises an error because 0 is not allowed"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It passes through instantly since there's nothing to block"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It blocks immediately, since there are zero permits available — the thread waits until something else calls release()"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_yUkuKfcMDy.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-07/additional/q05",
+   "category": "Additional",
+   "title": "For problems like \"print first, then second, then third in strict order using multiple threads,\" why can a semaphore be used to enforce ordering, not just capacity limits?",
+   "question": "For problems like \"print first, then second, then third in strict order using multiple threads,\" why can a semaphore be used to enforce ordering, not just capacity limits?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Semaphores cannot be used for ordering — only Lock can do this"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because semaphores are faster than locks"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because acquire() in one thread can be made to wait for a release() called by a different thread, effectively passing a signal/permission from one thread to another"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Because semaphores automatically sort threads by their function name"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_LazuP2NqL7.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-07/additional/q06",
+   "category": "Additional",
+   "title": "What is the guaranteed printed order?",
+   "question": "What is the guaranteed printed order?\n```python\nimport threading\n\nsem = threading.Semaphore(0)\n\ndef waiter():\n    sem.acquire()\n    print(\"B\")\n\nt = threading.Thread(target=waiter)\nt.start()\nprint(\"A\")\nsem.release()\nt.join()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It will hang forever and print nothing"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "B then A, always"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Random — could be A then B, or B then A"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A then B, always"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_fBGp7zlf12.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-07/additional/q07",
+   "category": "Additional",
+   "title": "This is meant to make \"second\" print only after \"first,\" using semaphores, but it has a bug.",
+   "question": "This is meant to make \"second\" print only after \"first,\" using semaphores, but it has a bug:\n\n```python\nimport threading\n\nclass Foo:\n    def __init__(self):\n        self.sem = threading.Semaphore(1)  # BUG is here\n\n    def first(self):\n        print(\"first\")\n        self.sem.release()\n\n    def second(self):\n        self.sem.acquire()\n        print(\"second\")\n```\n\nWhat is wrong and what's the fix?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "threading.Semaphore should be threading.Lock"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The methods first and second should be swapped"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Semaphore(1) should be Semaphore(0) — since second() must be forced to wait until first() releases it. Starting at 1 lets second() run immediately without waiting"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "second() should call release() instead of acquire()"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_FMpiRsmmWw.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-07/additional/q08",
+   "category": "Additional",
+   "title": "For the \"ZeroEvenOdd\" problem (three threads: one prints only 0s, one prints only evens, one prints only odds, in strict interleaved order), which setup is closest to correct?",
+   "question": "For the \"ZeroEvenOdd\" problem (three threads: one prints only 0s, one prints only evens, one prints only odds, in strict interleaved order), which setup is closest to correct?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It cannot be done with semaphores; only Condition will work"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Use time.sleep() with carefully tuned delays to control the order"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Use one single Lock shared by all three threads with no other coordination"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Use three separate semaphores — e.g., a zero_sem starting at 1, and even_sem/odd_sem starting at 0 — so each thread's release() signals exactly which thread should run next"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_wQ1V6aq5dE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-07/assignment/q04",
+   "category": "Assignment",
+   "title": "What is a \"critical section\" in the context of threading.Lock?",
+   "question": "What is a \"critical section\" in the context of threading.Lock?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A section of code that never has bugs"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The block of code that only one thread can execute at a time while holding the lock"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Any function that uses threads"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The part of code that runs fastest"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_6SAVKugd1Y.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-07/assignment/q05",
+   "category": "Assignment",
+   "title": "`threading.Lock` cause a deadlock",
+   "question": "Why does a plain threading.Lock cause a deadlock if the same thread tries to acquire it twice (e.g., a locked function calling another locked function)?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The second acquire() call raises an exception immediately"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Python doesn't allow nested function calls"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A Lock has no memory of who is holding it, so it just waits forever for a release that never comes from itself"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Locks can only be used once per program"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ubGGpyNAaW.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-07/assignment/q06",
+   "category": "Assignment",
+   "title": "Python Concurrency 3 - What will this print?",
+   "question": "What will this print?\n\n```python\nimport threading\n\ncounter = 0\nlock = threading.Lock()\n\ndef increment():\n    global counter\n    for _ in range(50_000):\n        with lock:\n            counter += 1\n\nt1 = threading.Thread(target=increment)\nt2 = threading.Thread(target=increment)\nt1.start(); t2.start()\nt1.join(); t2.join()\n\nprint(counter)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It will raise a deadlock error"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "50000"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A random number less than 100,000 each time it runs"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "100000, every single time"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_NDZlwdW0UG.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-07/assignment/q07",
+   "category": "Assignment",
+   "title": "The following code is supposed to safely reserve seats but has a bug. What is wrong?",
+   "question": "The following code is supposed to safely reserve seats but has a bug. What is wrong?\n```python\nimport threading\n\nclass BookingSystem:\n    def __init__(self, seats):\n        self.available_seats = seats\n        self.lock = threading.Lock()\n\n    def reserve(self, num_seats):\n        if self.available_seats >= num_seats:\n            with self.lock:\n                pass\n            self.available_seats -= num_seats\n            return True\n        return False\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "There is no bug, this code is correct"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "reserve should be a @staticmethod"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "threading.Lock() should be threading.RLock()"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The check (if self.available_seats >= num_seats) and the update (self.available_seats -= num_seats) are NOT both inside the with self.lock: block, so two threads can still race between the check and the update"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_lkH6RTuqMF.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-07/assignment/q08",
+   "category": "Assignment",
+   "title": "`outer()` acquires a lock and then calls `inner()`",
+   "question": "A function outer() acquires a lock and then calls inner(), which also tries to acquire the same lock, from the same thread. Which tool correctly avoids deadlock here?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "queue.Queue()"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "threading.Event()"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "threading.RLock()"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "threading.Semaphore(1)"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_9P2JPwwAqZ.png"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,426 @@
+{
+ "lessonSlug": "py-01-inheritance-mro-polymorphism",
+ "sourceLesson": "Backend LLD: OOP-3: Inheritance, MRO and Polymorphism",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-01/additional/q01",
+   "category": "Additional",
+   "title": "MRO Search Order",
+   "question": "For class D(B, C) where B and C both inherit from A, in what order does Python search for a method called on a D() instance?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "D → A → B → C"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "D → B → A → C"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "D → B → C → A"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "D → C → B → A"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_gpB15xxbQ0.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/additional/q02",
+   "category": "Additional",
+   "title": "Understanding super() Semantics",
+   "question": "super() in a multiple-inheritance chain refers to:",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The direct parent class always"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The next class in the current object's MRO after the class where super() is written"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The leftmost parent"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The top-most ancestor"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_x7eQEXlPOf.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/additional/q03",
+   "category": "Additional",
+   "title": "isinstance vs type Check",
+   "question": "Given class A: pass, class B(A): pass, an object b = B(). Which is True?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "type(b) == A → True"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "isinstance(b, A) → True and type(b) == A → False"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Both are True"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Both are False"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_2KZ7j6HUnq.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/additional/q04",
+   "category": "Additional",
+   "title": "Duck Typing With Drones",
+   "question": "Uber's dispatch(vehicle) calls vehicle.start(). If a totally unrelated Drone class (not inheriting from Vehicle) has a .start() method, what does Python's duck typing say?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "TypeError — Drone is not a Vehicle"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Works fine — Python only checks that .start() exists on the passed object"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Silently returns None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Raises NotImplementedError"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_c9exZm0AXl.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/additional/q05",
+   "category": "Additional",
+   "title": "Redefined Method Overwrite",
+   "question": "What will be the output:\n```python\nclass N:\n    def send(self, m): print(\"A\")\n    def send(self, m, r): print(\"B\")\nN().send(\"hi\")\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Prints \"A\""
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Prints \"B\""
+    },
+    {
+     "optionKey": "c",
+     "optionText": "TypeError — missing arg r"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Prints both"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_giThLo8VRB.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/additional/q06",
+   "category": "Additional",
+   "title": "Missing eq/hash Method",
+   "question": "A Zone class defines __lt__ by area. Which of these will NOT work out of the box?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "sorted(zones)"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "min(zones)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "zones.sort()"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "zone in some_set (membership test on a set of Zones)"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_EZwnfKLXsO.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/additional/q07",
+   "category": "Additional",
+   "title": "Cooperative Init Chain Behavior",
+   "question": "In cooperative multiple inheritance with **kwargs-passing super().__init__ calls, the shared top-most ancestor's __init__:",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Runs once per parent that inherits it (twice in a diamond)"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Runs exactly once, because everyone follows the same MRO chain"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Never runs"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Runs only if explicitly called by name"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_DI20WQJukj.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/additional/q08",
+   "category": "Additional",
+   "title": "Overload Dispatch Comparison",
+   "question": "Which best distinguishes Java overloading from Python's @singledispatch?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Both dispatch at compile time"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Java at compile time based on declared types; @singledispatch at runtime based on actual argument type"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Both dispatch at runtime"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "@singledispatch dispatches on all arguments, not just the first"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_0BCY1wc48n.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/additional/q09",
+   "category": "Additional",
+   "title": "Skipped Parent Constructor Call",
+   "question": "What will be the output:\n```python\nclass A:\n    def __init__(self): print(\"A\")\nclass B(A):\n    def __init__(self):\n        print(\"B\") # no super() call\nb = B()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A then B"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "B only"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "B then A"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A only"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_Jlhq8qnzYi.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/additional/q10",
+   "category": "Additional",
+   "title": "Unhashable Type After eq",
+   "question": "Defining __eq__ on a class without also defining __hash__ causes:",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A SyntaxError"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Instances of the class become unhashable — cannot be used in set or as dict keys"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "No effect at all"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Python auto-generates a matching __hash__"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_gTx59NJ4QP.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/assignment/q01",
+   "category": "Assignment",
+   "title": "Method Resolution Order (MRO)",
+   "question": "Given the hierarchy class A: pass, class B(A): pass, class C(A): pass, class D(B, C): pass, what does D.__mro__ show (ignoring object)? Apply C3 merge — parents in written order, and any ancestor appears after all its descendants.",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "D → A → B → C"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "D → B → C → A"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "D → C → B → A"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "D → B → A → C"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/assignment/q02",
+   "category": "Assignment",
+   "title": "Duck Typing Silent Bug",
+   "question": "In Uber's dispatch code, a function dispatch(vehicle) calls vehicle.start(). A colleague passes in an EmailNotification object (unrelated to Vehicle) which happens to have a .start() method that marks the email as \"sending\". No error is raised and the email gets marked as sending. Which best explains this per duck typing?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python auto-converted the object into a Vehicle"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Python only checks whether the method exists on the object at runtime, never what the method means — so wrong-object-right-name bugs run silently"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "dispatch should have raised a TypeError and this is a Python bug"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "EmailNotification must secretly inherit from Vehicle"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "2.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/assignment/q03",
+   "category": "Assignment",
+   "title": "Missing Super Init Call",
+   "question": "What will be the output:\n\n```python\nclass Vehicle:\n    def __init__(self, reg): self.reg = reg\nclass Bike(Vehicle):\n    def __init__(self, reg, has_carrier):\n        self.has_carrier = has_carrier\nb = Bike(\"KA02\", True)\nprint(b.reg)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Prints \"KA02\" — parent __init__ runs automatically"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Prints None"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "AttributeError — Bike.__init__ never calls super().__init__(), so reg was never set"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Compile-time error"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "3.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/assignment/q04",
+   "category": "Assignment",
+   "title": "Diamond Inheritance Method Resolution",
+   "question": "In the diamond class EC(EV, CV) where EV and CV both define get_priority_score() differently (20 and 30), and EC defines nothing, what does EC().get_priority_score() return, and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "30 — rightmost parent wins by convention"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "20 — EV comes before CV in EC's MRO, and Python stops at the first class that defines the method"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Raises AmbiguityError"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Returns the sum (50) — Python merges both"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "4.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-01/assignment/q05",
+   "category": "Assignment",
+   "title": "Method Overloading Myth",
+   "question": "What will be the output:\n\n```python\nclass Fare:\n    def calc(self, dist): return 10*dist\n    def calc(self, dist, surge): return 10*dist*surge\nf = Fare()\nprint(f.calc(5))\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Prints 50 — Python picks the 1-arg version by overloading"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Prints 50 — both methods coexist"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "TypeError — the second def replaced the first (Python has no overloading), so calc now needs 2 args"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Prints None"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "5.png"
+   ]
+  }
+ ]
+}

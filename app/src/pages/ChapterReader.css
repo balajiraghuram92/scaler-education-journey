@@ -862,3 +862,140 @@
   overflow-x: auto;
   white-space: pre;
 }
+
+/* ==========================================================================
+   Learner progress: completion toggle, resume hint, notes, assignments
+   ========================================================================== */
+.chamber-completion-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.chamber-completion-error,
+.add-note-error {
+  color: var(--chamber-accent-terracotta);
+  font-size: 0.78rem;
+}
+
+.chapter-completion-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--chamber-accent-sage);
+  border-radius: 6px;
+  background: var(--chamber-bg-card);
+  color: var(--chamber-accent-sage);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.chapter-completion-btn:hover:not(:disabled) {
+  background: rgba(44, 94, 85, 0.06);
+}
+
+.chapter-completion-btn.is-complete {
+  background: var(--chamber-accent-sage);
+  color: #FFFFFF;
+}
+
+.chapter-completion-btn.is-complete:hover:not(:disabled) {
+  background: #234B44;
+}
+
+.chapter-completion-btn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.chapter-completion-btn:focus-visible,
+.chapter-completion-signin:focus-visible {
+  outline: 2px solid var(--chamber-accent-sage);
+  outline-offset: 2px;
+}
+
+.chapter-completion--sidebar {
+  align-self: flex-start;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+.chapter-completion-signin {
+  color: var(--chamber-accent-sage);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.chapter-completion-signin:hover {
+  text-decoration: underline;
+}
+
+.chapter-completion-signin.chapter-completion--sidebar {
+  padding: 0;
+  font-size: 0.82rem;
+}
+
+.chapter-resume-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  max-width: var(--chapter-prose-max-width);
+  padding: 0.6rem 0.85rem;
+  border-left: 3px solid var(--chamber-accent-sage);
+  border-radius: 0 6px 6px 0;
+  background: rgba(44, 94, 85, 0.07);
+  color: var(--chamber-ink-secondary);
+  font-size: 0.84rem;
+}
+
+.chapter-resume-hint > span {
+  flex: 1;
+}
+
+.chapter-resume-hint__dismiss {
+  display: inline-flex;
+  padding: 0.2rem;
+  border: 0;
+  background: transparent;
+  color: var(--chamber-ink-muted);
+  cursor: pointer;
+}
+
+.chapter-resume-hint__dismiss:hover {
+  color: var(--chamber-ink-display);
+}
+
+.sibling-link.is-completed {
+  color: var(--chamber-ink-muted);
+}
+
+.sibling-done-icon {
+  margin-right: 0.3rem;
+  vertical-align: -1px;
+  color: var(--chamber-accent-sage);
+}
+
+.save-note-btn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.chamber-coding-assignments {
+  margin: 2rem 0 1rem;
+}
+
+.chamber-coding-assignments > .learning-eyebrow {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--chamber-rule-border);
+}
+
+.prb-statement.md-block p {
+  margin: 0 0 0.5rem;
+}

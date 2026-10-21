@@ -10848,5 +10848,470 @@
   "screenshots": [
    "msedge_zd5cDGYsbZ.png"
   ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 2,
+  "title": "Which Enum On Which Model",
+  "question": "In our Splitwise models, which enum belongs on the Expense model?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "ExpenseType (NORMAL / PAYMENT)"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "ExpenseUserType (PAID / HAD_TO_PAY)"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "Both enums"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "Neither. Enums are not stored on models"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "Q1 of this Assignment was not captured in the screenshots.",
+  "screenshots": [
+   "msedge_HjkmEuMXNM.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 3,
+  "title": "Default Evaluated Once At Import",
+  "question": "A student writes this in BaseModel:\n\n```python\ncreated_at = Column(DateTime, default=datetime.now(timezone.utc))\n```\nWhat is the problem?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "DateTime columns cannot have a default"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "timezone.utc is not allowed inside datetime.now"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "The code crashes when the file loads"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "datetime.now(...) runs only once when the file loads, so every new row gets that same old time"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_ZrSMBF6uF7.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 4,
+  "title": "Keeping Both Sides In Sync",
+  "question": "What is the main job of back_populates on expense.expense_users and expense_user.expense?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "It creates an extra table in the database"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "It makes the foreign key column optional"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "It keeps both sides in sync in memory, so changing one side also updates the other side"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "It makes database queries faster"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_zLNtNieFED.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 5,
+  "title": "Many-To-Many Group Membership",
+  "question": "Riya is a member of the \"Goa Trip\" group and also of the \"Roommates\" group. Each group has many members. Which relationship fits Group.members?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "One-to-one"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "Many-to-many, using secondary=group_members_table"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "One-to-many, with the foreign key on User"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "One-to-many, with the foreign key on Group"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_3KOmMTH0bt.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 6,
+  "title": "Renamed Enum Breaks Old Rows",
+  "question": "A teammate saves expense_type with Column(SAEnum(ExpenseType)). Later they rename PAYMENT to SETTLEMENT in the Python enum. Old rows in the database still have the text PAYMENT. What happens when such an old row is loaded?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "Loading fails with an error, because the stored name PAYMENT no longer matches any enum member"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "SQLAlchemy silently converts it to SETTLEMENT"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "The value becomes None with no error"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "SQLAlchemy updates all the old rows automatically"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_4JaTLsu4uZ.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 7,
+  "title": "Type Hints Unenforced At Runtime",
+  "question": "```python\nclass SettleUpController:\n    def settle_up_user(self, request: SettleUpUserResponseDto):\n        expenses = self.settle_up_service.settle_up_user(request.user_id)\n        return SettleUpUserResponseDto(expenses=expenses)\n```\nThe type hint on request is wrong. It should be SettleUpUserRequestDto. If we pass a real SettleUpUserRequestDto object to this method, what happens when the program runs?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "Python raises a TypeError immediately"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "Python raises a SyntaxError when the file loads"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "It runs fine, because Python does not check type hints. A type checker like pyright or mypy would flag it"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "It returns an empty list"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_tGqLpdvza0.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 8,
+  "title": "Settlement Reuses Expense Structure",
+  "question": "Why did we use a dummy Expense with expense_type = PAYMENT for a settlement, instead of creating a new Transaction class?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "SQLAlchemy allows only a small number of model classes"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "A Transaction class cannot have foreign keys"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "Dummy expenses are never saved, so they are always faster"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "A settlement is also money moving between people, so it can reuse Expense and ExpenseUser, and the balance logic stays the same"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_8GnSt7Mwx2.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 9,
+  "title": "Calculating Net Balance From Expense",
+  "question": "Seed data for one expense (Dinner, total 1000):\n\n| Person | Row type | Amount |\n|---|---|---|\n| Alice | PAID | 1000 |\n| Alice | HAD_TO_PAY | 500 |\n| Bob | HAD_TO_PAY | 500 |\n\nNaiveSettleUpStrategy calculates each person's net_balance as (total paid) minus (total owed). A positive balance means the person should receive money. What are the balances?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "Alice = 1000, Bob = 500"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "Alice = +500, Bob = -500"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "Alice = -500, Bob = +500"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "Alice = 0, Bob = 0"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_GdHK4PlPRb.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 10,
+  "title": "Naive Settle-Up Transaction Order",
+  "question": "Net balances are A = -300, B = -200, C = +500. NaiveSettleUpStrategy sorts users from the lowest balance to the highest. Then it goes through them one by one. Each person settles fully with the next person, and the remaining amount moves to that next person. Which transactions are produced?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "A pays C 300, and B pays C 200"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "C pays A 300, and C pays B 200"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "A pays B 300, then B pays C 500"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "A pays B 500, then B pays C 300"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_pj0MU8bZst.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 11,
+  "title": "Settlement Rows Must Balance",
+  "question": "A student writes _build_dummy_expense like this:\n\n```python\nexpense.expense_users = [\n    ExpenseUser(user=payer, amount=amount,\n                expense_user_type=ExpenseUserType.PAID),\n    ExpenseUser(user=receiver, amount=amount,\n                expense_user_type=ExpenseUserType.PAID),\n]\n```\nWhat is wrong?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "The receiver should be HAD_TO_PAY. With two PAID rows, total paid is 2 × amount and total owed is 0, so the rule \"total paid = total owed\" breaks"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "Nothing. Both people are involved, so both are PAID"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "The receiver's amount should be different from the payer's amount"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "ExpenseUser cannot be created without a group"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_BNUruN2zhz.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 12,
+  "title": "Finding All Expenses For A User",
+  "question": "Aman is in five groups and also has some one-on-one expenses that have no group. In settle_up_user, how do we find every expense Aman is part of?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "Take only the expenses of his first group"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "Find all ExpenseUser rows for Aman, then take the Expense of each row"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "Take only the expenses where group_id is not None"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "Take only the expenses that Aman created"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_X15vVAWvAw.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 13,
+  "title": "Filtering Settlement For One User",
+  "question": "settle_up_user runs the strategy on all expenses that user P is part of. The strategy returns 3 transactions:\n\n1. \"Q pays P 400\"\n2. \"R pays P 100\"\n3. \"Q pays R 250\"\n\nThe service keeps only the transactions where P appears. Which transactions are returned, and is P fully settled?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "Only transaction 1, because the loop stops at the first match"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "All 3 transactions"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "None, because Q and R have a transaction between them"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "Transactions 1 and 2. P is fully settled by them, and transaction 3 does not affect P"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_J0oQlCWnNV.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 14,
+  "title": "Command Matcher Rule Trace",
+  "question": "```python\ncmd = SettleUpUser(controller)\n\nprint(cmd.matches(\"u12 SettleUp\"))\nprint(cmd.matches(\"g1 SettleUp\"))\nprint(cmd.matches(\"U3 settleup\"))\nprint(cmd.matches(\"u1 SettleUp now\"))\n```\nmatches() returns True only if all of these are true: the input has exactly 2 words, the second word is settleup (ignoring upper/lower case), the first word starts with u (ignoring case), and the rest of the first word is only digits. What is printed?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "True, False, True, False"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "True, True, True, False"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "True, False, False, False"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "False, False, True, False"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_vf3O3YMF0O.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 15,
+  "title": "List Has No Matches Method",
+  "question": "```python\nclass CommandExecutor:\n    def __init__(self, commands):\n        self.commands = commands\n\n    def execute(self, user_input):\n        for command in self.commands:\n            if self.commands.matches(user_input):\n                command.execute(user_input)\n                return\n        print(\"Invalid command\")\n```\nself.commands is a list of Command objects. What happens the first time execute() runs?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "It prints \"Invalid command\" for every input"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "It raises AttributeError, because a list has no matches method"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "It runs the first command every time"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "It works correctly"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_z6vvAyTPMh.png"
+  ]
+ },
+ {
+  "module": "Module-3",
+  "lesson": "Backend LLD: Machine Coding - 14: Code Splitwise 2",
+  "section": "Assignment",
+  "qnum": 16,
+  "title": "Swapping Strategy At Wiring Point",
+  "question": "You finish a new HeapSettleUpStrategy class that follows the same SettleUpStrategy interface. You want the app to use it instead of NaiveSettleUpStrategy. What is the smallest correct change?",
+  "options": [
+   {
+    "optionKey": "a",
+    "optionText": "Rewrite SettleUpService to call the heap logic directly"
+   },
+   {
+    "optionKey": "b",
+    "optionText": "Change the SettleUpUser command"
+   },
+   {
+    "optionKey": "c",
+    "optionText": "In main.py, pass HeapSettleUpStrategy() to SettleUpService instead of NaiveSettleUpStrategy()"
+   },
+   {
+    "optionKey": "d",
+    "optionText": "Change SettleUpController so it chooses the algorithm on every call"
+   }
+  ],
+  "correctOptionKey": null,
+  "note": "",
+  "screenshots": [
+   "msedge_sJi2Sf1rDO.png"
+  ]
  }
 ]

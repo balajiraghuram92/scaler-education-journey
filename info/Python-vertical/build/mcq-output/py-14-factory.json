@@ -1,0 +1,515 @@
+{
+  "lessonSlug": "py-14-factory",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-14/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What problem does the Simple Factory pattern solve when a class has repeated if/elif blocks to decide which object to create?",
+      "explanation": "**Answer: (d)** A Simple Factory keeps creation logic in one place, so callers stop repeating `if/elif` chains, and adding a type is a change in that one place rather than in every caller.\n\n- (a) is wrong because the factory helps toward Open/Closed, it does not remove the principle.\n- (b) is wrong because it consolidates decision logic rather than duplicating it.\n- (c) is wrong because speed is not the point.\n\n**Deeper:** Be precise in an interview: a factory centralises the decision, it does not eliminate it. The blast radius of adding a provider drops from every call site to one module, and that is the argument for it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It removes the Open/Closed Principle",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It duplicates the decision logic further",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It makes the code run faster",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It fixes Open/Closed Principle violations by keeping creation logic in one place instead of scattered across callers",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will this print?\n\n```python\nclass Notification:\n    def __init__(self, recipient, message):\n        self.recipient = recipient\n        self.message = message\n\nclass SMSNotification(Notification):\n    def send(self):\n        return f\"SMS to {self.recipient}: {self.message}\"\n\nn = SMSNotification(\"9999999999\", \"Hello!\")\nprint(n.send())\n```",
+      "explanation": "**Answer: (a)** `SMSNotification` inherits `__init__` from `Notification` and adds `send()`, so the call builds the object and returns the formatted string.\n\n```python\nn = SMSNotification(\"9999999999\", \"Hello!\")\nprint(n.send())   # SMS to 9999999999: Hello!\n```\n\n- (b) is wrong because `send` is defined on the subclass being used.\n- (c) is wrong because the method returns a string.\n- (d) is wrong because the f-string puts the recipient and message in the stated order.\n\n**Deeper:** This sets up the product hierarchy a factory returns: callers hold a `Notification` and call `send()` without knowing the subclass. In modern Python you would often type that as a Protocol so third-party classes conform without inheriting.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SMS to 9999999999: Hello!",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Error: send() not defined in Notification",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Hello! to 9999999999",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What's wrong with this Simple Factory method?\n```python\nclass NotificationFactory:\n    @staticmethod\n    def create_notification(type_, *args):\n        if type_ == \"EMAIL\":\n            return EmailNotification(args)\n        elif type_ == \"SMS\":\n            return SMSNotification(args)\n```",
+      "explanation": "**Answer: (b)** `*args` collects the extra arguments into one tuple, and passing `args` hands the constructor a single tuple instead of separate values.\n\n```python\ncreate_notification(\"EMAIL\", \"a@x.com\", \"hello\")\nEmailNotification(args)    # one tuple argument: missing 'message'\nEmailNotification(*args)   # unpacked: correct\n```\n\n- (a) is wrong because `@staticmethod` is appropriate for a factory that needs no instance.\n- (c) is wrong because string keys are fine, although an `Enum` is safer.\n- (d) is wrong because the call raises `TypeError`.\n\n**Deeper:** The factory also silently returns `None` for an unknown type, so add an explicit `else: raise ValueError(...)` listing the accepted types.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "@staticmethod should not be used here",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "args is being passed as a single tuple instead of being unpacked, so the constructor won't receive separate arguments",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "type_ should not be a string",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing is wrong",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Which of these is true about Abstract Factory according to the lecture?",
+      "explanation": "**Answer: (c)** Abstract Factory is worth its extra structure only when a genuine family of related objects must stay matched together.\n\n- (a) is wrong because it does not remove the need for common parent types; products are usually typed against a shared abstraction.\n- (b) is wrong because using it for a single object is over-engineering.\n- (d) is wrong because Simple Factory remains the right tool for a single product.\n\n**Deeper:** A good example is a chat model, embedder and vector index from one provider, where the index must match the embedder's dimensions. If you cannot name the compatibility rule that the family enforces, you probably need only a simple factory.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It always eliminates the need for a common parent class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It should be used even when there's only one object being created",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It's worth the extra structure only when a genuine family of related objects must stay matched together",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It replaces Simple Factory in every situation",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A document processing app needs DocumentParser, DocumentProcessor, and DocumentPrinter objects that must always match the same document type (e.g. all Text, never Text parser + Spreadsheet printer). Which pattern should be used?",
+      "explanation": "**Answer: (d)** Parser, processor and printer must always match the same document type, which is exactly the problem Abstract Factory solves.\n\n- (a) is wrong because a Simple Factory creates one product and cannot enforce that three products match.\n- (b) is wrong because an `if/elif` in the client brings back the coupling and mismatch risk.\n- (c) is wrong because a Singleton controls the number of instances, not their compatibility.\n\n**Deeper:** With `TextDocumentFactory` and `SpreadsheetDocumentFactory`, a client holds one factory and cannot ask for a Text parser with a Spreadsheet printer. The price is one factory class per family and a new method on every factory when you add a new product kind.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Simple Factory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "No factory, use if/elif in the client",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Singleton",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Abstract Factory",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will this print?\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass NotificationFactory(ABC):\n    @abstractmethod\n    def create_sender(self):\n        ...\n\nclass EmailNotificationFactory(NotificationFactory):\n    def create_sender(self):\n        return \"Email Sender Ready\"\n\nfactory = EmailNotificationFactory()\nprint(factory.create_sender())\n```",
+      "explanation": "**Answer: (a)** The concrete `EmailNotificationFactory` implements `create_sender`, so it can be instantiated and returns `\"Email Sender Ready\"`.\n\n- (b) is wrong because abstract methods are allowed in the base class.\n- (c) is wrong because the method returns a string.\n- (d) is wrong because only the abstract base would raise that error if instantiated.\n\n**Deeper:** `ABC` enforces at instantiation time that every abstract method has an implementation. Instantiating `NotificationFactory()` directly would raise `TypeError: Can't instantiate abstract class ...`. This is a cheap guard that a new product method was not forgotten on one of the concrete factories.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Email Sender Ready",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Error: abstract method not allowed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Error: cannot instantiate NotificationFactory",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why is this design flawed based on the lecture's \"vendor leak\" discussion?\n\n```python\nclass NotificationService:\n    def notify(self, type_, recipient, message):\n        if type_ == \"EMAIL\":\n            client = EmailNotification(recipient, message)\n        client.send()\n```",
+      "explanation": "**Answer: (b)** `NotificationService` builds `EmailNotification` itself, so it is coupled to the concrete class and the \"vendor leak\" returns even if a factory exists elsewhere.\n\n- (a) is wrong because directly constructing a concrete class defeats the purpose of the factory.\n- (c) is wrong because a `send()` method is the product's behaviour.\n- (d) is wrong because the argument order is not the issue.\n\n**Deeper:** The service should receive a factory (or the built object) and use only the abstraction. Also note the unfinished `if` branch: with no `else`, any other type leaves `client` unbound and fails with `UnboundLocalError`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "There's nothing flawed, this is correct",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "NotificationService directly builds concrete classes instead of going through a factory, reintroducing the coupling the factory pattern is meant to remove",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "EmailNotification should not have a send() method",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "recipient and message should be swapped",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the main purpose of the Simple Factory pattern?",
+      "explanation": "**Answer: (a)** The Simple Factory centralises object-creation logic in one place instead of repeating it at every call site.\n\n- (b) is wrong because multiple inheritance is unrelated.\n- (c) is wrong because networking has nothing to do with the pattern.\n- (d) is wrong because the pattern relies on classes.\n\n**Deeper:** In Python, a dict mapping names to classes or callables is often the lightest implementation. Keep the lookup key typed (an `Enum`) and raise a clear error for unknown values rather than returning `None`. Callers then depend on one function and one abstraction, which also makes it trivial to inject a fake factory in tests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "To centralize object-creation logic in one place instead of repeating it everywhere",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "To make a class inherit from multiple parent classes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "To make objects communicate over a network",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "To remove the need for classes entirely",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will this code print?\n\n```python\nclass AudioPlayer:\n    def __init__(self, volume):\n        self.volume = volume\n    def play(self):\n        return f\"Playing at volume {self.volume}\"\n\nclass MP3AudioPlayer(AudioPlayer):\n    pass\n\nplayer = MP3AudioPlayer(50)\nprint(player.play())\n```",
+      "explanation": "**Answer: (b)** `MP3AudioPlayer` inherits `__init__` and `play` from `AudioPlayer`, so `play()` returns `Playing at volume 50`.\n\n- (a) would require a default volume of zero, which the code does not define.\n- (c) is wrong because `play` is inherited.\n- (d) is wrong because `play` returns the formatted string.\n\n**Deeper:** A factory typically returns exactly this kind of subclass that adds little new code. The benefit is that callers write against `AudioPlayer` and the factory decides which subclass to give them, so swapping or adding a format never touches the calling code. Check inherited behaviour by tracing the constructor first, which is a common interview trick.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Playing at volume 0",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Playing at volume 50",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Error, MP3AudioPlayer has no play method",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "None",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What happens when this code runs?\n\n```python\nclass AudioPlayerFactory:\n    def create_audio_player(format, volume):\n        if format == \"mp3\":\n            return MP3AudioPlayer(volume)\n        elif format == \"wav\":\n            return WAVAudioPlayer(volume)\n\nfactory = AudioPlayerFactory()\nplayer = factory.create_audio_player(\"mp3\", 50)\n```",
+      "explanation": "**Answer: (c)** `create_audio_player(format, volume)` has no `self` parameter and no `@staticmethod`, so calling it on an instance passes the instance automatically and raises a `TypeError` about too many arguments.\n\n```python\nfactory.create_audio_player(\"mp3\", 50)\n# TypeError: AudioPlayerFactory.create_audio_player() takes 2 positional arguments but 3 were given\n```\n\n- (a) and (b) assume the call works.\n- (d) is wrong because there is no import involved.\n\n**Deeper:** Mark stateless factories `@staticmethod`, or make them module-level functions. This is a classic error because the same code works when called as `AudioPlayerFactory.create_audio_player(\"mp3\", 50)` on the class.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It works fine and returns an MP3AudioPlayer",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It silently returns None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises a TypeError because self is passed automatically, leaving too many arguments for format and volume",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises an ImportError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Your team needs AudioDecoder, AudioProcessor, and AudioPlayer objects that must always come from the same format (e.g. all MP3, never MP3 decoder + WAV processor). Which pattern fits best?",
+      "explanation": "**Answer: (d)** Audio decoder, processor and player must all come from the same format, which is the family-consistency problem that Abstract Factory addresses.\n\n- (a) is wrong because a Simple Factory cannot enforce that three separately created objects belong together.\n- (b) is wrong because per-class `if/elif` blocks reintroduce the mismatch risk.\n- (c) is wrong because a pattern is warranted when a compatibility rule exists.\n\n**Deeper:** Each concrete factory (`Mp3AudioFactory`, `FlacAudioFactory`) creates all three products for its format, so a client holding one factory cannot mix formats by accident.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Simple Factory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A single if/elif inside each class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "No pattern is needed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Abstract Factory",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In the Abstract Factory pattern, what does supports_format typically do?",
+      "explanation": "**Answer: (a)** `supports_format` reports which format a given factory handles, so a dispatcher can choose the right factory.\n\n- (b) is wrong because converting between formats is a different responsibility.\n- (c) is wrong because playing is done by the player product.\n- (d) is wrong because a factory does not delete files.\n\n**Deeper:** This method lets you find the factory by asking each one in a list instead of hard-coding a mapping, which keeps the decision code open to new formats. In a larger system, register the factories in a registry keyed by format.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Checks whether a given factory can handle a specific format",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Converts one audio format into another",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Plays the audio file",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Deletes unsupported audio files",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does this print?\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass AudioFactory(ABC):\n    @abstractmethod\n    def create_audio_player(self):\n        ...\n\nclass Mp3AudioFactory(AudioFactory):\n    def create_audio_player(self):\n        return \"MP3 Player\"\n\nfactory = Mp3AudioFactory()\nprint(factory.create_audio_player())\n```",
+      "explanation": "**Answer: (b)** `Mp3AudioFactory` implements the abstract method, so the instance is created and `create_audio_player()` returns `\"MP3 Player\"`.\n\n- (a) and (d) would apply to instantiating the abstract `AudioFactory` itself.\n- (c) is wrong because the method returns a string.\n\n**Deeper:** Abstract methods only block instantiation of classes that do not override them. A concrete factory must implement every abstract method, and that check is made by `ABC` when the object is constructed. If you forget one on a new concrete factory, the error appears the first time you instantiate it, which is why a smoke test that instantiates every registered factory is cheap insurance.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Error: cannot instantiate AudioFactory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "MP3 Player",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Error: create_audio_player is abstract",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why will this code fail?\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass AudioFactory(ABC):\n    @abstractmethod\n    def create_audio_player(self):\n        ...\n\nfactory = AudioFactory()\n```",
+      "explanation": "**Answer: (c)** A class with an unimplemented abstract method cannot be instantiated, so `AudioFactory()` raises `TypeError: Can't instantiate abstract class AudioFactory without an implementation for abstract method 'create_audio_player'`.\n\n- (a) is wrong because the number of methods is irrelevant.\n- (b) is wrong because `@abstractmethod` is precisely what causes the guard to apply.\n- (d) is wrong because the line raises.\n\n**Deeper:** The check happens at instantiation, not at class definition, and it only works when the class derives from `ABC` (or uses `ABCMeta`). A `Protocol` gives you structural typing instead, with the check done by a static type checker.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "AudioFactory has too many methods",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "create_audio_player should not use @abstractmethod",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "You cannot instantiate a class that still has unimplemented abstract methods",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing is wrong, this works fine",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nbuilt = []\n\nclass Player:\n    def __init__(self, fmt):\n        built.append(fmt)\n\ndef create(kind):\n    return {\"mp3\": Player(\"mp3\"), \"wav\": Player(\"wav\"), \"flac\": Player(\"flac\")}.get(kind)\n\ncreate(\"mp3\")\ncreate(\"wav\")\nprint(len(built))\n```\n\nWhat does this print, and what is the design problem?",
+      "explanation": "**Answer: (c)** The dict literal is evaluated on every call, constructing all three `Player` objects each time, so two calls build six.\n\n- (a) and (b) assume the dict is lazy, but constructors run when the literal is evaluated.\n- (d) is wrong because the literal lives inside the function, not at module level.\n\n**Deeper:** Store classes or callables (`{\"mp3\": MP3Player}`) and call only the chosen one. With expensive products such as model clients, eager construction in a factory can mean opening sockets or loading weights that are immediately thrown away.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`1`; the factory is lazy and only builds the requested player",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`2`; each call builds the requested player only",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`6`; each call constructs all three players and discards two, so the dict should hold classes or callables",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`3`; the dict literal is evaluated once at import time",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A RAG service can run on a cloud provider (1536-dimension embeddings, hosted chat model) or on-prem (384-dimension embeddings, local chat model). The vector index must be created with the same dimensionality as the embedder that fills it, and a past incident mixed the cloud index with the local embedder. Which design best prevents that incident?",
+      "explanation": "**Answer: (b)** The incident came from independently chosen parts that did not belong together. An abstract factory per provider creates the whole family, and building the index from the embedder's `dimensions` makes the mismatch impossible to express.\n\n- (a) keeps three independent choices, which is exactly how the mismatch happened.\n- (c) is wrong because a Singleton controls the instance count, not compatibility.\n- (d) covers only the chat client and ignores the embedder and index.\n\n**Deeper:** A good answer also names the cost: a new product kind (a reranker) means a new method on every factory. Add a contract test that runs each kit through an ingest-and-query scenario to confirm the family stays consistent.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Three independent simple factories (chat, embedder, index), each selected by its own config string",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "An abstract factory per provider that creates the chat model, embedder and an index sized from that embedder",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A Singleton `VectorIndex` shared by both deployments",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A factory method on `ChatService` that returns the chat client only",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-14/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A factory discovers provider plugins with `for ep in entry_points(group=\"myapp.chat_providers\"): REGISTRY[ep.name] = ep.load()`. A customer installs a package whose entry point is also named `openai`. After deployment, requests for `openai` go to the customer's class. Which change is most appropriate?",
+      "explanation": "**Answer: (a)** Plain assignment lets any installed package silently replace a built-in provider, which is a correctness and security risk. Duplicates should fail fast or be resolved by an explicit, logged policy such as built-ins first.\n\n- (b) makes behaviour depend on package install and load order.\n- (c) hides broken plugins and does not address the duplicate.\n- (d) does not decide which provider wins and slows start-up.\n\n**Deeper:** Entry points are an open extension mechanism, so treat them as untrusted input: validate names, enforce the Protocol with a contract test at load time, and keep load order out of the correctness story.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Detect the duplicate name and fail fast or keep the built-in explicitly (for example with `setdefault` plus a logged warning), so plugins cannot replace built-ins silently",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Keep the assignment as it is, because the last loaded provider should always win",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Catch every exception from `ep.load()` and ignore it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Import all plugin modules at module import time so ordering is deterministic",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

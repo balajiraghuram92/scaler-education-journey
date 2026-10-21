@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-49-tooling-project-layout",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-49/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A developer adds `tenacity` to `[project].dependencies` in `pyproject.toml` but forgets to commit the updated `uv.lock`. CI installs with one of the commands below. Which one fails the build and exposes the mistake?",
+      "explanation": "**Answer: (b)** `uv sync --locked` asserts that `uv.lock` is consistent with `pyproject.toml` and errors if the lock would need to change. The stale lock is detected before any test runs.\n\n- (a) is wrong: plain `uv sync` quietly re-resolves and updates the lock inside the CI workspace, so the build is green while the committed lock stays wrong.\n- (c) is wrong: `--frozen` installs from the lock exactly as it is without checking it against `pyproject.toml`, so `tenacity` is simply missing and the failure surfaces later as an `ImportError` (or never, if no test imports it).\n- (d) is wrong: `pip install .` ignores the lock file entirely and resolves fresh versions, so it reproduces nothing.\n\nPair `--locked` with a separate `uv lock --check` step if you want the failure message to be explicit.\n\n**Deeper:** This distinction (check versus trust versus ignore) is a typical interview probe for \"how do you keep dev, CI and production identical?\"",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`uv sync`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`uv sync --locked`", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`uv sync --frozen`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`pip install .`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A service uses a flat layout (`gateway/` at the repo root with `gateway/prompts/system.txt`). Tests pass locally and in CI, but the production container crashes with `FileNotFoundError` for `system.txt`. The Dockerfile installs the built wheel. What most likely happened, and what would have caught it?",
+      "explanation": "**Answer: (d)** The build configuration did not include the data file in the wheel, but tests run from the repository root imported `gateway` straight from the working directory, where the file exists. The wheel was never exercised by the tests. A `src/` layout forces tests to import the installed package, so the missing file fails in CI; a wheel smoke test does the same.\n\n- (a) is wrong: Python does not delete data files at runtime; they were never packaged.\n- (b) is wrong: lock files pin dependency versions and have no bearing on files inside your own package.\n- (c) is wrong: a different interpreter minor version does not change which files a wheel contains.\n\nFix by declaring the data in the build backend (for hatchling, files inside the package directory are included by default; for setuptools use `package-data`), loading it through `importlib.resources`, and adding a build-and-import smoke test.\n\n**Deeper:** This is the concrete failure the src layout exists to prevent, and a strong answer to \"why src layout?\"",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Python removes non-`.py` files from installed packages at import time.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The lock file did not pin the package's data files.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "The container used a different interpreter minor version, which drops data files.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The wheel omitted the data file, but tests imported the source tree from the working directory; a src layout or a wheel smoke test would have failed in CI.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You want `pytest`, `ruff` and `mypy` available to contributors but never listed in the published package metadata, so users running `pip install gateway` do not see them as requirements or extras. Where should they be declared?",
+      "explanation": "**Answer: (a)** PEP 735 `[dependency-groups]` is for project-local development dependencies. They are not part of the built distribution's metadata, and tools like `uv sync` install the `dev` group by default.\n\n- (b) is wrong: `[project].dependencies` are runtime requirements, installed for every user of the package.\n- (c) is wrong: `[project.optional-dependencies]` are published extras, so `pip install gateway[dev]` works and the names appear in the package metadata. That is appropriate for user-facing options like `gateway[otel]`, not for contributor tooling.\n- (d) is wrong: `[build-system].requires` lists what is needed to build the wheel (the backend), not tools for developing the project.\n\n**Deeper:** Mixing dev tools into runtime dependencies bloats production images and widens the attack surface. Being able to name extras versus dependency groups shows you have shipped packages.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[dependency-groups]` (for example a `dev` group).", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`[project].dependencies`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`[project.optional-dependencies]` under a `dev` extra.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`[build-system].requires`.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A CI job runs `ruff format .` as its formatting step. Developers keep pushing unformatted code and the job is always green. What is the correct change?",
+      "explanation": "**Answer: (c)** `ruff format .` rewrites files in the CI workspace and exits successfully, so it enforces nothing; the changes are thrown away with the runner. `ruff format --check .` exits non-zero when any file would change, so the build fails and the developer fixes it locally (or via pre-commit).\n\n- (a) is wrong: `ruff check --fix` is the lint autofixer, and it rewrites files in the same non-enforcing way.\n- (b) is wrong: committing formatting changes from CI creates noisy history and loops with branch protection; it is a workflow of last resort.\n- (d) is wrong: removing the step removes the guarantee entirely and leaves style debates to code review.\n\nUse pre-commit to apply formatting on the developer's machine and `--check` in CI to enforce it.\n\n**Deeper:** The general principle is that CI gates must be able to fail. A check that mutates and succeeds is decoration.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Replace it with `ruff check --fix .`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Make CI commit and push the reformatted files back to the branch.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Use `ruff format --check .` so the job fails when formatting would change.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "Remove the step and rely on reviewers.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "After a bad merge, `pyproject.toml` contains:\n\n```toml\n[project]\nname = \"gateway\"\ndependencies = [\"httpx>=0.27\"]\n\n[project]\nrequires-python = \">=3.12\"\n```\n\nWhat does `tomllib.loads(...)` (and therefore any build tool) do with it?",
+      "explanation": "**Answer: (c)** TOML forbids defining the same table twice. The parser raises `tomllib.TOMLDecodeError` (I ran it: `Cannot declare ('project',) twice (at line 4, column 9)`). Nothing is merged for you.\n\n- (a) is wrong: TOML has no merge semantics for repeated headers, unlike some INI dialects.\n- (b) is wrong: neither the first nor the last table silently wins; the parse fails.\n- (d) is wrong: only sub-tables can be defined in separate places (for example `[tool.ruff.lint]` before `[tool.ruff]`, which is legal); a repeated explicit `[project]` is an error.\n\nThe practical lesson is to treat merge conflicts in `pyproject.toml` as real and run a parse check (`python -c \"import tomllib; tomllib.load(open('pyproject.toml','rb'))\"`) or any tool command in CI.\n\n**Deeper:** Knowing tomllib is in the standard library since 3.11 (read-only) is a small but useful detail for scripting config checks.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It merges both tables into one with all three keys.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It keeps the second `[project]` table and drops the first.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It raises `tomllib.TOMLDecodeError`, because a table cannot be declared twice.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "It keeps the first table and ignores the second with a warning.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A release script finds the newest version with `max(versions)` over the strings `[\"0.9.0\", \"0.10.0\", \"0.2.1\"]`. What does `sorted(...)` give, and what is the right fix?",
+      "explanation": "**Answer: (a)** Strings compare character by character, so `\"0.10.0\"` sorts before `\"0.2.1\"` and `\"0.9.0\"`: the result is `['0.10.0', '0.2.1', '0.9.0']`, and `max` would wrongly pick `\"0.9.0\"`. Parsing into integer tuples gave `['0.2.1', '0.9.0', '0.10.0']` when I ran it. For real version strings use `packaging.version.Version`, which also understands pre-releases (`1.0rc1`), post-releases and epochs.\n\n- (b) is wrong: it expects numeric ordering from plain string comparison.\n- (c) is wrong: `sorted` does not parse the version-like strings.\n- (d) is wrong: Python does not raise an error for comparing these strings; the bug is silent.\n\n**Deeper:** Never hand-roll PEP 440 comparison; `tuple(map(int, ...))` also breaks on `1.0rc1` or `1.0.post1`. This is a classic release-tooling bug.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`['0.10.0', '0.2.1', '0.9.0']`; string ordering is wrong, so parse with `packaging.version.Version`.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`['0.2.1', '0.9.0', '0.10.0']`; string sorting handles dotted numbers correctly.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`['0.9.0', '0.10.0', '0.2.1']`; the input order is preserved.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`ValueError`, because the strings are not valid numbers.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "The team installs pre-commit hooks (ruff, formatting). A contributor pushes unformatted code anyway using `git commit --no-verify`. What is the correct conclusion about the pipeline design?",
+      "explanation": "**Answer: (d)** Local hooks are a convenience that any developer can skip (`--no-verify`) or never install. The authoritative enforcement has to be in CI, running the same checks as required status checks. Pre-commit gives fast feedback; CI gives a guarantee.\n\n- (a) is wrong: there is no server-side switch in pre-commit that makes local hooks mandatory.\n- (b) is wrong: removing hooks makes feedback slower for everyone and does not fix the enforcement gap.\n- (c) is wrong: relying on social pressure and reviewers does not scale and is inconsistent.\n\nA good setup is the same config for both: `pre-commit run --all-files` in CI (or the tool commands directly), configured as a required check in branch protection so unformatted code cannot merge.\n\n**Deeper:** Interviewers like to hear the layering: editor, pre-commit, CI. Each catches things faster than the next, but only the last cannot be bypassed.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Enable a pre-commit setting that makes the hooks unskippable.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Remove pre-commit; it cannot be enforced.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Rely on reviewers to notice formatting during code review.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Keep pre-commit for fast feedback, but run the same checks in CI as required status checks, since local hooks can be bypassed.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which wheel filename is installable only on CPython 3.12 on 64-bit manylinux Linux, and which is installable on any Python 3 interpreter and any platform?\n\n1. `gateway-0.4.0-py3-none-any.whl`\n2. `fastcrypt-1.2.0-cp312-cp312-manylinux_2_17_x86_64.whl`",
+      "explanation": "**Answer: (b)** Wheel names encode `{name}-{version}-{python tag}-{ABI tag}-{platform tag}`. `py3-none-any` means pure Python (no extension modules), no ABI dependency and any platform, so the first wheel installs anywhere with Python 3. `cp312-cp312-manylinux_2_17_x86_64` is compiled for CPython 3.12, its ABI, and 64-bit Linux with a compatible glibc, so it is the restricted one.\n\n- (a) is wrong: it swaps the two.\n- (c) is wrong: they differ in compatibility, so neither description fits both.\n- (d) is wrong: the tags are standard and are what installers match against; they are not decorative.\n\nWhen no compatible wheel exists, pip falls back to building an sdist, which needs a compiler and system headers. That is why slim container builds fail on packages without wheels for your Python version or musl-based Alpine images.\n\n**Deeper:** Understanding wheel tags explains many \"works on my Mac, fails in Docker\" dependency incidents.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "(1) is the CPython 3.12 Linux wheel; (2) works everywhere.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "(2) is the CPython 3.12 manylinux wheel; (1) is a pure-Python wheel for any platform.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "Both are installable on any platform and Python version.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The tags are informational only; installers ignore them.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Ruff reports `B006` (mutable argument default) on:\n\n```python\ndef add(item, bucket=[]):\n    bucket.append(item)\n    return bucket\n\nprint(add(1), add(2))\n```\n\nWhat does the code print, and why is the rule worth enabling?",
+      "explanation": "**Answer: (d)** The default list is created once, when the function is defined, and reused by every call that omits `bucket`. Both calls return that same list, which holds `[1, 2]` by the time `print` runs, so the output is `[1, 2] [1, 2]` (I ran it). `B006` (from the bugbear rule family) flags this pattern so it is fixed with `bucket: list | None = None` and a fresh list inside the body.\n\n- (a) is wrong: it assumes a new list per call, which is exactly the misconception the rule targets.\n- (b) is wrong: `[1]` for the first call would only be seen if printed before the second call, but both results are the same object.\n- (c) is wrong: Python does not raise for mutable defaults; that is why a linter is needed.\n\n**Deeper:** This shows why a lint rule set (`B`, `UP`, `SIM`) is more than style: bugbear catches real defects that otherwise appear as cross-request state leaks in a web service.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[1] [2]`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`[1] [1, 2]`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It raises `TypeError` at definition time.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`[1, 2] [1, 2]`; the default list is created once and shared by all calls.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A project is installed in editable mode. A developer bumps `version = \"0.4.0\"` to `\"0.5.0\"` in `pyproject.toml` and, without reinstalling or re-syncing (and calling the virtualenv's `python` directly, not through `uv run`), runs `importlib.metadata.version(\"gateway\")`. What is returned?",
+      "explanation": "**Answer: (a)** Package metadata is generated at install time and stored in the environment's `*.dist-info` (or the editable equivalent). Editing `pyproject.toml` afterwards does not update it, so `importlib.metadata.version` still reports `0.4.0` until the project is reinstalled or `uv sync` refreshes it. Editable installs track your source code, not your metadata.\n\n- (b) is wrong: metadata does not re-read `pyproject.toml` at call time.\n- (c) is wrong: there is no error; the old distribution metadata is found and returned.\n- (d) is wrong: the editable install registers the distribution, so `PackageNotFoundError` would only occur if the package was never installed.\n\nThis is also why copying the version into `__version__` is risky: you now have two stale-able copies. Use one source of truth (static version or a VCS plugin) and re-sync before release checks.\n\n**Deeper:** Release pipelines that read the version from a stale environment publish the wrong number; a CI job should build from a clean checkout.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`\"0.4.0\"`, because installed metadata is captured at install time and only refreshed on reinstall or sync.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`\"0.5.0\"`, because editable installs re-read `pyproject.toml` on every call.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It raises a `ValueError` because the file and metadata disagree.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It raises `PackageNotFoundError`, because editable installs register no metadata.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Your library's latest release 0.4.0 declares `requires-python = \">=3.12\"`; release 0.3.0 declared `>=3.9`. A customer on Python 3.10 runs `pip install gateway` with no version pin. What happens?",
+      "explanation": "**Answer: (c)** pip reads each release's `Requires-Python` metadata and skips releases that are incompatible with the running interpreter. It installs 0.3.0, the newest compatible release, without an error. The customer silently runs an old version.\n\n- (a) is wrong: it would only be correct if every release required 3.12.\n- (b) is wrong: pip does not install 0.4.0 and defer the failure; it filters by `Requires-Python` during resolution.\n- (d) is wrong: pip does not upgrade your interpreter.\n\nThis matters when you drop a Python version: the support-ticket symptom is \"the bug you fixed in 0.4.0 still happens\" from users on old interpreters. Declare `requires-python` accurately, document the policy, and test the lowest supported version in the CI matrix.\n\n**Deeper:** A good answer links `requires-python` to support policy (for example, supporting the interpreters that are not yet end of life) and to the CI matrix.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "pip fails with a resolution error because 0.4.0 needs a newer Python.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "pip installs 0.4.0, which then crashes at import time.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "pip silently installs 0.3.0, the newest release compatible with Python 3.10.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "pip downloads Python 3.12 and installs 0.4.0 into a new environment.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-49/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "In a Dockerfile, an engineer writes:\n\n```text\nCOPY pyproject.toml uv.lock ./\nRUN uv sync --locked --no-install-project\nCOPY src ./src\nRUN uv sync --locked\n```\n\nWhy structure it this way instead of copying everything and running one `uv sync`?",
+      "explanation": "**Answer: (b)** Docker caches layers by their inputs. The dependency layer depends only on `pyproject.toml` and `uv.lock`, so it is rebuilt only when those change. Application code changes only invalidate the later layers, making rebuilds take seconds instead of re-downloading hundreds of megabytes of dependencies. `--no-install-project` installs dependencies without installing your own package, which does not exist in the image yet at that step.\n\n- (a) is wrong: the split has nothing to do with Python version compatibility.\n- (c) is wrong: `--locked` is present in both steps; the two-step form does not skip lock checking.\n- (d) is wrong: it does not make the image smaller by itself; a multi-stage build and a slim base do that.\n\n**Deeper:** Layer ordering (stable inputs first, volatile inputs last) is the Docker version of cache-key design, and a frequent CI-speed question.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It lets the image use a different Python version for dependencies than for the app.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The dependency layer is cached until `pyproject.toml` or `uv.lock` changes, so code-only changes rebuild quickly.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "It skips lock-file validation for the dependency layer.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It makes the final image smaller by discarding the dependencies.", "isCorrect": false }
+      ]
+    }
+  ]
+}

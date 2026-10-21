@@ -1,0 +1,515 @@
+{
+  "lessonSlug": "py-17-behavioural-patterns",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-17/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "When many unrelated parts of a system need to react to the same event, what problem shows up if that event source calls each one of them by name directly inside its own code?",
+      "explanation": "**Answer: (c)** If the event source calls every reactor by name, then each new reactor forces an edit to the source's code. The source is coupled to all of them and is never closed for modification.\n\n- (a) is wrong because direct calls do not make code faster in any meaningful sense; the problem is coupling, not speed.\n- (b) is wrong because memory use is not what changes.\n- (d) is wrong because the reactors keep working; the source simply has to be rewritten whenever the set of reactors changes.\n\n**Deeper:** This is the motivation for Observer. Replace the hard-coded calls with a subscription list (or an event bus) so that `place_order()` announces the event and each interested component registers itself without touching the publisher.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The code becomes faster",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The event source needs less memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Every time a new reactor is added, the event source's code must be edited again",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The reactors stop working entirely",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass Discount:\n    def apply(self, price):\n        return price\n\nclass PercentDiscount(Discount):\n    def __init__(self, percent):\n        self.percent = percent\n    def apply(self, price):\n        return price - (price * self.percent / 100)\n\nclass FlatDiscount(Discount):\n    def __init__(self, amount):\n        self.amount = amount\n    def apply(self, price):\n        return price - self.amount\n\ndef checkout(price, discount):\n    return discount.apply(price)\n\nprint(checkout(200, PercentDiscount(10)))\nprint(checkout(200, FlatDiscount(30)))\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (b)** `PercentDiscount(10).apply(200)` computes `200 - (200 * 10 / 100)`, and the division makes it the float `180.0`. `FlatDiscount(30).apply(200)` is `200 - 30`, an int, so it prints `170`.\n\n- (a) is wrong because the base `Discount.apply` (which returns the price unchanged) is overridden by both subclasses.\n- (c) is wrong because it prints the discount amounts, but each `apply` returns the discounted price.\n- (d) is wrong because the base class returns a value; and it is not even called here.\n\n**Deeper:** `checkout` depends only on \"something with `apply`\", which is Strategy. In Python the base class could be a `Protocol`, or the strategies could be plain functions, and `checkout` would be unchanged.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "200 and 200",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "180.0 and 170",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "20 and 30",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An error, since Discount has no real apply logic",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass Shipper:\n    def ship(self, order):\n        pass\n\nclass ExpressShipper(Shipper):\n    def ship(self, order):\n        return f\"Shipping {order} quickly\"\n\nclass StandardShipper(Shipper):\n    def ship(self, order):\n        return f\"Shipping {order} normally\"\n\nclass OrderService:\n    def __init__(self, shipper):\n        self.shipper = shipper\n\n    def process(self, order):\n        return self.shipper.ship(order)\n\nservice = OrderService(Shipper())\nprint(service.process(\"Book\"))\n```\n\nWhat will happen when this code runs?",
+      "explanation": "**Answer: (d)** `OrderService(Shipper())` receives the base class, whose `ship` body is `pass`. `process` returns `None`, and `print(None)` outputs `None`. Nothing raises.\n\n- (a) and (b) would require passing `ExpressShipper()` or `StandardShipper()`; the code passes the base `Shipper`.\n- (c) is wrong because the base `ship` never builds any string, with or without a suffix, so no \"Shipping Book\" text is produced at all.\n\n**Deeper:** A base class with a silent no-op method hides a wiring bug. Make the interface abstract (`ABC` with `@abstractmethod`, or a `Protocol`) so that instantiating or type-checking the base fails loudly instead of printing `None` in production.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It prints \"Shipping Book quickly\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prints \"Shipping Book normally\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It prints \"Shipping Book\" with nothing else",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It prints None, because Shipper's ship() method has no real logic and simply returns nothing",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A music app wants to let users pick between three ways to sort their playlist: by song name, by artist, or by most recently added. Only one sorting method runs at a time, based on what the user picked. What is the best way to design this?",
+      "explanation": "**Answer: (a)** Only one sort runs at a time, chosen by the user: this is Strategy. Each sorting method gets its own class (or function) behind a shared interface, and the app uses whichever matches the user's choice.\n\n- (b) is wrong because one function with fixed if/else blocks is the structure Strategy replaces; it must be edited for every new sort order.\n- (c) is wrong because creating a new playlist per change wastes resources and does not address how the sort is chosen.\n- (d) is wrong because precomputing all orders explodes storage and goes stale as the playlist changes.\n\n**Deeper:** In Python, `sorted(playlist, key=by_artist)` is already Strategy: the `key` function is the interchangeable algorithm, and the options live in a dict of key functions.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Give each sorting method its own class behind a shared interface, and let the app use whichever class matches the user's choice",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Write one function with three separate if-else blocks that never change",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Create a new playlist every time the user changes the sort option",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Store every possible sorted order in advance",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the key difference between choosing one way to do something and letting many things react to the same event?",
+      "explanation": "**Answer: (b)** Choosing one way executes exactly one piece of logic (Strategy). Letting many things react executes every registered piece of logic for an event (Observer).\n\n- (a) is wrong because the two differ in cardinality and in who initiates the behaviour.\n- (c) is wrong because speed depends on the logic involved, not on the pattern.\n- (d) is wrong because neither pattern is restricted to numbers.\n\n**Deeper:** This \"one versus all\" distinction is the fastest way to classify a scenario in an interview. Follow it with the Open/Closed argument: in both patterns, adding a new variant means adding a class or function, not editing the caller.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "There is no real difference between the two",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Choosing one way runs exactly one piece of logic; letting many things react means every registered piece of logic runs, one after another",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Choosing one way always runs slower",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Letting many things react only works with numbers",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/additional/q09",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is printed, in order?\n```python\nclass Alert:\n    def notify(self, msg):\n        pass\n\nclass SmsAlert(Alert):\n    def notify(self, msg):\n        print(f\"SMS: {msg}\")\n\nclass EmailAlert(Alert):\n    def notify(self, msg):\n        print(f\"Email: {msg}\")\n\nclass System:\n    def __init__(self):\n        self.alerts = []\n\n    def subscribe(self, alert):\n        self.alerts.append(alert)\n\n    def trigger(self, msg):\n        for a in self.alerts:\n            a.notify(msg)\n\nnotify_system = System()\nnotify_system.subscribe(SmsAlert())\nnotify_system.trigger(\"Low battery\")\nnotify_system.subscribe(EmailAlert())\nnotify_system.trigger(\"Battery critical\")\n```",
+      "explanation": "**Answer: (c)** The first `trigger(\"Low battery\")` runs when only `SmsAlert` is subscribed, so it prints `SMS: Low battery`. After `EmailAlert` subscribes, `trigger(\"Battery critical\")` notifies both in subscription order: `SMS: Battery critical`, then `Email: Battery critical`.\n\n- (a) and (b) each omit some of those three lines.\n- (d) assumes the email alert also received the first message, but it subscribed after that event was published.\n\n**Deeper:** Observer delivers to the observers that are subscribed at publish time; late subscribers do not see history. If you need replay, use a durable log or queue, not an in-memory subscriber list.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SMS: Low battery only",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Email: Battery critical only",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "SMS: Low battery, then SMS: Battery critical, then Email: Battery critical",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "SMS: Low battery, then Email: Low battery, then SMS: Battery critical, then Email: Battery critical",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/additional/q10",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "An online store wants three different systems — inventory, accounting, and marketing — to each react on their own whenever a sale happens, without the checkout code needing to know anything about what each system does. What fits best?",
+      "explanation": "**Answer: (d)** Checkout should announce that a sale happened and let inventory, accounting and marketing register themselves and react independently. That is Observer.\n\n- (a) is wrong because calling each system by name from checkout is the coupling to avoid.\n- (b) is wrong because the requirement is that all three react.\n- (c) is wrong because blocking checkout until every consumer is ready couples availability of the sale to the slowest downstream system.\n\n**Deeper:** In production the three systems usually sit behind a message queue, so a slow or failing consumer cannot slow down or break checkout. The in-process subscriber list is the same idea without durability.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The checkout code must call each system by name every time a new one is added",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Only one system should be allowed to react to a sale",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The checkout code should stop working until all three systems are ready",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The checkout code should just announce that a sale happened, and let each interested system register itself and react independently",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the main idea behind having one shared interface with many classes that each do a task in their own way?",
+      "explanation": "**Answer: (b)** A shared interface with several implementations lets you add a new way of doing the task by adding a new class, without changing the code that already works. That is the Open/Closed Principle through polymorphism.\n\n- (a) is wrong because an interface exposes a contract; it does not hide code.\n- (c) is wrong because implementations deliberately behave differently behind the same signature.\n- (d) is wrong because it is the interface that enables substitutability.\n\n**Deeper:** In Python the \"interface\" can be an ABC, a `Protocol`, or simply a callable signature. Duck typing means the cost of the pattern is small, but the design discipline of a stable signature still applies.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It hides all the code so nobody can read it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It lets you add a new way of doing the task without changing the code that already works",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It forces every class to behave exactly the same way",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It removes the need for interfaces completely",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass Shape:\n    def area(self):\n        pass\n\nclass Square(Shape):\n    def __init__(self, side):\n        self.side = side\n    def area(self):\n        return self.side * self.side\n\nclass Circle(Shape):\n    def __init__(self, radius):\n        self.radius = radius\n    def area(self):\n        return 3.14 * self.radius * self.radius\n\nshapes = [Square(4), Circle(2)]\nfor s in shapes:\n    print(round(s.area(), 2))\n```\nWhat does this code print?",
+      "explanation": "**Answer: (a)** `Square(4).area()` is `16`, an int, so `round(16, 2)` is `16`. `Circle(2).area()` is `3.14 * 2 * 2 = 12.56`, and `round(12.56, 2)` stays `12.56`.\n\n- (b) is wrong because the value is already two-decimal precise and rounds to `12.56`, not `12.6`.\n- (c) is wrong because those figures do not match either formula.\n- (d) is wrong because both subclasses override `area`; the base version is never called.\n\n**Deeper:** The loop calls `s.area()` without knowing the concrete type, which is polymorphism. Hard-coding `3.14` is a defect in real code; use `math.pi` and compare floats with `math.isclose` in tests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "16 and 12.56",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "16 and 12.6",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "8 and 6.28",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An error, because Shape has no area logic",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass Notifier:\n    def notify(self, message):\n        pass\n\nclass EmailNotifier(Notifier):\n    def notify(self, message):\n        print(\"Email: \" + message)\n\nclass App:\n    def __init__(self):\n        self.notifier = EmailNotifier()\n\n    def send(self, message):\n        self.notifier.alert(message)\n\napp = App()\napp.send(\"Server is down\")\n```\n\nWhat is wrong with this code?",
+      "explanation": "**Answer: (c)** `App.send` calls `self.notifier.alert(message)`, but `EmailNotifier` (and `Notifier`) only define `notify`. Python raises `AttributeError: 'EmailNotifier' object has no attribute 'alert'`.\n\n- (a) is wrong because `EmailNotifier` does inherit from `Notifier`.\n- (b) is wrong because `send` does call into the notifier, just with the wrong method name.\n- (d) is wrong because `print` works anywhere in Python.\n\n**Deeper:** This is a duck-typing hazard: nothing checks the method name until the call runs. A `Protocol` or ABC plus mypy or pyright catches it before deployment, and a test that exercises `send` catches it in CI.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "EmailNotifier does not inherit from Notifier",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The send method never calls a notifier at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "send() calls alert(), but EmailNotifier only has a notify() method, so this will throw an error",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "print() cannot be used inside a class method",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A photo editing app lets users choose between three ways to compress an image: high quality, balanced, or high compression. The user picks one option at a time, and the app runs only that one compression method. Which design idea best fits this situation?",
+      "explanation": "**Answer: (d)** The user picks one of three compression options and only that one runs, so each option becomes its own class behind a shared interface and the app uses the one selected. That is Strategy.\n\n- (a) is irrelevant; repeated printing has nothing to do with choosing an algorithm.\n- (b) is wrong because a long `if/else` chain must be edited for every new level.\n- (c) is wrong because a database table per image is unrelated to selecting compression behaviour.\n\n**Deeper:** The selection can come from a registry dict (`{\"high\": HighQuality(), ...}`), which keeps the factory itself closed for modification. Strategy objects without state can be shared as singletons.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Print the same message repeatedly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Keep all compression logic in one long if-else chain",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Use a database table for every image",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Give each compression option its own class behind a shared interface, and let the app use whichever one the user picked",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why is it usually a bad idea to check if type == \"x\" inside a class that's supposed to work with many different types generically?",
+      "explanation": "**Answer: (a)** Checking `type == \"x\"` ties a generic class to knowledge of specific types, so adding a new type means editing it. Polymorphism pushes that knowledge into the types themselves.\n\n- (b) is wrong because performance is not the issue; it is a maintainability and coupling problem.\n- (c) is wrong because no language requires type checks.\n- (d) is wrong because type checks generate nothing.\n\n**Deeper:** Type-switching code is the signature smell that Strategy, State and the visitor-like `match` statement are meant to resolve. In Python, `functools.singledispatch` is another way to dispatch on type without a central `if` chain.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It ties that class to knowing specific details it shouldn't need to know about, making it harder to add new types later",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It makes the code run faster",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is required by every programming language",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It automatically creates new classes for you",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass Listener:\n    def update(self, value):\n        pass\n\nclass Printer(Listener):\n    def update(self, value):\n        print(f\"Got: {value}\")\n\nclass Doubler(Listener):\n    def update(self, value):\n        print(f\"Doubled: {value * 2}\")\n\nclass Source:\n    def __init__(self):\n        self.listeners = []\n\n    def add(self, listener):\n        self.listeners.append(listener)\n\n    def fire(self, value):\n        for l in self.listeners:\n            l.update(value)\n\nsource = Source()\nsource.add(Printer())\nsource.add(Doubler())\nsource.fire(5)\n```\n\nWhat does this code print?",
+      "explanation": "**Answer: (c)** `fire(5)` iterates the registered listeners in order: `Printer.update(5)` prints `Got: 5`, then `Doubler.update(5)` prints `Doubled: 10`.\n\n- (a) and (b) each show only one of the two listeners, but `fire` loops over every registered listener, so both lines appear.\n- (d) is wrong because `fire(5)` is called correctly and both listeners were registered through `add` before it ran.\n\n**Deeper:** Delivery is synchronous and in registration order, which is an implicit contract; if a listener raised, later ones would never run unless `fire` isolated exceptions. That is the first production hardening to add to any hand-rolled Observer.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Got: 5",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Doubled: 10",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Got: 5 followed by Doubled: 10",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing, because fire() was never called correctly",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A news app lets many different screens (Home screen, Widget, Push Notification service) know whenever a new headline is published. The app doesn't need to know how many screens exist or what each one does with the headline — it just announces that a new headline arrived. What best describes this setup?",
+      "explanation": "**Answer: (b)** One publisher announces a new headline and every interested screen reacts independently, without the publisher knowing how many exist or what they do. That is Observer.\n\n- (a) is wrong because screens should register through a subscription API, not by editing the publisher.\n- (c) is wrong because all interested screens must update, not exactly one.\n- (d) is wrong because creating headlines is not the issue; notifying consumers is.\n\n**Deeper:** Mobile push, widget refresh and home feed are three transports, which suggests a pub/sub backend. The subscriber interface isolates each consumer's latency and failure modes from the publisher.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Each screen must edit the app's main publishing code to add itself",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "One publisher announces an event, and every interested party reacts on its own without the publisher knowing details about them",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The app must pick exactly one screen to update at a time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The app needs a factory to create new headlines",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Subject:\n    def __init__(self):\n        self.observers = []\n\n    def notify(self):\n        for o in self.observers:\n            o()\n\ns = Subject()\n\ndef a():\n    print(\"a\")\n    s.observers.remove(a)\n\ndef b(): print(\"b\")\ndef c(): print(\"c\")\n\ns.observers += [a, b, c]\ns.notify()\n```\nWhat is printed?",
+      "explanation": "**Answer: (a)** Removing an element from a list while iterating it shifts the remaining items left, but the list iterator keeps its index. After `a` runs and removes itself, the iterator moves to index 1, which is now `c`, so `b` is never notified.\n\n- (b) assumes a stable iteration, which a mutated list does not give.\n- (c) is wrong because lists, unlike dicts and sets, do not raise on size change during iteration; they silently skip.\n- (d) is wrong because the loop continues after `a`.\n\n**Deeper:** Silent skipping is worse than an exception. Publishers should iterate over a snapshot (`for o in list(self.observers)`), which is the standard fix for observers that unsubscribe themselves in their callback, such as one-shot listeners.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`a` then `c`; `b` is skipped",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`a`, `b`, `c`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`a`, `b`, `c`, then `RuntimeError: list changed size during iteration`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Only `a`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndef endpoint(req): return \"ok\"\ndef auth(req, nxt): return nxt(req)\ndef limit(req, nxt): return nxt(req)\n\nchain = endpoint\nfor mw in reversed([auth, limit]):\n    chain = lambda req: mw(req, chain)\n\nprint(chain(\"r\"))\n```\nThe goal is a middleware chain `auth -> limit -> endpoint`. What actually happens?",
+      "explanation": "**Answer: (d)** Closures capture variables, not values. When the final `chain(...)` is called, `chain` refers to the last lambda itself and `mw` is the last loop value (`auth`). `auth` calls `nxt(req)`, which is that same lambda, so the call recurses until `RecursionError`.\n\n- (a) and (b) assume the earlier layers are retained, but each lambda overwrote the name used inside the next.\n- (c) is wrong because `chain` exists in the enclosing scope.\n\n**Deeper:** Bind per iteration: `chain = (lambda mw, nxt: lambda req: mw(req, nxt))(mw, chain)`, or use `functools.partial(mw, nxt=chain)` with a handler signature that allows it. Late-binding closures in loops are a recurring bug in pipeline builders and callback registration.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Prints `ok`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Prints `ok` but skips `auth`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`NameError`, because `chain` is not defined inside the lambda",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`RecursionError`, because the lambda looks up `mw` and `chain` when called, not when created",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-17/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A background worker pool drives an `IngestionJob` state machine. Each worker loads the job, checks `job.state is PENDING` in Python, then writes `RUNNING` to the database and starts processing. Occasionally the same document is ingested twice. The transition table in code is correct. What is the most precise fix?",
+      "explanation": "**Answer: (c)** The check-then-write is a race: two workers can both read `PENDING` before either writes. A conditional update performs the compare-and-set atomically, and the affected-row count tells each worker whether it won the claim.\n\n- (a) is wrong because a sub-state still needs an atomic transition to claim it.\n- (b) is wrong because the in-memory check would still pass in both workers; no exception is raised.\n- (d) is wrong because sharing the table does not make a read-then-write atomic.\n\n**Deeper:** The in-code table validates the graph; the database guarantees exclusivity. For queues, `SELECT ... FOR UPDATE SKIP LOCKED` is the common alternative, and either approach beats an in-process lock because workers run in separate processes.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Add more states so that `PENDING` has a sub-state for \"claimed\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Make `IllegalTransition` a subclass of `RuntimeError` so workers crash on conflict",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Make the transition atomic in the database: `UPDATE jobs SET state='RUNNING' WHERE id=:id AND state='PENDING'` and only proceed if one row was updated",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Move the transition table into the database so every worker reads it",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

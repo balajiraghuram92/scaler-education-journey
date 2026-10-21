@@ -1,0 +1,88 @@
+/* Python coding assignments, built on .chamber-problem-card from ChapterReader.css */
+
+.coding-assignment {
+  margin: 1.1rem 0 1.4rem;
+}
+
+.coding-assignment__header {
+  flex-wrap: wrap;
+}
+
+.coding-assignment__body {
+  font-size: 0.95rem;
+}
+
+.coding-assignment__body > .md-block:first-child p:first-child {
+  margin-top: 0.25rem;
+}
+
+.coding-assignment__label {
+  margin: 1.1rem 0 0.4rem;
+  color: var(--chamber-ink-muted, #64748B);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.coding-assignment__run {
+  margin: 0.9rem 0 0.4rem;
+  color: var(--chamber-ink-secondary, #4A5568);
+}
+
+.coding-assignment__disclosure {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--chamber-rule-border, #E5E0D8);
+}
+
+.coding-assignment__disclosure > summary {
+  padding: 0.6rem 0 0.2rem;
+  color: var(--chamber-accent-sage, #2C5E55);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.coding-assignment__disclosure > summary:hover {
+  color: var(--chamber-ink-display, #111111);
+}
+
+.coding-assignment__disclosure > summary:focus-visible {
+  outline: 2px solid var(--chamber-accent-sage, #2C5E55);
+  outline-offset: 3px;
+}
+
+.coding-assignment__disclosure-body {
+  padding-top: 0.5rem;
+  font-size: 0.92rem;
+}
+
+.coding-assignment__note {
+  color: var(--chamber-ink-muted, #64748B);
+  font-size: 0.8rem;
+}
+
+.coding-assignment__footer {
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--chamber-rule-border, #E5E0D8);
+}
+
+.coding-assignment__status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.coding-assignment__meta {
+  color: var(--chamber-ink-muted, #64748B);
+  font-size: 0.74rem;
+}
+
+.coding-assignment__error {
+  margin: 0.5rem 0 0;
+  color: #A94A3A;
+  font-size: 0.78rem;
+}

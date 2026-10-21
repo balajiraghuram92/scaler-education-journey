@@ -1,0 +1,545 @@
+{
+  "lessonSlug": "py-31-code-splitwise-2",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In our Splitwise models, which enum belongs on the Expense model?",
+      "explanation": "**Answer: (a)** `ExpenseType` (`NORMAL` or `PAYMENT`) describes the whole expense, so it is a column on `Expense`. `ExpenseUserType` describes one participant's row and belongs on `ExpenseUser`.\n- (b) is wrong because `PAID` and `HAD_TO_PAY` are per-row facts about a user's part in an expense.\n- (c) is wrong because each enum describes a different entity, so each belongs on one model.\n- (d) is wrong because SQLAlchemy stores enums on models with `Enum(...)` columns.\n\n**Deeper:** an enum belongs to the entity whose state it describes. Both are enums rather than lookup tables because their values change only with a code release. Remember they are stored by member name.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "ExpenseType (NORMAL / PAYMENT)",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "ExpenseUserType (PAID / HAD_TO_PAY)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both enums",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Neither. Enums are not stored on models",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A student writes this in BaseModel:\n\n```python\ncreated_at = Column(DateTime, default=datetime.now(timezone.utc))\n```\nWhat is the problem?",
+      "explanation": "**Answer: (d)** `datetime.now(timezone.utc)` is evaluated once, when the class body runs at import. The column default becomes a fixed value, so every new row receives the process start time.\n- (a) is wrong because `DateTime` columns accept defaults.\n- (b) is wrong because `timezone.utc` is the standard way to get an aware time.\n- (c) is wrong because the code runs without error, which is why the bug is easy to ship.\n\n**Deeper:** pass a callable such as `default=utc_now` (or a lambda), so SQLAlchemy calls it for every insert. Use `onupdate=utc_now` the same way for the modified timestamp.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "DateTime columns cannot have a default",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "timezone.utc is not allowed inside datetime.now",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The code crashes when the file loads",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "datetime.now(...) runs only once when the file loads, so every new row gets that same old time",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the main job of back_populates on expense.expense_users and expense_user.expense?",
+      "explanation": "**Answer: (c)** `back_populates` links two relationship attributes so that changing one side updates the other in memory. Appending an `ExpenseUser` to `expense.expense_users` also sets `expense_user.expense`.\n- (a) is wrong because it creates no table.\n- (b) is wrong because nullability comes from the foreign key column definition.\n- (d) is wrong because it affects Python attribute sync, not query speed.\n\n**Deeper:** the foreign key is the database fact; `relationship` plus `back_populates` is ORM convenience. With one-sided relationships the session can hold inconsistent collections until it is refreshed.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It creates an extra table in the database",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It makes the foreign key column optional",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It keeps both sides in sync in memory, so changing one side also updates the other side",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It makes database queries faster",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Riya is a member of the \"Goa Trip\" group and also of the \"Roommates\" group. Each group has many members. Which relationship fits Group.members?",
+      "explanation": "**Answer: (b)** Riya belongs to many groups and each group has many members, so this is many-to-many. In SQLAlchemy it is expressed with an association table and `relationship(secondary=group_members_table)` on both sides.\n- (a) is wrong because one-to-one would limit each user to one group.\n- (c) is wrong because a foreign key on `User` would allow only one group per user.\n- (d) is wrong because a foreign key on `Group` would allow only one member per group.\n\n**Deeper:** if the join row needs its own data (joined date, role), promote the `Table` to a mapped class, as `ExpenseUser` did for expenses.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "One-to-one",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Many-to-many, using secondary=group_members_table",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "One-to-many, with the foreign key on User",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "One-to-many, with the foreign key on Group",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A teammate saves expense_type with Column(SAEnum(ExpenseType)). Later they rename PAYMENT to SETTLEMENT in the Python enum. Old rows in the database still have the text PAYMENT. What happens when such an old row is loaded?",
+      "explanation": "**Answer: (a)** SQLAlchemy stores an enum by member name and maps it back by name when loading. A stored `PAYMENT` no longer matches any member after the rename, so loading the row raises a `LookupError`.\n- (b) is wrong because SQLAlchemy never guesses a rename.\n- (c) is wrong because the value is not turned into `None`; the load fails.\n- (d) is wrong because the ORM never rewrites stored data on its own.\n\n**Deeper:** rename enum members with a migration that updates existing rows (and the database enum type, if you use a native one). Alternatively, keep stable names and change the display label only.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Loading fails with an error, because the stored name PAYMENT no longer matches any enum member",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "SQLAlchemy silently converts it to SETTLEMENT",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The value becomes None with no error",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "SQLAlchemy updates all the old rows automatically",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass SettleUpController:\n    def settle_up_user(self, request: SettleUpUserResponseDto):\n        expenses = self.settle_up_service.settle_up_user(request.user_id)\n        return SettleUpUserResponseDto(expenses=expenses)\n```\nThe type hint on request is wrong. It should be SettleUpUserRequestDto. If we pass a real SettleUpUserRequestDto object to this method, what happens when the program runs?",
+      "explanation": "**Answer: (c)** Python does not enforce annotations at runtime. The wrongly annotated parameter does not change behaviour, so the method runs normally with the correct object. A static checker such as pyright or mypy would report the mismatch.\n- (a) is wrong because no runtime type check is performed.\n- (b) is wrong because the annotation is valid syntax.\n- (d) is wrong because there is no reason for an empty result.\n\n**Deeper:** type hints are documentation plus tooling. Run pyright or mypy in CI. Pydantic and FastAPI are the exceptions that validate at runtime, because they read the annotations deliberately.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python raises a TypeError immediately",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Python raises a SyntaxError when the file loads",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It runs fine, because Python does not check type hints. A type checker like pyright or mypy would flag it",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It returns an empty list",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why did we use a dummy Expense with expense_type = PAYMENT for a settlement, instead of creating a new Transaction class?",
+      "explanation": "**Answer: (d)** A settlement is money moving between people, so it can reuse `Expense` and `ExpenseUser`. Balance logic stays unchanged and there is one source of truth.\n- (a) is wrong because SQLAlchemy has no practical limit on model count.\n- (b) is wrong because a `Transaction` class can have foreign keys.\n- (c) is wrong because dummy expenses are saved like any other, and speed is not the reason.\n\n**Deeper:** a separate table would force every balance and history query to merge two sources. Reusing the existing structure is the same instinct as keeping one representation for one fact.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SQLAlchemy allows only a small number of model classes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A Transaction class cannot have foreign keys",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Dummy expenses are never saved, so they are always faster",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A settlement is also money moving between people, so it can reuse Expense and ExpenseUser, and the balance logic stays the same",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Seed data for one expense (Dinner, total 1000):\n\n| Person | Row type | Amount |\n|---|---|---|\n| Alice | PAID | 1000 |\n| Alice | HAD_TO_PAY | 500 |\n| Bob | HAD_TO_PAY | 500 |\n\nNaiveSettleUpStrategy calculates each person's net_balance as (total paid) minus (total owed). A positive balance means the person should receive money. What are the balances?",
+      "explanation": "**Answer: (b)** Alice paid 1000 and owes 500, so her net is +500 (she should receive 500). Bob owes 500 and paid nothing, so his net is -500.\n- (a) is wrong because it ignores owed amounts.\n- (c) is wrong because the signs are swapped.\n- (d) is wrong because the balances are not zero; they only sum to zero.\n\n**Deeper:** a positive balance means \"should receive\". The sum of all balances is always zero when every expense balances, which is a useful invariant to assert in tests.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Alice = 1000, Bob = 500",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Alice = +500, Bob = -500",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Alice = -500, Bob = +500",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Alice = 0, Bob = 0",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Net balances are A = -300, B = -200, C = +500. NaiveSettleUpStrategy sorts users from the lowest balance to the highest. Then it goes through them one by one. Each person settles fully with the next person, and the remaining amount moves to that next person. Which transactions are produced?",
+      "explanation": "**Answer: (c)** Sorted from lowest to highest the order is A (-300), B (-200), C (+500). A settles fully with the next person, B: A pays B 300, and B's balance becomes -500. Then B settles with C: B pays C 500.\n- (a) is wrong because it describes a different (direct-to-creditor) algorithm, not the chained one.\n- (b) is wrong because it reverses the direction of payment.\n- (d) is wrong because A only owes 300, so A pays B 300, not 500.\n\n**Deeper:** this is the naive chain strategy: at most n-1 transactions, O(n log n), but money may pass through another debtor. The heap strategy pays creditors directly.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A pays C 300, and B pays C 200",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "C pays A 300, and C pays B 200",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A pays B 300, then B pays C 500",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A pays B 500, then B pays C 300",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A student writes _build_dummy_expense like this:\n\n```python\nexpense.expense_users = [\n    ExpenseUser(user=payer, amount=amount,\n                expense_user_type=ExpenseUserType.PAID),\n    ExpenseUser(user=receiver, amount=amount,\n                expense_user_type=ExpenseUserType.PAID),\n]\n```\nWhat is wrong?",
+      "explanation": "**Answer: (a)** For a settlement the receiver's row must be `HAD_TO_PAY`. With two `PAID` rows, total paid is twice the amount and total owed is zero, which breaks the rule that paid equals owed.\n- (b) is wrong because both people being involved does not make both payers.\n- (c) is wrong because the amounts must match for the totals to balance.\n- (d) is wrong because a settlement may be between friends outside any group.\n\n**Deeper:** add validation that rejects any expense whose PAID total differs from its HAD_TO_PAY total, so a bug like this fails on write instead of corrupting balances.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The receiver should be HAD_TO_PAY. With two PAID rows, total paid is 2 × amount and total owed is 0, so the rule \"total paid = total owed\" breaks",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing. Both people are involved, so both are PAID",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The receiver's amount should be different from the payer's amount",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "ExpenseUser cannot be created without a group",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q12",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Aman is in five groups and also has some one-on-one expenses that have no group. In settle_up_user, how do we find every expense Aman is part of?",
+      "explanation": "**Answer: (b)** Find all `ExpenseUser` rows for Aman and take the expense of each row. That includes expenses from all five groups and the one-on-one expenses with no group.\n- (a) is wrong because it ignores his other groups and ungrouped expenses.\n- (c) is wrong because it excludes expenses without a group.\n- (d) is wrong because creating an expense is not the same as taking part in one.\n\n**Deeper:** start from the participation rows, not from groups. In SQL: join `expenses` to `expense_users` filtered by `user_id`, with `DISTINCT` if one user has several rows in an expense.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Take only the expenses of his first group",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Find all ExpenseUser rows for Aman, then take the Expense of each row",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Take only the expenses where group_id is not None",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Take only the expenses that Aman created",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q13",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "settle_up_user runs the strategy on all expenses that user P is part of. The strategy returns 3 transactions:\n\n1. \"Q pays P 400\"\n2. \"R pays P 100\"\n3. \"Q pays R 250\"\n\nThe service keeps only the transactions where P appears. Which transactions are returned, and is P fully settled?",
+      "explanation": "**Answer: (d)** Filtering keeps transactions in which P is payer or receiver, which are transactions 1 and 2: together they bring P's net to zero. Transaction 3 (Q pays R 250) does not involve P, so it is dropped.\n- (a) is wrong because the filter does not stop at the first match.\n- (b) is wrong because transaction 3 does not involve P.\n- (c) is wrong because transactions 1 and 2 do involve P.\n\n**Deeper:** the full plan covers everyone in those expenses, but a user wants only their own payments. Filtering after running the strategy keeps the algorithm unaware of who is asking.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Only transaction 1, because the loop stops at the first match",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "All 3 transactions",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "None, because Q and R have a transaction between them",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Transactions 1 and 2. P is fully settled by them, and transaction 3 does not affect P",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q14",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\ncmd = SettleUpUser(controller)\n\nprint(cmd.matches(\"u12 SettleUp\"))\nprint(cmd.matches(\"g1 SettleUp\"))\nprint(cmd.matches(\"U3 settleup\"))\nprint(cmd.matches(\"u1 SettleUp now\"))\n```\nmatches() returns True only if all of these are true: the input has exactly 2 words, the second word is settleup (ignoring upper/lower case), the first word starts with u (ignoring case), and the rest of the first word is only digits. What is printed?",
+      "explanation": "**Answer: (a)** `u12 SettleUp` has two words, `settleup` as the second, and `u` followed by digits: True. `g1 SettleUp` starts with `g`: False. `U3 settleup` ignores case in both places: True. `u1 SettleUp now` has three words: False.\n- (b) is wrong because `g1 SettleUp` does not start with `u`.\n- (c) is wrong because it rejects `U3 settleup`, but case is ignored.\n- (d) is wrong because it rejects `u12 SettleUp`, which satisfies every rule.\n\n**Deeper:** strict matching keeps first-match-wins dispatch predictable. Test the near-miss inputs, not just the happy path.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "True, False, True, False",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "True, True, True, False",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "True, False, False, False",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "False, False, True, False",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q15",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass CommandExecutor:\n    def __init__(self, commands):\n        self.commands = commands\n\n    def execute(self, user_input):\n        for command in self.commands:\n            if self.commands.matches(user_input):\n                command.execute(user_input)\n                return\n        print(\"Invalid command\")\n```\nself.commands is a list of Command objects. What happens the first time execute() runs?",
+      "explanation": "**Answer: (b)** `self.commands` is a list, and lists have no `matches` method, so the first call raises `AttributeError`. The loop variable `command` is what should be called.\n- (a) is wrong because the code fails instead of printing anything.\n- (c) is wrong because no command runs.\n- (d) is wrong because of the attribute error.\n\n**Deeper:** this typo survives until the executor is exercised, so a one-line smoke test for the executor catches it. A static checker would flag `list` having no attribute `matches` immediately.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It prints \"Invalid command\" for every input",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It raises AttributeError, because a list has no matches method",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It runs the first command every time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It works correctly",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/assignment/q16",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You finish a new HeapSettleUpStrategy class that follows the same SettleUpStrategy interface. You want the app to use it instead of NaiveSettleUpStrategy. What is the smallest correct change?",
+      "explanation": "**Answer: (c)** The strategy is created in `main.py`, the composition root. Passing `HeapSettleUpStrategy()` to `SettleUpService` swaps the algorithm without touching any other class.\n- (a) is wrong because rewriting the service defeats the point of the interface.\n- (b) is wrong because the command does not choose the algorithm.\n- (d) is wrong because choosing the algorithm on every call spreads policy into the controller.\n\n**Deeper:** the service depends on the `SettleUpStrategy` abstraction (dependency inversion), so each strategy is also independently testable. Only the composition root names concrete classes, which makes an A/B rollout of a new algorithm a configuration change, and a rollback just as cheap.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Rewrite SettleUpService to call the heap logic directly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Change the SettleUpUser command",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In main.py, pass HeapSettleUpStrategy() to SettleUpService instead of NaiveSettleUpStrategy()",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Change SettleUpController so it chooses the algorithm on every call",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "For `n` users with non-zero balances, what is the time complexity of the heap-based settle-up (two heaps, repeatedly paying `min(debt, credit)`)?",
+      "explanation": "**Answer: (a)** Each iteration settles at least one person, so at most n-1 iterations run. Each iteration performs a constant number of `heappop` and `heappush` calls, each O(log n). Building the heaps is O(n).\n- (b) is wrong because the heap operations cost O(log n) each, not O(1).\n- (c) is wrong because the heaps avoid comparing every pair.\n- (d) is wrong because that is the cost of the exact subset DP, which searches for the true minimum.\n\n**Deeper:** the gap between O(n log n) greedy and exponential exact search is the trade-off: greedy gives at most n-1 transfers, but not always the minimum.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "O(n log n), because there are at most n-1 iterations and each does O(log n) heap work",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "O(n), because each person is touched once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "O(n squared), because every debtor is compared with every creditor",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "O(2 to the power n), because it must try all groupings",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nimport heapq\n\nh = [(-300, \"b\"), (-500, \"a\")]\nheapq.heapify(h)\nprint(heapq.heappop(h), heapq.heappop(h))\n```\nCreditors are stored as `(-amount, user)`. What does this print, and what does it show?",
+      "explanation": "**Answer: (d)** `heapq` is a min-heap. With negated amounts the most negative value, `-500`, is the smallest and pops first, so the largest creditor comes out first.\n- (a) is wrong because it reverses the order; `-500` is smaller than `-300`.\n- (b) is wrong because each `heappop` removes a different element.\n- (c) is wrong because tuples compare element by element.\n\n**Deeper:** ties on the amount fall through to the second element, so user ids must be mutually comparable (all `int` or all `str`), or use a counter as a tie-breaker.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`(-300, 'b') (-500, 'a')`, so the smallest creditor is served first",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`(-300, 'b') (-300, 'b')`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises `TypeError`, because tuples cannot be compared",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`(-500, 'a') (-300, 'b')`, so negating amounts makes the min-heap serve the largest creditor first",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-31/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`group.members` and `user.groups` use `secondary=group_members` with `back_populates` on each side. Before any flush or commit you run `group.members.append(riya)`. What does `riya.groups` contain?",
+      "explanation": "**Answer: (b)** `back_populates` keeps both collections consistent in memory, so appending to one side immediately appears on the other. The row in `group_members` is written when the session flushes.\n- (a) is wrong because the in-memory sync is immediate and does not need a refresh.\n- (c) is wrong because the same `Group` object is added, not a copy.\n- (d) is wrong because a plain `Table` used as `secondary` needs no mapped class.\n\n**Deeper:** without `back_populates` the database row would still be written, but `riya.groups` could be stale until it is expired. If the link needs attributes of its own, replace the `Table` with a mapped association class.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing, until the session flushes and the row is read back",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The group, because `back_populates` updates the other side in memory; the association row is inserted at flush",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A copy of the group with no members",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An error, because the association table has no mapped class",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

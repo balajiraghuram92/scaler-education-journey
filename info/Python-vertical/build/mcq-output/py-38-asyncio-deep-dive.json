@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-38-asyncio-deep-dive",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-38/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this program print (ignoring warnings)?\n\n```python\nimport asyncio\n\nasync def work(tag):\n    print(\"start\", tag)\n    await asyncio.sleep(0)\n    print(\"end\", tag)\n\nasync def main():\n    t = asyncio.create_task(work(\"A\"))\n    work(\"B\")\n    print(\"main\")\n    await t\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (b)** `main`, `start A`, `end A`: the task is scheduled but only starts when `main` first yields, and the bare call `work(\"B\")` creates a coroutine object that never runs.\n\n- (a) is wrong: the task does not start inside `create_task`; it is merely scheduled, so `main` prints first.\n- (c) is wrong: calling a coroutine function without awaiting it runs none of its body, so `start B` never appears.\n- (d) is wrong: nothing here raises; the only side effect is a `RuntimeWarning` that the coroutine was never awaited.\n\n**Deeper:** This is the root of two production bugs: forgetting an `await` (the work silently never happens) and assuming `create_task` runs eagerly (ordering assumptions break). Interviewers use this trace to check you separate coroutine objects from tasks. Running with `python -X dev` surfaces the un-awaited coroutine with a creation traceback.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "start A, main, end A",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "main, start A, end A",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "main, start A, start B, end A, end B",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises RuntimeError at the line work(\"B\")",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A handler does `await asyncio.gather(call_a(), call_b(), call_c())` and `call_a` raises immediately. `call_b` and `call_c` each hold an expensive upstream connection for several more seconds. With default arguments, what happens to `call_b` and `call_c`?",
+      "explanation": "**Answer: (c)** `gather` propagates the first exception to the awaiter but does not cancel the other awaitables, so they run to completion in the background.\n\n- (a) is wrong: `gather` has no automatic sibling cancellation; that is what `TaskGroup` adds.\n- (b) is wrong: nothing waits for them, the awaiter has already been given the exception.\n- (d) is wrong: only `return_exceptions=True` changes how failures are reported, and it does not cancel anything either.\n\n**Deeper:** In an LLM gateway this means a failed request keeps spending tokens and connections after the client has already got an error. `TaskGroup` (3.11+) cancels siblings, waits for their `finally` blocks, and raises an `ExceptionGroup`. If you must stay on `gather`, cancel the remaining tasks yourself in a `finally`. Expect the interviewer to ask which behaviour you want per call site.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "They are cancelled automatically as soon as call_a fails",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They are awaited, delaying the exception until they finish",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "They keep running in the background; the exception reaches the handler immediately",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "They are cancelled only if return_exceptions=True is passed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nimport asyncio\n\nasync def worker():\n    try:\n        await asyncio.sleep(10)\n    except asyncio.CancelledError:\n        print(\"cleanup\")\n\nasync def main():\n    t = asyncio.create_task(worker())\n    await asyncio.sleep(0)\n    t.cancel()\n    r = await t\n    print(\"result\", r, t.cancelled())\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (a)** `cleanup`, then `result None False`. The worker caught `CancelledError` and did not re-raise, so the task finished normally with `None`, and `cancelled()` is `False`.\n\n- (b) is wrong: `await t` would only raise `CancelledError` if the task ended in the cancelled state, which requires the exception to propagate out of the coroutine.\n- (c) is wrong: the `cleanup` line is printed because the handler runs.\n- (d) is wrong: `CancelledError` is a `BaseException`, but catching it explicitly is allowed; nothing is raised to `asyncio.run`.\n\n**Deeper:** A swallowed cancellation makes a task impossible to stop and breaks `timeout()` and `TaskGroup`, which use cancellation to enforce deadlines. The rule is: clean up, then re-raise. Interviewers like this question because the code looks responsible.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "cleanup, then: result None False",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "cleanup, then await t raises CancelledError out of main",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "result None True, with no cleanup line",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "RuntimeError: cannot catch CancelledError",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print on Python 3.12+?\n\n```python\nimport asyncio\n\nasync def main():\n    try:\n        async with asyncio.timeout(0.05):\n            await asyncio.sleep(1)\n    except asyncio.CancelledError:\n        print(\"cancelled\")\n    except TimeoutError:\n        print(\"timeout\")\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (d)** `timeout`. `asyncio.timeout` cancels the current task at the deadline, then, in `__aexit__`, converts the resulting `CancelledError` into `TimeoutError`.\n\n- (a) is wrong: the code inside the block sees `CancelledError`, but it does not escape the `async with`.\n- (b) is wrong: the sleep is far longer than the 50 ms deadline.\n- (c) is wrong: only one handler runs, and the cancellation is converted before it can reach the first `except` (and `asyncio.TimeoutError` is the builtin `TimeoutError` since 3.11, so the second clause matches).\n\n**Deeper:** The conversion only happens when the cancellation actually propagates out of the block. If code inside swallows `CancelledError`, the block exits normally and no `TimeoutError` appears. That is why \"always re-raise cancellation\" is a correctness rule for deadline handling.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "cancelled",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing; the sleep finishes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "cancelled, then timeout",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "timeout",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Both children fail before their first await. What does this print?\n\n```python\nimport asyncio\n\nasync def a(): raise ValueError(\"a\")\nasync def b(): raise KeyError(\"b\")\n\nasync def main():\n    try:\n        async with asyncio.TaskGroup() as tg:\n            tg.create_task(a())\n            tg.create_task(b())\n    except* ValueError as eg:\n        print(\"value\", len(eg.exceptions))\n    except* KeyError as eg:\n        print(\"key\", len(eg.exceptions))\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (c)** `value 1` then `key 1`. Both children run in the same loop iteration and both fail, so the group contains both errors, and `except*` splits it: every matching clause runs on its own subgroup.\n\n- (a) is wrong: with plain `except` only the first matching clause would run, but `except*` clauses each get the matching part of the group.\n- (b) is wrong: the `KeyError` is not hidden by the `ValueError`; both are collected.\n- (d) is wrong: `except*` handles an `ExceptionGroup` fine, so nothing propagates once both types are covered.\n\n**Deeper:** If only one child had failed before the other was cancelled, only one clause would run. Interviewers use this to see whether you understand that `TaskGroup` raises a group, and that unhandled leftovers are re-raised as a new group.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "value 1 only; the KeyError is dropped",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "key 1 only; the second error wins",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "value 1, then key 1",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "ExceptionGroup propagates out of main unhandled",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nimport asyncio\n\nasync def main():\n    t = asyncio.create_task(asyncio.sleep(0.2, \"done\"))\n    try:\n        await asyncio.wait_for(asyncio.shield(t), 0.05)\n    except TimeoutError:\n        print(\"timeout; cancelled?\", t.cancelled())\n    print(await t)\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (b)** `timeout; cancelled? False`, then `done`. `shield` protects the inner task: when `wait_for` times out it cancels only the outer shield wrapper.\n\n- (a) is wrong: without `shield`, `wait_for` would cancel the task, giving `True` and then a `CancelledError` on `await t`.\n- (c) is wrong: the 50 ms timeout fires before the 200 ms sleep ends.\n- (d) is wrong: `shield` does not make the caller wait; the timeout still raises.\n\n**Deeper:** This pattern lets a slow LLM call finish in the background so its result can be cached, but you now own an unsupervised task: keep a reference, handle its exception, and cancel it at shutdown. Using `shield` in a request path without those three things is a classic leak.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "timeout; cancelled? True, then CancelledError from await t",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "timeout; cancelled? False, then done",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "done only; no timeout occurs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "done, then timeout; cancelled? False",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A synchronous helper `build_report()` calls `asyncio.run(fetch_rows())`. It works from a CLI script, but when the same helper is called from a FastAPI `async def` endpoint it fails. What is the failure and the correct fix?",
+      "explanation": "**Answer: (d)** `asyncio.run()` raises `RuntimeError` (\"cannot be called from a running event loop\") because the endpoint is already executing on a running loop. Make the helper `async` and `await fetch_rows()` directly.\n\n- (a) is wrong: `asyncio.run` does not nest, and there is no flag that allows it.\n- (b) is wrong: the problem is not the thread pool; the call happens on the loop thread itself.\n- (c) is wrong: patching the loop (for example with third-party re-entrancy shims) hides the design problem and breaks structured cancellation.\n\n**Deeper:** The rule is one `asyncio.run` at the process edge, `await` everywhere inside. If a sync function genuinely must be called from async code and it blocks, move it off the loop with `asyncio.to_thread`. Interviewers ask this to test whether you understand that the loop is an ambient resource, not something you start per call.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It deadlocks silently; pass nest=True to asyncio.run",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The thread pool is exhausted; increase max_workers",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises ValueError; wrap it in a try/except and retry",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "RuntimeError because a loop is already running; make the helper async and await it",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Your service fires audit events with `asyncio.create_task(write_audit(evt))` and discards the return value. Under load, some audit rows are missing, and logs occasionally show \"Task exception was never retrieved\" minutes after the real failure. What is the most accurate diagnosis and fix?",
+      "explanation": "**Answer: (a)** The event loop keeps only weak references to tasks, so unreferenced tasks can be garbage-collected before finishing, and unobserved exceptions are only reported when the task object is collected. Hold strong references (a set with a done callback) and report errors in that callback.\n\n- (b) is wrong: `create_task` is thread-agnostic for scheduling on the loop; the symptom is about lifetime, not thread safety.\n- (c) is wrong: `asyncio.sleep(0)` after `create_task` neither pins the task nor retrieves its exception.\n- (d) is wrong: switching to `ensure_future` returns the same kind of task; the reference problem remains.\n\n**Deeper:** The supervised-background-task pattern (set plus `add_done_callback(discard)` plus logging of `task.exception()`) is table stakes in production. Better still, give the work an owner with a lifetime, such as a `TaskGroup` per request or a supervisor drained at shutdown.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Tasks without a strong reference can be garbage-collected mid-flight; keep them in a set and handle errors in a done callback",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "create_task is not thread-safe; wrap it in a lock",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add await asyncio.sleep(0) after create_task so the loop pins the task",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Replace create_task with ensure_future, which holds strong references",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A web client disconnects, and the framework cancels the handler task, which is suspended in `await asyncio.gather(child(1), child(2))`. Each child prints on `CancelledError` and re-raises. What happens?",
+      "explanation": "**Answer: (c)** Both children receive `CancelledError` and the handler is cancelled. Cancelling a task that is awaiting `gather` cancels the gather future, and `gather` propagates that cancellation to all of its children.\n\n- (a) is wrong: the no-sibling-cancellation behaviour applies to a child that raises an exception, not to the awaiter being cancelled.\n- (b) is wrong: cancellation is delivered at the next suspension point, so the children do not run to completion first.\n- (d) is wrong: `gather` does not shield its children; shielding must be explicit with `asyncio.shield`.\n\n**Deeper:** Understanding both directions matters. A failing child does not cancel siblings under `gather`, but a cancelled parent does cancel them. Client disconnect handling in an LLM proxy depends on this: cancelled requests free their upstream connections only if cancellation propagates, and only if no layer swallows it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The children keep running because gather never cancels its awaitables",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The handler waits for both children to finish, then raises CancelledError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both children are cancelled and the handler ends cancelled",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Only the first child is cancelled; the second is shielded by gather",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nimport asyncio\n\nasync def main():\n    try:\n        async with asyncio.timeout(0.05):\n            try:\n                await asyncio.sleep(1)\n            except asyncio.CancelledError:\n                print(\"cleanup\")\n        print(\"after\")\n    except TimeoutError:\n        print(\"timeout\")\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (b)** `cleanup` then `after`. The inner handler swallows the `CancelledError`, so the `async with` block exits normally and `asyncio.timeout` has nothing to convert into `TimeoutError`.\n\n- (a) is wrong: `timeout` would only be printed if the cancellation propagated out of the block.\n- (c) is wrong: a `TimeoutError` would skip `after`, but here no exception escapes the block, so the `except TimeoutError` clause never runs.\n- (d) is wrong: the handler runs because the deadline expired and cancelled the task.\n\n**Deeper:** The deadline fired but the caller never learns about it, so the request carries on as if it succeeded. Real-world versions are retry loops and `except BaseException` blocks in middleware. The fix is `raise` after cleanup, or `try/finally` without catching cancellation at all.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "cleanup, then timeout",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "cleanup, then after",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "timeout only",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "after only",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A developer wraps a TaskGroup like this and one child raises `ValueError`. What happens?\n\n```python\nasync def main():\n    try:\n        async with asyncio.TaskGroup() as tg:\n            tg.create_task(boom())      # raises ValueError\n    except ValueError:\n        print(\"caught ValueError\")\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (d)** An `ExceptionGroup` propagates out of `main` and `asyncio.run`; the plain `except ValueError` does not match it.\n\n- (a) is wrong: `TaskGroup` always wraps child failures in an `ExceptionGroup`, even for one error.\n- (b) is wrong: `except ValueError` tests the type of the raised exception, which is `ExceptionGroup`, not `ValueError`.\n- (c) is wrong: there is no implicit unwrapping of single-element groups.\n\n**Deeper:** The fix is `except* ValueError`, or catching `ExceptionGroup` and inspecting `.exceptions`. In services this shows up as unexpected 500s after migrating from `gather` to `TaskGroup`. Remember that `except*` handlers see a group, not the bare exception, and that unmatched members are re-raised.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "caught ValueError is printed because the group unwraps a single error",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "caught ValueError is printed because ExceptionGroup subclasses ValueError",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The error is silently discarded when the group exits",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An ExceptionGroup propagates out of main; the plain except does not match",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-38/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What is the output order, and what does it say about concurrency?\n\n```python\nimport asyncio\n\nasync def cpu(tag):\n    print(tag, \"start\")\n    total = sum(range(1000))\n    print(tag, \"end\")\n\nasync def main():\n    await asyncio.gather(cpu(\"A\"), cpu(\"B\"))\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (a)** `A start`, `A end`, `B start`, `B end`. A coroutine runs until its first real suspension, and these have none, so each runs to completion before the loop can switch.\n\n- (b) is wrong: interleaving needs an `await` that actually yields; `async def` alone is not a yield point.\n- (c) is wrong: `gather` wraps coroutines in tasks in argument order, so A runs first.\n- (d) is wrong: coroutines never run on separate threads; asyncio is single-threaded.\n\n**Deeper:** This is why wrapping CPU-bound work in `async def` does not help. Use `await asyncio.to_thread(...)` for blocking I/O, a process pool for CPU-bound work, or a worker service. Interviewers may follow up on whether `await asyncio.sleep(0)` inside the loop would help; it only gives other tasks a turn, it does not add parallelism.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A start, A end, B start, B end: no interleaving without a real await",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A start, B start, A end, B end: gather interleaves coroutines",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "B start, B end, A start, A end: gather reverses the order",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Order is nondeterministic because each coroutine runs on its own thread",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

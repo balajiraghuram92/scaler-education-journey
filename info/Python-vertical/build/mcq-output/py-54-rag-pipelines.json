@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-54-rag-pipelines",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-54/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using `chunk_words` from the lesson (windows advance by `size - overlap` words and stop once a window reaches the end):\n\n```python\ntext = \" \".join(f\"w{i}\" for i in range(50))\nprint([(c.text.split()[0], c.text.split()[-1])\n       for c in chunk_words(\"doc\", text, size=20, overlap=5)])\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (b)** The window advances 15 words each time: words 0-19, 15-34, 30-49. The third window ends exactly at word 49, so the loop stops after three chunks. Adjacent chunks share five words.\n\n- (a) would be the result with no overlap and window size 20 (the last chunk being shorter).\n- (c) assumes a step of 20 minus 5 applied backwards; the windows start at 0, 15, 30, not 0, 20, 35.\n- (d) assumes a fourth, trailing chunk; the break condition prevents a redundant window that adds nothing new.\n\n**Deeper:** Overlap protects content near boundaries but multiplies index size and embedding cost. With 1,000 words, size 120 and overlap 20 give 10 chunks, while overlap 100 gives 45. Choose these values on a golden set, not by habit.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[('w0', 'w19'), ('w20', 'w39'), ('w40', 'w49')]`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`[('w0', 'w19'), ('w15', 'w34'), ('w30', 'w49')]`", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`[('w0', 'w19'), ('w20', 'w34'), ('w35', 'w49')]`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`[('w0', 'w19'), ('w15', 'w34'), ('w30', 'w49'), ('w45', 'w49')]`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndocs = np.array([[10.0, 0.0], [0.9, 0.436]])\nq = np.array([0.8, 0.6])\nprint(int(np.argmax(docs @ q)))\nunit = docs / np.linalg.norm(docs, axis=1, keepdims=True)\nprint(int(np.argmax(unit @ q)))\n```\n\nWhat is printed, and what does it show?",
+      "explanation": "**Answer: (d)** `0` then `1`. The raw dot products are 8.0 and 0.98, so the long vector wins on magnitude. After normalising each row, the similarities are 0.8 and 0.98, so the second vector, which points closer to the query, wins.\n\n- (a) claims both rankings agree; magnitude changes the raw-dot result.\n- (b) reverses the two outputs.\n- (c) claims normalisation has no effect on ranking, which holds only if all norms are already equal.\n\n**Deeper:** Cosine similarity compares direction. Normalise at ingestion once, and then a dot product equals cosine. Some embedding models return unit-length vectors already, but verify instead of assuming, and never mix normalised and unnormalised vectors in one index.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`0` then `0`: normalisation does not change which document is nearest", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`1` then `0`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`1` then `1`: both rankings select the second document", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`0` then `1`: raw dot product favours the longer vector, cosine favours the closer direction", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nprint([doc for doc, _ in rrf([[0, 1, 2], [1, 2, 0]])])\n```\n\nUsing Reciprocal Rank Fusion with `k=60`, what is printed?",
+      "explanation": "**Answer: (a)** `[1, 0, 2]`. Document 1 is ranked 2nd and 1st: `1/62 + 1/61 = 0.03252`. Document 0 is 1st and 3rd: `1/61 + 1/63 = 0.03227`. Document 2 is 3rd and 2nd: `1/63 + 1/62 = 0.03200`.\n\n- (b) assumes the first list wins ties; fusion treats both lists symmetrically.\n- (c) takes the best single rank (document 0 is first in list one), but RRF sums contributions from all lists.\n- (d) would be sorting by document id.\n\n**Deeper:** RRF needs no score calibration, which is why it is a robust default for fusing BM25 with vector search. A document consistently near the top in both lists beats one that is first in only one.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[1, 0, 2]`", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`[0, 1, 2]`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`[0, 2, 1]`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`[2, 1, 0]`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nretrieved = [\"a\", \"b\", \"c\", \"d\"]\nrelevant = {\"c\", \"z\"}\nprint(recall_at_k(retrieved, relevant, 3),\n      round(reciprocal_rank(retrieved, relevant), 3),\n      recall_at_k(retrieved, relevant, 2))\n```\n\nWith `recall_at_k` = |top-k ∩ relevant| / |relevant| and `reciprocal_rank` = 1 / rank of first relevant hit, what is printed?",
+      "explanation": "**Answer: (c)** `0.5 0.333 0.0`. At k=3 the top results include `c` but not `z`, so one of two relevant items is found: 0.5. The first relevant hit is at rank 3, so the reciprocal rank is 1/3. At k=2 neither relevant item appears, so recall is 0.\n\n- (a) divides by the retrieved count instead of the relevant count, which is precision.\n- (b) treats the metric as a hit-or-miss at rank 3 (hit rate) rather than a fraction of relevant items.\n- (d) would require both relevant items to be retrieved.\n\n**Deeper:** Recall@k tells you whether the generator can possibly see the evidence; MRR tells you how early it appears. Faithfulness is a different axis: it checks that the generated claims follow from the retrieved text.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`0.333 0.333 0.0`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`1.0 0.333 0.0`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`0.5 0.333 0.0`", "isCorrect": true },
+        { "optionKey": "d", "optionText": "`0.5 0.5 0.5`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nm = np.eye(3, dtype=np.float32)           # three unit-length document vectors\nhits = top_k_cosine(m, np.array([0.2, 0.9, 0.1]), 2)\nprint([(i, round(s, 2)) for i, s in hits])\n```\n\nWhat is printed? (`top_k_cosine` normalises the query and returns pairs sorted by descending similarity.)",
+      "explanation": "**Answer: (c)** The normalised query is about `[0.215, 0.970, 0.108]`. Because the rows of the identity matrix are axis vectors, each similarity equals one component: 0.97 for row 1, 0.22 for row 0, 0.11 for row 2. The top two, sorted descending, are `(1, 0.97)` and `(0, 0.22)`.\n\n- (a) is in ascending order and picks the wrong rows; `argpartition` results must be sorted afterwards.\n- (b) uses the raw, unnormalised components (0.9, 0.2), which would be wrong for cosine.\n- (d) returns row 2 as second, but its similarity is only about 0.11.\n\n**Deeper:** `np.argpartition` gives the k best in no particular order, so the extra `argsort` over just k elements is required. That is O(n + k log k) instead of a full O(n log n) sort.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[(0, 0.22), (1, 0.97)]`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`[(1, 0.9), (0, 0.2)]`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`[(1, 0.97), (0, 0.22)]`", "isCorrect": true },
+        { "optionKey": "d", "optionText": "`[(1, 0.97), (2, 0.11)]`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`CachedEmbedder` sends only distinct, uncached texts to the inner embedder (preserving first-seen order). The inner embedder records each batch it receives.\n\n```python\nc = CachedEmbedder(spy, \"m\")\nr1 = await c.embed([\"a\", \"b\", \"a\"])\nr2 = await c.embed([\"b\", \"cc\"])\nr3 = await c.embed([\"a\"])\nprint(spy.seen, len(r1))\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (a)** The first call de-duplicates to `['a', 'b']` and returns three vectors (one per requested text, in order). The second call finds `b` cached and sends only `['cc']`. The third call is fully cached, so the inner embedder is not called at all.\n\n- (b) forgets de-duplication in the first call.\n- (c) forgets that `b` is already cached after the first call.\n- (d) counts a third batch for the fully cached request.\n\n**Deeper:** De-duplicating within a batch and across calls saves real money on re-ingestion. The cache key includes the model name, because changing models makes every old vector invalid. Always return results in the caller's original order, including duplicates.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[['a', 'b'], ['cc']] 3`", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`[['a', 'b', 'a'], ['cc']] 3`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`[['a', 'b'], ['b', 'cc']] 3`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`[['a', 'b'], ['cc'], []] 3`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You change `chunk_words` from `size=120, overlap=20` to `size=120, overlap=100` to 'avoid missing boundary content'. The corpus is 1,000 words per document. What is the main consequence?",
+      "explanation": "**Answer: (d)** With overlap 20 the step is 100 words and a document yields 10 chunks. With overlap 100 the step is 20 words, giving 45 chunks: about 4.5 times as many vectors to embed, store and search, and heavy near-duplicates among the top results that crowd the prompt.\n\n- (a) is wrong: overlap does not change chunk size, only the stride.\n- (b) is wrong: more overlap does not guarantee better recall; duplicates can displace diverse evidence.\n- (c) is wrong: embeddings are per chunk, so cost scales with chunk count.\n\n**Deeper:** Treat overlap as a hyperparameter measured on a golden set (recall@k, MRR), and consider de-duplicating or merging adjacent hits before prompt assembly.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Each chunk becomes larger, so embeddings carry more context", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Recall@k is guaranteed to improve because every boundary is covered five times", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Embedding cost stays the same because the text is unchanged", "isCorrect": false },
+        { "optionKey": "d", "optionText": "About 4.5 times as many chunks to embed and index, with many near-duplicate hits", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Users search a knowledge base for `ERR-4021-B`, an exact error code that appears in one runbook. Vector search returns unrelated pages about errors in general; the runbook is at rank 40. What is the best change?",
+      "explanation": "**Answer: (b)** Dense embeddings blur rare exact tokens into a general 'error' meaning. A lexical component such as BM25 weights rare terms by inverse document frequency, so the runbook ranks near the top. Fuse it with the dense ranking (for example with RRF) so paraphrase queries still work.\n\n- (a) is wrong: a larger k raises cost and prompt noise without fixing rank.\n- (c) is wrong: lowering chunk size does not teach the embedding model about the code.\n- (d) is wrong: a bigger prompt cannot recover a document that was not retrieved.\n\n**Deeper:** Identifiers, SKUs, names and numbers are classic hybrid-search cases. Keep a golden-set query for each kind so a retrieval change cannot silently lose them.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Increase top-k from 5 to 50 and send all chunks to the model", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Add BM25 keyword search and fuse its ranking with the vector ranking", "isCorrect": true },
+        { "optionKey": "c", "optionText": "Halve the chunk size so each chunk is more specific", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Tell the model in the prompt to look harder for exact error codes", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A teammate fuses BM25 and cosine results with `final = bm25_score + cosine_score` and finds that the keyword results always dominate. What is the root cause and the more robust fix?",
+      "explanation": "**Answer: (a)** BM25 scores are unbounded and corpus-dependent (often in the range of several units to tens), while cosine similarity lies in [-1, 1]. Adding them lets the larger scale swamp the other. Fusing by rank (RRF) or normalising each list before weighting removes the scale mismatch.\n\n- (b) is wrong: cosine is not buggy; it is simply on a smaller scale.\n- (c) is wrong: adding a third retriever does not repair the scale mismatch.\n- (d) is wrong: sorting direction would flip the results, not make one list dominate.\n\n**Deeper:** RRF has one parameter (`k`, commonly 60) and needs no calibration. If you want weights, normalise per query (for example min-max over the candidate list) and tune the weights on the golden set.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The scores live on different scales; fuse ranks with RRF or normalise before weighting", "isCorrect": true },
+        { "optionKey": "b", "optionText": "Cosine similarity is implemented incorrectly and always returns small values", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Add a third retriever so the average balances out", "isCorrect": false },
+        { "optionKey": "d", "optionText": "BM25 should be sorted ascending before it is added", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You move from exact NumPy search to an HNSW-style ANN index and raise the search-time beam width (often called `ef_search`). Which statement is the most accurate?",
+      "explanation": "**Answer: (c)** A wider search beam explores more of the graph, which raises recall (closer to exact results) at the cost of higher latency and CPU. You tune it by comparing ANN results against exact brute-force results on your own queries.\n\n- (a) is wrong: ANN is approximate by design and recall depends on the knob.\n- (b) is wrong: widening the beam usually increases latency, it does not reduce it.\n- (d) is wrong: the beam width is a query-time parameter; the vectors and graph are unchanged, so no re-embedding is needed.\n\n**Deeper:** ANN indexes trade memory, build time, recall and latency. Always measure recall against an exact baseline, and check how metadata filters are applied, because filtering after the search can return too few results.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "ANN returns exact results as long as the index fits in memory", "isCorrect": false },
+        { "optionKey": "b", "optionText": "A wider beam lowers latency because fewer nodes are visited", "isCorrect": false },
+        { "optionKey": "c", "optionText": "A wider beam typically raises recall and latency; measure recall against exact search", "isCorrect": true },
+        { "optionKey": "d", "optionText": "Changing the beam width requires re-embedding the corpus", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Chunk ids are `doc_id#index`. A policy document is edited and now produces 7 chunks instead of the previous 10. Your re-ingest job upserts the 7 new chunks. Weeks later, users get answers citing text that was deleted from the policy. What is the bug and the fix?",
+      "explanation": "**Answer: (b)** Upserting only the new ids leaves `doc#7` to `doc#9` in the index as orphans, and they still match queries. On re-ingest, compute the set of existing chunk ids for the document, delete those absent from the new set (or write a new version and switch atomically), and include the index version in cache keys.\n\n- (a) is wrong: a higher k makes orphan hits more likely, not less.\n- (c) is wrong: lowering temperature does not remove content from the index.\n- (d) is wrong: the embeddings are fine; the problem is stale records.\n\n**Deeper:** Freshness is a data-pipeline concern: content hashes for change detection, deterministic ids for upserts, tombstones or deletes for removals, and versioned caches. Add a test that shrinks a document and asserts orphans are gone.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Retrieval depth is too low; increase top-k so newer chunks are included", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Orphan chunks `doc#7` to `doc#9` remain; delete ids missing from the new chunk set on re-ingest", "isCorrect": true },
+        { "optionKey": "c", "optionText": "The generator is hallucinating; set temperature to 0", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The embedding model drifted; re-embed every document nightly", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-54/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using `check_answer` from the lesson, two sources are supplied (a refunds chunk as `[1]` and a shipping chunk as `[2]`). What is the result for this answer?\n\n```python\ncheck_answer(\"Refunds are instant [1]. Express shipping is free [3].\", sources)\n```\n\n(A sentence counts as supported if it cites a valid source and at least 60% of its non-stopword tokens appear in the cited chunk.)",
+      "explanation": "**Answer: (d)** `{'invalid_citations': [3], 'supported_sentences': '0/2'}`. Citation `[3]` refers to a source that was never supplied, so it is invalid. 'Refunds are instant' has content words `refunds` and `instant`; only `refunds` appears in the refunds chunk (50%, below 60%), so it is unsupported. The second sentence cites a nonexistent source and has no evidence.\n\n- (a) accepts the first sentence because it has a citation; citations alone are not support.\n- (b) counts the shipping sentence even though `[3]` does not exist.\n- (c) misses the invalid citation.\n\n**Deeper:** Checking that cited ids exist is the cheapest, most valuable guardrail. Lexical support is a smoke test; production faithfulness checks use an entailment model or an LLM judge calibrated on human labels.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`{'invalid_citations': [3], 'supported_sentences': '1/2'}`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`{'invalid_citations': [], 'supported_sentences': '1/2'}`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`{'invalid_citations': [], 'supported_sentences': '0/2'}`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`{'invalid_citations': [3], 'supported_sentences': '0/2'}`", "isCorrect": true }
+      ]
+    }
+  ]
+}

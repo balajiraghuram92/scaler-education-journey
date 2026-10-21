@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-47-mocking-async-tests",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-47/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n# billing.py\nfrom gateway import send_email\n\ndef notify(user):\n    send_email(user.email, \"Invoice ready\")\n\n# test_billing.py\ndef test_notify(user):\n    with patch(\"gateway.send_email\") as sent:\n        notify(user)\n    sent.assert_called_once()\n```\n\nThe test fails and a real email goes out. What is the correct fix?",
+      "explanation": "**Answer: (d)** `from gateway import send_email` copies a reference into the `billing` namespace at import time. `notify` looks the name up in `billing`, so replacing the attribute on the `gateway` module does nothing for it. Patch the name where it is used: `patch(\"billing.send_email\")`.\n\n- (a) is wrong: `autospec` checks signatures but does not change which namespace is patched.\n- (b) is wrong: reloading modules inside tests is fragile and unnecessary; you would still be patching the wrong place if the target is wrong.\n- (c) is wrong: `new=` only changes what the replacement is, not where it is installed.\n\nI reproduced this with two small modules: patching `gateway.send_email` returned the real result for the from-import caller and the fake for a caller using `gateway.send_email(...)`, and the reverse for `billing.send_email`.\n\n**Deeper:** \"Patch where it is looked up, not where it is defined\" is the standard mocking trap. The cleaner long-term answer is to inject the sender into `notify` so no patching is needed.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Add `autospec=True` to the existing `patch(\"gateway.send_email\")`.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Call `importlib.reload(billing)` inside the `with` block before `notify`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Pass `new=Mock()` to the existing `patch(\"gateway.send_email\")`.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Patch `billing.send_email`, the name the function actually looks up (or inject the sender as a parameter).", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Gateway:\n    def send(self, to: str, body: str) -> bool: ...\n```\n\nA test calls `double.send(\"a\")` with a missing argument. For which test double does this raise `TypeError` immediately?",
+      "explanation": "**Answer: (a)** `create_autospec(Gateway, instance=True)` copies the method signatures, so `send(\"a\")` fails with `TypeError: missing a required argument: 'body'`. I ran each variant to confirm.\n\n- (b) is wrong: `Mock(spec=Gateway)` restricts attribute names only. `double.sned(...)` would raise `AttributeError`, but `double.send(\"a\")` is accepted.\n- (c) is wrong: `MagicMock()` with no spec accepts any attribute and any arguments.\n- (d) is wrong: `Mock(return_value=True)` is just a callable returning `True`; `send` would be an auto-created child mock.\n\nSo `autospec` is the only option that keeps the double honest when the real interface changes (a new required parameter breaks the test, as it should).\n\n**Deeper:** In interviews, state the ladder: unrestricted `Mock`, then `spec` (names), `spec_set` (names, no new attributes), and `autospec` (names plus signatures). Default to autospec for collaborators you do not own.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`create_autospec(Gateway, instance=True)`", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`Mock(spec=Gateway)`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`MagicMock()`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`Mock(return_value=True)`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nasync def test_reply():\n    llm = MagicMock()\n    llm.complete.return_value = \"hi\"\n    assert await llm.complete(\"p\") == \"hi\"\n```\n\nThe test is run with a working async plugin. What happens?",
+      "explanation": "**Answer: (c)** `llm.complete` is a synchronous `MagicMock`, so calling it returns the string `\"hi\"` immediately. `await \"hi\"` raises `TypeError: object str can't be used in 'await' expression`. I reproduced exactly this message.\n\n- (a) is wrong: `MagicMock` does not detect that the call is awaited and has no coroutine behaviour.\n- (b) is wrong: `MagicMock` supports many magic methods but not `__await__` on a plain return value of a configured call.\n- (d) is wrong: the plugin runs the test properly; the failure is in the test double.\n\nUse `AsyncMock` (or `patch` on an `async def` target, which creates one automatically), or `create_autospec` of the real class, which inspects `async def` methods and returns `AsyncMock` for them.\n\n**Deeper:** The mirror-image bug is forgetting `await` on an `AsyncMock` call: nothing runs and you get a \"coroutine was never awaited\" warning. Both are common in LLM-client tests.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It passes, because `MagicMock` detects the `await` and returns the value asynchronously.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It passes, because `MagicMock` implements `__await__` for any configured return value.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It fails with `TypeError`, because the call returns a plain `str` and a `str` cannot be awaited; use `AsyncMock`.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "It fails because the async plugin cannot run tests that use mocks.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `ReportService` fetched 3 customers with three separate `repo.get(id)` calls. A refactor batches them into one `repo.get_many(ids)`. Behaviour is unchanged. Test A uses `Mock(spec=Repo)` and asserts `repo.get.call_count == 3`. Test B uses an `InMemoryRepo` fake and asserts on the returned report. Which statement is accurate?",
+      "explanation": "**Answer: (b)** Test A is coupled to the implementation: it asserts how the service talked to the repo, so a behaviour-preserving refactor breaks it. Test B asserts the observable result against a working fake, so it keeps passing and would still catch a wrong report.\n\n- (a) is wrong: mock-based tests do not have better coverage; they check interactions, which is not the same as correctness.\n- (c) is wrong: a fake is not less trustworthy by nature. It needs contract tests against the real adapter, but that is cheap to add.\n- (d) is wrong: both tests are deterministic. The issue is coupling, not flakiness.\n\nA mock is the right choice only when the interaction *is* the contract (for example, exactly one charge request with a given idempotency key).\n\n**Deeper:** Interviewers use this to test whether you can articulate test-design trade-offs: state-based testing with fakes tolerates refactoring, interaction-based testing with mocks documents protocols but is brittle.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Test A is stronger, because asserting call counts proves the repository was used correctly.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Test A breaks on the refactor even though behaviour is unchanged; Test B survives it and still verifies the output.", "isCorrect": true },
+        { "optionKey": "c", "optionText": "Test B is unreliable, because fakes are never accurate enough to test business logic.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Both tests are equally affected, because any test that touches the repository is flaky.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom unittest.mock import Mock\n\nm = Mock(side_effect=[1, ValueError(\"x\"), 3])\nres = []\nfor _ in range(4):\n    try:\n        res.append(m())\n    except Exception as e:\n        res.append(type(e).__name__)\nprint(res)\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (b)** With an iterable `side_effect`, each call consumes one item. `1` is returned, the `ValueError` instance is raised (and caught), `3` is returned, and the fourth call has no item left so the mock raises `StopIteration`. I ran it: `[1, 'ValueError', 3, 'StopIteration']`.\n\n- (a) is wrong: it assumes the sequence cycles back to the start, which `side_effect` never does.\n- (c) is wrong: it assumes the last value repeats forever.\n- (d) is wrong: the exception instance in the list is raised, not returned as an object.\n\nThe trap is that `StopIteration` leaking out of a mock called inside a generator or coroutine becomes `RuntimeError` under PEP 479, which confuses the failure message. Give the script enough items, or use a function as `side_effect`.\n\n**Deeper:** This is why scripted fakes with a clear \"script exhausted\" error give better diagnostics than a bare list on a mock.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[1, 'ValueError', 3, 1]`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`[1, 'ValueError', 3, 'StopIteration']`", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`[1, 'ValueError', 3, 3]`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`[1, ValueError('x'), 3, 'StopIteration']`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\n@patch(\"pricing.get_rate\")\n@patch(\"pricing.get_tax\")\ndef test_total(first, second):\n    ...\n```\n\nWhich mock does the parameter `first` refer to?",
+      "explanation": "**Answer: (d)** Stacked `@patch` decorators are applied bottom-up, so the one closest to the function supplies the first argument. `first` is the mock for `pricing.get_tax` and `second` is the mock for `pricing.get_rate`. I confirmed with two patched names that the bottom-most patch is injected first.\n\n- (a) is wrong: it reads the decorators top-down, which is the order they are written, not the order they are applied.\n- (b) is wrong: patch does not inject names based on the target; it is purely positional.\n- (c) is wrong: nothing is injected as keyword arguments unless you pass `new=`, in which case no argument is injected at all.\n\nWith `new=<value>` the decorator injects nothing, which is another common off-by-one in the parameter list. Using `with patch(...) as name:` or pytest's `monkeypatch` removes the ordering problem entirely.\n\n**Deeper:** Argument-order bugs produce confusing failures where the wrong mock is configured. In reviews, prefer context managers or `patch.multiple` for more than one patch.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The mock for `pricing.get_rate`, because it is written first.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Whichever name is alphabetically first.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It is passed as a keyword argument named after the target, so the order does not matter.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The mock for `pricing.get_tax`, because the decorator closest to the function is applied first.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nsink = Mock()\npayload = {\"n\": 1}\nsink(payload)\npayload[\"n\"] = 2          # the code under test mutates its argument afterwards\nsink.assert_called_once_with({\"n\": 1})\n```\n\nWhat is the outcome of the last line?",
+      "explanation": "**Answer: (a)** A mock records references to the arguments, not copies. After the mutation, `call_args` holds the same dict object, which now reads `{'n': 2}`. The comparison with `{'n': 1}` fails with `AssertionError`. I printed `m.call_args.args[0]` and got `{'n': 2}`.\n\n- (b) is wrong: the mock never snapshots arguments; it compares the expected value with whatever the stored object holds at assertion time.\n- (c) is wrong: the call count is 1, so the failure is about arguments, not count.\n- (d) is wrong: the mock does not deep-copy anything.\n\nIf the code under test reuses and mutates a buffer or payload, either snapshot inside a `side_effect` function (`side_effect=lambda p: seen.append(copy.deepcopy(p))`) or use a fake that records a copy.\n\n**Deeper:** This is a real source of passing-for-the-wrong-reason or failing-for-no-reason tests with batching and pagination code that reuses a list.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It raises `AssertionError`, because the mock stored a reference and the dict now holds `{\"n\": 2}`.", "isCorrect": true },
+        { "optionKey": "b", "optionText": "It passes, because the mock snapshots arguments when called.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It raises `AssertionError` because the mock was called more than once.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It passes, because `assert_called_once_with` deep-copies the expected value.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndef send(client, msg):\n    if not client.is_connected():\n        raise ConnectionError(\"offline\")\n    return client.post(msg)\n\ndef test_offline():\n    client = MagicMock()\n    with pytest.raises(ConnectionError):\n        send(client, \"hi\")\n```\n\nThe test fails with `DID NOT RAISE`. Why, and what is the right fix?",
+      "explanation": "**Answer: (c)** The default return value of a `MagicMock` call is another `MagicMock`, and instances of it are truthy. `not client.is_connected()` is therefore `False` and the guard never fires. Configure the case you mean: `client.is_connected.return_value = False`. I checked that `bool(MagicMock().is_connected())` is `True`.\n\n- (a) is wrong: `pytest.raises` works fine; the code under test simply did not raise.\n- (b) is wrong: `MagicMock` supports `__bool__`, and by default it returns `True`.\n- (d) is wrong: switching to `Mock` is also truthy by default; only configuring the return value changes the behaviour.\n\nBetter still, use `create_autospec` of the real client class so the test breaks if `is_connected` is renamed, or a fake client with a `connected` flag.\n\n**Deeper:** Unconfigured mocks are \"yes machines\": they make guards pass, truthiness checks succeed and loops over them iterate zero times, so happy-path tests can pass against code that is wrong.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`pytest.raises` cannot detect exceptions raised from mocked collaborators.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`MagicMock` returns `False` for `__bool__` unless it is configured; set `client.__bool__ = lambda s: True`.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`is_connected()` returns a truthy `MagicMock`; set `client.is_connected.return_value = False` (or use an autospecced or fake client).", "isCorrect": true },
+        { "optionKey": "d", "optionText": "Replace `MagicMock` with `Mock`, which returns `False` by default.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "To test a TTL cache, a developer writes `with patch(\"datetime.datetime.now\") as fake_now: ...`. What happens, and what is the better design?",
+      "explanation": "**Answer: (b)** `datetime.datetime` is a C-implemented immutable type, so you cannot set attributes on it. The patch fails with `TypeError: cannot set 'now' attribute of immutable type 'datetime.datetime'` (I ran it on 3.13). The better design is to inject a clock callable, or to use a time-freezing library that works at a lower level.\n\n- (a) is wrong: the patch cannot be applied, so nothing is replaced at all.\n- (c) is wrong: `patch.object` on the same immutable type fails the same way.\n- (d) is wrong: wrapping `datetime` in a `MagicMock` only works if the code under test looks up `datetime` through the patched module name, and then `now() - hit` arithmetic operates on mocks.\n\nWith an injected `clock: Callable[[], datetime]`, the test advances a `FakeClock` by hand and nothing global is touched. `freezegun` or `time-machine` are the fallback when you cannot change the code.\n\n**Deeper:** Hidden clocks and hidden randomness are the two global inputs that make backend tests flaky. Senior answers inject both.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It silently replaces `now` for the whole process and the cache test works.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "It raises `TypeError` because `datetime.datetime` is an immutable C type; inject a clock callable (or use freezegun/time-machine).", "isCorrect": true },
+        { "optionKey": "c", "optionText": "It fails, but `patch.object(datetime.datetime, \"now\")` is the supported spelling that works.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It works only on Python 3.13 because the type became mutable.", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nllm = AsyncMock()\nasync def run():\n    llm.complete(\"p\")          # the await is missing\n```\n\nAfter `await run()`, which assertions pass?\n\n1. `llm.complete.assert_called_once()`\n2. `llm.complete.assert_awaited_once()`",
+      "explanation": "**Answer: (d)** Calling an `AsyncMock` method records a call immediately, but the coroutine never ran, so nothing was awaited. `assert_called_once()` passes and `assert_awaited_once()` fails with `Expected complete to have been awaited once. Awaited 0 times.` I ran this and saw exactly that message. Python also emits a \"coroutine ... was never awaited\" `RuntimeWarning`.\n\n- (a) is wrong: it claims both pass, which would hide the missing `await`.\n- (b) is wrong: it reverses the two; calling always counts as a call.\n- (c) is wrong: it claims neither passes, but the call was recorded.\n\nThis is why async tests should assert `assert_awaited*` for coroutine collaborators and turn warnings into errors (`filterwarnings = error` in pytest config) so a forgotten `await` in production code fails CI.\n\n**Deeper:** A missing `await` in a gateway means a request that silently never happens. In production the symptom is data that was \"sent\" but never arrived.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Both 1 and 2 pass.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Only 2 passes.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Neither passes.", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Only 1 passes; 2 fails because the coroutine was never awaited.", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom unittest.mock import Mock, DEFAULT\n\nm = Mock(return_value=\"rv\",\n         side_effect=lambda x: x if x > 0 else DEFAULT)\nprint(m(5), m(-1))\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (a)** When `side_effect` is a function, its return value is used as the call's result unless it returns the sentinel `DEFAULT`, in which case the mock falls back to `return_value`. So `m(5)` gives `5` and `m(-1)` gives `'rv'`. I ran it and got `5 rv`.\n\n- (b) is wrong: `return_value` does not override a function `side_effect` that returns a real value.\n- (c) is wrong: `DEFAULT` is not returned to the caller; it is a signal to the mock machinery.\n- (d) is wrong: the function is called with the same arguments as the mock, and no exception is raised for a negative argument.\n\nThe same mechanism lets you build stateful stubs: a `side_effect` function can inspect arguments and return a canned response per input while delegating to the default for everything else.\n\n**Deeper:** Knowing that `side_effect` wins over `return_value` explains confusing tests where setting both has no visible effect.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`5 rv`", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`rv rv`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`5 sentinel.DEFAULT`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`5` followed by a `ValueError`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-47/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `fetch_with_retry` function sleeps 1 s, 2 s, 4 s between attempts using `time.sleep` imported at module top (`from time import sleep`). You must test that three failures produce those delays without slowing the suite. Which design is best?",
+      "explanation": "**Answer: (c)** Injecting a `sleep` callable (default `time.sleep`, or `asyncio.sleep` in async code) lets the test pass a recorder and assert the exact delays `[1, 2, 4]` with no patching and no waiting. This tests the real backoff logic quickly and deterministically.\n\n- (a) is wrong: `patch(\"time.sleep\")` does not affect code that did `from time import sleep`, as the patch-target rule shows; the test would still sleep 7 seconds.\n- (b) is wrong: shrinking the delays through config reduces runtime but you no longer assert the production schedule.\n- (d) is wrong: deleting the test hides a retry bug until an incident.\n\nIf you cannot change the signature, patch the name where it is used (`patch(\"mymod.sleep\")`) and assert on its `call_args_list`.\n\n**Deeper:** Retry code is exactly where hidden clocks cause hour-long CI jobs. Accepting `sleep` and `jitter` functions as parameters also makes the policy testable at the boundaries.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Use `patch(\"time.sleep\")` in the test; it replaces `sleep` everywhere.", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Set the backoff base to 0 in test configuration so the test runs instantly.", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Accept a `sleep` callable (default `time.sleep`), pass a recorder in the test, and assert the recorded delays `[1, 2, 4]`.", "isCorrect": true },
+        { "optionKey": "d", "optionText": "Skip testing the delays, since they cannot be verified deterministically.", "isCorrect": false }
+      ]
+    }
+  ]
+}

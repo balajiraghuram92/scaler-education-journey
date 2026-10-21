@@ -1,0 +1,762 @@
+{
+ "lessonSlug": "py-10-solid-principles",
+ "sourceLesson": "Backend LLD: SOLID Principles for Extensible Systems with AI integrations",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-10/additional/q01",
+   "category": "Additional",
+   "title": "DIP Versus DI Distinction",
+   "question": "What is the difference between DIP (Dependency Inversion Principle) and DI (Dependency Injection)?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "They are the same thing, just two different names"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "DIP tells you who to depend on (an abstraction); DI tells you how that dependency reaches you (handed in from outside)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "DIP is only for Python; DI is only for other languages"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "DIP applies to functions; DI applies only to classes"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_6DRZbUQjGN.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q02",
+   "category": "Additional",
+   "title": "Class Explosion With Behaviours",
+   "question": "If a bird hierarchy has 4 independent behaviours (fly, dance, swim, sing), and you try to model each combination using plain \"can/cannot\" subclassing, how many classes would you need?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "8"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "4"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "16"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "12"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_crnBcJP31o.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q03",
+   "category": "Additional",
+   "title": "Junk Drawer Utility File",
+   "question": "A project has one utils.py file containing 40 unrelated functions — date logic, string logic, and file logic all mixed together. Which SRP trap is this an example of?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The \"does everything\" method trap"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The \"too many if-elif branches\" trap"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The \"junk drawer\" utility file trap"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This isn't an SRP problem at all"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_kXkzgP9lGC.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q04",
+   "category": "Additional",
+   "title": "Special Handling Signals LSP Break",
+   "question": "Why does needing a try-except block (or an isinstance check) before calling a method on a subclass count as an LSP violation?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Because try-except blocks are always bad practice in Python - B) Because it means the subclass cannot genuinely be used in place of its"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because it means the subclass cannot genuinely be used in place of its parent without special handling"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because isinstance checks are slower than normal calls"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It is not actually an LSP violation"
+    }
+   ],
+   "note": "Option a) is shown exactly as on the source page, which accidentally includes the start of option b) in it.",
+   "screenshots": [
+    "msedge_DarU1AVk6p.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q05",
+   "category": "Additional",
+   "title": "Static Type Checking Catches Mismatch",
+   "question": "With type hints in place, what does a static type checker like mypy do differently from Python itself when this code runs?\n```python\nflying_things: List[Flyable] = []\nflying_things.append(Sparrow())\nflying_things.append(Penguin())   # Penguin is NOT a Flyable\n\nfor f in flying_things:\n    f.fly()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "mypy prevents the program from running at all, even without being called"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "mypy would flag flying_things.append(Penguin()) as an error before the program even runs; Python itself only fails when .fly() is actually called on the Penguin, at runtime"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "mypy and Python behave identically here"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "mypy only checks syntax, not types like this"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_rliweDgYcs.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q06",
+   "category": "Additional",
+   "title": "Notification Service Loop Output",
+   "question": "What is printed when this runs?\n\n```python\nclass NotificationChannel(ABC):\n    @abstractmethod\n    def send(self, message): ...\n\nclass EmailChannel(NotificationChannel):\n    def send(self, message):\n        print(f\"Sending Email: {message}\")\n\nclass SMSChannel(NotificationChannel):\n    def send(self, message):\n        print(f\"Sending SMS: {message}\")\n\nclass NotificationService:\n    def __init__(self, channels):\n        self.channels = channels\n    def notify(self, message):\n        for channel in self.channels:\n            channel.send(message)\n\nservice = NotificationService(channels=[EmailChannel(), SMSChannel()])\nservice.notify(\"Order shipped!\")\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Only \"Sending Email: Order shipped!\" is printed"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Nothing is printed, because NotificationService doesn't create the channels itself"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Both \"Sending Email: Order shipped!\" and \"Sending SMS: Order shipped!\" are printed, in that order"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It raises a TypeError because NotificationChannel is abstract"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_5viwk8L8NH.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q07",
+   "category": "Additional",
+   "title": "Two Penguin Designs Compared",
+   "question": "Compare these two Penguin designs. What is the key difference in the error each one produces?\n```python\n# Design 1 (Section 4)\nclass Penguin(Bird):\n    def fly(self):\n        raise NotImplementedError(\"Penguins can't fly!\")\n\n# Design 2 (Section 5)\nclass Penguin(NonFlyingBird):\n    pass  # fly() does not exist at all\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Both raise the exact same error, so there's no real difference"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Design 1 raises NotImplementedError from inside a method that pretends to exist; Design 2 raises AttributeError because fly() was never defined for Penguin at all"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Design 1 crashes the program immediately on class creation; Design 2 does not"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Design 2 is worse because it gives no error at all"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_FLRKeW20Nr.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q08",
+   "category": "Additional",
+   "title": "Adding New Type Reopens Method",
+   "question": "This code lets a VehicleService decide how each vehicle starts. A new team wants to add \"ElectricStart\" next month. What needs to change, and which principle does this design violate?\n```python\nclass Vehicle:\n    def __init__(self, engine_type):\n        self.engine_type = engine_type\n\n    def start(self):\n        if self.engine_type == \"petrol\":\n            print(\"Starting petrol engine\")\n        elif self.engine_type == \"diesel\":\n            print(\"Starting diesel engine\")\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "No changes needed — this already supports any future engine type"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "start() must be reopened and a new elif added for \"electric\" — this violates OCP"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "This violates ISP, because Vehicle has too many attributes"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This violates DIP, because Vehicle doesn't use inheritance"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_1mIwZwdA9p.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q09",
+   "category": "Additional",
+   "title": "Concrete Payment Gateway Dependency",
+   "question": "Spot the issue in this OrderService code and name the principle it violates:\n\n```python\nclass RazorpayGateway:\n    def pay(self, amount):\n        print(f\"Paying {amount} via Razorpay\")\n\nclass OrderService:\n    def __init__(self):\n        self.gateway = RazorpayGateway()  # created directly, inside the class\n\n    def checkout(self, amount):\n        self.gateway.pay(amount)\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "SRP — checkout() is doing too many jobs"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "DIP — OrderService depends directly on the concrete RazorpayGateway, and also builds it itself, instead of depending on an abstraction and receiving it from outside"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "LSP — RazorpayGateway cannot substitute for OrderService"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This code has no design issues"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZGhpfzqkUQ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q10",
+   "category": "Additional",
+   "title": "Adding Channel Without Editing Service",
+   "question": "A new team wants to add a WhatsAppChannel to a notification system, and they are told they \"cannot touch NotificationService directly.\" If the system was built with one shared abstraction and channels injected from outside (the fixed AI Corner design), what would the new team actually need to do?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Reopen NotificationService and add a new elif branch for WhatsApp"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Create a new WhatsAppChannel class implementing the same NotificationChannel abstraction, and pass it into NotificationService from outside"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Copy all of NotificationService and rename it"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It's impossible to add a new channel without editing NotificationService"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_p8v9G9jSol.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q11",
+   "category": "Additional",
+   "title": "AI Generated If-Elif Design Flaw",
+   "question": "An AI assistant was asked to \"write a NotificationService using good design principles,\" and it produced an if-elif chain based on a channel string, inside one send() method. Which principles does this design most clearly fail?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "LSP and ISP"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "OCP, and to some extent SRP"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only DIP"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "None — \"good design principles\" was followed correctly"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZPRJxXKcpV.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q12",
+   "category": "Additional",
+   "title": "Interchangeable Gateways Via Abstraction",
+   "question": "A checkout system currently uses Razorpay. The business wants to add Stripe next quarter, and possibly switch the default gateway per country later. If the system depends on a PaymentGateway abstraction (not a concrete gateway class), what is the main benefit for this business requirement?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The checkout code doesn't need to change at all when a new gateway is added — only a new gateway class is created"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The business would need to rewrite the entire checkout flow for every new gateway"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "This abstraction only helps with testing, not with adding new gateways"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "There is no real benefit — hardcoding the gateway is simpler and just as flexible"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_wPSmeFdBb7.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/additional/q13",
+   "category": "Additional",
+   "title": "SQLAlchemy Engine Abstraction Example",
+   "question": "SQLAlchemy's create_engine(url) reads the prefix of a connection string (like postgresql:// or mysql://) and automatically picks the right database driver internally. Which SOLID idea does this real-world example reflect?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "SRP only — because create_engine has one function name"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The application code depends on a general/abstracted interface, without hardcoding which specific database engine it's talking to — reflecting DIP-style thinking"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It reflects LSP only, because databases inherit from each other"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It has nothing to do with SOLID — it's just a convenience feature"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_b2MlrjrZJA.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q01",
+   "category": "Assignment",
+   "title": "Meaning Of Single Responsibility",
+   "question": "What does the Single Responsibility Principle (SRP) actually say?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A class should have only one method"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A class should have only one reason to change"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A class should never inherit from another class"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A class should only be used once in the program"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_Ga9XAmOTAk.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q02",
+   "category": "Assignment",
+   "title": "Open/Closed Principle Extension",
+   "question": "According to the Open/Closed Principle (OCP), how should you add a new feature to an existing class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "By editing the class directly to add the new behaviour"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "By adding new code (like a new class), without touching old working code"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "By deleting the old class and rewriting it from scratch"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "By adding more if-elif branches inside the same method"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_HrwtWeRtKf.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q03",
+   "category": "Assignment",
+   "title": "Substitutability Of Subclasses",
+   "question": "What does the Liskov Substitution Principle (LSP) require?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A subclass should be replaceable in place of its parent, without breaking the program"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "A subclass should have more methods than its parent class"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A subclass must always override every method of the parent"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A subclass should never be used directly in code"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_p5eUGlPlp1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q04",
+   "category": "Assignment",
+   "title": "Interface Segregation Core Idea",
+   "question": "What is the core idea behind the Interface Segregation Principle (ISP)?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Classes should be forced to implement every method of a shared interface"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "One large interface is always better than many small ones"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A class should not be forced to depend on methods it doesn't actually use"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Interfaces should only be used in large-scale applications"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_LKVIeCOXFV.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q05",
+   "category": "Assignment",
+   "title": "Dependency Inversion Core Rule",
+   "question": "What does the Dependency Inversion Principle (DIP) say about two concrete classes?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "They should call each other's methods directly for efficiency"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "They should never depend on each other directly — they should depend on a shared abstraction"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "They should always be combined into a single class"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "One concrete class should always inherit from the other"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_eqD6PlnTf1.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q06",
+   "category": "Assignment",
+   "title": "Rectangle-Square Substitution Trace",
+   "question": "What is the output of r.get_area() here?\n\n```python\nclass Rectangle:\n    def __init__(self):\n        self.width = 0\n        self.height = 0\n    def set_width(self, w):\n        self.width = w\n    def set_height(self, h):\n        self.height = h\n    def get_area(self):\n        return self.width * self.height\n\nclass Square(Rectangle):\n    def set_width(self, w):\n        self.width = w\n        self.height = w\n\nr: Rectangle = Square()\nr.set_width(5)\nr.set_height(10)\nprint(r.get_area())\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "50"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "25"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "100"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Raises an error"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_3mqQb2mjG9.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q07",
+   "category": "Assignment",
+   "title": "Penguin Fly Raises Error",
+   "question": "What happens when this code runs?\n\n```python\nclass Bird(ABC):\n    def __init__(self, name):\n        self.name = name\n    def eat(self):\n        pass\n    @abstractmethod\n    def fly(self):\n        ...\n\nclass Penguin(Bird):\n    def fly(self):\n        raise NotImplementedError(\"Penguins can't fly!\")\n\np = Penguin(name=\"Pingu\")\np.fly()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It runs silently, doing nothing"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It prints \"Penguins can't fly!\" and continues normally"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It raises a NotImplementedError and crashes the program at that line"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It raises a TypeError because Penguin didn't implement fly()"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_nJbQheWNeo.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q08",
+   "category": "Assignment",
+   "title": "Multiple Jobs In One Method",
+   "question": "Which SOLID principle does this code violate, and why?\n```python\ndef save_to_database(self):\n    connection = connect()\n    query = build_query()\n    result = run(query, connection)\n    obj = map_to_object(result)\n    connection.close()\n    return obj\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "OCP — because the method can't be extended"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "SRP — because one method is doing five unrelated jobs (connect, build, run, map, close)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "LSP — because it overrides a parent method incorrectly"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "DIP — because it depends on a concrete database"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_FKg14rdY36.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q09",
+   "category": "Assignment",
+   "title": "Editing Working Code For New Types",
+   "question": "What's wrong with this code, and which principle does it break?\n\n```python\ndef fly(self):\n    if self.type == \"eagle\":\n        self.fly_like_eagle()\n    elif self.type == \"penguin\":\n        self.fly_like_penguin()\n    elif self.type == \"parrot\":\n        self.fly_like_parrot()\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "LSP — because eagles and parrots aren't related"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "ISP — because the method has too many parameters"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "OCP — because adding a new bird type means editing this already-working method"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "SRP — because fly() is not a good method name"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_4mu7hS798I.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q10",
+   "category": "Assignment",
+   "title": "Bundled Interface Forces Fake Method",
+   "question": "This class was designed for birds that can both fly and dance. What's the problem when Ostrich (which can only dance) inherits from it?\n\n```python\nclass Performable(ABC):\n    @abstractmethod\n    def fly(self):\n        ...\n    @abstractmethod\n    def dance(self):\n        ...\n\nclass Ostrich(Bird, Performable):\n    def dance(self):\n        pass\n    def fly(self):\n        pass  # forced to write this even though Ostrich can't fly\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "This violates OCP, because Performable cannot be extended"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "This violates ISP, because Ostrich is forced to implement fly(), a method it doesn't need"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "This violates SRP, because Performable has too many method names"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This is correct design — no principle is violated"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_rkHao4Bj62.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q11",
+   "category": "Assignment",
+   "title": "Order Processing Multiple Jobs",
+   "question": "A function process_order() validates the order, charges payment, updates inventory, and sends a confirmation email — all in one function. Which principle does this violate?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "SRP"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "OCP"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "DIP"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "ISP"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_MKJPYBccZi.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q12",
+   "category": "Assignment",
+   "title": "Editing Existing Discount Logic",
+   "question": "A team adds a 6th discount type by adding another elif inside a apply_discount() function that already handles 5 discount types. Which principle is broken?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "SRP"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "OCP"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "LSP"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "ISP"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_oD7PFIUVg0.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q13",
+   "category": "Assignment",
+   "title": "Fat Interface Forces Fake Methods",
+   "question": "A Machine abstract class declares print_doc(), scan(), and fax(). A class SimplePrinter inherits from it but only really prints — it raises NotImplementedError for scan() and fax(). Which principle does this violate?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "ISP — SimplePrinter is forced to depend on methods it doesn't use"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "DIP — SimplePrinter depends on a concrete class"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "LSP — SimplePrinter is not related to Machine"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "SRP — Machine has too many jobs itself"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_79UxAHoHCq.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-10/assignment/q14",
+   "category": "Assignment",
+   "title": "Hardcoded Concrete Dependency",
+   "question": "Inside OrderService, this line exists: self.gateway = RazorpayGateway(), where RazorpayGateway is a concrete class hardcoded directly. Which principle does this violate?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "SRP"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "OCP"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "DIP"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "ISP"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_DDpsL3pizb.png"
+   ]
+  }
+ ]
+}

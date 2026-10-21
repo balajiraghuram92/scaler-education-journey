@@ -19,7 +19,7 @@ public class JwtTokenService : IJwtTokenService
         _options = authOptions.Value;
     }
 
-    public string GenerateToken(AppUser user)
+    public string GenerateToken(AppUser user, Guid? sessionId = null)
     {
         if (string.IsNullOrWhiteSpace(_options.JwtSigningKey))
         {
@@ -38,10 +38,15 @@ public class JwtTokenService : IJwtTokenService
             new("status", user.Status)
         };
 
+        if (sessionId.HasValue)
+        {
+            claims.Add(new Claim(HttpContextCurrentUser.SessionIdClaim, sessionId.Value.ToString()));
+        }
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = GetExpiration(),
+            Expires = sessionId.HasValue ? GetAccessTokenExpiration() : GetExpiration(),
             Issuer = _options.JwtIssuer,
             Audience = _options.JwtAudience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -54,6 +59,12 @@ public class JwtTokenService : IJwtTokenService
     public DateTime GetExpiration()
     {
         var minutes = _options.JwtExpiryMinutes > 0 ? _options.JwtExpiryMinutes : 720;
+        return DateTime.UtcNow.AddMinutes(minutes);
+    }
+
+    public DateTime GetAccessTokenExpiration()
+    {
+        var minutes = _options.AccessTokenMinutes > 0 ? _options.AccessTokenMinutes : 30;
         return DateTime.UtcNow.AddMinutes(minutes);
     }
 }

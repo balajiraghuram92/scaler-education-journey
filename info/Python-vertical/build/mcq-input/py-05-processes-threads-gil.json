@@ -1,0 +1,286 @@
+{
+ "lessonSlug": "py-05-processes-threads-gil",
+ "sourceLesson": "Backend LLD: Concurrency-1: Processes, Threads and the GIL",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-05/additional/q02",
+   "category": "Additional",
+   "title": "GIL (Global Interpreter Lock) actually guarantee?",
+   "question": "What does the GIL (Global Interpreter Lock) actually guarantee?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "That your shared variables will always update correctly across threads"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "That only one thread can execute Python bytecode at a time, and each individual bytecode instruction runs without interruption"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "That threads always run in the order they were started"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "That CPU-bound tasks will run faster with more threads"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_MKIXYcyKnj.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-05/additional/q03",
+   "category": "Additional",
+   "title": "Two threads both run this function, then the final value is printed:",
+   "question": "Two threads both run this function, then the final value is printed:\n\n```python\ncounter = 0\ndef increment():\n    global counter\n    for _ in range(1_000_000):\n        counter += 1\n```\n\nWhat is the most likely printed value after both threads finish?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Always exactly 2,000,000"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Always exactly 1,000,000"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Some number less than 2,000,000, and it may differ each time the program runs"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The program crashes with a RuntimeError"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_82UsDXbJFE.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-05/additional/q04",
+   "category": "Additional",
+   "title": "scenario in H2 happen",
+   "question": "Why does the scenario in H2 happen even though the GIL only lets one thread run at a time?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "counter += 1 is actually four separate bytecode steps, and the GIL can switch threads between those steps, not just between lines"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The GIL doesn't apply to loops"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "global variables are not protected by the GIL at all"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Python re-runs the loop twice by mistake"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_zRb1X4uxcQ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-05/additional/q05",
+   "category": "Additional",
+   "title": "threading and multiprocessing",
+   "question": "A student wants to speed up a task that makes 5 slow network API calls (each takes 1 second, mostly spent waiting). They're deciding between threading and multiprocessing. What should they pick, and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "multiprocessing, because it always beats threading for any task"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "threading, because I/O-bound waits release the GIL, letting waits overlap — cheaper than spinning up separate processes"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Neither will help; only rewriting the API calls can speed this up"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "multiprocessing, because network calls are CPU-bound"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_zaPBPUXAkD.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-05/additional/q06",
+   "category": "Additional",
+   "title": "difference in output/behavior",
+   "question": "What is the key difference in output/behavior between using raw multiprocessing.Process objects versus multiprocessing.Pool.map() for running the same function on 4 inputs?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Process automatically collects and returns results in a list; Pool.map() does not"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Pool.map() runs the function sequentially, while Process runs it in parallel"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Process requires manually creating, starting, and joining each process with no built-in result collection, while Pool.map() handles all of that and returns results in order automatically"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "There is no real difference; Pool is just a shorter way to write Process"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_qKoJj3Hudz.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-05/assignment/q04",
+   "category": "Assignment",
+   "title": "difference between concurrency and parallelism?",
+   "question": "What is the main difference between concurrency and parallelism?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Concurrency needs multiple CPU cores; parallelism doesn't"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Concurrency is switching between tasks to make progress on all of them; parallelism is tasks actually running at the same instant"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "They are the same thing, just different names"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Parallelism only applies to Python; concurrency applies to all languages"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_dUyAXicfyF.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-05/assignment/q05",
+   "category": "Assignment",
+   "title": "What will this print?",
+   "question": "What will this print?\n\n```python\nt1 = threading.Thread(target=notify_driver, args=(\"D101\",))\nt1.start()\nprint(\"Main thread is done!\")\n```",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "\"Main thread is done!\" always prints after notify_driver finishes"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "notify_driver never runs because .join() was skipped"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "This code throws an error because .join() was not called"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "\"Main thread is done!\" prints almost immediately, likely before notify_driver finishes"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_8sX7O9JTLq.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-05/assignment/q06",
+   "category": "Assignment",
+   "title": "what does .join() do?",
+   "question": "In Python's threading module, what does .join() do?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Merges two threads into one"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Starts a thread that was created but not yet running"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Pauses the calling code until that specific thread has finished"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Kills the thread immediately"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_l3k9zNCq7u.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-05/assignment/q07",
+   "category": "Assignment",
+   "title": "A student wrote:",
+   "question": "A student wrote:\n```python\nt1 = threading.Thread(target=notify_driver, args=(\"D101\"))\nt1.start()\n```\nThis crashes with a TypeError about arguments not being iterable correctly. What's the mistake?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "target should be a string, not a function reference"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "args is missing a trailing comma — (\"D101\") is just a string, not a one-item tuple, so Python tries to unpack each character as a separate argument"
+    },
+    {
+     "optionKey": "c",
+     "optionText": ".start() must be called before target is assigned"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "notify_driver cannot accept any arguments"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_sRTGJ1sdZj.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-05/assignment/q08",
+   "category": "Assignment",
+   "title": "Given a single CPU-bound function",
+   "question": "Given a single CPU-bound function cpu_heavy() that takes 4 seconds to run alone, what is the most likely total time if it's run twice using two threading.Thread instances (started and joined) on a machine with free cores?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "About 8 seconds — roughly the same as running both sequentially, since the GIL prevents real parallel CPU execution"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "About 4 seconds total, since threads run in true parallel"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "About 2 seconds (threads split the CPU work evenly)"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Less than 1 second, since threads always speed up computation"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_itlPPUmi8b.png"
+   ]
+  }
+ ]
+}

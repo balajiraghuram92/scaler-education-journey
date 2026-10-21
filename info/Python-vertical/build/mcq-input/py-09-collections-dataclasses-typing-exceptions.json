@@ -1,0 +1,286 @@
+{
+ "lessonSlug": "py-09-collections-dataclasses-typing-exceptions",
+ "sourceLesson": "Backend LLD: Pythonic-2: Collections, Dataclasses, Type Hints and Exceptions",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-09/additional/q03",
+   "category": "Additional",
+   "title": "Why Use Dataclass?",
+   "question": "What is the main benefit of using @dataclass on a class instead of writing it manually?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It automatically generates methods like __init__, __repr__, and __eq__ based on the fields you declare"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It automatically makes the class run faster than a normal class"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It automatically converts the class into a dictionary"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It prevents the class from ever being used inside a list"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_FB7wdhbDET.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-09/additional/q04",
+   "category": "Additional",
+   "title": "Frozen Dataclass Behavior",
+   "question": "Consider the following code snippet:\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass(frozen=True)\nclass Point:\n    x: int\n    y: int\n\np = Point(2, 3)\np.x = 10\nprint(p.x)\n```\n\nWhat happens when this code runs?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It prints 10"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It raises a FrozenInstanceError"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It prints 2"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It raises a TypeError at class definition itself"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_R5ioda2e26.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-09/additional/q05",
+   "category": "Additional",
+   "title": "Debugging Mutable Default Trap",
+   "question": "A student tries to give every Member object an empty list of borrowed books:\n```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass Member:\n    name: str\n    books: list = []\n```\nRunning this raises an error. What is the correct fix?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Change list to tuple and keep = []"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Remove the type hint list completely"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Change books: list = [] to books: list = field(default_factory=list)"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Move books above name in the class"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ckf3U1YxPu.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-09/additional/q06",
+   "category": "Additional",
+   "title": "Choosing the Right Exception Approach",
+   "question": "You're writing a borrow(book, member) function for a library system. If the book isn't available, you want the caller to know exactly why it failed (not just get a False or a generic error) and be able to catch that specific failure separately from other library errors. What's the best approach?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Raise a custom exception like BookNotAvailable that inherits from a base LibraryError class"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Return False from the function when the book isn't available"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Print an error message and return None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Use a bare except: block inside borrow() to silently ignore the problem"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_CxQRViZEIP.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-09/additional/q07",
+   "category": "Additional",
+   "title": "Enum Usage and Value Extraction",
+   "question": "Consider the following code snippet:\n\n```python\nfrom enum import Enum\n\nclass LoanStatus(Enum):\n    ACTIVE = \"active\"\n    RETURNED = \"returned\"\n\nstatus = LoanStatus.ACTIVE\nprint(status.value)\n```\n\nWhat is printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "LoanStatus.ACTIVE"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "active"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "ACTIVE"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It raises an AttributeError"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_QLCCAhMjRV.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-09/assignment/q03",
+   "category": "Assignment",
+   "title": "Writing the Student Class Cleanly",
+   "question": "You need to create a Student class with name and marks attributes for the sorting problem. You want it to have __init__, __repr__, and __eq__ automatically, without typing them by hand. Which approach is correct?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Write __init__, __repr__, and __eq__ yourself inside the class"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Store each student as a plain dict like {\"name\": ..., \"marks\": ...}"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Use a namedtuple, since it also updates marks easily after creation"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Use @dataclass and declare name: str and marks: int as the fields"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_C8DaM6YeWp.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-09/assignment/q04",
+   "category": "Assignment",
+   "title": "Defaultdict Behavior",
+   "question": "Consider the following code snippet:\n```python\nfrom collections import defaultdict\n\ngroups = defaultdict(list)\ngroups[\"a\"].append(1)\ngroups[\"a\"].append(2)\ngroups[\"b\"].append(3)\n\nprint(groups[\"c\"])\n```\nWhat gets printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "KeyError"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "[]"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "[1, 2]"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ZRVV0tgZaw.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-09/assignment/q05",
+   "category": "Assignment",
+   "title": "Debug Group Anagrams Logic",
+   "question": "A student wrote this to group anagrams but it's not grouping correctly:\n```python\ndef group_anagrams(strs):\n    groups = {}\n    for word in strs:\n        key = word          # BUG is here\n        if key not in groups:\n            groups[key] = []\n        groups[key].append(word)\n    return list(groups.values())\n```\nWhat is the bug, and how should it be fixed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The key should be sorted(word) converted to a string, so that anagrams map to the same key"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The bug is using a dict — a list should be used instead"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The bug is in groups[key].append(word) — it should be groups[key] = word"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "There is no bug; the code is correct as is"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_Sp4bqwZHWS.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-09/assignment/q06",
+   "category": "Assignment",
+   "title": "Choosing the Right Tool for Frequency Count",
+   "question": "You need to count how many times each word appears in a large paragraph, and then quickly find the 3 most frequent words. Which tool is the most convenient choice?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "deque"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "namedtuple"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Counter from collections"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A plain list with nested loops"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_YOm1Vuexry.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-09/assignment/q07",
+   "category": "Assignment",
+   "title": "Generic Compare Function Output",
+   "question": "Consider the following code snippet:\n```python\ndef compare(x, y, key=None):\n    if key:\n        x, y = key(x), key(y)\n    if x < y:\n        return -1\n    elif x > y:\n        return 1\n    return 0\n\nresult = compare(5, 3)\nprint(result)\n```\nWhat does this print?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "0"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "-1"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "True"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "1"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_ThRmDEo1Uv.png"
+   ]
+  }
+ ]
+}

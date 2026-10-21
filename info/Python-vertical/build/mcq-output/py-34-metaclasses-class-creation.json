@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-34-metaclasses-class-creation",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-34/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A class `T(Base, metaclass=Meta)` defines `Meta.__prepare__`, `Meta.__new__`, `Meta.__init__`, a descriptor attribute with `__set_name__`, and a `Base.__init_subclass__`. In which order do these run when the `class T` statement executes?",
+      "explanation": "**Answer: (d)** The order is `__prepare__` (build the namespace), then `Meta.__new__`, inside which `type.__new__` calls `__set_name__` on each attribute and then `Base.__init_subclass__`, and finally `Meta.__init__` once `__new__` has returned. Running a small experiment confirms this.\n\n- (a) puts `__init__` before the hooks that `type.__new__` fires, which is impossible because `__init__` runs after `__new__` returns.\n- (b) runs `__new__` before `__prepare__`, but the namespace must exist before the body executes.\n- (c) runs `__set_name__` before `__new__`, but there is no class object to name attributes on until `type.__new__` creates it.\n\n**Deeper:** Knowing that `__set_name__` and `__init_subclass__` fire inside `type.__new__` explains why they see a complete class (all attributes present) but not yet the effects of your metaclass `__init__`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`__prepare__`, `__new__`, `__init__`, `__set_name__`, `__init_subclass__`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`__new__`, `__prepare__`, `__set_name__`, `__init_subclass__`, `__init__`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`__prepare__`, `__set_name__`, `__new__`, `__init_subclass__`, `__init__`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`__prepare__`, `__new__`, `__set_name__`, `__init_subclass__`, `__init__`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nprint(type(int), type(type), isinstance(int, type))\n```",
+      "explanation": "**Answer: (b)** `int` is a class, so its type is `type`. `type` is its own metaclass, so `type(type)` is `type`. Because `int` is an instance of `type`, `isinstance(int, type)` is `True`.\n\n- (a) wrongly treats `int` as an instance of `int`; that is true of `5`, not of `int` itself.\n- (c) puts `object` as the type of `type`; `object` is the root of the inheritance chain, not of the \"instance of\" chain.\n- (d) confuses both relationships and wrongly says `int` is not an instance of `type`.\n\n**Deeper:** There are two separate hierarchies: \"subclass of\" (everything ends at `object`) and \"instance of\" (everything ends at `type`). `type` is a subclass of `object` and `object` is an instance of `type`. Interviewers like this question because it exposes whether you understand that classes are objects.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`<class 'int'> <class 'type'> False`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`<class 'type'> <class 'type'> True`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`<class 'type'> <class 'object'> True`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`<class 'int'> <class 'object'> False`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nclass Base:\n    def __init_subclass__(cls, **kw):\n        print(\"sub\", cls.__name__)\n\nclass A(Base): pass\nclass B(A): pass\n```",
+      "explanation": "**Answer: (a)** `__init_subclass__` runs each time a class is derived from the class that defines it, directly or indirectly. `A` derives from `Base`, and `B` derives from `A`, which inherits the hook, so both lines print. `Base` itself is not a subclass of itself, so it does not trigger its own hook.\n\n- (b) wrongly includes `Base`; the hook is for subclasses only.\n- (c) forgets that the hook is inherited, so it also fires for indirect subclasses.\n- (d) would be true only if the hook were never defined or the classes were never created.\n\n**Deeper:** This inheritance is the key difference from a class decorator, which runs once for the decorated class. It is also why `__init_subclass__` is ideal for plugin registries and contract checks. Remember to call `super().__init_subclass__(**kw)` to cooperate with other bases.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`sub A` then `sub B`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`sub Base`, `sub A`, then `sub B`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`sub A` only",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing is printed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nregistry = []\n\ndef register(cls):\n    registry.append(cls.__name__)\n    return cls\n\n@register\nclass A: pass\n\nclass B(A): pass\n\nprint(registry)\n```",
+      "explanation": "**Answer: (c)** A class decorator runs once, when the decorated class statement finishes. It is not re-applied to subclasses, so only `A` is registered.\n\n- (a) assumes the decorator is inherited, as a metaclass or `__init_subclass__` would be.\n- (b) registers the wrong class; `B` is never decorated.\n- (d) would require the decorator not to run; decorators execute immediately after the class body.\n\n**Deeper:** If you need every subclass registered automatically, move the logic into `__init_subclass__` on the base (or a metaclass). Many bugs in plugin systems are decorator-based registries that quietly miss subclasses, or modules that are never imported so their decorators never run.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`['A', 'B']`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`['B']`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`['A']`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`[]`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An `Impl` class must inherit from an abstract interface (`class Iface(ABC)`, metaclass `ABCMeta`) and from an ORM base whose metaclass is `OrmMeta(type)`. Defining `class Impl(Iface, OrmBase)` raises \"metaclass conflict\". Which fix works?",
+      "explanation": "**Answer: (c)** The metaclass of the new class must be a subclass of every base's metaclass. `CombinedMeta` inherits from both `OrmMeta` and `ABCMeta`, so it satisfies the rule for both bases.\n\n- (a) `type` is not a subclass of `OrmMeta` or `ABCMeta`, so the conflict remains.\n- (b) The rule does not depend on base order; the metaclass still has to be compatible with both.\n- (d) `register` creates a virtual subclass relationship for `isinstance` checks; it does not change metaclass resolution.\n\n**Deeper:** The combined metaclass must also have `__new__`/`__init__` signatures that cooperate through `super()`. A cleaner design avoids the conflict: make the interface a `typing.Protocol`, or replace one metaclass with `__init_subclass__`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Pass `metaclass=type` to `Impl`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Swap the base order to `class Impl(OrmBase, Iface)`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Define `class CombinedMeta(OrmMeta, ABCMeta)` and pass `metaclass=CombinedMeta` to `Impl`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Call `Iface.register(OrmBase)` before defining `Impl`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nclass Meta(type):\n    def __new__(mcs, name, bases, ns, **kw):\n        return super().__new__(mcs, name, bases, ns)\n\nclass Base:\n    def __init_subclass__(cls, plugin=None, **kw):\n        print(\"plugin\", plugin)\n\nclass C(Base, metaclass=Meta, plugin=\"x\"):\n    pass\n```",
+      "explanation": "**Answer: (a)** `Meta.__new__` receives `plugin=\"x\"` in `**kw` but calls `super().__new__(mcs, name, bases, ns)` without forwarding it. `type.__new__` therefore calls `Base.__init_subclass__` with no keywords, and `plugin` takes its default of `None`. The inherited `type.__init__` tolerates extra keywords, so no error occurs.\n\n- (b) would need `**kw` to be forwarded to `super().__new__`.\n- (c) No `TypeError` is raised here, because `Meta.__new__` accepts `**kw` and `type.__init__` ignores them.\n- (d) The hook still runs; it simply gets default arguments.\n\n**Deeper:** Silently dropped class keywords are a nasty failure mode in metaclass code: nothing crashes, configuration is just ignored. Always forward `**kw` through `__new__`, `__init__` and `__init_subclass__`, and add a test that a class keyword actually arrives.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`plugin None`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`plugin x`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`TypeError` because the metaclass rejects the keyword",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing is printed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nclass Single(type):\n    _i = {}\n    def __call__(cls, *a, **k):\n        if cls not in Single._i:\n            Single._i[cls] = super().__call__(*a, **k)\n        return Single._i[cls]\n\nclass A(metaclass=Single):\n    def __init__(self, v):\n        self.v = v\n\nclass B(A):\n    pass\n\nprint(A(1).v, A(2).v, B(3).v, A(1) is B(3))\n```",
+      "explanation": "**Answer: (d)** The metaclass `__call__` caches one instance per class. `A(1)` creates it with `v=1`, and `A(2)` returns the cached instance, so its `v` is still 1. `B` inherits the metaclass but is a different class, so it gets its own instance (`v=3`). `A(1) is B(3)` is therefore `False`.\n\n- (a) forgets that the later `A(2)` call returns the cached instance, so `v` does not change.\n- (b) wrongly shares one instance between `A` and `B`; the cache is keyed by `cls`.\n- (c) assumes `B(3)` returns `A`'s instance, which would make `.v` 1.\n\n**Deeper:** The silent discarding of constructor arguments is why singleton metaclasses are a code smell. A module-level instance, or dependency injection of one object, is simpler, and it makes tests easy to isolate. If you must, guard creation with a lock for thread safety.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`1 2 3 False`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`1 1 1 True`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`1 1 1 False`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`1 1 3 False`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nclass M(type):\n    def __new__(mcs, name, bases, ns):\n        cls = super().__new__(mcs, name, bases, ns)\n        ns[\"late\"] = 1\n        cls.direct = 2\n        return cls\n\nclass K(metaclass=M):\n    pass\n\nprint(hasattr(K, \"late\"), hasattr(K, \"direct\"))\n```",
+      "explanation": "**Answer: (b)** `type.__new__` copies the namespace into the class when it creates it. Mutating `ns` afterwards does not affect the class, so `late` is missing. Setting an attribute on the class object itself (`cls.direct`) works.\n\n- (a) assumes the namespace dict is shared with the class; it is copied.\n- (c) reverses the two outcomes.\n- (d) forgets that normal attribute assignment on the class succeeds.\n\n**Deeper:** Modify the namespace before calling `super().__new__`, or modify `cls` afterwards. This is a frequent bug when porting a metaclass that originally mutated `attrs` before class creation. Also remember that in `__init__` you can only modify `cls`, never the namespace.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`True True`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`False True`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`True False`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`False False`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A framework requires every subclass of `Handler` to define a string `topic`, failing at import time if it is missing, even for third-party subclasses that do not know about your tooling. What is the lightest correct mechanism?",
+      "explanation": "**Answer: (b)** `__init_subclass__` is inherited and runs at class-creation time for every subclass, so a missing `topic` fails at import and needs no cooperation from authors.\n\n- (a) A metaclass `__call__` runs at instantiation, which is later than import time, and it is heavier than needed.\n- (c) A decorator only protects classes that remember to use it.\n- (d) `__getattr__` fires only when the attribute is accessed, which is also too late.\n\n**Deeper:** Check with `getattr(cls, \"topic\", None)` (or `\"topic\" in cls.__dict__` if inheritance should not count) and raise a clear `TypeError` naming the class. Failing at class creation moves configuration errors out of request handling and into start-up, which is where you want them in production.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A metaclass that overrides `__call__` to check `topic` when instances are created",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`Handler.__init_subclass__` that raises `TypeError` if the new class has no `topic`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A class decorator that third-party authors must remember to apply",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A `__getattr__` on `Handler` that raises when `topic` is accessed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nBase = type(\"Base\", (), {\"x\": 1})\nChild = type(\"Child\", (Base,), {\"y\": 2})\nc = Child()\nprint(c.x, c.y, Child.__name__, Child.__mro__[1].__name__, type(c).__qualname__)\n```",
+      "explanation": "**Answer: (d)** `type(name, bases, ns)` builds real classes. `c.x` resolves through `Base`, `c.y` is on `Child`, `Child.__name__` is the given name, and `Child.__mro__[1]` is `Base`. `type(c).__qualname__` is `Child`.\n\n- (a) wrongly names the second entry of the MRO as `Child`; the MRO starts with `Child`, then `Base`.\n- (b) fails because `x` is inherited and reachable.\n- (c) confuses `Child.__name__` with `type(Child).__name__`, which would be `type`.\n\n**Deeper:** Dynamic class creation is how libraries build classes from schemas, for example generating request models from an OpenAPI document. Pydantic's `create_model` is a high-level version of the same idea. In dynamically created classes, set `__module__` (or pass it through the namespace) so pickling and repr behave.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`1 2 Child Child Child`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`None 2 Child Base Child`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`1 2 type Base Child`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`1 2 Child Base Child`",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nclass D:\n    def __set_name__(self, owner, name):\n        print(\"bound\", name, hasattr(owner, \"ready\"))\n\nclass K:\n    a = D()\n    ready = True\n```",
+      "explanation": "**Answer: (a)** `__set_name__` is called by `type.__new__` after the class object exists and the full namespace has been copied into it. Every attribute, including `ready`, is already present on `owner`, and no metaclass is required.\n\n- (b) would be right only if the hook were invoked while the body was still executing, which is not the case.\n- (c) The hook is invoked at class creation, not lazily on access.\n- (d) `__set_name__` works with the default metaclass `type`.\n\n**Deeper:** This lets a descriptor inspect its owner (for example to find sibling fields or register itself), which is how ORM fields and validators learn their names. It is not called if you attach the descriptor to a class after creation, so call `descriptor.__set_name__(cls, name)` manually in that case.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`bound a True`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`bound a False`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing; `__set_name__` is called only when the attribute is accessed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`TypeError`, because `__set_name__` needs a metaclass",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-34/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What is the purpose of the value returned by a metaclass's `__prepare__`?",
+      "explanation": "**Answer: (c)** `__prepare__(name, bases, **kw)` returns the mapping in which the class body runs. It is then passed to `Meta(name, bases, ns, **kw)`. Returning a custom mapping lets you observe or restrict definitions, for example rejecting duplicate method names.\n\n- (a) The class object is created later, by `__new__`.\n- (b) Bases are resolved before `__prepare__`; it just receives them.\n- (d) The MRO is computed by `type.__new__` using C3 linearization.\n\n**Deeper:** Since 3.7 all dicts keep insertion order, so the original motivation of `__prepare__` (ordered field declarations, introduced by PEP 3115) mostly disappeared. It remains useful for custom namespaces, such as those that detect redefinition, and for enum-like classes that need to track assignments.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is the class object that will be returned by the `class` statement",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It is the list of base classes after resolving `__mro_entries__`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is the mapping used as the local namespace while the class body executes, and is later passed to the metaclass call",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It is the method resolution order used for attribute lookup",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

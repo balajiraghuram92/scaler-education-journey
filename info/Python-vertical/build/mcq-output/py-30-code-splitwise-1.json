@@ -1,0 +1,575 @@
+{
+  "lessonSlug": "py-30-code-splitwise-1",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q02",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does the following code print?\n\n```python\nclass Command:\n    def __init__(self, keyword):\n        self.keyword = keyword\n\n    def matches(self, text):\n        return text.startswith(self.keyword)\n\nclass CommandExecutor:\n    def __init__(self, commands):\n        self.commands = commands\n\n    def execute(self, text):\n        for c in self.commands:\n            if c.matches(text):\n                print(\"Matched:\", c.keyword)\n                return\n        print(\"Invalid command\")\n\nex = CommandExecutor([Command(\"create\"), Command(\"settle\"), Command(\"add\")])\nex.execute(\"settle up g1\")\nex.execute(\"delete g1\")\n```",
+      "explanation": "**Answer: (b)** `\"settle up g1\".startswith(\"settle\")` is true, and the loop reaches `Command(\"settle\")` after `\"create\"` fails, printing `Matched: settle` and returning. `\"delete g1\"` starts with none of the keywords, so the loop ends and `Invalid command` prints.\n- (a) is wrong because `\"settle up g1\"` does not start with `\"create\"`.\n- (c) is wrong because the `return` after the first match stops the loop, so `add` is never tested.\n- (d) is wrong because the first input does match one command.\n\n**Deeper:** first match wins, so order and strictness of `matches` matter. `startswith` is loose: `Command(\"add\")` also matches `\"address book\"`. Prefer exact tokens or a regex with `fullmatch`.",
+      "reviewFlag": "The screenshot may have been cut off after the code block; answered assuming the code shown is complete.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Matched: create followed by Invalid command",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Matched: settle followed by Invalid command",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Matched: settle followed by Matched: add",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Invalid command followed by Invalid command",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What does the following code print?\n\n```python\nfrom enum import Enum\n\nclass ExpenseType(Enum):\n    NORMAL = 1\n    PAYMENT = 2\n\ne = ExpenseType.PAYMENT\nprint(e.name, e.value)\nprint(e == ExpenseType.NORMAL)\n```",
+      "explanation": "**Answer: (c)** `e.name` is the member name `PAYMENT` and `e.value` is `2`, so the first line is `PAYMENT 2`. `ExpenseType.PAYMENT == ExpenseType.NORMAL` is `False`, since distinct members are never equal.\n- (a) is wrong because the comparison is between different members.\n- (b) is wrong because `name` is just `PAYMENT`; the `ExpenseType.PAYMENT` form is what `str(e)` shows.\n- (d) is wrong because the print order is name, then value.\n\n**Deeper:** compare enum members with `is` or `==` on members, never on their raw values, and remember SQLAlchemy persists the **name**. Plain `Enum` members are not equal to their values (use `IntEnum` or `StrEnum` if you need that).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "PAYMENT 2 followed by True",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "ExpenseType.PAYMENT 2 followed by False",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "PAYMENT 2 followed by False",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "2 PAYMENT followed by False",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Each row below is (user, kind, amount). A \"PAID\" row adds the amount to that user's balance, and a \"HAD_TO_PAY\" row subtracts it. What does the code print?\n\n```python\nrows = [\n    (\"A\", \"PAID\", 900),\n    (\"A\", \"HAD_TO_PAY\", 300),\n    (\"B\", \"HAD_TO_PAY\", 300),\n    (\"C\", \"HAD_TO_PAY\", 300),\n]\n\nbalance = {}\nfor user, kind, amt in rows:\n    if kind == \"PAID\":\n        balance[user] = balance.get(user, 0) + amt\n    else:\n        balance[user] = balance.get(user, 0) - amt\n\nprint(balance)\n```",
+      "explanation": "**Answer: (a)** `A` gets +900 for the PAID row and -300 for the share, ending at 600. `B` and `C` each only owe 300, so they end at -300.\n- (b) is wrong because it ignores the subtraction for HAD_TO_PAY rows.\n- (c) is wrong because B and C should be negative; they owe money.\n- (d) is wrong because A's share is subtracted from A's paid amount, giving 600, not 300.\n\n**Deeper:** the balances sum to zero (600 - 300 - 300), which is the invariant of a valid ledger. Asserting it after every computation catches bad data early.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "{'A': 600, 'B': -300, 'C': -300}",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "{'A': 900, 'B': 300, 'C': 300}",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "{'A': 600, 'B': 300, 'C': 300}",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "{'A': 300, 'B': -300, 'C': -300}",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In an expense-sharing app, each row records one person's part in one expense. What does the code print?\n\n```python\nexpense_users = [\n    {\"expense_id\": 1, \"user\": \"A\", \"type\": \"PAID\", \"amount\": 600},\n    {\"expense_id\": 1, \"user\": \"B\", \"type\": \"HAD_TO_PAY\", \"amount\": 300},\n    {\"expense_id\": 1, \"user\": \"C\", \"type\": \"HAD_TO_PAY\", \"amount\": 300},\n    {\"expense_id\": 2, \"user\": \"B\", \"type\": \"PAID\", \"amount\": 200},\n    {\"expense_id\": 2, \"user\": \"A\", \"type\": \"HAD_TO_PAY\", \"amount\": 200},\n]\n\nrows_for_b = [\n    r for r in expense_users\n    if r[\"user\"] == \"B\" and r[\"type\"] == \"HAD_TO_PAY\"\n]\n\nids = [r[\"expense_id\"] for r in rows_for_b]\ntotal = sum(r[\"amount\"] for r in rows_for_b)\nprint(ids, total)\n```",
+      "explanation": "**Answer: (d)** The filter keeps only B's `HAD_TO_PAY` rows. Expense 1 has one (300) and expense 2 is a `PAID` row for B, so it is excluded. The code prints `[1] 300`.\n- (a) is wrong because expense 2 is a PAID row for B, not a share.\n- (b) is wrong because that selects the wrong expense and amount.\n- (c) is wrong because it includes expense 2 in the id list.\n\n**Deeper:** this is \"all rows for one user, then the expense of each row\", the query pattern behind history and settle-up. In SQL, filter `ExpenseUser` rows by user and type, then join to `Expense`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "[1, 2] 500",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "[2] 200",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "[1, 2] 300",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "[1] 300",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "While reading a written requirement to find the classes of a system, you spot the nouns \"user\", \"phone number\" and \"password\". Which conclusion is correct?",
+      "explanation": "**Answer: (a)** A `User` needs independent storage and becomes a class, while phone number and password only describe it, so they are attributes.\n- (b) is wrong because a noun is not automatically a class.\n- (c) is wrong because sensitivity does not decide modelling; you store a password hash as an attribute.\n- (d) is wrong because `User` has its own identity, lifecycle and relationships.\n\n**Deeper:** the noun-spotting test is \"do I need to store information about this independently?\" Yes means a class; just describes another object means an attribute; behaviour or a rule means no new class.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "\"User\" should become a class, while \"phone number\" and \"password\" should be attributes of it",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "All three nouns should become separate classes, because each one is a noun",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only \"password\" should become a class, because it is sensitive information",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "None of them should be a class, because they are all just pieces of data",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "An Expense must record how much each person paid and how much each person owes. Why is keeping this as a dictionary such as dict[User, int] inside Expense a poor design for a relational database?",
+      "explanation": "**Answer: (d)** The amount depends on both the user and the expense, which is a many-to-many relationship with data. One row per (expense, user) is easy to query, index and constrain.\n- (a) is wrong because Python classes can hold dictionaries.\n- (b) is wrong because databases can store JSON in a column; it is simply awkward to query.\n- (c) is wrong because memory is not the reason.\n\n**Deeper:** a dictionary cannot be filtered by user, joined, or constrained by the database. The association class `ExpenseUser` makes \"all expenses for Aman\" a single indexed query.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python does not allow a dictionary to be stored inside a class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Databases can never store JSON or any structured data in a column",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A dictionary always takes more memory than a table with the same data",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The amount depends on both the user and the expense, so one row per (expense, user) in its own table is much easier to query",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "When should a fixed set of values, such as NORMAL and PAYMENT, be modeled as an enum instead of a separate lookup table?",
+      "explanation": "**Answer: (b)** Use an enum when the values change only with a code release and every owner uses the same set, as with `NORMAL` and `PAYMENT`.\n- (a) is wrong because being text is irrelevant.\n- (c) is wrong because the size of the set does not decide it.\n- (d) is wrong because display does not decide it; enum members can be shown too.\n\n**Deeper:** choose a lookup table when operators add or rename values at runtime, when values differ per tenant, or when they carry attributes such as a price. Enums are stored by name in SQLAlchemy, so renaming a member needs a data migration.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "When every value is a short piece of text, because text is simple to store",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "When the set rarely changes without a code release, and every owner uses the same set",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "When the set has only two values, because a table would be too small to be useful",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "When the values are shown on screen, because tables are only for hidden data",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A developer names a database table order (or group). Which statement is most accurate?",
+      "explanation": "**Answer: (c)** SQLAlchemy usually quotes identifiers, so a reserved name may work, but hand-written SQL, migrations and other tools can break. Plural names (`orders`, `groups`) avoid the problem.\n- (a) is wrong because it will not always crash; quoting often hides it until later.\n- (b) is wrong because the table name is what appears in SQL.\n- (d) is wrong because keywords are case-insensitive, so lowercase is not safe.\n\n**Deeper:** `user` is reserved in PostgreSQL but not in MySQL, so a name that works locally can fail in production. Plural nouns are a free fix.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The app will always crash at startup, because table names can never match a SQL keyword",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Only the Python class name matters to SQL, so the table name can never cause any problem",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It may still work because the ORM adds quotes, but hand-written SQL and other tools can break, so plural names like orders are a safer habit",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Reserved words are always safe as long as they are written in lowercase",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A developer writes the code below and expects ExpenseType to be a normal Python enum, but it does not behave like one. What is the cause and the fix?\n\n```python\nfrom enum import Enum\nfrom sqlalchemy import Column, Enum\n\nclass ExpenseType(Enum):\n    NORMAL = 1\n    PAYMENT = 2\n```",
+      "explanation": "**Answer: (c)** `from sqlalchemy import Column, Enum` rebinds the name `Enum`, replacing `enum.Enum`. `ExpenseType(Enum)` now subclasses SQLAlchemy's `Enum` type, not a Python enum. Alias one import, for example `from sqlalchemy import Enum as SAEnum`.\n- (a) is wrong because enums need no `__init__`.\n- (b) is wrong because enum values can be any type.\n- (d) is wrong because Python enums coexist with SQLAlchemy.\n\n**Deeper:** a type checker or linter (Ruff `F811`) flags the redefinition. Aliasing at import is the standard fix, and the same shadowing bug appears with `datetime` (module versus class) and `json`. A habit worth building: never star-import, and alias anything that collides with a standard-library name.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Enum classes must define an __init__ method before their members can be used",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Enum values must be strings, so 1 and 2 should be \"1\" and \"2\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The second import replaces the first, so Enum now means SQLAlchemy's Enum. Import it under another name, such as from sqlalchemy import Enum as SAEnum",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Python enums cannot be used in a file that also imports from sqlalchemy",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "This shared base class is meant to provide common columns to other models, but SQLAlchemy raises an error saying the class has no __table__ or __tablename__. What is the fix?\n\n```python\nfrom sqlalchemy import Column, Integer, DateTime\nfrom sqlalchemy.orm import declarative_base\n\nBase = declarative_base()\n\nclass BaseModel(Base):\n    id = Column(Integer, primary_key=True)\n    created_at = Column(DateTime)\n    updated_at = Column(DateTime)\n```",
+      "explanation": "**Answer: (a)** Adding `__abstract__ = True` marks `BaseModel` as a column provider only: no table, no `__tablename__` required, and subclasses inherit `id`, `created_at` and `updated_at`.\n- (b) is wrong because renaming does not remove the missing-table error.\n- (c) is wrong because removing the primary key would break subclasses.\n- (d) is wrong because column types are irrelevant to the error.\n\n**Deeper:** in 2.0 style declare the columns with `Mapped[...]` and `mapped_column()`. Foreign keys on an abstract base need `declared_attr` so each subclass gets its own copy.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Add __abstract__ = True inside BaseModel, so it gets no table of its own and only shares its columns with subclasses",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Rename Base to BaseModel",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Remove the id column",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Change the type of created_at and updated_at from DateTime to Integer",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q12",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A CommandExecutor should print \"Invalid command\" only when no command matches the input. Instead, it prints \"Invalid command\" after every input, even when a command ran successfully. What is the fix?\n\n```python\nclass CommandExecutor:\n    def __init__(self, commands):\n        self.commands = commands\n\n    def execute(self, text):\n        for c in self.commands:\n            if c.matches(text):\n                c.execute(text)\n        print(\"Invalid command\")\n```",
+      "explanation": "**Answer: (d)** Without a `return` after `c.execute(text)`, the loop continues and the method reaches `print(\"Invalid command\")` on every call. Returning after the first match fixes it.\n- (a) is wrong because calling `matches` after `execute` would run unmatched commands.\n- (b) is wrong because loop type is not the issue.\n- (c) is wrong because `__init__` runs once, not per command.\n\n**Deeper:** the first-match-wins loop is the executor's whole contract. You can also write it with `for ... else:` so the fallback is attached to \"no match found\".",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Call matches after execute instead of before it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Replace the for loop with a while loop",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Move the print statement into __init__",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Add a return right after c.execute(text), so the method stops at the first match",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q13",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A developer has model files (for example, models/user.py) that define tables. In main.py, they run the code below, but no tables are created, even though echo=True is set. What is the fix?\n\n```python\n# main.py\nfrom sqlalchemy import create_engine\nfrom models.base_model import Base\n\nengine = create_engine(\"sqlite:///:memory:\", echo=True)\nBase.metadata.create_all(engine)\n```",
+      "explanation": "**Answer: (b)** Model modules register their tables on `Base.metadata` only when imported. `main.py` never imports `models.user`, so `create_all` sees an empty metadata and creates nothing.\n- (a) is wrong because `echo` only controls SQL logging.\n- (c) is wrong because a file database would behave the same way.\n- (d) is wrong because calling `create_all` twice does not help; the metadata is still empty.\n\n**Deeper:** import all model modules in `models/__init__.py` and import that package in `main.py`, so registration never depends on import order elsewhere. In production use Alembic migrations, and add a test that compares `Base.metadata.tables` with the expected table names, so a forgotten import fails in CI rather than at startup.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Set echo=False so that the tables can be created",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Import the model files (for example, from models.user import User) before calling create_all, so that Base knows about the tables",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Replace the in-memory SQLite database with a file-based one",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Call create_all twice, so the second call creates the tables",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q14",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In an online store, one order can contain several products, and for each product in an order we must record the quantity bought. Where should the quantity be stored?",
+      "explanation": "**Answer: (d)** Quantity belongs to the (order, product) pair, so it needs a row for each pair, in a join table such as `order_items`.\n- (a) is wrong because quantity would then be the same for every order.\n- (b) is wrong because one order has many products with different quantities.\n- (c) is wrong because a list inside a profile cannot be constrained or queried properly.\n\n**Deeper:** it is the same modelling move as `ExpenseUser` (amount per expense and user) and `ShowSeat`: when a many-to-many link has data, promote it to a class.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "As a quantity column on the Product table",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "As a quantity column on the Order table",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "As a list stored inside the customer's profile",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "In a separate table with one row per (order, product) that also holds the quantity",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q15",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A group-expense app calculates balances from a table of expense records. When two people settle a debt, that payment must count in all future balance calculations. Which design avoids having two separate sources of truth for \"money moving between people\"?",
+      "explanation": "**Answer: (c)** Storing the settlement as another record in the expense table, with a `PAYMENT` type, means every balance comes from one table. There is one source of truth.\n- (a) is wrong because two tables force every balance query to merge both.\n- (b) is wrong because deleting history loses the audit trail.\n- (d) is wrong because in-memory settlements disappear on restart and never affect balances.\n\n**Deeper:** a settlement is just money moving between two people. Modelling it as a `PAYMENT` expense with a PAID row and a HAD_TO_PAY row keeps the paid-equals-owed invariant intact.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Create a separate Transaction table, and make every balance calculation read both tables",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Delete the original expense once it has been settled, so it no longer affects anything",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Store the settlement as another record in the same expense table, marked with a type such as PAYMENT, so balances are computed from one table",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Keep settlements only in memory and leave them out of balance calculations",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q16",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A command-line app has a main() that passes every input line to a CommandExecutor. The executor holds a list of command objects, and each command implements matches(text) and execute(text). You now need to add a LeaveGroup command. What is the correct change?",
+      "explanation": "**Answer: (b)** Write a class that implements `matches` and `execute` and add it to the executor's list. No existing code changes.\n- (a) is wrong because adding branches to `main()` is what the pattern replaces.\n- (c) is wrong because adding `leave_group()` to the shared base burdens every command with unrelated behaviour.\n- (d) is wrong because hardcoding it in the executor breaks the open-closed principle.\n\n**Deeper:** this is the open-closed principle in practice: extend by adding a class and registering it in the composition root, never by editing the dispatcher.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Add a new elif branch for it inside main()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Write a new class that implements matches and execute, and add it to the list given to CommandExecutor",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add a leave_group() method to the shared base command class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Add a hardcoded check for LeaveGroup inside CommandExecutor",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/assignment/q17",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "You are building a small app that tracks shared expenses while it is running. Nothing needs to be kept after the app is closed. Which database setup fits this requirement best?",
+      "explanation": "**Answer: (a)** `sqlite:///:memory:` is a real relational database held in memory, created fresh each run and discarded on exit. It needs no server.\n- (b) is wrong because SQLite is embedded and needs no server or separate driver package.\n- (c) is wrong because SQL does not require persistence.\n- (d) is wrong because SQLAlchemy works fine with in-memory data.\n\n**Deeper:** an in-memory SQLite database exists per connection, so with multiple threads or pooled connections each sees its own empty database unless you use a static pool. It is also a different dialect from production PostgreSQL, so keep integration tests on the real engine.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "SQLite in memory, using create_engine(\"sqlite:///:memory:\"), which is a real relational database whose data disappears when the app stops",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A MySQL server plus a driver package, because every relational database needs a separate server",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A plain text file, because SQL cannot be used unless data is saved permanently",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "No database at all, because SQLAlchemy only works with data that survives a restart",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A command class uses `matches(text)` returning `text.startswith(\"add\")`. A user types `address book`. What happens?",
+      "explanation": "**Answer: (d)** `\"address book\".startswith(\"add\")` is `True`, so the executor treats the input as an `add` command. Loose matching causes silent misrouting.\n- (a) is wrong because the input matches the first command that returns `True`.\n- (b) is wrong because string comparison never raises on length.\n- (c) is wrong because the executor only calls `matches`; word boundaries are the command's job.\n\n**Deeper:** make `matches` strict: split into tokens and compare the first one, or use `re.fullmatch` with a precise pattern. Add a test for near-miss inputs.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The executor prints `Invalid command`, because `address book` is not a known command",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A `ValueError` is raised, because the keyword and input differ in length",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing, because the executor only matches whole words",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The `add` command matches and executes, because `startswith` is a prefix test, so the wrong command runs",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Prefix:\n    def __init__(self, kw): self.kw = kw\n    def matches(self, t): return t.startswith(self.kw)\n    def run(self, t): print(\"ran\", self.kw)\n\nclass SettleUp:\n    def matches(self, t): return t.split()[-1].lower() == \"settleup\"\n    def run(self, t): print(\"ran settleup\")\n\ncommands = [Prefix(\"u\"), SettleUp()]\nfor c in commands:\n    if c.matches(\"u12 SettleUp\"):\n        c.run(\"u12 SettleUp\")\n        break\n```\nWhat does this print?",
+      "explanation": "**Answer: (b)** Both commands match, but the loop stops at the first one, `Prefix(\"u\")`, which is earlier in the list. It prints `ran u`.\n- (a) is wrong because the more specific command comes second and is never reached.\n- (c) is wrong because `break` ends the loop after the first match.\n- (d) is wrong because at least one command matches.\n\n**Deeper:** in first-match-wins dispatch, order is part of the behaviour. Make matchers mutually exclusive, or register specific commands before general ones, and test ambiguous inputs.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`ran settleup`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`ran u`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`ran u` followed by `ran settleup`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Nothing",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-30/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A developer computes group balances with a query that sums `ExpenseUser` rows but only joins expenses where `expense_type == NORMAL`. After users record their settlements, nobody's balance ever reaches zero. What is the cause?",
+      "explanation": "**Answer: (c)** Settlements are stored as `PAYMENT` expenses with ordinary PAID and HAD_TO_PAY rows. Filtering them out removes exactly the rows that offset the debt.\n- (a) is wrong because minor-unit integers are far from overflow.\n- (b) is wrong because settlements live in the same tables by design.\n- (d) is wrong because the owed rows are half of the ledger; excluding them breaks the invariant.\n\n**Deeper:** use `expense_type` only for display, such as labelling history entries. This is the payoff of the one-source-of-truth design: balance code never needs a special case for settlements.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Integer overflow in the sum",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The `PAYMENT` expenses are in a different database",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The query ignores `PAYMENT` expenses, so settlements never reduce balances; balance logic should treat them like any other expense",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`HAD_TO_PAY` rows must be excluded after settlement",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

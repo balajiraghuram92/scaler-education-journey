@@ -61,7 +61,10 @@ public static class DbSeeder
         // 9. Seed Localization Lab (Phase 1, 2, 2.5, 3 Demo Data)
         LocalizationSeedData.Seed(db);
 
-        // 10. Seed Dynamic MCQ Practice Questions
+        // 10. Seed the file-driven Python Engineering course (must precede MCQs that reference its lessons)
+        PythonCurriculumSeedData.Seed(db);
+
+        // 11. Seed Dynamic MCQ Practice Questions
         McqMigrationSeedData.Seed(db);
 
         // Save all changes

@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-52-llm-api-clients",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-52/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A gateway client retries 429 responses with `await asyncio.sleep(2 ** attempt)` and no randomness. At 09:00 a batch job makes 1,000 callers hit the rate limit in the same second. What is the most likely production outcome?",
+      "explanation": "**Answer: (b)** Deterministic backoff keeps every client in lockstep, so they all wake at exactly the same instants and re-create the traffic spike that caused the 429.\n\n- (a) is wrong: the delay length is not the problem, the synchronisation is.\n- (c) is wrong: Python integers do not overflow; a cap on the delay is still good practice, but it is not the failure here.\n- (d) is wrong: sleep precision is irrelevant at second-scale delays.\n\n**Deeper:** This is the thundering-herd problem. Full jitter, `uniform(0, min(cap, base * 2**attempt))`, spreads retries across the window so the provider sees a smooth arrival rate. Interviewers often ask why jitter matters; the answer is de-synchronisation, not just randomness.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The retries are too short to ever succeed, so the delay should simply be longer", "isCorrect": false },
+        { "optionKey": "b", "optionText": "All clients retry at the same instants, producing synchronised waves that keep triggering the limit", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`2 ** attempt` overflows after a few attempts and raises OverflowError", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`asyncio.sleep` is too imprecise for second-scale delays, so retries fire randomly early", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A client is built with `httpx.Timeout(connect=3.0, read=45.0, write=10.0, pool=5.0)`. It streams a completion that emits one token per second and runs for 4 minutes in total. What happens?",
+      "explanation": "**Answer: (c)** The read timeout bounds the wait for the *next chunk*, not the whole response. A token every second keeps resetting it, so the 4-minute stream completes.\n\n- (a) is wrong: that would be a total deadline, which `httpx.Timeout` does not provide.\n- (b) is wrong: connect only covers the TCP/TLS handshake, which finished long before.\n- (d) is wrong: pool covers waiting for a free pooled connection, not the response body.\n\n**Deeper:** Because no per-phase timeout limits total duration, you must wrap the call in `asyncio.timeout()` (3.11+) or a similar deadline. In a streaming handler this separation is useful: the read timeout detects stalled streams, the deadline caps total cost and latency.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`ReadTimeout` after 45 seconds, because that is the maximum duration of one response", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`ConnectTimeout` after 3 seconds, because the connection is held open too long", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It completes: the read timeout applies to each wait for data, and each token resets it", "isCorrect": true },
+        { "optionKey": "d", "optionText": "`PoolTimeout` after 5 seconds, because a streaming response keeps its pooled connection busy", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nimport random\n\n@dataclass(frozen=True, slots=True)\nclass RetryPolicy:\n    base_delay: float = 0.5\n    max_delay: float = 20.0\n\n    def delay(self, attempt, retry_after, rng):\n        jittered = rng.uniform(0.0, min(self.max_delay, self.base_delay * 2**attempt))\n        return jittered if retry_after is None else max(jittered, retry_after)\n\nclass WorstCase(random.Random):\n    def uniform(self, a, b):\n        return b            # always the top of the jitter window\n\np, r = RetryPolicy(), WorstCase()\nprint(p.delay(0, 2.0, r), p.delay(3, 2.0, r), p.delay(3, None, r), p.delay(10, None, r))\n```\n\nWhat does this print?",
+      "explanation": "**Answer: (a)** `2.0 4.0 4.0 20.0`. With top-of-window jitter, attempt 0 gives 0.5, so `max(0.5, 2.0)` is 2.0. Attempt 3 gives `0.5 * 8 = 4.0`, which beats the 2.0 hint, so 4.0. Without a hint it stays 4.0. Attempt 10 would be 512, capped to 20.0.\n\n- (b) is wrong: it adds the hint to the backoff; the policy takes the larger of the two.\n- (c) is wrong: it ignores the hint on the first call.\n- (d) is wrong: it forgets the `max_delay` cap.\n\n**Deeper:** Combining with `max` means you never retry sooner than the server asked, and never wait less than your own backoff. Injecting `rng` is what lets you assert this deterministically.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`2.0 4.0 4.0 20.0`", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`2.5 6.0 4.0 20.0`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`0.5 4.0 4.0 20.0`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`2.0 4.0 4.0 512.0`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A POST to a chat-completions endpoint raises `httpx.ReadTimeout` after the request body was fully sent. Your retry loop builds a fresh `Idempotency-Key = uuid4()` on every attempt. What is the main risk?",
+      "explanation": "**Answer: (d)** A read timeout does not prove the server did nothing. The first request may still complete and be billed, and because each attempt has a different key, nothing can deduplicate them.\n\n- (a) is wrong: the new key does not make the response invalid or cause a 400.\n- (b) is wrong: httpx does not block on reused connections or keys.\n- (c) is wrong: the retry itself is not forbidden; the problem is the missing stable identity.\n\n**Deeper:** Generate the key once per logical call, outside the retry loop, and reuse it for every attempt. If the provider ignores idempotency keys, restrict retries to cases where the request definitely did not run, such as connect errors and explicit 429/5xx responses.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The provider rejects keys it has not seen before with a 400", "isCorrect": false },
+        { "optionKey": "b", "optionText": "httpx refuses to reuse the connection once the key header changes", "isCorrect": false },
+        { "optionKey": "c", "optionText": "POST requests can never be retried safely, so the loop will raise on the second attempt", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The first call may have completed server-side; with different keys the retry runs and is billed again as a duplicate", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using `iter_sse_data` from the lesson (joins `data:` lines of one event, skips `:` comments, ignores other fields, emits on a blank line, discards an unterminated trailing event):\n\n```python\nasync def lines(items):\n    for i in items:\n        yield i\n\nsrc = lines(['data: {\"a\":1}', 'data:{\"b\":2}', ': ping', 'data: x',\n             'data: y', '', 'event: done', 'data: [DONE]'])\nprint([d async for d in iter_sse_data(src)])\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (b)** There is only one blank line, after `data: y`, so the four data lines (the comment is skipped) form one event, joined with newlines. The final `data: [DONE]` has no terminating blank line, so it is discarded as incomplete.\n\n- (a) wrongly treats each `data:` line as its own event.\n- (c) includes `[DONE]`, which never got its blank-line terminator.\n- (d) is wrong: nothing here raises; the parser never calls `json.loads`.\n\n**Deeper:** SSE events are delimited by blank lines, not by `data:` lines. Real providers send one JSON object per event, but a proxy that buffers or re-chunks can change line boundaries, so a parser that follows the spec is more robust than `line.startswith('data:')` per line.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`['{\"a\":1}', '{\"b\":2}', 'x', 'y']`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`['{\"a\":1}\\n{\"b\":2}\\nx\\ny']`", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`['{\"a\":1}\\n{\"b\":2}\\nx\\ny', '[DONE]']`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It raises `json.JSONDecodeError`", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nimport asyncio\n\nasync def call():\n    await asyncio.sleep(1)\n\nasync def main():\n    attempts = 0\n    try:\n        async with asyncio.timeout(0.05):\n            while True:\n                attempts += 1\n                try:\n                    await call()\n                except Exception:\n                    print('retry')\n    except TimeoutError:\n        print('timeout after', attempts, 'attempt')\n\nasyncio.run(main())\n```\n\nWhat does it print on Python 3.12?",
+      "explanation": "**Answer: (c)** `asyncio.timeout` cancels the task by raising `CancelledError` inside `call()`. Since Python 3.8 that is a `BaseException`, so `except Exception` does not catch it; it propagates to the timeout context manager, which converts it to `TimeoutError`.\n\n- (a) is wrong: 'retry' would require `except Exception` to catch the cancellation.\n- (b) is wrong for the same reason; there is no second attempt.\n- (d) is wrong: the deadline fires after 50 ms.\n\n**Deeper:** Retry loops that catch `BaseException` or use a bare `except:` swallow cancellation, so timeouts and shutdowns stop working and tasks leak. If you must clean up on cancel, catch it, clean up, and re-raise.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`retry` repeatedly, then `timeout after 20 attempt` or similar", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`retry` once, then `timeout after 2 attempt`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`timeout after 1 attempt`", "isCorrect": true },
+        { "optionKey": "d", "optionText": "Nothing: it loops for the full second before the first retry and never times out", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using `TokenBudget` and `BudgetExceeded` from the lesson:\n\n```python\nb = TokenBudget(limit=100)\nb.reserve(60)\ntry:\n    b.reserve(50)\nexcept BudgetExceeded:\n    print('blocked')\nb.settle(60, 20)\nb.reserve(50)\nprint(b)\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (d)** The second reserve needs `0 + 60 + 50 = 110 > 100`, so it prints `blocked`. `settle(60, 20)` releases the 60 reservation and records 20 actually used. The next `reserve(50)` checks `20 + 0 + 50 = 70 <= 100` and succeeds, leaving `used=20, reserved=50`.\n\n- (a) is wrong: it skips the 'blocked' line.\n- (b) is wrong: `settle` subtracts the reservation, it does not keep it.\n- (c) is wrong: `used` records actual tokens (20), not the reservation.\n\n**Deeper:** Reserve, call, settle is the standard pattern for admission control under concurrency. Reconciling with provider-reported usage lets a request that used fewer tokens than its worst case free the difference for others.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`TokenBudget(limit=100, used=20, reserved=50)` only", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`blocked` then `TokenBudget(limit=100, used=20, reserved=110)`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`blocked` then `TokenBudget(limit=100, used=60, reserved=50)`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`blocked` then `TokenBudget(limit=100, used=20, reserved=50)`", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A FastAPI endpoint does `async with httpx.AsyncClient() as client: r = await client.post(LLM_URL, json=body)` on every request. Traffic grows to 300 requests/second. Which is the most accurate diagnosis and fix?",
+      "explanation": "**Answer: (a)** Each request opens a new client with a new pool, so every call pays DNS, TCP and TLS setup and cannot reuse keep-alive connections. Under load this inflates latency and can exhaust ephemeral ports or sockets. Create one client at startup (for example in the FastAPI lifespan) and close it at shutdown.\n\n- (b) is wrong: a shared `AsyncClient` is explicitly designed for concurrent use.\n- (c) is wrong: switching to a sync client in an async endpoint blocks the event loop.\n- (d) is wrong: disabling keep-alive makes the handshake cost worse.\n\n**Deeper:** Pool limits (`max_connections`, `max_keepalive_connections`) and the pool timeout then become your concurrency control and an early warning of saturation.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "No connection reuse and a handshake per call; share one long-lived client created in the app lifespan", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`AsyncClient` is not safe for concurrent use; create one per request, as done now", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Switch to the synchronous `httpx.Client` to avoid event-loop overhead", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Disable keep-alive so connections are released faster", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nasync def gen():\n    try:\n        yield 1\n        yield 2\n    finally:\n        print('cleanup')\n\nasync def main():\n    async for x in gen():\n        break\n    print('after loop')\n\nasyncio.run(main())\n```\n\nWhich statement about the upstream-streaming implications is correct?",
+      "explanation": "**Answer: (c)** Breaking out of `async for` does not close the async generator. Its `finally` runs only when the event loop's asyncgen finalizer closes it, which in this run happens after 'after loop'. Wrapping it in `contextlib.aclosing()` makes cleanup happen before the next statement.\n\n- (a) is wrong: that is the behaviour you get only with `aclosing` or an explicit `aclose()`.\n- (b) is wrong: `finally` does run eventually, but not deterministically at the break.\n- (d) is wrong: async generators do get finalised at shutdown at the latest.\n\n**Deeper:** If the generator wraps `async with client.stream(...)`, delayed cleanup means a delayed connection close, so the provider keeps generating tokens you pay for. Deterministic closing is a cost control, not a style preference.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`cleanup` is guaranteed to print before `after loop`, because `break` triggers `finally`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`cleanup` never prints, because `break` abandons the generator", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`cleanup` is not guaranteed to run before `after loop`; use `contextlib.aclosing` to make it deterministic", "isCorrect": true },
+        { "optionKey": "d", "optionText": "`cleanup` raises RuntimeError because the generator was not exhausted", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Your retry classifier treats every 429 as transient. During an incident the provider returns `429` with body `{\"error\": {\"code\": \"insufficient_quota\"}}` for a tenant. Your client retries 4 times per request across thousands of requests. What is the right change?",
+      "explanation": "**Answer: (b)** A 429 does not always mean rate limiting; some providers use it for exhausted quota or billing limits, which no amount of waiting will fix. Inspect the error code in the body, treat quota errors as non-retryable, and surface them (alert, fail the tenant's requests fast).\n\n- (a) is wrong: raising max attempts multiplies the wasted calls.\n- (c) is wrong: removing 429 from the retry set would break genuine rate-limit handling.\n- (d) is wrong: a longer sleep delays the failure but does not change it.\n\n**Deeper:** Classification of errors by body code, not only status, is the difference between a client that degrades gracefully and one that adds load during an incident. Retry-storm amplification is a classic post-mortem item.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Increase `max_attempts` so the quota has time to reset", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Inspect the error code and stop retrying quota errors, surfacing them as a distinct non-retryable failure", "isCorrect": true },
+        { "optionKey": "c", "optionText": "Remove 429 from the retryable set entirely", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Double the backoff cap so each retry waits longer", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nfrom typing import Protocol, runtime_checkable\n\n@runtime_checkable\nclass ChatProvider(Protocol):\n    async def chat(self, req: str) -> str: ...\n\nclass SyncAdapter:\n    def chat(self) -> int:\n        return 1\n\nclass NoChat:\n    pass\n\nprint(isinstance(SyncAdapter(), ChatProvider), isinstance(NoChat(), ChatProvider))\n```\n\nWhat is printed, and what does it imply for testing provider fakes?",
+      "explanation": "**Answer: (d)** `True False`. A runtime-checkable protocol's `isinstance` only checks that the named attributes exist, not their signatures, return types or whether they are coroutine functions. `SyncAdapter` has a `chat` attribute, so it passes.\n\n- (a) is wrong: `NoChat` has no `chat`, so it fails.\n- (b) is wrong: the check does not compare signatures.\n- (c) is wrong: `isinstance` with a `runtime_checkable` protocol is allowed and does not raise.\n\n**Deeper:** Use a static type checker (mypy or pyright) to verify protocol conformance, including `async` and parameter types; use `isinstance` only as a cheap guard. A contract test that actually awaits the fake catches what neither check does.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`False False`, because `SyncAdapter.chat` is not a coroutine function", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`False False`, because the signatures differ", "isCorrect": false },
+        { "optionKey": "c", "optionText": "It raises `TypeError`, because Protocols cannot be used with `isinstance`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`True False`; `isinstance` checks only that `chat` exists, so use a type checker for real conformance", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-52/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nclass Budget:\n    def __init__(self): self.free = 100\n\nb = Budget()\n\nasync def take(n):\n    if b.free >= n:\n        await asyncio.sleep(0)   # e.g. a cache lookup between check and update\n        b.free -= n\n        return True\n    return False\n\nasync def main():\n    print(await asyncio.gather(take(80), take(80)), b.free)\n\nasyncio.run(main())\n```\n\nWhat is printed, and what is the lesson for budget enforcement?",
+      "explanation": "**Answer: (a)** `[True, True] -60`. Both coroutines pass the `>= 80` check before either subtracts, because the `await` yields control in between. The budget goes negative.\n\n- (b) is wrong: that outcome needs the check and the update to be atomic.\n- (c) is wrong: asyncio does not serialise coroutines; only code without an `await` between the two steps is atomic.\n- (d) is wrong: no exception is raised.\n\n**Deeper:** Keep check-and-reserve free of `await` (as `TokenBudget.reserve` is), or guard it with an `asyncio.Lock`. Across processes the same logic needs an atomic Redis or database operation. Reserving the worst case first closes the window entirely.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[True, True] -60`: the await between check and update lets both pass; make reserve atomic", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`[True, False] 20`: asyncio serialises the two calls", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`[True, False] 20`: asyncio.gather runs coroutines one after another", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It raises `RuntimeError` because both coroutines mutate `b.free`", "isCorrect": false }
+      ]
+    }
+  ]
+}

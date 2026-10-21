@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { User, GitBranch, Award, Terminal, Cpu, ShieldCheck, Zap, Cloud, CheckCircle2, Sparkles, UploadCloud } from 'lucide-react';
 import { api } from '../api/client';
+import ProfileLearning from './ProfileLearning';
+import '../components/learning/learning-interactions.css';
 
 export default function Profile() {
   const [verticals, setVerticals] = useState([]);
@@ -71,6 +73,10 @@ export default function Profile() {
   ];
 
   return (
+    <>
+    {/* Signed-in learner record: summary, weakest topics, activity, sessions */}
+    <ProfileLearning />
+
     <div className="mt-md" style={{ maxWidth: '1000px', margin: '0 auto' }}>
       {/* Hero Section / Profile Card */}
       <div className="glass-panel text-center" style={{ padding: 'var(--space-3xl)' }}>
@@ -288,6 +294,7 @@ export default function Profile() {
         </div>
       </section>
     </div>
+    </>
   );
 }
 

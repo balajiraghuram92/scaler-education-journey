@@ -1,0 +1,511 @@
+{
+ "lessonSlug": "py-13-prototype-registry",
+ "sourceLesson": "Backend LLD: Design Patterns: Prototype and Registry",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-13/additional/q02",
+   "category": "Additional",
+   "title": "Golden Image Analogy",
+   "question": "(Theory) In the cloud VM analogy from the lecture, what does the “golden image” represent in Prototype pattern terms?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The client code that requests a new VM"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The prototype / template object that gets cloned"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The registry"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The abstract Prototype interface"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_g68f1zxMH0.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/additional/q03",
+   "category": "Additional",
+   "title": "Inefficiency Solved by Prototype",
+   "question": "(Scenario) In the SearchAPI example, the base URL, auth token, retry settings, and timeout rarely change between calls, but the search query changes every time. What is the main inefficiency in creating a brand-new SearchAPI object from scratch on every single call?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python cannot create more than one object of the same class"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The query field cannot be changed after object creation"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Identical, already-correct configuration is redone unnecessarily on every call"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "SearchAPI objects cannot be cloned at all"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_N539PRecgV.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/additional/q04",
+   "category": "Additional",
+   "title": "Independent Clones",
+   "question": "(Code Output)\n\n```python\nclass Email:\n    def __init__(self, source=None):\n        if source is None:\n            self.subject = None\n            self.footer = None\n        else:\n            self.subject = source.subject\n            self.footer = source.footer\n\n    def clone(self):\n        return Email(self)\n\ntemplate = Email()\ntemplate.subject = \"Welcome!\"\ntemplate.footer = \"Thanks for joining\"\n\nemail1 = template.clone()\nemail1.subject = \"Welcome aboard!\"\n\nprint(template.subject, email1.subject)\n```\n\nWhat gets printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Welcome aboard! Welcome aboard!"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Welcome! Welcome!"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "None None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Welcome! Welcome aboard!"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_X7YNbhzrFB.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/additional/q05",
+   "category": "Additional",
+   "title": "Missing Clone Override in Inheritance",
+   "question": "(Code Debug)\n```python\nclass Animal:\n    def __init__(self, source=None):\n        if source is None:\n            self.name = None\n        else:\n            self.name = source.name\n\n    def clone(self):\n        return Animal(self)\n\nclass Dog(Animal):\n    def __init__(self, source=None):\n        super().__init__(source)\n        if source is None:\n            self.breed = None\n        else:\n            self.breed = source.breed\n    # clone() is NOT overridden here\n\nd1 = Dog()\nd1.name = \"Rex\"\nd1.breed = \"Labrador\"\n\nd2 = d1.clone()\nprint(d2.breed)\n```\nWhat actually happens?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "An AttributeError is raised, because Dog never overrode clone(), so Animal.clone() ran instead and returned a plain Animal object that never had breed set"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It prints \"Labrador\""
+    },
+    {
+     "optionKey": "c",
+     "optionText": "It prints \"Rex\""
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It prints None"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_20hahB1fma.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/additional/q06",
+   "category": "Additional",
+   "title": "Drawbacks of Manual Object Copying",
+   "question": "(Theory) Why is it usually a bad idea for client code to copy an object by manually setting each field from outside the class (e.g., copy.os = original.os, copy.runtime = original.runtime, ...)?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It runs slower than every other approach in all cases"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "It creates tight coupling to internal fields, can violate encapsulation, and leads to isinstance() chains for subclasses"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Python does not allow assigning attributes from outside a class"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "It only works for classes with exactly two fields"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_B9K2UMZw3l.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/additional/q07",
+   "category": "Additional",
+   "title": "Mutating Registry Templates Directly",
+   "question": "(Scenario) A registry is being used like this:\n\n```python\nregistry = VMImageRegistry()\nregistry.register(\"backend-server-v3\", backend_image)\n\nserver = registry.get(\"backend-server-v3\")\nserver.hostname = \"web-01\"\n```\n\nNote: .clone() was never called before modifying server. What is the risk here?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "None — get() already returns a safe, independent copy"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "This code will raise an error because hostname doesn't exist yet"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "server is the same object stored inside the registry, so this directly modifies the shared template itself"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "The registry will automatically detect and block this change"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_TDJl3NpBdd.png",
+    "msedge_XzibunHfHP.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/additional/q08",
+   "category": "Additional",
+   "title": "Shallow Copy Using copy Module",
+   "question": "(Code Output)\n\n```python\nimport copy\n\nclass Config:\n    def __init__(self):\n        self.settings = {\"debug\": True}\n\noriginal = Config()\nshallow = copy.copy(original)\nshallow.settings[\"debug\"] = False\n\nprint(original.settings[\"debug\"])\n```\n\nWhat gets printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "True"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "None"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "An error is raised"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "False"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_VwjQl2GHZa.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/additional/q09",
+   "category": "Additional",
+   "title": "When to Skip Prototype",
+   "question": "(Theory) According to the lecture, when is it reasonable to skip the Prototype pattern entirely and just construct an object normally?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "When constructing the object fresh is already cheap and simple, so cloning would just add unnecessary overhead"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Never — Prototype must always be used, even for the simplest classes"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only when the class has no fields at all"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Only when the class is abstract"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_blQk5R7xko.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/additional/q10",
+   "category": "Additional",
+   "title": "Separating Prototype and Registry Concerns",
+   "question": "(Scenario) A registry needs to store several different “welcome email”, “password reset email”, and “invoice email” templates, and retrieve/clone the right one by name whenever a new email needs to be sent. Which two responsibilities does this design split apart, according to the lecture?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Validation and testing"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Copying an object (Prototype) and storing/retrieving templates by key (Registry)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Sending the email and formatting the email"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Creating the class and deleting the class"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_m8bRlejK9V.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/assignment/q03",
+   "category": "Assignment",
+   "title": "Core Problem Solved by Prototype Pattern",
+   "question": "(Theory) What problem does the Prototype pattern mainly solve?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Creating a new object by copying an existing one instead of building it from scratch"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Creating an object step-by-step with validation before it is complete"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Making sure only one object of a class ever exists"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Choosing which subclass to create based on user input"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_V37WY9AiB7.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/assignment/q04",
+   "category": "Assignment",
+   "title": "Simple Object Cloning Output",
+   "question": "(Code Output)\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass Prototype(ABC):\n    @abstractmethod\n    def clone(self):\n        ...\n\nclass Config(Prototype):\n    def __init__(self, source=None):\n        if source is None:\n            self.env = None\n            self.timeout = None\n        else:\n            self.env = source.env\n            self.timeout = source.timeout\n\n    def clone(self):\n        return Config(self)\n\nc1 = Config()\nc1.env = \"staging\"\nc1.timeout = 30\n\nc2 = c1.clone()\nc2.env = \"production\"\n\nprint(c1.env, c2.env)\n```\n\nWhat gets printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "production production"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "staging production"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "staging staging"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "production staging"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_KzMZQ0w4DR.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/assignment/q05",
+   "category": "Assignment",
+   "title": "Thread Safety in Prototype Registry",
+   "question": "(Code Debug) A student writes this registry method to add a new prototype only if it doesn't already exist:\n\n```python\ndef add_if_missing(self, key, prototype):\n    if key not in self._templates:\n        self._templates[key] = prototype\n```\n\nWhy might this method behave incorrectly if two threads call it at the same time with the same new key?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python dictionaries cannot store custom objects as values"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "abstractmethod prevents this method from ever running twice"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The check (\"is key missing?\") and the action (\"add it\") are two separate steps, so both threads can pass the check before either one writes"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Python automatically locks every dictionary method, so this is actually safe"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_RQuRArxbvB.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/assignment/q06",
+   "category": "Assignment",
+   "title": "Multiple Constructors in Python",
+   "question": "(Scenario) A Student class has an __init__ that takes no arguments and sets default values. A developer wants to also let Student be created by copying an existing Student object. They try adding a second __init__ method that takes a source object instead. What actually happens in Python?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python raises an error because a class cannot have two constructors"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Both __init__ methods work — Python picks the right one based on the arguments passed"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Python merges both __init__ methods into one automatically"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Only the second __init__ definition remains active; the first one is silently overwritten"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_2otVPBQWgu.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/assignment/q07",
+   "category": "Assignment",
+   "title": "Overriding Clone in Subclasses",
+   "question": "(Theory) Why must every subclass of a Prototype-based class override clone() itself, even if the parent class already has a clone() method?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Because if it doesn’t, calling .clone() runs the parent’s version, which doesn’t know about the subclass’s extra fields — silently dropping them"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Because Python requires every subclass to redefine every inherited method"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because clone() is not inherited in Python"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Because subclasses are not allowed to call super().__init__()"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_qazSX2Dns9.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/assignment/q08",
+   "category": "Assignment",
+   "title": "Shallow Copy Bug in Cloning",
+   "question": "(Code Output)\n\n```python\nclass VMInstance:\n    def __init__(self, source=None):\n        if source is None:\n            self.installed_packages = []\n        else:\n            self.installed_packages = source.installed_packages\n\n    def clone(self):\n        return VMInstance(self)\n\noriginal = VMInstance()\noriginal.installed_packages = [\"nginx\"]\n\ncopy = original.clone()\ncopy.installed_packages.append(\"redis\")\n\nprint(original.installed_packages)\n```\n\nWhat gets printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "[\"nginx\"]"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "[\"nginx\", \"redis\"]"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "[]"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "[\"redis\"]"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_CcBf2k1DfQ.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/assignment/q09",
+   "category": "Assignment",
+   "title": "Fixing Shallow Copy in Lists",
+   "question": "(Code Debug) How should the buggy line from Q6 be fixed so that copy.installed_packages becomes fully independent from original.installed_packages?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "self.installed_packages = source.installed_packages"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "self.installed_packages = source.installed_packages.copy (without calling it)"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "self.installed_packages = list(source.installed_packages)"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "self.installed_packages = \"installed_packages\""
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_x7mpYPc71F.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/assignment/q10",
+   "category": "Assignment",
+   "title": "Dictionary get() Behavior on Missing Keys",
+   "question": "(Scenario) A team keeps a dictionary-based registry of reusable templates, keyed by string names like \"welcome_email\" and \"password_reset_email\". A developer calls registry.get(\"passwordreset_email\") (missing the underscore) using this method:\n\n```python\ndef get(self, key):\n    return self._templates.get(key)\n```\n\nWhat will actually happen?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python raises a KeyError immediately, right on this line"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The registry automatically finds the closest matching key"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A new empty template is created and returned"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "get() returns None, and the program only fails later, wherever that None is used (e.g., calling .clone() on it)"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_QtBoHwLQbj.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-13/assignment/q11",
+   "category": "Assignment",
+   "title": "Prototype vs. Registry Pattern",
+   "question": "(Theory) Which statement best describes the difference between the Prototype pattern and the Registry pattern?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Prototype lets an object copy itself; Registry stores and retrieves reusable templates by key"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Prototype stores multiple templates by name; Registry copies a single object"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "They are the same pattern with two different names"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Prototype is only used in Python; Registry is only used in Java"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_wtGnjbUjHm.png"
+   ]
+  }
+ ]
+}

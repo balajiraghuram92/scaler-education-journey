@@ -1,145 +1,70 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Plus, Calendar, Shield } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useParams, Link, useLocation } from 'react-router-dom';
+import { Plus, Shield, CheckCircle2, Circle, X } from 'lucide-react';
 import CodeComparisonSwitcher from '../components/CodeComparisonSwitcher';
 import ConceptCheck from '../components/learning/ConceptCheck';
 import ImplementationExercise from '../components/learning/ImplementationExercise';
 import PracticeQuestions from '../components/learning/PracticeQuestions';
+import CodingAssignment from '../components/learning/CodingAssignment';
+import MarkdownBlock, { MarkdownBlocks } from '../components/learning/MarkdownBlock';
+import { buildContentSections } from '../components/learning/markdownParser';
 import { getLessonInteractions } from '../data/lessonInteractions';
 import { getLessonExerciseAssociation } from '../data/lessonExerciseAssociations';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { LoadingState, ErrorState, DevFixturesBanner } from '../components/common/StateViews';
 import { markLearningPathOpened } from '../utils/recentLearningPaths';
 import './ChapterReader.css';
 import '../components/learning/learning-interactions.css';
 import ChatWidget from '../components/common/ChatWidget';
 
-function slugifyHeading(value, usedIds) {
-  const base = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'section';
-  const count = usedIds.get(base) || 0;
-  usedIds.set(base, count + 1);
-  return count === 0 ? base : `${base}-${count + 1}`;
+// Position heartbeat cadence while the tab is visible (server caps secondsDelta at 300).
+const HEARTBEAT_INTERVAL_MS = 20000;
+const MAX_SECONDS_DELTA = 300;
+
+function computeScrollPercent() {
+  const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+  if (scrollable <= 0) return 0;
+  return Math.max(0, Math.min(100, Math.round((window.scrollY / scrollable) * 100)));
 }
 
-function formatInline(text) {
-  return text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean).map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) return <strong key={`${part}-${index}`}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith('`') && part.endsWith('`')) return <code key={`${part}-${index}`}>{part.slice(1, -1)}</code>;
-    return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+function splitPracticeQuestions(items) {
+  const slices = { checkpoint: [], assignment: [], additional: [] };
+  items.forEach((item) => {
+    const category = (item.category || 'Assignment').toLowerCase();
+    if (category === 'checkpoint') slices.checkpoint.push(item);
+    else if (category === 'additional') slices.additional.push(item);
+    else slices.assignment.push(item);
   });
+  return slices;
 }
 
-function buildContentSections(contentBody) {
-  const fallback = 'This chapter is being prepared. Return to the pathway for the latest learning outline.';
-  const lines = (contentBody || fallback).replace(/\r\n/g, '\n').split('\n');
-  const usedIds = new Map([['introduction', 1]]);
-  const sections = [{ id: 'introduction', title: 'Introduction', blocks: [] }];
-  let current = sections[0];
-  let paragraph = [];
-  let list = [];
-  let listType = null;
-  let codeLines = [];
-  let inCodeBlock = false;
+function ChapterMarkdown({
+  sections,
+  conceptChecks,
+  exerciseIds,
+  expandedExerciseIds,
+  onToggleExerciseExpanded,
+  quiz,
+  pythonProblems,
+  isAuthenticated
+}) {
+  const hasConceptsSection = sections.some((section) => section.id === 'concepts-covered');
+  const hasPracticeLoop = sections.some((section) => section.id === 'practice-loop');
 
-  const flushParagraph = () => {
-    if (paragraph.length > 0) {
-      current.blocks.push({ type: 'paragraph', text: paragraph.join(' ') });
-      paragraph = [];
-    }
-  };
-  const flushList = () => {
-    if (list.length > 0) {
-      current.blocks.push({ type: listType, items: list });
-      list = [];
-      listType = null;
-    }
-  };
-  const flushCode = () => {
-    if (codeLines.length > 0) {
-      current.blocks.push({ type: 'code', text: codeLines.join('\n') });
-      codeLines = [];
-    }
-  };
-  const flushBlocks = () => {
-    flushParagraph();
-    flushList();
-    flushCode();
-  };
+  const checkpointBlock = quiz.checkpoint.length > 0 && (
+    <PracticeQuestions
+      id="checkpoint-quiz"
+      questions={quiz.checkpoint}
+      title="Checkpoint"
+      eyebrow="CHECK YOUR UNDERSTANDING"
+      isAuthenticated={isAuthenticated}
+    />
+  );
 
-  lines.forEach((rawLine) => {
-    const line = rawLine.trim();
-    if (line.startsWith('```')) {
-      if (inCodeBlock) flushCode();
-      else flushParagraph();
-      inCodeBlock = !inCodeBlock;
-      return;
-    }
-    if (inCodeBlock) {
-      codeLines.push(rawLine);
-      return;
-    }
-    if (/^#\s+/.test(line)) {
-      flushBlocks();
-      return;
-    }
-    if (/^##\s+/.test(line)) {
-      flushBlocks();
-      const title = line.replace(/^##\s+/, '');
-      current = { id: slugifyHeading(title, usedIds), title, blocks: [] };
-      sections.push(current);
-      return;
-    }
-    if (/^###\s+/.test(line)) {
-      flushBlocks();
-      current.blocks.push({ type: 'subheading', text: line.replace(/^###\s+/, '') });
-      return;
-    }
-    const unordered = line.match(/^[-*]\s+(.+)/);
-    const ordered = line.match(/^\d+\.\s+(.+)/);
-    if (unordered || ordered) {
-      const nextType = ordered ? 'ordered-list' : 'unordered-list';
-      if (listType && listType !== nextType) flushList();
-      flushParagraph();
-      listType = nextType;
-      list.push((unordered || ordered)[1]);
-      return;
-    }
-    if (!line) {
-      flushParagraph();
-      flushList();
-      return;
-    }
-    paragraph.push(line);
-  });
-
-  flushBlocks();
-  return sections.filter((section) => section.blocks.length > 0);
-}
-
-function ChapterMarkdown({ sections, interactions, exerciseIds, expandedExerciseIds, onToggleExerciseExpanded, courseSlug, moduleSlug, lessonSlug }) {
-  const conceptChecks = interactions?.conceptChecks || [];
-  const practiceQuestions = interactions?.practiceQuestions || [];
-
-  return sections.map((section) => (
-    <React.Fragment key={section.id}>
-      <section id={section.id} className="chapter-content-section">
-        {section.title !== 'Introduction' && <h3 className="chamber-section-heading">{section.title}</h3>}
-        <div className="chamber-prose">
-          {section.blocks.map((block, index) => {
-            if (block.type === 'subheading') return <h4 key={`${section.id}-${index}`} className="chamber-subheading">{block.text}</h4>;
-            if (block.type === 'unordered-list') return <ul key={`${section.id}-${index}`} className="chapter-markdown-list">{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{formatInline(item)}</li>)}</ul>;
-            if (block.type === 'ordered-list') return <ol key={`${section.id}-${index}`} className="chapter-markdown-list chapter-markdown-list--ordered">{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{formatInline(item)}</li>)}</ol>;
-            if (block.type === 'code') return <pre key={`${section.id}-${index}`} className="chapter-code-block"><code>{block.text}</code></pre>;
-            return <p key={`${section.id}-${index}`}>{formatInline(block.text)}</p>;
-          })}
-        </div>
-      </section>
-
-      {section.id === 'concepts-covered' && conceptChecks.map((check) => <ConceptCheck key={check.id} {...check} />)}
-      {section.id === 'practice-loop' && exerciseIds?.map((exerciseId) => (
+  const practiceBlock = (
+    <>
+      {exerciseIds?.map((exerciseId) => (
         <ImplementationExercise
           key={exerciseId}
           exerciseId={exerciseId}
@@ -147,20 +72,77 @@ function ChapterMarkdown({ sections, interactions, exerciseIds, expandedExercise
           onToggleExpand={() => onToggleExerciseExpanded(exerciseId)}
         />
       ))}
-      {section.id === 'practice-loop' && (
+      {(quiz.assignment.length > 0 || quiz.additional.length > 0) && (
         <PracticeQuestions
-          courseSlug={courseSlug}
-          moduleSlug={moduleSlug}
-          lessonSlug={lessonSlug}
-          questions={practiceQuestions}
+          id="assignment-quiz"
+          questions={quiz.assignment}
+          additionalQuestions={quiz.additional}
+          title="Assignment"
+          eyebrow="PRACTICE LOOP — MULTIPLE CHOICE"
+          additionalTitle="Additional practice"
+          isAuthenticated={isAuthenticated}
         />
       )}
-    </React.Fragment>
-  ));
+      {pythonProblems.length > 0 && (
+        <div id="coding-assignments" className="chamber-coding-assignments">
+          <p className="learning-eyebrow">PRACTICE LOOP — CODING ASSIGNMENTS</p>
+          {pythonProblems.map((problem, index) => (
+            <CodingAssignment key={problem.id} problem={problem} index={index} isAuthenticated={isAuthenticated} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <>
+      {sections.map((section) => (
+        <section key={section.id} id={section.id} className="chapter-content-section">
+          {section.title !== 'Introduction' && <h3 className="chamber-section-heading">{section.title}</h3>}
+          <div className="chamber-prose">
+            <MarkdownBlocks blocks={section.blocks} keyPrefix={section.id} />
+          </div>
+
+          {section.id === 'concepts-covered' && conceptChecks.map((check) => <ConceptCheck key={check.id} {...check} />)}
+          {section.id === 'concepts-covered' && checkpointBlock}
+          {section.id === 'practice-loop' && practiceBlock}
+        </section>
+      ))}
+
+      {/* Chapters without these sections still get their questions and assignments. */}
+      {!hasConceptsSection && checkpointBlock}
+      {!hasPracticeLoop && practiceBlock}
+    </>
+  );
+}
+
+function CompletionControl({ isAuthenticated, isCompleted, saving, onToggle, loginState, variant }) {
+  if (!isAuthenticated) {
+    return (
+      <Link to="/login" state={loginState} className={`chapter-completion-signin chapter-completion--${variant}`}>
+        Sign in to track progress
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className={`chapter-completion-btn chapter-completion--${variant}${isCompleted ? ' is-complete' : ''}`}
+      aria-pressed={isCompleted}
+      disabled={saving}
+      onClick={onToggle}
+    >
+      {isCompleted ? <CheckCircle2 size={15} /> : <Circle size={15} />}
+      <span>{isCompleted ? 'Chapter complete' : 'Mark chapter complete'}</span>
+    </button>
+  );
 }
 
 export default function ChapterReader() {
   const { slug, verticalOrCourseSlug, moduleSlug, lessonSlug } = useParams();
+  const location = useLocation();
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const [chapter, setChapter] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -170,7 +152,17 @@ export default function ChapterReader() {
   const [personalNotesList, setPersonalNotesList] = useState([]);
   const [newNoteText, setNewNoteText] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [noteError, setNoteError] = useState(null);
+  const [isSavingNote, setIsSavingNote] = useState(false);
   const [expandedExerciseIds, setExpandedExerciseIds] = useState(() => new Set());
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [completionSaving, setCompletionSaving] = useState(false);
+  const [completionError, setCompletionError] = useState(null);
+  const [practiceItems, setPracticeItems] = useState(null);
+  const [showResumeHint, setShowResumeHint] = useState(false);
+
+  const positionRef = useRef({ sectionId: 'introduction', scrollPercent: 0 });
+  const resumedChapterRef = useRef(null);
 
   // Resolved lookup slug
   const targetSlug = useMemo(() => {
@@ -184,11 +176,19 @@ export default function ChapterReader() {
     [chapter?.contentBody]
   );
 
-  const fetchChapter = async () => {
+  const chapterCourseSlug = chapter?.course?.slug || verticalOrCourseSlug || '';
+  const chapterModuleSlug = chapter?.module?.slug || moduleSlug || '';
+  const chapterLessonSlug = chapter?.slug || targetSlug;
+
+  const fetchChapter = useCallback(async () => {
     setLoading(true);
     setError(null);
     setIsDevFixture(false);
     setExpandedExerciseIds(new Set());
+    setPracticeItems(null);
+    setShowResumeHint(false);
+    setNoteError(null);
+    setCompletionError(null);
 
     try {
       let data = null;
@@ -201,6 +201,7 @@ export default function ChapterReader() {
       if (data) {
         setChapter(data);
         setPersonalNotesList(data.notes || []);
+        setIsCompleted(Boolean(data.isCompleted));
         if (verticalOrCourseSlug && moduleSlug && lessonSlug) {
           const verifiedPathSlug = data.course?.slug || verticalOrCourseSlug;
           if (typeof verifiedPathSlug === 'string' && verifiedPathSlug.trim()) {
@@ -215,20 +216,96 @@ export default function ChapterReader() {
         const fallbackData = getFallbackChapter(targetSlug);
         setChapter(fallbackData);
         setPersonalNotesList(fallbackData.notes || []);
+        setIsCompleted(false);
       } else {
         setError(err);
       }
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchChapter();
   }, [targetSlug, verticalOrCourseSlug, moduleSlug, lessonSlug]);
 
-  // ScrollSpy Intersection Observer
+  // Wait for the session probe so an expired access cookie is refreshed first;
+  // otherwise the chapter would load without the learner's progress.
   useEffect(() => {
+    if (authLoading) return;
+    fetchChapter();
+  }, [authLoading, fetchChapter]);
+
+  // Practice questions are fetched once per chapter (and again on sign-in/out so
+  // previous attempts appear), then sliced into Checkpoint / Assignment / Additional.
+  useEffect(() => {
+    if (!chapter?.id || authLoading || loading) return undefined;
+    if (!chapterCourseSlug || !chapterModuleSlug || !chapterLessonSlug) {
+      setPracticeItems([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    api.v2.getPracticeQuestions(chapterCourseSlug, chapterModuleSlug, chapterLessonSlug)
+      .then((items) => {
+        if (!cancelled) setPracticeItems(Array.isArray(items) ? items : []);
+      })
+      .catch((err) => {
+        console.warn('Could not fetch practice questions:', err);
+        if (!cancelled) setPracticeItems([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chapter?.id, chapterCourseSlug, chapterModuleSlug, chapterLessonSlug, isAuthenticated, authLoading, loading]);
+
+  const lessonInteractions = useMemo(
+    () => getLessonInteractions(chapterCourseSlug, chapterModuleSlug, chapterLessonSlug),
+    [chapterCourseSlug, chapterModuleSlug, chapterLessonSlug]
+  );
+
+  const quiz = useMemo(() => {
+    if (practiceItems === null) return { checkpoint: [], assignment: [], additional: [] };
+    if (practiceItems.length > 0) return splitPracticeQuestions(practiceItems);
+    // No API questions for this lesson: fall back to the static, locally evaluated set.
+    return { checkpoint: [], assignment: lessonInteractions?.practiceQuestions || [], additional: [] };
+  }, [practiceItems, lessonInteractions]);
+
+  // Record the open for signed-in learners.
+  useEffect(() => {
+    if (!isAuthenticated || !chapter?.id || isDevFixture || loading) return;
+    api.me.recordVisit(chapter.id).catch((err) => console.warn('Could not record chapter visit:', err));
+  }, [chapter?.id, isAuthenticated, isDevFixture, loading]);
+
+  // Resume: scroll to the URL hash or the saved section once per chapter load.
+  useEffect(() => {
+    if (!chapter?.id || loading) return undefined;
+    if (resumedChapterRef.current === chapter.id) return undefined;
+    resumedChapterRef.current = chapter.id;
+
+    const hashTarget = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    const savedProgress = isAuthenticated ? chapter.userProgress : null;
+    const savedSection = savedProgress?.lastSectionId || null;
+    const target = hashTarget || savedSection;
+    const savedPercent = savedProgress?.scrollPercent || 0;
+
+    const timer = window.setTimeout(() => {
+      const element = target ? document.getElementById(target) : null;
+      if (element) {
+        element.scrollIntoView?.({ block: 'start' });
+        if (savedSection && target === savedSection && target !== 'introduction') setShowResumeHint(true);
+      } else if (!hashTarget && savedPercent > 5) {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo?.({ top: Math.round((scrollable * savedPercent) / 100) });
+        setShowResumeHint(true);
+      }
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chapter?.id, loading]);
+
+  // ScrollSpy: active section + last known reading position for heartbeats.
+  useEffect(() => {
+    if (!chapter || loading) return undefined;
+
     const handleScroll = () => {
       const sections = document.querySelectorAll('.chapter-content-section[id]');
       const scrollPosition = window.scrollY + 160;
@@ -242,42 +319,100 @@ export default function ChapterReader() {
         }
       });
       setActiveSectionId(currentId);
+      positionRef.current = { sectionId: currentId, scrollPercent: computeScrollPercent() };
     };
 
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [chapter]);
+  }, [chapter, loading]);
+
+  // Position heartbeats, counting only time while the tab is visible.
+  useEffect(() => {
+    if (!isAuthenticated || !chapter?.id || isDevFixture || loading) return undefined;
+
+    const lessonId = chapter.id;
+    let visibleSince = document.visibilityState === 'visible' ? Date.now() : null;
+
+    const takeSeconds = () => {
+      if (visibleSince === null) return 0;
+      const seconds = Math.floor((Date.now() - visibleSince) / 1000);
+      visibleSince += seconds * 1000;
+      return Math.min(seconds, MAX_SECONDS_DELTA);
+    };
+    const snapshot = (secondsDelta) => ({ ...positionRef.current, secondsDelta });
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      api.me.updatePosition(lessonId, snapshot(takeSeconds())).catch(() => null);
+    }, HEARTBEAT_INTERVAL_MS);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        api.me.sendPositionBeacon(lessonId, snapshot(takeSeconds()));
+        visibleSince = null;
+      } else {
+        visibleSince = Date.now();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      api.me.sendPositionBeacon(lessonId, snapshot(takeSeconds()));
+    };
+  }, [chapter?.id, isAuthenticated, isDevFixture, loading]);
+
+  const handleToggleComplete = async () => {
+    if (!chapter?.id || completionSaving) return;
+    setCompletionSaving(true);
+    setCompletionError(null);
+    try {
+      const result = await api.me.setLessonCompletion(chapter.id, !isCompleted);
+      setIsCompleted(typeof result?.isCompleted === 'boolean' ? result.isCompleted : !isCompleted);
+    } catch (err) {
+      console.error('Failed to update chapter completion:', err);
+      setCompletionError('Progress could not be saved. Please try again.');
+    } finally {
+      setCompletionSaving(false);
+    }
+  };
 
   const handleAddNote = async (e) => {
     e.preventDefault();
-    if (!newNoteText.trim() || !chapter) return;
+    if (!newNoteText.trim() || !chapter || isSavingNote) return;
 
-    const newNote = {
-      noteType: 'PersonalNote',
-      title: 'Field Reflection',
-      contentBody: newNoteText.trim()
-    };
-
+    setIsSavingNote(true);
+    setNoteError(null);
     try {
-      const res = await api.post(`/api/lessons/${chapter.id}/notes`, newNote);
-      setPersonalNotesList(prev => [res, ...prev]);
+      const res = await api.notes.create(chapter.id, {
+        title: 'Field Reflection',
+        contentBody: newNoteText.trim(),
+        anchorSection: activeSectionId
+      });
+      setPersonalNotesList((prev) => [res, ...prev]);
       setNewNoteText('');
       setIsAddingNote(false);
     } catch (err) {
       console.error('Failed to save note:', err);
-      // Fallback local reflection
-      setPersonalNotesList(prev => [{
-        id: Date.now(),
-        title: 'Field Reflection (Local)',
-        contentBody: newNoteText.trim(),
-        createdAt: new Date().toISOString()
-      }, ...prev]);
-      setNewNoteText('');
-      setIsAddingNote(false);
+      setNoteError('Your note could not be saved. Please try again.');
+    } finally {
+      setIsSavingNote(false);
     }
   };
 
-  if (loading) {
+  const toggleExerciseExpanded = useCallback((exerciseId) => setExpandedExerciseIds((current) => {
+    const next = new Set(current);
+    if (next.has(exerciseId)) {
+      next.delete(exerciseId);
+    } else {
+      next.add(exerciseId);
+    }
+    return next;
+  }), []);
+
+  if (loading || authLoading) {
     return <LoadingState message="Opening manuscript chapter chamber..." />;
   }
 
@@ -285,23 +420,18 @@ export default function ChapterReader() {
     return <ErrorState error={error} onRetry={fetchChapter} title="Chapter Not Available" />;
   }
 
-  const chapterCourseSlug = chapter.course?.slug || chapter.course?.courseSlug || 'java-spring-lld';
-  const lessonInteractions = getLessonInteractions(
-    chapterCourseSlug,
-    chapter.module?.slug || moduleSlug || '',
-    chapter.slug || targetSlug
-  );
-  const lessonExercise = getLessonExerciseAssociation(
-    chapterCourseSlug,
-    chapter.module?.slug || moduleSlug || '',
-    chapter.slug || targetSlug
-  );
+  const lessonExercise = getLessonExerciseAssociation(chapterCourseSlug, chapterModuleSlug, chapterLessonSlug);
+  const problems = chapter.problems || [];
+  const pythonProblems = problems.filter((problem) => (problem.language || '').toLowerCase() === 'python');
+  const javaProblems = problems.filter((problem) => (problem.language || '').toLowerCase() !== 'python');
+  const courseTitle = chapter.course?.title || 'Curriculum pathway';
+  const loginState = { from: location };
 
   const tocItems = [
     ...contentSections.map((section) => ({ id: section.id, label: section.title, level: 1 })),
     ...(chapter.codeComparisons?.length > 0 ? [{ id: 'code-comparison', label: 'Code comparison', level: 1 }] : []),
     ...(chapter.diagrams?.length > 0 ? [{ id: 'architecture-hierarchy', label: 'Architecture diagram', level: 1 }] : []),
-    ...(chapter.problems?.length > 0 ? [{ id: 'practice-problems', label: 'Practice problems', level: 1 }] : [])
+    ...(javaProblems.length > 0 ? [{ id: 'practice-problems', label: 'Practice problems', level: 1 }] : [])
   ];
 
   return (
@@ -351,8 +481,9 @@ export default function ChapterReader() {
                   <li key={sib.id}>
                     <Link
                       to={`/chapter/${sib.fullSlug || sib.slug}`}
-                      className={`sibling-link ${sib.id === chapter.id ? 'is-current' : ''}`}
+                      className={`sibling-link ${sib.id === chapter.id ? 'is-current' : ''}${sib.isCompleted ? ' is-completed' : ''}`}
                     >
+                      {sib.isCompleted && <CheckCircle2 size={12} className="sibling-done-icon" aria-label="Completed" />}
                       {sib.title}
                     </Link>
                   </li>
@@ -379,7 +510,7 @@ export default function ChapterReader() {
             <Link to="/chapters" className="breadcrumb-crumb">Chapters</Link>
             <span className="breadcrumb-sep">→</span>
             <Link to={`/chapters/${chapterCourseSlug}`} className="breadcrumb-crumb">
-              {chapter.course?.title || 'Java & Spring Architecture'}
+              {courseTitle}
             </Link>
             <span className="breadcrumb-sep">→</span>
             <span className="breadcrumb-crumb is-leaf">{chapter.title}</span>
@@ -393,23 +524,39 @@ export default function ChapterReader() {
             )}
           </header>
 
+          {showResumeHint && (
+            <div className="chapter-resume-hint" role="status">
+              <span>Resumed where you left off.</span>
+              <button
+                type="button"
+                className="learning-text-button"
+                onClick={() => {
+                  setShowResumeHint(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                Start from the top
+              </button>
+              <button
+                type="button"
+                className="chapter-resume-hint__dismiss"
+                onClick={() => setShowResumeHint(false)}
+                aria-label="Dismiss resume notice"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
           <ChapterMarkdown
             sections={contentSections}
-            interactions={lessonInteractions}
+            conceptChecks={lessonInteractions?.conceptChecks || []}
             exerciseIds={lessonExercise?.exerciseIds}
             expandedExerciseIds={expandedExerciseIds}
-            courseSlug={chapterCourseSlug}
-            moduleSlug={chapter.module?.slug || moduleSlug || ''}
-            lessonSlug={chapter.slug || targetSlug}
-            onToggleExerciseExpanded={(exerciseId) => setExpandedExerciseIds((current) => {
-              const next = new Set(current);
-              if (next.has(exerciseId)) {
-                next.delete(exerciseId);
-              } else {
-                next.add(exerciseId);
-              }
-              return next;
-            })}
+            onToggleExerciseExpanded={toggleExerciseExpanded}
+            quiz={quiz}
+            pythonProblems={pythonProblems}
+            isAuthenticated={isAuthenticated}
           />
 
           {chapter.codeComparisons?.length > 0 && (
@@ -431,12 +578,12 @@ export default function ChapterReader() {
             </section>
           )}
 
-          {/* Section 6: Interactive Problems (if present) */}
-          {chapter.problems?.length > 0 && (
+          {/* Java problems keep the Maven verification card; Python ones render in the practice loop. */}
+          {javaProblems.length > 0 && (
             <section id="practice-problems" className="chapter-content-section">
               <h3 className="chamber-section-heading">Verification &amp; Test Suite Verification</h3>
               <div className="chamber-problems-stack">
-                {chapter.problems.map((prb, idx) => (
+                {javaProblems.map((prb, idx) => (
                   <div key={prb.id} className="chamber-problem-card">
                     <div className="prb-card-header">
                       <span className="prb-badge">{prb.packageName || `PROBLEM ${idx + 1}`}</span>
@@ -444,7 +591,7 @@ export default function ChapterReader() {
                       <span className={`prb-diff-tag diff-${prb.difficulty?.toLowerCase()}`}>{prb.difficulty}</span>
                     </div>
                     {prb.problemStatement && (
-                      <p className="prb-statement">{prb.problemStatement}</p>
+                      <MarkdownBlock text={prb.problemStatement} className="prb-statement" />
                     )}
                     {prb.testClassName && (
                       <div className="prb-maven-box">
@@ -457,6 +604,18 @@ export default function ChapterReader() {
               </div>
             </section>
           )}
+
+          <div className="chamber-completion-row">
+            <CompletionControl
+              isAuthenticated={isAuthenticated}
+              isCompleted={isCompleted}
+              saving={completionSaving}
+              onToggle={handleToggleComplete}
+              loginState={loginState}
+              variant="footer"
+            />
+            {completionError && <span className="chamber-completion-error" role="alert">{completionError}</span>}
+          </div>
 
           {/* Chapter Navigation Footer */}
           <footer className="chamber-nav-footer">
@@ -481,9 +640,23 @@ export default function ChapterReader() {
         {/* ========================================================= */}
         <aside className="chapter-context-sidebar">
           <div className="sidebar-meta-block">
+            <h5 className="sidebar-meta-title">Your progress</h5>
+            <CompletionControl
+              isAuthenticated={isAuthenticated}
+              isCompleted={isCompleted}
+              saving={completionSaving}
+              onToggle={handleToggleComplete}
+              loginState={loginState}
+              variant="sidebar"
+            />
+          </div>
+
+          <div className="sidebar-hairline-divider" />
+
+          <div className="sidebar-meta-block">
             <h5 className="sidebar-meta-title">Pathway</h5>
             <Link to={`/chapters/${chapterCourseSlug}`} className="sidebar-meta-link">
-              {chapter.course?.title || 'Curriculum pathway'}
+              {courseTitle}
             </Link>
           </div>
 
@@ -523,13 +696,18 @@ export default function ChapterReader() {
           <div className="sidebar-meta-block">
             <div className="sidebar-title-row">
               <h5 className="sidebar-meta-title">Personal note</h5>
-              <button
-                type="button"
-                className="add-note-btn"
-                onClick={() => setIsAddingNote(!isAddingNote)}
-              >
-                {isAddingNote ? 'Cancel' : '+ Note'}
-              </button>
+              {isAuthenticated && (
+                <button
+                  type="button"
+                  className="add-note-btn"
+                  onClick={() => {
+                    setIsAddingNote(!isAddingNote);
+                    setNoteError(null);
+                  }}
+                >
+                  {isAddingNote ? 'Cancel' : '+ Note'}
+                </button>
+              )}
             </div>
 
             {personalNotesList.length > 0 ? (
@@ -546,7 +724,13 @@ export default function ChapterReader() {
               </blockquote>
             )}
 
-            {isAddingNote && (
+            {!isAuthenticated && (
+              <Link to="/login" state={loginState} className="sidebar-meta-link">
+                Sign in to keep personal notes
+              </Link>
+            )}
+
+            {isAuthenticated && isAddingNote && (
               <form onSubmit={handleAddNote} className="add-note-form">
                 <textarea
                   className="add-note-input"
@@ -555,7 +739,10 @@ export default function ChapterReader() {
                   onChange={(e) => setNewNoteText(e.target.value)}
                   rows={3}
                 />
-                <button type="submit" className="save-note-btn">Save Note</button>
+                {noteError && <span className="add-note-error" role="alert">{noteError}</span>}
+                <button type="submit" className="save-note-btn" disabled={isSavingNote}>
+                  {isSavingNote ? 'Saving...' : 'Save Note'}
+                </button>
               </form>
             )}
           </div>
@@ -579,7 +766,7 @@ export default function ChapterReader() {
             <div className="sidebar-upcoming-card">
               <div className="upcoming-tag-row">
                 <span className="upcoming-badge">Next Session</span>
-                <span className="upcoming-module-tag">{chapter.course?.title || 'Java & Spring'}</span>
+                <span className="upcoming-module-tag">{chapter.nextChapter?.moduleTitle || courseTitle}</span>
               </div>
               <p className="upcoming-title">
                 {chapter.nextChapter ? chapter.nextChapter.title : 'Return to the pathway for the next chapter'}

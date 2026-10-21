@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-32-object-model-memory",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-32/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\ndef record(event, log=[]):\n    log.append(event)\n    return len(log)\n\nprint(record(\"a\"), record(\"b\"), record(\"c\", []), record(\"d\"))\n```",
+      "explanation": "**Answer: (b)** `1 2 1 3`. The default list is created once, when `def` executes, and stored in `record.__defaults__`. Calls that omit `log` all mutate that single list.\n\n- (a) `1 2 3 4` forgets that the third call passes its own fresh list, so it returns 1 and never touches the shared default.\n- (c) `1 1 1 1` would be right if defaults were re-evaluated per call, which Python does not do.\n- (d) `1 2 1 1` wrongly resets the shared list after the third call; passing an explicit list does not clear the default.\n\n**Deeper:** Interviewers ask this to check you know that `def` is an executable statement and that defaults live on the function object. The production fix is `log: list | None = None` and `log = [] if log is None else log`. Linters (ruff B006) flag the pattern, and it is the same root cause as shared mutable class attributes.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "1 2 3 4", "isCorrect": false },
+        { "optionKey": "b", "optionText": "1 2 1 3", "isCorrect": true },
+        { "optionKey": "c", "optionText": "1 1 1 1", "isCorrect": false },
+        { "optionKey": "d", "optionText": "1 2 1 1", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "With `gc.disable()` in effect, you create two `Node` objects that reference each other through an attribute, then execute `del n1, n2` so no names refer to them. Which statement is correct in CPython?",
+      "explanation": "**Answer: (d)** Each node still holds a reference from the other, so both refcounts stay at 1 and reference counting alone cannot free them. They remain allocated until the cyclic collector runs, via `gc.collect()` or after `gc.enable()` and a threshold trigger.\n\n- (a) Refcounting frees an object only when its count reaches zero, and here it never does.\n- (b) Nothing in the interpreter frees cycles on the next allocation; that is exactly the collector's job and it is switched off.\n- (c) Process exit would reclaim everything, but that is not when the objects become collectable, and a long-running service never reaches it.\n\n**Deeper:** This is why the cyclic GC exists at all. In production, disabling it (some teams do so for latency) must be paired with explicit `gc.collect()` points or a guarantee that your object graph is acyclic, otherwise memory grows steadily.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Both objects are freed immediately because no names reference them", "isCorrect": false },
+        { "optionKey": "b", "optionText": "They are freed on the next object allocation by the interpreter", "isCorrect": false },
+        { "optionKey": "c", "optionText": "They are freed only when the interpreter exits, never earlier", "isCorrect": false },
+        { "optionKey": "d", "optionText": "They stay allocated until the cyclic collector runs, for example via gc.collect()", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nclass Base:\n    __slots__ = (\"a\",)\n\nclass Child(Base):\n    pass\n\nc = Child()\nc.zzz = 1\nprint(c.__dict__)\n```",
+      "explanation": "**Answer: (a)** `{'zzz': 1}`. `Child` does not declare `__slots__`, so instances of it get a regular `__dict__` in addition to the inherited slot `a`. Dynamic attributes work again.\n\n- (b) An `AttributeError` on assignment would occur only if every class in the hierarchy defined `__slots__`.\n- (c) `__dict__` exists on `Child` instances, so reading it is fine.\n- (d) The dict is not empty, because `zzz` was just stored in it.\n\n**Deeper:** A common mistake is slotting a base class and assuming the memory saving propagates. A subclass must declare its own `__slots__` (even `()`), otherwise you pay for both the slots and a dict. Interviewers also like the related gotchas: slotted classes have no `__weakref__` unless you add it, and a class variable cannot share a name with a slot.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "{'zzz': 1}", "isCorrect": true },
+        { "optionKey": "b", "optionText": "AttributeError raised by the assignment c.zzz = 1", "isCorrect": false },
+        { "optionKey": "c", "optionText": "AttributeError raised by reading c.__dict__", "isCorrect": false },
+        { "optionKey": "d", "optionText": "{}", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A fresh list is bound to `x` and nothing else references it:\n\n```python\nimport sys\nx = [1]\nprint(sys.getrefcount(x))\n```\n\nThe output is 2. Why?",
+      "explanation": "**Answer: (c)** One reference is the name `x`; the second is the temporary reference created when `x` is passed as the argument to `getrefcount`. Subtract one to get the \"real\" count.\n\n- (a) A count of 1 would require the function not to hold a reference to its argument, which it must.\n- (b) CPython does not add a hidden reference for the interpreter's module dictionary beyond the name binding itself; the dict entry is the `x` reference already counted.\n- (d) A count of 0 would mean the object had already been freed.\n\n**Deeper:** `getrefcount` is useful for demonstrations and for sanity checks in tests, but the absolute numbers are fragile: immortal objects (3.12+) report a huge constant, and the free-threaded build uses a different counting scheme. Use `weakref` probes for assertions about object lifetime, not exact refcounts.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The list holds a reference to itself to support slicing", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The module dictionary adds a second, hidden reference in addition to the name x", "isCorrect": false },
+        { "optionKey": "c", "optionText": "The name x plus the temporary reference held by the call's argument", "isCorrect": true },
+        { "optionKey": "d", "optionText": "Lists start with a reference count of 2 by default", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\na = [1, 2, 3]\nb = a\na += [4]\na = a + [5]\nprint(b, a)\n```",
+      "explanation": "**Answer: (c)** `[1, 2, 3, 4] [1, 2, 3, 4, 5]`. `a += [4]` calls `list.__iadd__`, which extends the existing list in place, so `b` (an alias) sees the 4. `a = a + [5]` builds a new list and rebinds only `a`; `b` still points at the old object.\n\n- (a) `[1, 2, 3]` assumes `+=` rebinds like `+`, which is true for tuples and ints but not lists.\n- (b) `[1, 2, 3, 4, 5]` for `b` would require the second statement to mutate in place.\n- (d) Showing 5 missing from `a` ignores that `a + [5]` is assigned back to `a`.\n\n**Deeper:** The `+=` versus `+` split is a recurring source of aliasing bugs when functions receive a list and use `+=` on a parameter, silently mutating the caller's data. A senior answer names `__iadd__` and notes that immutable types fall back to `__add__` plus rebinding.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "[1, 2, 3] [1, 2, 3, 4, 5]", "isCorrect": false },
+        { "optionKey": "b", "optionText": "[1, 2, 3, 4, 5] [1, 2, 3, 4, 5]", "isCorrect": false },
+        { "optionKey": "c", "optionText": "[1, 2, 3, 4] [1, 2, 3, 4, 5]", "isCorrect": true },
+        { "optionKey": "d", "optionText": "[1, 2, 3, 4] [1, 2, 3, 4]", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nimport sys\ns1 = \"\".join([\"py\", \"thon\"])\ns2 = \"python\"\n```\n\nWhich statement about `s1` and `s2` is guaranteed by CPython's behaviour on a normal build?",
+      "explanation": "**Answer: (a)** `s1 == s2` is True because the contents match, and `sys.intern` returns the canonical interned copy, so both interned results are the same object.\n\n- (b) `s1 is s2` is not guaranteed: `join` builds a new string at runtime, and in practice it is a different object.\n- (c) `s1 is s2` being False is also not a guarantee; it is merely what usually happens, and could change with optimizations.\n- (d) Identity of runtime-built and literal strings is not a language rule, and CPython does not intern every string.\n\n**Deeper:** Identity of equal strings and ints is an implementation detail. Use `==` for values and `is` only for singletons. Use `sys.intern` deliberately when you hold huge numbers of repeated strings (keys, tenant IDs) so dictionary lookups can short-circuit on identity and duplicates share storage.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "s1 == s2 is True, and sys.intern(s1) is sys.intern(s2) is True", "isCorrect": true },
+        { "optionKey": "b", "optionText": "s1 is s2 is always True, because equal strings share one object", "isCorrect": false },
+        { "optionKey": "c", "optionText": "s1 is s2 is always False, because join creates a new string", "isCorrect": false },
+        { "optionKey": "d", "optionText": "id(s1) == id(s2) holds on every CPython version as part of the language spec", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An LLM gateway decorates `Session.render_prompt(self, name)` with `@functools.lru_cache(maxsize=None)`. Pods grow in memory until OOM, and `Session` objects are never freed even after requests end. What is the root cause?",
+      "explanation": "**Answer: (d)** The cache is attached to the function object, which is shared by the class, and its keys include `self`. Every `Session` that ever called the method is strongly referenced from the cache, so its refcount never reaches zero.\n\n- (a) It is not a reference cycle, so the cyclic collector would not help; the objects are reachable from the cache.\n- (b) `lru_cache` stores strong references; there are no weak references that expire late.\n- (c) Thread safety is not the issue; `lru_cache` is thread-safe and the symptom is a leak, not corruption.\n\n**Deeper:** Fixes include a per-instance dict cache, a module-level cache keyed by hashable IDs rather than instances, a finite `maxsize`, or `functools.cached_property` for per-instance values. Diagnose with `cache_info().currsize`, `tracemalloc` snapshot diffs, and a `weakref.ref` probe in a test. Ruff's B019 rule flags this pattern.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "A reference cycle between Session and the cache that gc.collect() would clean up", "isCorrect": false },
+        { "optionKey": "b", "optionText": "lru_cache keeps weak references that are only dropped at the next full collection", "isCorrect": false },
+        { "optionKey": "c", "optionText": "lru_cache is not thread-safe, so concurrent calls corrupt the object table", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The cache lives on the shared function and holds strong references to self as part of each key", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What happens when this code runs?\n\n```python\nimport weakref\n\nclass Token:\n    __slots__ = (\"value\",)\n    def __init__(self, v):\n        self.value = v\n\nt = Token(\"x\")\nr = weakref.ref(t)\nprint(r() is t)\n```",
+      "explanation": "**Answer: (b)** `weakref.ref(t)` raises `TypeError: cannot create weak reference to 'Token' object`. Instances only support weak references if the class provides a `__weakref__` slot. A normal class gets one automatically; a class with `__slots__` that omits `\"__weakref__\"` does not.\n\n- (a) Printing `True` would require the weak reference to be created successfully.\n- (c) The error type is `TypeError`, not `AttributeError`.\n- (d) The `None` result occurs only after a referent dies; here no reference object is ever created.\n\n**Deeper:** This bites when someone adds `__slots__` for memory and a cache or observer registry based on `WeakValueDictionary` or `WeakSet` starts failing. Add `\"__weakref__\"` to the slots, or use `dataclass(slots=True, weakref_slot=True)` on 3.11+. Builtins such as `list`, `dict`, `int` and `str` also reject weak references.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "It prints True", "isCorrect": false },
+        { "optionKey": "b", "optionText": "TypeError is raised by weakref.ref(t)", "isCorrect": true },
+        { "optionKey": "c", "optionText": "AttributeError is raised by weakref.ref(t)", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It prints None", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A preforking Python server loads a large application in the parent, then forks workers. Worker RSS climbs because shared pages become private even for objects the worker never intentionally modifies. Which targeted change reduces the part of this caused by the cyclic collector?",
+      "explanation": "**Answer: (b)** Calling `gc.freeze()` in the parent after startup (with preloaded application code) moves all tracked objects to a permanent generation that collections skip, so workers' GC passes no longer traverse and write to those shared pages.\n\n- (a) A `gc.collect()` in each worker visits and updates the headers of the objects, which makes copy-on-write worse.\n- (c) Interning does not stop GC traversal or refcount updates, and it only applies to strings.\n- (d) `__slots__` shrinks instances but does nothing about which pages are written during GC.\n\n**Deeper:** Refcount updates still dirty pages when objects are touched, and only immortal objects (3.12+) are exempt, so `gc.freeze()` reduces rather than eliminates the effect. It must be called before `fork`, which is why it belongs in the parent, for example in Gunicorn's `when_ready` hook with `--preload`. Measure with PSS from `/proc/<pid>/smaps`, not RSS.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Call gc.collect() in every worker immediately after the fork", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Call gc.freeze() in the parent after warm-up, before the workers are forked", "isCorrect": true },
+        { "optionKey": "c", "optionText": "Call sys.intern on every loaded object so pages are shared", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Add __slots__ to all classes so the collector skips them", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What is the output order of this program on CPython?\n\n```python\nclass R:\n    def __init__(self, n):\n        self.n = n\n    def __del__(self):\n        print(\"del\", self.n)\n\na = R(1)\nb = a\ndel a\nprint(\"x\")\ndel b\nprint(\"y\")\n```",
+      "explanation": "**Answer: (c)** `x`, then `del 1`, then `y`. Deleting `a` only removes one of two references, so the object survives and `x` prints. `del b` drops the count to zero and CPython runs `__del__` immediately, before `y`.\n\n- (a) `del 1` first would mean the first `del` freed the object, ignoring the alias `b`.\n- (b) `x`, `y`, `del 1` would hold on a runtime with deferred collection (PyPy), not CPython refcounting.\n- (d) The finalizer does run; CPython calls `__del__` when the count reaches zero.\n\n**Deeper:** This deterministic timing is a CPython behaviour, not a language promise, and code that depends on it breaks on other implementations or when a cycle is introduced. Prefer `with`/`contextlib` or `weakref.finalize` for cleanup. Also note that exceptions raised in `__del__` are only printed to stderr, never propagated.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "del 1, x, y", "isCorrect": false },
+        { "optionKey": "b", "optionText": "x, y, del 1", "isCorrect": false },
+        { "optionKey": "c", "optionText": "x, del 1, y", "isCorrect": true },
+        { "optionKey": "d", "optionText": "x, y (the finalizer never runs)", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print?\n\n```python\nt = ([1], 2)\ntry:\n    t[0] += [9]\nexcept TypeError:\n    print(\"err\")\nprint(t)\n```",
+      "explanation": "**Answer: (d)** `err` then `([1, 9], 2)`. The statement `t[0] += [9]` first fetches the list, calls `__iadd__` (which mutates it in place and succeeds), then tries to store the result back into `t[0]`. The tuple rejects the item assignment with `TypeError`, but the mutation already happened.\n\n- (a) `([1], 2)` assumes the failed statement rolled back; Python does no rollback.\n- (b) Printing only the tuple ignores that the `TypeError` was raised and handled.\n- (c) `[1, 9, 9]` would need the extension to run twice, which it does not.\n\n**Deeper:** It illustrates that augmented assignment is a read, an operation and a rebind. Tuples are shallowly immutable: they fix which objects they reference, not those objects' state. This also explains why a tuple containing a list is unhashable.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "err, then ([1], 2)", "isCorrect": false },
+        { "optionKey": "b", "optionText": "([1, 9], 2) only, with no error", "isCorrect": false },
+        { "optionKey": "c", "optionText": "err, then ([1, 9, 9], 2)", "isCorrect": false },
+        { "optionKey": "d", "optionText": "err, then ([1, 9], 2)", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-32/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A teammate checks `sys.getsizeof(records)` for a list of 1,000 dicts of parsed documents, gets about 8 KB, and concludes the batch is cheap to hold in memory. What is the flaw, and what should they do?",
+      "explanation": "**Answer: (a)** `sys.getsizeof` is shallow: it reports the list's own pointer array and header, not the 1,000 dicts or the strings and numbers inside them. A correct measurement uses `tracemalloc` (before/after, or snapshot diff) or a recursive walker that tracks visited `id`s.\n\n- (b) The opposite is true: it never counts shared referents at all, so it under-reports rather than over-reports.\n- (c) It does return bytes, not bits.\n- (d) `len(records)` says nothing about byte cost.\n\n**Deeper:** Even a recursive size function mis-attributes shared objects (interned strings, small ints) unless it deduplicates. For capacity planning, measure RSS or PSS under realistic load and confirm with `tracemalloc` top statistics. Libraries such as `pympler` automate deep sizing, but know why it is needed.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "getsizeof is shallow and ignores referenced dicts; use tracemalloc or a recursive size walker with visited ids", "isCorrect": true },
+        { "optionKey": "b", "optionText": "getsizeof counts shared objects many times and so overstates the real size", "isCorrect": false },
+        { "optionKey": "c", "optionText": "getsizeof returns bits rather than bytes, so the value must be divided by 8", "isCorrect": false },
+        { "optionKey": "d", "optionText": "They should use len(records) because it reflects the true memory footprint", "isCorrect": false }
+      ]
+    }
+  ]
+}

@@ -410,3 +410,30 @@
 .auth-btn-back:hover {
   color: var(--ink-primary);
 }
+
+/* Remember-me checkbox on the 2FA step */
+.auth-remember-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.auth-remember-row input {
+  margin-top: 0.15rem;
+  accent-color: var(--accent-sage);
+}
+
+.auth-remember-row strong {
+  display: block;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.auth-remember-row span span {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+}

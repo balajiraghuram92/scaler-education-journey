@@ -1,0 +1,426 @@
+{
+ "lessonSlug": "py-03-magic-methods-data-model",
+ "sourceLesson": "Backend LLD: OOP-5: Magic Methods and the Python Data Model",
+ "questions": [
+  {
+   "legacyKey": "python-engineering/py-03/additional/q01",
+   "category": "Additional",
+   "title": "Repr Fallback When Missing",
+   "question": "Uber's Trip class defines __repr__ but not __str__. What is the output of print(trip)?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Raises TypeError since print() requires __str__"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The default <Trip object at 0x…> memory address"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The __repr__ output, since __str__ falls back to __repr__ when undefined"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "An empty string, since __str__ is missing"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_QV3JBZDhKC.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/additional/q02",
+   "category": "Additional",
+   "title": "Hash Disabled After Eq",
+   "question": "A Vehicle class overrides __eq__ to compare by reg_number, but never defines __hash__. A developer runs Vehicle.__hash__ in the REPL. What does it show?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "A working hash function inherited from object"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "None — Python automatically disables hashing when __eq__ is overridden without a matching __hash__"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "AttributeError"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "A function that always returns 0"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_uaeiQVEunm.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/additional/q03",
+   "category": "Additional",
+   "title": "Consistent Hash Equality Check",
+   "question": "Two Driver objects d1 and d2 have the same driver_id. __eq__ compares by driver_id, and __hash__ is defined as return hash(self.driver_id). What is d1 in {d2}?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "False — different objects in memory"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Raises TypeError"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "True only if d1 is d2"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "True — equal objects hash to the same \"shelf,\" so membership lookup finds it"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_zsB0j0bsxe.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/additional/q04",
+   "category": "Additional",
+   "title": "Operator Overloading Under Hood",
+   "question": "a + b on custom objects is secretly routed through which mechanism?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Python parses + as raw syntax with no method call involved"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "a.__add__(b) — operators are method calls \"wearing a costume\""
+    },
+    {
+     "optionKey": "c",
+     "optionText": "A hidden compiler-level operation invisible to the data model"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "b.__add__(a) always, regardless of order"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_DDymgZy4QU.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/additional/q05",
+   "category": "Additional",
+   "title": "Hash Equality Contract Safeguard",
+   "question": "Why does Python set __hash__ to None automatically the instant a class defines __eq__ (without also defining __hash__)?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "It's an arbitrary restriction with no real reason"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "To force you to also implement __str__"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Because the default identity-based hash would now disagree with your new content-based equality — letting \"equal\" objects land on different hash \"shelves,\" silently breaking sets/dicts"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "To improve performance of the class"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_nG1DWZInE0.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/additional/q06",
+   "category": "Additional",
+   "title": "Exit Always Runs Rule",
+   "question": "Inside a with Resource() as r: block that raises an exception, which statement is TRUE about __exit__?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "__exit__ is skipped entirely if an exception occurs"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "__exit__ always runs, exception or not; its return value (True/False) decides whether the exception is suppressed or re-raised"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "__exit__ only runs if the exception is caught elsewhere first"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "__exit__ runs only on the normal (non-exception) exit path"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_6SXSLw1nQu.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/additional/q07",
+   "category": "Additional",
+   "title": "Slice Object Delegation",
+   "question": "A class defines __getitem__ by delegating to an internal list (return self._data[index]) but does NOT write any special slicing logic. What happens when a user calls obj[:2]?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "TypeError — slicing requires a separate __slice__ method"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Works correctly — the slice object is passed through to the internal list, which already knows how to slice itself"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Returns None"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Only single-index access works; slicing always fails"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_HLMTUsu4Ey.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/additional/q08",
+   "category": "Additional",
+   "title": "Callable Object Design Tradeoff",
+   "question": "A SurgePricing object is configured with multiplier and base_fare, then used as surge(4.2). Which dunder makes this possible, and what's the risk of overusing this pattern?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "__call__; risk is that readers may assume it's a plain function and be confused it carries hidden state — use only when the object genuinely represents \"a function with memory\""
+    },
+    {
+     "optionKey": "b",
+     "optionText": "__init__; no risk, it's always safe"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "__getattr__; no meaningful risk"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "__new__; risk of infinite recursion"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_LqrkTPBnYs.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/additional/q09",
+   "category": "Additional",
+   "title": "Membership Operator Auto-Dispatch",
+   "question": "A class defines __contains__ for membership tests (x in obj). Which best describes when Python calls it?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Only when explicitly invoked as obj.__contains__(x)"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Never — in only works on built-in types"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Only inside for loops"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Automatically, whenever the in operator is used on an instance of that class"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_5p4n4em3hz.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/additional/q10",
+   "category": "Additional",
+   "title": "Purposeful Dunder Method Design",
+   "question": "Which of these is the most accurate summary of the \"one rule\" for deciding whether to add a dunder method to a class?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Add as many dunders as possible to make the class feel powerful"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "Only add dunders if the class will be used in a set or dict"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Add a dunder only when a real caller needs the object to speak Python's existing language (len, in, ==, with) — don't wire buttons nobody presses or create surprising behavior behind familiar syntax"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "Dunders should only be added to classes without any regular methods"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_gzjknyYIoN.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/assignment/q01",
+   "category": "Assignment",
+   "title": "Default Identity-Based Equality",
+   "question": "Uber's Driver class originally has no custom dunders. A dispatcher writes d1 = Driver(\"Ramesh\", 4.8, driver_id=\"D101\") and d2 = Driver(\"Ramesh\", 4.8, driver_id=\"D101\") — two separately-loaded copies of the same real driver record. Without any __eq__ defined, what does d1 == d2 evaluate to, and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "True — Python compares all attributes by default"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "True — because driver_id matches"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Raises TypeError — objects can't be compared without __eq__"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "False — the default __eq__ is an identity check (same object in memory), not a content check"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_hItskLqCg2.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/assignment/q02",
+   "category": "Assignment",
+   "title": "Custom Eq Hash Conflict",
+   "question": "After adding def __eq__(self, other): return self.driver_id == other.driver_id to Driver (with no hash defined), a dispatch engineer runs online_drivers = {d1, d2}. What happens, and why?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "Works fine — Python auto-generates a matching __hash__ from __eq__"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "TypeError: unhashable type — defining __eq__ sets __hash__ to None automatically, since a hash based on identity would now contradict content-based equality"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Silently creates two separate entries in the set"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "AttributeError — sets require a driver_id attribute"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_OBE53anKtu.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/assignment/q03",
+   "category": "Assignment",
+   "title": "Repr Fallback For Str",
+   "question": "A class defines only __repr__, no __str__. A developer runs print(some_object). What is printed?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "The default memory address, ignoring __repr__"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "TypeError — print() requires __str__"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "The __repr__ output — __str__'s default implementation falls back to calling __repr__"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "An empty string"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_CfwaWLkxR7.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/assignment/q04",
+   "category": "Assignment",
+   "title": "Context Manager Exception Propagation",
+   "question": "Inside a with TripTimer(trip) as t: block, a ValueError is raised (not the TripCancelledError that __exit__ explicitly checks for and returns True on). What happens?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "__exit__ never runs since the exception isn't the one it checks for"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "The ValueError is silently swallowed just like TripCancelledError"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "Python skips straight to the next line after the with block, ignoring the error entirely"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "__exit__ runs (cleanup/logging happens), returns False since the type doesn't match, and the ValueError propagates normally after cleanup"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_P3hiRKaaAu.png"
+   ]
+  },
+  {
+   "legacyKey": "python-engineering/py-03/assignment/q05",
+   "category": "Assignment",
+   "title": "Callable Objects Configuration Benefit",
+   "question": "A SurgePricing class is configured once via __init__(multiplier, base_fare) and defines __call__(self, distance). A developer then writes surge = SurgePricing(15, 50) followed by fare = surge(4.2). What allows surge(4.2) to work syntactically, and what's the main benefit over a plain function calculate_surge(distance, multiplier, base_fare)?",
+   "options": [
+    {
+     "optionKey": "a",
+     "optionText": "__call__ button; benefit is it's always faster than a function"
+    },
+    {
+     "optionKey": "b",
+     "optionText": "__call__ button; benefit is the object remembers configuration (multiplier, base_fare) across calls, so each call only needs what actually varies"
+    },
+    {
+     "optionKey": "c",
+     "optionText": "__init__ is called again each time; no real benefit over a function"
+    },
+    {
+     "optionKey": "d",
+     "optionText": "This is invalid syntax — objects cannot be called like functions in Python"
+    }
+   ],
+   "note": "",
+   "screenshots": [
+    "msedge_C3xK7eYV66.png"
+   ]
+  }
+ ]
+}

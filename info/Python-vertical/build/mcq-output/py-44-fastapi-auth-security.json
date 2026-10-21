@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-44-fastapi-auth-security",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-44/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An endpoint is declared with `Security(get_principal, scopes=[\"rides:write\"])`. A client sends a correctly signed, unexpired access token whose scopes are only `[\"rides:read\"]`. Assuming `get_principal` raises `HTTPException` as in the lesson, what does the client receive?",
+      "explanation": "**Answer: (c)** The token is valid, so authentication succeeded; the principal simply lacks the required scope. That is an authorization failure, `403`. The lesson's dependency also returns the challenge header listing the needed scope (verified against FastAPI with a stub decoder).\n\n- (a) Wrong: `401` means the credentials are missing or invalid, which is not the case here.\n- (b) Wrong: `OAuth2PasswordBearer` extracts the token, but your dependency is what validates scopes; here it refuses.\n- (d) Wrong: nothing about request parsing failed, so no validation error is produced.\n\n**Deeper:** Interviewers use the 401/403 distinction as a quick seniority check. Clients and gateways react differently: a 401 should trigger refresh or re-login, while a 403 should not, and retrying will never help.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`401 Unauthorized`, because the token does not grant the requested access.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`200 OK`, because `OAuth2PasswordBearer` only checks that a token exists.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`403 Forbidden`, ideally with `WWW-Authenticate: Bearer scope=\"rides:write\"`: the caller is identified but not permitted.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`422 Unprocessable Entity`, because the scope list fails Pydantic validation.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A token bucket has capacity 2 and refills 0.5 tokens per second. Each `allow(now)` call refills based on elapsed time (capped at capacity) and then spends one token if at least one is available. What does this print?\n\n```python\nclass TokenBucket:\n    def __init__(self, capacity, rate, now):\n        self.capacity, self.rate, self.tokens, self.updated = capacity, rate, capacity, now\n\n    def allow(self, now, cost=1.0):\n        self.tokens = min(self.capacity, self.tokens + (now - self.updated) * self.rate)\n        self.updated = now\n        if self.tokens >= cost:\n            self.tokens -= cost\n            return True\n        return False\n\nb = TokenBucket(2, 0.5, 0.0)\nprint([b.allow(t) for t in [0.0, 0.5, 1.0, 2.0, 2.1, 6.0]])\n```",
+      "explanation": "**Answer: (a)** Starting with 2 tokens: t=0 spends one (1 left). At t=0.5 it refills 0.25 to 1.25 and spends one (0.25 left). At t=1.0 only 0.5 is available, so it is refused. At t=2.0 it has 1.0 and spends it. At t=2.1 it has 0.05 and is refused. At t=6.0 the refill caps at capacity and a token is spent.\n\n- (b) Wrong: it ignores that the refill rate is only half a token per second.\n- (c) Wrong: at t=2.0 the bucket has accumulated exactly one token, so that request is allowed.\n- (d) Wrong: at t=0.5 the bucket still holds 1.25 tokens, so the second request passes.\n\nOutput verified by running the snippet.\n\n**Deeper:** The capacity controls burst size and the rate controls the sustained throughput. In production the same arithmetic runs atomically in Redis, and the refusal path returns `429` with a `Retry-After` computed from the missing tokens.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`[True, True, False, True, False, True]`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`[True, True, True, True, True, True]`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`[True, True, False, False, False, True]`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`[True, False, False, True, False, True]`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An API uses `CORSMiddleware(allow_origins=[\"*\"], allow_credentials=True, allow_methods=[\"*\"], allow_headers=[\"*\"])` and authenticates with a session cookie. A request arrives from `https://evil.example` carrying a victim's cookie. What does Starlette respond with, and why is it dangerous?",
+      "explanation": "**Answer: (d)** Browsers forbid `*` together with credentials, so Starlette reflects the actual Origin to make the combination work. The result is that every origin is effectively trusted with the user's cookie. I verified this against the installed Starlette.\n\n- (a) Wrong: the headers are present and permissive.\n- (b) Wrong: a literal `*` with credentials would be rejected by the browser, which is why the origin is echoed instead.\n- (c) Wrong: the `400 Disallowed CORS origin` response is for origins outside an explicit allowlist.\n\nThe fix is an exact `allow_origins` list per environment, or no credentials if the API is meant to be public.\n\n**Deeper:** This is a favourite security-review finding: it passes functional tests and only an attacker page proves the problem. Mention that CORS also does not protect against non-browser clients, and that cookie-based auth additionally needs CSRF defences.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It omits CORS headers, so the browser blocks the response; the configuration is safe.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It answers `Access-Control-Allow-Origin: *`, which browsers accept together with credentials.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It returns `400 Disallowed CORS origin`, because `*` cannot be combined with credentials.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It reflects the request origin (`Access-Control-Allow-Origin: https://evil.example`) with `Access-Control-Allow-Credentials: true`, so any site can make credentialed requests and read the responses.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using the lesson's refresh-token store (rotation with reuse detection, where a replayed used token revokes its whole family), what does this print?\n\n```python\nclass ReuseDetected(Exception): pass\n\nclass Store:\n    def __init__(self): self.t = {}; self.used = set(); self.rev = set(); self.n = 0\n    def _new(self, f): self.n += 1; i = f\"r{self.n}\"; self.t[i] = f; return i\n    def login(self, u): return self._new(\"fam:\" + u)\n    def rotate(self, i):\n        f = self.t.get(i)\n        if f is None or f in self.rev: raise PermissionError(\"invalid\")\n        if i in self.used: self.rev.add(f); raise ReuseDetected(i)\n        self.used.add(i); return self._new(f)\n\ns = Store(); r1 = s.login(\"a\"); r2 = s.rotate(r1)\nfor tok in (r1, r2, r1):\n    try:\n        print(\"ok\", s.rotate(tok))\n    except Exception as e:\n        print(type(e).__name__)\n```",
+      "explanation": "**Answer: (b)** `r1` was already used when `r2` was issued, so presenting it again triggers reuse detection and revokes the family. The legitimate newest token `r2` is then invalid too, and the final replay of `r1` meets a revoked family.\n\n- (a) Wrong: it treats `r1` as still valid, but rotation marked it used.\n- (c) Wrong: `r2` cannot succeed after its family was revoked in the previous step.\n- (d) Wrong: the first check is for reuse, not just validity, so the first output is `ReuseDetected`.\n\nOutput verified by running the snippet.\n\n**Deeper:** Revoking the family logs out the real user as well; that is the accepted cost, because you cannot tell which holder is the attacker. Real implementations must make the \"used\" flip atomic, or two concurrent refreshes will both succeed.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`ok r3`, `ok r4`, `ReuseDetected`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`ReuseDetected`, `PermissionError`, `PermissionError`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`ReuseDetected`, `ok r3`, `ReuseDetected`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`PermissionError`, `ReuseDetected`, `PermissionError`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print, and what does it show about JWTs?\n\n```python\nimport base64, json\npayload = base64.urlsafe_b64encode(\n    json.dumps({\"sub\": \"u1\", \"role\": \"user\"}, separators=(\",\", \":\")).encode()\n).rstrip(b\"=\")\nprint(payload.decode())\nprint(json.loads(base64.urlsafe_b64decode(payload + b\"=\" * (-len(payload) % 4))))\n```",
+      "explanation": "**Answer: (b)** Base64url is an encoding, not encryption. Decoding the segment (after restoring padding) returns the claims dictionary unchanged. A JWT's security comes from the signature check, not from hiding the payload.\n\n- (a) Wrong: no key is involved, so there is no ciphertext and decoding succeeds.\n- (c) Wrong: `.rstrip(b\"=\")` removes the padding, and the second line decodes successfully.\n- (d) Wrong: nothing is hashed; the compact JSON is encoded verbatim.\n\nOutput verified by running the snippet.\n\n**Deeper:** Never put secrets or sensitive personal data in claims unless you use JWE (encrypted tokens). In interviews, say what is guaranteed (integrity and authenticity) and what is not (confidentiality, revocation).",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Ciphertext on the first line and a `binascii.Error` on the second, because the data is encrypted.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`eyJzdWIiOiJ1MSIsInJvbGUiOiJ1c2VyIn0` and then `{'sub': 'u1', 'role': 'user'}`: the payload is only base64url-encoded, so anyone holding the token can read it.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`eyJzdWIiOiJ1MSIsInJvbGUiOiJ1c2VyIn0=` (with padding) and then a `KeyError`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The string `u1:user` and then `None`, because the claims are hashed.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`GET /v1/conversations/{conversation_id}` authenticates the caller with a valid JWT and then runs `select(Conversation).where(Conversation.id == conversation_id)`. A tester with tenant A's token fetches a tenant B conversation by changing the id. Which fix addresses the root cause?",
+      "explanation": "**Answer: (d)** This is BOLA (OWASP API1): the caller is authenticated but not authorised for the object. The check must live in the query so that no code path can return a foreign row.\n\n- (a) Wrong: unguessable ids reduce discovery but leak through logs, URLs and shared links, and are not an access control.\n- (b) Wrong: rate limits slow enumeration but do not stop a single targeted request.\n- (c) Wrong: scopes authorise a function (\"may read conversations\"), not an object (\"this one\"); that is a different risk (BFLA).\n\n**Deeper:** Return `404` rather than `403` for another tenant's object to avoid confirming that it exists. Mature teams put the tenant predicate in a repository base class or database row-level security so developers cannot forget it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Make conversation ids random UUIDs, so they cannot be guessed.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Add a rate limit to the endpoint so enumeration becomes slow.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add the `rides:read` style scope to the route so only privileged callers can read conversations.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Make ownership part of the data access: filter on `Conversation.tenant_id == principal.tenant_id` (returning 404 for non-matching rows), and add a two-tenant test.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "After adding argon2 password verification to an `async def login` endpoint, p99 latency for all endpoints (including `/healthz`) spikes whenever 30 logins arrive together. What is the most likely cause and fix?",
+      "explanation": "**Answer: (a)** A password hash is deliberately slow, tens of milliseconds of CPU. Calling it directly in a coroutine blocks the single event loop thread, so health checks and unrelated requests wait. Moving it to a worker thread keeps the loop responsive, and a login rate limit bounds the CPU a flood of attempts can burn.\n\n- (b) Wrong: argon2 uses CPU (and memory), not network or database connections.\n- (c) Wrong: comparing secrets is not the bottleneck here; the hash is.\n- (d) Wrong: a fast hash is exactly what makes stolen hashes cheap to crack; slowness is the security feature.\n\n**Deeper:** Also compare against a dummy hash when the user does not exist so response time does not reveal valid accounts. Mention `check_needs_rehash` to upgrade parameters transparently at the next successful login.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Hashing is CPU-bound work executing on the event loop, which stalls every request; run `ph.verify` in a worker thread (`run_in_threadpool`) and rate-limit the login route.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "argon2 is I/O-bound, so you should increase the connection pool size.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The event loop is fine; the spike comes from `SecretStr` being slow to compare.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Switch to SHA-256 so hashing is fast enough to run inline.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A dashboard authenticates with an HttpOnly session cookie set with `SameSite=Lax`. The security team asks whether CSRF is still possible and what to add. Which answer is best?",
+      "explanation": "**Answer: (c)** `SameSite=Lax` blocks most cross-site POST requests but not same-site ones or requests from clients that ignore the attribute. Defence in depth is an `Origin` check or a CSRF token on unsafe methods.\n\n- (a) Wrong: HttpOnly addresses XSS cookie theft; CSRF does not need to read the cookie, only to cause the browser to send it.\n- (b) Wrong: CORS restricts reading responses; a cross-site form POST is still delivered and acted upon.\n- (d) Wrong: `SameSite=None` is the most permissive setting and requires `Secure`.\n\n**Deeper:** The `__Host-` cookie prefix adds enforcement of `Secure`, `Path=/` and no `Domain`, which closes subdomain cookie-injection tricks. In an interview, connect each attack (XSS, CSRF, cookie injection) to the specific attribute or check that mitigates it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No further work is needed because HttpOnly stops scripts from reading the cookie, which also prevents CSRF.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Configure strict CORS; browsers will then refuse cross-site requests entirely.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Residual risk remains (same-site attackers such as a compromised sibling subdomain, and clients without SameSite support), so also validate the `Origin` header against an allowlist or require a CSRF token on state-changing requests.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Switch the cookie to `SameSite=None`, which is the most restrictive option.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A team registers `CORSMiddleware` first and then a custom `@app.middleware(\"http\")` rate limiter that returns `JSONResponse(..., status_code=429)` directly. Browser clients report a CORS error whenever they are throttled. What is the cause and fix?",
+      "explanation": "**Answer: (b)** In Starlette the last middleware added is the outermost. A middleware that short-circuits and returns its own response never calls the inner layers, so a CORS middleware sitting inside it adds nothing. I verified this against the installed FastAPI: with CORS registered first the `429` had no `access-control-allow-origin`, and with it registered last the header was present.\n\n- (a) Wrong: CORS does not restrict status codes.\n- (c) Wrong: CORS applies to all cross-origin methods, with preflights for non-simple ones.\n- (d) Wrong: credentials setting does not decide whether headers are attached to error responses.\n\n**Deeper:** Note that unhandled exceptions still produce a `500` from Starlette's outermost error layer outside `CORSMiddleware`, which is why an app should translate expected failures into explicit responses and treat uncaught errors as incidents.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The `429` status code is not allowed in CORS responses; return `503` instead.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The limiter's response is produced outside `CORSMiddleware` (last registered means outermost), so it carries no CORS headers; register `CORSMiddleware` last so every response passes through it.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "CORS only applies to `GET` requests, so POST requests are always blocked.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`allow_credentials` must be `False` for error responses to be readable.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A service verifies RS256 access tokens, but its verifier reads the algorithm from the token header and uses whatever it finds, passing the RSA public key (a publicly known string) as the key material. What attack does this enable and what is the fix?",
+      "explanation": "**Answer: (d)** If the verifier trusts the header, an attacker can pick HS256 and sign the token with the public key bytes as an HMAC secret. The verifier then computes the same HMAC with the same bytes and accepts a forged token.\n\n- (a) Wrong: `none` is one variant of header trust, but it is not the only one, and rejecting it still leaves HS256/RS256 confusion.\n- (b) Wrong: replay is a separate concern, mitigated by short expiry and `jti` tracking.\n- (c) Wrong: constant-time comparison matters for HMAC checks but does not stop a forged but internally consistent token.\n\n**Deeper:** The lesson's stdlib verifier pins `HS256` for this reason; PyJWT forces you to pass `algorithms=[...]`. Add `iss`, `aud` and `exp` checks in the same call, and use `kid` with a JWKS to select among your own keys, not the token's claimed algorithm.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A downgrade to `alg: none` is the only risk, and rejecting unsigned tokens is sufficient.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A replay attack, fixed by adding a `jti` claim.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A timing attack on signature comparison, fixed by `hmac.compare_digest` alone.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Algorithm confusion: an attacker sets `alg: HS256` and signs with the public key as the HMAC secret, which the verifier accepts. Pin the accepted algorithms server-side (for example `algorithms=[\"RS256\"]`).",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "You configure an in-memory limit of 100 requests per minute per client in your FastAPI app, which runs as 4 uvicorn workers in each of 3 replicas. What is the effective maximum a single client can achieve, and what is the fix?",
+      "explanation": "**Answer: (a)** Each worker process has its own memory, so each keeps an independent counter. With 12 processes and a load balancer that spreads requests, a client can approach 12 times the intended limit.\n\n- (b) Wrong: the app object exists once per process, not once per deployment.\n- (c) Wrong: neither replicas nor workers share Python memory.\n- (d) Wrong: the sustained rate multiplies as well, not just the burst.\n\nUse a shared store: Redis with an atomic increment-and-expire or a Lua token bucket, so all processes see the same state.\n\n**Deeper:** Mention failure modes of the shared limiter too: decide whether it fails open or closed if Redis is down, and key limits by authenticated principal and plan (including LLM token cost) rather than IP alone.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Up to 1,200 requests per minute (100 per process x 12 processes) when requests spread across all processes; keep the counters in shared storage such as Redis with an atomic script.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Exactly 100 per minute, because the limiter is attached to the app object.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Up to 400 per minute, because replicas share memory but workers do not.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Up to 100 per minute, but with a 12 times larger burst; no fix is needed.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-44/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A Dockerfile contains `ARG OPENAI_API_KEY` and a build step `RUN python scripts/warm_cache.py` that reads it. The image is pushed to a registry. What is the problem and the right remediation?",
+      "explanation": "**Answer: (c)** Values supplied through `ARG` can appear in image history and build metadata, and anything baked into a layer travels with the image to everyone who can pull it. The key must be considered compromised and rotated.\n\n- (a) Wrong: arguments are not retained as environment in the final container by default, but they are visible in history and layers.\n- (b) Wrong: `ENV` would make it even more exposed, because it persists in the running container.\n- (d) Wrong: encoding is not protection; it is trivially reversed.\n\n**Deeper:** The clean pattern is runtime injection (environment variables from a secret store, short-lived credentials via workload identity), `SecretStr` in settings, redaction in logs, and secret scanning in CI. For build-time needs use BuildKit's `--mount=type=secret`, which does not persist in layers.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No problem: build arguments are discarded after the build.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The key is only exposed if the Dockerfile uses `ENV`, so switching `ARG` to `ENV` would be safer.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Build arguments and layers can be recovered from the image history and metadata, so treat the key as leaked: rotate it, remove it from the build, and inject secrets at runtime from a secret manager or orchestrator (or use BuildKit secret mounts when a build step truly needs one).",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Base64-encode the key before passing it as an argument.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,395 @@
+{
+  "lessonSlug": "py-07-synchronization-async-intro",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-07/additional/q04",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In the lecture, a Semaphore(3) was used to allow only 3 threads to run at once (like a parking lot with 3 spots). If instead you initialize Semaphore(0), what happens when a thread immediately calls acquire() on it?",
+      "explanation": "**Answer: (d)** `Semaphore(0)` starts with zero permits, so `acquire()` blocks until another thread calls `release()`.\n\n- (a) `Semaphore(1)` would let the first `acquire()` pass at once; with 0 it does not.\n- (b) Zero is a valid initial value, and it is the standard way to build a signal.\n- (c) \"Nothing to block\" is backwards: no permits means the caller must wait.\n\n**Deeper:** A semaphore initialised to 0 is a hand-off between threads, not a capacity limit. It is how you encode \"B must wait for A\". Note that `BoundedSemaphore(0)` is legal but any `release()` beyond the initial value raises `ValueError`, so ordering code uses plain `Semaphore(0)`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It behaves exactly like Semaphore(1)",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It raises an error because 0 is not allowed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It passes through instantly since there's nothing to block",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It blocks immediately, since there are zero permits available — the thread waits until something else calls release()",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/additional/q05",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "For problems like \"print first, then second, then third in strict order using multiple threads,\" why can a semaphore be used to enforce ordering, not just capacity limits?",
+      "explanation": "**Answer: (c)** A semaphore has no owner, so one thread can wait in `acquire()` for a `release()` performed by a different thread, which passes a signal along.\n\n- (a) A `Lock` is meant to be released by its holder; it is a poor tool for cross-thread ordering.\n- (b) Speed has nothing to do with it.\n- (d) Semaphores do not sort or schedule threads at all.\n\n**Deeper:** Chain several semaphores (initialised to 0) and each stage releases the next: this solves \"print in order\", \"alternate foo and bar\" and \"zero-even-odd\". In production the same shape is a `threading.Event` for one-shot signals, or a `Queue` when data travels with the signal.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Semaphores cannot be used for ordering — only Lock can do this",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because semaphores are faster than locks",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because acquire() in one thread can be made to wait for a release() called by a different thread, effectively passing a signal/permission from one thread to another",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Because semaphores automatically sort threads by their function name",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/additional/q06",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is the guaranteed printed order?\n```python\nimport threading\n\nsem = threading.Semaphore(0)\n\ndef waiter():\n    sem.acquire()\n    print(\"B\")\n\nt = threading.Thread(target=waiter)\nt.start()\nprint(\"A\")\nsem.release()\nt.join()\n```",
+      "explanation": "**Answer: (d)** The waiter blocks on `acquire()` until the main thread calls `release()`, and the main thread does that only after `print(\"A\")`, so `A` always precedes `B`.\n\n- (a) It does not hang: `release()` is called, and `join()` waits for a finished thread.\n- (b) `B` cannot print before the permit exists.\n- (c) The order is forced by the semaphore, not left to the scheduler.\n\n```text\nA\nB\n```\n\n**Deeper:** The thread may start and block before or after `print(\"A\")`; either way the permit is only created later. Counting semaphores remember a `release()` that happens before the `acquire()`, which is the difference from `Condition.notify`, where a notification sent before anyone waits is lost.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It will hang forever and print nothing",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "B then A, always",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Random — could be A then B, or B then A",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A then B, always",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/additional/q07",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "This is meant to make \"second\" print only after \"first,\" using semaphores, but it has a bug:\n\n```python\nimport threading\n\nclass Foo:\n    def __init__(self):\n        self.sem = threading.Semaphore(1)  # BUG is here\n\n    def first(self):\n        print(\"first\")\n        self.sem.release()\n\n    def second(self):\n        self.sem.acquire()\n        print(\"second\")\n```\n\nWhat is wrong and what's the fix?",
+      "explanation": "**Answer: (c)** With `Semaphore(1)` the first `acquire()` succeeds immediately, so `second()` can print before `first()` has run. It must start at 0 so it blocks until `first()` releases.\n\n- (a) A `Lock` guards a critical section; it does not make `second()` wait for `first()`, and the real defect is the initial permit count.\n- (b) Swapping the method names changes nothing about the synchronisation.\n- (d) If `second()` released instead of acquiring, nothing would ever wait.\n\n**Deeper:** The bug is invisible in testing if `first()` usually runs first by luck, and appears as a rare ordering failure in production. Always test ordering code by starting threads in the worst order, for example third, second, first.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "threading.Semaphore should be threading.Lock",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The methods first and second should be swapped",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Semaphore(1) should be Semaphore(0) — since second() must be forced to wait until first() releases it. Starting at 1 lets second() run immediately without waiting",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "second() should call release() instead of acquire()",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/additional/q08",
+      "category": "Additional",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "For the \"ZeroEvenOdd\" problem (three threads: one prints only 0s, one prints only evens, one prints only odds, in strict interleaved order), which setup is closest to correct?",
+      "explanation": "**Answer: (d)** Three semaphores form a baton pass: `zero_sem` starts at 1, and each thread releases exactly the semaphore of the thread that must run next.\n\n- (a) Semaphores solve it fine; the standard reference solution does exactly this.\n- (b) Tuned `sleep` delays are timing luck, not synchronisation, and fail under load.\n- (c) A single shared lock gives mutual exclusion but no ordering between three roles.\n\nThe `zero` thread chooses to release the `even` or `odd` semaphore depending on the parity of the next number, and `even`/`odd` release `zero_sem` again.\n\n**Deeper:** Explicit hand-off is easy to reason about because each wait has exactly one releaser. A `Condition` with a shared \"turn\" variable also works, but needs `notify_all` and a predicate loop.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It cannot be done with semaphores; only Condition will work",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Use time.sleep() with carefully tuned delays to control the order",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Use one single Lock shared by all three threads with no other coordination",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Use three separate semaphores — e.g., a zero_sem starting at 1, and even_sem/odd_sem starting at 0 — so each thread's release() signals exactly which thread should run next",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What is a \"critical section\" in the context of threading.Lock?",
+      "explanation": "**Answer: (b)** The critical section is the code between acquire and release, which at most one thread executes at a time.\n\n- (a) Holding a lock says nothing about whether code is bug-free.\n- (c) Using threads does not make a function a critical section.\n- (d) Speed is irrelevant; critical sections are usually the slow, serialised part.\n\n**Deeper:** Design critical sections to include the whole invariant (check and update together) and nothing more. Time spent inside a lock is time every other thread waits, so never include network or disk I/O. This is the sentence that interviewers want to hear before they ask about contention.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A section of code that never has bugs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The block of code that only one thread can execute at a time while holding the lock",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Any function that uses threads",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The part of code that runs fastest",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Why does a plain threading.Lock cause a deadlock if the same thread tries to acquire it twice (e.g., a locked function calling another locked function)?",
+      "explanation": "**Answer: (c)** A plain `Lock` does not record its holder, so a second `acquire()` from the same thread waits for a release that only that same blocked thread could perform.\n\n- (a) It blocks rather than raising an exception.\n- (b) Nested calls are perfectly legal.\n- (d) A lock can be acquired and released many times.\n\n**Deeper:** `RLock` records the owner and a recursion count, so re-entry is allowed. The deeper fix is design: avoid public locked methods calling each other, and put the invariant in one place with unlocked private helpers. A self-deadlock shows up in a thread dump as a single thread waiting in `acquire` on a lock that it already holds.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The second acquire() call raises an exception immediately",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Python doesn't allow nested function calls",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A Lock has no memory of who is holding it, so it just waits forever for a release that never comes from itself",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Locks can only be used once per program",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "What will this print?\n\n```python\nimport threading\n\ncounter = 0\nlock = threading.Lock()\n\ndef increment():\n    global counter\n    for _ in range(50_000):\n        with lock:\n            counter += 1\n\nt1 = threading.Thread(target=increment)\nt2 = threading.Thread(target=increment)\nt1.start(); t2.start()\nt1.join(); t2.join()\n\nprint(counter)\n```",
+      "explanation": "**Answer: (d)** Every increment happens inside `with lock:`, so the 100,000 increments never interleave and the total is always 100000.\n\n- (a) There is one lock and no nested acquisition, so no deadlock.\n- (b) 50000 would be the result of one thread only.\n- (c) A random lower number would mean the lock failed to protect the update.\n\n**Deeper:** Correct, but slow: acquiring and releasing the lock 100,000 times per thread is dominated by lock overhead. A faster design has each thread accumulate a local count and merge once under the lock, or return partial sums through futures.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It will raise a deadlock error",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "50000",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A random number less than 100,000 each time it runs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "100000, every single time",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "The following code is supposed to safely reserve seats but has a bug. What is wrong?\n```python\nimport threading\n\nclass BookingSystem:\n    def __init__(self, seats):\n        self.available_seats = seats\n        self.lock = threading.Lock()\n\n    def reserve(self, num_seats):\n        if self.available_seats >= num_seats:\n            with self.lock:\n                pass\n            self.available_seats -= num_seats\n            return True\n        return False\n```",
+      "explanation": "**Answer: (d)** The check and the decrement are not inside the same locked block. The `with self.lock: pass` protects nothing, so two threads can both pass the check and both decrement.\n\n- (a) The code is incorrect; it can overbook.\n- (b) A staticmethod could not access `self`.\n- (c) Switching to `RLock` changes nothing, since the lock guards no statement.\n\n**Deeper:** The fix is a single `with self.lock:` around the check and the update. In a real system with multiple processes, a lock in memory is not enough anyway; the invariant must be enforced in the database, for example with `UPDATE ... WHERE available >= n` or `SELECT ... FOR UPDATE`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "There is no bug, this code is correct",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "reserve should be a @staticmethod",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "threading.Lock() should be threading.RLock()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The check (if self.available_seats >= num_seats) and the update (self.available_seats -= num_seats) are NOT both inside the with self.lock: block, so two threads can still race between the check and the update",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A function outer() acquires a lock and then calls inner(), which also tries to acquire the same lock, from the same thread. Which tool correctly avoids deadlock here?",
+      "explanation": "**Answer: (c)** `RLock` lets the thread that already owns the lock acquire it again, so `inner()` proceeds.\n\n- (a) `Queue` is for passing data, not for guarding a nested critical section.\n- (b) An `Event` is a flag and gives no mutual exclusion.\n- (d) `Semaphore(1)` behaves like a plain lock without ownership, so the second acquire from the same thread blocks forever.\n\n**Deeper:** Choose `RLock` only when re-entrancy is truly part of the design, such as recursive traversal. Often the better fix is to split `inner()` into a public locked wrapper and a private unlocked `_inner()` that `outer()` calls while holding the lock.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "queue.Queue()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "threading.Event()",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "threading.RLock()",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "threading.Semaphore(1)",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Roughly how long does this take to finish, and why?\n\n```python\nimport asyncio\nimport time\n\nasync def fast() -> str:\n    await asyncio.sleep(0.2)\n    return \"fast\"\n\nasync def blocker() -> str:\n    time.sleep(0.2)\n    return \"blocker\"\n\nasync def main() -> None:\n    t0 = time.perf_counter()\n    await asyncio.gather(blocker(), fast(), fast())\n    print(round(time.perf_counter() - t0, 1))\n\nasyncio.run(main())\n```",
+      "explanation": "**Answer: (c)** `gather` schedules the coroutines in order. `blocker` runs first and its `time.sleep` blocks the whole event loop for 0.2 s. Only then do the two `fast` coroutines start, and their `asyncio.sleep` calls overlap for another 0.2 s.\n\n- (a) That would require `blocker` to await instead of blocking.\n- (b) The two `fast` waits do overlap; they are not sequential.\n- (d) Nothing waits twice.\n\nThe printed value is `0.4`. Reorder the arguments to `fast(), fast(), blocker()` and it becomes `0.2`, because the sleeps are already running while `blocker` stalls the loop.\n\n**Deeper:** Blocking calls make latency depend on scheduling order, which is the hardest kind of async bug to spot. Use `await asyncio.to_thread(...)` or an async client for anything that blocks.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "0.2 seconds, because `gather` runs all three at once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "0.6 seconds, because async code runs coroutines one after another",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "0.4 seconds: `blocker` freezes the loop for 0.2 s first, then the two `fast` waits overlap for 0.2 s",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "0.8 seconds, because each `fast` waits twice",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Two consumer threads share a list and a `Condition`. Under load, `consume()` occasionally raises `IndexError: pop from empty list`. What is the root cause and fix?\n\n```python\ndef consume(self):\n    with self.cond:\n        if not self.items:\n            self.cond.wait()\n        return self.items.pop(0)\n```",
+      "explanation": "**Answer: (a)** A woken waiter must re-acquire the lock before continuing, and in between another consumer can pop the item. Wake-ups can also be spurious. The predicate has to be re-checked in a loop, or with `wait_for(predicate)`.\n\n- (b) `wait()` must be called while holding the lock; it releases it atomically while sleeping.\n- (c) `RLock` has no wait or wake-up mechanism at all.\n- (d) Sleeping is timing luck and does not fix the race.\n\n```python\ndef consume(self):\n    with self.cond:\n        self.cond.wait_for(lambda: self.items)\n        return self.items.pop(0)\n```\n\n**Deeper:** This is the classic \"Mesa semantics\" rule: a notification is a hint that the condition may be true, not a guarantee. Also use `notify_all()` when consumers and producers wait on the same condition with different predicates.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`if` should be `while not self.items:` (or `wait_for`), because after waking another consumer may already have taken the item",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`wait()` must be called outside the `with` block so other threads can notify",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The `Condition` should be replaced by an `RLock`, which wakes waiters automatically",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`notify()` should be replaced by `time.sleep()` to let the producer finish",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-07/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Service A calls `transfer(x, y)` which takes `x.lock` then `y.lock`. Service B calls `transfer(y, x)` for the same two accounts. Under concurrency the process occasionally hangs with both threads waiting in `acquire`. Which change fixes the root cause?",
+      "explanation": "**Answer: (b)** The hang is a circular wait: each thread holds one lock and waits for the other. A fixed global acquisition order makes a cycle impossible.\n\n- (a) `RLock` only helps the same thread re-enter; it does nothing for two different threads.\n- (c) A sleep changes the odds but leaves the race, and slows the happy path.\n- (d) `acquire()` blocks forever instead of raising, so there is nothing to catch.\n\n**Deeper:** If a global order is hard to maintain, use `acquire(timeout=...)` with back-off and alerting, or restructure so one owner thread mutates both accounts via a queue. In real systems with a database, the same cycle appears as row-lock deadlocks, and the same rule applies: touch rows in a consistent order.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Replace both `Lock` objects with `RLock`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Always acquire the two locks in one global order, for example sorted by account id, regardless of argument order",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add `time.sleep(0.01)` between the two acquisitions",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Wrap the acquisitions in `try/except` and retry on exception",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

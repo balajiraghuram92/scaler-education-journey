@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ApiError } from '../api/client';
+import { api, ApiError } from '../api/client';
+import { LoadingState } from '../components/common/StateViews';
 import QRCode from 'qrcode';
 import {
   ShieldCheck,
@@ -20,6 +21,45 @@ import {
 } from 'lucide-react';
 import './AuthPage.css';
 
+function locationToPath(from) {
+  if (!from) return null;
+  if (typeof from === 'string') return from;
+  if (typeof from === 'object' && from.pathname) {
+    return `${from.pathname}${from.search || ''}${from.hash || ''}`;
+  }
+  return null;
+}
+
+async function resolvePostLoginTarget(from) {
+  const explicit = locationToPath(from);
+  if (explicit && explicit !== '/login') return explicit;
+
+  try {
+    const resume = await api.me.resume();
+    if (resume?.lastLesson?.fullSlug) return `/chapter/${resume.lastLesson.fullSlug}`;
+  } catch {
+    // No resume point yet; fall through to the library.
+  }
+  return '/chapters';
+}
+
+function RememberMeCheckbox({ checked, onChange }) {
+  return (
+    <label className="auth-remember-row" htmlFor="auth-remember-me">
+      <input
+        id="auth-remember-me"
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span>
+        <strong>Keep me signed in on this device</strong>
+        <span>Stay signed in for 30 days. Leave unchecked on a shared computer.</span>
+      </span>
+    </label>
+  );
+}
+
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -33,6 +73,8 @@ export default function AuthPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const [totpCode, setTotpCode] = useState('');
   const [copiedKey, setCopiedKey] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +84,7 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/chapters';
+  const from = location.state?.from;
 
   useEffect(() => {
     if (enrollData?.otpAuthUri) {
@@ -118,13 +160,16 @@ export default function AuthPage() {
 
     try {
       const cleanCode = totpCode.trim().replace(/\s+/g, '');
+      setIsRedirecting(true);
       if (step === 'totp-enroll') {
-        await totpEnrollConfirm(challengeId, cleanCode);
+        await totpEnrollConfirm(challengeId, cleanCode, rememberMe);
       } else {
-        await totpVerify(challengeId, cleanCode);
+        await totpVerify(challengeId, cleanCode, rememberMe);
       }
-      navigate(from, { replace: true });
+      const target = await resolvePostLoginTarget(from);
+      navigate(target, { replace: true });
     } catch (err) {
+      setIsRedirecting(false);
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
@@ -144,6 +189,10 @@ export default function AuthPage() {
       // Fallback if clipboard API not available
     }
   };
+
+  if (user && isRedirecting) {
+    return <LoadingState message="Opening where you left off..." />;
+  }
 
   if (user) {
     return (
@@ -430,6 +479,8 @@ export default function AuthPage() {
                 </div>
               </div>
 
+              <RememberMeCheckbox checked={rememberMe} onChange={setRememberMe} />
+
               <button
                 type="submit"
                 disabled={isSubmitting || totpCode.trim().length !== 6}
@@ -489,6 +540,8 @@ export default function AuthPage() {
                   />
                 </div>
               </div>
+
+              <RememberMeCheckbox checked={rememberMe} onChange={setRememberMe} />
 
               <button
                 type="submit"
