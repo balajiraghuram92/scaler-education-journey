@@ -1,0 +1,395 @@
+{
+  "lessonSlug": "py-24-code-parking-lot-2",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q03",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In the Controller → Service → Repository pattern used in this lecture, which statement correctly describes where responsibilities live?",
+      "explanation": "**Answer: (a)** Each layer has one job: the controller adapts DTOs, the service owns business rules and works with plain values and models, and the repository only persists and retrieves.\n\n- (b) this inverts the roles: rules in the controller and spot assignment in the repository make both untestable and unreusable.\n- (c) persistence code that decides business outcomes ties rules to storage, and a service that only stores objects is not a service.\n- (d) interchangeable layers defeat separation of concerns; the whole point is one reason to change per layer.\n\n**Deeper:** In an interview, state the rule as a review test: \"can I call the service from a unit test without a DTO or a database?\" If yes, the layers are clean, and swapping the in-memory repository for a SQLAlchemy one changes nothing above it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The Service contains business logic and never touches a DTO; the Controller only unwraps/wraps DTOs; the Repository only saves and finds data",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The Controller contains business logic, the Service validates DTOs, and the Repository decides which spot to assign",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The Repository contains business logic since it’s closest to the data; the Service only stores objects in memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The Controller, Service, and Repository are interchangeable — any of them can hold validation logic",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q04",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Look at this code from the lecture:\n\n```python\nT = TypeVar(\"T\", bound=BaseModel)\n\nclass InMemoryRepository(Generic[T]):\n    def __init__(self):\n        self.items: List[T] = []\n        self.next_id = 1\n\n    def save(self, item: T) -> T:\n        if item.id is None:\n            item.id = self.next_id\n            self.next_id += 1\n            item.created_at = datetime.now()\n        item.last_modified_at = datetime.now()\n        self.items.append(item)\n        return item\n```\nWhy does the class use Generic[T] instead of writing separate GateRepository, TicketRepository, etc. classes from scratch, each with their own save()?",
+      "explanation": "**Answer: (b)** The save and find logic is identical for every model, so one generic class removes duplication; concrete repositories inherit it and add only their own queries.\n\n- (a) `Generic[T]` is purely a typing construct; it creates no connection and no behaviour.\n- (c) Python does not require `Generic`; it is used so that type checkers know the element type.\n- (d) nothing limits how many classes a file may define.\n\n**Deeper:** A senior follow-up: this version appends on every save, so saving an existing object twice stores it twice, and a dict keyed by id is the correct structure. Also remember the bound is checked by mypy or pyright, not at runtime.",
+      "reviewFlag": "The lecture code appends to a list on every save (duplicates on update); the intended answer is unaffected but the snippet is questionable.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because Generic[T] automatically creates a real database connection under the hood",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because save() and find_by_id() do the exact same thing regardless of model type, so writing one generic class avoids repeating identical logic across many near-identical classes",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because Python requires all repositories to inherit from Generic[T] in order to work with TypeVar",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Because without Generic[T], Python would not allow more than one repository class in the same file",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q05",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Foo below is a plain class that does not inherit from BaseModel, so it has no `id`, `created_at`, or `last_modified_at` attributes.\n\n```python\nclass Foo:\n    pass\n\nclass FooRepository(InMemoryRepository[Foo]):\n    pass\n\nrepo = FooRepository()\nrepo.save(Foo())\n```\nWhat actually happens when repo.save(Foo()) runs?",
+      "explanation": "**Answer: (c)** Type variable bounds are only checked by static tools, so the call runs and fails at `item.id` with `AttributeError`.\n\n- (a) Python never converts classes automatically.\n- (b) subscripting a generic with any type is legal at runtime; there is no import-time check.\n- (d) no `TypeError` is raised before `save` runs; the failure happens inside it, on the attribute access.\n\n**Deeper:** Run mypy or pyright in CI to enforce the bound, and add an explicit runtime check where a guarantee matters. I ran the equivalent code and the error was `AttributeError: 'Foo' object has no attribute 'id'`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python silently converts Foo into a BaseModel automatically",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "This code cannot even be written — Generic[T] classes reject non-conforming types at import time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The code raises an AttributeError at runtime, the moment it tries to read or set item.id, since TypeVar bounds are advisory and not enforced by the interpreter",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Python raises a TypeError immediately, before save() even runs, because Foo doesn’t satisfy the bound=BaseModel constraint",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q06",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "BillController and PaymentController were left as homework, not built live. According to the lecture, why is this considered “low-risk” homework rather than a real gap in understanding?",
+      "explanation": "**Answer: (d)** The services already follow the plain-values rule, so each new controller repeats the same unwrap, call, wrap shape shown for `TicketController`.\n\n- (a) controllers are the entry point of the stack; the system needs them to be reachable.\n- (b) DTOs are the controller's boundary shape, and the lecture uses them throughout.\n- (c) the services' complexity is irrelevant; what matters is that the pattern is identical.\n\n**Deeper:** Consistency is what makes layered code fast to extend: once one controller shows the pattern, the rest are mechanical. If a controller needed special logic, that would be a sign rules were leaking out of the service.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because Controllers are optional in Python and the system works fine without them",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because DTOs aren’t needed at all in a working system",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because BillService and PaymentService are simpler than TicketService, so their Controllers don’t really matter",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Because BillService and PaymentService already take plain values in and return models out, following the exact same rule as TicketService — so their Controllers are just wiring: unwrap Request DTO, call Service, wrap Response DTO, the exact pattern already shown in full for TicketController",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q07",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A teammate writes this TicketService method:\n\n```python\nclass TicketService:\n    def issue_ticket(self, request: IssueTicketRequestDTO) -> Ticket:\n        gate = self.gate_repository.find_by_id(request.gate_id)\n        if gate.gate_type != GateType.ENTRY:\n            raise InvalidGateException(\"Cannot issue a ticket at an exit gate\")\n        vehicle = Vehicle(request.vehicle_number, request.vehicle_type, request.owner_name)\n```\nAccording to the rules taught in this lecture, what is wrong with this code?",
+      "explanation": "**Answer: (a)** The lecture's rule is that services take plain values; accepting a DTO couples business logic to one request shape.\n\n- (b) the DTO parameter is precisely the violation.\n- (c) the gate check is a business rule and belongs in the service, which is why it should stay there.\n- (d) services routinely construct domain objects such as `Vehicle`; nothing forbids it.\n\n**Deeper:** Many real codebases do let services accept DTOs, so present this as the lecture's house rule and give the reason: plain values keep the service callable from a CLI, a test or a queue consumer without a DTO.",
+      "reviewFlag": "Answer reflects the lecture's house rule (services never touch DTOs); some codebases consider DTO-accepting services acceptable.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "issue_ticket() takes request: IssueTicketRequestDTO directly, which violates the rule that the Service layer must never touch a DTO — it should take plain values (gate_id, vehicle_number, vehicle_type, owner_name) instead",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing is wrong — this is exactly how TicketService.issue_ticket() should be written",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The gate-type check should not be inside the Service at all — it belongs in the Controller",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Vehicle objects cannot be constructed inside a Service method",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q08",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "A customer pays ₹200 in cash and then ₹300 online for the same bill, recorded as two separate Payment objects. Given this line from\n\n```python\nPaymentService.make_payment():\n\ntotal_paid = sum( p.amount for p in bill.payments if p.payment_status == PaymentStatus.SUCCESS)\n```\nIf the online ₹300 payment FAILS (status = FAILED) but the ₹200 cash payment succeeded, and the bill amount is ₹500, what happens?",
+      "explanation": "**Answer: (b)** The generator keeps only payments with status SUCCESS, so the failed 300 contributes nothing and the total is 200.\n\n- (a) the `if` filter excludes the failed payment, so it is not counted.\n- (c) failed payments are legitimate records kept for audit; nothing raises.\n- (d) the sum covers all successful payments, not just the latest, and the latest here is the failed one.\n\n**Deeper:** Keeping failed attempts but excluding them from the total gives an audit trail and makes retries natural. The spot is freed only when `total_paid >= bill.amount`. I ran the equivalent logic and got 200, unpaid and occupied.",
+      "reviewFlag": "The question text has garbled formatting in the source (a code fence containing both the method name and the sum line); content kept verbatim.",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "total_paid becomes ₹500 because both payments are counted regardless of status, so the bill is marked PAID and the spot is freed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "total_paid becomes ₹200 (only the successful cash payment counts), which is less than ₹500, so the bill stays UNPAID and the spot stays OCCUPIED",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The code crashes with an exception because a FAILED payment is not allowed to exist in bill.payments",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "total_paid becomes ₹300 because only the most recent payment is considered",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q09",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "Python’s GIL (Global Interpreter Lock) ensures only one thread executes Python bytecode at any given instant. Given this, why can two gate threads still race on the same ParkingSpot?",
+      "explanation": "**Answer: (c)** The GIL makes single bytecode operations safe, but a check followed by an update is several operations, and a thread switch can occur between them.\n\n- (a) the GIL applies to the whole interpreter process regardless of core count.\n- (b) `threading.Thread` does not disable the GIL; it is exactly what the GIL schedules.\n- (d) the GIL is not type-specific; it simply serialises bytecode execution.\n\n**Deeper:** In the lesson demo, two threads released together with a `Barrier` both read the spot as available and both took it. On free-threaded builds (3.13t) the same code is just as wrong, because the GIL never made check-then-act safe.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The GIL only applies to single-core machines, and most servers use multiple cores",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The GIL is disabled automatically whenever threading.Thread is used",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The GIL guarantees atomicity for a single bytecode instruction, but “read spot status” and “later write spot status” are separate steps — the GIL can switch which thread runs in the gap between those steps, so the overall read-then-write sequence is not atomic",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The GIL only protects integer variables, not object attributes like parking_spot_status",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q10",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "```python\nclass TicketService:\n    def __init__(self, gate_repository,\n                 parking_spot_repository,\n                 ticket_repository, allotment_strategy):\n        self.gate_repository = gate_repository\n        self.parking_spot_repository = parking_spot_repository\n        self.ticket_repository = ticket_repository\n        self.allotment_strategy = allotment_strategy\n        self._spot_lock = threading.Lock()\n\n    def issue_ticket(self, gate_id, vehicle_number,\n                     vehicle_type, owner_name):\n        with self._spot_lock:\n            pass\n```\nThe lock, self._spot_lock, is created once in __init__ and reused on every call to issue_ticket(), instead of writing lock = threading.Lock() as the first line inside issue_ticket() itself. Why does this placement matter for correctly fixing the two-gate race condition?",
+      "explanation": "**Answer: (b)** Mutual exclusion exists only between threads contending for the same lock object, so the lock must be shared across calls.\n\n- (a) each `threading.Lock()` call creates a new, independent lock; there is no global one.\n- (c) constructing an attribute does not make a class immutable, and immutability would not prevent the race anyway.\n- (d) a per-call lock prevents nothing, so this is a correctness matter, not performance.\n\n**Deeper:** I ran a `FreshLockAllocator` variant in the lesson and both gates received the same spot. A thread lock also covers only one process; with several workers the guarantee has to move to the database.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It doesn’t matter — both placements behave identically, since every threading.Lock() call refers to the same global lock object in Python",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A lock only blocks other threads that are trying to acquire that exact same lock object. If the lock were created fresh inside issue_ticket(), Gate A’s thread and Gate B’s thread would each get their own private lock and would never actually wait on each other, so the race condition would still happen",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Creating the lock inside __init__ makes TicketService immutable, which is what actually prevents the race condition",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It only matters for performance, not correctness — either placement would prevent the race condition equally well",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q11",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "In concurrency_test.py, exactly ONE ParkingSpot exists, and two separate Gate objects (Gate A and Gate B) both call issue_ticket() on the SAME TicketService instance from two threads, with the correct shared-lock fix in place. What is the guaranteed outcome, no matter how many times the test is run?",
+      "explanation": "**Answer: (a)** The shared lock serialises check-and-assign: the first thread takes the only spot and the second then sees it occupied.\n\n- (b) the lock prevents both from taking the same spot, so both cannot succeed.\n- (c) which thread wins is scheduling-dependent, but the outcome pair (one success, one full) is guaranteed.\n- (d) each thread acquires and releases the lock once and holds no other lock, so no deadlock is possible.\n\n**Deeper:** Assert the invariant (one winner), not which gate wins. In the lesson demo the sorted outcome is `['got spot 1', 'lot full']` on every one of ten repetitions.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Exactly one thread will print “got spot” and the other will print “found lot full” (raising ParkingFullException) — never both succeeding",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Both threads will always succeed and print “got spot,” since Python threads run independently",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The outcome is random — sometimes both succeed, sometimes both fail, since there is no way to control thread scheduling",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The program will deadlock and never finish, since both threads are waiting on the same lock forever",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/assignment/q12",
+      "category": "Assignment",
+      "sourceType": "FROM_MATERIAL",
+      "questionText": "The AI-suggested fix uses one lock per VehicleType:\n\n```python\nself._locks_by_vehicle_type = defaultdict(threading.Lock)\n\ndef issue_ticket(self, gate_id, vehicle_number,\nvehicle_type, owner_name):\n    with self._locks_by_vehicle_type[vehicle_type]:\n        assigned_spot = self.allotment_strategy.find_spot(\n            self.parking_spot_repository.find_all(),\n            vehicle_type)\n```\nGate A is issuing a ticket for a CAR, and at the exact same moment, Gate B is issuing a ticket for a TRUCK. There is only one available spot, and it supports [TRUCK, CAR, BIKE] (per the spot-size design from the earlier lecture). What is the actual risk with this fix?",
+      "explanation": "**Answer: (b)** The locks are keyed by vehicle type but the contended resource is the spot, which several types share, so the two gates do not exclude each other.\n\n- (a) a spot that supports several types is shared across types, so different types can contend for it.\n- (c) `defaultdict(threading.Lock)` works: the missing key calls the factory and creates a lock.\n- (d) the lock is not slower in any way that matters, and it is not worse than no lock; it just fails to protect the shared spot.\n\n**Deeper:** The lock must cover the resource, here the collection of spots, not an attribute of the request. The lesson's `PerTypeLockAllocator` demo gave `['got spot 1', 'got spot 1']` for a car and a truck racing for one spot.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "There is no risk — different vehicle types always mean different spots, so this fix is completely safe",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Gate A and Gate B acquire two DIFFERENT lock objects (one for CAR, one for TRUCK), so neither blocks the other. Since the one available spot supports both CAR and TRUCK, both threads can read it as EMPTY at the same time and both assign it — reintroducing the original race condition",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The code will raise a KeyError because defaultdict cannot be used with threading.Lock",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "This fix is strictly worse than no lock at all, because defaultdict is slower than a regular dictionary",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A car is parked for 5 hours on a weekend. Slabs for cars are 0-2 hours at 20 per hour, 2-4 at 30, 4-6 at 40 and 6 onwards (end hour -1) at 50, charged marginally per hour. What is the fee?",
+      "explanation": "**Answer: (c)** Marginal pricing charges each hour at the rate of the slab it falls in: 2 x 20 + 2 x 30 + 1 x 40 = 140.\n\n- (a) that is a flat tariff by final slab, not the marginal slab pricing described.\n- (b) there is no averaging; each hour uses the rate of its own slab.\n- (d) the 50 rate applies only beyond 6 hours, and 5 hours stays inside the 4-6 slab.\n\n**Deeper:** The published examples (1 hour 20, 3 hours 70, 5 hours 140, 7 hours 230) are a good test table. I ran the lesson's `WeekendSlabFee` and got `[20.0, 70.0, 140.0, 230.0]`. The loop must stop at the first slab whose start is not below the total.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "200, because the whole stay is charged at the 40 rate of the slab it ends in.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "100, because the stay is 5 hours at the average of 20.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "140: 2 hours at 20, 2 hours at 30 and 1 hour at 40.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "170, because the first two slabs are charged in full and the last at 50.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A bill of 500 receives a successful payment of 200 and then a failed attempt of 300. Which behaviour is correct for the spot and the payment records?",
+      "explanation": "**Answer: (a)** Only successful amounts count, the failure is retained for the audit trail, and settlement is the trigger for freeing the spot.\n\n- (b) a partial payment does not settle the bill, so the vehicle must not be treated as having paid in full.\n- (c) failed attempts are part of the audit trail and are useful for support and fraud checks.\n- (d) the number of payment records says nothing; only the sum of successful amounts counts.\n\n**Deeper:** Also reject an amount larger than the outstanding balance before calling the payment gateway, so an invalid request never charges anyone. In the lesson's trace the totals were 200 unpaid and then 500 paid after the retry.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Keep both payment records, count only the successful 200, leave the bill unpaid and the spot occupied, and free the spot only when successful payments reach 500.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Free the spot after the first successful payment, since the customer has started to pay.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Delete the failed payment record so the bill history stays clean.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Mark the bill paid because two payments exist for it.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-24/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "On a free-threaded CPython 3.13 build (3.13t, no GIL), what happens to the unlocked two-gate race and to the correctly locked version?",
+      "explanation": "**Answer: (d)** The GIL never made read-then-write sequences atomic, so removing it changes nothing about the need for a lock.\n\n- (a) parallelism makes interleavings more likely, not less; check-then-act was never atomic.\n- (b) `threading.Lock` works on every build; it is built on OS primitives, not on the GIL.\n- (c) Python does not forbid shared state; it just no longer hides some unsafe patterns.\n\n**Deeper:** Code that \"worked because of the GIL\" is the code that breaks first on free-threaded builds, so the right habit is to protect every shared invariant with an explicit lock or a thread-safe structure. Lock-free single operations, such as appending to a list, have separate guarantees documented per build.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The unlocked version becomes safe, since threads now run truly in parallel.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The locked version becomes incorrect, because locks do not work without a GIL.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Both versions raise `RuntimeError`, because shared mutable state is forbidden without a GIL.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The unlocked version is still wrong (it was never safe), and the locked version is still correct, because the lock, not the GIL, provides the mutual exclusion.",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

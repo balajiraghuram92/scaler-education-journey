@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-25-design-bookmyshow",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-25/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A first-draft BookMyShow model has `Seat.status` and `SeatType.price`. What is the central flaw?",
+      "explanation": "**Answer: (b)** Both values are functions of the show, so they need entities keyed by show: `ShowSeat` and `ShowSeatType`.\n\n- (a) the same physical seat is used by many shows; a single status cannot be free for one show and sold for another.\n- (c) the problem is where the data lives, not what it is called.\n- (d) making it an enum would not fix the issue: the price still has to depend on the show somewhere.\n\n**Deeper:** This is the sentence interviewers listen for: \"price is a function of show and seat type, availability is a function of show and seat\". Put the attribute on the entity whose identity determines it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing: a seat has exactly one status, so a field on `Seat` is the simplest correct design.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Status and price are not properties of the seat or seat type alone: availability depends on (show, seat) and price on (show, seat type), so one booking would affect every show and one price would apply to all shows.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The flaw is only naming: they should be called `is_booked` and `cost`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The flaw is that `SeatType` should be an enum, so it cannot hold a price.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A screen has 500 seats and 3 seat types. For one show, how many rows do `ShowSeatType` and `ShowSeat` need, and why keep price out of `ShowSeat`?",
+      "explanation": "**Answer: (d)** Price is per (show, seat type), availability per (show, seat), so the row counts are 3 and 500 respectively.\n\n- (a) price depends on the seat type, so one row per seat type is enough.\n- (b) availability is per physical seat, so there must be a row for each of the 500 seats.\n- (c) the three seat types have different prices, so three rows are needed.\n\n**Deeper:** Denormalising the price onto each `ShowSeat` repeats it 500 times and makes a price correction a bulk update with a consistency risk. Normalising costs one extra lookup, which is cheap. Quote the numbers, because interviewers like seeing you size it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "500 and 500, because every seat needs its own price row.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "3 and 3, because a screen has only three kinds of seats.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "1 and 500: a show has one price for all seats.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "3 `ShowSeatType` rows and 500 `ShowSeat` rows; keeping the price in `ShowSeatType` stores each price once, so a price change touches 3 rows instead of 500.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using the lesson's `total_amount`, what happens here?\n\n```python\ntotal_amount(morning, [ShowSeat(morning, Seat(\"Z\", 1, SeatType.PLATINUM))], prices)\n```\nThe `prices` list has only GOLD and SILVER entries for `morning`.",
+      "explanation": "**Answer: (a)** The dictionary lookup for the PLATINUM price fails, and the `except KeyError` re-raises it as a named domain error.\n\n- (b) silently charging zero would sell seats for free; the function refuses instead.\n- (c) the code catches `KeyError` and re-raises `MissingPriceError` with a readable message.\n- (d) prices are per show; the lookup filters on `p.show is show`.\n\n**Deeper:** I ran this and the message was `no price for PLATINUM at this show`. Translating low-level errors into domain errors at the boundary of a function is what lets a controller map them to a precise response, and `from None` keeps the traceback readable.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It raises `MissingPriceError(\"no price for PLATINUM at this show\")`, converting the internal `KeyError` into a domain error.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It returns `0`, because a missing price counts as free.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises a bare `KeyError` with the enum member as the message.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It returns the evening price, because prices are shared across shows.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A booking is `CONFIRMED`. The expiry job runs and tries to move it to `EXPIRED`. What should the design do?",
+      "explanation": "**Answer: (c)** A transition table defines which moves are legal; `CONFIRMED` may only go to `CANCELLED`, so `CONFIRMED` to `EXPIRED` is rejected.\n\n- (a) that would cancel a paid booking and free seats the customer owns.\n- (b) deleting loses the payment record and the audit trail.\n- (d) that silently changes the meaning of the booking and may trigger a refund that nobody requested.\n\n**Deeper:** In the lesson demo the exception message was `CONFIRMED -> EXPIRED`. Keeping the table in one place also protects against the late-payment race: a payment arriving after expiry cannot revive an `EXPIRED` booking.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Allow it, because expiry is a system operation and can override any state.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Delete the booking, since an expiry means it should disappear.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Reject the transition: only a `PENDING` booking can expire, so the state machine raises an error and the confirmed booking is left unchanged.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Move it to `CANCELLED`, as the nearest legal state.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "User 101 has locked seats 1 and 2 of a show. User 202 now calls the lesson's `claim` for seats 2 and 3. What are the return value and the final state of seat 3?",
+      "explanation": "**Answer: (d)** The `WHERE status = 'AVAILABLE'` condition excludes seat 2, so one row changes against two requested, and `claim` rolls back and returns False.\n\n- (a) the claim is all or nothing; a row-count mismatch fails the whole request.\n- (b) the `rollback()` call undoes the partial update, which is the whole point of the check.\n- (c) no constraint is violated; the conditional update simply matches fewer rows.\n\n**Deeper:** I ran it: the output was `True`, `False` and `[(1, 'LOCKED', 101), (2, 'LOCKED', 101), (3, 'AVAILABLE', None)]`. All-or-nothing seat selection is what users expect: they should never end up holding half of the seats they asked for.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`True`, and seat 3 is `LOCKED` by user 202, because at least one requested seat was free.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`False`, and seat 3 stays `LOCKED` by user 202 (a partial hold).",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises `IntegrityError`, because seat 2 is already locked.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`False`, and seat 3 is still `AVAILABLE`, because the update changed only one row (seat 3) while two were requested, so the claim was rolled back.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "If the `con.rollback()` line is removed from `claim`, what is the state of seat 3 on that connection after user 202's failed claim?",
+      "explanation": "**Answer: (b)** The `UPDATE` modified seat 3 inside an open transaction, and without `rollback()` the modification is still pending.\n\n- (a) returning False does not undo the `UPDATE` that already ran; only a rollback does.\n- (c) the update sets `LOCKED`, and nothing converts it to `BOOKED`.\n- (d) nothing closes the connection; the open transaction stays open.\n\n**Deeper:** I ran the variant and saw seat 3 `LOCKED` by 202. This is a classic transaction-handling bug: the error path must end the transaction explicitly (rollback), ideally with a context manager so no path can forget it.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Seat 3 is `AVAILABLE`, because the function returned False.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Seat 3 is left `LOCKED` by user 202: an uncommitted partial hold that a later commit on the same connection would make permanent.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Seat 3 is `BOOKED`, because locks become bookings after a failure.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The connection is closed automatically, discarding the change.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Why add `UNIQUE (show_id, seat_id)` to `show_seats` when the application already creates exactly one row per pair?",
+      "explanation": "**Answer: (c)** The database is the last line of defence, and a unique constraint makes the invariant independent of application code.\n\n- (a) correctness guarantees should not depend on every code path being correct; the index cost is small.\n- (b) a unique constraint only rejects duplicates; it has no concept of locking.\n- (d) foreign keys need no such constraint on the child table.\n\n**Deeper:** I inserted a duplicate row in SQLite and got `UNIQUE constraint failed: show_seats.show_id, show_seats.seat_id`. In interviews, say that business rules go in constraints where possible and in code only where the database cannot express them.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is redundant: if the application is correct the constraint is never used, so it should be omitted for speed.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It makes the seat locked automatically when inserted.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A constraint enforces the rule for every writer, script and future bug, so a duplicate availability row is rejected by the database instead of silently allowing two states for one seat.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It is required for foreign keys to work.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "In the all-or-nothing claim, a seat was already `BOOKED`. What does this statement return in `cursor.rowcount`?\n\n```python\ncur = con.execute(\"UPDATE show_seats SET status = 'LOCKED' WHERE seat_id = 1 AND status = 'AVAILABLE'\")\nprint(cur.rowcount)\n```",
+      "explanation": "**Answer: (a)** The conditional `WHERE` turns \"is it still available?\" into part of the update itself, and `rowcount` reports whether it succeeded.\n\n- (b) `rowcount` counts rows actually updated, which require the full `WHERE` condition to match.\n- (c) an `UPDATE` that matches nothing is not an error; it simply affects zero rows.\n- (d) `-1` is for statements where the count is unknown (and for `SELECT`), not for a matching failure.\n\n**Deeper:** This is the pattern behind compare-and-set: the check and the write are one atomic statement, so there is no gap for another user to slip into. I ran it against SQLite and got `0`. On PostgreSQL the same idea works, with row locks serialising concurrent updates.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`0`: the `WHERE` clause matches no row, so nothing is updated and the caller can detect the failure from the count.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`1`, because the row exists even though its status differs.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It raises an error because the row is not available.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`-1`, which means the update failed.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A seat hold expires after ten minutes, and the code compares `datetime.now() < hold_until` where `hold_until` was stored as `datetime.now(timezone.utc) + timedelta(minutes=10)`. What happens?",
+      "explanation": "**Answer: (b)** A naive datetime (no `tzinfo`) cannot be compared with an aware one, and Python raises `TypeError` rather than guessing.\n\n- (a) Python never guesses time zones when comparing naive and aware values; it raises.\n- (c) it does not return a value; the comparison itself raises.\n- (d) the error is raised for every comparison of a naive value with an aware one.\n\n**Deeper:** I ran the comparison and got exactly that message. For expiry logic store UTC timestamps everywhere, inject the clock so tests can control it, and compare in the database with a UTC `now()` where possible.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It works, and Python converts both to UTC automatically.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A `TypeError: can't compare offset-naive and offset-aware datetimes`; use timezone-aware UTC datetimes consistently, for example `datetime.now(timezone.utc)`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It returns `False` for every comparison, so every hold looks expired.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It works only on the 1st of the month, when time zones coincide.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Payment for a booking succeeds at minute 11, but the seat hold expired at minute 10 and the expiry job moved the booking to `EXPIRED`. Which handling is correct?",
+      "explanation": "**Answer: (d)** After expiry the seats were released, so the booking cannot be revived; the late payment must be reversed or used to rebook if possible.\n\n- (a) the seats may have been sold to someone else after expiry, which would double-book them.\n- (b) ignoring a successful charge loses the customer's money and creates a support case.\n- (c) retaining the payment without service is unfair and legally risky.\n\n**Deeper:** This race is why the transition table and the hold expiry are design topics, not details. It reappears in the later lessons as idempotent payment callbacks, and the answer to \"what if payment is late?\" is a staple follow-up.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Confirm the booking anyway, because the customer has already paid.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Ignore the payment, because the booking is expired.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Delete the booking and keep the money as a fee.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The state machine rejects `EXPIRED` to `CONFIRMED`; the system must refund (or offer to rebook if the seats are still free), never silently confirm.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which statement about enforcing \"no double booking\" in a multi-process deployment is correct?",
+      "explanation": "**Answer: (a)** Only the database is shared across processes, so it must arbitrate.\n\n- (b) each worker process has its own memory and its own lock, so they do not exclude each other.\n- (c) any gap is a race; the check and write must be atomic.\n- (d) ordering helps avoid deadlocks when locking several rows, but it does not make a read-then-write atomic.\n\n**Deeper:** Say it as two layers: an in-process lock for in-memory structures, and a database guarantee for shared state. The next BookMyShow lessons implement the second with transactions, isolation levels and `SELECT ... FOR UPDATE`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The guarantee must come from the shared database (a conditional update with a row-count check, a row lock, or a unique constraint), because an in-process `threading.Lock` is invisible to the other worker processes.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A `threading.Lock` around the booking function is enough, because Python serialises requests.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Reading the seat status first and updating it later is safe if the gap is short.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It is solved by sorting seat ids before the loop, which prevents all conflicts.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-25/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which index best supports the common query \"shows of a given movie in a given city on a given day\"?",
+      "explanation": "**Answer: (c)** The query walks region, theatre, screen and show, and filters by movie and date, so the foreign keys and the start time are the access paths.\n\n- (a) show tables grow quickly (many theatres, many shows per day), so full scans degrade.\n- (b) it speeds up finding the movie but not the joins to theatres and regions or the date filter.\n- (d) that helps seat availability queries, not the search for shows.\n\n**Deeper:** Search is a version-two feature, but the schema must already support it cheaply with indexed foreign keys. Mention a composite index such as (movie_id, start_time) if the dominant filter is movie plus date, and verify it with the query plan.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "No index is needed; scanning all shows is fast enough forever.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "One index on `movies.name` only.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Indexes on the foreign keys along the path (for example `shows.screen_id`, `shows.movie_id`, `screens.theatre_id`, `theatres.region_id`) and an index on `shows.start_time`, so each join and the date filter can use an index.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "An index on `show_seats.status`.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

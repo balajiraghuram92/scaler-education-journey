@@ -1,0 +1,173 @@
+{
+  "lessonSlug": "py-56-serving-ai-fastapi",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-56/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\ndef sse(data, event=None):\n    payload = data if isinstance(data, str) else json.dumps(data)\n    head = f\"event: {event}\\n\" if event else \"\"\n    return f\"{head}data: {payload}\\n\\n\".encode()\n\nprint(sse({\"message\": \"x\"}, event=\"error\"))\n```\n\nWhat is printed, and why is this the right way to report an upstream failure after streaming has started?",
+      "explanation": "**Answer: (b)** `b'event: error\\ndata: {\"message\": \"x\"}\\n\\n'`. The helper writes an optional `event:` line, a `data:` line, and a blank line that terminates the event. Once the first byte of a streaming response has been sent, the HTTP status is already 200 and cannot be changed, so a failure has to be an in-band event that the client handles.\n\n- (a) shows an HTTP 500, which is impossible after headers are flushed.\n- (c) omits the blank-line terminator, so a client would never see the event as complete.\n- (d) is not what the function produces; it returns bytes, and `json.dumps` quotes keys with double quotes.\n\n**Deeper:** Define an error event in your stream contract and test the client against it. Also log the error and the request id server-side.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`b'HTTP/1.1 500 Internal Server Error'`, because the failure should change the status code", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`b'event: error\\ndata: {\"message\": \"x\"}\\n\\n'`; the status is already 200, so the error travels in-band", "isCorrect": true },
+        { "optionKey": "c", "optionText": "`b'event: error\\ndata: {\"message\": \"x\"}'`, with no terminator needed", "isCorrect": false },
+        { "optionKey": "d", "optionText": "`\"event: error data: {'message': 'x'}\"` as a plain string", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A streaming endpoint's generator wraps the loop in `try: ... except BaseException: pass`. The browser tab closes mid-answer. What is the most likely production effect?",
+      "explanation": "**Answer: (c)** On disconnect the server stops the response task by cancelling it, which raises `CancelledError` (a `BaseException`) inside your generator. Swallowing it with `except BaseException` means the generator may continue as if nothing happened, `finally`/cleanup logic that should have propagated cancellation is distorted, and the upstream provider stream can keep generating tokens you pay for.\n\n- (a) is wrong: asyncio does not raise `RuntimeError` for this.\n- (b) is wrong: the exception is swallowed, so the server cannot clean up.\n- (d) is wrong: nothing retransmits the response to a closed connection.\n\n**Deeper:** Catch `CancelledError` only to clean up, and re-raise. Use `aclosing` for the upstream so its connection closes deterministically.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Python raises `RuntimeError` and the worker crashes", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The server cleanly cancels the upstream call because the exception is logged", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Cancellation is swallowed, so the upstream stream may keep running and billing tokens nobody reads", "isCorrect": true },
+        { "optionKey": "d", "optionText": "The server retransmits the remaining tokens when the browser reconnects", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using `TenantLimiter` from the lesson (token bucket; `take` returns 0.0 if allowed, else seconds to wait):\n\n```python\nlim = TenantLimiter(rate=1.0, burst=2, clock=lambda: 0.0)\nprint([lim.take(\"a\") for _ in range(3)])\n```\n\nWhat is printed?",
+      "explanation": "**Answer: (a)** `[0.0, 0.0, 1.0]`. The bucket starts full with 2 tokens, so the first two calls succeed and return 0.0. With a frozen clock there is no refill, so the third call finds 0 tokens and must wait `(1 - 0) / rate = 1.0` second.\n\n- (b) assumes the third call is also allowed; burst is 2.\n- (c) would be correct if the wait were reported as the full refill time of the bucket.\n- (d) assumes each rejection raises; the method returns the wait instead.\n\n**Deeper:** Return the wait so the API layer can emit `Retry-After`. Inject the clock so rate-limit tests need no sleeps. In multi-process deployments the bucket state must be shared (for example in Redis with an atomic script).",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`[0.0, 0.0, 1.0]`", "isCorrect": true },
+        { "optionKey": "b", "optionText": "`[0.0, 0.0, 0.0]`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`[0.0, 1.0, 2.0]`", "isCorrect": false },
+        { "optionKey": "d", "optionText": "It raises an exception on the third call", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Which inputs must be part of an exact-match response-cache key for an LLM endpoint serving many tenants, where prompts are versioned and releases happen weekly?",
+      "explanation": "**Answer: (d)** The key must contain everything that can change the output or who may see it: tenant, prompt version, model, the normalised messages and the sampling parameters such as temperature. Tenant isolation prevents cross-tenant leaks; the prompt version makes each release invalidate old answers automatically.\n\n- (a) omits tenant and version, so one tenant's answer can be served to another and stale answers survive releases.\n- (b) hashes only the last user message, ignoring system prompt and history that change the answer.\n- (c) adds the timestamp, which makes every key unique so nothing ever hits.\n\n**Deeper:** Also restrict caching to deterministic, non-personalised requests and give entries a TTL. A cache that ignores the prompt version turns every prompt rollout into a debugging nightmare.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Only the user's latest message text", "isCorrect": false },
+        { "optionKey": "b", "optionText": "A hash of the last user message plus the model name", "isCorrect": false },
+        { "optionKey": "c", "optionText": "The full request plus the current timestamp, to avoid stale data", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Tenant, prompt version, model, normalised messages and sampling parameters", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`variant_for(tenant, experiment, pct)` hashes `experiment:tenant` into a bucket 0-99 and returns `\"candidate\"` when `bucket < pct`. You raise a rollout from 10 to 50 percent. Which statement is guaranteed?",
+      "explanation": "**Answer: (b)** A tenant's bucket depends only on the experiment name and tenant id, not on the percentage. A tenant in the candidate group at 10 percent has bucket below 10, which is also below 50, so it stays in the candidate group. Widening the rollout only adds tenants.\n\n- (a) is wrong: with a deterministic hash the assignment does not reshuffle.\n- (c) is wrong: the hash is fixed per tenant, so the same tenant gets the same variant each time (that is the stickiness).\n- (d) is wrong: the observed shares are only approximately the target (for 1,000 tenants I measured 101 at 10 percent and 527 at 50 percent).\n\n**Deeper:** Stickiness matters for user experience and for clean comparisons. Include the experiment name in the hash so different experiments do not select the same tenants.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Tenants are reshuffled, so about 10 percent of previous candidates return to stable", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Every tenant already in the candidate group stays in it; the rollout only adds tenants", "isCorrect": true },
+        { "optionKey": "c", "optionText": "A tenant may see a different variant on each request", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Exactly 500 of 1,000 tenants will be in the candidate group", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A semantic cache (threshold 0.8) stores the answer for \"how do I reset my password\". The query \"how do I reset my colleagues password\" scores a similarity of about 0.94 against it. What does this demonstrate?",
+      "explanation": "**Answer: (c)** The query is a cache hit even though the intent differs (resetting someone else's password is a different, possibly privileged, action). Embedding closeness measures surface and topical similarity, not equivalence of intent or permissions.\n\n- (a) is wrong: a hit is above the threshold, and a threshold of 0.8 is not a guarantee of safety.\n- (b) is wrong: tenant partitioning prevents cross-tenant hits but cannot fix within-tenant intent differences.\n- (d) is wrong: raising the temperature has nothing to do with retrieval from a cache.\n\n**Deeper:** Restrict semantic caching to low-risk FAQ intents, use a conservative threshold, measure false-hit rate on labelled pairs, and never cache personalised or permissioned answers. An exact-match cache is the safer first step.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "The threshold is working: similar questions should always share an answer", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The cache is leaking data across tenants", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Similarity is not equivalence: a false hit can serve the wrong answer, so limit and measure semantic caching", "isCorrect": true },
+        { "optionKey": "d", "optionText": "The model temperature should be raised to diversify cached answers", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "An endpoint uses FastAPI `BackgroundTasks` to run a 4-minute document summarisation after returning 200. After a deploy, summaries for jobs started just before the restart never appear and nobody is notified. What is the root cause and fix?",
+      "explanation": "**Answer: (a)** `BackgroundTasks` run in the same process after the response is sent. They are not persisted, retried or supervised, so a restart or crash silently loses them. Long or important work should be enqueued on a durable queue (with retries, visibility and separate workers) and exposed through a `202` plus status endpoint.\n\n- (b) is wrong: more workers do not make in-process tasks durable.\n- (c) is wrong: the response was already sent; the problem is lifecycle, not response time.\n- (d) is wrong: sleeping or polling inside the task does not survive the process ending.\n\n**Deeper:** Choose `BackgroundTasks` for small, loss-tolerant work such as sending an analytics event. For anything the user is waiting on, persist the job and make it idempotent.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "In-process background tasks die with the worker; move the work to a durable queue and expose job status", "isCorrect": true },
+        { "optionKey": "b", "optionText": "Too few uvicorn workers; increase the worker count", "isCorrect": false },
+        { "optionKey": "c", "optionText": "The response was too slow; return after the summary completes", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The task needs an infinite retry loop inside the coroutine", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "```python\nasync def endpoint():\n    asyncio.create_task(send_report())   # return value discarded\n    return {\"status\": \"accepted\"}\n```\n\nWhat is the production risk, and what is the standard fix?",
+      "explanation": "**Answer: (d)** The event loop keeps only a weak reference to tasks. If nothing else references the task, it can be garbage collected before it finishes, and exceptions inside it may go unobserved. Keep a strong reference (a set of tasks removed in a done callback), or use a `TaskGroup` or a proper queue.\n\n- (a) is wrong: `create_task` is not blocking.\n- (b) is wrong: the task runs on the same event loop; it is not a thread, and no GIL problem arises.\n- (c) is wrong: the task is scheduled, but nothing guarantees it will complete if it is collected.\n\n**Deeper:** The job runner in the lesson stores tasks in a set and discards them on completion, and also bounds concurrency with a semaphore. Fire-and-forget code is where silent failures hide.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`create_task` blocks the event loop until the report is sent", "isCorrect": false },
+        { "optionKey": "b", "optionText": "The task runs in a separate thread and hits the GIL", "isCorrect": false },
+        { "optionKey": "c", "optionText": "The task is never scheduled until someone awaits it", "isCorrect": false },
+        { "optionKey": "d", "optionText": "The task can be garbage collected mid-run; keep a strong reference or use a task group or queue", "isCorrect": true }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A tenant hits its daily dollar budget. The API currently returns `429` for both per-second rate limiting and budget exhaustion. Clients retry both with backoff. What is the problem and the best fix?",
+      "explanation": "**Answer: (b)** A client cannot tell a transient condition (wait a second) from a persistent one (wait until tomorrow or upgrade), so it keeps retrying a request that cannot succeed, adding load. Distinguish them with a machine-readable error code in the body (and possibly a different status such as 402 or 403), include `Retry-After` only for the transient case, and make clients stop retrying on budget errors.\n\n- (a) is wrong: bigger buckets do not fix the confusion.\n- (c) is wrong: silently dropping requests hides the cause.\n- (d) is wrong: raising the budget automatically defeats the control.\n\n**Deeper:** Cost controls are part of the API contract. Alert operators at 80 percent of the budget and surface remaining quota in a response header or a usage endpoint.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Increase the burst size so budget errors happen less often", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Clients cannot distinguish transient from persistent limits; return distinct error codes and `Retry-After` only for rate limits", "isCorrect": true },
+        { "optionKey": "c", "optionText": "Drop over-budget requests without a response", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Automatically raise the budget whenever a tenant reaches it", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A teammate adds `tenant_id` as a label on the `llm.request.duration` histogram. You have 5,000 tenants, 3 models and 4 outcome values (ok, error, timeout, rate_limited). How many label combinations (time series per metric) can this produce, and what is the better design?",
+      "explanation": "**Answer: (a)** 5,000 x 3 x 4 = 60,000 series for the metric (a histogram multiplies this further by its buckets). High-cardinality labels inflate storage and query cost and can overload the metrics backend. Keep metric labels low-cardinality (model, prompt version, outcome) and put tenant and request ids on spans and structured logs, optionally with a separate cost-per-tenant counter if you truly need it.\n\n- (b) 12 counts only models times outcomes and ignores tenants.\n- (c) 5,000 ignores the other dimensions.\n- (d) 15,000 omits the outcome dimension.\n\n**Deeper:** Cardinality is a cost and reliability issue. Review every metric label and ask how many distinct values it can take.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "60,000; keep tenant off metric labels and record it on spans and logs", "isCorrect": true },
+        { "optionKey": "b", "optionText": "12; there is no issue", "isCorrect": false },
+        { "optionKey": "c", "optionText": "5,000; sample tenants to reduce it", "isCorrect": false },
+        { "optionKey": "d", "optionText": "15,000; drop the model label", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using the lesson's `release_gate` with five cases, suppose a new prompt fails exactly one case (4 of 5 pass) and the team sets `BASELINE = 1.0, TOLERANCE = 0.25`. What is printed, and what does it reveal about the gate?",
+      "explanation": "**Answer: (c)** `PASS pass_rate=0.80 (baseline 1.00)`. The pass rate is 4/5 = 0.80, and the condition is `rate >= BASELINE - TOLERANCE`, i.e. `0.80 >= 0.75`, which is true. A generous tolerance lets a real regression through, and on a small golden set one case is a 20 percent swing.\n\n- (a) prints FAIL, which would need a stricter tolerance.\n- (b) shows the wrong rate; 4 of 5 is 0.80.\n- (d) is wrong: the gate does not raise; it reports a verdict.\n\n**Deeper:** Choose tolerances from the measured variance of the metric, grow the golden set so one case matters less, and also gate on critical cases individually (security and policy cases should never be averaged away).",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "`FAIL pass_rate=0.80 (baseline 1.00)`", "isCorrect": false },
+        { "optionKey": "b", "optionText": "`PASS pass_rate=0.75 (baseline 1.00)`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "`PASS pass_rate=0.80 (baseline 1.00)`: a loose tolerance and a small set let a regression pass", "isCorrect": true },
+        { "optionKey": "d", "optionText": "It raises `AssertionError` because the baseline is 1.0", "isCorrect": false }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-56/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Streaming works locally, but behind the production ingress the browser receives the whole answer at once after 12 seconds. The FastAPI code is unchanged. What should you check first?",
+      "explanation": "**Answer: (d)** Buffering by an intermediary is the classic cause: reverse proxies and gateways (and compression middleware) often hold response bodies until they are complete. Send `X-Accel-Buffering: no` (for nginx-style proxies), disable buffering or compression for the route in the ingress configuration, and emit periodic keep-alive comments. Verify by calling the service directly and then through each hop.\n\n- (a) is wrong: a faster model does not change how a proxy treats the stream.\n- (b) is wrong: `StreamingResponse` works in production; the code path is the same.\n- (c) is wrong: switching to polling discards the benefit instead of locating the buffer.\n\n**Deeper:** Always test streaming through the real network path, including the load balancer and CDN, and monitor time to first token separately from total duration.",
+      "reviewFlag": null,
+      "options": [
+        { "optionKey": "a", "optionText": "Switch to a faster model so the stream finishes sooner", "isCorrect": false },
+        { "optionKey": "b", "optionText": "Replace `StreamingResponse` with a normal `JSONResponse`", "isCorrect": false },
+        { "optionKey": "c", "optionText": "Replace SSE with client-side polling every second", "isCorrect": false },
+        { "optionKey": "d", "optionText": "Proxy or middleware buffering: disable buffering/compression for the route and test each hop", "isCorrect": true }
+      ]
+    }
+  ]
+}

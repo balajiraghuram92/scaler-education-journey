@@ -1,0 +1,365 @@
+{
+  "lessonSlug": "py-23-code-parking-lot-1",
+  "questions": [
+    {
+      "legacyKey": "python-engineering/py-23/checkpoint/g01",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A teammate's `TicketService.issue_ticket(self, request: IssueTicketRequestDTO)` reads `request.gate_id` and `request.vehicle_type` directly. In the layering taught here, what is the right criticism and fix?",
+      "explanation": "**Answer: (d)** Business rules should not depend on the wire format; plain values keep the service callable from anywhere.\n\n- (a) parsing and shaping requests is the controller's job; a service that parses them cannot be reused by a CLI or test without a DTO.\n- (b) an untyped dict hides the contract and is a worse coupling than a typed DTO.\n- (c) repositories only save and find; moving rules there removes the layer that owns business logic.\n\n**Deeper:** The review shorthand is \"can I call this from a unit test without building a DTO?\" If not, the layers leaked. The controller is the single adapter, so a new transport (a queue consumer, a gRPC handler) needs a new controller and no change to rules.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing is wrong: services are the natural place to parse requests.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The DTO should be a `dict`, so that the service stays flexible.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The service should move into the repository layer so it can reach the data directly.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The service now depends on one transport's request shape; it should take plain values (`gate_id, vehicle_number, vehicle_type, owner_name`) and the controller should unwrap the DTO.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/checkpoint/g02",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Where should the rule \"a ticket can only be issued at an entry gate\" live?",
+      "explanation": "**Answer: (a)** The service owns business rules; it has the repositories to look up the gate and decide, and a named exception carries the reason outward.\n\n- (b) it is a business rule, not a transport concern; other callers of the service would bypass it.\n- (c) a repository that filters by business meaning hides the rule and makes \"gate not found\" indistinguishable from \"wrong kind of gate\".\n- (d) a DTO has no access to the stored gate type, and it should hold data, not rules.\n\n**Deeper:** Placement questions are layer questions. A useful test is to ask who else might trigger the behaviour: if a CLI, a batch job or another service should also be bound by the rule, it belongs in the service.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "In `TicketService.issue_ticket`, raising a named domain error such as `InvalidGateError`, which the controller translates into a failure response.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "In the controller, so the service can assume valid input.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In `GateRepository.find_by_id`, which returns `None` for exit gates.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "In the DTO's constructor, since the request names the gate.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/checkpoint/g03",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A `BaseModel` dataclass has `id: int | None = None`. A subclass declares `name: str` (no default) with a plain `@dataclass`. What happens at class-definition time, and what is the fix used in the lesson?",
+      "explanation": "**Answer: (c)** Keyword-only fields are excluded from the positional ordering rule, so the subclass can declare required fields freely (Python 3.10+).\n\n- (a) dataclasses keep the declaration order and refuse a required field after a defaulted one.\n- (b) subclasses can add fields; the error is about ordering, and it is a `TypeError`.\n- (d) it is a hard `TypeError` at class creation.\n\n**Deeper:** I ran both versions: the plain base raised exactly that message, and the `kw_only=True` base produced `C2(id=None, name='x')`. Interviewers like this because it shows you know a language feature that removes a classic inheritance snag.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing: Python reorders fields so that required ones come first.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`AttributeError: name`, because subclasses cannot add fields to a dataclass.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`TypeError: non-default argument 'name' follows default argument 'id'`; declare the base with `@dataclass(kw_only=True)` so its defaulted fields become keyword-only.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "A `DeprecationWarning` only, and the code still runs.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/checkpoint/g04",
+      "category": "Checkpoint",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "What does this print, and why does the lesson use `@dataclass(eq=False)` for entities?\n\n```python\n@dataclass\nclass E1:\n    name: str\n\nprint(E1(\"a\") == E1(\"a\"))\n{E1(\"a\")}\n```",
+      "explanation": "**Answer: (b)** By default `@dataclass` generates field-wise `__eq__` and removes `__hash__`, which makes mutable entities unhashable and equal by value.\n\n- (a) the generated `__eq__` compares fields, so the two instances are equal.\n- (c) with `eq=True` and not frozen, `__hash__` is set to `None`, so instances are unhashable.\n- (d) comparison is generated and works; the failure appears when hashing.\n\n**Deeper:** Two distinct spots with the same number and status being `==` is a bug magnet when you search lists with `in` or `index`. For entities keep identity semantics with `eq=False`, or compare ids explicitly. I ran this snippet and got `True` followed by the `TypeError`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It prints `False` and the set is created, because separate objects are never equal.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It prints `True`, then raises `TypeError: unhashable type: 'E1'`; entities should compare by identity or id, and `eq=False` keeps the default identity-based equality and hashing.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It prints `True` and the set is created, because dataclasses are always hashable.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It raises `TypeError` on the `==` line, because dataclasses cannot be compared.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/assignment/g01",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A repository saves with `self.items.append(item)`. The caller does this:\n\n```python\ng = Gate(name=\"N\", gate_type=GateType.ENTRY)\nrepo.save(g)\ng.name = \"North\"\nrepo.save(g)\nprint(len(repo.items))\n```\nWhat is printed, and what is the fix?",
+      "explanation": "**Answer: (b)** An upsert needs identity by key; a list append has none, so updates become duplicates.\n\n- (a) lists allow duplicates; the same object is appended twice.\n- (c) deduplicating on read hides the problem and fails for unhashable entities.\n- (d) `append` stores a reference and nothing is discarded.\n\n**Deeper:** I ran an equivalent list-backed repository and it printed `2`. The lesson's version assigns an id on first save and stores `self._items[item.id] = item`, so a second save replaces the entry and only updates `last_modified_at`. Add a test for exactly this case, since it is a quiet bug that no crash reveals.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`1`, because Python lists ignore duplicate objects.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`2`, because every save appends; store items in a dict keyed by id so saving an existing object updates it.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`2`, and the fix is to call `set(self.items)` in `find_all`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`0`, because the object is copied on append and the copy is discarded.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/assignment/g02",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "To make timestamps testable, a developer writes `def stamp(t=datetime.now()): return t` instead of passing a clock function. What happens when `stamp()` is called twice a moment apart?",
+      "explanation": "**Answer: (d)** Python evaluates default argument expressions once, so `datetime.now()` is captured at definition time.\n\n- (a) default values are evaluated once, at function definition, not on each call.\n- (b) any expression is allowed as a default; the problem is when it is evaluated.\n- (c) nothing about the default is consumed; the same value is simply reused.\n\n**Deeper:** The lesson passes the function itself (`clock=datetime.now`) and calls it inside, which gives fresh values and lets tests inject a fixed clock. I ran the buggy version and `a is b` was `True`. It is the same family of bug as a mutable default like `def f(x=[])`.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Each call returns the current time, because defaults are evaluated per call.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It raises `TypeError` because `datetime.now()` cannot be a default.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The first call returns now and the second raises `StopIteration`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Both calls return the same object: the default is evaluated once when the function is defined, so the time is frozen at definition.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/assignment/g03",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "A variant of `issue_ticket` sets `spot.status = OCCUPIED` first and then calls `self._vehicles.save(...)`, which raises because the vehicle database is down. What is the state afterwards, and what does the lesson's ordering do differently?",
+      "explanation": "**Answer: (a)** Mutating before the last fallible step leaks state when that step raises.\n\n- (b) plain Python objects have no transaction semantics; nothing reverts the assignment.\n- (c) the exception propagates out of the service, so no ticket is saved.\n- (d) the order decides which failures leave side effects, which is exactly the point.\n\n**Deeper:** Say \"validate first, mutate last\", and for real databases add a transaction so all writes succeed or none do. The lesson's test `test_full_lot_raises_and_leaves_no_trace` pins the ordering for the full-lot failure, and a second test for a failing vehicle repository would pin the rest.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The spot stays `OCCUPIED` with no ticket, a leaked resource; the lesson validates and finds everything first and mutates only after the last step that can fail, so failures leave no partial state.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The spot is rolled back automatically when the exception propagates.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The ticket is saved anyway, because the exception is swallowed by the repository.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The lesson's ordering is identical; the order of statements never matters.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/assignment/g04",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "`T = TypeVar(\"T\", bound=BaseModel)` and `repo = InMemoryRepository[int]()`. At runtime (no type checker), what happens on `repo.save(5)`?",
+      "explanation": "**Answer: (c)** Type variable bounds are an annotation for checkers such as mypy and pyright, not an enforced runtime constraint.\n\n- (a) subscripting a generic class does not validate bounds at runtime.\n- (b) `save` reads `item.id`, which an `int` does not have.\n- (d) no such check exists; the failure is the missing attribute.\n\n**Deeper:** Hence the advice: run a type checker in CI, and where a runtime guarantee matters add an explicit check. I ran this and saw the repository created and the `AttributeError` raised on the first save.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`TypeError` is raised at `InMemoryRepository[int]()`, because `int` violates the bound.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`save(5)` succeeds and stores the integer, since `int` is hashable.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The repository is created without complaint, and `save(5)` raises `AttributeError: 'int' object has no attribute 'id'`, because the bound is only checked by static tools.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`ValueError`, because the repository refuses non-model items.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/assignment/g05",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "The controller's `try` block catches `except Exception` and returns a failure DTO. During a code review, what is the strongest objection?",
+      "explanation": "**Answer: (d)** A broad catch makes every defect look like a business failure, so bugs reach production silently.\n\n- (a) exception matching cost is negligible compared with hiding defects.\n- (b) it is allowed; the objection is about design, not syntax.\n- (c) the service can still raise; the controller simply over-catches.\n\n**Deeper:** A base class for expected domain errors lets the controller catch exactly those in one clause. Unexpected exceptions should propagate to a global handler that logs and returns a 500. The Zip solutions for the hotel exercises catch broadly for brevity; in a production service you would narrow them.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is slower than catching specific exceptions.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Python forbids catching `Exception`.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It prevents the service from raising domain errors.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It turns programming errors (a `TypeError`, a typo'd attribute) into ordinary \"failed request\" responses, hiding bugs; it should catch only the expected `ParkingLotError` and conversion errors.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/assignment/g06",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "Using the lesson's joined-table schema (`pens`, `ball_pens`, `gel_pens`, each child with a foreign key to `pens.id`), how do you list the names of every pen regardless of kind?",
+      "explanation": "**Answer: (b)** Common attributes live once in the parent, so listing every pen is a single-table query; joins are only for child-specific columns.\n\n- (a) that is what the naive copy-the-columns design needs, and it is the problem joined-table inheritance removes.\n- (c) joins are needed only for child-specific columns such as `ball_grip`.\n- (d) a join of two sibling tables with no key returns a meaningless cross product.\n\n**Deeper:** I ran the DDL in SQLite: `SELECT name, price FROM pens` returned both pens, and the join to `ball_pens` returned only the ball pen's grip. The trade-off is a join when you need child columns; single-table inheritance avoids it at the cost of nullable columns.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`SELECT name FROM ball_pens UNION SELECT name FROM gel_pens`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`SELECT name FROM pens`, because the parent table holds the common columns for all kinds.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is impossible without joining all three tables.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`SELECT name FROM gel_pens JOIN ball_pens`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/assignment/g07",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "With `FirstAvailableSpotStrategy`, spots are: 1 supports {BIKE}, available; 2 supports {CAR, BIKE}, occupied; 3 supports {CAR, BIKE}, available. Which spot numbers are returned for a CAR, a BIKE and a TRUCK?",
+      "explanation": "**Answer: (a)** The strategy returns the first spot that is available and supports the type; unsupported types get `None`.\n\n- (b) spot 2 is occupied, and no spot supports a truck.\n- (c) a bike takes the first available spot that supports bikes, which is spot 1, and spot 1 does not support trucks.\n- (d) spot 1 supports only bikes.\n\n**Deeper:** I ran this exact data and got `3 1 None`. Notice that a bike used spot 1 even though a more flexible spot exists later; a smarter strategy would reserve flexible spots for larger vehicles, which is precisely why allocation is a swappable strategy.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "CAR gets 3, BIKE gets 1, TRUCK gets `None`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "CAR gets 2, BIKE gets 1, TRUCK gets 3.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "CAR gets 3, BIKE gets 3, TRUCK gets 1.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "All three get 1, the first spot.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "python-engineering/py-23/assignment/g08",
+      "category": "Assignment",
+      "sourceType": "LLM_GENERATED",
+      "questionText": "After setting `spot.status = SpotStatus.OCCUPIED`, the service still calls `self._spots.save(spot)`, although the in-memory repository holds the very same object. Why keep the call?",
+      "explanation": "**Answer: (c)** The repository interface is the contract; relying on in-memory aliasing would break when the implementation changes.\n\n- (a) that is true only for the in-memory implementation; the service should work with any repository.\n- (b) `save` does nothing of the kind.\n- (d) unrelated to saving; Python reclaims memory by reference counting and cycle detection.\n\n**Deeper:** Code to the contract, not to the quirks of the current implementation. This habit is what makes swapping an in-memory fake for SQLAlchemy a configuration change instead of a bug hunt, and it keeps your tests honest about what the repository promises.",
+      "reviewFlag": null,
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is redundant and should be deleted, since the object is already stored.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It makes the object immutable so other threads cannot change it.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The service must not rely on the repository storing the same object: with a database-backed repository the mutation would be lost without `save`, and `save` also updates `last_modified_at`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It is required to flush the garbage collector.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}
