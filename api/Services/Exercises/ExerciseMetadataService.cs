@@ -23,8 +23,11 @@ public sealed class ExerciseMetadataService
         var definition = _repository.GetById(exerciseId)
             ?? throw new ExerciseNotFoundException(exerciseId);
 
+        // Python exercises also show provided (read-only) modules the learner builds on.
+        var includeProvided = ExerciseRuntimeProfiles.IsPython(definition.Manifest);
         var files = definition.Manifest.Files
-            .Where(file => file.Editable)
+            .Where(file => file.Editable || includeProvided)
+            .OrderBy(file => file.Editable ? 0 : 1)
             .Select(file => new ExerciseFileMetadataDto(
                 file.Id,
                 file.Path,

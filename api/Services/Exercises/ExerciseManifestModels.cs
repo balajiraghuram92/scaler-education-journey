@@ -80,6 +80,15 @@ public sealed class ExerciseDefinition
         new Dictionary<string, ExerciseEvidenceManifest>(StringComparer.Ordinal);
 }
 
+public static class ExerciseRuntimeProfiles
+{
+    public const string JavaMaven = "java-maven";
+    public const string PythonPytest = "python-pytest";
+
+    public static bool IsPython(ExerciseManifest manifest) =>
+        manifest.Runtime.Profile.Equals(PythonPytest, StringComparison.OrdinalIgnoreCase);
+}
+
 internal static class ExercisePathRules
 {
     public static bool IsSafeRelativePath(string? path)

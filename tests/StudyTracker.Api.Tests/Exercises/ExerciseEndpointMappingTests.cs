@@ -16,6 +16,9 @@ public class ExerciseEndpointMappingTests
         builder.Services.AddScoped<ExerciseService>();
         builder.Services.AddSingleton<ExerciseMetadataService>();
         builder.Services.AddSingleton<ExerciseSolutionService>();
+        builder.Services.AddScoped<ExerciseProgressService>();
+        builder.Services.AddScoped<StudyTracker.Api.Services.Auth.ICurrentUser, StudyTracker.Api.Services.Auth.HttpContextCurrentUser>();
+        builder.Services.AddSingleton<IExerciseRepository>(_ => null!);
         var app = builder.Build();
 
         app.MapExerciseEndpoints();
@@ -34,5 +37,7 @@ public class ExerciseEndpointMappingTests
         Assert.Contains("CheckExercise", routeNames);
         Assert.Contains("GetExerciseMetadata", routeNames);
         Assert.Contains("GetExerciseSolution", routeNames);
+        Assert.Contains("GetExerciseWorkspaceState", routeNames);
+        Assert.Contains("SaveExerciseDraft", routeNames);
     }
 }

@@ -1,0 +1,62 @@
+{
+  "id": "py-09-frequency-count",
+  "lessonSlug": "py-09-collections-dataclasses-typing-exceptions",
+  "title": "Frequency Count with a Dictionary",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 10,
+  "instructions": "Implement `count_frequency(arr)` in `config/countFreq.py`. It takes a list of integers and returns a dict that maps each distinct element to how many times it occurs. Use one pass, don't print, and don't mutate the input.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "count-freq",
+      "path": "config/countFreq.py",
+      "displayName": "countFreq.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "counts-mixed-list",
+      "label": "Counts every element of a list with repeats",
+      "testMethod": "test_counts_mixed_list"
+    },
+    {
+      "id": "empty-list",
+      "label": "Returns {} for an empty list",
+      "testMethod": "test_empty_list_returns_empty_dict"
+    },
+    {
+      "id": "single-element",
+      "label": "Returns {x: 1} for a single-element list",
+      "testMethod": "test_single_element"
+    },
+    {
+      "id": "returns-plain-dict",
+      "label": "Returns a dict (not a Counter or a list of pairs)",
+      "testMethod": "test_returns_a_dict"
+    },
+    {
+      "id": "input-not-mutated",
+      "label": "Leaves the input list unchanged",
+      "testMethod": "test_input_is_not_mutated"
+    },
+    {
+      "id": "no-printing",
+      "label": "Does not print anything",
+      "testMethod": "test_does_not_print"
+    },
+    {
+      "id": "negative-and-zero",
+      "label": "Handles zero and negative numbers",
+      "testMethod": "test_handles_zero_and_negatives"
+    }
+  ]
+}

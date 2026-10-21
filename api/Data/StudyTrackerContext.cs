@@ -74,6 +74,8 @@ public class StudyTrackerContext : DbContext
     public DbSet<UserSession> UserSessions { get; set; } = null!;
     public DbSet<UserLessonProgress> UserLessonProgress { get; set; } = null!;
     public DbSet<UserProblemProgress> UserProblemProgress { get; set; } = null!;
+    public DbSet<UserExerciseDraft> UserExerciseDrafts { get; set; } = null!;
+    public DbSet<UserExerciseAttempt> UserExerciseAttempts { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -447,7 +449,7 @@ public class StudyTrackerContext : DbContext
             entity.ToTable("learning_activity", t =>
             {
                 t.HasCheckConstraint("ck_learning_activity_event_type",
-                    "event_type IN ('LessonCompleted', 'LessonReopened', 'ProblemCompleted', 'ProblemReopened', 'TaskCompleted', 'TaskReopened', 'ReadingScheduled', 'ReadingDeferred', 'ReadingRevisited', 'NoteCreated', 'ChapterImported', 'LessonOpened', 'McqAnswered', 'ProblemAttempted', 'SolutionRevealed')");
+                    "event_type IN ('LessonCompleted', 'LessonReopened', 'ProblemCompleted', 'ProblemReopened', 'TaskCompleted', 'TaskReopened', 'ReadingScheduled', 'ReadingDeferred', 'ReadingRevisited', 'NoteCreated', 'ChapterImported', 'LessonOpened', 'McqAnswered', 'ProblemAttempted', 'SolutionRevealed', 'ExerciseRun')");
             });
             entity.HasKey(la => la.Id);
             entity.HasOne(la => la.User)
@@ -875,6 +877,34 @@ public class StudyTrackerContext : DbContext
             entity.HasOne(p => p.Lesson)
                 .WithMany()
                 .HasForeignKey(p => p.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserExerciseDraft>(entity =>
+        {
+            entity.ToTable("user_exercise_drafts");
+            entity.HasKey(d => d.Id);
+            entity.HasIndex(d => new { d.UserId, d.ExerciseId })
+                .IsUnique()
+                .HasDatabaseName("ux_user_exercise_drafts_user_exercise");
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserExerciseAttempt>(entity =>
+        {
+            entity.ToTable("user_exercise_attempts", t =>
+            {
+                t.HasCheckConstraint("ck_user_exercise_attempts_status", "status IN ('success', 'testFailure', 'compilationFailure', 'timeout')");
+            });
+            entity.HasKey(a => a.Id);
+            entity.HasIndex(a => new { a.UserId, a.ExerciseId, a.SubmittedAt })
+                .HasDatabaseName("ix_user_exercise_attempts_user_exercise_time");
+            entity.HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

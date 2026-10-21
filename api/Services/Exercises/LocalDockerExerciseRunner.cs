@@ -50,24 +50,7 @@ public sealed class LocalDockerExerciseRunner : IExerciseRunner
                         ["com.studytracker.exercise-runner"] = "true",
                         ["com.studytracker.run-id"] = workspace.RunId.ToString("N")
                     },
-                    HostConfig = new HostConfig
-                    {
-                        Init = true,
-                        AutoRemove = false,
-                        NetworkMode = "bridge",
-                        Memory = _options.MemoryLimitBytes,
-                        NanoCPUs = _options.NanoCpus,
-                        PidsLimit = _options.PidsLimit,
-                        Mounts = new List<Mount>
-                        {
-                            new()
-                            {
-                                Type = "volume",
-                                Source = _options.MavenCacheVolume,
-                                Target = "/root/.m2"
-                            }
-                        }
-                    }
+                    HostConfig = BuildHostConfig(workspace.Definition)
                 },
                 cancellationToken);
 
@@ -142,6 +125,37 @@ public sealed class LocalDockerExerciseRunner : IExerciseRunner
         }
     }
 
+    private HostConfig BuildHostConfig(ExerciseDefinition definition)
+    {
+        var hostConfig = new HostConfig
+        {
+            Init = true,
+            AutoRemove = false,
+            NetworkMode = "bridge",
+            Memory = _options.MemoryLimitBytes,
+            NanoCPUs = _options.NanoCpus,
+            PidsLimit = _options.PidsLimit
+        };
+
+        if (ExerciseRuntimeProfiles.IsPython(definition.Manifest))
+        {
+            // Python exercises run fully offline: all libraries are baked into the runner image.
+            hostConfig.NetworkMode = "none";
+            return hostConfig;
+        }
+
+        hostConfig.Mounts = new List<Mount>
+        {
+            new()
+            {
+                Type = "volume",
+                Source = _options.MavenCacheVolume,
+                Target = "/root/.m2"
+            }
+        };
+        return hostConfig;
+    }
+
     private string ResolveRunnerImage(ExerciseDefinition definition)
     {
         var profile = definition.Manifest.Runtime.Profile;
@@ -159,6 +173,11 @@ public sealed class LocalDockerExerciseRunner : IExerciseRunner
             {
                 return normalizedImage;
             }
+        }
+
+        if (ExerciseRuntimeProfiles.IsPython(definition.Manifest))
+        {
+            return _options.PythonRunnerImage;
         }
 
         return _options.RunnerImage;
