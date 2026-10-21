@@ -1,0 +1,83 @@
+{
+  "id": "py-20-random-start-and-retry",
+  "lessonSlug": "py-20-tictactoe-1",
+  "title": "TicTacToe Extras: Seeded Random Start and Invalid-Move Retry",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 35,
+  "instructions": "The lesson's game code is provided in `tictactoe/game.py` (read-only). In `tictactoe/extras.py` implement `SeededBuilder` (a `Game.Builder` that keeps all validation, then rotates the player list by an offset drawn from the injected `random.Random`) and `RetryingController` (`start_game_seeded` and `play`, which re-asks the same player after an `InvalidMoveError` and raises `TooManyInvalidMovesError` once consecutive invalid moves exceed `max_invalid_moves`). Do not change the `Game` rules.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "tictactoe-game",
+      "path": "tictactoe/game.py",
+      "displayName": "game.py",
+      "editable": false
+    },
+    {
+      "id": "tictactoe-extras",
+      "path": "tictactoe/extras.py",
+      "displayName": "extras.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "same-seed-gives-same-first-player-and-all-players-still-present",
+      "label": "The same seed gives the same starter and every player still takes part",
+      "testMethod": "test_same_seed_gives_same_first_player_and_all_players_still_present"
+    },
+    {
+      "id": "both-players-can-start-for-some-seed",
+      "label": "Both players can be the starter for some seed",
+      "testMethod": "test_both_players_can_start_for_some_seed"
+    },
+    {
+      "id": "rotation-preserves-turn-order",
+      "label": "The order is a rotation of the original: A, B, C becomes ABC, BCA or CAB",
+      "testMethod": "test_rotation_preserves_turn_order"
+    },
+    {
+      "id": "builder-keeps-existing-validation",
+      "label": "SeededBuilder still raises InvalidGameConfigError for a bad configuration",
+      "testMethod": "test_builder_keeps_existing_validation"
+    },
+    {
+      "id": "play-retries-an-invalid-move-and-finishes",
+      "label": "An invalid move is retried by the same player and the game finishes",
+      "testMethod": "test_play_retries_an_invalid_move_and_finishes"
+    },
+    {
+      "id": "invalid-counter-resets-after-a-valid-move",
+      "label": "The consecutive-invalid counter resets after any valid move",
+      "testMethod": "test_invalid_counter_resets_after_a_valid_move"
+    },
+    {
+      "id": "play-gives-up-after-too-many-invalid-moves",
+      "label": "Too many consecutive invalid moves raises TooManyInvalidMovesError and leaves the game untouched",
+      "testMethod": "test_play_gives_up_after_too_many_invalid_moves"
+    },
+    {
+      "id": "too-many-error-is-chain-suppressed",
+      "label": "The raised error hides the original InvalidMoveError chain",
+      "testMethod": "test_too_many_error_is_chain_suppressed"
+    },
+    {
+      "id": "play-runs-a-game-to-a-draw",
+      "label": "play() drives a full game to a draw",
+      "testMethod": "test_play_runs_a_game_to_a_draw"
+    },
+    {
+      "id": "play-on-finished-game-returns-immediately",
+      "label": "play() on a finished game makes no further moves",
+      "testMethod": "test_play_on_finished_game_returns_immediately"
+    }
+  ]
+}

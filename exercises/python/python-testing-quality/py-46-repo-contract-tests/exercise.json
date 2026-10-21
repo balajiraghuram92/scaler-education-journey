@@ -1,0 +1,78 @@
+{
+  "id": "py-46-repo-contract-tests",
+  "lessonSlug": "py-46-pytest-fixtures",
+  "title": "One Contract Suite, Three Storage Backends",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 30,
+  "instructions": "Implement `SqlUsageRepo` (sqlite3, upsert, commit on every `add`, `close()`) and `FileUsageRepo` (JSON, atomic replace) in `repos.py`. `budget.py` is provided. One contract suite runs against the in-memory fake and both adapters, so all three must behave identically for unknown tenants, running totals, isolation and cross-instance visibility.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "budget",
+      "path": "budget.py",
+      "displayName": "budget.py",
+      "editable": false
+    },
+    {
+      "id": "repos",
+      "path": "repos.py",
+      "displayName": "repos.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "unknown-zero",
+      "label": "Unknown tenant has usage 0 on every backend",
+      "testMethod": "test_unknown_tenant_is_zero"
+    },
+    {
+      "id": "running-total",
+      "label": "add returns the running total on every backend",
+      "testMethod": "test_add_returns_running_total"
+    },
+    {
+      "id": "isolation",
+      "label": "Tenants are isolated on every backend",
+      "testMethod": "test_tenants_are_isolated"
+    },
+    {
+      "id": "second-instance",
+      "label": "A write is visible through a second instance over the same storage",
+      "testMethod": "test_writes_visible_through_a_second_instance"
+    },
+    {
+      "id": "service-limit",
+      "label": "BudgetService enforces its limit on every backend",
+      "testMethod": "test_service_enforces_limit_on_every_backend"
+    },
+    {
+      "id": "sql-persists",
+      "label": "SqlUsageRepo data survives close and reopen",
+      "testMethod": "test_sql_repo_persists_after_close_and_reopen"
+    },
+    {
+      "id": "file-missing",
+      "label": "FileUsageRepo treats a missing file as no usage and does not create it",
+      "testMethod": "test_file_repo_missing_file_means_no_usage"
+    },
+    {
+      "id": "file-no-leftovers",
+      "label": "FileUsageRepo writes valid JSON and leaves no temp file behind",
+      "testMethod": "test_file_repo_writes_atomically_without_leftovers"
+    },
+    {
+      "id": "file-os-replace",
+      "label": "FileUsageRepo publishes writes with os.replace",
+      "testMethod": "test_file_repo_replaces_via_os_replace"
+    }
+  ]
+}

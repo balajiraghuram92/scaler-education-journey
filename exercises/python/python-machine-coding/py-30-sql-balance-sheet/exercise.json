@@ -1,0 +1,72 @@
+{
+  "id": "py-30-sql-balance-sheet",
+  "lessonSlug": "py-30-code-splitwise-1",
+  "title": "SQL Expense Ledger with Grouped Balances",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `create_tables`, `add_expense`, `record_payment`, `balances` and `history` in `ledger_sql.py` using `sqlite3`. `add_expense` must validate paid-equals-owed and write the expense plus its rows in one transaction. `balances` must be a single grouped SQL query, and payments flow through it as ordinary expenses.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "ledger-sql",
+      "path": "ledger_sql.py",
+      "displayName": "ledger_sql.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "balances-and-settlement-without-special-case",
+      "label": "Balances come from SQL and settlements reduce them with no special case",
+      "testMethod": "test_balances_and_settlement_without_special_case"
+    },
+    {
+      "id": "unbalanced-or-one-sided-expense-writes-nothing",
+      "label": "Unbalanced or one-sided expenses raise ValueError and write nothing",
+      "testMethod": "test_unbalanced_or_one_sided_expense_writes_nothing"
+    },
+    {
+      "id": "a-failure-midway-rolls-back-the-expense-row",
+      "label": "A database failure part-way rolls back the expense row too",
+      "testMethod": "test_a_failure_midway_rolls_back_the_expense_row"
+    },
+    {
+      "id": "group-filter",
+      "label": "Balances can be restricted to one group or cover all groups",
+      "testMethod": "test_group_filter"
+    },
+    {
+      "id": "history-for-user",
+      "label": "History lists the user's rows ordered by expense then row id",
+      "testMethod": "test_history_for_user"
+    },
+    {
+      "id": "payer-must-differ-from-receiver",
+      "label": "A payment from a user to themselves is rejected",
+      "testMethod": "test_payer_must_differ_from_receiver"
+    },
+    {
+      "id": "sql-balances-match-python-on-random-data",
+      "label": "SQL balances match a Python computation on random data and sum to zero",
+      "testMethod": "test_sql_balances_match_python_on_random_data"
+    },
+    {
+      "id": "create-tables-is-idempotent-and-keeps-data",
+      "label": "create_tables can be run again without losing data",
+      "testMethod": "test_create_tables_is_idempotent_and_keeps_data"
+    },
+    {
+      "id": "expense-amount-is-paid-total-and-payment-is-typed",
+      "label": "Stores the paid total and tags payments as PAYMENT, with group ids",
+      "testMethod": "test_expense_amount_is_paid_total_and_payment_is_typed"
+    }
+  ]
+}

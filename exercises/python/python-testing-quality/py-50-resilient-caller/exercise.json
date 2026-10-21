@@ -1,0 +1,83 @@
+{
+  "id": "py-50-resilient-caller",
+  "lessonSlug": "py-50-errors-logging-resilience",
+  "title": "Resilient Caller: Backoff, Deadline, Circuit Breaker, Idempotency Key",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `CircuitBreaker`, `full_jitter` and `ResilientCaller` in `resilient_call.py` (`errors.py` is provided). `call(fn)` passes the same idempotency key to every attempt, retries retryable errors with full-jitter backoff (at least `retry_after` for `RateLimited`), raises `DeadlineExceeded` without sleeping when the delay will not fit, and fails fast while the breaker is open. Time, sleep and randomness are all injected.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "errors",
+      "path": "errors.py",
+      "displayName": "errors.py",
+      "editable": false
+    },
+    {
+      "id": "resilient-call",
+      "path": "resilient_call.py",
+      "displayName": "resilient_call.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "jitter-bounds",
+      "label": "full_jitter stays within [0, min(cap, base * 2**attempt)]",
+      "testMethod": "test_full_jitter_stays_within_bounds"
+    },
+    {
+      "id": "key-reuse",
+      "label": "Retries transient errors and reuses the same idempotency key on every attempt",
+      "testMethod": "test_retries_transient_errors_and_reuses_idempotency_key"
+    },
+    {
+      "id": "fail-fast",
+      "label": "Non-retryable errors propagate after one attempt with no sleep",
+      "testMethod": "test_non_retryable_error_is_raised_immediately"
+    },
+    {
+      "id": "retry-after-floor",
+      "label": "Retry-After is a lower bound for the delay",
+      "testMethod": "test_retry_after_is_a_floor_for_the_delay"
+    },
+    {
+      "id": "give-up",
+      "label": "Re-raises the last error after max_attempts without a final sleep",
+      "testMethod": "test_gives_up_after_max_attempts_and_reraises_last_error"
+    },
+    {
+      "id": "deadline",
+      "label": "Raises DeadlineExceeded (chained) instead of sleeping past the deadline",
+      "testMethod": "test_deadline_stops_retrying_without_sleeping"
+    },
+    {
+      "id": "breaker-cycle",
+      "label": "Breaker opens, fails fast without calling the dependency, then recovers",
+      "testMethod": "test_breaker_opens_then_fails_fast_then_recovers"
+    },
+    {
+      "id": "breaker-half-open",
+      "label": "Half-open failure re-opens at once and a success resets the failure count",
+      "testMethod": "test_breaker_half_open_failure_reopens_and_success_resets_count"
+    },
+    {
+      "id": "retry-logging",
+      "label": "Each retry logs a WARNING with attempt and delay in extra",
+      "testMethod": "test_each_retry_is_logged_at_warning_with_attempt_and_delay"
+    },
+    {
+      "id": "default-key",
+      "label": "The default key factory gives a new key per call but a stable key across retries",
+      "testMethod": "test_default_key_factory_is_unique_per_call_but_stable_within_one"
+    }
+  ]
+}

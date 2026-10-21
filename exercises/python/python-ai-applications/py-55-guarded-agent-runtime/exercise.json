@@ -1,0 +1,77 @@
+{
+  "id": "py-55-guarded-agent-runtime",
+  "lessonSlug": "py-55-agents-tool-use",
+  "title": "Guarded Agent Runtime",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `Registry.add`, `canonical`, `execute_tool` and `run_agent` in `agent_runtime.py` (the dataclasses and the `Model` protocol are provided). `execute_tool` never raises: every failure becomes an `ERROR ...` observation. `run_agent` runs think, act, observe with ordered guards (deadline, budget before the tool runs, loop detection on canonical arguments, per-tool caps) and always ends with an explicit stop reason.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "agent-runtime",
+      "path": "agent_runtime.py",
+      "displayName": "agent_runtime.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "canonical",
+      "label": "canonical ignores key order and whitespace, and falls back to raw text for invalid JSON",
+      "testMethod": "test_canonical_ignores_key_order_and_whitespace"
+    },
+    {
+      "id": "happy-path",
+      "label": "A tool call followed by a final answer stops with \"final\" and records the trace",
+      "testMethod": "test_happy_path"
+    },
+    {
+      "id": "loop-detection",
+      "label": "Loop detection survives whitespace and key-order changes",
+      "testMethod": "test_loop_detection_survives_whitespace_and_key_order"
+    },
+    {
+      "id": "tool-cap",
+      "label": "A per-tool max_calls cap applies even when arguments differ",
+      "testMethod": "test_per_tool_call_cap_applies_to_different_arguments"
+    },
+    {
+      "id": "budget-first",
+      "label": "The token budget is checked before the tool executes",
+      "testMethod": "test_budget_is_checked_before_the_tool_runs"
+    },
+    {
+      "id": "deadline",
+      "label": "The deadline uses the injected clock",
+      "testMethod": "test_deadline_uses_the_injected_clock"
+    },
+    {
+      "id": "errors-as-observations",
+      "label": "Unknown tool, bad arguments, timeout, denial and handler errors become ERROR observations without leaking details",
+      "testMethod": "test_errors_are_observations_not_exceptions"
+    },
+    {
+      "id": "approval",
+      "label": "An approval callback lets a sensitive tool run",
+      "testMethod": "test_approval_callback_allows_the_tool"
+    },
+    {
+      "id": "truncation",
+      "label": "Long observations are truncated before they enter the history",
+      "testMethod": "test_long_observations_are_truncated_before_entering_history"
+    },
+    {
+      "id": "max-steps",
+      "label": "The run stops with max_steps when the step limit is reached",
+      "testMethod": "test_max_steps"
+    }
+  ]
+}

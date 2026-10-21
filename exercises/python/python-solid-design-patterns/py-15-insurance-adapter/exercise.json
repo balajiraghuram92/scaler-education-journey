@@ -1,0 +1,26 @@
+{
+  "id": "py-15-insurance-adapter",
+  "lessonSlug": "py-15-adapter-facade",
+  "title": "Insurance Providers Adapter",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Complete `insurance/adapters.py`. Make `TravelInsuranceAdapter` an ABC with abstract `add_claim` and `get_status`, then implement `AutoProtectAdapter` and `TravelGuardAdapter` around the provider clients in `auto_protect_api` and `travel_guard_api`. Translate both the call shape and the status vocabulary into `ClaimStatus`. Do not edit `services.py` or `model.py`.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "adapters", "path": "insurance/adapters.py", "displayName": "adapters.py", "editable": true },
+    { "id": "model", "path": "insurance/model.py", "displayName": "model.py", "editable": false },
+    { "id": "services", "path": "insurance/services.py", "displayName": "services.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "abstract-interface", "label": "TravelInsuranceAdapter is an ABC with exactly two abstract methods", "testMethod": "test_interface_is_abstract_with_exactly_two_abstract_methods" },
+    { "id": "composition", "label": "Adapters hold the provider clients in the named attributes (composition)", "testMethod": "test_adapters_wrap_vendor_clients_by_composition" },
+    { "id": "auto-add-claim", "label": "AutoProtect add_claim passes only the amount", "testMethod": "test_auto_protect_add_claim_drops_the_reference" },
+    { "id": "guard-add-claim", "label": "TravelGuard add_claim passes reference and amount", "testMethod": "test_travel_guard_add_claim_passes_reference_and_amount" },
+    { "id": "auto-approved", "label": "AutoProtect APPROVED (string or Enum) maps to ClaimStatus.APPROVED", "testMethod": "test_auto_protect_approved_maps_for_string_and_enum" },
+    { "id": "auto-pending", "label": "AutoProtect any other status maps to PENDING", "testMethod": "test_auto_protect_anything_else_is_pending" },
+    { "id": "guard-mapping", "label": "TravelGuard status values map to the right ClaimStatus", "testMethod": "test_travel_guard_status_mapping" },
+    { "id": "real-stubs", "label": "Works against the real vendor stubs, not just mocks", "testMethod": "test_default_vendor_stubs_work_end_to_end" }
+  ]
+}

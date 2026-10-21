@@ -1,0 +1,72 @@
+{
+  "id": "py-11-singleton-pool-timeouts",
+  "lessonSlug": "py-11-singleton",
+  "title": "Process-Wide Connection Pool with Timeouts",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "In `spool.py`, implement `ConnectionPool` (blocking `acquire` with a timeout, `release` that rejects double release, a `connection()` context manager that always releases) and the process-wide accessor `get_pool(size=None)` that is lazy, thread-safe and rejects a conflicting size. `reset_pool()` clears the global for tests.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "spool",
+      "path": "spool.py",
+      "displayName": "spool.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "get-pool-is-a-singleton-across-threads",
+      "label": "Ten simultaneous get_pool() calls create exactly one pool",
+      "testMethod": "test_get_pool_is_a_singleton_across_threads"
+    },
+    {
+      "id": "default-size-and-reset",
+      "label": "Default size is 10 and reset_pool() allows a new pool",
+      "testMethod": "test_default_size_and_reset"
+    },
+    {
+      "id": "conflicting-size-is-rejected-not-ignored",
+      "label": "A conflicting explicit size raises ValueError",
+      "testMethod": "test_conflicting_size_is_rejected_not_ignored"
+    },
+    {
+      "id": "invalid-size-and-connection-identity",
+      "label": "size < 1 raises ValueError and connections compare by identity",
+      "testMethod": "test_invalid_size_and_connection_identity"
+    },
+    {
+      "id": "acquire-and-release-update-available",
+      "label": "acquire/release update the available count",
+      "testMethod": "test_acquire_and_release_update_available"
+    },
+    {
+      "id": "exhausted-pool-times-out",
+      "label": "An exhausted pool raises PoolTimeout after the timeout",
+      "testMethod": "test_exhausted_pool_times_out"
+    },
+    {
+      "id": "context-manager-releases-even-on-error",
+      "label": "connection() releases even when the body raises",
+      "testMethod": "test_context_manager_releases_even_on_error"
+    },
+    {
+      "id": "double-release-is-rejected",
+      "label": "Releasing a connection twice raises ValueError",
+      "testMethod": "test_double_release_is_rejected"
+    },
+    {
+      "id": "blocked-acquire-wakes-up-after-release",
+      "label": "A blocked acquire wakes up after a release",
+      "testMethod": "test_blocked_acquire_wakes_up_after_release"
+    }
+  ]
+}

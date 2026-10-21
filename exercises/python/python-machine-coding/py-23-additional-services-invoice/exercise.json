@@ -1,0 +1,388 @@
+{
+  "id": "py-23-additional-services-invoice",
+  "lessonSlug": "py-23-code-parking-lot-1",
+  "title": "Additional Services and Invoice Generation",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 55,
+  "instructions": "Extend ticket generation and add invoicing. In `services/ticket_service_impl.py` accept optional additional services (reject unknown ones and ones the vehicle type does not support before assigning a spot). In `services/invoice_service_impl.py` create an invoice at an exit gate (parking fee plus the services' fees, spot becomes AVAILABLE again). Implement the two pricing models in `strategies/weekday_pricing_strategy.py` (10 per started hour) and `strategies/weekend_pricing_strategy.py` (slab pricing per vehicle type; an end hour of `-1` means no upper limit). The factory, controllers and repositories are provided.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-floor-status",
+      "path": "models/floor_status.py",
+      "displayName": "floor_status.py",
+      "editable": false
+    },
+    {
+      "id": "models-gate",
+      "path": "models/gate.py",
+      "displayName": "gate.py",
+      "editable": false
+    },
+    {
+      "id": "models-gate-type",
+      "path": "models/gate_type.py",
+      "displayName": "gate_type.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-attendant",
+      "path": "models/parking_attendant.py",
+      "displayName": "parking_attendant.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-floor",
+      "path": "models/parking_floor.py",
+      "displayName": "parking_floor.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-lot",
+      "path": "models/parking_lot.py",
+      "displayName": "parking_lot.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-spot",
+      "path": "models/parking_spot.py",
+      "displayName": "parking_spot.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-spot-status",
+      "path": "models/parking_spot_status.py",
+      "displayName": "parking_spot_status.py",
+      "editable": false
+    },
+    {
+      "id": "models-ticket",
+      "path": "models/ticket.py",
+      "displayName": "ticket.py",
+      "editable": false
+    },
+    {
+      "id": "models-vehicle",
+      "path": "models/vehicle.py",
+      "displayName": "vehicle.py",
+      "editable": false
+    },
+    {
+      "id": "models-vehicle-type",
+      "path": "models/vehicle_type.py",
+      "displayName": "vehicle_type.py",
+      "editable": false
+    },
+    {
+      "id": "models-invoice",
+      "path": "models/invoice.py",
+      "displayName": "invoice.py",
+      "editable": false
+    },
+    {
+      "id": "models-additional-service",
+      "path": "models/additional_service.py",
+      "displayName": "additional_service.py",
+      "editable": false
+    },
+    {
+      "id": "models-slab",
+      "path": "models/slab.py",
+      "displayName": "slab.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-invalid-gate-exception",
+      "path": "exceptions/invalid_gate_exception.py",
+      "displayName": "invalid_gate_exception.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-invalid-parking-lot-exception",
+      "path": "exceptions/invalid_parking_lot_exception.py",
+      "displayName": "invalid_parking_lot_exception.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-parking-spot-not-available-exception",
+      "path": "exceptions/parking_spot_not_available_exception.py",
+      "displayName": "parking_spot_not_available_exception.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-ticket-not-found-exception",
+      "path": "exceptions/ticket_not_found_exception.py",
+      "displayName": "ticket_not_found_exception.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-additional-service-not-supported-by-vehicle",
+      "path": "exceptions/additional_service_not_supported_by_vehicle.py",
+      "displayName": "additional_service_not_supported_by_vehicle.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-unsupported-additional-service",
+      "path": "exceptions/unsupported_additional_service.py",
+      "displayName": "unsupported_additional_service.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-generate-invoice-request-dto",
+      "path": "dtos/generate_invoice_request_dto.py",
+      "displayName": "generate_invoice_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-generate-invoice-response-dto",
+      "path": "dtos/generate_invoice_response_dto.py",
+      "displayName": "generate_invoice_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-generate-ticket-request-dto",
+      "path": "dtos/generate_ticket_request_dto.py",
+      "displayName": "generate_ticket_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-generate-ticket-response-dto",
+      "path": "dtos/generate_ticket_response_dto.py",
+      "displayName": "generate_ticket_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response-status",
+      "path": "dtos/response_status.py",
+      "displayName": "response_status.py",
+      "editable": false
+    },
+    {
+      "id": "controllers-invoice-controller",
+      "path": "controllers/invoice_controller.py",
+      "displayName": "invoice_controller.py",
+      "editable": false
+    },
+    {
+      "id": "controllers-ticket-controller",
+      "path": "controllers/ticket_controller.py",
+      "displayName": "ticket_controller.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-gate-repository",
+      "path": "repositories/gate_repository.py",
+      "displayName": "gate_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-gate-repository-impl",
+      "path": "repositories/gate_repository_impl.py",
+      "displayName": "gate_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-parking-lot-repository",
+      "path": "repositories/parking_lot_repository.py",
+      "displayName": "parking_lot_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-parking-lot-repository-impl",
+      "path": "repositories/parking_lot_repository_impl.py",
+      "displayName": "parking_lot_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-ticket-repository",
+      "path": "repositories/ticket_repository.py",
+      "displayName": "ticket_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-ticket-repository-impl",
+      "path": "repositories/ticket_repository_impl.py",
+      "displayName": "ticket_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-vehicle-repository",
+      "path": "repositories/vehicle_repository.py",
+      "displayName": "vehicle_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-vehicle-repository-impl",
+      "path": "repositories/vehicle_repository_impl.py",
+      "displayName": "vehicle_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-slab-repository",
+      "path": "repositories/slab_repository.py",
+      "displayName": "slab_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-slab-repository-impl",
+      "path": "repositories/slab_repository_impl.py",
+      "displayName": "slab_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-invoice-repository",
+      "path": "repositories/invoice_repository.py",
+      "displayName": "invoice_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-invoice-repository-impl",
+      "path": "repositories/invoice_repository_impl.py",
+      "displayName": "invoice_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "services-ticket-service",
+      "path": "services/ticket_service.py",
+      "displayName": "ticket_service.py",
+      "editable": false
+    },
+    {
+      "id": "services-invoice-service",
+      "path": "services/invoice_service.py",
+      "displayName": "invoice_service.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-spot-assignment-strategy",
+      "path": "strategies/spot_assignment_strategy.py",
+      "displayName": "spot_assignment_strategy.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-assign-nearest-available-spot-strategy",
+      "path": "strategies/assign_nearest_available_spot_strategy.py",
+      "displayName": "assign_nearest_available_spot_strategy.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-equal-distribution-assignment-strategy",
+      "path": "strategies/equal_distribution_assignment_strategy.py",
+      "displayName": "equal_distribution_assignment_strategy.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-pricing-strategy",
+      "path": "strategies/pricing_strategy.py",
+      "displayName": "pricing_strategy.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-pricing-strategy-factory",
+      "path": "strategies/pricing_strategy_factory.py",
+      "displayName": "pricing_strategy_factory.py",
+      "editable": false
+    },
+    {
+      "id": "utils-date-time-utils",
+      "path": "utils/date_time_utils.py",
+      "displayName": "date_time_utils.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-weekday-pricing-strategy",
+      "path": "strategies/weekday_pricing_strategy.py",
+      "displayName": "weekday_pricing_strategy.py",
+      "editable": true
+    },
+    {
+      "id": "strategies-weekend-pricing-strategy",
+      "path": "strategies/weekend_pricing_strategy.py",
+      "displayName": "weekend_pricing_strategy.py",
+      "editable": true
+    },
+    {
+      "id": "services-ticket-service-impl",
+      "path": "services/ticket_service_impl.py",
+      "displayName": "ticket_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "services-invoice-service-impl",
+      "path": "services/invoice_service_impl.py",
+      "displayName": "invoice_service_impl.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "ticket-stores-parsed-additional-services",
+      "label": "A ticket stores the requested additional services as AdditionalService values",
+      "testMethod": "test_ticket_stores_parsed_additional_services"
+    },
+    {
+      "id": "unsupported-service-for-vehicle-issues-no-ticket",
+      "label": "A service the vehicle type does not support raises and issues no ticket or spot",
+      "testMethod": "test_unsupported_service_for_vehicle_issues_no_ticket"
+    },
+    {
+      "id": "unknown-service-name-is-rejected",
+      "label": "An unknown service name raises UnsupportedAdditionalService",
+      "testMethod": "test_unknown_service_name_is_rejected"
+    },
+    {
+      "id": "gate-and-ticket-validation-on-invoice",
+      "label": "Invoices need an existing ticket and an EXIT gate; tickets need an ENTRY gate",
+      "testMethod": "test_gate_and_ticket_validation_on_invoice"
+    },
+    {
+      "id": "weekday-pricing-rounds-up-hours",
+      "label": "Weekday pricing is 10 per started hour",
+      "testMethod": "test_weekday_pricing_rounds_up_hours"
+    },
+    {
+      "id": "weekend-slab-pricing-for-cars",
+      "label": "Weekend car slabs give 20, 70, 140 and 230 for 1, 3, 5 and 7 hours",
+      "testMethod": "test_weekend_slab_pricing_for_cars"
+    },
+    {
+      "id": "weekend-slabs-are-per-vehicle-type",
+      "label": "Slabs are looked up per vehicle type, with no slabs meaning no charge",
+      "testMethod": "test_weekend_slabs_are_per_vehicle_type"
+    },
+    {
+      "id": "invoice-adds-service-fees-to-parking-fee",
+      "label": "The invoice amount is the parking fee plus the additional services' fees",
+      "testMethod": "test_invoice_adds_service_fees_to_parking_fee"
+    },
+    {
+      "id": "invoice-frees-the-spot-and-is-saved",
+      "label": "The invoice stores the exit time, is saved and frees the parking spot",
+      "testMethod": "test_invoice_frees_the_spot_and_is_saved"
+    },
+    {
+      "id": "pricing-strategy-follows-exit-day",
+      "label": "Weekday exits use flat pricing and Saturday/Sunday exits use slabs",
+      "testMethod": "test_pricing_strategy_follows_exit_day"
+    },
+    {
+      "id": "controllers-translate-errors",
+      "label": "Ticket and invoice controllers return SUCCESS or FAILURE",
+      "testMethod": "test_controllers_translate_errors"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "id": "py-23-optimistic-versioned-repository",
+  "lessonSlug": "py-23-code-parking-lot-1",
+  "title": "Versioned Repository with Optimistic Concurrency",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "The lesson's models are provided in `lot/models.py`. In `lot/versioned_repository.py` implement `VersionedRepository` (the `VersionedModel`, `StaleWriteError` and `UnknownEntityError` declarations are given). A first save (`id is None`) assigns an id, `created_at` from the injected clock and version 1; a later save raises `UnknownEntityError` for an unknown id, `StaleWriteError` when the stored version differs from the item's, otherwise bumps the version and `last_modified_at`. Store and return copies, and guard every operation with a lock.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "lot-models",
+      "path": "lot/models.py",
+      "displayName": "models.py",
+      "editable": false
+    },
+    {
+      "id": "lot-versioned-repository",
+      "path": "lot/versioned_repository.py",
+      "displayName": "versioned_repository.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "first-save-assigns-id-and-version-one-and-stored-state-is-isolated",
+      "label": "A first save assigns id 1 and version 1, and unsaved edits never reach the stored copy",
+      "testMethod": "test_first_save_assigns_id_and_version_one_and_stored_state_is_isolated"
+    },
+    {
+      "id": "ids-are-sequential-and-versions-increment",
+      "label": "Ids are sequential and every successful save increments the version",
+      "testMethod": "test_ids_are_sequential_and_versions_increment"
+    },
+    {
+      "id": "clock-is-used-for-audit-fields",
+      "label": "created_at and last_modified_at come from the injected clock",
+      "testMethod": "test_clock_is_used_for_audit_fields"
+    },
+    {
+      "id": "a-stale-save-is-rejected-and-does-not-overwrite",
+      "label": "A stale save raises StaleWriteError and leaves the stored value unchanged",
+      "testMethod": "test_a_stale_save_is_rejected_and_does_not_overwrite"
+    },
+    {
+      "id": "saving-an-unknown-id-is-an-error",
+      "label": "Saving an id the repository never issued raises UnknownEntityError",
+      "testMethod": "test_saving_an_unknown_id_is_an_error"
+    },
+    {
+      "id": "find-returns-copies-and-none-for-missing",
+      "label": "find_by_id returns independent copies, or None for a missing id",
+      "testMethod": "test_find_returns_copies_and_none_for_missing"
+    },
+    {
+      "id": "saved-item-is-copied-on-the-way-in",
+      "label": "Changing the object after saving does not change stored state",
+      "testMethod": "test_saved_item_is_copied_on_the_way_in"
+    },
+    {
+      "id": "stale-save-leaves-audit-fields-alone",
+      "label": "A rejected save changes neither version nor last_modified_at",
+      "testMethod": "test_stale_save_leaves_audit_fields_alone"
+    },
+    {
+      "id": "exactly-one-of-many-simultaneous-claims-wins",
+      "label": "Of eight threads claiming the same entity exactly one succeeds",
+      "testMethod": "test_exactly_one_of_many_simultaneous_claims_wins"
+    }
+  ]
+}

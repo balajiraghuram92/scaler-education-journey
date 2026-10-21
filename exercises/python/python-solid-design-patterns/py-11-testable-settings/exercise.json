@@ -1,0 +1,77 @@
+{
+  "id": "py-11-testable-settings",
+  "lessonSlug": "py-11-singleton",
+  "title": "Testable Settings Singleton with Overrides",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 35,
+  "instructions": "In `appsettings.py`, build a settings module that is convenient in production and harmless in tests: a pure `load_settings(env)`, a lazy thread-safe `get_settings()`, `reset_settings()`, an `override_settings(**changes)` context manager that restores the exact previous state, and a `BudgetGuard` that receives its `Settings` by injection.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "appsettings",
+      "path": "appsettings.py",
+      "displayName": "appsettings.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "load-settings-defaults-and-values",
+      "label": "load_settings applies defaults and parses values",
+      "testMethod": "test_load_settings_defaults_and_values"
+    },
+    {
+      "id": "load-settings-is-pure",
+      "label": "load_settings reads only the mapping it is given",
+      "testMethod": "test_load_settings_is_pure"
+    },
+    {
+      "id": "invalid-budget-is-rejected-with-a-clear-message",
+      "label": "Bad budgets raise ValueError (the message names MONTHLY_BUDGET_USD)",
+      "testMethod": "test_invalid_budget_is_rejected_with_a_clear_message"
+    },
+    {
+      "id": "settings-are-frozen",
+      "label": "Settings is immutable",
+      "testMethod": "test_settings_are_frozen"
+    },
+    {
+      "id": "get-settings-is-cached-until-reset",
+      "label": "get_settings() is cached until reset_settings()",
+      "testMethod": "test_get_settings_is_cached_until_reset"
+    },
+    {
+      "id": "concurrent-first-calls-share-one-object",
+      "label": "Eight threads released together all get one Settings object",
+      "testMethod": "test_concurrent_first_calls_share_one_object"
+    },
+    {
+      "id": "override-applies-and-restores",
+      "label": "override_settings swaps values in and restores the exact previous object",
+      "testMethod": "test_override_applies_and_restores"
+    },
+    {
+      "id": "override-restores-even-when-the-body-raises",
+      "label": "The override is undone when the body raises",
+      "testMethod": "test_override_restores_even_when_the_body_raises"
+    },
+    {
+      "id": "override-rejects-unknown-fields",
+      "label": "Unknown override fields raise TypeError and change nothing",
+      "testMethod": "test_override_rejects_unknown_fields"
+    },
+    {
+      "id": "budget-guard-works-with-injected-settings-only",
+      "label": "BudgetGuard enforces the injected budget and refuses over-budget spend",
+      "testMethod": "test_budget_guard_works_with_injected_settings_only"
+    }
+  ]
+}

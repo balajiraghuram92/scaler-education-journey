@@ -1,0 +1,77 @@
+{
+  "id": "py-08-chunk-words",
+  "lessonSlug": "py-08-decorators-iterators-generators",
+  "title": "Lazy Chunker with Overlap for LLM Context",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `chunk_words(lines, size, overlap=0)` in `chunking.py`. It lazily consumes an iterable of text lines and yields chunks of `size` words, each starting with the last `overlap` words of the previous chunk. It must validate `size` and `overlap` when called (so the public function returns a generator rather than being one), work with one-shot and endless sources, and never emit a final chunk made only of overlap words.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "chunking",
+      "path": "chunking.py",
+      "displayName": "chunking.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "no-overlap",
+      "label": "Chunks words with no overlap",
+      "testMethod": "test_basic_no_overlap"
+    },
+    {
+      "id": "overlap",
+      "label": "Repeats the tail of the previous chunk as overlap",
+      "testMethod": "test_overlap_repeats_tail"
+    },
+    {
+      "id": "line-boundaries",
+      "label": "Chunks span line boundaries and ignore blank lines",
+      "testMethod": "test_spans_line_boundaries_and_blank_lines"
+    },
+    {
+      "id": "whitespace",
+      "label": "Splits on any whitespace and joins with single spaces",
+      "testMethod": "test_words_are_split_on_any_whitespace_and_joined_with_single_spaces"
+    },
+    {
+      "id": "empty",
+      "label": "Empty or blank input yields no chunks",
+      "testMethod": "test_empty_input"
+    },
+    {
+      "id": "no-overlap-only-tail",
+      "label": "Never yields a trailing chunk made only of overlap words",
+      "testMethod": "test_no_trailing_chunk_made_only_of_overlap"
+    },
+    {
+      "id": "size-one",
+      "label": "Handles size 1 and exact multiples",
+      "testMethod": "test_size_one_and_exact_multiples"
+    },
+    {
+      "id": "eager-validation",
+      "label": "Validates arguments at call time",
+      "testMethod": "test_validation_is_eager"
+    },
+    {
+      "id": "lazy",
+      "label": "Pulls only what it needs and can be closed early",
+      "testMethod": "test_is_lazy_and_pulls_only_what_it_needs"
+    },
+    {
+      "id": "endless",
+      "label": "Works with an endless source",
+      "testMethod": "test_works_with_an_endless_source"
+    }
+  ]
+}

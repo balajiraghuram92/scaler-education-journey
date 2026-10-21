@@ -1,0 +1,77 @@
+{
+  "id": "py-13-prompt-template-registry",
+  "lessonSlug": "py-13-prototype-registry",
+  "title": "Thread-Safe Prompt Template Registry with Selective Deep Copy",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "In `protoreg.py`, give `PromptTemplate` a selective `__deepcopy__` (clone the examples and parent through the shared memo, share the `HttpClient`, handle cycles), build a thread-safe `TemplateRegistry` that stores private copies and returns a fresh clone on every `get`, and make `Provider` subclasses register themselves through `__init_subclass__`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "protoreg",
+      "path": "protoreg.py",
+      "displayName": "protoreg.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "clone-is-independent-but-shares-the-client",
+      "label": "A clone has independent mutable data but shares the client",
+      "testMethod": "test_clone_is_independent_but_shares_the_client"
+    },
+    {
+      "id": "plain-deepcopy-of-the-client-fails",
+      "label": "A plain deepcopy of the lock-owning client fails (why sharing is needed)",
+      "testMethod": "test_plain_deepcopy_of_the_client_fails"
+    },
+    {
+      "id": "memo-handles-cycles-and-preserves-sharing",
+      "label": "Cyclic parent references are cloned correctly through the memo",
+      "testMethod": "test_memo_handles_cycles_and_preserves_sharing"
+    },
+    {
+      "id": "memo-keeps-shared-references-shared",
+      "label": "Objects shared inside one copy stay shared in the clone",
+      "testMethod": "test_memo_keeps_shared_references_shared"
+    },
+    {
+      "id": "get-returns-a-fresh-clone-every-time",
+      "label": "get() returns a fresh clone on every call",
+      "testMethod": "test_get_returns_a_fresh_clone_every_time"
+    },
+    {
+      "id": "registry-keeps-a-private-copy-of-what-was-registered",
+      "label": "register() stores a private copy",
+      "testMethod": "test_registry_keeps_a_private_copy_of_what_was_registered"
+    },
+    {
+      "id": "unknown-name-raises-with-known-names-and-names-are-sorted",
+      "label": "Unknown names raise KeyError listing known names; names() is sorted",
+      "testMethod": "test_unknown_name_raises_with_known_names_and_names_are_sorted"
+    },
+    {
+      "id": "duplicate-name-is-rejected",
+      "label": "Registering a duplicate name raises KeyError",
+      "testMethod": "test_duplicate_name_is_rejected"
+    },
+    {
+      "id": "duplicate-registration-from-many-threads-succeeds-exactly-once",
+      "label": "Eight threads registering one name: exactly one succeeds",
+      "testMethod": "test_duplicate_registration_from_many_threads_succeeds_exactly_once"
+    },
+    {
+      "id": "providers-register-on-subclassing-and-reject-duplicates",
+      "label": "Provider subclasses self-register; duplicates and unknown names fail",
+      "testMethod": "test_providers_register_on_subclassing_and_reject_duplicates"
+    }
+  ]
+}

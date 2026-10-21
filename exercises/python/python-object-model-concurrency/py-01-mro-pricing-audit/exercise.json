@@ -1,0 +1,77 @@
+{
+  "id": "py-01-mro-pricing-audit",
+  "lessonSlug": "py-01-inheritance-mro-polymorphism",
+  "title": "Auditable Pricing Pipeline with MRO Guard Rails",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `Quote`-producing mixins, `build_pricer` and `pricing_order` in `pricing.py`. Each mixin calls `super().quote(km)`, adjusts the amount and appends its own class-qualified step name so the audit trail is correct whatever the leftmost class is. `build_pricer` must reject invalid or duplicate mixins with `TypeError`, and `pricing_order` must report the application order from the MRO.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "pricing",
+      "path": "pricing.py",
+      "displayName": "pricing.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "surge-applies-after-fee-and-trail-records-order",
+      "label": "Mixin order decides application order, and the audit trail matches",
+      "testMethod": "test_surge_applies_after_fee_and_trail_records_order"
+    },
+    {
+      "id": "three-mixins-and-class-qualified-step-names",
+      "label": "Three mixins compose and each appends its own step name",
+      "testMethod": "test_three_mixins_and_class_qualified_step_names"
+    },
+    {
+      "id": "pricing-order-matches-mro",
+      "label": "pricing_order matches the MRO, innermost first",
+      "testMethod": "test_pricing_order_matches_mro"
+    },
+    {
+      "id": "pricing-order-does-not-count-inherited-names-twice",
+      "label": "pricing_order does not count inherited step names twice",
+      "testMethod": "test_pricing_order_does_not_count_inherited_names_twice"
+    },
+    {
+      "id": "quote-is-a-frozen-dataclass",
+      "label": "Quote is a frozen dataclass with a tuple of steps",
+      "testMethod": "test_quote_is_a_frozen_dataclass"
+    },
+    {
+      "id": "build-pricer-rejects-invalid-mixins",
+      "label": "build_pricer rejects BaseFare subclasses, non-classes and objects without step_name",
+      "testMethod": "test_build_pricer_rejects_invalid_mixins"
+    },
+    {
+      "id": "build-pricer-rejects-duplicates",
+      "label": "build_pricer rejects duplicate mixins",
+      "testMethod": "test_build_pricer_rejects_duplicates"
+    },
+    {
+      "id": "build-pricer-returns-a-basefare-subclass-each-time",
+      "label": "build_pricer returns a fresh BaseFare subclass each call",
+      "testMethod": "test_build_pricer_returns_a_basefare_subclass_each_time"
+    },
+    {
+      "id": "unknown-or-missing-keywords-are-rejected",
+      "label": "Unknown or missing keyword arguments raise TypeError",
+      "testMethod": "test_unknown_or_missing_keywords_are_rejected"
+    },
+    {
+      "id": "per-km-override",
+      "label": "per_km can be overridden",
+      "testMethod": "test_per_km_override"
+    }
+  ]
+}

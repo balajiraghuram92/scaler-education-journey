@@ -1,0 +1,72 @@
+{
+  "id": "py-45-asgi-request-context-and-access-log",
+  "lessonSlug": "py-45-fastapi-production",
+  "title": "ASGI Request Context and Access Log",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `RequestContextMiddleware` and `AccessLogMiddleware` in `asgi_mw.py` as pure ASGI classes (no Starlette or FastAPI). The first accepts a safe inbound request ID or generates one, stores it in `request_id_var` for the request and echoes it in the response headers. The second emits exactly one compact JSON line per HTTP request from a `finally` block, with status 500 if the inner app crashed. Non-HTTP scopes pass straight through.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "asgi-mw",
+      "path": "asgi_mw.py",
+      "displayName": "asgi_mw.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "echoes-valid-incoming-id-and-resets",
+      "label": "Accepts a valid inbound request ID, echoes it and resets the context variable",
+      "testMethod": "test_echoes_valid_incoming_id_and_resets"
+    },
+    {
+      "id": "generates-when-missing-or-unsafe",
+      "label": "Generates a uuid4 hex ID for missing, unsafe, empty or over-long IDs",
+      "testMethod": "test_generates_when_missing_or_unsafe"
+    },
+    {
+      "id": "response-headers-are-appended-not-replaced",
+      "label": "Appends the ID header to http.response.start and leaves other messages alone",
+      "testMethod": "test_response_headers_are_appended_not_replaced"
+    },
+    {
+      "id": "reset-even-when-inner-app-raises",
+      "label": "Resets the context variable and propagates the error when the inner app raises",
+      "testMethod": "test_reset_even_when_inner_app_raises"
+    },
+    {
+      "id": "non-http-scopes-pass-through",
+      "label": "Passes non-http scopes straight to the inner app without logging",
+      "testMethod": "test_non_http_scopes_pass_through"
+    },
+    {
+      "id": "access-log-has-request-id-status-and-duration",
+      "label": "Logs one compact JSON line with request_id, method, path, status and duration_ms",
+      "testMethod": "test_access_log_has_request_id_status_and_duration"
+    },
+    {
+      "id": "duration-is-rounded-to-one-decimal-and-status-is-captured",
+      "label": "Rounds duration_ms to one decimal and captures the response status",
+      "testMethod": "test_duration_is_rounded_to_one_decimal_and_status_is_captured"
+    },
+    {
+      "id": "access-log-records-500-when-inner-raises-and-reraises",
+      "label": "Logs status 500 and re-raises when the inner app crashes before responding",
+      "testMethod": "test_access_log_records_500_when_inner_raises_and_reraises"
+    },
+    {
+      "id": "one-line-per-request-and-status-kept-if-crash-after-response-start",
+      "label": "Emits one line per request and keeps the real status if the crash comes after response start",
+      "testMethod": "test_one_line_per_request_and_status_kept_if_crash_after_response_start"
+    }
+  ]
+}

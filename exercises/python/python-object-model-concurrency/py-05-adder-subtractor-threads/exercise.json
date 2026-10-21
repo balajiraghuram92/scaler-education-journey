@@ -1,0 +1,67 @@
+{
+  "id": "py-05-adder-subtractor-threads",
+  "lessonSlug": "py-05-processes-threads-gil",
+  "title": "Adder and Subtractor Threads",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `Adder`, `Subtractor` and `Client.main` in `config/threads.py`. Each thread class prints its fixed line from `run()`. `Client.main()` prints `I am the main class`, then starts both threads before joining either of them, and returns only after both have finished.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "config-threads",
+      "path": "config/threads.py",
+      "displayName": "threads.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "threads-are-thread-subclasses-that-print-their-line",
+      "label": "Both classes are threads that print their fixed line",
+      "testMethod": "test_threads_are_thread_subclasses_that_print_their_line"
+    },
+    {
+      "id": "main-prints-three-lines-and-the-main-line-is-first",
+      "label": "main prints three lines and the main line comes first",
+      "testMethod": "test_main_prints_three_lines_and_the_main_line_is_first"
+    },
+    {
+      "id": "both-thread-lines-appear-in-either-order",
+      "label": "Both thread lines appear, in either order",
+      "testMethod": "test_both_thread_lines_appear_in_either_order"
+    },
+    {
+      "id": "main-joins-both-threads-before-returning",
+      "label": "main joins both threads before returning",
+      "testMethod": "test_main_joins_both_threads_before_returning"
+    },
+    {
+      "id": "both-threads-are-started-before-either-is-joined",
+      "label": "Both threads are started before either is joined",
+      "testMethod": "test_both_threads_are_started_before_either_is_joined"
+    },
+    {
+      "id": "each-class-runs-on-its-own-worker-thread",
+      "label": "Each class runs on its own worker thread",
+      "testMethod": "test_each_class_runs_on_its_own_worker_thread"
+    },
+    {
+      "id": "main-can-be-called-repeatedly",
+      "label": "main can be called repeatedly",
+      "testMethod": "test_main_can_be_called_repeatedly"
+    },
+    {
+      "id": "main-is-a-static-method",
+      "label": "Client.main is a static method",
+      "testMethod": "test_main_is_a_static_method"
+    }
+  ]
+}

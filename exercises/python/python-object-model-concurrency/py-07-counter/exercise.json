@@ -1,0 +1,57 @@
+{
+  "id": "py-07-counter",
+  "lessonSlug": "py-07-synchronization-async-intro",
+  "title": "Concurrent Counter",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `Counter`, `concurrent_inc` and `concurrent_dec` in `config/counter.py`. `Counter` holds a value guarded by a `threading.Lock`, with `incValue`, `decValue` and `getValue`. The two helpers call the matching method 1000 times, so many threads can hammer one counter without losing updates.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "counter",
+      "path": "config/counter.py",
+      "displayName": "counter.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "initial-and-single",
+      "label": "Returns the initial value and applies single-thread inc/dec",
+      "testMethod": "test_initial_value_and_single_thread_updates"
+    },
+    {
+      "id": "helpers-1000",
+      "label": "Helpers call incValue/decValue exactly 1000 times",
+      "testMethod": "test_helpers_call_the_matching_method_1000_times"
+    },
+    {
+      "id": "balanced",
+      "label": "10 incrementing and 10 decrementing threads cancel out exactly",
+      "testMethod": "test_balanced_threads_return_to_initial_value"
+    },
+    {
+      "id": "unbalanced",
+      "label": "Mixed offsets from many threads give the exact arithmetic result",
+      "testMethod": "test_unbalanced_offsets_give_exact_arithmetic_result"
+    },
+    {
+      "id": "no-lost-updates",
+      "label": "Loses no updates even when each update is slow",
+      "testMethod": "test_no_lost_updates_when_updates_are_slow"
+    },
+    {
+      "id": "no-sleep",
+      "label": "Does not use time.sleep to wait",
+      "testMethod": "test_does_not_use_sleep_to_wait"
+    }
+  ]
+}

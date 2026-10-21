@@ -1,0 +1,191 @@
+{
+  "id": "py-20-generate-invoice",
+  "lessonSlug": "py-20-tictactoe-1",
+  "title": "Generate Invoice for a Hotel Management System",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `BookingServiceImpl.generate_invoice` in `services/booking_service_impl.py`, `BookingController.generate_invoice` in `controllers/booking_controller.py` and `BookingRepositoryImpl` in `repositories/booking_repository_impl.py`. Aggregate every booking of the user's ACTIVE session (days for the same room are summed), compute `total_amount`, GST (18%) and service charge (10%), then mark the session `ENDED`. No active session means a `FAILURE` response with no invoice.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-booking",
+      "path": "models/booking.py",
+      "displayName": "booking.py",
+      "editable": false
+    },
+    {
+      "id": "models-customer-session",
+      "path": "models/customer_session.py",
+      "displayName": "customer_session.py",
+      "editable": false
+    },
+    {
+      "id": "models-customer-session-status",
+      "path": "models/customer_session_status.py",
+      "displayName": "customer_session_status.py",
+      "editable": false
+    },
+    {
+      "id": "models-invoice",
+      "path": "models/invoice.py",
+      "displayName": "invoice.py",
+      "editable": false
+    },
+    {
+      "id": "models-room",
+      "path": "models/room.py",
+      "displayName": "room.py",
+      "editable": false
+    },
+    {
+      "id": "models-room-type",
+      "path": "models/room_type.py",
+      "displayName": "room_type.py",
+      "editable": false
+    },
+    {
+      "id": "models-user",
+      "path": "models/user.py",
+      "displayName": "user.py",
+      "editable": false
+    },
+    {
+      "id": "models-user-type",
+      "path": "models/user_type.py",
+      "displayName": "user_type.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-generate-invoice-request-dto",
+      "path": "dtos/generate_invoice_request_dto.py",
+      "displayName": "generate_invoice_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-generate-invoice-response-dto",
+      "path": "dtos/generate_invoice_response_dto.py",
+      "displayName": "generate_invoice_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response-status",
+      "path": "dtos/response_status.py",
+      "displayName": "response_status.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-customer-session-not-found-exception",
+      "path": "exceptions/customer_session_not_found_exception.py",
+      "displayName": "customer_session_not_found_exception.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-booking-repository",
+      "path": "repositories/booking_repository.py",
+      "displayName": "booking_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-customer-session-repository",
+      "path": "repositories/customer_session_repository.py",
+      "displayName": "customer_session_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-customer-session-repository-impl",
+      "path": "repositories/customer_session_repository_impl.py",
+      "displayName": "customer_session_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "services-booking-service",
+      "path": "services/booking_service.py",
+      "displayName": "booking_service.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-booking-repository-impl",
+      "path": "repositories/booking_repository_impl.py",
+      "displayName": "booking_repository_impl.py",
+      "editable": true
+    },
+    {
+      "id": "services-booking-service-impl",
+      "path": "services/booking_service_impl.py",
+      "displayName": "booking_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "controllers-booking-controller",
+      "path": "controllers/booking_controller.py",
+      "displayName": "booking_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "single-booking-totals",
+      "label": "A single booking gives total = price x days with 18% GST and 10% service charge",
+      "testMethod": "test_single_booking_totals"
+    },
+    {
+      "id": "rooms-are-aggregated-across-bookings",
+      "label": "Days for the same room are summed across all bookings of the session",
+      "testMethod": "test_rooms_are_aggregated_across_bookings"
+    },
+    {
+      "id": "multiple-rooms-total",
+      "label": "Different rooms add up to one total",
+      "testMethod": "test_multiple_rooms_total"
+    },
+    {
+      "id": "session-is-ended-after-invoice",
+      "label": "The session is marked ENDED after a successful invoice",
+      "testMethod": "test_session_is_ended_after_invoice"
+    },
+    {
+      "id": "second-invoice-fails-because-session-ended",
+      "label": "A second invoice fails: the session has ended",
+      "testMethod": "test_second_invoice_fails_because_session_ended"
+    },
+    {
+      "id": "no-active-session-raises",
+      "label": "No active session raises CustomerSessionNotFoundError",
+      "testMethod": "test_no_active_session_raises"
+    },
+    {
+      "id": "empty-session-gives-zero-invoice",
+      "label": "A session with no bookings gives a successful zero invoice",
+      "testMethod": "test_empty_session_gives_zero_invoice"
+    },
+    {
+      "id": "only-this-sessions-bookings-are-billed",
+      "label": "Bookings of other sessions are not included",
+      "testMethod": "test_only_this_sessions_bookings_are_billed"
+    },
+    {
+      "id": "controller-responses",
+      "label": "Controller returns SUCCESS with the invoice, or FAILURE with invoice=None",
+      "testMethod": "test_controller_responses"
+    },
+    {
+      "id": "booking-repository-finds-by-session",
+      "label": "find_booking_by_customer_session filters by session id",
+      "testMethod": "test_booking_repository_finds_by_session"
+    }
+  ]
+}

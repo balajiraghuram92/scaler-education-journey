@@ -1,0 +1,67 @@
+{
+  "id": "py-24-thread-safe-allocator",
+  "lessonSlug": "py-24-code-parking-lot-2",
+  "title": "Thread-Safe Spot Allocator with Timeout and a Stress Test",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "In `parking/allocator.py` implement `SpotAllocator` (the `Spot`, `SpotStatus`, `VehicleType`, exceptions, `Strategy` type and `first_fit` are given). One lock, created once in `__init__`, guards the whole spot collection: `allocate(vehicle_type, timeout=None)` finds and marks a spot as a single critical section, raises `ParkingFullError` when nothing fits and `AllocationTimeoutError` when the lock cannot be acquired within `timeout` seconds, and always releases the lock in a `finally`. `release(spot)` frees a spot under the same lock.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "parking-allocator",
+      "path": "parking/allocator.py",
+      "displayName": "allocator.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "stress-no-spot-is-ever-handed-out-twice",
+      "label": "16 threads making random allocations never receive the same spot twice",
+      "testMethod": "test_stress_no_spot_is_ever_handed_out_twice"
+    },
+    {
+      "id": "release-makes-a-spot-available-again",
+      "label": "Releasing a spot makes it allocatable again",
+      "testMethod": "test_release_makes_a_spot_available_again"
+    },
+    {
+      "id": "allocate-marks-spot-and-respects-vehicle-type",
+      "label": "allocate marks the spot OCCUPIED, returns only a spot supporting the type and raises ParkingFullError otherwise",
+      "testMethod": "test_allocate_marks_spot_and_respects_vehicle_type"
+    },
+    {
+      "id": "a-spot-shared-by-two-types-is-never-double-booked",
+      "label": "A spot supporting car and truck is claimed by exactly one of many competing car and truck threads",
+      "testMethod": "test_a_spot_shared_by_two_types_is_never_double_booked"
+    },
+    {
+      "id": "a-blocked-caller-times-out-instead-of-waiting-forever",
+      "label": "A caller blocked on the lock raises AllocationTimeoutError after the timeout",
+      "testMethod": "test_a_blocked_caller_times_out_instead_of_waiting_forever"
+    },
+    {
+      "id": "lock-is-released-after-a-full-lot",
+      "label": "After ParkingFullError the lock is released and later calls still work",
+      "testMethod": "test_lock_is_released_after_a_full_lot"
+    },
+    {
+      "id": "lock-is-released-when-the-strategy-raises",
+      "label": "If the strategy raises, the lock is still released",
+      "testMethod": "test_lock_is_released_when_the_strategy_raises"
+    },
+    {
+      "id": "custom-strategy-is-used",
+      "label": "The injected strategy decides which spot is chosen",
+      "testMethod": "test_custom_strategy_is_used"
+    }
+  ]
+}

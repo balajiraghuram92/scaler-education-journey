@@ -1,0 +1,27 @@
+{
+  "id": "py-17-task-assignment-observer",
+  "lessonSlug": "py-17-behavioural-patterns",
+  "title": "Task Assignment Observer",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement the Observer pattern across `task/observer.py`, `task/publisher.py` and `task/manager.py`. Declare `Observer.send_notification(user_id, task_id)` and update the three channel services, make `Publisher` keep an `observers` list, and make `TaskManager.assign_task(task_id, user_id)` notify every observer with the user first. `ObserverRegistry` is provided.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "observer", "path": "task/observer.py", "displayName": "observer.py", "editable": true },
+    { "id": "publisher", "path": "task/publisher.py", "displayName": "publisher.py", "editable": true },
+    { "id": "manager", "path": "task/manager.py", "displayName": "manager.py", "editable": true },
+    { "id": "registry", "path": "task/registry.py", "displayName": "registry.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "observer-interface", "label": "Observer is an ABC and each channel prints its own notification", "testMethod": "test_observer_interface_and_channel_services" },
+    { "id": "per-instance-list", "label": "Publisher keeps a per-instance observers list", "testMethod": "test_publisher_keeps_a_per_instance_observers_list" },
+    { "id": "argument-order", "label": "assign_task(task_id, user_id) notifies with (user_id, task_id)", "testMethod": "test_task_manager_passes_user_first_then_task" },
+    { "id": "notification-order", "label": "Every observer is notified in subscription order", "testMethod": "test_every_observer_is_notified_in_subscription_order" },
+    { "id": "unsubscribe", "label": "An unsubscribed observer is not notified", "testMethod": "test_unsubscribed_observer_is_not_notified" },
+    { "id": "runtime-changes", "label": "Observers can be added and removed between assignments", "testMethod": "test_observers_can_be_added_and_removed_between_assignments" },
+    { "id": "no-shared-state", "label": "Managers do not share observer lists", "testMethod": "test_managers_do_not_share_observers" },
+    { "id": "real-channels", "label": "Real channels work through the manager in order", "testMethod": "test_real_channels_work_through_the_manager" }
+  ]
+}

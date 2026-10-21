@@ -1,0 +1,84 @@
+{
+  "id": "py-02-payment-gateway-mixins",
+  "lessonSlug": "py-02-abcs-protocols-mixins",
+  "title": "Payment Gateway Framework: Mixins, ABC and Registration",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Complete `mixins.py`, `audit_protocol.py` and `gateway.py`. `LoggingMixin` and a cooperative `AuditMixin` add capabilities, `Auditable` is a runtime-checkable `Protocol`, and `PaymentGateway` is an ABC that registers named subclasses. The three gateways must log and audit in both `process_payment` and `refund`, and `run_audit_check` must accept anything with `record_audit`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "mixins",
+      "path": "mixins.py",
+      "displayName": "mixins.py",
+      "editable": true
+    },
+    {
+      "id": "audit-protocol",
+      "path": "audit_protocol.py",
+      "displayName": "audit_protocol.py",
+      "editable": true
+    },
+    {
+      "id": "gateway",
+      "path": "gateway.py",
+      "displayName": "gateway.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "logging-mixin-prints-class-name-and-action",
+      "label": "LoggingMixin prints [LOG] ClassName: action",
+      "testMethod": "test_logging_mixin_prints_class_name_and_action"
+    },
+    {
+      "id": "audit-mixin-keeps-a-separate-trail-per-instance",
+      "label": "AuditMixin keeps a separate trail per instance",
+      "testMethod": "test_audit_mixin_keeps_a_separate_trail_per_instance"
+    },
+    {
+      "id": "audit-mixin-continues-the-cooperative-chain",
+      "label": "AuditMixin continues the cooperative __init__ chain",
+      "testMethod": "test_audit_mixin_continues_the_cooperative_chain"
+    },
+    {
+      "id": "gateways-register-by-name",
+      "label": "Gateways register as phonepe, razorpay and paytm",
+      "testMethod": "test_gateways_register_by_name"
+    },
+    {
+      "id": "phonepe-worked-example",
+      "label": "PhonePe matches the worked example",
+      "testMethod": "test_phonepe_worked_example"
+    },
+    {
+      "id": "every-gateway-logs-and-audits-both-operations",
+      "label": "Every gateway logs and audits both operations",
+      "testMethod": "test_every_gateway_logs_and_audits_both_operations"
+    },
+    {
+      "id": "abstract-contract-is-enforced",
+      "label": "The abstract contract is enforced",
+      "testMethod": "test_abstract_contract_is_enforced"
+    },
+    {
+      "id": "gateway-without-name-is-not-registered",
+      "label": "A gateway without a name is not registered",
+      "testMethod": "test_gateway_without_name_is_not_registered"
+    },
+    {
+      "id": "auditable-protocol-accepts-gateways-and-foreign-classes",
+      "label": "Auditable accepts gateways and foreign classes with record_audit",
+      "testMethod": "test_auditable_protocol_accepts_gateways_and_foreign_classes"
+    }
+  ]
+}

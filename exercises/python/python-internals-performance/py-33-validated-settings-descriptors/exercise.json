@@ -1,0 +1,67 @@
+{
+  "id": "py-33-validated-settings-descriptors",
+  "lessonSlug": "py-33-scopes-closures-descriptors",
+  "title": "Validated Settings with Descriptors",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "In `fields.py` implement the `Field` data descriptor (name recorded in `__set_name__`, per-instance storage in `obj.__dict__`, class access returns the descriptor, `__delete__`) and the `validate` methods of `BoundedFloat`, `BoundedInt` and `OneOf`. Errors are `ValidationError`s that name the attribute and the bad value. `CompletionSettings` is already declared with your fields.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "fields",
+      "path": "fields.py",
+      "displayName": "fields.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "valid-values-are-stored-per-instance",
+      "label": "Stores valid values per instance in the instance __dict__",
+      "testMethod": "test_valid_values_are_stored_per_instance"
+    },
+    {
+      "id": "ints-are-coerced-to-float",
+      "label": "An int temperature is coerced to float",
+      "testMethod": "test_ints_are_coerced_to_float"
+    },
+    {
+      "id": "invalid-values-raise-validation-error",
+      "label": "Out-of-range, wrong-type, bool and unknown-choice values raise ValidationError naming the field",
+      "testMethod": "test_invalid_values_raise_validation_error"
+    },
+    {
+      "id": "data-descriptor-beats-instance-dict",
+      "label": "A data descriptor takes precedence over the instance dict and still validates writes",
+      "testMethod": "test_data_descriptor_beats_instance_dict"
+    },
+    {
+      "id": "class-access-returns-descriptor-and-names-are-set",
+      "label": "Class access returns the descriptor, which knows its attribute name",
+      "testMethod": "test_class_access_returns_descriptor_and_names_are_set"
+    },
+    {
+      "id": "unset-attribute-and-delete",
+      "label": "Deleting removes the value; reading or deleting an unset value raises AttributeError",
+      "testMethod": "test_unset_attribute_and_delete"
+    },
+    {
+      "id": "error-message-names-the-field-and-the-offending-value",
+      "label": "Error messages include the field name and the offending value",
+      "testMethod": "test_error_message_names_the_field_and_the_offending_value"
+    },
+    {
+      "id": "bounds-are-inclusive-and-non-numbers-are-rejected",
+      "label": "Bounds are inclusive; strings, None, lists and bools are rejected",
+      "testMethod": "test_bounds_are_inclusive_and_non_numbers_are_rejected"
+    }
+  ]
+}

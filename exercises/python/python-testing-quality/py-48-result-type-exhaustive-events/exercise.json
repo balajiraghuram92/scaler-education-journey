@@ -1,0 +1,72 @@
+{
+  "id": "py-48-result-type-exhaustive-events",
+  "lessonSlug": "py-48-advanced-typing-static-analysis",
+  "title": "Generic Result Type and Exhaustive Event Handling",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 30,
+  "instructions": "Implement `Ok`, `Err`, `is_ok`, `map_result`, `unwrap_or`, `parse_int` and `describe` in `results.py`. `Ok` and `Err` must be frozen, slotted dataclasses, `map_result` passes an `Err` through as the same object, and `describe` ends its if/elif chain with `assert_never`. The event TypedDicts are provided. Strict type-checking (`mypy --strict`, narrowing with `TypeIs`) is self-checked; the hidden tests grade runtime behaviour.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "results",
+      "path": "results.py",
+      "displayName": "results.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "parse-int",
+      "label": "parse_int returns Ok for integers and Err(\"not an int: ...\") otherwise",
+      "testMethod": "test_parse_int_ok_and_err"
+    },
+    {
+      "id": "parse-int-edges",
+      "label": "parse_int handles whitespace, negatives, empty and decimal strings",
+      "testMethod": "test_parse_int_edge_inputs"
+    },
+    {
+      "id": "map-result",
+      "label": "map_result transforms an Ok and returns the same Err object untouched",
+      "testMethod": "test_map_result_applies_only_on_ok"
+    },
+    {
+      "id": "map-skips-err",
+      "label": "map_result never calls the function for an Err",
+      "testMethod": "test_map_result_does_not_call_fn_for_err"
+    },
+    {
+      "id": "is-ok",
+      "label": "is_ok is True for Ok, False for Err",
+      "testMethod": "test_is_ok_narrows_for_the_checker"
+    },
+    {
+      "id": "unwrap-or",
+      "label": "unwrap_or returns the value or the default, even for falsy values",
+      "testMethod": "test_unwrap_or_default_union"
+    },
+    {
+      "id": "immutable-slots",
+      "label": "Ok and Err are frozen, hashable and slotted",
+      "testMethod": "test_results_are_immutable_slotted_values"
+    },
+    {
+      "id": "describe-events",
+      "label": "describe maps token, tool_call and done events to their labels",
+      "testMethod": "test_describe_covers_every_event"
+    },
+    {
+      "id": "unknown-event",
+      "label": "describe raises AssertionError for an unknown event type",
+      "testMethod": "test_unknown_event_fails_loudly_at_runtime"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "py-27-atomic-seat-hold",
+  "lessonSlug": "py-27-code-bookmyshow-2",
+  "title": "Atomic All-or-Nothing Seat Hold",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `init_inventory`, `hold_seats` and `seat_states` in `seat_holds.py` with `sqlite3` and a database file, opening one connection per call. The hold must be all-or-nothing and race-safe: `BEGIN IMMEDIATE` plus a single compare-and-set `UPDATE` that only touches `AVAILABLE` seats, then compare the row count with the distinct seats requested.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "seat-holds",
+      "path": "seat_holds.py",
+      "displayName": "seat_holds.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "successful-hold",
+      "label": "Blocks the requested seats for the user and leaves others available",
+      "testMethod": "test_successful_hold"
+    },
+    {
+      "id": "hold-is-all-or-nothing",
+      "label": "Rolls back completely when any requested seat is already held",
+      "testMethod": "test_hold_is_all_or_nothing"
+    },
+    {
+      "id": "unknown-seat-counts-as-unavailable",
+      "label": "Treats a seat that does not exist as unavailable, changing nothing",
+      "testMethod": "test_unknown_seat_counts_as_unavailable"
+    },
+    {
+      "id": "duplicates-count-once-and-empty-is-rejected",
+      "label": "Counts duplicate ids once and raises ValueError for an empty request",
+      "testMethod": "test_duplicates_count_once_and_empty_is_rejected"
+    },
+    {
+      "id": "init-inventory-is-idempotent-and-keeps-state",
+      "label": "init_inventory can be re-run without resetting held seats",
+      "testMethod": "test_init_inventory_is_idempotent_and_keeps_state"
+    },
+    {
+      "id": "many-threads-fight-for-the-same-seats-and-exactly-one-wins",
+      "label": "Exactly one of 16 competing connections wins the same seats",
+      "testMethod": "test_many_threads_fight_for_the_same_seats_and_exactly_one_wins"
+    },
+    {
+      "id": "overlapping-requests-never-share-a-seat",
+      "label": "Overlapping concurrent holds never give one seat to two users",
+      "testMethod": "test_overlapping_requests_never_share_a_seat"
+    },
+    {
+      "id": "holds-on-one-show-do-not-touch-another-show",
+      "label": "Scopes holds to a single show",
+      "testMethod": "test_holds_on_one_show_do_not_touch_another_show"
+    },
+    {
+      "id": "same-user-cannot-hold-an-already-held-seat-again",
+      "label": "A held seat is unavailable even to the same user",
+      "testMethod": "test_same_user_cannot_hold_an_already_held_seat_again"
+    },
+    {
+      "id": "failed-hold-releases-the-write-lock",
+      "label": "A failed hold rolls back and closes its connection, releasing the lock",
+      "testMethod": "test_failed_hold_releases_the_write_lock"
+    }
+  ]
+}

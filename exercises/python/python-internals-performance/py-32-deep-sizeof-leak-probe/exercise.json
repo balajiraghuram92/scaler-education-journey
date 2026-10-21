@@ -1,0 +1,77 @@
+{
+  "id": "py-32-deep-sizeof-leak-probe",
+  "lessonSlug": "py-32-object-model-memory",
+  "title": "Deep Size Measurement and a Leak Probe",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "In `leakprobe.py` implement `deep_sizeof(obj)`, an iterative, cycle-safe size estimate that counts each reachable object once and follows `__dict__` and `__slots__`, and `LeakProbe`, which tracks objects weakly and reports how many survive a forced `gc.collect()`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "leakprobe",
+      "path": "leakprobe.py",
+      "displayName": "leakprobe.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "deep-is-larger-than-shallow",
+      "label": "Deep size of nested data is much larger than the shallow size",
+      "testMethod": "test_deep_is_larger_than_shallow"
+    },
+    {
+      "id": "shared-objects-counted-once",
+      "label": "A shared object is counted once, so a second reference costs only a pointer",
+      "testMethod": "test_shared_objects_counted_once"
+    },
+    {
+      "id": "slots-instance-smaller-than-dict-instance",
+      "label": "A slotted instance measures smaller than a dict-based one for the same data",
+      "testMethod": "test_slots_instance_smaller_than_dict_instance"
+    },
+    {
+      "id": "slotted-values-are-followed",
+      "label": "Values stored in __slots__ are included in the total",
+      "testMethod": "test_slotted_values_are_followed"
+    },
+    {
+      "id": "cycles-terminate",
+      "label": "Self-referential structures terminate and are counted once",
+      "testMethod": "test_cycles_terminate"
+    },
+    {
+      "id": "probe-reports-released-and-retained",
+      "label": "The probe counts retained objects and sees released ones die",
+      "testMethod": "test_probe_reports_released_and_retained"
+    },
+    {
+      "id": "inherited-slots-are-followed-and-unset-slots-do-not-raise",
+      "label": "Follows slots declared on base classes and tolerates unassigned slots",
+      "testMethod": "test_inherited_slots_are_followed_and_unset_slots_do_not_raise"
+    },
+    {
+      "id": "very-deep-structure-does-not-hit-the-recursion-limit",
+      "label": "Handles a 10,000-deep linked list without recursion",
+      "testMethod": "test_very_deep_structure_does_not_hit_the_recursion_limit"
+    },
+    {
+      "id": "does-not-descend-into-classes-or-functions",
+      "label": "Does not walk into classes, builtins or functions reachable from the instance",
+      "testMethod": "test_does_not_descend_into_classes_or_functions"
+    },
+    {
+      "id": "track-returns-the-same-object-without-keeping-it-alive",
+      "label": "track() returns the object and holds only a weak reference",
+      "testMethod": "test_track_returns_the_same_object_without_keeping_it_alive"
+    }
+  ]
+}

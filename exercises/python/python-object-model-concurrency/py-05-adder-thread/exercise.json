@@ -1,0 +1,67 @@
+{
+  "id": "py-05-adder-thread",
+  "lessonSlug": "py-05-processes-threads-gil",
+  "title": "Multi-threaded Adder",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `Adder` and `Client.main` in `config/adder.py`. `Adder` is a `threading.Thread` that stores two numbers and prints their sum from `run()`. `Client.main()` reads two integers with the given prompts, starts an `Adder` and joins it so the output appears before `main` returns.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "config-adder",
+      "path": "config/adder.py",
+      "displayName": "adder.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "adder-is-a-thread-that-stores-its-numbers",
+      "label": "Adder extends Thread and stores its numbers",
+      "testMethod": "test_adder_is_a_thread_that_stores_its_numbers"
+    },
+    {
+      "id": "started-adder-prints-the-sum",
+      "label": "A started Adder prints the sum and a newline",
+      "testMethod": "test_started_adder_prints_the_sum"
+    },
+    {
+      "id": "work-happens-on-the-worker-thread",
+      "label": "The sum is printed from inside the worker thread",
+      "testMethod": "test_work_happens_on_the_worker_thread"
+    },
+    {
+      "id": "sums-of-zero-negative-and-large-numbers",
+      "label": "Zero, negative and large sums are correct",
+      "testMethod": "test_sums_of_zero_negative_and_large_numbers"
+    },
+    {
+      "id": "client-reads-two-numbers-with-the-documented-prompts",
+      "label": "Client asks for the two numbers with the documented prompts",
+      "testMethod": "test_client_reads_two_numbers_with_the_documented_prompts"
+    },
+    {
+      "id": "client-converts-input-to-integers",
+      "label": "Client converts the input to integers",
+      "testMethod": "test_client_converts_input_to_integers"
+    },
+    {
+      "id": "client-waits-for-the-thread-before-returning",
+      "label": "Client joins the thread before returning",
+      "testMethod": "test_client_waits_for_the_thread_before_returning"
+    },
+    {
+      "id": "client-main-is-a-static-method",
+      "label": "Client.main is a static method",
+      "testMethod": "test_client_main_is_a_static_method"
+    }
+  ]
+}

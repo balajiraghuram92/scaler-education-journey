@@ -1,0 +1,77 @@
+{
+  "id": "py-40-trip-service-api",
+  "lessonSlug": "py-40-fastapi-fundamentals",
+  "title": "Trip Service API",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 40,
+  "instructions": "Build the trip-booking API in `main.py`: Pydantic models `TripCreate`, `TripOut` and `TripRecord`, and an `APIRouter` mounted at `/trips` with POST, list, GET and DELETE routes. Never expose fare or payout fields, map `SurgeCapExceeded` to a 409 with a stable body, and validate path and query parameters with `Query`, aliases and UUIDs. Keep the in-memory storage named `_TRIPS`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "main",
+      "path": "main.py",
+      "displayName": "main.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "create-returns-201-and-filters-internal-fields",
+      "label": "POST /trips returns 201 and only the public TripOut fields",
+      "testMethod": "test_create_returns_201_and_filters_internal_fields"
+    },
+    {
+      "id": "fare-and-payout-are-computed-and-stored-internally",
+      "label": "Computes fare (250 + round(km * 120)) and payout (80%) in the stored record",
+      "testMethod": "test_fare_and_payout_are_computed_and_stored_internally"
+    },
+    {
+      "id": "validation-rules-and-boundaries",
+      "label": "Rejects invalid bodies with 422 and accepts boundary values and the default zone",
+      "testMethod": "test_validation_rules_and_boundaries"
+    },
+    {
+      "id": "capped-zone-maps-to-409",
+      "label": "Maps SurgeCapExceeded to 409 {\"error\": \"surge_cap_exceeded\", \"zone\": ...}",
+      "testMethod": "test_capped_zone_maps_to_409"
+    },
+    {
+      "id": "get-returns-trip-without-internal-fields",
+      "label": "GET /trips/{id} returns the public fields of the stored trip",
+      "testMethod": "test_get_returns_trip_without_internal_fields"
+    },
+    {
+      "id": "get-unknown-and-malformed-ids",
+      "label": "Returns 404 {\"detail\": \"trip not found\"} for unknown ids and 422 for malformed UUIDs",
+      "testMethod": "test_get_unknown_and_malformed_ids"
+    },
+    {
+      "id": "list-limit-and-status-filter",
+      "label": "Lists trips with the ?limit= and ?status= filters",
+      "testMethod": "test_list_limit_and_status_filter"
+    },
+    {
+      "id": "list-rejects-invalid-query-values",
+      "label": "Returns 422 for limit 0, limit 101 and an unknown status",
+      "testMethod": "test_list_rejects_invalid_query_values"
+    },
+    {
+      "id": "delete-then-get",
+      "label": "DELETE returns 204 with no body, then the trip is gone (404)",
+      "testMethod": "test_delete_then_get"
+    },
+    {
+      "id": "openapi-documents-trips-and-handlers-are-async",
+      "label": "OpenAPI documents the routes and the DELETE 404; handlers are async def",
+      "testMethod": "test_openapi_documents_trips_and_handlers_are_async"
+    }
+  ]
+}

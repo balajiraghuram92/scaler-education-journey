@@ -1,0 +1,27 @@
+{
+  "id": "py-15-image-editor-facade",
+  "lessonSlug": "py-15-adapter-facade",
+  "title": "Image Editor Facade",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `ImageProcessor` in `image/processor.py` as a facade over the loader, filter, brightness, writer and analytics services. `process(image_path, filter_type, brightness)` must run the five steps in order and pass the same image object through each. `ImageEditingManager` is provided and forwards to the processor.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "processor", "path": "image/processor.py", "displayName": "processor.py", "editable": true },
+    { "id": "manager", "path": "image/manager.py", "displayName": "manager.py", "editable": false },
+    { "id": "model", "path": "image/model.py", "displayName": "model.py", "editable": false },
+    { "id": "services", "path": "image/services.py", "displayName": "services.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "manager-hides-services", "label": "ImageEditingManager exposes none of the five services", "testMethod": "test_manager_does_not_expose_the_services" },
+    { "id": "workflow-order", "label": "Runs load, filter, brightness, save, store in order", "testMethod": "test_workflow_runs_in_order" },
+    { "id": "same-image", "label": "The loaded image object is passed to every later step", "testMethod": "test_same_image_object_flows_through_every_step" },
+    { "id": "arguments", "label": "Path, filter type and brightness reach the right services", "testMethod": "test_arguments_reach_the_right_services" },
+    { "id": "returns-none-silent", "label": "Returns None and prints nothing", "testMethod": "test_process_returns_none_and_does_not_print" },
+    { "id": "constructor-order", "label": "Constructor order matches the manager's", "testMethod": "test_constructor_order_matches_the_manager" },
+    { "id": "failure-stops", "label": "A failing step stops the later steps", "testMethod": "test_failure_stops_later_steps" },
+    { "id": "default-services", "label": "Works end to end with the default services", "testMethod": "test_works_with_the_default_services" }
+  ]
+}

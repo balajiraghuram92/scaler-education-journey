@@ -1,0 +1,90 @@
+{
+  "id": "py-01-fare-hierarchy",
+  "lessonSlug": "py-01-inheritance-mro-polymorphism",
+  "title": "Fare Hierarchy with Overriding",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Build the fleet in `vehicle.py`, `car.py`, `bike.py` and `auto.py`. `Vehicle` charges 10 per km; `Car` (15), `Bike` (7) and `Auto` (at least 30, otherwise 11) override `calculate_fare`. Every subclass must call `super().__init__`, and callers must never need `isinstance`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "vehicle",
+      "path": "vehicle.py",
+      "displayName": "vehicle.py",
+      "editable": true
+    },
+    {
+      "id": "car",
+      "path": "car.py",
+      "displayName": "car.py",
+      "editable": true
+    },
+    {
+      "id": "bike",
+      "path": "bike.py",
+      "displayName": "bike.py",
+      "editable": true
+    },
+    {
+      "id": "auto",
+      "path": "auto.py",
+      "displayName": "auto.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "base-vehicle-defaults-and-fare",
+      "label": "Vehicle stores reg_number, is available, and charges 10 per km",
+      "testMethod": "test_base_vehicle_defaults_and_fare"
+    },
+    {
+      "id": "car-fare-and-seats",
+      "label": "Car stores seats and charges 15 per km",
+      "testMethod": "test_car_fare_and_seats"
+    },
+    {
+      "id": "bike-fare",
+      "label": "Bike charges 7 per km",
+      "testMethod": "test_bike_fare"
+    },
+    {
+      "id": "auto-fare-above-minimum",
+      "label": "Auto charges 11 per km above the minimum",
+      "testMethod": "test_auto_fare_above_minimum"
+    },
+    {
+      "id": "auto-minimum-fare-applies",
+      "label": "Auto enforces a minimum fare of 30",
+      "testMethod": "test_auto_minimum_fare_applies"
+    },
+    {
+      "id": "subclasses-initialise-parent-via-super",
+      "label": "Subclasses initialise the parent through super().__init__",
+      "testMethod": "test_subclasses_initialise_parent_via_super"
+    },
+    {
+      "id": "subclasses-are-vehicles-and-override-fare",
+      "label": "Subclasses extend Vehicle and override calculate_fare",
+      "testMethod": "test_subclasses_are_vehicles_and_override_fare"
+    },
+    {
+      "id": "polymorphic-loop-over-mixed-fleet",
+      "label": "One loop over a mixed fleet gives each subclass's fare",
+      "testMethod": "test_polymorphic_loop_over_mixed_fleet"
+    },
+    {
+      "id": "dispatch-does-not-use-isinstance-for-new-subclass",
+      "label": "A new Vehicle subclass is dispatched without isinstance checks",
+      "testMethod": "test_dispatch_does_not_use_isinstance_for_new_subclass"
+    }
+  ]
+}

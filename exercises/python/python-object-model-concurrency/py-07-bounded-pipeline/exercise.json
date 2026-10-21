@@ -1,0 +1,87 @@
+{
+  "id": "py-07-bounded-pipeline",
+  "lessonSlug": "py-07-synchronization-async-intro",
+  "title": "Bounded Worker Pipeline with Graceful Shutdown",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 50,
+  "instructions": "Implement `Result` and `Pipeline` in `pipeline.py`. A fixed pool of worker threads reads from a bounded `queue.Queue`; `submit` returns sequence numbers and applies backpressure, and `close()` drains the queue, stops the workers with one sentinel each, and returns the results sorted by `seq`. Exceptions from `fn` are captured per item, and no accepted item may be lost when `submit` races with `close`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "pipeline",
+      "path": "pipeline.py",
+      "displayName": "pipeline.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "order",
+      "label": "Results come back in submission order",
+      "testMethod": "test_results_in_submission_order"
+    },
+    {
+      "id": "errors",
+      "label": "Captures errors per item and keeps going",
+      "testMethod": "test_errors_captured_per_item_and_pipeline_keeps_going"
+    },
+    {
+      "id": "seq-numbers",
+      "label": "submit returns sequence numbers 0, 1, 2, ...",
+      "testMethod": "test_submit_returns_sequence_numbers"
+    },
+    {
+      "id": "backpressure-timeout",
+      "label": "Raises queue.Full on timeout without using up a sequence number",
+      "testMethod": "test_backpressure_times_out_when_full_and_does_not_consume_a_sequence_number"
+    },
+    {
+      "id": "backpressure-blocks",
+      "label": "submit blocks while the queue is full",
+      "testMethod": "test_submit_blocks_while_queue_is_full_until_space_frees"
+    },
+    {
+      "id": "close-drains",
+      "label": "close() waits for queued items and returns every result",
+      "testMethod": "test_close_waits_for_queued_items_and_returns_all_results"
+    },
+    {
+      "id": "closed-idempotent",
+      "label": "submit after close raises PipelineClosed; close is idempotent",
+      "testMethod": "test_submit_after_close_raises_and_close_is_idempotent"
+    },
+    {
+      "id": "joins-workers",
+      "label": "close() stops and joins the worker threads",
+      "testMethod": "test_close_stops_and_joins_the_worker_threads"
+    },
+    {
+      "id": "concurrent-producers",
+      "label": "Concurrent producers lose nothing and get unique ordered sequence numbers",
+      "testMethod": "test_concurrent_submitters_lose_nothing_and_get_unique_ordered_sequence_numbers"
+    },
+    {
+      "id": "submit-close-race",
+      "label": "Racing submit and close never loses an accepted item",
+      "testMethod": "test_submit_racing_with_close_never_loses_an_accepted_item"
+    },
+    {
+      "id": "invalid-args",
+      "label": "Rejects workers < 1 and max_pending < 1",
+      "testMethod": "test_invalid_arguments"
+    },
+    {
+      "id": "result-shape",
+      "label": "Result is a frozen, slotted dataclass",
+      "testMethod": "test_result_is_frozen_slotted_dataclass"
+    }
+  ]
+}

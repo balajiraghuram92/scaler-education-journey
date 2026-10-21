@@ -1,0 +1,127 @@
+{
+  "id": "py-25-delivery-estimate",
+  "lessonSlug": "py-25-design-bookmyshow",
+  "title": "Estimate Delivery Time (Adapter over a Maps API)",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "The original Django task is rebuilt on an in-memory `Store` (see `ecom/store.py`, read-only). Wrap the provided `GoogleMapsApi` behind `MapAdapter` in `ecom/adapters/google_map_adapter.py` (convert coordinates to its `GoogleLocation`). In `ecom/services/product_service_impl.py` estimate the delivery as now + travel time from the seller warehouse to the hub of the user zipcode + travel time from the hub to the user, raising `ProductNotFoundError` or `AddressNotFoundError` for missing data. `ProductController.get_estimated_delivery` (`ecom/controllers/product_controller.py`) returns `FAILURE` instead of raising.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "ecom-models",
+      "path": "ecom/models.py",
+      "displayName": "models.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-exceptions",
+      "path": "ecom/exceptions.py",
+      "displayName": "exceptions.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-dtos",
+      "path": "ecom/dtos.py",
+      "displayName": "dtos.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-store",
+      "path": "ecom/store.py",
+      "displayName": "store.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-libraries-google-maps-api",
+      "path": "ecom/libraries/google_maps_api.py",
+      "displayName": "google_maps_api.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-libraries-google-models",
+      "path": "ecom/libraries/google_models.py",
+      "displayName": "google_models.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-adapters-map-adapter",
+      "path": "ecom/adapters/map_adapter.py",
+      "displayName": "map_adapter.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-product-service",
+      "path": "ecom/services/product_service.py",
+      "displayName": "product_service.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-adapters-google-map-adapter",
+      "path": "ecom/adapters/google_map_adapter.py",
+      "displayName": "google_map_adapter.py",
+      "editable": true
+    },
+    {
+      "id": "ecom-services-product-service-impl",
+      "path": "ecom/services/product_service_impl.py",
+      "displayName": "product_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "ecom-controllers-product-controller",
+      "path": "ecom/controllers/product_controller.py",
+      "displayName": "product_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "estimate-is-now-plus-both-legs",
+      "label": "The estimate is now plus seller-to-hub plus hub-to-user travel time",
+      "testMethod": "test_estimate_is_now_plus_both_legs"
+    },
+    {
+      "id": "legs-use-the-right-coordinates-in-order",
+      "label": "The adapter is asked for seller to hub first, then hub to user, with the right coordinates",
+      "testMethod": "test_legs_use_the_right_coordinates_in_order"
+    },
+    {
+      "id": "hub-is-chosen-by-the-users-zipcode",
+      "label": "The delivery hub is the one for the zipcode of the user address",
+      "testMethod": "test_hub_is_chosen_by_the_users_zipcode"
+    },
+    {
+      "id": "missing-data-raises-the-right-error",
+      "label": "Unknown product raises ProductNotFoundError; missing user address, seller address or hub raises AddressNotFoundError",
+      "testMethod": "test_missing_data_raises_the_right_error"
+    },
+    {
+      "id": "service-only-depends-on-the-adapter-interface",
+      "label": "Swapping the MapAdapter changes the estimate without touching the service",
+      "testMethod": "test_service_only_depends_on_the_adapter_interface"
+    },
+    {
+      "id": "google-adapter-wraps-the-sdk",
+      "label": "GoogleMapAdapter passes GoogleLocation objects to the SDK and returns its timedelta",
+      "testMethod": "test_google_adapter_wraps_the_sdk"
+    },
+    {
+      "id": "google-adapter-implements-the-interface",
+      "label": "GoogleMapAdapter is a MapAdapter and MapAdapter itself is abstract",
+      "testMethod": "test_google_adapter_implements_the_interface"
+    },
+    {
+      "id": "controller-responses",
+      "label": "Controller returns SUCCESS with the estimate, or FAILURE without raising",
+      "testMethod": "test_controller_responses"
+    }
+  ]
+}

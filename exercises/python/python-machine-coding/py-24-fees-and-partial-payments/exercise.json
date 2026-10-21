@@ -1,0 +1,93 @@
+{
+  "id": "py-24-fees-and-partial-payments",
+  "lessonSlug": "py-24-code-parking-lot-2",
+  "title": "Fee Strategies, Holiday Decorator and Partial Payments",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 45,
+  "instructions": "In `parking/fees.py` implement `started_hours`, `WeekdayFee`, `WeekendSlabFee`, `FeeStrategyFactory` and the `HolidayFee` decorator (the `VehicleType`, `Slab` and `FeeStrategy` declarations are given). In `parking/billing.py` implement the `Bill` properties `total_paid` (successful payments only) and `is_paid`, and `PaymentService.make_payment`: reject an overpayment before calling the gateway, record every attempt including failures, and free the spot only when the bill becomes paid.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "parking-fees",
+      "path": "parking/fees.py",
+      "displayName": "fees.py",
+      "editable": true
+    },
+    {
+      "id": "parking-billing",
+      "path": "parking/billing.py",
+      "displayName": "billing.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "started-hours-rounds-up-with-a-one-hour-minimum",
+      "label": "started_hours rounds up to started hours with a minimum of one",
+      "testMethod": "test_started_hours_rounds_up_with_a_one_hour_minimum"
+    },
+    {
+      "id": "weekday-rounds-started-hours-up",
+      "label": "Weekday pricing is 10 per started hour for every vehicle type",
+      "testMethod": "test_weekday_rounds_started_hours_up"
+    },
+    {
+      "id": "slab-fees-match-the-published-examples",
+      "label": "Weekend car slabs give 20, 70, 140 and 230 for 1, 3, 5 and 7 hours",
+      "testMethod": "test_slab_fees_match_the_published_examples"
+    },
+    {
+      "id": "slab-boundaries-and-unsorted-slabs",
+      "label": "Slab boundaries are marginal and unsorted slabs still work",
+      "testMethod": "test_slab_boundaries_and_unsorted_slabs"
+    },
+    {
+      "id": "factory-picks-weekend-tariff-by-exit-day",
+      "label": "Saturday and Sunday exits use the weekend tariff, other days the weekday one",
+      "testMethod": "test_factory_picks_weekend_tariff_by_exit_day"
+    },
+    {
+      "id": "holiday-decorator-multiplies-only-on-holidays",
+      "label": "HolidayFee multiplies the inner fee only when the exit date is a holiday",
+      "testMethod": "test_holiday_decorator_multiplies_only_on_holidays"
+    },
+    {
+      "id": "holiday-decorator-wraps-any-strategy",
+      "label": "HolidayFee is itself a FeeStrategy and wraps any tariff, including another decorator",
+      "testMethod": "test_holiday_decorator_wraps_any_strategy"
+    },
+    {
+      "id": "bill-counts-only-successful-payments",
+      "label": "total_paid counts only SUCCESS payments and is_paid needs total_paid >= amount",
+      "testMethod": "test_bill_counts_only_successful_payments"
+    },
+    {
+      "id": "a-failed-payment-does-not-count-and-a-retry-settles-the-bill",
+      "label": "A failed payment adds nothing and a retry settles the bill, freeing the spot",
+      "testMethod": "test_a_failed_payment_does_not_count_and_a_retry_settles_the_bill"
+    },
+    {
+      "id": "every-attempt-is-recorded",
+      "label": "Every attempt, failed or not, is appended to the bill with its amount and mode",
+      "testMethod": "test_every_attempt_is_recorded"
+    },
+    {
+      "id": "overpayment-is-rejected-before-the-gateway-is-called",
+      "label": "An amount above the outstanding balance raises OverpaymentError without calling the gateway",
+      "testMethod": "test_overpayment_is_rejected_before_the_gateway_is_called"
+    },
+    {
+      "id": "paying-exactly-the-outstanding-balance-is-allowed",
+      "label": "Paying exactly the outstanding balance is allowed and frees the spot",
+      "testMethod": "test_paying_exactly_the_outstanding_balance_is_allowed"
+    }
+  ]
+}

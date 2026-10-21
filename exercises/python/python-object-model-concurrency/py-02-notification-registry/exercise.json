@@ -1,0 +1,72 @@
+{
+  "id": "py-02-notification-registry",
+  "lessonSlug": "py-02-abcs-protocols-mixins",
+  "title": "Notification ABC with Self-Registration",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 20,
+  "instructions": "Finish `notification.py`. Make `NotificationChannel` register each named subclass in its class-level `registry` from `__init_subclass__(cls, channel_name=None, **kwargs)`, and implement `send` and `get_status` on `SMSChannel`, `EmailChannel` and `PushChannel`. The abstract class and any subclass missing an abstract method must not be instantiable.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "notification",
+      "path": "notification.py",
+      "displayName": "notification.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "builtin-channels-register-themselves",
+      "label": "Built-in channels register as sms, email and push",
+      "testMethod": "test_builtin_channels_register_themselves"
+    },
+    {
+      "id": "sms-send-prints-the-documented-line",
+      "label": "SMS send prints the documented line",
+      "testMethod": "test_sms_send_prints_the_documented_line"
+    },
+    {
+      "id": "other-channels-name-channel-user-and-message",
+      "label": "Email and Push print one line naming channel, user and message",
+      "testMethod": "test_other_channels_name_channel_user_and_message"
+    },
+    {
+      "id": "get-status-is-delivered-for-every-channel",
+      "label": "get_status returns DELIVERED for every channel",
+      "testMethod": "test_get_status_is_delivered_for_every_channel"
+    },
+    {
+      "id": "cannot-instantiate-abstract-channel-or-incomplete-subclass",
+      "label": "The ABC and incomplete subclasses cannot be instantiated",
+      "testMethod": "test_cannot_instantiate_abstract_channel_or_incomplete_subclass"
+    },
+    {
+      "id": "new-subclass-with-name-registers-at-class-creation",
+      "label": "A new named subclass registers when its class is defined",
+      "testMethod": "test_new_subclass_with_name_registers_at_class_creation"
+    },
+    {
+      "id": "subclass-without-name-is-created-but-not-registered",
+      "label": "A subclass without a name is created but not registered",
+      "testMethod": "test_subclass_without_name_is_created_but_not_registered"
+    },
+    {
+      "id": "hook-forwards-other-class-keywords-to-super",
+      "label": "Other class keywords are forwarded to super().__init_subclass__",
+      "testMethod": "test_hook_forwards_other_class_keywords_to_super"
+    },
+    {
+      "id": "unknown-class-keyword-is-still-rejected",
+      "label": "Unknown class keywords are still rejected",
+      "testMethod": "test_unknown_class_keyword_is_still_rejected"
+    }
+  ]
+}

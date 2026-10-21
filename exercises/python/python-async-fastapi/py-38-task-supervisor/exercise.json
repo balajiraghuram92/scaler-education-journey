@@ -1,0 +1,67 @@
+{
+  "id": "py-38-task-supervisor",
+  "lessonSlug": "py-38-asyncio-deep-dive",
+  "title": "Background Task Supervisor",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `TaskSupervisor` in `supervisor.py`. It keeps strong references to fire-and-forget tasks, reports a failed task to `on_error(name, exc)` exactly once, and never reports a cancelled one. `shutdown(grace)` rejects new work, drains running tasks for up to `grace` seconds, cancels the rest, waits for their cleanup and returns how many it cancelled.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "supervisor",
+      "path": "supervisor.py",
+      "displayName": "supervisor.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "error-is-reported-not-lost",
+      "label": "Reports a failed task to on_error with its name and exception",
+      "testMethod": "test_error_is_reported_not_lost"
+    },
+    {
+      "id": "on-error-called-exactly-once-per-failure",
+      "label": "Calls on_error exactly once per failed task",
+      "testMethod": "test_on_error_called_exactly_once_per_failure"
+    },
+    {
+      "id": "spawn-returns-named-task-and-pending-tracks-it",
+      "label": "Returns a named Task; pending counts unfinished tasks and drops finished ones",
+      "testMethod": "test_spawn_returns_named_task_and_pending_tracks_it"
+    },
+    {
+      "id": "supervisor-keeps-a-strong-reference",
+      "label": "Keeps a strong reference so an unreferenced task is not garbage collected",
+      "testMethod": "test_supervisor_keeps_a_strong_reference"
+    },
+    {
+      "id": "shutdown-waits-for-fast-and-cancels-slow",
+      "label": "Drains fast tasks, cancels slow ones, runs their cleanup and does not report cancellation as an error",
+      "testMethod": "test_shutdown_waits_for_fast_and_cancels_slow"
+    },
+    {
+      "id": "spawn-after-shutdown-is-rejected-and-closes-coroutine",
+      "label": "Raises RuntimeError after shutdown and closes the rejected coroutine",
+      "testMethod": "test_spawn_after_shutdown_is_rejected_and_closes_coroutine"
+    },
+    {
+      "id": "shutdown-is-idempotent",
+      "label": "Returns 0 when shutdown is called a second time",
+      "testMethod": "test_shutdown_is_idempotent"
+    },
+    {
+      "id": "shutdown-with-no-tasks-returns-zero",
+      "label": "Returns 0 when there is nothing to shut down",
+      "testMethod": "test_shutdown_with_no_tasks_returns_zero"
+    }
+  ]
+}

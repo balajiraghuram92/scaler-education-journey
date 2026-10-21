@@ -1,0 +1,77 @@
+{
+  "id": "py-28-password-hasher",
+  "lessonSlug": "py-28-code-bookmyshow-3",
+  "title": "Self-Describing Salted Password Hasher",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "Implement `PasswordHasher` in `password_hasher.py` using only `hashlib.scrypt`, `secrets`, `hmac` and `base64`. `encode` returns one self-describing string with the algorithm, cost parameters, a fresh salt and the digest. `matches` verifies with the stored parameters, in constant time, and never raises. `needs_rehash` flags outdated or malformed values.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "password-hasher",
+      "path": "password_hasher.py",
+      "displayName": "password_hasher.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "same-password-hashes-differently-but-both-verify",
+      "label": "Same password encodes differently each time (random salt) yet both verify",
+      "testMethod": "test_same_password_hashes_differently_but_both_verify"
+    },
+    {
+      "id": "wrong-password-and-unicode",
+      "label": "Verifies a correct Unicode password and rejects a wrong one",
+      "testMethod": "test_wrong_password_and_unicode"
+    },
+    {
+      "id": "stored-format-is-self-describing",
+      "label": "Stores scrypt$n$r$p$salt$hash with six parts",
+      "testMethod": "test_stored_format_is_self_describing"
+    },
+    {
+      "id": "verification-uses-stored-parameters-not-current-ones",
+      "label": "Verifies with the stored parameters; needs_rehash detects changed cost",
+      "testMethod": "test_verification_uses_stored_parameters_not_current_ones"
+    },
+    {
+      "id": "malformed-input-never-raises",
+      "label": "Malformed stored values return False from matches and True from needs_rehash",
+      "testMethod": "test_malformed_input_never_raises"
+    },
+    {
+      "id": "tampered-hash-is-rejected",
+      "label": "Rejects a stored digest that was tampered with",
+      "testMethod": "test_tampered_hash_is_rejected"
+    },
+    {
+      "id": "empty-password-rejected",
+      "label": "Rejects an empty password with ValueError",
+      "testMethod": "test_empty_password_rejected"
+    },
+    {
+      "id": "params-defaults-and-immutability",
+      "label": "ScryptParams has the specified defaults and is frozen",
+      "testMethod": "test_params_defaults_and_immutability"
+    },
+    {
+      "id": "default-hasher-round-trips-with-default-cost",
+      "label": "Default hasher uses n=16384 and round-trips without needing a rehash",
+      "testMethod": "test_default_hasher_round_trips_with_default_cost"
+    },
+    {
+      "id": "absurd-attacker-supplied-cost-returns-false-instead-of-raising",
+      "label": "A hostile huge cost factor yields False, not an exception or memory blowup",
+      "testMethod": "test_absurd_attacker_supplied_cost_returns_false_instead_of_raising"
+    }
+  ]
+}

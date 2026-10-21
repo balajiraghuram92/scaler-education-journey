@@ -1,0 +1,62 @@
+{
+  "id": "py-07-train-reservation",
+  "lessonSlug": "py-07-synchronization-async-intro",
+  "title": "Train Reservation System",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Implement `TrainReservationSystem` in `config/trainReservation.py`. It stores a dict of available seats per seat type (`1AC`, `2AC`, `3AC`, `Sleeper`) and a `threading.RLock` named `lock`. `reserve_seats` and `get_available_seats` hold the lock, and each reservation is one atomic check-and-decrement that never lets a count go negative.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "trainreservation",
+      "path": "config/trainReservation.py",
+      "displayName": "trainReservation.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "rlock",
+      "label": "The lock attribute is a threading.RLock",
+      "testMethod": "test_lock_is_a_reentrant_lock"
+    },
+    {
+      "id": "reserve-semantics",
+      "label": "Reserves, refuses and handles the exact boundary",
+      "testMethod": "test_reserve_success_failure_and_boundary"
+    },
+    {
+      "id": "independent-types",
+      "label": "Seat types do not affect each other",
+      "testMethod": "test_seat_types_are_independent"
+    },
+    {
+      "id": "concurrent-types",
+      "label": "Concurrent bookings across seat types give exact counts",
+      "testMethod": "test_concurrent_bookings_across_types"
+    },
+    {
+      "id": "never-negative",
+      "label": "Counts never go negative when demand exceeds supply",
+      "testMethod": "test_never_goes_negative_when_demand_exceeds_supply"
+    },
+    {
+      "id": "atomic",
+      "label": "Check and decrement form one critical section",
+      "testMethod": "test_check_and_decrement_are_one_critical_section"
+    },
+    {
+      "id": "holds-lock",
+      "label": "Both methods hold the lock",
+      "testMethod": "test_methods_hold_the_lock"
+    }
+  ]
+}

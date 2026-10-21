@@ -1,0 +1,77 @@
+{
+  "id": "py-51-trap-free-toolkit",
+  "lessonSlug": "py-51-python-interview-playbook",
+  "title": "Trap-Free Utility Toolkit",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "Implement the seven trap-free utilities in `toolkit.py`: `append_unique`, `make_adders`, `chunked`, `dedupe`, `top_k_tokens`, `moving_average` and `close_enough`. Each is the correct version of a classic Python interview trap (shared mutable default, late-binding closure, eager materialisation, quadratic membership, float equality). Standard library only; state the complexity in your docstrings.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "toolkit",
+      "path": "toolkit.py",
+      "displayName": "toolkit.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "append-unique",
+      "label": "append_unique creates a fresh list per call and honours an explicit bucket without duplicates",
+      "testMethod": "test_append_unique_has_no_shared_default_and_respects_bucket"
+    },
+    {
+      "id": "adders",
+      "label": "make_adders gives each adder its own offset",
+      "testMethod": "test_make_adders_bind_their_own_offset"
+    },
+    {
+      "id": "chunked-table",
+      "label": "chunked splits iterables into lists of at most size items",
+      "testMethod": "test_chunked"
+    },
+    {
+      "id": "chunked-lazy",
+      "label": "chunked is lazy and works on an infinite iterator",
+      "testMethod": "test_chunked_is_lazy_and_accepts_iterators"
+    },
+    {
+      "id": "chunked-size",
+      "label": "chunked raises ValueError(\"size must be >= 1\") for size below 1",
+      "testMethod": "test_chunked_rejects_bad_size"
+    },
+    {
+      "id": "dedupe",
+      "label": "dedupe keeps first-seen order for any iterable",
+      "testMethod": "test_dedupe_keeps_first_seen_order"
+    },
+    {
+      "id": "top-k-ties",
+      "label": "top_k_tokens ranks by count with alphabetical tie-breaks",
+      "testMethod": "test_top_k_tokens_with_ties"
+    },
+    {
+      "id": "top-k-edges",
+      "label": "top_k_tokens handles empty text, k = 0, apostrophes and rejects negative k",
+      "testMethod": "test_top_k_tokens_edges"
+    },
+    {
+      "id": "moving-average",
+      "label": "moving_average returns full-window averages only and rejects window < 1",
+      "testMethod": "test_moving_average"
+    },
+    {
+      "id": "close-enough",
+      "label": "close_enough uses isclose with relative and absolute tolerances",
+      "testMethod": "test_close_enough_replaces_float_equality"
+    }
+  ]
+}

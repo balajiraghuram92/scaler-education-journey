@@ -1,0 +1,98 @@
+{
+  "id": "py-25-inventory-management",
+  "lessonSlug": "py-25-design-bookmyshow",
+  "title": "Inventory Management (Admin Only, Framework-Free)",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 25,
+  "instructions": "The original Django task is rebuilt on an in-memory `Store` (see `ecom/store.py`, read-only). Implement `InventoryServiceImpl` in `ecom/services/inventory_service_impl.py` (admin-only `create_or_update_inventory`, which replaces the quantity, and `delete_inventory`, which tolerates a missing row) and `InventoryController` in `ecom/controllers/inventory_controller.py`, which never raises and reports `SUCCESS` or `FAILURE`. Raise `UserNotFoundError`, `UnauthorizedAccessError` and `ProductNotFoundError` as the requirements say.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "ecom-models",
+      "path": "ecom/models.py",
+      "displayName": "models.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-exceptions",
+      "path": "ecom/exceptions.py",
+      "displayName": "exceptions.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-dtos",
+      "path": "ecom/dtos.py",
+      "displayName": "dtos.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-store",
+      "path": "ecom/store.py",
+      "displayName": "store.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-inventory-service",
+      "path": "ecom/services/inventory_service.py",
+      "displayName": "inventory_service.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-inventory-service-impl",
+      "path": "ecom/services/inventory_service_impl.py",
+      "displayName": "inventory_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "ecom-controllers-inventory-controller",
+      "path": "ecom/controllers/inventory_controller.py",
+      "displayName": "inventory_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "admin-creates-inventory",
+      "label": "An admin creates an inventory row for a product",
+      "testMethod": "test_admin_creates_inventory"
+    },
+    {
+      "id": "update-replaces-quantity-without-duplicating",
+      "label": "An update sets the quantity (not adds) and keeps one row per product",
+      "testMethod": "test_update_replaces_quantity_without_duplicating"
+    },
+    {
+      "id": "user-and-product-validation",
+      "label": "Unknown user, non-admin and unknown product raise the matching errors and change nothing",
+      "testMethod": "test_user_and_product_validation"
+    },
+    {
+      "id": "admin-deletes-inventory",
+      "label": "An admin deletes a product inventory row",
+      "testMethod": "test_admin_deletes_inventory"
+    },
+    {
+      "id": "delete-tolerates-missing-row-and-checks-user",
+      "label": "Deleting a missing row is fine, but unknown users and non-admins are rejected",
+      "testMethod": "test_delete_tolerates_missing_row_and_checks_user"
+    },
+    {
+      "id": "controller-create-or-update-responses",
+      "label": "The create/update controller returns SUCCESS with the inventory, or FAILURE without raising",
+      "testMethod": "test_controller_create_or_update_responses"
+    },
+    {
+      "id": "controller-delete-responses",
+      "label": "The delete controller returns SUCCESS or FAILURE without raising",
+      "testMethod": "test_controller_delete_responses"
+    }
+  ]
+}

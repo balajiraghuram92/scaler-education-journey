@@ -1,0 +1,73 @@
+{
+  "id": "py-11-config-manager",
+  "lessonSlug": "py-11-singleton",
+  "title": "File-Based Configuration Manager (Singleton)",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `FileBasedConfigurationManagerImpl` in `config/config_manager_impl.py` as a thread-safe, lazily created singleton (double-checked locking) with a `reset_instance()` test hook. Add the get/set/remove/clear configuration operations on top of the provided base class in `config/config_manager.py`, which you must not edit.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "config-config-manager",
+      "path": "config/config_manager.py",
+      "displayName": "config_manager.py",
+      "editable": false
+    },
+    {
+      "id": "config-config-manager-impl",
+      "path": "config/config_manager_impl.py",
+      "displayName": "config_manager_impl.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "get-instance-returns-the-same-object",
+      "label": "get_instance() returns the same shared object every time",
+      "testMethod": "test_get_instance_returns_the_same_object"
+    },
+    {
+      "id": "same-instance-across-threads",
+      "label": "Concurrent get_instance() calls yield exactly one instance",
+      "testMethod": "test_same_instance_across_threads"
+    },
+    {
+      "id": "reset-instance-creates-a-new-object-and-state",
+      "label": "reset_instance() makes the next get_instance() a brand-new, empty object",
+      "testMethod": "test_reset_instance_creates_a_new_object_and_state"
+    },
+    {
+      "id": "get-and-set-configuration",
+      "label": "Gets a missing key as None and sets or overwrites values",
+      "testMethod": "test_get_and_set_configuration"
+    },
+    {
+      "id": "typed-access-and-set-with-value",
+      "label": "Stores str(value) and converts typed reads (None when absent)",
+      "testMethod": "test_typed_access_and_set_with_value"
+    },
+    {
+      "id": "typed-access-with-bad-value-raises-value-error",
+      "label": "A value that cannot be converted raises ValueError",
+      "testMethod": "test_typed_access_with_bad_value_raises_value_error"
+    },
+    {
+      "id": "remove-and-clear",
+      "label": "remove ignores absent keys and clear empties the settings",
+      "testMethod": "test_remove_and_clear"
+    },
+    {
+      "id": "load-reads-key-value-lines-into-the-shared-instance",
+      "label": "Loaded file settings are visible through the shared instance",
+      "testMethod": "test_load_reads_key_value_lines_into_the_shared_instance"
+    }
+  ]
+}

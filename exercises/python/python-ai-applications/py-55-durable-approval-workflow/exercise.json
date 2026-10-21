@@ -1,0 +1,77 @@
+{
+  "id": "py-55-durable-approval-workflow",
+  "lessonSlug": "py-55-agents-tool-use",
+  "title": "Durable Workflow Graph with Approval and Exactly-Once Effects",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 55,
+  "instructions": "Implement `Ledger` and the `Graph` engine in `workflow.py` (`END`, the type aliases and `RunStatus` are provided): nodes return partial updates merged through per-key reducers, edges are static or conditional, and a JSON checkpoint is written after every node. The engine pauses before nodes listed in `interrupt_before`, resumes across processes sharing only the store, and retries a crashed node without a second approval or a second side effect.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "workflow",
+      "path": "workflow.py",
+      "displayName": "workflow.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "reducers",
+      "label": "Reducers append, other keys overwrite, and nodes get a deep copy of the state",
+      "testMethod": "test_reducers_append_and_other_keys_overwrite"
+    },
+    {
+      "id": "ledger",
+      "label": "Ledger.run_once runs each effect at most once per key",
+      "testMethod": "test_ledger_runs_each_effect_at_most_once"
+    },
+    {
+      "id": "conditional-edge",
+      "label": "A conditional edge can skip the refund branch",
+      "testMethod": "test_conditional_edge_skips_the_refund_branch"
+    },
+    {
+      "id": "unknown-target",
+      "label": "A router target that is not a node raises ValueError",
+      "testMethod": "test_unknown_router_target_is_rejected"
+    },
+    {
+      "id": "pause-resume",
+      "label": "A paused run resumes from a new Graph instance sharing only the store",
+      "testMethod": "test_pause_then_resume_from_a_new_instance_sharing_only_the_store"
+    },
+    {
+      "id": "crash-retry",
+      "label": "A crash after a side effect retries without a second charge",
+      "testMethod": "test_crash_after_effect_retries_without_a_second_charge"
+    },
+    {
+      "id": "no-second-approval",
+      "label": "A crash after approval does not ask for approval again",
+      "testMethod": "test_crash_after_approval_does_not_ask_for_approval_again"
+    },
+    {
+      "id": "finished-thread",
+      "label": "A finished thread returns immediately and a new thread needs an entry node",
+      "testMethod": "test_finished_threads_return_immediately"
+    },
+    {
+      "id": "step-limit",
+      "label": "A cycle raises RuntimeError(\"step limit ...\")",
+      "testMethod": "test_cycles_hit_the_step_limit"
+    },
+    {
+      "id": "json-state",
+      "label": "Non-serialisable state raises TypeError",
+      "testMethod": "test_non_serialisable_state_is_rejected"
+    }
+  ]
+}

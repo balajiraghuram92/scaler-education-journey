@@ -1,0 +1,77 @@
+{
+  "id": "py-44-refresh-token-service",
+  "lessonSlug": "py-44-fastapi-auth-security",
+  "title": "Refresh Token Rotation Service",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 50,
+  "instructions": "Implement `RefreshTokenService` in `refresh.py` (the exception classes are given). Tokens are opaque `secrets.token_urlsafe(32)` strings stored only as SHA-256 hex digests. `rotate` issues a new token in the same family, enforces the per-token TTL and the family maximum age, treats a replayed token as `GraceReuse` inside the grace window or `ReuseDetected` (revoking the family) after it, and `revoke_user` revokes all of a user's families. All state changes happen under one lock.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "refresh",
+      "path": "refresh.py",
+      "displayName": "refresh.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "rotation-chain-gives-fresh-tokens",
+      "label": "Rotation and login return fresh urlsafe tokens",
+      "testMethod": "test_rotation_chain_gives_fresh_tokens"
+    },
+    {
+      "id": "only-hashes-are-stored",
+      "label": "Stores only SHA-256 digests, never plaintext tokens",
+      "testMethod": "test_only_hashes_are_stored"
+    },
+    {
+      "id": "reuse-revokes-whole-family",
+      "label": "Replaying a rotated token raises ReuseDetected and revokes the whole family",
+      "testMethod": "test_reuse_revokes_whole_family"
+    },
+    {
+      "id": "grace-window-does-not-revoke",
+      "label": "A replay inside the grace window raises GraceReuse and revokes nothing",
+      "testMethod": "test_grace_window_does_not_revoke"
+    },
+    {
+      "id": "zero-grace-means-any-replay-is-reuse",
+      "label": "With grace_s=0 any replay is ReuseDetected",
+      "testMethod": "test_zero_grace_means_any_replay_is_reuse"
+    },
+    {
+      "id": "token-ttl-and-family-max-age",
+      "label": "Enforces the per-token TTL and the absolute family lifetime (\"expired\")",
+      "testMethod": "test_token_ttl_and_family_max_age"
+    },
+    {
+      "id": "unknown-token-is-invalid",
+      "label": "Rejects unknown tokens with \"invalid\"; reuse errors subclass InvalidRefreshToken",
+      "testMethod": "test_unknown_token_is_invalid"
+    },
+    {
+      "id": "families-are-independent",
+      "label": "Reuse in one family does not revoke another family",
+      "testMethod": "test_families_are_independent"
+    },
+    {
+      "id": "revoke-user",
+      "label": "revoke_user revokes every family of the user and returns the count",
+      "testMethod": "test_revoke_user"
+    },
+    {
+      "id": "concurrent-rotation-has-exactly-one-winner",
+      "label": "20 threads rotating the same token produce exactly one winner",
+      "testMethod": "test_concurrent_rotation_has_exactly_one_winner"
+    }
+  ]
+}

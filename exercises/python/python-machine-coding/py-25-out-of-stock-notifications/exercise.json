@@ -1,0 +1,161 @@
+{
+  "id": "py-25-out-of-stock-notifications",
+  "lessonSlug": "py-25-design-bookmyshow",
+  "title": "Notify Users When a Product Is Back in Stock",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 50,
+  "instructions": "The original Django task is rebuilt on an in-memory `Store` (see `ecom/store.py`, read-only). Implement `NotificationServiceImpl` (register/unregister), `InventoryServiceImpl.save_or_update_inventory` (update stock, then email every user with a `PENDING` notification for the product and mark it `SENT`), `EmailServiceImpl.notify_user` (subject and body built from the user and product) and `EmailAdapterImpl`, the only class that touches the `sendgrid` library. The controllers are provided.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "ecom-models",
+      "path": "ecom/models.py",
+      "displayName": "models.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-exceptions",
+      "path": "ecom/exceptions.py",
+      "displayName": "exceptions.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-dtos",
+      "path": "ecom/dtos.py",
+      "displayName": "dtos.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-store",
+      "path": "ecom/store.py",
+      "displayName": "store.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-libs-sendgrid",
+      "path": "ecom/libs/sendgrid.py",
+      "displayName": "sendgrid.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-adapters-email-adapter",
+      "path": "ecom/adapters/email_adapter.py",
+      "displayName": "email_adapter.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-email-service",
+      "path": "ecom/services/email_service.py",
+      "displayName": "email_service.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-inventory-service",
+      "path": "ecom/services/inventory_service.py",
+      "displayName": "inventory_service.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-notification-service",
+      "path": "ecom/services/notification_service.py",
+      "displayName": "notification_service.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-controllers-inventory-controller",
+      "path": "ecom/controllers/inventory_controller.py",
+      "displayName": "inventory_controller.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-controllers-notification-controller",
+      "path": "ecom/controllers/notification_controller.py",
+      "displayName": "notification_controller.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-adapters-email-adapter-impl",
+      "path": "ecom/adapters/email_adapter_impl.py",
+      "displayName": "email_adapter_impl.py",
+      "editable": true
+    },
+    {
+      "id": "ecom-services-email-service-impl",
+      "path": "ecom/services/email_service_impl.py",
+      "displayName": "email_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "ecom-services-inventory-service-impl",
+      "path": "ecom/services/inventory_service_impl.py",
+      "displayName": "inventory_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "ecom-services-notification-service-impl",
+      "path": "ecom/services/notification_service_impl.py",
+      "displayName": "notification_service_impl.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "register-creates-pending-notification",
+      "label": "Registering for an out-of-stock product creates a PENDING notification",
+      "testMethod": "test_register_creates_pending_notification"
+    },
+    {
+      "id": "register-validation",
+      "label": "Unknown user, product without inventory and in-stock product raise the matching errors",
+      "testMethod": "test_register_validation"
+    },
+    {
+      "id": "reregistering-resets-to-pending-without-duplicate",
+      "label": "Registering again resets the existing notification to PENDING without a duplicate",
+      "testMethod": "test_reregistering_resets_to_pending_without_duplicate"
+    },
+    {
+      "id": "unregister-deletes-or-raises",
+      "label": "Unregistering deletes the notification, or raises NotificationNotFoundError",
+      "testMethod": "test_unregister_deletes_or_raises"
+    },
+    {
+      "id": "restock-emails-pending-users-and-marks-sent",
+      "label": "Restocking updates the quantity, emails each user with a PENDING notification and marks it SENT",
+      "testMethod": "test_restock_emails_pending_users_and_marks_sent"
+    },
+    {
+      "id": "restock-ignores-other-products-and-sent-notifications",
+      "label": "Only PENDING notifications of the restocked product are emailed",
+      "testMethod": "test_restock_ignores_other_products_and_sent_notifications"
+    },
+    {
+      "id": "restock-creates-missing-inventory-and-rejects-unknown-product",
+      "label": "Restocking a product without inventory creates it; an unknown product raises ProductNotFoundError",
+      "testMethod": "test_restock_creates_missing_inventory_and_rejects_unknown_product"
+    },
+    {
+      "id": "email-service-builds-subject-and-body",
+      "label": "The email goes to the address of the user with a subject and body naming the product and the user",
+      "testMethod": "test_email_service_builds_subject_and_body"
+    },
+    {
+      "id": "email-adapter-delegates-to-sendgrid",
+      "label": "EmailAdapterImpl is an EmailAdapter that returns what sendgrid.send_email returns",
+      "testMethod": "test_email_adapter_delegates_to_sendgrid"
+    },
+    {
+      "id": "controllers-translate-results",
+      "label": "Controllers return SUCCESS with the notification id, or FAILURE without raising",
+      "testMethod": "test_controllers_translate_results"
+    }
+  ]
+}

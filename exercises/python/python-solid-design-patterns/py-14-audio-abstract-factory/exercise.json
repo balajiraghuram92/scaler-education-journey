@@ -1,0 +1,91 @@
+{
+  "id": "py-14-audio-abstract-factory",
+  "lessonSlug": "py-14-factory",
+  "title": "Abstract Factory for Audio Format Families",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Complete `config/abstract_factory.py`: declare the abstract `AudioFactory` (`supports_format`, `create_audio_player`, `create_audio_decoder`, `create_audio_processor`) and implement `MP3AudioFactory` and `FLACAudioFactory` so each creates only products of its own format. The product classes in the other files are provided.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "config-model",
+      "path": "config/model.py",
+      "displayName": "model.py",
+      "editable": false
+    },
+    {
+      "id": "config-decoder",
+      "path": "config/decoder.py",
+      "displayName": "decoder.py",
+      "editable": false
+    },
+    {
+      "id": "config-processor",
+      "path": "config/processor.py",
+      "displayName": "processor.py",
+      "editable": false
+    },
+    {
+      "id": "config-player",
+      "path": "config/player.py",
+      "displayName": "player.py",
+      "editable": false
+    },
+    {
+      "id": "config-abstract-factory",
+      "path": "config/abstract_factory.py",
+      "displayName": "abstract_factory.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "audio-factory-is-abstract-with-four-abstract-methods",
+      "label": "AudioFactory is abstract and declares the four factory methods",
+      "testMethod": "test_audio_factory_is_abstract_with_four_abstract_methods"
+    },
+    {
+      "id": "concrete-factories-are-instantiable-and-report-their-format",
+      "label": "Concrete factories are instantiable and report their MediaFormat",
+      "testMethod": "test_concrete_factories_are_instantiable_and_report_their_format"
+    },
+    {
+      "id": "factory-creates-the-concrete-products-of-its-family",
+      "label": "Each factory creates the concrete player, decoder and processor of its format",
+      "testMethod": "test_factory_creates_the_concrete_products_of_its_family"
+    },
+    {
+      "id": "products-share-the-common-abstract-parents",
+      "label": "Every product is an instance of its common abstract parent",
+      "testMethod": "test_products_share_the_common_abstract_parents"
+    },
+    {
+      "id": "every-product-matches-the-factorys-format",
+      "label": "All products from one factory belong to the same format family",
+      "testMethod": "test_every_product_matches_the_factorys_format"
+    },
+    {
+      "id": "constructor-arguments-reach-the-products",
+      "label": "Volume, playback rate and audio data reach the products",
+      "testMethod": "test_constructor_arguments_reach_the_products"
+    },
+    {
+      "id": "each-call-creates-a-new-product",
+      "label": "Each call creates a new product",
+      "testMethod": "test_each_call_creates_a_new_product"
+    },
+    {
+      "id": "client-code-depends-only-on-the-abstract-factory",
+      "label": "Client code using only AudioFactory never mixes formats",
+      "testMethod": "test_client_code_depends_only_on_the_abstract_factory"
+    }
+  ]
+}

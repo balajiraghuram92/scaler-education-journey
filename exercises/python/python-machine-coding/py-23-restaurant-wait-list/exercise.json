@@ -1,0 +1,196 @@
+{
+  "id": "py-23-restaurant-wait-list",
+  "lessonSlug": "py-23-code-parking-lot-1",
+  "title": "Manage a Wait List",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `WaitListServiceImpl` in `services/wait_list_service_impl.py` (add a registered user and return their 1-based position without duplicating, look up a position or `-1`, and let an ADMIN remove customers from the front), `WaitListController` in `controllers/wait_list_controller.py` (never raises: `FAILURE` with position 0) and the ordered in-memory `WaitListPositionRepositoryImpl`. Error messages are `\"User not found\"` and `\"Access Denied\"`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-user",
+      "path": "models/user.py",
+      "displayName": "user.py",
+      "editable": false
+    },
+    {
+      "id": "models-user-type",
+      "path": "models/user_type.py",
+      "displayName": "user_type.py",
+      "editable": false
+    },
+    {
+      "id": "models-wait-list-position",
+      "path": "models/wait_list_position.py",
+      "displayName": "wait_list_position.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-unauthorized-access-exception",
+      "path": "exceptions/unauthorized_access_exception.py",
+      "displayName": "unauthorized_access_exception.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-user-not-found-exception",
+      "path": "exceptions/user_not_found_exception.py",
+      "displayName": "user_not_found_exception.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-add-user-to-wait-list-request-dto",
+      "path": "dtos/add_user_to_wait_list_request_dto.py",
+      "displayName": "add_user_to_wait_list_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-add-user-to-wait-list-response-dto",
+      "path": "dtos/add_user_to_wait_list_response_dto.py",
+      "displayName": "add_user_to_wait_list_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-get-user-wait-list-request-dto",
+      "path": "dtos/get_user_wait_list_request_dto.py",
+      "displayName": "get_user_wait_list_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-get-user-wait-list-response-dto",
+      "path": "dtos/get_user_wait_list_response_dto.py",
+      "displayName": "get_user_wait_list_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-update-wait-list-request-dto",
+      "path": "dtos/update_wait_list_request_dto.py",
+      "displayName": "update_wait_list_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-update-wait-list-response-dto",
+      "path": "dtos/update_wait_list_response_dto.py",
+      "displayName": "update_wait_list_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response-status",
+      "path": "dtos/response_status.py",
+      "displayName": "response_status.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-user-repository",
+      "path": "repositories/user_repository.py",
+      "displayName": "user_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-user-repository-impl",
+      "path": "repositories/user_repository_impl.py",
+      "displayName": "user_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-wait-list-position-repository",
+      "path": "repositories/wait_list_position_repository.py",
+      "displayName": "wait_list_position_repository.py",
+      "editable": false
+    },
+    {
+      "id": "services-wait-list-service",
+      "path": "services/wait_list_service.py",
+      "displayName": "wait_list_service.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-wait-list-position-repository-impl",
+      "path": "repositories/wait_list_position_repository_impl.py",
+      "displayName": "wait_list_position_repository_impl.py",
+      "editable": true
+    },
+    {
+      "id": "services-wait-list-service-impl",
+      "path": "services/wait_list_service_impl.py",
+      "displayName": "wait_list_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "controllers-wait-list-controller",
+      "path": "controllers/wait_list_controller.py",
+      "displayName": "wait_list_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "users-get-consecutive-positions-in-order",
+      "label": "Customers who join get positions 1, 2, 3 in insertion order",
+      "testMethod": "test_users_get_consecutive_positions_in_order"
+    },
+    {
+      "id": "adding-twice-returns-existing-position",
+      "label": "Adding a user who is already waiting returns the existing position without a duplicate",
+      "testMethod": "test_adding_twice_returns_existing_position"
+    },
+    {
+      "id": "unknown-user-cannot-join-or-query",
+      "label": "An unknown user raises UserNotFoundException(\"User not found\") for add and lookup",
+      "testMethod": "test_unknown_user_cannot_join_or_query"
+    },
+    {
+      "id": "position-of-user-not-waiting-is-minus-one",
+      "label": "A registered user who is not waiting has position -1",
+      "testMethod": "test_position_of_user_not_waiting_is_minus_one"
+    },
+    {
+      "id": "admin-removes-from-the-front",
+      "label": "An admin removes the requested number of customers from the front and positions shift",
+      "testMethod": "test_admin_removes_from_the_front"
+    },
+    {
+      "id": "removing-more-than-the-list-empties-it",
+      "label": "Removing more than the list length removes everyone",
+      "testMethod": "test_removing_more_than_the_list_empties_it"
+    },
+    {
+      "id": "non-admin-is-denied",
+      "label": "A non-admin gets UnauthorizedAccessException(\"Access Denied\") and nothing is removed",
+      "testMethod": "test_non_admin_is_denied"
+    },
+    {
+      "id": "update-unknown-user",
+      "label": "Update with an unknown user raises UserNotFoundException",
+      "testMethod": "test_update_unknown_user"
+    },
+    {
+      "id": "controller-success-responses",
+      "label": "Controller returns SUCCESS with positions for add, get and update",
+      "testMethod": "test_controller_success_responses"
+    },
+    {
+      "id": "controller-never-raises",
+      "label": "Controller returns FAILURE with position 0 instead of raising",
+      "testMethod": "test_controller_never_raises"
+    },
+    {
+      "id": "wait-list-repository-keeps-order",
+      "label": "The repository keeps insertion order, assigns ids and deletes entries",
+      "testMethod": "test_wait_list_repository_keeps_order"
+    }
+  ]
+}

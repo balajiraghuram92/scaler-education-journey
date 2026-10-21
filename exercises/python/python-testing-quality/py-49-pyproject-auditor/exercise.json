@@ -1,0 +1,77 @@
+{
+  "id": "py-49-pyproject-auditor",
+  "lessonSlug": "py-49-tooling-project-layout",
+  "title": "pyproject.toml Auditor",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "Implement `Issue`, `normalize`, `requirement_name` and `audit` in `pyproject_audit.py`. `audit(root)` reads `pyproject.toml` with `tomllib`, checks the `src/` layout on disk and returns `Issue`s sorted by code for rules PP001 to PP008. `Issue` must be a frozen, orderable dataclass, and invalid TOML must propagate `tomllib.TOMLDecodeError`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "pyproject-audit",
+      "path": "pyproject_audit.py",
+      "displayName": "pyproject_audit.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "clean",
+      "label": "A clean project returns no issues",
+      "testMethod": "test_clean_project_has_no_issues"
+    },
+    {
+      "id": "pp001",
+      "label": "Missing pyproject.toml returns only PP001",
+      "testMethod": "test_missing_file_returns_only_pp001"
+    },
+    {
+      "id": "pp002-pp003",
+      "label": "Reports PP002 (no build-system) and PP003 (no requires-python)",
+      "testMethod": "test_missing_build_system_and_requires_python"
+    },
+    {
+      "id": "pp004",
+      "label": "Reports one PP004 per dev tool in runtime dependencies, ignoring look-alikes like pytest-cov",
+      "testMethod": "test_dev_tools_in_runtime_dependencies"
+    },
+    {
+      "id": "pp005-pp006",
+      "label": "Reports PP005 for static plus dynamic version and PP006 for neither; dynamic-only is valid",
+      "testMethod": "test_version_must_be_static_xor_dynamic"
+    },
+    {
+      "id": "pp007",
+      "label": "Reports PP007 for script targets not of the form module.path:function",
+      "testMethod": "test_bad_script_targets"
+    },
+    {
+      "id": "pp008",
+      "label": "Reports PP008 for a missing src layout, using the normalised package name",
+      "testMethod": "test_flat_layout_is_reported_and_name_is_normalised"
+    },
+    {
+      "id": "bad-toml",
+      "label": "Invalid TOML propagates tomllib.TOMLDecodeError",
+      "testMethod": "test_invalid_toml_propagates"
+    },
+    {
+      "id": "name-helpers",
+      "label": "normalize and requirement_name follow PEP 503 and reject nameless requirements",
+      "testMethod": "test_name_helpers"
+    },
+    {
+      "id": "issue-order",
+      "label": "Issue is frozen and orderable, and audit returns issues sorted by code",
+      "testMethod": "test_issues_are_frozen_orderable_and_results_sorted"
+    }
+  ]
+}

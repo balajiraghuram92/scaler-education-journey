@@ -1,0 +1,185 @@
+{
+  "id": "py-21-adapter-cloud-provider",
+  "lessonSlug": "py-21-tictactoe-2",
+  "title": "Adapter Pattern: Integrate a Cloud Service Provider",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Wrap the third-party SDKs (`libraries/`, provided) behind the `CloudAdapter` interface. Implement `AWSCloudAdapter` and `GoogleCloudAdapter` in `adapters/` (call the SDK, map its response to the domain `Connection`), `CloudServiceImpl.create_connection` in `services/cloud_service_impl.py` (raise `UserNotFoundException(\"User not found\")` for an unknown user, otherwise delegate to the injected adapter) and `CloudController.create_connection` in `controllers/cloud_controller.py` (translate that exception into `ResponseStatus.FAILURE`).",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-connection",
+      "path": "models/connection.py",
+      "displayName": "connection.py",
+      "editable": false
+    },
+    {
+      "id": "models-enums",
+      "path": "models/enums.py",
+      "displayName": "enums.py",
+      "editable": false
+    },
+    {
+      "id": "models-user",
+      "path": "models/user.py",
+      "displayName": "user.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-exceptions",
+      "path": "exceptions/exceptions.py",
+      "displayName": "exceptions.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-create-connection-request-dto",
+      "path": "dtos/create_connection_request_dto.py",
+      "displayName": "create_connection_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-create-connection-response-dto",
+      "path": "dtos/create_connection_response_dto.py",
+      "displayName": "create_connection_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "libraries-aws-aws-api",
+      "path": "libraries/aws/aws_api.py",
+      "displayName": "aws_api.py",
+      "editable": false
+    },
+    {
+      "id": "libraries-aws-aws-connection-response",
+      "path": "libraries/aws/aws_connection_response.py",
+      "displayName": "aws_connection_response.py",
+      "editable": false
+    },
+    {
+      "id": "libraries-google-google-api",
+      "path": "libraries/google/google_api.py",
+      "displayName": "google_api.py",
+      "editable": false
+    },
+    {
+      "id": "libraries-google-google-connection-response",
+      "path": "libraries/google/google_connection_response.py",
+      "displayName": "google_connection_response.py",
+      "editable": false
+    },
+    {
+      "id": "adapters-cloud-adapter",
+      "path": "adapters/cloud_adapter.py",
+      "displayName": "cloud_adapter.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-user-repository",
+      "path": "repositories/user_repository.py",
+      "displayName": "user_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-user-repository-impl",
+      "path": "repositories/user_repository_impl.py",
+      "displayName": "user_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "services-cloud-service",
+      "path": "services/cloud_service.py",
+      "displayName": "cloud_service.py",
+      "editable": false
+    },
+    {
+      "id": "adapters-aws-cloud-adapter",
+      "path": "adapters/aws_cloud_adapter.py",
+      "displayName": "aws_cloud_adapter.py",
+      "editable": true
+    },
+    {
+      "id": "adapters-google-cloud-adapter",
+      "path": "adapters/google_cloud_adapter.py",
+      "displayName": "google_cloud_adapter.py",
+      "editable": true
+    },
+    {
+      "id": "services-cloud-service-impl",
+      "path": "services/cloud_service_impl.py",
+      "displayName": "cloud_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "controllers-cloud-controller",
+      "path": "controllers/cloud_controller.py",
+      "displayName": "cloud_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "aws-adapter-maps-provider-response",
+      "label": "AWSCloudAdapter maps the AWS response to a domain Connection",
+      "testMethod": "test_aws_adapter_maps_provider_response"
+    },
+    {
+      "id": "google-adapter-maps-provider-response",
+      "label": "GoogleCloudAdapter maps the Google response to a domain Connection",
+      "testMethod": "test_google_adapter_maps_provider_response"
+    },
+    {
+      "id": "non-success-status-maps-to-failure",
+      "label": "A provider status other than \"SUCCESS\" becomes ConnectionStatus.FAILURE",
+      "testMethod": "test_non_success_status_maps_to_failure"
+    },
+    {
+      "id": "adapters-implement-the-interface",
+      "label": "Both adapters are CloudAdapter implementations and CloudAdapter itself is abstract",
+      "testMethod": "test_adapters_implement_the_interface"
+    },
+    {
+      "id": "service-rejects-unknown-user-without-calling-provider",
+      "label": "Unknown user raises UserNotFoundException(\"User not found\") and the provider is never called",
+      "testMethod": "test_service_rejects_unknown_user_without_calling_provider"
+    },
+    {
+      "id": "service-delegates-to-injected-adapter",
+      "label": "A valid user is delegated to the injected adapter and its Connection is returned",
+      "testMethod": "test_service_delegates_to_injected_adapter"
+    },
+    {
+      "id": "controller-success-response",
+      "label": "Controller fills connection_id, connection_status and SUCCESS",
+      "testMethod": "test_controller_success_response"
+    },
+    {
+      "id": "controller-failure-response",
+      "label": "Controller returns FAILURE with no connection for an unknown user",
+      "testMethod": "test_controller_failure_response"
+    },
+    {
+      "id": "controller-does-not-swallow-other-errors",
+      "label": "Controller only translates UserNotFoundException",
+      "testMethod": "test_controller_does_not_swallow_other_errors"
+    },
+    {
+      "id": "provider-is-a-wiring-decision",
+      "label": "The same service works with either provider adapter",
+      "testMethod": "test_provider_is_a_wiring_decision"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "py-31-heap-settle-exact",
+  "lessonSlug": "py-31-code-splitwise-2",
+  "title": "Heap Greedy Settle-Up versus the Exact Optimum",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 50,
+  "instructions": "In `heap_settle.py` implement the greedy `settle_heap` with two `heapq` heaps, the exact `min_transfers_exact` solver (bitmask DP over zero-sum groups) and the `apply_transfers` oracle. The greedy plan must be deterministic and independent of insertion order, and you should be able to explain what it guarantees and what it does not.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "heap-settle",
+      "path": "heap_settle.py",
+      "displayName": "heap_settle.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "largest-matches-largest-and-remainders-are-pushed-back",
+      "label": "Pairs the largest debtor with the largest creditor and pushes remainders back",
+      "testMethod": "test_largest_matches_largest_and_remainders_are_pushed_back"
+    },
+    {
+      "id": "zero-balances-ignored-and-empty-is-fine",
+      "label": "Ignores zero balances and returns [] for empty input",
+      "testMethod": "test_zero_balances_ignored_and_empty_is_fine"
+    },
+    {
+      "id": "validation",
+      "label": "Rejects balances that do not sum to zero (ValueError) and non-int balances (TypeError)",
+      "testMethod": "test_validation"
+    },
+    {
+      "id": "result-does-not-depend-on-insertion-order",
+      "label": "Produces the same plan whatever the insertion order",
+      "testMethod": "test_result_does_not_depend_on_insertion_order"
+    },
+    {
+      "id": "plans-clear-everyone-and-are-direct-and-bounded",
+      "label": "Plans clear all balances, go debtor to creditor, and use at most n-1 transfers",
+      "testMethod": "test_plans_clear_everyone_and_are_direct_and_bounded"
+    },
+    {
+      "id": "exact-solver-known-cases",
+      "label": "Exact solver returns the true minimum on known cases and rejects more than 16 balances",
+      "testMethod": "test_exact_solver_known_cases"
+    },
+    {
+      "id": "greedy-is-never-better-than-exact-and-sometimes-worse",
+      "label": "Greedy never beats the exact optimum and is sometimes strictly worse",
+      "testMethod": "test_greedy_is_never_better_than_exact_and_sometimes_worse"
+    },
+    {
+      "id": "apply-transfers-is-the-oracle",
+      "label": "apply_transfers returns the remaining non-zero balances",
+      "testMethod": "test_apply_transfers_is_the_oracle"
+    },
+    {
+      "id": "tie-breaking-prefers-alphabetically-smallest-user",
+      "label": "Ties go to the alphabetically smallest user",
+      "testMethod": "test_tie_breaking_prefers_alphabetically_smallest_user"
+    },
+    {
+      "id": "exact-solver-ignores-zero-balances-and-finds-groups",
+      "label": "Exact solver ignores zero balances and finds disjoint zero-sum groups",
+      "testMethod": "test_exact_solver_ignores_zero_balances_and_finds_groups"
+    }
+  ]
+}

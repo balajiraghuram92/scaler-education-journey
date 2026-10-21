@@ -1,0 +1,26 @@
+{
+  "id": "py-16-graphic-flyweight",
+  "lessonSlug": "py-16-decorator-flyweight",
+  "title": "Graphic Editor Flyweight",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "In `config/model.py` complete `GraphicIntrinsicState` (image, width, height, colour, type) and `GraphicExtrinsicState` (x, y, intrinsic_state). In `config/registry.py` implement `FlyweightRegistryImpl` so it keeps shared intrinsic states in a dict named `_flyweights`, keyed by `GraphicType`, and returns the same object back. Do not change `GraphicType`, `Image` or `Graphic`.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "model", "path": "config/model.py", "displayName": "model.py", "editable": true },
+    { "id": "registry", "path": "config/registry.py", "displayName": "registry.py", "editable": true }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "intrinsic-fields", "label": "GraphicIntrinsicState holds exactly the shared fields", "testMethod": "test_intrinsic_state_has_the_shared_fields" },
+    { "id": "extrinsic-fields", "label": "GraphicExtrinsicState holds x, y and a reference to the intrinsic state", "testMethod": "test_extrinsic_state_has_placement_fields_and_a_reference" },
+    { "id": "graphic-untouched", "label": "The original Graphic class is untouched", "testMethod": "test_original_graphic_is_untouched" },
+    { "id": "same-object", "label": "The registry returns the very same flyweight object (identity)", "testMethod": "test_registry_returns_the_very_same_object" },
+    { "id": "missing-none", "label": "An unknown graphic type returns None", "testMethod": "test_missing_type_returns_none" },
+    { "id": "dict-by-type", "label": "Storage is a dict named _flyweights keyed by GraphicType", "testMethod": "test_storage_is_a_dict_keyed_by_graphic_type" },
+    { "id": "replace", "label": "Adding the same type again replaces the entry", "testMethod": "test_adding_the_same_type_again_replaces_the_entry" },
+    { "id": "per-instance", "label": "Each registry has its own storage", "testMethod": "test_registries_do_not_share_storage" },
+    { "id": "shared-across-placements", "label": "Many placements share one intrinsic state and one image", "testMethod": "test_many_placements_share_one_intrinsic_state" }
+  ]
+}

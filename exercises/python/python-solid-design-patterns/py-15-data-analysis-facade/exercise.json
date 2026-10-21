@@ -1,0 +1,27 @@
+{
+  "id": "py-15-data-analysis-facade",
+  "lessonSlug": "py-15-adapter-facade",
+  "title": "Data Analysis Facade",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Implement `DataAnalysisProcessor` in `data/processor.py` as a facade over the four analysis services. Inject them through the constructor (same order as `DataAnalysisManager`) and make `process(...)` collect, preprocess, analyse and visualise, returning the `AnalysisResult`. The manager and services are provided.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "processor", "path": "data/processor.py", "displayName": "processor.py", "editable": true },
+    { "id": "manager", "path": "data/manager.py", "displayName": "manager.py", "editable": false },
+    { "id": "model", "path": "data/model.py", "displayName": "model.py", "editable": false },
+    { "id": "services", "path": "data/services.py", "displayName": "services.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "manager-hides-services", "label": "DataAnalysisManager exposes none of the four services", "testMethod": "test_manager_does_not_expose_the_services" },
+    { "id": "pipeline-order", "label": "Pipeline runs collect, preprocess, analyse, visualise in order", "testMethod": "test_pipeline_runs_in_order" },
+    { "id": "data-flow", "label": "Each stage's output feeds the next stage", "testMethod": "test_data_flows_from_each_stage_into_the_next" },
+    { "id": "config-forwarded", "label": "Params, options and config are forwarded untouched", "testMethod": "test_params_options_and_config_are_forwarded_untouched" },
+    { "id": "returns-result", "label": "Returns the AnalysisResult from the algorithm service", "testMethod": "test_returns_the_analysis_result" },
+    { "id": "constructor-order", "label": "Constructor order matches the manager's", "testMethod": "test_constructor_order_matches_the_manager" },
+    { "id": "failure-stops", "label": "A failing stage stops the pipeline and propagates", "testMethod": "test_failure_in_a_stage_stops_the_pipeline" },
+    { "id": "default-services", "label": "Works end to end with the default services", "testMethod": "test_works_with_the_default_services" }
+  ]
+}

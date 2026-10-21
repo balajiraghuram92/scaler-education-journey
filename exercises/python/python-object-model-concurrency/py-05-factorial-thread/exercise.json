@@ -1,0 +1,67 @@
+{
+  "id": "py-05-factorial-thread",
+  "lessonSlug": "py-05-processes-threads-gil",
+  "title": "Factorial in a Worker Thread",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Implement `FactorialThread` and `compute_large_factorial` in `config/factorial.py`. A thread cannot return a value from `run()`, so store the result on the thread object and read it only after `join()`. `compute_large_factorial(n)` starts the worker, joins it and returns the result.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "config-factorial",
+      "path": "config/factorial.py",
+      "displayName": "factorial.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "thread-initial-state",
+      "label": "The thread starts with n stored and result None",
+      "testMethod": "test_thread_initial_state"
+    },
+    {
+      "id": "result-is-available-after-join",
+      "label": "The result is available after join",
+      "testMethod": "test_result_is_available_after_join"
+    },
+    {
+      "id": "small-values",
+      "label": "Small values including 0 and 1 are correct",
+      "testMethod": "test_small_values"
+    },
+    {
+      "id": "large-value-is-an-exact-int",
+      "label": "A large factorial is an exact int",
+      "testMethod": "test_large_value_is_an_exact_int"
+    },
+    {
+      "id": "computation-runs-on-a-worker-thread",
+      "label": "The factorial is computed on a worker thread",
+      "testMethod": "test_computation_runs_on_a_worker_thread"
+    },
+    {
+      "id": "compute-waits-for-a-slow-worker",
+      "label": "compute_large_factorial waits for a slow worker",
+      "testMethod": "test_compute_waits_for_a_slow_worker"
+    },
+    {
+      "id": "each-call-uses-a-fresh-finished-thread",
+      "label": "Each call joins its thread",
+      "testMethod": "test_each_call_uses_a_fresh_finished_thread"
+    },
+    {
+      "id": "independent-threads-keep-independent-results",
+      "label": "Separate threads keep separate results",
+      "testMethod": "test_independent_threads_keep_independent_results"
+    }
+  ]
+}

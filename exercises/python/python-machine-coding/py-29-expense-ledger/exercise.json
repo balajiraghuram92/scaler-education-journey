@@ -1,0 +1,77 @@
+{
+  "id": "py-29-expense-ledger",
+  "lessonSlug": "py-29-design-splitwise",
+  "title": "Validated Expense Ledger and Net Balances",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "Implement the validation in `Expense` and `ExpenseUser` plus `net_balances`, `record_settlement` and `expenses_for_user` in `ledger.py`. Money is integer minor units, the dataclasses are frozen, and an expense that breaks the paid-equals-owed rule must be impossible to construct.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "ledger",
+      "path": "ledger.py",
+      "displayName": "ledger.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "net-balances-of-one-expense",
+      "label": "Computes net balance (paid minus owed) per user for one expense",
+      "testMethod": "test_net_balances_of_one_expense"
+    },
+    {
+      "id": "user-who-paid-exactly-their-share-is-omitted",
+      "label": "Omits users whose net balance is exactly zero",
+      "testMethod": "test_user_who_paid_exactly_their_share_is_omitted"
+    },
+    {
+      "id": "balances-sum-to-zero-across-many-expenses",
+      "label": "Aggregates many expenses and the balances sum to zero",
+      "testMethod": "test_balances_sum_to_zero_across_many_expenses"
+    },
+    {
+      "id": "unbalanced-expense-is-rejected",
+      "label": "Rejects an expense where paid does not equal owed",
+      "testMethod": "test_unbalanced_expense_is_rejected"
+    },
+    {
+      "id": "expense-needs-both-row-types",
+      "label": "Requires at least one PAID and one HAD_TO_PAY row",
+      "testMethod": "test_expense_needs_both_row_types"
+    },
+    {
+      "id": "amounts-must-be-positive-integers",
+      "label": "Rejects zero, negative, float and boolean amounts",
+      "testMethod": "test_amounts_must_be_positive_integers"
+    },
+    {
+      "id": "settlement-is-a-payment-expense-that-moves-balances",
+      "label": "A settlement is a PAYMENT expense that reduces the debt",
+      "testMethod": "test_settlement_is_a_payment_expense_that_moves_balances"
+    },
+    {
+      "id": "payment-rules",
+      "label": "A PAYMENT needs one payer and one receiver who differ",
+      "testMethod": "test_payment_rules"
+    },
+    {
+      "id": "expenses-for-user-sorted-and-filtered",
+      "label": "Lists only the user's expenses, sorted by id",
+      "testMethod": "test_expenses_for_user_sorted_and_filtered"
+    },
+    {
+      "id": "expense-is-immutable",
+      "label": "Expenses are immutable (frozen dataclass)",
+      "testMethod": "test_expense_is_immutable"
+    }
+  ]
+}

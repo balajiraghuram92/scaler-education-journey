@@ -1,0 +1,26 @@
+{
+  "id": "py-17-pricing-strategy",
+  "lessonSlug": "py-17-behavioural-patterns",
+  "title": "Ride Pricing Strategy",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Refactor ride pricing into the Strategy pattern. In `pricing/strategies.py` declare the abstract `PricingStrategy.calculate_price` and implement the distance, time and surge strategies. In `pricing/manager.py` make `PricingManager` take a strategy and delegate to it, with no `if/elif` chain and no rate constants.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "strategies", "path": "pricing/strategies.py", "displayName": "strategies.py", "editable": true },
+    { "id": "manager", "path": "pricing/manager.py", "displayName": "manager.py", "editable": true },
+    { "id": "model", "path": "pricing/model.py", "displayName": "model.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "abstract-interface", "label": "PricingStrategy is an ABC declaring calculate_price", "testMethod": "test_interface_is_abstract_and_declares_calculate_price" },
+    { "id": "subclasses", "label": "Each pricing rule is its own concrete PricingStrategy", "testMethod": "test_each_rule_is_its_own_strategy_subclass" },
+    { "id": "distance", "label": "Distance-based: 5.0 + 2.0 per km", "testMethod": "test_distance_based_price" },
+    { "id": "time", "label": "Time-based: 5.0 + 0.5 per minute", "testMethod": "test_time_based_price" },
+    { "id": "surge", "label": "Surge: 5.0 * 2.0, independent of the ride", "testMethod": "test_surge_price_ignores_distance_and_duration" },
+    { "id": "needed-attributes", "label": "Each strategy reads only the ride attributes it needs", "testMethod": "test_strategies_only_read_the_attributes_they_need" },
+    { "id": "manager-delegates", "label": "PricingManager delegates to the injected strategy", "testMethod": "test_manager_delegates_to_the_injected_strategy" },
+    { "id": "open-closed", "label": "Manager has no hard-coded rules and accepts new strategies", "testMethod": "test_manager_has_no_hard_coded_rules_and_accepts_new_strategies" }
+  ]
+}

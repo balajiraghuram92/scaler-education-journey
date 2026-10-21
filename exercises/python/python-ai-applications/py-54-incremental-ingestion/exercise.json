@@ -1,0 +1,77 @@
+{
+  "id": "py-54-incremental-ingestion",
+  "lessonSlug": "py-54-rag-pipelines",
+  "title": "Incremental Ingestion with Orphan Cleanup",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `chunk_words`, the `VectorStore` methods and `IndexSync.sync` in `ingest.py` (`Chunk`, `Embedder` and `SyncReport` are provided). Chunk ids are deterministic (`doc_id#index`) and hashed, so a sync embeds only missing or changed chunks in one batched call, deletes orphaned chunk ids, and makes zero embedder calls for an unchanged document.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "ingest",
+      "path": "ingest.py",
+      "displayName": "ingest.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "chunk-overlap",
+      "label": "Chunks have deterministic ids, exact character offsets and the requested word overlap",
+      "testMethod": "test_chunks_cover_the_text_and_overlap_exactly"
+    },
+    {
+      "id": "no-trailing-window",
+      "label": "The last window is not duplicated once it reaches the final word",
+      "testMethod": "test_last_window_is_not_duplicated"
+    },
+    {
+      "id": "invalid-params",
+      "label": "Invalid size or overlap raises ValueError",
+      "testMethod": "test_invalid_parameters"
+    },
+    {
+      "id": "empty-and-hash",
+      "label": "Empty text yields no chunks and content_hash is the SHA-256 of the chunk text",
+      "testMethod": "test_empty_text_and_content_hash"
+    },
+    {
+      "id": "idempotent-sync",
+      "label": "A second sync of an unchanged document embeds nothing",
+      "testMethod": "test_first_sync_embeds_everything_second_sync_embeds_nothing"
+    },
+    {
+      "id": "edit-one-chunk",
+      "label": "Editing the last word re-embeds exactly one chunk",
+      "testMethod": "test_editing_the_last_word_re_embeds_one_chunk"
+    },
+    {
+      "id": "orphan-cleanup",
+      "label": "Shrinking a document deletes the orphaned chunks",
+      "testMethod": "test_shrinking_a_document_deletes_orphans"
+    },
+    {
+      "id": "doc-isolation",
+      "label": "Syncing one document never touches another, even with a shared id prefix",
+      "testMethod": "test_other_documents_are_untouched"
+    },
+    {
+      "id": "store-basics",
+      "label": "VectorStore tracks hashes, replaces on upsert and ignores unknown deletes",
+      "testMethod": "test_vector_store_basics"
+    },
+    {
+      "id": "batched-embedding",
+      "label": "All changed chunks are embedded in a single batched call",
+      "testMethod": "test_changes_are_embedded_in_one_batched_call"
+    }
+  ]
+}

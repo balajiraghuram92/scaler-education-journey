@@ -1,0 +1,73 @@
+{
+  "id": "py-01-singledispatch-fare",
+  "lessonSlug": "py-01-inheritance-mro-polymorphism",
+  "title": "@singledispatch Fare Estimator",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Turn `estimate_fare` in `fare.py` into a `functools.singledispatch` function. Register implementations for `float`, `str` (route code) and the provided `Trip` class; the base function must raise `NotImplementedError` so unsupported types such as `int` fail loudly.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "trip",
+      "path": "trip.py",
+      "displayName": "trip.py",
+      "editable": false
+    },
+    {
+      "id": "fare",
+      "path": "fare.py",
+      "displayName": "fare.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "float-uses-fifteen-per-km",
+      "label": "float distance costs 15 per km",
+      "testMethod": "test_float_uses_fifteen_per_km"
+    },
+    {
+      "id": "known-route-codes",
+      "label": "Known route codes return 600 and 550",
+      "testMethod": "test_known_route_codes"
+    },
+    {
+      "id": "unknown-route-code-is-free",
+      "label": "Unknown route codes return 0",
+      "testMethod": "test_unknown_route_code_is_free"
+    },
+    {
+      "id": "trip-uses-its-distance",
+      "label": "A Trip costs 15 per km of its distance",
+      "testMethod": "test_trip_uses_its_distance"
+    },
+    {
+      "id": "int-is-not-a-float",
+      "label": "An int is not a float and raises NotImplementedError",
+      "testMethod": "test_int_is_not_a_float"
+    },
+    {
+      "id": "bool-and-other-types-fail-loudly",
+      "label": "bool, None and containers also raise NotImplementedError",
+      "testMethod": "test_bool_and_other_types_fail_loudly"
+    },
+    {
+      "id": "dispatch-is-registered-with-singledispatch",
+      "label": "Implementations are registered on a singledispatch function",
+      "testMethod": "test_dispatch_is_registered_with_singledispatch"
+    },
+    {
+      "id": "subclasses-follow-the-class-hierarchy",
+      "label": "Subclasses dispatch through the class hierarchy",
+      "testMethod": "test_subclasses_follow_the_class_hierarchy"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "py-03-prompt-cache",
+  "lessonSlug": "py-03-magic-methods-data-model",
+  "title": "LRU Response Cache with Immutable Keys and Transactions",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `PromptKey`, `ResponseCache` and `CacheTransaction` in `cache.py`. `PromptKey` is an immutable, hashable key that owns a frozen copy of its messages. `ResponseCache` is a bounded LRU `MutableMapping` that implements only the five abstract methods. `cache.transaction()` buffers writes, commits them on a clean exit, discards them on error and never swallows exceptions.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "cache",
+      "path": "cache.py",
+      "displayName": "cache.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "equal-keys-hash-equal-even-with-different-dict-order",
+      "label": "Equal keys hash equal regardless of dict key order",
+      "testMethod": "test_equal_keys_hash_equal_even_with_different_dict_order"
+    },
+    {
+      "id": "key-is-isolated-from-caller-mutation",
+      "label": "A key is isolated from later mutation of the caller's data",
+      "testMethod": "test_key_is_isolated_from_caller_mutation"
+    },
+    {
+      "id": "key-is-immutable-and-rejects-foreign-comparison",
+      "label": "A key is immutable and compares politely with other types",
+      "testMethod": "test_key_is_immutable_and_rejects_foreign_comparison"
+    },
+    {
+      "id": "lru-eviction-order-and-recency-from-reads",
+      "label": "Least recently used key is evicted; reads refresh recency",
+      "testMethod": "test_lru_eviction_order_and_recency_from_reads"
+    },
+    {
+      "id": "overwriting-a-key-refreshes-it-without-evicting",
+      "label": "Overwriting a key refreshes it without evicting",
+      "testMethod": "test_overwriting_a_key_refreshes_it_without_evicting"
+    },
+    {
+      "id": "mapping-methods-come-for-free",
+      "label": "get, pop, update and items are inherited from MutableMapping",
+      "testMethod": "test_mapping_methods_come_for_free"
+    },
+    {
+      "id": "iteration-is-a-snapshot",
+      "label": "Iteration works on a snapshot",
+      "testMethod": "test_iteration_is_a_snapshot"
+    },
+    {
+      "id": "invalid-capacity",
+      "label": "Capacity below 1 raises ValueError",
+      "testMethod": "test_invalid_capacity"
+    },
+    {
+      "id": "transaction-commits-on-success",
+      "label": "A transaction buffers writes and commits on success",
+      "testMethod": "test_transaction_commits_on_success"
+    },
+    {
+      "id": "transaction-discards-on-error-and-does-not-swallow",
+      "label": "A transaction discards writes on error and does not swallow it",
+      "testMethod": "test_transaction_discards_on_error_and_does_not_swallow"
+    }
+  ]
+}

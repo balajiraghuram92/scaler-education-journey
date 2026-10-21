@@ -1,0 +1,77 @@
+{
+  "id": "py-47-retrying-client-fakes",
+  "lessonSlug": "py-47-mocking-async-tests",
+  "title": "Retrying LLM Client Tested with Fakes",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement `Response`, `UpstreamError` and the async `RetryingClient` in `resilient.py`. The client receives its transport and `sleep` as constructor arguments and retries 429/500/502/503/504 with capped exponential backoff, honouring `retry_after`. Other 4xx/5xx statuses fail on the first attempt, and nothing sleeps after the last attempt.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "resilient",
+      "path": "resilient.py",
+      "displayName": "resilient.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "first-try",
+      "label": "Returns the body on first-try success without sleeping",
+      "testMethod": "test_success_first_try_does_not_sleep"
+    },
+    {
+      "id": "backoff-schedule",
+      "label": "Sleeps 1, 2, 4 seconds between retried failures",
+      "testMethod": "test_exponential_backoff_schedule"
+    },
+    {
+      "id": "retry-after-capped",
+      "label": "Honours retry_after and caps it at max_delay",
+      "testMethod": "test_retry_after_is_honoured_but_capped"
+    },
+    {
+      "id": "retry-after-floor",
+      "label": "retry_after never makes the wait shorter than the backoff",
+      "testMethod": "test_retry_after_never_shortens_backoff"
+    },
+    {
+      "id": "backoff-cap",
+      "label": "Exponential backoff is capped at max_delay",
+      "testMethod": "test_backoff_is_capped_at_max_delay"
+    },
+    {
+      "id": "give-up",
+      "label": "Raises UpstreamError after N attempts and skips the final sleep",
+      "testMethod": "test_gives_up_after_max_attempts"
+    },
+    {
+      "id": "fail-fast",
+      "label": "Non-retryable statuses raise after exactly one attempt",
+      "testMethod": "test_non_retryable_status_fails_fast"
+    },
+    {
+      "id": "invalid-attempts",
+      "label": "Raises ValueError when max_attempts is below 1",
+      "testMethod": "test_max_attempts_must_be_positive"
+    },
+    {
+      "id": "single-attempt",
+      "label": "A one-attempt client gives up without sleeping",
+      "testMethod": "test_single_attempt_client_never_sleeps"
+    },
+    {
+      "id": "response-frozen",
+      "label": "Response is a frozen dataclass with body and retry_after defaults",
+      "testMethod": "test_response_is_frozen_with_defaults"
+    }
+  ]
+}

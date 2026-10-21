@@ -1,0 +1,72 @@
+{
+  "id": "py-12-db-config-immutable",
+  "lessonSlug": "py-12-builder",
+  "title": "Validated, Immutable Database Configuration Builder",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "In `dbconfig.py`, implement `DatabaseConfiguration.builder()` and `DatabaseConfigurationBuilder`. The builder has fluent setters (`with_allowed_host` appends), defaults, and a `build()` that validates everything and raises one `ValueError` listing all problems. Every `build()` returns a new frozen object that later builder changes cannot affect.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "dbconfig",
+      "path": "dbconfig.py",
+      "displayName": "dbconfig.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "build-with-defaults",
+      "label": "A valid build applies the defaults (10 connections, no cache, not read-only, no hosts)",
+      "testMethod": "test_build_with_defaults"
+    },
+    {
+      "id": "setters-return-the-builder-and-are-applied",
+      "label": "Fluent setters chain, and with_allowed_host appends into a tuple",
+      "testMethod": "test_setters_return_the_builder_and_are_applied"
+    },
+    {
+      "id": "all-problems-are-reported-together",
+      "label": "build() reports every problem in one ValueError joined by '; '",
+      "testMethod": "test_all_problems_are_reported_together"
+    },
+    {
+      "id": "url-scheme-is-validated",
+      "label": "Only postgresql:// and mysql:// URLs are accepted",
+      "testMethod": "test_url_scheme_is_validated"
+    },
+    {
+      "id": "credentials-are-required",
+      "label": "Missing username or password is rejected",
+      "testMethod": "test_credentials_are_required"
+    },
+    {
+      "id": "max-connections-outside-range-is-rejected",
+      "label": "max_connections must be between 1 and 500",
+      "testMethod": "test_max_connections_outside_range_is_rejected"
+    },
+    {
+      "id": "each-build-returns-a-new-object",
+      "label": "Each build() returns a new, equal object",
+      "testMethod": "test_each_build_returns_a_new_object"
+    },
+    {
+      "id": "later-builder-changes-do-not-affect-built-objects",
+      "label": "Later builder changes do not leak into earlier products",
+      "testMethod": "test_later_builder_changes_do_not_affect_built_objects"
+    },
+    {
+      "id": "product-is-immutable-and-hides-the-password",
+      "label": "The product is frozen and the password is hidden from repr",
+      "testMethod": "test_product_is_immutable_and_hides_the_password"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "py-41-webhook-events-settings",
+  "lessonSlug": "py-41-pydantic-v2-deep-dive",
+  "title": "Webhook Events and Settings",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement the webhook parsing layer and settings in `events.py`. Give the three event models their fields and a discriminated union (`Event`), build the `TypeAdapter`s once at module level, and implement strict `parse_events` and lenient `parse_events_lenient` (good events plus `ItemError`s). Finish `WebhookSettings` with the `WEBHOOK_` prefix, `.env` support, a `SecretStr` secret of at least 8 characters, and a bounded `tolerance_s`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "events",
+      "path": "events.py",
+      "displayName": "events.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "valid-mixed-batch",
+      "label": "Parses a mixed batch into the right event classes, in order",
+      "testMethod": "test_valid_mixed_batch"
+    },
+    {
+      "id": "strict-failure-reports-index",
+      "label": "Strict parsing fails with an error location starting at the bad item index",
+      "testMethod": "test_strict_failure_reports_index"
+    },
+    {
+      "id": "lenient-returns-good-events-and-errors",
+      "label": "Lenient parsing returns valid events plus ItemErrors (union_tag_invalid, greater_than)",
+      "testMethod": "test_lenient_returns_good_events_and_errors"
+    },
+    {
+      "id": "missing-tag-and-non-array-payload",
+      "label": "Reports union_tag_not_found, raises ValueError for non-arrays, and reports non-object items",
+      "testMethod": "test_missing_tag_and_non_array_payload"
+    },
+    {
+      "id": "event-field-constraints",
+      "label": "Enforces id, currency, timestamp and required-field constraints on events",
+      "testMethod": "test_event_field_constraints"
+    },
+    {
+      "id": "events-and-item-errors-are-frozen",
+      "label": "Events and ItemError are frozen",
+      "testMethod": "test_events_and_item_errors_are_frozen"
+    },
+    {
+      "id": "settings-from-environment",
+      "label": "Reads WEBHOOK_ environment variables and hides the secret from repr",
+      "testMethod": "test_settings_from_environment"
+    },
+    {
+      "id": "missing-or-short-secret-fails-fast",
+      "label": "A missing or too-short secret raises ValidationError",
+      "testMethod": "test_missing_or_short_secret_fails_fast"
+    },
+    {
+      "id": "tolerance-default-and-bounds",
+      "label": "tolerance_s defaults to 300 and must be an int in 1 to 3600",
+      "testMethod": "test_tolerance_default_and_bounds"
+    },
+    {
+      "id": "env-file-is-read-and-unknown-keys-ignored",
+      "label": "Reads a .env file and ignores unknown keys",
+      "testMethod": "test_env_file_is_read_and_unknown_keys_ignored"
+    }
+  ]
+}

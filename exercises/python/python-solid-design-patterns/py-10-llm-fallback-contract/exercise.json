@@ -1,0 +1,72 @@
+{
+  "id": "py-10-llm-fallback-contract",
+  "lessonSlug": "py-10-solid-principles",
+  "title": "Fallback Chat Model with a Shared Contract Test",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "In `chat.py`, implement `FallbackChat` (an ordered composite of `ChatModel`s that falls back only on `ProviderError` and raises an `ExceptionGroup` when all fail) and `contract_violations(model)`, a reusable Liskov contract checker. The composite must pass the contract itself.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "chat",
+      "path": "chat.py",
+      "displayName": "chat.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "first-success-wins-and-later-models-are-not-called",
+      "label": "Returns the first success and does not call later models",
+      "testMethod": "test_first_success_wins_and_later_models_are_not_called"
+    },
+    {
+      "id": "falls-back-on-provider-error-and-forwards-max-tokens",
+      "label": "Falls back on ProviderError and forwards max_tokens",
+      "testMethod": "test_falls_back_on_provider_error_and_forwards_max_tokens"
+    },
+    {
+      "id": "all-failing-raises-exception-group-with-every-cause",
+      "label": "Raises an ExceptionGroup containing every provider error",
+      "testMethod": "test_all_failing_raises_exception_group_with_every_cause"
+    },
+    {
+      "id": "programming-errors-are-not-swallowed",
+      "label": "Non-ProviderError exceptions propagate without trying later models",
+      "testMethod": "test_programming_errors_are_not_swallowed"
+    },
+    {
+      "id": "empty-model-list-is-rejected",
+      "label": "An empty model list raises ValueError",
+      "testMethod": "test_empty_model_list_is_rejected"
+    },
+    {
+      "id": "contract-accepts-compliant-model",
+      "label": "Contract checker accepts compliant models (ProviderError is allowed)",
+      "testMethod": "test_contract_accepts_compliant_model"
+    },
+    {
+      "id": "contract-flags-strengthened-precondition",
+      "label": "Contract checker flags a model that rejects max_tokens the contract allows",
+      "testMethod": "test_contract_flags_strengthened_precondition"
+    },
+    {
+      "id": "contract-flags-wrong-return-type",
+      "label": "Contract checker flags results that are not a Completion",
+      "testMethod": "test_contract_flags_wrong_return_type"
+    },
+    {
+      "id": "composite-is-itself-substitutable",
+      "label": "FallbackChat itself satisfies the contract",
+      "testMethod": "test_composite_is_itself_substitutable"
+    }
+  ]
+}

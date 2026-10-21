@@ -1,0 +1,90 @@
+{
+  "id": "py-13-user-prototype-registry",
+  "lessonSlug": "py-13-prototype-registry",
+  "title": "Mock User Prototypes for API Tests",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `User.clone_object()` in `user/user.py` and `UserPrototypeRegistryImpl` in `user/registry_impl.py`. The registry stores one prototype user per `UserType`, returns it from `get_prototype`, and `clone(type_)` returns an independent copy (or `None` for an unknown type) so changing a clone never changes the prototype.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "user-cloneable",
+      "path": "user/cloneable.py",
+      "displayName": "cloneable.py",
+      "editable": false
+    },
+    {
+      "id": "user-user",
+      "path": "user/user.py",
+      "displayName": "user.py",
+      "editable": true
+    },
+    {
+      "id": "user-registry",
+      "path": "user/registry.py",
+      "displayName": "registry.py",
+      "editable": false
+    },
+    {
+      "id": "user-registry-impl",
+      "path": "user/registry_impl.py",
+      "displayName": "registry_impl.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "clone-object-returns-an-equal-but-distinct-object",
+      "label": "clone_object() returns an equal but separate User",
+      "testMethod": "test_clone_object_returns_an_equal_but_distinct_object"
+    },
+    {
+      "id": "changing-a-clone-object-does-not-change-the-original",
+      "label": "Changing a clone never changes the original",
+      "testMethod": "test_changing_a_clone_object_does_not_change_the_original"
+    },
+    {
+      "id": "registry-and-model-follow-the-prototype-interfaces",
+      "label": "User is Cloneable and the registry implements its interface",
+      "testMethod": "test_registry_and_model_follow_the_prototype_interfaces"
+    },
+    {
+      "id": "get-prototype-returns-the-stored-prototype",
+      "label": "get_prototype() returns the stored prototype for its type",
+      "testMethod": "test_get_prototype_returns_the_stored_prototype"
+    },
+    {
+      "id": "get-prototype-unknown-type-returns-none",
+      "label": "get_prototype() returns None for an unknown type",
+      "testMethod": "test_get_prototype_unknown_type_returns_none"
+    },
+    {
+      "id": "clone-returns-a-copy-not-the-shared-prototype",
+      "label": "clone() returns a new copy, never the shared prototype",
+      "testMethod": "test_clone_returns_a_copy_not_the_shared_prototype"
+    },
+    {
+      "id": "changing-a-registry-clone-does-not-change-the-stored-prototype",
+      "label": "Changing a registry clone leaves the stored prototype untouched",
+      "testMethod": "test_changing_a_registry_clone_does_not_change_the_stored_prototype"
+    },
+    {
+      "id": "clone-unknown-type-returns-none",
+      "label": "clone() returns None for an unknown type",
+      "testMethod": "test_clone_unknown_type_returns_none"
+    },
+    {
+      "id": "adding-a-prototype-of-an-existing-type-replaces-it",
+      "label": "Adding a prototype of an existing type replaces it",
+      "testMethod": "test_adding_a_prototype_of_an_existing_type_replaces_it"
+    }
+  ]
+}

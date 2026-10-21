@@ -1,0 +1,78 @@
+{
+  "id": "py-12-db-config-builder",
+  "lessonSlug": "py-12-builder",
+  "title": "Builder for a Database Configuration",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Implement the nested `DatabaseBuilder` and `DatabaseConfiguration.builder()` in `config/db_config.py`. Each `with_*` setter stores its value and returns the builder so calls chain; `build()` returns the configured `DatabaseConfiguration`, an object that later setter calls on the builder must not change. The `Builder` interface in `config/builder.py` is provided.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "config-builder",
+      "path": "config/builder.py",
+      "displayName": "builder.py",
+      "editable": false
+    },
+    {
+      "id": "config-db-config",
+      "path": "config/db_config.py",
+      "displayName": "db_config.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "builder-returns-a-new-builder-each-time",
+      "label": "builder() returns a fresh builder on every call",
+      "testMethod": "test_builder_returns_a_new_builder_each_time"
+    },
+    {
+      "id": "every-setter-returns-the-same-builder-for-chaining",
+      "label": "Every with_* setter returns the builder so calls chain",
+      "testMethod": "test_every_setter_returns_the_same_builder_for_chaining"
+    },
+    {
+      "id": "every-setter-stores-its-value",
+      "label": "Each setter stores its value in the matching field",
+      "testMethod": "test_every_setter_stores_its_value"
+    },
+    {
+      "id": "build-with-nothing-set-gives-all-none",
+      "label": "build() with nothing set returns a configuration of all None",
+      "testMethod": "test_build_with_nothing_set_gives_all_none"
+    },
+    {
+      "id": "partial-configuration-leaves-other-fields-none",
+      "label": "Fields that were never set stay None",
+      "testMethod": "test_partial_configuration_leaves_other_fields_none"
+    },
+    {
+      "id": "full-chain-builds-the-expected-configuration",
+      "label": "A full chain builds the expected configuration",
+      "testMethod": "test_full_chain_builds_the_expected_configuration"
+    },
+    {
+      "id": "last-value-wins-when-a-setter-is-called-twice",
+      "label": "Calling a setter twice keeps the last value",
+      "testMethod": "test_last_value_wins_when_a_setter_is_called_twice"
+    },
+    {
+      "id": "two-builders-do-not-share-state",
+      "label": "Two builders do not share state",
+      "testMethod": "test_two_builders_do_not_share_state"
+    },
+    {
+      "id": "built-object-is-independent-of-the-builder",
+      "label": "A built object is not changed by later builder calls",
+      "testMethod": "test_built_object_is_independent_of_the_builder"
+    }
+  ]
+}

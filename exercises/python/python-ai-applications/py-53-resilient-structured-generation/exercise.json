@@ -1,0 +1,77 @@
+{
+  "id": "py-53-resilient-structured-generation",
+  "lessonSlug": "py-53-structured-output-pydantic",
+  "title": "Resilient Structured Generation",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `extract_json` and the async `generate_validated` loop in `resilient_gen.py` (the dataclasses and exceptions are provided). Treat truncation (`finish_reason == \"length\"`), invalid content and unusable stops differently: truncation doubles the token cap with the same prompt, invalid content spends a bounded repair, and `content_filter` or other reasons fail at once. Keep echoed text and error summaries bounded and never mutate the caller's messages.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "resilient-gen",
+      "path": "resilient_gen.py",
+      "displayName": "resilient_gen.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "extract-json",
+      "label": "extract_json finds the first balanced object, respects strings, escapes and fences, and rejects bad input",
+      "testMethod": "test_extract_json_handles_strings_escapes_and_fences"
+    },
+    {
+      "id": "happy-path",
+      "label": "A valid first reply costs exactly one call",
+      "testMethod": "test_happy_path_makes_one_call"
+    },
+    {
+      "id": "truncation-grows-cap",
+      "label": "Truncation doubles max_tokens and retries the same messages without repairs",
+      "testMethod": "test_truncation_grows_the_cap_without_adding_repair_messages"
+    },
+    {
+      "id": "truncation-at-cap",
+      "label": "Truncation at the cap raises TruncatedOutput",
+      "testMethod": "test_truncation_at_the_cap_raises_truncated_output"
+    },
+    {
+      "id": "repair-with-error",
+      "label": "Invalid output is repaired by echoing the output and the validation error",
+      "testMethod": "test_invalid_output_is_repaired_with_the_error_text"
+    },
+    {
+      "id": "repair-budget",
+      "label": "Raises StructuredOutputError after max_repairs repairs",
+      "testMethod": "test_repair_budget_is_enforced"
+    },
+    {
+      "id": "content-filter",
+      "label": "A content_filter stop fails immediately without a repair",
+      "testMethod": "test_content_filter_is_not_repaired"
+    },
+    {
+      "id": "bounded-text",
+      "label": "Echoed output (2,000 chars) and error text (500 chars) are bounded",
+      "testMethod": "test_echoed_output_and_error_text_are_bounded"
+    },
+    {
+      "id": "no-mutation",
+      "label": "The caller's messages list is not mutated",
+      "testMethod": "test_caller_messages_are_not_mutated"
+    },
+    {
+      "id": "independent-budgets",
+      "label": "Truncation does not consume the repair budget and keeps the grown cap",
+      "testMethod": "test_truncation_and_repair_budgets_are_independent"
+    }
+  ]
+}

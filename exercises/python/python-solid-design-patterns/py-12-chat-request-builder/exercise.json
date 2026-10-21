@@ -1,0 +1,72 @@
+{
+  "id": "py-12-chat-request-builder",
+  "lessonSlug": "py-12-builder",
+  "title": "LLM Chat Request Builder with a Token Budget",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "In `chatreq.py`, implement `estimate_tokens`, `ChatRequest` (builder, `to_builder`, `to_payload`) and `ChatRequestBuilder`. `build()` validates the whole request, including a token budget that depends on the messages and `max_tokens` together regardless of setter order, and returns an independent frozen object.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "chatreq",
+      "path": "chatreq.py",
+      "displayName": "chatreq.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "estimate-tokens",
+      "label": "estimate_tokens is max(1, len // 4)",
+      "testMethod": "test_estimate_tokens"
+    },
+    {
+      "id": "happy-path-defaults-and-payload",
+      "label": "A valid request applies defaults and renders a payload",
+      "testMethod": "test_happy_path_defaults_and_payload"
+    },
+    {
+      "id": "payload-is-a-fresh-copy",
+      "label": "to_payload() returns a fresh dict every call",
+      "testMethod": "test_payload_is_a_fresh_copy"
+    },
+    {
+      "id": "required-fields",
+      "label": "A model and at least one user message are required",
+      "testMethod": "test_required_fields"
+    },
+    {
+      "id": "system-message-rules",
+      "label": "The system message must be first and unique",
+      "testMethod": "test_system_message_rules"
+    },
+    {
+      "id": "temperature-and-max-tokens-ranges",
+      "label": "Temperature must be 0 to 2 and max_tokens at least 1",
+      "testMethod": "test_temperature_and_max_tokens_ranges"
+    },
+    {
+      "id": "budget-is-checked-after-all-values-are-known",
+      "label": "The token budget is validated at build() whatever the setter order",
+      "testMethod": "test_budget_is_checked_after_all_values_are_known"
+    },
+    {
+      "id": "two-builds-are-independent-and-immutable",
+      "label": "Builds are independent, frozen and store messages as a tuple",
+      "testMethod": "test_two_builds_are_independent_and_immutable"
+    },
+    {
+      "id": "to-builder-copies-and-changes-one-field",
+      "label": "to_builder() pre-fills a new builder for copy-with-change",
+      "testMethod": "test_to_builder_copies_and_changes_one_field"
+    }
+  ]
+}

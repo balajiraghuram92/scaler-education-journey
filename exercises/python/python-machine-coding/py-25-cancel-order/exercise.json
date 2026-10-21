@@ -1,0 +1,98 @@
+{
+  "id": "py-25-cancel-order",
+  "lessonSlug": "py-25-design-bookmyshow",
+  "title": "Cancel Order (Inventory Restock, Framework-Free)",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "The original Django task is rebuilt on an in-memory `Store` (see `ecom/store.py`, read-only). Implement `OrderServiceImpl.cancel_order` in `ecom/services/order_service_impl.py` and `OrderController.cancel_order` in `ecom/controllers/order_controller.py`. Raise `UserNotFoundError`, `OrderNotFoundError` (also when the order belongs to someone else) and `OrderCannotBeCancelledError` unless the order is `PLACED`; otherwise restock every item and mark the order `CANCELLED`. Use `store.transaction()` so two concurrent cancellations cannot both restock.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "ecom-models",
+      "path": "ecom/models.py",
+      "displayName": "models.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-exceptions",
+      "path": "ecom/exceptions.py",
+      "displayName": "exceptions.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-dtos",
+      "path": "ecom/dtos.py",
+      "displayName": "dtos.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-store",
+      "path": "ecom/store.py",
+      "displayName": "store.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-order-service",
+      "path": "ecom/services/order_service.py",
+      "displayName": "order_service.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-order-service-impl",
+      "path": "ecom/services/order_service_impl.py",
+      "displayName": "order_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "ecom-controllers-order-controller",
+      "path": "ecom/controllers/order_controller.py",
+      "displayName": "order_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "cancel-restocks-and-marks-cancelled",
+      "label": "Cancelling a PLACED order adds every item back to its inventory and marks it CANCELLED",
+      "testMethod": "test_cancel_restocks_and_marks_cancelled"
+    },
+    {
+      "id": "unknown-user-and-unknown-order",
+      "label": "An unknown user raises UserNotFoundError and an unknown order raises OrderNotFoundError",
+      "testMethod": "test_unknown_user_and_unknown_order"
+    },
+    {
+      "id": "order-of-another-user-is-not-found",
+      "label": "An order that belongs to another user raises OrderNotFoundError and stays untouched",
+      "testMethod": "test_order_of_another_user_is_not_found"
+    },
+    {
+      "id": "only-placed-orders-can-be-cancelled",
+      "label": "SHIPPED, DELIVERED and CANCELLED orders raise OrderCannotBeCancelledError and restock nothing",
+      "testMethod": "test_only_placed_orders_can_be_cancelled"
+    },
+    {
+      "id": "cancelling-twice-restocks-once",
+      "label": "A second cancellation fails and the stock is restored only once",
+      "testMethod": "test_cancelling_twice_restocks_once"
+    },
+    {
+      "id": "concurrent-cancellations-restock-once",
+      "label": "Eight concurrent cancellations of one order succeed exactly once",
+      "testMethod": "test_concurrent_cancellations_restock_once"
+    },
+    {
+      "id": "controller-responses",
+      "label": "Controller returns SUCCESS with the order, or FAILURE without raising",
+      "testMethod": "test_controller_responses"
+    }
+  ]
+}

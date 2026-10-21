@@ -1,0 +1,27 @@
+{
+  "id": "py-16-file-storage-decorator",
+  "lessonSlug": "py-16-decorator-flyweight",
+  "title": "File Storage Decorators",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Complete `config/decorator.py`. Make `BaseFileDecorator` a `FileStorage` that wraps another `FileStorage` (kept in `_file_storage`) and delegates both methods. Then implement `CompressionDecorator` (compress on store, decompress on retrieve) and `VirusScanDecorator` (scan on store, raise `ValueError` for infected files, never scan on retrieve). Use `StorageUtils`, and make the decorators stackable in any order.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "decorator", "path": "config/decorator.py", "displayName": "decorator.py", "editable": true },
+    { "id": "storage", "path": "config/storage.py", "displayName": "storage.py", "editable": false },
+    { "id": "utils", "path": "config/utils.py", "displayName": "utils.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "base-delegates", "label": "BaseFileDecorator is a FileStorage that wraps and delegates", "testMethod": "test_base_decorator_is_a_file_storage_that_delegates" },
+    { "id": "compress-on-store", "label": "CompressionDecorator stores compressed bytes", "testMethod": "test_compression_stores_compressed_bytes" },
+    { "id": "decompress-on-retrieve", "label": "CompressionDecorator decompresses on retrieve", "testMethod": "test_compression_decompresses_on_retrieve" },
+    { "id": "compression-round-trip", "label": "Compression round-trips the data", "testMethod": "test_compression_round_trip" },
+    { "id": "scan-clean", "label": "VirusScanDecorator stores clean files after one scan", "testMethod": "test_virus_scan_allows_clean_files" },
+    { "id": "scan-infected", "label": "Infected files raise ValueError and are not stored", "testMethod": "test_virus_scan_rejects_infected_files_and_stores_nothing" },
+    { "id": "no-scan-on-retrieve", "label": "Retrieval never calls the scanner", "testMethod": "test_virus_scan_does_not_scan_on_retrieve" },
+    { "id": "stacking-order", "label": "Decorators stack and the outer one runs first", "testMethod": "test_decorators_stack_and_order_matters" },
+    { "id": "interchangeable", "label": "Any stack is still a FileStorage and round-trips", "testMethod": "test_decorators_are_interchangeable_with_plain_storage" }
+  ]
+}

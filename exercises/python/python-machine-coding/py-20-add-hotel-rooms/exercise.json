@@ -1,0 +1,168 @@
+{
+  "id": "py-20-add-hotel-rooms",
+  "lessonSlug": "py-20-tictactoe-1",
+  "title": "Add Hotel Rooms (Admin Only)",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 25,
+  "instructions": "Implement `RoomServiceImpl.add_room` in `services/room_service_impl.py`, the controller method in `controllers/room_controller.py`, and the two in-memory repositories in `repositories/`. Only an `ADMIN` may add a room: raise `UserNotFoundError`, `UnauthorizedAccessError` or `ValueError` (unknown room type), and let the controller turn any failure into `ResponseStatus.FAILURE` with `room=None`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-room",
+      "path": "models/room.py",
+      "displayName": "room.py",
+      "editable": false
+    },
+    {
+      "id": "models-room-type",
+      "path": "models/room_type.py",
+      "displayName": "room_type.py",
+      "editable": false
+    },
+    {
+      "id": "models-user",
+      "path": "models/user.py",
+      "displayName": "user.py",
+      "editable": false
+    },
+    {
+      "id": "models-user-type",
+      "path": "models/user_type.py",
+      "displayName": "user_type.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-add-room-request-dto",
+      "path": "dtos/add_room_request_dto.py",
+      "displayName": "add_room_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-add-room-response-dto",
+      "path": "dtos/add_room_response_dto.py",
+      "displayName": "add_room_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response-status",
+      "path": "dtos/response_status.py",
+      "displayName": "response_status.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-unauthorized-access",
+      "path": "exceptions/unauthorized_access.py",
+      "displayName": "unauthorized_access.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-user-not-found-exception",
+      "path": "exceptions/user_not_found_exception.py",
+      "displayName": "user_not_found_exception.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-room-repository",
+      "path": "repositories/room_repository.py",
+      "displayName": "room_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-user-repository",
+      "path": "repositories/user_repository.py",
+      "displayName": "user_repository.py",
+      "editable": false
+    },
+    {
+      "id": "services-room-service",
+      "path": "services/room_service.py",
+      "displayName": "room_service.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-room-repository-impl",
+      "path": "repositories/room_repository_impl.py",
+      "displayName": "room_repository_impl.py",
+      "editable": true
+    },
+    {
+      "id": "repositories-user-repository-impl",
+      "path": "repositories/user_repository_impl.py",
+      "displayName": "user_repository_impl.py",
+      "editable": true
+    },
+    {
+      "id": "services-room-service-impl",
+      "path": "services/room_service_impl.py",
+      "displayName": "room_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "controllers-room-controller",
+      "path": "controllers/room_controller.py",
+      "displayName": "room_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "admin-can-add-room",
+      "label": "An admin can add a room and the stored room has the given fields",
+      "testMethod": "test_admin_can_add_room"
+    },
+    {
+      "id": "room-type-string-is-mapped-to-enum",
+      "label": "\"deluxe\", \"super_deluxe\" and \"suite\" map to the RoomType enum",
+      "testMethod": "test_room_type_string_is_mapped_to_enum"
+    },
+    {
+      "id": "ids-are-assigned-sequentially",
+      "label": "The repository assigns ids 1, 2, 3... on save",
+      "testMethod": "test_ids_are_assigned_sequentially"
+    },
+    {
+      "id": "unknown-user-raises",
+      "label": "Unknown user raises UserNotFoundError",
+      "testMethod": "test_unknown_user_raises"
+    },
+    {
+      "id": "customer-cannot-add-room",
+      "label": "A CUSTOMER raises UnauthorizedAccessError and nothing is stored",
+      "testMethod": "test_customer_cannot_add_room"
+    },
+    {
+      "id": "invalid-room-type-raises-value-error",
+      "label": "An unknown room type raises ValueError and nothing is stored",
+      "testMethod": "test_invalid_room_type_raises_value_error"
+    },
+    {
+      "id": "controller-success-response",
+      "label": "Controller returns SUCCESS with the saved room",
+      "testMethod": "test_controller_success_response"
+    },
+    {
+      "id": "controller-failure-responses",
+      "label": "Controller returns FAILURE with room=None for every error",
+      "testMethod": "test_controller_failure_responses"
+    },
+    {
+      "id": "repository-filters-by-room-type",
+      "label": "get_rooms_by_room_type returns only matching rooms",
+      "testMethod": "test_repository_filters_by_room_type"
+    }
+  ]
+}

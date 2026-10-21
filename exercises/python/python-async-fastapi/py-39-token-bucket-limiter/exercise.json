@@ -1,0 +1,77 @@
+{
+  "id": "py-39-token-bucket-limiter",
+  "lessonSlug": "py-39-async-patterns-backpressure",
+  "title": "Async Token-Bucket Rate Limiter",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `TokenBucket` in `ratelimit.py`. It refills `rate` tokens per second up to `burst`, starts full, and `await acquire(cost)` waits exactly `(cost - tokens) / rate` seconds before deducting. Waiters are served in arrival order, the clock and sleep functions are injectable, and a small epsilon keeps the loop from spinning on floating-point error.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "ratelimit",
+      "path": "ratelimit.py",
+      "displayName": "ratelimit.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "burst-is-free-then-throttled",
+      "label": "The first `burst` calls are free, then each call waits (cost - tokens) / rate",
+      "testMethod": "test_burst_is_free_then_throttled"
+    },
+    {
+      "id": "partial-refill-shortens-the-wait",
+      "label": "Time that has passed refills tokens and shortens the wait",
+      "testMethod": "test_partial_refill_shortens_the_wait"
+    },
+    {
+      "id": "refill-is-capped-at-burst",
+      "label": "Never banks more than `burst` tokens after a long idle period",
+      "testMethod": "test_refill_is_capped_at_burst"
+    },
+    {
+      "id": "waiters-are-served-in-arrival-order",
+      "label": "Serves waiters first come, first served",
+      "testMethod": "test_waiters_are_served_in_arrival_order"
+    },
+    {
+      "id": "large-request-is-not-overtaken-by-small-ones",
+      "label": "A large request is not starved by later small ones",
+      "testMethod": "test_large_request_is_not_overtaken_by_small_ones"
+    },
+    {
+      "id": "total-time-matches-rate",
+      "label": "Total elapsed time for N calls matches the configured rate",
+      "testMethod": "test_total_time_matches_rate"
+    },
+    {
+      "id": "fractional-costs-are-deducted",
+      "label": "Deducts fractional costs correctly",
+      "testMethod": "test_fractional_costs_are_deducted"
+    },
+    {
+      "id": "invalid-constructor-arguments",
+      "label": "Raises ValueError for rate <= 0 or burst < 1",
+      "testMethod": "test_invalid_constructor_arguments"
+    },
+    {
+      "id": "invalid-cost-is-rejected",
+      "label": "Raises ValueError for cost <= 0 or cost > burst",
+      "testMethod": "test_invalid_cost_is_rejected"
+    },
+    {
+      "id": "works-with-the-real-clock-and-sleep",
+      "label": "Works with the default monotonic clock and asyncio.sleep",
+      "testMethod": "test_works_with_the_real_clock_and_sleep"
+    }
+  ]
+}

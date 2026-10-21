@@ -1,0 +1,77 @@
+{
+  "id": "py-27-optimistic-update-retry",
+  "lessonSlug": "py-27-code-bookmyshow-2",
+  "title": "Optimistic Versioned Update with Jittered Retry",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "In `optimistic.py` implement a generic `retry` with capped exponential backoff and full jitter, and a `VersionedStore` whose `update` does a safe read-modify-write. `compare_and_set` is the only atomic primitive (guard it with a lock); build `update` on top of it, retrying only on `ConflictError`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "optimistic",
+      "path": "optimistic.py",
+      "displayName": "optimistic.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "retry-delays-use-capped-exponential-full-jitter",
+      "label": "Sleeps with capped exponential backoff scaled by jitter between attempts",
+      "testMethod": "test_retry_delays_use_capped_exponential_full_jitter"
+    },
+    {
+      "id": "retry-does-not-retry-other-errors-or-last-attempt",
+      "label": "Does not retry non-retryable errors or after the final attempt",
+      "testMethod": "test_retry_does_not_retry_other_errors_or_last_attempt"
+    },
+    {
+      "id": "retry-rejects-zero-attempts",
+      "label": "Rejects attempts < 1 with ValueError",
+      "testMethod": "test_retry_rejects_zero_attempts"
+    },
+    {
+      "id": "update-bumps-value-and-version",
+      "label": "update returns the new value, bumps the version, and read raises KeyError for unknown keys",
+      "testMethod": "test_update_bumps_value_and_version"
+    },
+    {
+      "id": "compare-and-set-rejects-stale-version",
+      "label": "compare_and_set fails for a stale version and leaves the value alone",
+      "testMethod": "test_compare_and_set_rejects_stale_version"
+    },
+    {
+      "id": "concurrent-increments-lose-no-updates",
+      "label": "8 threads of concurrent increments lose no updates",
+      "testMethod": "test_concurrent_increments_lose_no_updates"
+    },
+    {
+      "id": "conflict-error-after-attempts-exhausted",
+      "label": "Raises ConflictError once attempts are exhausted",
+      "testMethod": "test_conflict_error_after_attempts_exhausted"
+    },
+    {
+      "id": "errors-from-fn-are-not-retried",
+      "label": "Errors raised by the update function are not retried",
+      "testMethod": "test_errors_from_fn_are_not_retried"
+    },
+    {
+      "id": "retry-returns-immediately-without-sleeping-on-success",
+      "label": "Returns the result without sleeping when the first call succeeds",
+      "testMethod": "test_retry_returns_immediately_without_sleeping_on_success"
+    },
+    {
+      "id": "retry-jitter-scales-the-delay-by-rng",
+      "label": "Delay is rng() times the capped exponential bound",
+      "testMethod": "test_retry_jitter_scales_the_delay_by_rng"
+    }
+  ]
+}

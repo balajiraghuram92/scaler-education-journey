@@ -1,0 +1,26 @@
+{
+  "id": "py-16-rest-api-decorator",
+  "lessonSlug": "py-16-decorator-flyweight",
+  "title": "REST API Decorators",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Complete `config/decorator.py`. Make `BaseApiDecorator` an `Api` that stores the wrapped API in `api` and delegates `execute_request`. Then implement `LoggingDecorator` (calls `ApiUtils.log_request(data)` first) and `RateLimitDecorator` (calls `ApiUtils.apply_rate_limit(data)` first), both via `super().__init__(api)` and returning the wrapped result unchanged.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "decorator", "path": "config/decorator.py", "displayName": "decorator.py", "editable": true },
+    { "id": "api", "path": "config/api.py", "displayName": "api.py", "editable": false },
+    { "id": "utils", "path": "config/utils.py", "displayName": "utils.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "base-delegates", "label": "BaseApiDecorator is an Api that stores `api` and delegates", "testMethod": "test_base_decorator_is_an_api_that_delegates" },
+    { "id": "log-before", "label": "LoggingDecorator logs the request, then delegates", "testMethod": "test_logging_decorator_logs_before_delegating" },
+    { "id": "limit-before", "label": "RateLimitDecorator applies the limit, then delegates", "testMethod": "test_rate_limit_decorator_limits_before_delegating" },
+    { "id": "stack-order", "label": "Stacked decorators run outermost first", "testMethod": "test_stacked_decorators_run_outermost_first" },
+    { "id": "parent-ctor", "label": "Subclasses keep the wrapped API through the parent constructor", "testMethod": "test_subclasses_keep_the_wrapped_api_via_the_parent_constructor" },
+    { "id": "interface-preserved", "label": "A decorated API is still an Api", "testMethod": "test_decorated_api_keeps_the_api_interface" },
+    { "id": "errors-propagate", "label": "Errors from the wrapped API are not swallowed", "testMethod": "test_errors_from_the_wrapped_api_propagate" },
+    { "id": "real-helpers", "label": "Works with the real helpers and ECommerceApi", "testMethod": "test_works_with_the_real_helpers_and_core_api" }
+  ]
+}

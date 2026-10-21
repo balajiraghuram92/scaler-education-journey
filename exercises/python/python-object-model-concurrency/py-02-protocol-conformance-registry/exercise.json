@@ -1,0 +1,77 @@
+{
+  "id": "py-02-protocol-conformance-registry",
+  "lessonSlug": "py-02-abcs-protocols-mixins",
+  "title": "Plug-in Registry with Signature-Aware Conformance Checks",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `conformance_errors` and `ProviderRegistry` in `providers.py`. `conformance_errors` explains why a class or instance does not satisfy a Protocol: missing method, not callable, or positional parameter names that differ. `ProviderRegistry.register` must validate at decoration time, reject duplicates, and never store a rejected class.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "providers",
+      "path": "providers.py",
+      "displayName": "providers.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "good-candidate-has-no-errors-as-class-and-instance",
+      "label": "A conforming class or instance has no errors",
+      "testMethod": "test_good_candidate_has_no_errors_as_class_and_instance"
+    },
+    {
+      "id": "isinstance-is-fooled-but-conformance-is-not",
+      "label": "Signature is checked where isinstance is fooled",
+      "testMethod": "test_isinstance_is_fooled_but_conformance_is_not"
+    },
+    {
+      "id": "wrong-parameter-names-are-reported",
+      "label": "Wrong parameter names give a signature mismatch",
+      "testMethod": "test_wrong_parameter_names_are_reported"
+    },
+    {
+      "id": "missing-and-not-callable",
+      "label": "Missing and non-callable members are reported",
+      "testMethod": "test_missing_and_not_callable"
+    },
+    {
+      "id": "properties-are-not-executed-and-dunders-are-skipped",
+      "label": "Properties are not executed and dunders are skipped",
+      "testMethod": "test_properties_are_not_executed_and_dunders_are_skipped"
+    },
+    {
+      "id": "registry-registers-returns-class-and-creates-with-arguments",
+      "label": "register returns the class and create forwards arguments",
+      "testMethod": "test_registry_registers_returns_class_and_creates_with_arguments"
+    },
+    {
+      "id": "registry-rejects-bad-provider-with-actionable-reasons",
+      "label": "A bad provider raises TypeError with the exact reason and is not stored",
+      "testMethod": "test_registry_rejects_bad_provider_with_actionable_reasons"
+    },
+    {
+      "id": "registry-joins-multiple-reasons-with-semicolons",
+      "label": "Every failing member is reported and reasons are joined with semicolons",
+      "testMethod": "test_registry_joins_multiple_reasons_with_semicolons"
+    },
+    {
+      "id": "registry-rejects-duplicates-and-keeps-the-original",
+      "label": "Duplicate names raise ValueError and keep the original",
+      "testMethod": "test_registry_rejects_duplicates_and_keeps_the_original"
+    },
+    {
+      "id": "unknown-provider-lists-known-names",
+      "label": "Unknown providers raise KeyError listing the known names",
+      "testMethod": "test_unknown_provider_lists_known_names"
+    }
+  ]
+}

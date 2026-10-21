@@ -1,0 +1,25 @@
+{
+  "id": "py-17-middleware-chain",
+  "lessonSlug": "py-17-behavioural-patterns",
+  "title": "Prompt Middleware Chain",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 35,
+  "instructions": "Build `pipeline.py` as a Chain of Responsibility. Define the `Request` dataclass and the frozen slotted `Response`, then write `build_chain(middlewares, endpoint)` so the first middleware is outermost, plus `tracing(name)`, `require_user` (401) and `max_prompt_chars(limit)` (413). Middlewares may short-circuit, the chain must be reusable, and every layer must keep its own `next` (no late-binding closures).",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "pipeline", "path": "pipeline.py", "displayName": "pipeline.py", "editable": true }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "types", "label": "Request has a per-instance trace and Response is frozen with slots", "testMethod": "test_request_and_response_types" },
+    { "id": "outermost-first", "label": "The first middleware is outermost", "testMethod": "test_first_middleware_is_outermost" },
+    { "id": "short-circuit", "label": "A short-circuit skips inner layers and the endpoint", "testMethod": "test_short_circuit_skips_inner_layers_and_the_endpoint" },
+    { "id": "no-late-binding", "label": "Many layers each call their own next (no late binding)", "testMethod": "test_many_layers_are_not_late_bound" },
+    { "id": "empty-chain", "label": "An empty chain behaves like the endpoint", "testMethod": "test_empty_chain_behaves_like_the_endpoint" },
+    { "id": "reusable", "label": "A built chain can be called repeatedly", "testMethod": "test_chain_is_reusable_without_shared_state" },
+    { "id": "response-path", "label": "Middleware can act on the response on the way out", "testMethod": "test_middleware_can_act_on_the_response_on_the_way_out" },
+    { "id": "guards", "label": "require_user and max_prompt_chars handle their boundaries", "testMethod": "test_require_user_and_prompt_limit_boundaries" },
+    { "id": "input-unchanged", "label": "build_chain accepts any sequence and does not mutate it", "testMethod": "test_build_chain_accepts_any_sequence_and_does_not_mutate_it" }
+  ]
+}

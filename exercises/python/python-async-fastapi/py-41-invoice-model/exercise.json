@@ -1,0 +1,77 @@
+{
+  "id": "py-41-invoice-model",
+  "lessonSlug": "py-41-pydantic-v2-deep-dive",
+  "title": "Invoice Model with Pydantic v2",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 40,
+  "instructions": "Model an invoice in `invoice.py` with Pydantic v2. Share one config (camelCase aliases, `populate_by_name`, `extra=\"forbid\"`, `frozen`) between `InvoiceLine` and `Invoice`, validate declaratively with `Field` constraints, add a field validator and a model validator, and expose `subtotal` and `total` as computed fields that clients cannot supply.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "invoice",
+      "path": "invoice.py",
+      "displayName": "invoice.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "valid-invoice-totals-and-defaults",
+      "label": "Computes subtotal and total, defaults the discount to 0 and generates ids",
+      "testMethod": "test_valid_invoice_totals_and_defaults"
+    },
+    {
+      "id": "camel-case-round-trip-with-string-money",
+      "label": "Round-trips camelCase JSON with Decimal values as strings, and still accepts snake_case names",
+      "testMethod": "test_camel_case_round_trip_with_string_money"
+    },
+    {
+      "id": "total-rounds-half-up-to-two-decimals",
+      "label": "Rounds total half-up to two decimals",
+      "testMethod": "test_total_rounds_half_up_to_two_decimals"
+    },
+    {
+      "id": "naive-datetime-rejected",
+      "label": "Rejects a naive issued_at with a \"timezone-aware\" message",
+      "testMethod": "test_naive_datetime_rejected"
+    },
+    {
+      "id": "jpy-requires-whole-prices",
+      "label": "Rejects JPY invoices with fractional unit prices",
+      "testMethod": "test_jpy_requires_whole_prices"
+    },
+    {
+      "id": "qty-is-a-strict-positive-int",
+      "label": "Requires qty to be a strict int greater than 0 (rejects \"2\", 0, -1 and 1.0)",
+      "testMethod": "test_qty_is_a_strict_positive_int"
+    },
+    {
+      "id": "unit-price-precision-and-sign",
+      "label": "Rejects negative prices, 3 decimal places and more than 12 digits",
+      "testMethod": "test_unit_price_precision_and_sign"
+    },
+    {
+      "id": "unknown-and-computed-keys-are-rejected",
+      "label": "Rejects unknown keys and client-supplied totals",
+      "testMethod": "test_unknown_and_computed_keys_are_rejected"
+    },
+    {
+      "id": "error-locations-and-bounds",
+      "label": "Reports precise error locations and enforces lines, discount and currency bounds",
+      "testMethod": "test_error_locations_and_bounds"
+    },
+    {
+      "id": "frozen",
+      "label": "Frozen models raise ValidationError on assignment",
+      "testMethod": "test_frozen"
+    }
+  ]
+}

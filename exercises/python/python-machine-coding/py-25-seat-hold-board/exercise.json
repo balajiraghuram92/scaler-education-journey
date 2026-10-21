@@ -1,0 +1,77 @@
+{
+  "id": "py-25-seat-hold-board",
+  "lessonSlug": "py-25-design-bookmyshow",
+  "title": "Seat Hold Board with Expiry (In-Memory)",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "In `bms/hold_board.py` implement `SeatHoldBoard` for one show (the `SeatState` enum, the exceptions and the `_Hold` record are given). `hold` takes all requested seats or none, `confirm` books a live hold, `release` is idempotent, and `state` reports `AVAILABLE`, `HELD` or `BOOKED`. Holds expire lazily when `clock() >= expires_at`: every operation purges expired holds first, so no background thread or sleep is needed. One lock created in `__init__` guards everything.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "bms-hold-board",
+      "path": "bms/hold_board.py",
+      "displayName": "hold_board.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "hold-is-all-or-nothing",
+      "label": "A hold that includes an unavailable seat raises SeatUnavailableError listing it and holds nothing",
+      "testMethod": "test_hold_is_all_or_nothing"
+    },
+    {
+      "id": "unavailable-error-lists-every-offending-seat",
+      "label": "SeatUnavailableError lists every held or booked seat among the requested ones",
+      "testMethod": "test_unavailable_error_lists_every_offending_seat"
+    },
+    {
+      "id": "unknown-seat-is-rejected",
+      "label": "An unknown seat raises UnknownSeatError and holds nothing",
+      "testMethod": "test_unknown_seat_is_rejected"
+    },
+    {
+      "id": "expired-holds-release-their-seats-and-cannot-be-confirmed",
+      "label": "At the expiry time a hold is over: its seats are free, and a late confirm fails without stealing them back",
+      "testMethod": "test_expired_holds_release_their_seats_and_cannot_be_confirmed"
+    },
+    {
+      "id": "hold-is-live-until-the-expiry-time",
+      "label": "Just before the expiry time the seats are still held",
+      "testMethod": "test_hold_is_live_until_the_expiry_time"
+    },
+    {
+      "id": "confirm-books-the-seats-for-good",
+      "label": "Confirming books the seats, they stay BOOKED after time passes and cannot be held again",
+      "testMethod": "test_confirm_books_the_seats_for_good"
+    },
+    {
+      "id": "confirm-with-unknown-or-released-token-fails",
+      "label": "Unknown and released tokens raise HoldExpiredError and book nothing",
+      "testMethod": "test_confirm_with_unknown_or_released_token_fails"
+    },
+    {
+      "id": "release-frees-seats-and-is-idempotent",
+      "label": "Releasing frees the seats and releasing again or with an unknown token is a no-op",
+      "testMethod": "test_release_frees_seats_and_is_idempotent"
+    },
+    {
+      "id": "state-of-unknown-seat",
+      "label": "state() of an unknown seat raises UnknownSeatError",
+      "testMethod": "test_state_of_unknown_seat"
+    },
+    {
+      "id": "exactly-one-of-many-simultaneous-holds-wins",
+      "label": "Of eight threads racing for the same seats exactly one wins",
+      "testMethod": "test_exactly_one_of_many_simultaneous_holds_wins"
+    }
+  ]
+}

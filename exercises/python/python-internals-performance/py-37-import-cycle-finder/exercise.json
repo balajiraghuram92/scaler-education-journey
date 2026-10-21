@@ -1,0 +1,77 @@
+{
+  "id": "py-37-import-cycle-finder",
+  "lessonSlug": "py-37-imports-packaging-runtime",
+  "title": "Static Import Graph and Cycle Finder",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 45,
+  "instructions": "In `importgraph.py` implement `build_import_graph`, a static analyser built on the `ast` module that resolves absolute, dotted and relative imports into edges between project modules, counting only import-time imports, and `find_cycles`, which reports every strongly connected component with more than one module.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "importgraph",
+      "path": "importgraph.py",
+      "displayName": "importgraph.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "graph-resolves-absolute-and-relative-imports-and-ignores-external",
+      "label": "Resolves absolute and relative imports and ignores stdlib or third-party modules",
+      "testMethod": "test_graph_resolves_absolute_and_relative_imports_and_ignores_external"
+    },
+    {
+      "id": "cycles-are-reported-as-sorted-components",
+      "label": "Reports a cycle as a sorted component",
+      "testMethod": "test_cycles_are_reported_as_sorted_components"
+    },
+    {
+      "id": "deferred-and-type-checking-imports-do-not-create-edges",
+      "label": "Function-level and TYPE_CHECKING imports create no edges",
+      "testMethod": "test_deferred_and_type_checking_imports_do_not_create_edges"
+    },
+    {
+      "id": "imports-inside-try-and-if-blocks-count",
+      "label": "Imports inside try/except blocks count",
+      "testMethod": "test_imports_inside_try_and_if_blocks_count"
+    },
+    {
+      "id": "relative-import-beyond-top-level-is-ignored",
+      "label": "A relative import above the top-level package is ignored",
+      "testMethod": "test_relative_import_beyond_top_level_is_ignored"
+    },
+    {
+      "id": "package-init-relative-imports",
+      "label": "A package module resolves relative imports against itself",
+      "testMethod": "test_package_init_relative_imports"
+    },
+    {
+      "id": "three-module-cycle-and-self-import",
+      "label": "Finds a three-module cycle and drops self-imports",
+      "testMethod": "test_three_module_cycle_and_self_import"
+    },
+    {
+      "id": "dotted-imports-use-the-longest-known-module-prefix",
+      "label": "Maps dotted and from-imports to the longest known module",
+      "testMethod": "test_dotted_imports_use_the_longest_known_module_prefix"
+    },
+    {
+      "id": "multi-dot-relative-imports",
+      "label": "Resolves multi-dot relative imports and ignores ones that climb too far",
+      "testMethod": "test_multi_dot_relative_imports"
+    },
+    {
+      "id": "every-module-is-a-node-and-class-bodies-and-else-branches-count",
+      "label": "Every module is a node; class bodies and TYPE_CHECKING else-branches count; async functions do not",
+      "testMethod": "test_every_module_is_a_node_and_class_bodies_and_else_branches_count"
+    }
+  ]
+}

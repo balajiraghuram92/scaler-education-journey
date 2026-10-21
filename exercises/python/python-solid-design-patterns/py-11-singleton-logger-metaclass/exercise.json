@@ -1,0 +1,72 @@
+{
+  "id": "py-11-singleton-logger-metaclass",
+  "lessonSlug": "py-11-singleton",
+  "title": "Thread-Safe Logger with a Reusable Singleton Metaclass",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "In `slog.py`, write a reusable `SingletonMeta` metaclass (double-checked locking, one instance per class, `__init__` runs once, `reset_instance()` closes the instance) and finish `Logger(metaclass=SingletonMeta)`. The logger must raise `RuntimeError` when there is no open file and keep lines whole under concurrent writers.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "slog",
+      "path": "slog.py",
+      "displayName": "slog.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "same-instance-every-time",
+      "label": "Logger() returns the same instance every time",
+      "testMethod": "test_same_instance_every_time"
+    },
+    {
+      "id": "reset-gives-a-new-instance",
+      "label": "reset_instance() makes the next Logger() a new object",
+      "testMethod": "test_reset_gives_a_new_instance"
+    },
+    {
+      "id": "many-threads-get-one-instance",
+      "label": "Ten threads released together by a Barrier all get one instance",
+      "testMethod": "test_many_threads_get_one_instance"
+    },
+    {
+      "id": "metaclass-is-reusable-one-instance-per-class-and-init-runs-once",
+      "label": "SingletonMeta is reusable: one instance per class and __init__ runs once",
+      "testMethod": "test_metaclass_is_reusable_one_instance_per_class_and_init_runs_once"
+    },
+    {
+      "id": "reset-closes-the-instance",
+      "label": "reset_instance() closes the old instance",
+      "testMethod": "test_reset_closes_the_instance"
+    },
+    {
+      "id": "log-before-set-log-file-raises",
+      "label": "Logging before set_log_file() raises RuntimeError",
+      "testMethod": "test_log_before_set_log_file_raises"
+    },
+    {
+      "id": "log-after-close-raises",
+      "label": "Logging after close() raises RuntimeError",
+      "testMethod": "test_log_after_close_raises"
+    },
+    {
+      "id": "log-line-format",
+      "label": "Lines look like [timestamp] [LEVEL] message",
+      "testMethod": "test_log_line_format"
+    },
+    {
+      "id": "concurrent-writes-produce-whole-lines",
+      "label": "8 threads x 50 writes produce exactly 400 whole lines",
+      "testMethod": "test_concurrent_writes_produce_whole_lines"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "py-37-fault-tolerant-plugin-loader",
+  "lessonSlug": "py-37-imports-packaging-runtime",
+  "title": "Fault-Tolerant Entry-Point Plugin Loader",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 35,
+  "instructions": "In `plugins.py` implement `load_plugins` and `discover`. Load entry points in name order, isolate every plugin failure (including `SystemExit` from import-time `sys.exit()`, but never `KeyboardInterrupt`), validate the loaded object, reject duplicate names, and return a `LoadReport`. `LoadReport` is already declared.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "plugins",
+      "path": "plugins.py",
+      "displayName": "plugins.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "loads-valid-plugins-in-name-order",
+      "label": "Loads valid plugins and reports them in name order",
+      "testMethod": "test_loads_valid_plugins_in_name_order"
+    },
+    {
+      "id": "missing-module-and-attribute-are-isolated",
+      "label": "A missing module or attribute is recorded without stopping other plugins",
+      "testMethod": "test_missing_module_and_attribute_are_isolated"
+    },
+    {
+      "id": "validation-rejects-wrong-types",
+      "label": "Failed validation is recorded as a TypeError mentioning the entry-point value",
+      "testMethod": "test_validation_rejects_wrong_types"
+    },
+    {
+      "id": "duplicate-names-are-rejected-for-both-entries",
+      "label": "Duplicate names are rejected, with neither entry loaded",
+      "testMethod": "test_duplicate_names_are_rejected_for_both_entries"
+    },
+    {
+      "id": "discover-uses-installed-metadata",
+      "label": "discover returns a LoadReport for an installed group such as console_scripts",
+      "testMethod": "test_discover_uses_installed_metadata"
+    },
+    {
+      "id": "empty-group-returns-empty-report",
+      "label": "An unknown group yields an empty report",
+      "testMethod": "test_empty_group_returns_empty_report"
+    },
+    {
+      "id": "plugin-calling-sys-exit-at-import-is-recorded-not-fatal",
+      "label": "A plugin calling sys.exit() at import is recorded as a failure",
+      "testMethod": "test_plugin_calling_sys_exit_at_import_is_recorded_not_fatal"
+    },
+    {
+      "id": "keyboard-interrupt-is-never-swallowed",
+      "label": "KeyboardInterrupt is never swallowed",
+      "testMethod": "test_keyboard_interrupt_is_never_swallowed"
+    },
+    {
+      "id": "errors-raised-while-importing-a-plugin-are-recorded-and-triple-duplicates-fail",
+      "label": "Import-time exceptions are recorded; three entries with one name still fail as duplicates",
+      "testMethod": "test_errors_raised_while_importing_a_plugin_are_recorded_and_triple_duplicates_fail"
+    },
+    {
+      "id": "discover-reads-the-requested-group-and-applies-validation",
+      "label": "discover queries entry_points(group=...) and applies the validator",
+      "testMethod": "test_discover_reads_the_requested_group_and_applies_validation"
+    }
+  ]
+}

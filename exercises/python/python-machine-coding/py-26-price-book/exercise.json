@@ -1,0 +1,77 @@
+{
+  "id": "py-26-price-book",
+  "lessonSlug": "py-26-code-bookmyshow-1",
+  "title": "Effective-Dated Show Price Book",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `PriceBook` and `validate_show_features` in `pricing.py` using only the standard library. Store effective-dated prices as sorted lists per `(show_id, SEAT_TYPE)` and look them up with `bisect`. Use timezone-aware datetimes and integer minor units, and raise the documented exceptions.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "pricing",
+      "path": "pricing.py",
+      "displayName": "pricing.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "latest-version-at-or-before-the-instant-wins",
+      "label": "Returns the latest price version in force at or before the instant",
+      "testMethod": "test_latest_version_at_or_before_the_instant_wins"
+    },
+    {
+      "id": "before-first-version-or-unknown-key-is-missing",
+      "label": "Raises MissingPriceError before the first version or for an unknown key",
+      "testMethod": "test_before_first_version_or_unknown_key_is_missing"
+    },
+    {
+      "id": "total-sums-with-repeats",
+      "label": "Sums prices across seat types, counting repeats",
+      "testMethod": "test_total_sums_with_repeats"
+    },
+    {
+      "id": "total-reports-all-missing-types-at-once",
+      "label": "Reports every missing seat type in one sorted MissingPriceError",
+      "testMethod": "test_total_reports_all_missing_types_at_once"
+    },
+    {
+      "id": "validation-of-inputs",
+      "label": "Rejects negative amounts, naive datetimes and duplicate valid_from",
+      "testMethod": "test_validation_of_inputs"
+    },
+    {
+      "id": "validate-show-features",
+      "label": "Accepts supported features case-insensitively and names unsupported ones, sorted",
+      "testMethod": "test_validate_show_features"
+    },
+    {
+      "id": "exact-boundary-instant-uses-the-new-version",
+      "label": "valid_from is inclusive, and the old price applies just before it",
+      "testMethod": "test_exact_boundary_instant_uses_the_new_version"
+    },
+    {
+      "id": "prices-are-independent-per-show-and-seat-type",
+      "label": "Keeps prices separate per show and per seat type",
+      "testMethod": "test_prices_are_independent_per_show_and_seat_type"
+    },
+    {
+      "id": "aware-datetimes-in-different-zones-compare-by-instant",
+      "label": "Compares aware datetimes by instant across time zones",
+      "testMethod": "test_aware_datetimes_in_different_zones_compare_by_instant"
+    },
+    {
+      "id": "zero-price-is-allowed-and-total-of-nothing-is-zero",
+      "label": "Allows a zero price; an empty total is 0",
+      "testMethod": "test_zero_price_is_allowed_and_total_of_nothing_is_zero"
+    }
+  ]
+}

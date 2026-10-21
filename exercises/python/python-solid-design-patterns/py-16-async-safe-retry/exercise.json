@@ -1,0 +1,24 @@
+{
+  "id": "py-16-async-safe-retry",
+  "lessonSlug": "py-16-decorator-flyweight",
+  "title": "Sync and Async Safe Retry Decorator",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `retry(...)` in `resilience.py`. It must return a decorator that retries both plain functions and `async def` functions, with exponential backoff through the injected `sleep` / `asleep` callables. Await the coroutine inside the `try`, retry only the exceptions in `on`, re-raise the last one unchanged, and keep the function's metadata with `functools.wraps`.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "resilience", "path": "resilience.py", "displayName": "resilience.py", "editable": true }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "sync-retry-backoff", "label": "Sync call retries, then succeeds with backoff sleeps [0.5, 1.0]", "testMethod": "test_sync_retries_then_succeeds_with_exponential_backoff" },
+    { "id": "sync-give-up", "label": "Sync call gives up and re-raises the last exception object", "testMethod": "test_sync_gives_up_and_reraises_the_last_exception_unchanged" },
+    { "id": "async-retry", "label": "An async function is really retried and stays a coroutine function", "testMethod": "test_async_function_is_really_retried_and_stays_a_coroutine_function" },
+    { "id": "async-give-up", "label": "Async call gives up and re-raises the last exception", "testMethod": "test_async_gives_up_and_reraises_the_last_exception" },
+    { "id": "metadata", "label": "__name__ and __doc__ are preserved for sync and async", "testMethod": "test_metadata_is_preserved_for_sync_and_async" },
+    { "id": "unlisted-propagate", "label": "Exceptions not in `on` propagate immediately", "testMethod": "test_unlisted_exceptions_propagate_immediately_without_sleeping" },
+    { "id": "custom-on-args", "label": "Custom `on` is honoured and arguments are forwarded each attempt", "testMethod": "test_custom_on_arguments_and_return_values_pass_through" },
+    { "id": "invalid-attempts", "label": "attempts < 1 raises ValueError when the factory is called", "testMethod": "test_invalid_attempts_rejected_when_the_factory_is_called" }
+  ]
+}

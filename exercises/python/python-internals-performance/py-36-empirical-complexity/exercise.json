@@ -1,0 +1,62 @@
+{
+  "id": "py-36-empirical-complexity",
+  "lessonSlug": "py-36-profiling-performance",
+  "title": "Empirical Complexity Analyser",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "In `growth.py` implement `measure` (minimum of `timeit.repeat` timings per call, input built outside the timer), `growth_exponent` (least-squares slope of log time against log size), `classify` and `analyse`. The tests use synthetic timings, so focus on correct maths and on not timing input construction.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "growth",
+      "path": "growth.py",
+      "displayName": "growth.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "exponent-of-exact-power-laws",
+      "label": "Recovers exponents 0, 1 and 2 from exact power-law timings",
+      "testMethod": "test_exponent_of_exact_power_laws"
+    },
+    {
+      "id": "exponent-is-a-least-squares-fit-over-all-points",
+      "label": "Fits a least-squares line through all points, not just the first two",
+      "testMethod": "test_exponent_is_a_least_squares_fit_over_all_points"
+    },
+    {
+      "id": "classify",
+      "label": "Classifies exponents with the documented thresholds (0.4, 1.35, 2.5)",
+      "testMethod": "test_classify"
+    },
+    {
+      "id": "invalid-measurements-raise",
+      "label": "Raises ValueError for too few points, mismatched lengths, non-positive or equal sizes",
+      "testMethod": "test_invalid_measurements_raise"
+    },
+    {
+      "id": "measure-returns-one-non-negative-time-per-size",
+      "label": "measure returns one float timing per size",
+      "testMethod": "test_measure_returns_one_non_negative_time_per_size"
+    },
+    {
+      "id": "measure-takes-the-minimum-divides-by-number-and-does-not-time-input-construction",
+      "label": "measure takes the minimum of the repeats, divides by number and builds inputs once outside the timer",
+      "testMethod": "test_measure_takes_the_minimum_divides_by_number_and_does_not_time_input_construction"
+    },
+    {
+      "id": "analyse-ties-measurement-fit-and-classification-together",
+      "label": "analyse returns (exponent, label) from measured timings",
+      "testMethod": "test_analyse_ties_measurement_fit_and_classification_together"
+    }
+  ]
+}

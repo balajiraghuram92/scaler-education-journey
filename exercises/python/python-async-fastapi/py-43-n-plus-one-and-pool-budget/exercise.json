@@ -1,0 +1,77 @@
+{
+  "id": "py-43-n-plus-one-and-pool-budget",
+  "lessonSlug": "py-43-sqlalchemy-async-persistence",
+  "title": "N+1 Queries and Pool Budget",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `QueryCounter`, `load_naive`, `load_batched`, `Budget`, `connection_budget` and `largest_pool_size` in `nplus1.py` using only `sqlite3`. The counter records SELECT statements through a trace callback, the naive loader shows the N+1 pattern, the batched loader issues one `IN (...)` query per chunk, and the budget functions check whether a fleet's connection pools fit the database limit.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "nplus1",
+      "path": "nplus1.py",
+      "displayName": "nplus1.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "naive-is-n-plus-one",
+      "label": "load_naive issues 1 + N SELECT queries",
+      "testMethod": "test_naive_is_n_plus_one"
+    },
+    {
+      "id": "batched-matches-naive-with-two-queries",
+      "label": "load_batched returns the same mapping with 2 queries, the second using IN (...)",
+      "testMethod": "test_batched_matches_naive_with_two_queries"
+    },
+    {
+      "id": "chunking-is-ceil-division",
+      "label": "Chunks the IN list: 1 + ceil(N / chunk_size) queries",
+      "testMethod": "test_chunking_is_ceil_division"
+    },
+    {
+      "id": "parents-without-children-and-no-parents",
+      "label": "Maps childless parents to [] and issues one query when there are no parents",
+      "testMethod": "test_parents_without_children_and_no_parents"
+    },
+    {
+      "id": "results-are-ordered-by-id-and-scoped-to-user",
+      "label": "Orders by id everywhere and only loads the requested user's rows",
+      "testMethod": "test_results_are_ordered_by_id_and_scoped_to_user"
+    },
+    {
+      "id": "chunk-size-must-be-positive",
+      "label": "Raises ValueError for chunk_size < 1",
+      "testMethod": "test_chunk_size_must_be_positive"
+    },
+    {
+      "id": "counter-only-counts-selects-and-detaches",
+      "label": "QueryCounter counts only SELECTs (any case) and stops counting after the block",
+      "testMethod": "test_counter_only_counts_selects_and_detaches"
+    },
+    {
+      "id": "counter-detaches-even-when-the-block-raises",
+      "label": "QueryCounter removes its callback even when the block raises",
+      "testMethod": "test_counter_detaches_even_when_the_block_raises"
+    },
+    {
+      "id": "connection-budget",
+      "label": "connection_budget computes worst case, availability and fits",
+      "testMethod": "test_connection_budget"
+    },
+    {
+      "id": "largest-pool-size",
+      "label": "largest_pool_size returns the largest pool that fits, or 0",
+      "testMethod": "test_largest_pool_size"
+    }
+  ]
+}

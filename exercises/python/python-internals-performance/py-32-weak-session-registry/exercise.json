@@ -1,0 +1,67 @@
+{
+  "id": "py-32-weak-session-registry",
+  "lessonSlug": "py-32-object-model-memory",
+  "title": "Leak-Free Session Registry",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "In `sessions.py` build `Session` (slotted, weak-referenceable, with a per-instance prompt cache) and `SessionRegistry` (lookup by id that does not keep sessions alive). Avoid `functools.lru_cache` on the method, since it pins `self`, and use a weak-valued mapping for the registry.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "sessions",
+      "path": "sessions.py",
+      "displayName": "sessions.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "session-is-slotted-and-weakrefable",
+      "label": "Session has no __dict__, rejects new attributes and supports weak references",
+      "testMethod": "test_session_is_slotted_and_weakrefable"
+    },
+    {
+      "id": "render-prompt-is-cached-per-instance",
+      "label": "render_prompt returns the identical cached string per instance",
+      "testMethod": "test_render_prompt_is_cached_per_instance"
+    },
+    {
+      "id": "registry-does-not-keep-sessions-alive",
+      "label": "The registry forgets a session once the last real reference is gone",
+      "testMethod": "test_registry_does_not_keep_sessions_alive"
+    },
+    {
+      "id": "ids-are-unique",
+      "label": "Registered sessions get unique ids",
+      "testMethod": "test_ids_are_unique"
+    },
+    {
+      "id": "lru-cache-on-method-leaks-by-contrast",
+      "label": "Demonstrates that lru_cache on a method pins the instance until cache_clear()",
+      "testMethod": "test_lru_cache_on_method_leaks_by_contrast"
+    },
+    {
+      "id": "ids-start-at-one-and-increase-and-unknown-ids-return-none",
+      "label": "Ids start at 1 and increase; unknown ids return None",
+      "testMethod": "test_ids_start_at_one_and_increase_and_unknown_ids_return_none"
+    },
+    {
+      "id": "rendered-prompt-cache-does-not-pin-the-session",
+      "label": "The prompt cache does not keep the session alive",
+      "testMethod": "test_rendered_prompt_cache_does_not_pin_the_session"
+    },
+    {
+      "id": "len-counts-only-live-sessions",
+      "label": "len(registry) counts only live sessions",
+      "testMethod": "test_len_counts_only_live_sessions"
+    }
+  ]
+}

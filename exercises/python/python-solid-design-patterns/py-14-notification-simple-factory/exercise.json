@@ -1,0 +1,73 @@
+{
+  "id": "py-14-notification-simple-factory",
+  "lessonSlug": "py-14-factory",
+  "title": "Simple Factory for Notifications",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Implement the notification hierarchy in `notification/products.py` (`send_notification` and each channel's `notification_type`) and the static `NotificationFactory.create_notification(notification_type, *args)` in `notification/factory.py`. The factory unpacks `*args` into the chosen class and raises `ValueError(\"Invalid notification type\")` for anything else.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "notification-products",
+      "path": "notification/products.py",
+      "displayName": "products.py",
+      "editable": true
+    },
+    {
+      "id": "notification-factory",
+      "path": "notification/factory.py",
+      "displayName": "factory.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "factory-returns-the-right-concrete-type",
+      "label": "The factory returns the right notification for each type",
+      "testMethod": "test_factory_returns_the_right_concrete_type"
+    },
+    {
+      "id": "args-are-unpacked-into-recipient-sender-message",
+      "label": "*args are unpacked into recipient, sender and message",
+      "testMethod": "test_args_are_unpacked_into_recipient_sender_message"
+    },
+    {
+      "id": "invalid-type-raises-value-error-with-message",
+      "label": "An invalid type raises ValueError(\"Invalid notification type\")",
+      "testMethod": "test_invalid_type_raises_value_error_with_message"
+    },
+    {
+      "id": "wrong-argument-count-is-an-error",
+      "label": "Too few arguments raise TypeError",
+      "testMethod": "test_wrong_argument_count_is_an_error"
+    },
+    {
+      "id": "send-notification-prints-recipient-sender-and-message",
+      "label": "send_notification() prints recipient, sender and message",
+      "testMethod": "test_send_notification_prints_recipient_sender_and_message"
+    },
+    {
+      "id": "notification-base-is-abstract",
+      "label": "Notification itself cannot be instantiated",
+      "testMethod": "test_notification_base_is_abstract"
+    },
+    {
+      "id": "every-notification-type-is-supported-without-changing-the-caller",
+      "label": "A caller using only the abstract interface works for every channel",
+      "testMethod": "test_every_notification_type_is_supported_without_changing_the_caller"
+    },
+    {
+      "id": "each-call-returns-a-new-object-and-equal-values-compare-equal",
+      "label": "Each call returns a new object; equal values compare equal",
+      "testMethod": "test_each_call_returns_a_new_object_and_equal_values_compare_equal"
+    }
+  ]
+}

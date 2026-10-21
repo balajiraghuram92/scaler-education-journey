@@ -1,0 +1,67 @@
+{
+  "id": "py-29-split-strategies",
+  "lessonSlug": "py-29-design-splitwise",
+  "title": "Exact Split Strategies with Largest Remainder",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `split_equal`, `split_exact` and `split_percentage` in `splits.py` using only the standard library. Every split must return integer minor units that sum exactly to the total. Percentages use exact `Fraction` arithmetic and the largest remainder method, and `float` percentages are refused.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "splits",
+      "path": "splits.py",
+      "displayName": "splits.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "equal-split-gives-remainder-to-first-users",
+      "label": "Equal split hands the remainder to the first users, one unit each",
+      "testMethod": "test_equal_split_gives_remainder_to_first_users"
+    },
+    {
+      "id": "equal-split-validation",
+      "label": "Equal split rejects non-positive or non-int totals and empty or duplicate users",
+      "testMethod": "test_equal_split_validation"
+    },
+    {
+      "id": "exact-split",
+      "label": "Exact split requires positive int amounts that sum to the total",
+      "testMethod": "test_exact_split"
+    },
+    {
+      "id": "percentage-split-largest-remainder",
+      "label": "Percentage split uses largest remainder with ties broken by input order",
+      "testMethod": "test_percentage_split_largest_remainder"
+    },
+    {
+      "id": "percentage-validation",
+      "label": "Rejects float percentages (TypeError) and percentages not summing to 100",
+      "testMethod": "test_percentage_validation"
+    },
+    {
+      "id": "shares-always-conserve-the-total-and-stay-within-one-unit",
+      "label": "Shares always sum to the total and stay within one unit of the exact share",
+      "testMethod": "test_shares_always_conserve_the_total_and_stay_within_one_unit"
+    },
+    {
+      "id": "results-preserve-input-order-and-exact-returns-a-copy",
+      "label": "Preserves user order and does not return the caller's own dict",
+      "testMethod": "test_results_preserve_input_order_and_exact_returns_a_copy"
+    },
+    {
+      "id": "percentage-edge-cases-zero-percent-and-single-user",
+      "label": "Handles a single user, rejects a 0% share and breaks ties by position",
+      "testMethod": "test_percentage_edge_cases_zero_percent_and_single_user"
+    }
+  ]
+}

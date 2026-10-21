@@ -1,0 +1,77 @@
+{
+  "id": "py-44-jwt-verifier-with-key-rotation",
+  "lessonSlug": "py-44-fastapi-auth-security",
+  "title": "JWT Verifier with Key Rotation",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `JwtCodec` and `require_scopes` in `jwt_lite.py` using only the standard library (`Unauthorized`, `Forbidden` and `Principal` are given). `issue` signs HS256 tokens with the active `kid`; `verify` pins the algorithm, selects the key by `kid`, compares signatures in constant time and validates `iss`, `aud`, `exp` and `nbf` with optional leeway, raising `Unauthorized` with a short reason. `require_scopes` raises `Forbidden` (403) for missing scopes.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "jwt-lite",
+      "path": "jwt_lite.py",
+      "displayName": "jwt_lite.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "round-trip-and-token-shape",
+      "label": "Issues compact unpadded HS256 tokens with the expected header and claims, and verifies them",
+      "testMethod": "test_round_trip_and_token_shape"
+    },
+    {
+      "id": "tampering-algorithm-confusion-and-garbage",
+      "label": "Rejects tampered payloads (signature), alg none/HS512 (alg) and garbage (malformed)",
+      "testMethod": "test_tampering_algorithm_confusion_and_garbage"
+    },
+    {
+      "id": "header-and-claims-must-be-json-objects",
+      "label": "Rejects non-object headers/claims and invalid JSON as malformed",
+      "testMethod": "test_header_and_claims_must_be_json_objects"
+    },
+    {
+      "id": "issuer-and-audience-checks",
+      "label": "Checks issuer and audience, accepting aud as a string or a list",
+      "testMethod": "test_issuer_and_audience_checks"
+    },
+    {
+      "id": "missing-required-claims",
+      "label": "Reports \"missing <claim>\" for each of sub, iss, aud, exp and iat",
+      "testMethod": "test_missing_required_claims"
+    },
+    {
+      "id": "expiry-and-leeway",
+      "label": "Rejects expired tokens and applies leeway to exp",
+      "testMethod": "test_expiry_and_leeway"
+    },
+    {
+      "id": "not-before-with-leeway",
+      "label": "Rejects tokens used before nbf, applying leeway",
+      "testMethod": "test_not_before_with_leeway"
+    },
+    {
+      "id": "key-rotation-overlap-and-unknown-kid",
+      "label": "Verifies retired-but-configured keys, fails with kid once removed, and checks each kid against its own key",
+      "testMethod": "test_key_rotation_overlap_and_unknown_kid"
+    },
+    {
+      "id": "require-scopes-is-403-not-401",
+      "label": "require_scopes raises Forbidden listing missing scopes sorted; Forbidden is not Unauthorized",
+      "testMethod": "test_require_scopes_is_403_not_401"
+    },
+    {
+      "id": "constructor-validation-and-principal-equality",
+      "label": "Rejects an unknown active_kid; Principal is frozen and ignores claims in equality",
+      "testMethod": "test_constructor_validation_and_principal_equality"
+    }
+  ]
+}

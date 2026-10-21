@@ -1,0 +1,67 @@
+{
+  "id": "py-30-command-executor",
+  "lessonSlug": "py-30-code-splitwise-1",
+  "title": "Command Pattern CLI Dispatcher",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "In `commands.py` make `Command` an abstract base class and implement `CommandExecutor`, `RegisterUser` and `SettleUpUser`. The executor runs the first matching command and turns `CommandError` into `Error: ...`. Matching must be exact, so use `fullmatch` and word checks, not `startswith`, and `matches` must never raise.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "commands",
+      "path": "commands.py",
+      "displayName": "commands.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "register-and-duplicate-phone",
+      "label": "Registers a user storing only the hashed password, and rejects a duplicate phone",
+      "testMethod": "test_register_and_duplicate_phone"
+    },
+    {
+      "id": "settle-up-user-output",
+      "label": "SettleUp joins the lines or reports Nothing to settle, passing the parsed user id",
+      "testMethod": "test_settle_up_user_output"
+    },
+    {
+      "id": "strict-matching",
+      "label": "Loose or malformed input falls through to Invalid command with no side effects",
+      "testMethod": "test_strict_matching"
+    },
+    {
+      "id": "first-match-wins-and-new-commands-need-no-executor-change",
+      "label": "The first matching command wins, and new Command subclasses plug in unchanged",
+      "testMethod": "test_first_match_wins_and_new_commands_need_no_executor_change"
+    },
+    {
+      "id": "only-command-errors-are-converted",
+      "label": "Only CommandError becomes an Error message; other exceptions propagate",
+      "testMethod": "test_only_command_errors_are_converted"
+    },
+    {
+      "id": "command-is-abstract",
+      "label": "Command is abstract and cannot be instantiated",
+      "testMethod": "test_command_is_abstract"
+    },
+    {
+      "id": "register-rejects-extra-words-and-non-digit-phones",
+      "label": "Register rejects extra words, short or long phones and odd names",
+      "testMethod": "test_register_rejects_extra_words_and_non_digit_phones"
+    },
+    {
+      "id": "matches-never-raises-on-odd-input",
+      "label": "matches() returns a bool, never raising, even for empty or Unicode input",
+      "testMethod": "test_matches_never_raises_on_odd_input"
+    }
+  ]
+}

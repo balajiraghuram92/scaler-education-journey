@@ -1,0 +1,67 @@
+{
+  "id": "py-05-table-creator-threads",
+  "lessonSlug": "py-05-processes-threads-gil",
+  "title": "Concurrent Multiplication Tables",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Implement `TableCreator` in `config/tableCreator.py` (the `Client` is provided). Each thread prints the ten lines of its number's table in the format `<num> times <i> is <result>`, one `print` call per line. Output of different tables may interleave, but each table must be complete, correct and in order.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "config-tablecreator",
+      "path": "config/tableCreator.py",
+      "displayName": "tableCreator.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "table-creator-is-a-thread-that-stores-its-number",
+      "label": "TableCreator extends Thread and stores its number",
+      "testMethod": "test_table_creator_is_a_thread_that_stores_its_number"
+    },
+    {
+      "id": "run-prints-ten-lines-in-the-exact-format",
+      "label": "run prints ten lines in the exact format",
+      "testMethod": "test_run_prints_ten_lines_in_the_exact_format"
+    },
+    {
+      "id": "zero-negative-and-larger-numbers",
+      "label": "Zero, negative and larger numbers work",
+      "testMethod": "test_zero_negative_and_larger_numbers"
+    },
+    {
+      "id": "started-thread-prints-its-whole-table",
+      "label": "A started thread prints its whole table",
+      "testMethod": "test_started_thread_prints_its_whole_table"
+    },
+    {
+      "id": "client-prints-every-table-completely-and-correctly",
+      "label": "The client prints every table completely and correctly",
+      "testMethod": "test_client_prints_every_table_completely_and_correctly"
+    },
+    {
+      "id": "lines-of-one-table-keep-their-own-order",
+      "label": "Lines of one table keep their own order",
+      "testMethod": "test_lines_of_one_table_keep_their_own_order"
+    },
+    {
+      "id": "client-starts-all-threads-before-joining-any",
+      "label": "The client starts all threads before joining any",
+      "testMethod": "test_client_starts_all_threads_before_joining_any"
+    },
+    {
+      "id": "client-waits-for-all-threads-and-handles-zero",
+      "label": "The client waits for all threads and handles n = 0",
+      "testMethod": "test_client_waits_for_all_threads_and_handles_zero"
+    }
+  ]
+}

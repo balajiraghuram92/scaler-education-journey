@@ -1,0 +1,27 @@
+{
+  "id": "py-17-video-quality-strategy",
+  "lessonSlug": "py-17-behavioural-patterns",
+  "title": "Video Quality Strategy",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 15,
+  "instructions": "Complete `video/strategies.py`. Declare the abstract `QualityAdjustmentStrategy.adjust_quality(video)` and implement `LowQualityStrategy`, `MediumQualityStrategy` and `HighQualityStrategy`: each sets the video's `quality`, `codec` and `bitrate` as in the table and returns the same video. `VideoStreamingManager`, `Video` and the enums are provided.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "strategies", "path": "video/strategies.py", "displayName": "strategies.py", "editable": true },
+    { "id": "manager", "path": "video/manager.py", "displayName": "manager.py", "editable": false },
+    { "id": "model", "path": "video/model.py", "displayName": "model.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "abstract-interface", "label": "QualityAdjustmentStrategy is an ABC and each level is a concrete strategy", "testMethod": "test_interface_is_abstract_and_declares_adjust_quality" },
+    { "id": "low", "label": "Low sets quality Low, codec H264, bitrate 500", "testMethod": "test_low_quality_settings" },
+    { "id": "medium", "label": "Medium sets quality Medium, codec H265, bitrate 1000", "testMethod": "test_medium_quality_settings" },
+    { "id": "high", "label": "High sets quality High, codec VP9, bitrate 2000", "testMethod": "test_high_quality_settings" },
+    { "id": "same-video", "label": "Strategies return the same video object", "testMethod": "test_strategies_return_the_same_video_object" },
+    { "id": "other-attributes", "label": "Strategies leave other attributes alone", "testMethod": "test_strategies_leave_other_attributes_alone" },
+    { "id": "manager-applies", "label": "The manager applies its strategy and returns the video", "testMethod": "test_manager_applies_its_strategy_and_returns_the_video" },
+    { "id": "runtime-swap", "label": "The strategy can be swapped at runtime", "testMethod": "test_strategy_can_be_swapped_at_runtime" },
+    { "id": "custom-strategy", "label": "A custom strategy works without touching the manager", "testMethod": "test_custom_strategy_works_without_touching_the_manager" }
+  ]
+}

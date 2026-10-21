@@ -1,0 +1,85 @@
+{
+  "id": "py-14-document-abstract-factory",
+  "lessonSlug": "py-14-factory",
+  "title": "Abstract Factory for Document Families",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Complete `config/abstract_factory.py`: declare the abstract `DocumentFactory` (`create_processor`, `create_parser`, `create_printer`, `supports_type`) and implement `TextDocumentFactory` and `SpreadsheetDocumentFactory` so each creates only products of its own document type. The printer is built from a processor, so pass the processor through. The product classes in the other files are provided.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "config-processor",
+      "path": "config/processor.py",
+      "displayName": "processor.py",
+      "editable": false
+    },
+    {
+      "id": "config-document-parser",
+      "path": "config/document_parser.py",
+      "displayName": "document_parser.py",
+      "editable": false
+    },
+    {
+      "id": "config-printer",
+      "path": "config/printer.py",
+      "displayName": "printer.py",
+      "editable": false
+    },
+    {
+      "id": "config-abstract-factory",
+      "path": "config/abstract_factory.py",
+      "displayName": "abstract_factory.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "document-factory-is-abstract-with-four-abstract-methods",
+      "label": "DocumentFactory is abstract and declares the four factory methods",
+      "testMethod": "test_document_factory_is_abstract_with_four_abstract_methods"
+    },
+    {
+      "id": "concrete-factories-are-instantiable-and-report-their-type",
+      "label": "Concrete factories are instantiable and report their DocumentType",
+      "testMethod": "test_concrete_factories_are_instantiable_and_report_their_type"
+    },
+    {
+      "id": "factory-creates-the-concrete-products-of-its-family",
+      "label": "Each factory creates the concrete processor, parser and printer of its type",
+      "testMethod": "test_factory_creates_the_concrete_products_of_its_family"
+    },
+    {
+      "id": "products-share-the-common-abstract-parents",
+      "label": "Every product is an instance of its common abstract parent",
+      "testMethod": "test_products_share_the_common_abstract_parents"
+    },
+    {
+      "id": "every-product-matches-the-factorys-type",
+      "label": "All products from one factory belong to the same document family",
+      "testMethod": "test_every_product_matches_the_factorys_type"
+    },
+    {
+      "id": "arguments-reach-the-products-and-printer-wraps-the-processor",
+      "label": "Arguments reach the products and the printer wraps the given processor",
+      "testMethod": "test_arguments_reach_the_products_and_printer_wraps_the_processor"
+    },
+    {
+      "id": "each-call-creates-a-new-product",
+      "label": "Each call creates a new product",
+      "testMethod": "test_each_call_creates_a_new_product"
+    },
+    {
+      "id": "client-code-depends-only-on-the-abstract-factory",
+      "label": "Client code using only DocumentFactory never mixes types",
+      "testMethod": "test_client_code_depends_only_on_the_abstract_factory"
+    }
+  ]
+}

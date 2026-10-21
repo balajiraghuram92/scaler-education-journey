@@ -1,0 +1,67 @@
+{
+  "id": "py-09-group-anagrams",
+  "lessonSlug": "py-09-collections-dataclasses-typing-exceptions",
+  "title": "Group Anagrams",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `group_anagrams(strs)` in `config/groupAnagrams.py`. Group the words that are anagrams of each other using a dictionary keyed by a canonical form such as the sorted letters. Keep words in first-seen order inside each group, order the groups by their first word, and return `[]` for `None` or an empty list without mutating the input.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "groupanagrams",
+      "path": "config/groupAnagrams.py",
+      "displayName": "groupAnagrams.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "groups",
+      "label": "Groups anagrams in first-seen order",
+      "testMethod": "test_groups_anagrams_in_first_seen_order"
+    },
+    {
+      "id": "empty-none",
+      "label": "Returns [] for [] and None",
+      "testMethod": "test_empty_and_none_return_empty_list"
+    },
+    {
+      "id": "single",
+      "label": "Handles a single string",
+      "testMethod": "test_single_string"
+    },
+    {
+      "id": "no-anagrams",
+      "label": "Gives one group per word when nothing matches",
+      "testMethod": "test_no_anagrams_gives_one_group_per_word"
+    },
+    {
+      "id": "mixed",
+      "label": "Orders groups by their first word",
+      "testMethod": "test_mixed_groups_keep_order_of_first_word"
+    },
+    {
+      "id": "frequencies",
+      "label": "Different letter frequencies are not anagrams",
+      "testMethod": "test_same_letters_with_different_frequencies_are_not_anagrams"
+    },
+    {
+      "id": "duplicates-empty",
+      "label": "Keeps duplicates and empty strings",
+      "testMethod": "test_duplicates_and_empty_strings_are_kept"
+    },
+    {
+      "id": "no-mutation",
+      "label": "Does not mutate the input and returns lists",
+      "testMethod": "test_does_not_mutate_input_and_returns_lists"
+    }
+  ]
+}

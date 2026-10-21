@@ -1,0 +1,82 @@
+{
+  "id": "py-08-retry-decorator",
+  "lessonSlug": "py-08-decorators-iterators-generators",
+  "title": "Retry Decorator",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement the decorator factory `retry(times, delay=0)` in `main/retry.py`. It validates its arguments as soon as `retry(...)` is called, retries the wrapped function up to `times` attempts with `time.sleep(delay)` between failures, and finally raises `RuntimeError` chained to the last exception. Use `functools.wraps` and `import time` as a module so tests can patch `main.retry.time.sleep`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "retry",
+      "path": "main/retry.py",
+      "displayName": "retry.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "first-success",
+      "label": "Returns the first success without retrying or sleeping",
+      "testMethod": "test_returns_result_on_first_success_without_sleeping"
+    },
+    {
+      "id": "retries",
+      "label": "Retries until the function succeeds",
+      "testMethod": "test_retries_until_function_succeeds"
+    },
+    {
+      "id": "forwards-args",
+      "label": "Forwards positional and keyword arguments",
+      "testMethod": "test_passes_args_and_kwargs_to_decorated_function"
+    },
+    {
+      "id": "delay-between",
+      "label": "Sleeps between failed attempts but not after the last",
+      "testMethod": "test_waits_delay_between_failed_attempts_but_not_after_the_last"
+    },
+    {
+      "id": "single-attempt",
+      "label": "times=1 never sleeps",
+      "testMethod": "test_single_attempt_never_sleeps"
+    },
+    {
+      "id": "runtime-error",
+      "label": "Raises RuntimeError with the exact message after all attempts fail",
+      "testMethod": "test_raises_runtime_error_after_all_attempts_fail"
+    },
+    {
+      "id": "chained-cause",
+      "label": "Chains the RuntimeError to the last exception",
+      "testMethod": "test_runtime_error_is_chained_to_the_last_exception"
+    },
+    {
+      "id": "wraps",
+      "label": "Preserves __name__ and __doc__",
+      "testMethod": "test_preserves_function_name_and_docstring"
+    },
+    {
+      "id": "times-validation",
+      "label": "Rejects invalid times eagerly with the exact message",
+      "testMethod": "test_times_must_be_a_positive_integer_and_is_checked_eagerly"
+    },
+    {
+      "id": "delay-validation",
+      "label": "Rejects invalid delay eagerly with the exact message",
+      "testMethod": "test_delay_must_be_non_negative_number_and_is_checked_eagerly"
+    },
+    {
+      "id": "valid-delay",
+      "label": "Accepts valid delay values",
+      "testMethod": "test_valid_delay_values_are_accepted"
+    }
+  ]
+}

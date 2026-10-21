@@ -1,0 +1,78 @@
+{
+  "id": "py-04-lend-return-book",
+  "lessonSlug": "py-04-oop-lab-session",
+  "title": "Library Lending and Returning",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 20,
+  "instructions": "Implement `Library.lend_book` and `Library.return_book` in `library.py`, using the provided model classes in `models.py`. Validate in this order before changing anything: the item must be a `Borrowable` (`TypeError`), the book must be available and the member under their limit (`ValueError`). The exact messages are part of the contract.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models",
+      "path": "models.py",
+      "displayName": "models.py",
+      "editable": false
+    },
+    {
+      "id": "library",
+      "path": "library.py",
+      "displayName": "library.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "successful-lend-returns-loan-and-updates-state",
+      "label": "A successful lend returns a Loan and updates book and member",
+      "testMethod": "test_successful_lend_returns_loan_and_updates_state"
+    },
+    {
+      "id": "non-borrowable-item-is-rejected",
+      "label": "A non-borrowable item raises TypeError('Item is not borrowable')",
+      "testMethod": "test_non_borrowable_item_is_rejected"
+    },
+    {
+      "id": "unavailable-book-is-rejected",
+      "label": "An unavailable book raises ValueError('Book not available')",
+      "testMethod": "test_unavailable_book_is_rejected"
+    },
+    {
+      "id": "borrow-limit-is-enforced",
+      "label": "The member limit raises ValueError('Borrow limit reached')",
+      "testMethod": "test_borrow_limit_is_enforced"
+    },
+    {
+      "id": "rules-are-checked-in-the-documented-order",
+      "label": "Rules are checked in the documented order",
+      "testMethod": "test_rules_are_checked_in_the_documented_order"
+    },
+    {
+      "id": "failed-lend-changes-no-state",
+      "label": "A failed lend changes no state",
+      "testMethod": "test_failed_lend_changes_no_state"
+    },
+    {
+      "id": "return-restores-availability-and-count",
+      "label": "Returning restores availability and the borrow count",
+      "testMethod": "test_return_restores_availability_and_count"
+    },
+    {
+      "id": "borrow-cycle-up-to-the-limit-and-again-after-a-return",
+      "label": "A member can borrow again after returning at the limit",
+      "testMethod": "test_borrow_cycle_up_to_the_limit_and_again_after_a_return"
+    },
+    {
+      "id": "service-uses-the-member-methods",
+      "label": "The service goes through the member's methods",
+      "testMethod": "test_service_uses_the_member_methods"
+    }
+  ]
+}

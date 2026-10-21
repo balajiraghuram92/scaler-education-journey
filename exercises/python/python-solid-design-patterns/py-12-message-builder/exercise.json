@@ -1,0 +1,73 @@
+{
+  "id": "py-12-message-builder",
+  "lessonSlug": "py-12-builder",
+  "title": "Builder for a Messaging Service",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `Message.builder()` and the nested `MessageBuilder` in `config/message_data.py`. The chained setters (`message_type`, `content`, `sender`, `recipient`, `is_delivered`, `timestamp`) each store a value and return the builder; `build()` returns a `Message` that later setter calls must not change. The `Builder` interface in `config/builder.py` is provided.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "config-builder",
+      "path": "config/builder.py",
+      "displayName": "builder.py",
+      "editable": false
+    },
+    {
+      "id": "config-message-data",
+      "path": "config/message_data.py",
+      "displayName": "message_data.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "builder-returns-a-new-builder-each-time",
+      "label": "builder() returns a fresh builder on every call",
+      "testMethod": "test_builder_returns_a_new_builder_each_time"
+    },
+    {
+      "id": "every-setter-returns-the-same-builder-for-chaining",
+      "label": "Every setter returns the builder so calls chain",
+      "testMethod": "test_every_setter_returns_the_same_builder_for_chaining"
+    },
+    {
+      "id": "every-setter-stores-its-value",
+      "label": "Each setter stores its value in the matching field",
+      "testMethod": "test_every_setter_stores_its_value"
+    },
+    {
+      "id": "build-with-nothing-set-gives-all-none",
+      "label": "build() with nothing set returns a Message of all None",
+      "testMethod": "test_build_with_nothing_set_gives_all_none"
+    },
+    {
+      "id": "partial-message-leaves-other-fields-none",
+      "label": "Fields that were never set stay None",
+      "testMethod": "test_partial_message_leaves_other_fields_none"
+    },
+    {
+      "id": "full-chain-builds-the-expected-message",
+      "label": "A full chain builds the expected Message",
+      "testMethod": "test_full_chain_builds_the_expected_message"
+    },
+    {
+      "id": "two-builders-do-not-share-state",
+      "label": "Two builders do not share state",
+      "testMethod": "test_two_builders_do_not_share_state"
+    },
+    {
+      "id": "built-object-is-independent-of-the-builder",
+      "label": "A built Message is not changed by later builder calls",
+      "testMethod": "test_built_object_is_independent_of_the_builder"
+    }
+  ]
+}
