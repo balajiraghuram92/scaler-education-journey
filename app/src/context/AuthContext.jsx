@@ -176,3 +176,10 @@ export function useAuth() {
   }
   return context;
 }
+
+// For components that work signed in or out (and in isolated tests without a provider).
+const SIGNED_OUT = Object.freeze({ user: null, isAuthenticated: false, isAdmin: false, loading: false });
+
+export function useOptionalAuth() {
+  return useContext(AuthContext) || SIGNED_OUT;
+}

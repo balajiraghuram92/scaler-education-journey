@@ -86,3 +86,15 @@
   color: #A94A3A;
   font-size: 0.78rem;
 }
+
+.coding-assignment__live {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 1rem 0 0.75rem;
+}
+
+.coding-assignment__live > .implementation-exercise {
+  align-self: stretch;
+}

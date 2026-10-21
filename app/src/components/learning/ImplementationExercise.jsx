@@ -285,8 +285,33 @@ function ReferenceSolution({
   );
 }
 
+// Saved-work and progress line: restored draft, run count, best score, solved.
+function ExerciseHistory({ history, isAuthenticated }) {
+  if (!isAuthenticated) {
+    return <p className="implementation-exercise__history">Sign in to save your code and run history across devices.</p>;
+  }
+  if (!history) return null;
+
+  const parts = [];
+  if (history.restoredDraft) parts.push('Restored your saved code');
+  else if (history.draftSavedAt) parts.push('Saved');
+  if (history.attemptCount > 0) parts.push(`${history.attemptCount} run${history.attemptCount === 1 ? '' : 's'}`);
+  const best = history.bestAttempt;
+  if (best && best.testsTotal > 0) parts.push(`best ${best.testsPassed}/${best.testsTotal} checks`);
+
+  if (parts.length === 0 && !history.solved) return null;
+  return (
+    <p className="implementation-exercise__history" aria-live="polite">
+      {history.solved && <span className="implementation-exercise__solved"><Check size={12} aria-hidden="true" /> Solved</span>}
+      {parts.join(' · ')}
+    </p>
+  );
+}
+
 export default function ImplementationExercise({ exerciseId, isExpanded, onToggleExpand }) {
   const {
+    history,
+    isAuthenticated,
     metadata,
     metadataState,
     workingFiles,
@@ -415,6 +440,7 @@ export default function ImplementationExercise({ exerciseId, isExpanded, onToggl
         <span>{metadata.difficulty}</span>
         <span>~{metadata.estimatedMinutes} MIN</span>
       </div>
+      <ExerciseHistory history={history} isAuthenticated={isAuthenticated} />
       {metadata.instructions && <p className="implementation-exercise__description">{metadata.instructions}</p>}
       {!metadata.instructions && <p className="implementation-exercise__description">Edit the starter files, then run the checks to verify the behavior described in this lesson.</p>}
 

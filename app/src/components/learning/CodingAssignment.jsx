@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { CheckCircle2, CircleDot, Terminal } from 'lucide-react';
+import { CheckCircle2, CircleDot, Code2, Terminal } from 'lucide-react';
 import { api } from '../../api/client';
+import ImplementationExercise from './ImplementationExercise';
 import MarkdownBlock from './MarkdownBlock';
 import './PracticeQuestions.css';
 import './CodingAssignment.css';
@@ -25,6 +26,7 @@ export default function CodingAssignment({ problem, index, isAuthenticated = fal
   const [userStatus, setUserStatus] = useState(problem.userStatus || null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [isLiveOpen, setIsLiveOpen] = useState(false);
   const revealRecordedRef = useRef(Boolean(problem.userStatus?.solutionRevealedAt));
 
   const currentStatus = userStatus?.status || 'NotStarted';
@@ -96,10 +98,29 @@ export default function CodingAssignment({ problem, index, isAuthenticated = fal
         </details>
       )}
 
+      {problem.exerciseId && (
+        <div className="coding-assignment__live">
+          {!isLiveOpen ? (
+            <button type="button" className="learning-button learning-button--run" onClick={() => setIsLiveOpen(true)}>
+              <Code2 size={13} /> Solve in the browser
+            </button>
+          ) : (
+            <ImplementationExercise
+              exerciseId={problem.exerciseId}
+              isExpanded
+              onToggleExpand={() => setIsLiveOpen(false)}
+            />
+          )}
+          {!isLiveOpen && (
+            <span className="coding-assignment__meta">Hidden tests run in a sandbox: see which checks pass, why others fail, and syntax/import errors.</span>
+          )}
+        </div>
+      )}
+
       {problem.runCommand && (
         <div className="prb-maven-box coding-assignment__run">
           <Terminal size={13} aria-hidden="true" />
-          <span className="maven-label">Run:</span>
+          <span className="maven-label">{problem.exerciseId ? 'Or run locally:' : 'Run:'}</span>
           <code className="maven-cmd">{problem.runCommand}</code>
         </div>
       )}
