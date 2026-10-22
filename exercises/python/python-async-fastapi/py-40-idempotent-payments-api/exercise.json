@@ -1,0 +1,72 @@
+{
+  "id": "py-40-idempotent-payments-api",
+  "lessonSlug": "py-40-fastapi-fundamentals",
+  "title": "Idempotent Payments API",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Build `POST /payments` in `main.py` with a required `Idempotency-Key` header: the first request returns 201, an identical retry returns 200 with `Idempotent-Replayed: true` and the same payment, and a different body under the same key returns 409. Every error uses the envelope `{\"error\": {\"code\", \"message\", \"fields\"}}`, and the endpoint is a plain `def` guarded by `_LOCK` so concurrent retries stay correct.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "main",
+      "path": "main.py",
+      "displayName": "main.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "first-call-creates-a-captured-payment",
+      "label": "The first request returns 201 with a captured payment and no replay header",
+      "testMethod": "test_first_call_creates_a_captured_payment"
+    },
+    {
+      "id": "replay-returns-stored-payment",
+      "label": "An identical retry returns 200, the same payment and Idempotent-Replayed: true",
+      "testMethod": "test_replay_returns_stored_payment"
+    },
+    {
+      "id": "different-keys-create-different-payments",
+      "label": "Different keys create different payments",
+      "testMethod": "test_different_keys_create_different_payments"
+    },
+    {
+      "id": "key-reuse-with-different-body-is-409-envelope",
+      "label": "Reusing a key with a different body returns 409 idempotency_key_reuse in the envelope",
+      "testMethod": "test_key_reuse_with_different_body_is_409_envelope"
+    },
+    {
+      "id": "missing-key-uses-the-envelope",
+      "label": "A missing key returns 422 validation_error with a field location naming the header",
+      "testMethod": "test_missing_key_uses_the_envelope"
+    },
+    {
+      "id": "short-key-is-rejected",
+      "label": "Rejects keys shorter than 8 characters",
+      "testMethod": "test_short_key_is_rejected"
+    },
+    {
+      "id": "invalid-body-fields-are-reported-by-dotted-location",
+      "label": "Reports invalid body fields by dotted location and enforces amount, currency and customer limits",
+      "testMethod": "test_invalid_body_fields_are_reported_by_dotted_location"
+    },
+    {
+      "id": "concurrent-retries-create-exactly-one-payment",
+      "label": "20 concurrent identical requests produce one 201, nineteen 200s and one stored payment",
+      "testMethod": "test_concurrent_retries_create_exactly_one_payment"
+    },
+    {
+      "id": "endpoint-is-a-plain-def-and-router-is-mounted",
+      "label": "The endpoint is a plain def mounted at /payments",
+      "testMethod": "test_endpoint_is_a_plain_def_and_router_is_mounted"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "py-33-thread-safe-lazy",
+  "lessonSlug": "py-33-scopes-closures-descriptors",
+  "title": "Thread-Safe Lazy Attribute Descriptor",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Implement the `lazy` descriptor in `lazy.py`: a thread-safe, non-data descriptor that computes a method once per instance and caches it in `obj.__dict__`. Use double-checked locking, never cache exceptions, cache a legitimate `None`, return the descriptor on class access, and fail loudly in `__set_name__` if one `lazy` object is bound to two names.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "lazy",
+      "path": "lazy.py",
+      "displayName": "lazy.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "computed-once-and-cached-in-dict",
+      "label": "Computes once and stores the value in the instance __dict__",
+      "testMethod": "test_computed_once_and_cached_in_dict"
+    },
+    {
+      "id": "per-instance-isolation",
+      "label": "Each instance caches separately",
+      "testMethod": "test_per_instance_isolation"
+    },
+    {
+      "id": "class-access-returns-descriptor",
+      "label": "Class access returns the descriptor, which records its attribute name",
+      "testMethod": "test_class_access_returns_descriptor"
+    },
+    {
+      "id": "delete-invalidates-and-assignment-overrides",
+      "label": "del invalidates the cache and plain assignment overrides it (non-data descriptor)",
+      "testMethod": "test_delete_invalidates_and_assignment_overrides"
+    },
+    {
+      "id": "exceptions-are-not-cached",
+      "label": "An exception is not cached, so the next access recomputes",
+      "testMethod": "test_exceptions_are_not_cached"
+    },
+    {
+      "id": "threads-compute-once",
+      "label": "Eight simultaneous readers trigger exactly one computation",
+      "testMethod": "test_threads_compute_once"
+    },
+    {
+      "id": "same-descriptor-under-two-names-is-rejected",
+      "label": "Binding one lazy to two names raises TypeError mentioning 'two names'",
+      "testMethod": "test_same_descriptor_under_two_names_is_rejected"
+    },
+    {
+      "id": "none-result-is-cached",
+      "label": "A None result is cached rather than treated as a miss",
+      "testMethod": "test_none_result_is_cached"
+    },
+    {
+      "id": "attributes-cached-independently-and-inherited",
+      "label": "Different lazy attributes cache independently and work through inheritance",
+      "testMethod": "test_attributes_cached_independently_and_inherited"
+    }
+  ]
+}

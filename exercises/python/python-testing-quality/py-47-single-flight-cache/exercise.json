@@ -1,0 +1,62 @@
+{
+  "id": "py-47-single-flight-cache",
+  "lessonSlug": "py-47-mocking-async-tests",
+  "title": "Single-Flight TTL Cache with Deterministic Concurrency Tests",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `SingleFlightCache` in `singleflight.py`: an async TTL cache where concurrent misses for the same key share one `asyncio.Task` load. Failures are shared with every waiter but never cached, and cancelling one waiter must not cancel the load (use `asyncio.shield`). Always remove the in-flight entry when the load ends.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "singleflight",
+      "path": "singleflight.py",
+      "displayName": "singleflight.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "single-load",
+      "label": "Five concurrent misses trigger exactly one loader call",
+      "testMethod": "test_concurrent_misses_share_one_load"
+    },
+    {
+      "id": "ttl-reload",
+      "label": "Serves fresh values from cache and reloads after the TTL",
+      "testMethod": "test_ttl_expiry_triggers_reload"
+    },
+    {
+      "id": "ttl-boundary",
+      "label": "A value exactly one TTL old is treated as expired",
+      "testMethod": "test_value_is_stale_exactly_at_ttl"
+    },
+    {
+      "id": "failure-shared",
+      "label": "A failed load raises for every waiter and is not cached",
+      "testMethod": "test_failure_is_shared_but_not_cached"
+    },
+    {
+      "id": "cancel-waiter",
+      "label": "Cancelling one waiter does not cancel the load for the others",
+      "testMethod": "test_cancelled_waiter_does_not_cancel_the_shared_load"
+    },
+    {
+      "id": "cancel-sole-waiter",
+      "label": "The load completes and is cached even if its only waiter was cancelled",
+      "testMethod": "test_cancelled_only_waiter_still_populates_cache"
+    },
+    {
+      "id": "keys-independent",
+      "label": "Different keys load independently and are cached separately",
+      "testMethod": "test_different_keys_load_independently"
+    }
+  ]
+}

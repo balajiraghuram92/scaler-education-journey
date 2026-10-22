@@ -1,0 +1,77 @@
+{
+  "id": "py-56-tenant-gate",
+  "lessonSlug": "py-56-serving-ai-fastapi",
+  "title": "Per-Tenant Rate Limit, Budget and Cache Gateway",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `create_app` in `tenant_gate.py` (`Generation` and the constants are provided): a FastAPI `POST /chat` that applies, in order, a per-tenant token-bucket rate limit, an exact-match TTL cache (temperature 0 only), a per-tenant daily budget guard and the injected `generate` call. Time comes only from the injected `clock`, rate limits and budget exhaustion use different 429 bodies, and provider failures return 502 without spend or caching.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "tenant-gate",
+      "path": "tenant_gate.py",
+      "displayName": "tenant_gate.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "burst-429",
+      "label": "A burst is allowed, then 429 rate_limited with a ceil-based Retry-After header",
+      "testMethod": "test_burst_then_429_with_retry_after"
+    },
+    {
+      "id": "bucket-refill",
+      "label": "The token bucket refills according to the injected clock",
+      "testMethod": "test_bucket_refills_with_the_injected_clock"
+    },
+    {
+      "id": "rate-per-tenant",
+      "label": "Rate limits are tracked per tenant",
+      "testMethod": "test_limits_are_per_tenant"
+    },
+    {
+      "id": "cache-free",
+      "label": "A cache hit costs nothing, skips the provider and is still rate limited",
+      "testMethod": "test_cache_hit_is_free_and_skips_the_provider"
+    },
+    {
+      "id": "cache-scope",
+      "label": "The cache is tenant-scoped and ignores non-zero temperatures",
+      "testMethod": "test_cache_is_isolated_by_tenant_and_ignores_hot_temperatures"
+    },
+    {
+      "id": "cache-ttl",
+      "label": "Cache entries expire after cache_ttl_s",
+      "testMethod": "test_cache_entries_expire"
+    },
+    {
+      "id": "budget-exhausted",
+      "label": "Budget exhaustion is a distinct 429 without Retry-After and resets the next UTC day",
+      "testMethod": "test_budget_exhaustion_is_a_distinct_error_and_resets_next_day"
+    },
+    {
+      "id": "budget-per-tenant",
+      "label": "The daily budget is tracked per tenant",
+      "testMethod": "test_budget_is_per_tenant"
+    },
+    {
+      "id": "provider-502",
+      "label": "A provider failure returns 502 upstream_failed and costs nothing",
+      "testMethod": "test_provider_failure_is_502_and_costs_nothing"
+    },
+    {
+      "id": "validation",
+      "label": "A missing tenant header or an invalid body returns 422",
+      "testMethod": "test_validation_and_missing_tenant_header"
+    }
+  ]
+}

@@ -47,7 +47,8 @@ public static class V2Endpoints
         // 4. Chapter Reader
         group.MapGet("/chapters/{courseSlug}/{moduleSlug}/{lessonSlug}", async (
             string courseSlug, string moduleSlug, string lessonSlug,
-            StudyTrackerContext db, ICurrentUser currentUser, LearnerProgressService progress) =>
+            StudyTrackerContext db, ICurrentUser currentUser, LearnerProgressService progress,
+            StudyTracker.Api.Services.Exercises.IExerciseRepository exerciseRepository) =>
         {
             var userId = currentUser.UserId;
             var lesson = await db.Lessons
@@ -142,6 +143,8 @@ public static class V2Endpoints
                     p.ReferenceSolution,
                     p.SourceType,
                     p.OrderIndex,
+                    // Live in-browser exercise (hidden tests) when one exists for this assignment.
+                    exerciseId = exerciseRepository.GetById(p.Slug) is null ? null : p.Slug,
                     IsCompleted = problemProgress.TryGetValue(p.Id, out var pp) && pp.Status == "Solved",
                     userStatus = problemProgress.TryGetValue(p.Id, out var ps) ? ps : null
                 }),

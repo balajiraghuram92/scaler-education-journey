@@ -62,6 +62,17 @@ public sealed class SurefireResultParser
             ? mappedEvidence
             : null;
 
+        // pytest parametrized cases are reported as "test_name[case]": map them to the
+        // function's evidence and keep the case id visible in the label.
+        string? caseSuffix = null;
+        var bracket = method.IndexOf('[');
+        if (evidence is null && bracket > 0 && method.EndsWith(']') &&
+            definition.EvidenceByTestMethod.TryGetValue(method[..bracket], out var parametrizedEvidence))
+        {
+            evidence = parametrizedEvidence;
+            caseSuffix = method[bracket..];
+        }
+
         var failure = testCase.Element("failure");
         var error = testCase.Element("error");
         var skipped = testCase.Element("skipped");
@@ -77,8 +88,8 @@ public sealed class SurefireResultParser
         return new ParsedSurefireTest
         {
             TestMethod = method,
-            EvidenceId = evidence?.Id,
-            Label = evidence?.Label,
+            EvidenceId = evidence is null ? null : caseSuffix is null ? evidence.Id : evidence.Id + caseSuffix,
+            Label = evidence is null ? null : caseSuffix is null ? evidence.Label : $"{evidence.Label} {caseSuffix}",
             Status = status,
             Duration = ParseDuration(testCase.Attribute("time")?.Value),
             Message = diagnostic is null ? null : Truncate(diagnostic.Attribute("message")?.Value ?? diagnostic.Value)

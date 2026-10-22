@@ -1,0 +1,73 @@
+{
+  "id": "py-14-document-simple-factory",
+  "lessonSlug": "py-14-factory",
+  "title": "Simple Factory for Document Processors",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 20,
+  "instructions": "Implement the three processors in `document/products.py` (type, one-line `process_document`, and the extra `perform_data_analysis` / `add_slide`) and the static `DocumentFactory.create_document` in `document/factory.py`. The factory builds only the selected processor and raises `ValueError` for an unsupported type.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "document-products",
+      "path": "document/products.py",
+      "displayName": "products.py",
+      "editable": true
+    },
+    {
+      "id": "document-factory",
+      "path": "document/factory.py",
+      "displayName": "factory.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "factory-returns-the-right-concrete-type",
+      "label": "The factory returns the right processor for each document type",
+      "testMethod": "test_factory_returns_the_right_concrete_type"
+    },
+    {
+      "id": "unknown-type-raises-value-error",
+      "label": "An unsupported type raises ValueError",
+      "testMethod": "test_unknown_type_raises_value_error"
+    },
+    {
+      "id": "process-document-prints-a-line-with-the-name",
+      "label": "process_document() prints one line containing the document name",
+      "testMethod": "test_process_document_prints_a_line_with_the_name"
+    },
+    {
+      "id": "each-processor-describes-its-own-kind",
+      "label": "Each processor's output describes its own kind of document",
+      "testMethod": "test_each_processor_describes_its_own_kind"
+    },
+    {
+      "id": "specialised-operations",
+      "label": "Spreadsheet analysis and presentation add_slide exist only where they belong",
+      "testMethod": "test_specialised_operations"
+    },
+    {
+      "id": "factory-returns-a-new-processor-each-call",
+      "label": "Each call returns a new processor with its own name",
+      "testMethod": "test_factory_returns_a_new_processor_each_call"
+    },
+    {
+      "id": "factory-builds-only-the-selected-processor",
+      "label": "Only the selected processor is constructed",
+      "testMethod": "test_factory_builds_only_the_selected_processor"
+    },
+    {
+      "id": "every-document-type-is-handled-through-the-base-interface",
+      "label": "Every DocumentType is supported through the base interface",
+      "testMethod": "test_every_document_type_is_handled_through_the_base_interface"
+    }
+  ]
+}

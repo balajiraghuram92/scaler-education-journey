@@ -1,0 +1,79 @@
+{
+  "id": "py-11-connection-pool",
+  "lessonSlug": "py-11-singleton",
+  "title": "Connection Pool (Singleton)",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "Implement `ConnectionPoolImpl` in `pool/connection_pool_impl.py` as a thread-safe singleton that owns `max_connections` `DatabaseConnection` objects. `get_connection()` must block when the pool is empty, `release_connection()` returns a connection (ignoring `None`), and `reset_instance()` clears the singleton.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "pool-database-connection",
+      "path": "pool/database_connection.py",
+      "displayName": "database_connection.py",
+      "editable": false
+    },
+    {
+      "id": "pool-connection-pool",
+      "path": "pool/connection_pool.py",
+      "displayName": "connection_pool.py",
+      "editable": false
+    },
+    {
+      "id": "pool-connection-pool-impl",
+      "path": "pool/connection_pool_impl.py",
+      "displayName": "connection_pool_impl.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "get-instance-returns-the-same-pool",
+      "label": "get_instance() returns the same shared pool",
+      "testMethod": "test_get_instance_returns_the_same_pool"
+    },
+    {
+      "id": "same-instance-across-threads",
+      "label": "Concurrent first calls to get_instance() create exactly one pool",
+      "testMethod": "test_same_instance_across_threads"
+    },
+    {
+      "id": "reset-instance-allows-a-new-pool",
+      "label": "reset_instance() lets a new pool of a different size be created",
+      "testMethod": "test_reset_instance_allows_a_new_pool"
+    },
+    {
+      "id": "pool-starts-full-with-distinct-connections",
+      "label": "Pool starts full with distinct DatabaseConnection objects",
+      "testMethod": "test_pool_starts_full_with_distinct_connections"
+    },
+    {
+      "id": "borrow-and-release-update-available-count",
+      "label": "Borrow and release update the available count; total stays fixed",
+      "testMethod": "test_borrow_and_release_update_available_count"
+    },
+    {
+      "id": "release-none-is-ignored",
+      "label": "Releasing None is ignored",
+      "testMethod": "test_release_none_is_ignored"
+    },
+    {
+      "id": "get-connection-blocks-until-one-is-released",
+      "label": "An exhausted pool blocks the caller until a connection is released",
+      "testMethod": "test_get_connection_blocks_until_one_is_released"
+    },
+    {
+      "id": "many-threads-never-exceed-pool-size",
+      "label": "Many threads never hold more connections than the pool size",
+      "testMethod": "test_many_threads_never_exceed_pool_size"
+    }
+  ]
+}

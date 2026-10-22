@@ -1,0 +1,2 @@
+class InvalidRoomException(Exception):
+    pass

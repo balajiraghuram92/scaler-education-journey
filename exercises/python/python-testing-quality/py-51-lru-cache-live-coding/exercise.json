@@ -1,0 +1,77 @@
+{
+  "id": "py-51-lru-cache-live-coding",
+  "lessonSlug": "py-51-python-interview-playbook",
+  "title": "LRU Cache: The Classic Round, Done Senior-Style",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Implement a thread-safe, generic `LRUCache[K, V]` and the frozen `CacheStats` dataclass in `lru.py` with O(1) average operations. Recency is refreshed by `get`, `put` and `get_or_set` but not by `in` or `len`; `get_or_set` runs its factory at most once per missing key; `capacity < 1` raises `ValueError`. Be ready to explain the hash-map-plus-linked-list alternative.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "lru",
+      "path": "lru.py",
+      "displayName": "lru.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "capacity-validation",
+      "label": "capacity below 1 raises ValueError(\"capacity must be >= 1\")",
+      "testMethod": "test_capacity_must_be_positive"
+    },
+    {
+      "id": "lru-eviction",
+      "label": "Evicts the least recently used key when over capacity",
+      "testMethod": "test_evicts_least_recently_used"
+    },
+    {
+      "id": "put-refresh",
+      "label": "Updating an existing key refreshes recency without evicting",
+      "testMethod": "test_put_existing_key_updates_value_and_recency_without_eviction"
+    },
+    {
+      "id": "capacity-one",
+      "label": "A capacity-1 cache evicts on every new key and counts evictions",
+      "testMethod": "test_capacity_one_and_eviction_count"
+    },
+    {
+      "id": "contains-recency",
+      "label": "The in operator does not change recency or hit/miss counts",
+      "testMethod": "test_contains_does_not_change_recency"
+    },
+    {
+      "id": "default-and-stats",
+      "label": "get returns the default on a miss; stats report hits, misses and are frozen",
+      "testMethod": "test_get_returns_default_and_stats_are_frozen"
+    },
+    {
+      "id": "get-or-set-once",
+      "label": "get_or_set calls the factory once and does not cache failures",
+      "testMethod": "test_get_or_set_calls_factory_once_and_does_not_cache_failures"
+    },
+    {
+      "id": "get-or-set-recency",
+      "label": "get_or_set refreshes recency and counts hits and misses",
+      "testMethod": "test_get_or_set_refreshes_recency_and_counts_hits_and_misses"
+    },
+    {
+      "id": "get-or-set-threads",
+      "label": "Concurrent get_or_set calls run the factory exactly once",
+      "testMethod": "test_get_or_set_runs_factory_once_across_threads"
+    },
+    {
+      "id": "thread-safety",
+      "label": "Eight hammering threads never push the size over capacity",
+      "testMethod": "test_size_never_exceeds_capacity_under_threads"
+    }
+  ]
+}

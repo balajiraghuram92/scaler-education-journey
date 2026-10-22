@@ -1,0 +1,77 @@
+{
+  "id": "py-05-threaded-map",
+  "lessonSlug": "py-05-processes-threads-gil",
+  "title": "Ordered Threaded Map with Error Aggregation",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `SafeCounter` and `threaded_map` in `tmap.py` using only `threading` and `queue`. Workers pull indices from a `queue.Queue`, results keep input order, at most `workers` threads run, and every failure is collected and raised together as an `ExceptionGroup` after all threads have been joined. Do not sleep or busy-wait.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "tmap",
+      "path": "tmap.py",
+      "displayName": "tmap.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "results-keep-input-order-even-when-finish-order-differs",
+      "label": "Results keep input order when finish order differs",
+      "testMethod": "test_results_keep_input_order_even_when_finish_order_differs"
+    },
+    {
+      "id": "basic-mapping-and-input-types",
+      "label": "Basic mapping works for several input types and None results",
+      "testMethod": "test_basic_mapping_and_input_types"
+    },
+    {
+      "id": "empty-input-and-invalid-workers",
+      "label": "Empty input returns [] without threads; workers < 1 raises ValueError",
+      "testMethod": "test_empty_input_and_invalid_workers"
+    },
+    {
+      "id": "runs-items-in-parallel-up-to-the-worker-count",
+      "label": "Items run in parallel up to the worker count",
+      "testMethod": "test_runs_items_in_parallel_up_to_the_worker_count"
+    },
+    {
+      "id": "thread-count-is-bounded-by-workers-and-by-items",
+      "label": "Thread count is bounded by workers and by items",
+      "testMethod": "test_thread_count_is_bounded_by_workers_and_by_items"
+    },
+    {
+      "id": "active-workers-never-exceed-limit-and-no-threads-leak",
+      "label": "Active workers never exceed the limit and no threads leak",
+      "testMethod": "test_active_workers_never_exceed_limit_and_no_threads_leak"
+    },
+    {
+      "id": "waits-for-everything-then-raises-group-in-input-order",
+      "label": "All items run, then an ExceptionGroup is raised in input order",
+      "testMethod": "test_waits_for_everything_then_raises_group_in_input_order"
+    },
+    {
+      "id": "work-is-distributed-through-a-queue",
+      "label": "Work is distributed through a queue.Queue",
+      "testMethod": "test_work_is_distributed_through_a_queue"
+    },
+    {
+      "id": "safe-counter-semantics",
+      "label": "SafeCounter incr returns the new value and value reads it",
+      "testMethod": "test_safe_counter_semantics"
+    },
+    {
+      "id": "safe-counter-has-no-lost-updates",
+      "label": "SafeCounter has no lost updates under contention",
+      "testMethod": "test_safe_counter_has_no_lost_updates"
+    }
+  ]
+}

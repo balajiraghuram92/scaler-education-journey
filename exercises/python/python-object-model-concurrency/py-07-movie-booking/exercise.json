@@ -1,0 +1,67 @@
+{
+  "id": "py-07-movie-booking",
+  "lessonSlug": "py-07-synchronization-async-intro",
+  "title": "Movie Ticket Booking with a Reentrant Lock",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Implement `MovieTicketBookingSystem` and `book_seats` in `config/movieBooking.py`. The system tracks `total_seats` and `available_seats` behind a `threading.RLock` named `lock`. `reserve_seats` checks and decrements inside one critical section, returning `True` or `False`, so many threads can book without ever overbooking.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "moviebooking",
+      "path": "config/movieBooking.py",
+      "displayName": "movieBooking.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "initial-state",
+      "label": "Starts with all seats free and uses an RLock",
+      "testMethod": "test_initial_state_and_reentrant_lock"
+    },
+    {
+      "id": "reserve-semantics",
+      "label": "Reserves seats and leaves the count unchanged on failure",
+      "testMethod": "test_reserve_updates_availability_and_failure_changes_nothing"
+    },
+    {
+      "id": "boundary",
+      "label": "Allows booking exactly the remaining seats, then refuses",
+      "testMethod": "test_exact_boundary_books_last_seats_then_refuses"
+    },
+    {
+      "id": "no-overbooking",
+      "label": "Never overbooks when many threads book at once",
+      "testMethod": "test_concurrent_booking_never_overbooks"
+    },
+    {
+      "id": "mixed-sizes",
+      "label": "Accounts for every seat with larger bookings",
+      "testMethod": "test_mixed_sizes_account_for_every_seat"
+    },
+    {
+      "id": "atomic",
+      "label": "Check and decrement form one critical section",
+      "testMethod": "test_check_and_decrement_are_one_critical_section"
+    },
+    {
+      "id": "holds-lock",
+      "label": "reserve_seats and get_available_seats hold the lock",
+      "testMethod": "test_reads_and_reservations_hold_the_lock"
+    },
+    {
+      "id": "book-seats",
+      "label": "book_seats prints the success or failure message",
+      "testMethod": "test_book_seats_prints_the_outcome"
+    }
+  ]
+}

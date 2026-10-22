@@ -1,0 +1,28 @@
+{
+  "id": "py-17-stock-price-observer",
+  "lessonSlug": "py-17-behavioural-patterns",
+  "title": "Stock Price Observer",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement the Observer pattern across `stock/observer.py`, `stock/publisher.py` and `stock/manager.py`. Declare the `Observer` interface with `send_notification(stock_name, current_price)` and update the three channel services. Make `Publisher` keep an `observers` list and notify in order, and make `StockTradingManager` notify only when the new price is strictly above its threshold. `ObserverRegistry` is provided.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "observer", "path": "stock/observer.py", "displayName": "observer.py", "editable": true },
+    { "id": "publisher", "path": "stock/publisher.py", "displayName": "publisher.py", "editable": true },
+    { "id": "manager", "path": "stock/manager.py", "displayName": "manager.py", "editable": true },
+    { "id": "registry", "path": "stock/registry.py", "displayName": "registry.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "observer-interface", "label": "Observer is an ABC and each channel prints its own notification", "testMethod": "test_observer_interface_and_channel_services" },
+    { "id": "per-instance-list", "label": "Publisher keeps a per-instance observers list", "testMethod": "test_publisher_keeps_a_per_instance_observers_list" },
+    { "id": "notification-order", "label": "Every observer is notified in subscription order", "testMethod": "test_notify_reaches_every_observer_in_subscription_order" },
+    { "id": "unsubscribe", "label": "An unsubscribed observer is not notified", "testMethod": "test_unsubscribed_observer_is_not_notified" },
+    { "id": "late-subscribe", "label": "Observers can subscribe at runtime and see later updates only", "testMethod": "test_observers_can_subscribe_at_runtime" },
+    { "id": "manager-state", "label": "Manager is a Publisher with the right initial state", "testMethod": "test_manager_is_a_publisher_with_initial_state" },
+    { "id": "threshold", "label": "Notifies only when price is strictly above the threshold", "testMethod": "test_notifies_only_when_price_is_strictly_above_threshold" },
+    { "id": "price-updated", "label": "Price is updated even when nobody is notified", "testMethod": "test_price_is_updated_even_when_nobody_is_notified" },
+    { "id": "real-channels", "label": "Real channels work through the manager in order", "testMethod": "test_real_channels_work_through_the_manager" }
+  ]
+}

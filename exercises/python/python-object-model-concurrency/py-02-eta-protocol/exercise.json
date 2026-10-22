@@ -1,0 +1,69 @@
+{
+  "id": "py-02-eta-protocol",
+  "lessonSlug": "py-02-abcs-protocols-mixins",
+  "title": "Protocol for Third-Party ETA Providers",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Complete `eta_protocol.py`, `eta_service.py` and `vendor_map.py`. Make `ETAProvider` a runtime-checkable `Protocol`, give `InternalETAProvider` and `VendorMapETA` the `estimate_minutes` method without inheriting the protocol, and have `get_eta` reject any object that does not conform before calling it.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "eta-protocol",
+      "path": "eta_protocol.py",
+      "displayName": "eta_protocol.py",
+      "editable": true
+    },
+    {
+      "id": "eta-service",
+      "path": "eta_service.py",
+      "displayName": "eta_service.py",
+      "editable": true
+    },
+    {
+      "id": "vendor-map",
+      "path": "vendor_map.py",
+      "displayName": "vendor_map.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "protocol-is-runtime-checkable",
+      "label": "ETAProvider supports isinstance (runtime_checkable)",
+      "testMethod": "test_protocol_is_runtime_checkable"
+    },
+    {
+      "id": "providers-satisfy-the-protocol-without-inheriting",
+      "label": "Both providers conform structurally without inheriting",
+      "testMethod": "test_providers_satisfy_the_protocol_without_inheriting"
+    },
+    {
+      "id": "vendor-provider-returns-42",
+      "label": "VendorMapETA always returns 42.0",
+      "testMethod": "test_vendor_provider_returns_42"
+    },
+    {
+      "id": "internal-provider-formula",
+      "label": "InternalETAProvider follows the hash formula",
+      "testMethod": "test_internal_provider_formula"
+    },
+    {
+      "id": "get-eta-delegates-with-arguments-in-order",
+      "label": "get_eta delegates with origin and destination in order",
+      "testMethod": "test_get_eta_delegates_with_arguments_in_order"
+    },
+    {
+      "id": "get-eta-rejects-objects-without-estimate-minutes",
+      "label": "get_eta raises TypeError for non-conforming objects",
+      "testMethod": "test_get_eta_rejects_objects_without_estimate_minutes"
+    }
+  ]
+}

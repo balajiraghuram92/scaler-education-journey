@@ -1,0 +1,67 @@
+{
+  "id": "py-46-budget-service-suite",
+  "lessonSlug": "py-46-pytest-fixtures",
+  "title": "Budget Service with a Fixture-Driven Test Suite",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Implement `BudgetExceeded`, `InMemoryUsageRepo` and `BudgetService` in `budget.py`. `charge` validates the token count, reads usage, rejects anything over the limit without writing, and otherwise returns the new total. Hidden pytest checks use `conftest.py` fixtures and a boundary table, so the exact error message and attributes matter.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "budget",
+      "path": "budget.py",
+      "displayName": "budget.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "boundary-table",
+      "label": "Allows charges up to exactly the limit and rejects one token over",
+      "testMethod": "test_limit_boundary"
+    },
+    {
+      "id": "non-positive",
+      "label": "Raises ValueError(\"tokens must be positive\") for zero and negative tokens",
+      "testMethod": "test_rejects_non_positive"
+    },
+    {
+      "id": "no-side-effect",
+      "label": "A rejected charge leaves usage unchanged and exposes tenant, used, requested and limit",
+      "testMethod": "test_rejected_charge_has_no_side_effect"
+    },
+    {
+      "id": "exception-message",
+      "label": "BudgetExceeded message reads \"<tenant>: <used>+<requested> exceeds limit <limit>\"",
+      "testMethod": "test_exception_message_format"
+    },
+    {
+      "id": "tenant-isolation",
+      "label": "Tenants are charged independently",
+      "testMethod": "test_tenants_are_isolated"
+    },
+    {
+      "id": "repo-behaviour",
+      "label": "InMemoryUsageRepo returns 0 for unknown tenants and running totals from add",
+      "testMethod": "test_repo_unknown_tenant_and_running_total"
+    },
+    {
+      "id": "remaining-via-repo",
+      "label": "remaining() reads usage through the repo",
+      "testMethod": "test_remaining_reflects_seeded_usage"
+    },
+    {
+      "id": "protocol-only",
+      "label": "BudgetService works with any object satisfying the UsageRepo protocol",
+      "testMethod": "test_service_depends_only_on_the_protocol"
+    }
+  ]
+}

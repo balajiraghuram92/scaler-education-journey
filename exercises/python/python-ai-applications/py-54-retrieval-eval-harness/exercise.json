@@ -1,0 +1,77 @@
+{
+  "id": "py-54-retrieval-eval-harness",
+  "lessonSlug": "py-54-rag-pipelines",
+  "title": "Hybrid Retrieval Evaluation Harness with Regression Gate",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `BM25`, `rrf`, `hybrid`, `ndcg_at_k`, `evaluate` and `regressions` in `rag_eval.py` (`tokenize` and the two dataclasses are provided). A retriever is just `Callable[[str], list[str]]`, so one `evaluate` scores a vector search, BM25 or a fused hybrid on a golden set (recall@k, MRR, nDCG@k), and `regressions` flags metrics that dropped beyond a tolerance for a CI gate.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "rag-eval",
+      "path": "rag_eval.py",
+      "displayName": "rag_eval.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "rrf-fusion",
+      "label": "rrf prefers documents ranked well by several lists",
+      "testMethod": "test_rrf_prefers_documents_ranked_well_by_both_lists"
+    },
+    {
+      "id": "rrf-ties-and-k",
+      "label": "rrf breaks ties by id, handles empty input and sums 1/(k+rank)",
+      "testMethod": "test_rrf_ties_and_k_parameter"
+    },
+    {
+      "id": "bm25-rare-token",
+      "label": "BM25 ranks the rare-token document first and returns every document once",
+      "testMethod": "test_bm25_finds_rare_token_and_ranks_every_document"
+    },
+    {
+      "id": "bm25-ties",
+      "label": "BM25 ties keep the original document order",
+      "testMethod": "test_bm25_ties_follow_original_document_order"
+    },
+    {
+      "id": "ndcg",
+      "label": "ndcg_at_k matches known values and caps the ideal DCG at k",
+      "testMethod": "test_ndcg_known_values"
+    },
+    {
+      "id": "evaluate-metrics",
+      "label": "evaluate averages recall@k, MRR and nDCG@k over the golden queries",
+      "testMethod": "test_evaluate_computes_recall_mrr_and_ndcg"
+    },
+    {
+      "id": "hybrid-wins",
+      "label": "Hybrid recall@3 is 1.0 while dense and BM25 each fall short",
+      "testMethod": "test_hybrid_beats_each_retriever_on_the_mixed_golden_set"
+    },
+    {
+      "id": "hybrid-compose",
+      "label": "hybrid fuses retrievers into a retriever and keeps a single ranking intact",
+      "testMethod": "test_hybrid_composes_retrievers"
+    },
+    {
+      "id": "empty-golden",
+      "label": "evaluate rejects an empty golden set",
+      "testMethod": "test_evaluate_rejects_empty_golden_set"
+    },
+    {
+      "id": "regression-gate",
+      "label": "regressions reports only drops larger than the tolerance",
+      "testMethod": "test_regression_gate"
+    }
+  ]
+}

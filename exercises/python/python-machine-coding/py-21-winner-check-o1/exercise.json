@@ -1,0 +1,143 @@
+{
+  "id": "py-21-winner-check-o1",
+  "lessonSlug": "py-21-tictactoe-2",
+  "title": "Tic Tac Toe: O(1) Winner Check",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "In `strategies/winning_strategy_impl.py` implement `WinningStrategyImpl`. `__init__` creates the dictionaries `row_maps`, `col_maps`, `left_diagonal_map` and `right_diagonal_map`; `check_winner(board, move)` updates the counters for the move and returns `True` as soon as the mover's count in any row, column or diagonal equals `board.dimension`. Never scan the board: the check must be O(1) per move.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-board",
+      "path": "models/board.py",
+      "displayName": "board.py",
+      "editable": false
+    },
+    {
+      "id": "models-cell",
+      "path": "models/cell.py",
+      "displayName": "cell.py",
+      "editable": false
+    },
+    {
+      "id": "models-enums",
+      "path": "models/enums.py",
+      "displayName": "enums.py",
+      "editable": false
+    },
+    {
+      "id": "models-game",
+      "path": "models/game.py",
+      "displayName": "game.py",
+      "editable": false
+    },
+    {
+      "id": "models-move",
+      "path": "models/move.py",
+      "displayName": "move.py",
+      "editable": false
+    },
+    {
+      "id": "models-player",
+      "path": "models/player.py",
+      "displayName": "player.py",
+      "editable": false
+    },
+    {
+      "id": "models-symbol",
+      "path": "models/symbol.py",
+      "displayName": "symbol.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-exceptions",
+      "path": "exceptions/exceptions.py",
+      "displayName": "exceptions.py",
+      "editable": false
+    },
+    {
+      "id": "services-game-service",
+      "path": "services/game_service.py",
+      "displayName": "game_service.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-winning-strategy",
+      "path": "strategies/winning_strategy.py",
+      "displayName": "winning_strategy.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-winning-strategy-impl",
+      "path": "strategies/winning_strategy_impl.py",
+      "displayName": "winning_strategy_impl.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "counter-dictionaries-exist",
+      "label": "The strategy exposes row_maps, col_maps, left_diagonal_map and right_diagonal_map as dicts",
+      "testMethod": "test_counter_dictionaries_exist"
+    },
+    {
+      "id": "row-win",
+      "label": "Filling a whole row wins",
+      "testMethod": "test_row_win"
+    },
+    {
+      "id": "column-win",
+      "label": "Filling a whole column wins",
+      "testMethod": "test_column_win"
+    },
+    {
+      "id": "main-diagonal-win",
+      "label": "Filling the main diagonal wins",
+      "testMethod": "test_main_diagonal_win"
+    },
+    {
+      "id": "anti-diagonal-win",
+      "label": "Filling the anti-diagonal wins",
+      "testMethod": "test_anti_diagonal_win"
+    },
+    {
+      "id": "no-false-win-with-mixed-symbols",
+      "label": "A row or column shared by two symbols is not a win",
+      "testMethod": "test_no_false_win_with_mixed_symbols"
+    },
+    {
+      "id": "check-is-constant-time-and-never-reads-the-grid",
+      "label": "check_winner works from counters only: it never reads the board grid",
+      "testMethod": "test_check_is_constant_time_and_never_reads_the_grid"
+    },
+    {
+      "id": "works-on-larger-boards",
+      "label": "A 5x5 board needs five in a line",
+      "testMethod": "test_works_on_larger_boards"
+    },
+    {
+      "id": "draw-when-board-is-full",
+      "label": "A full board without a winner is a draw",
+      "testMethod": "test_draw_when_board_is_full"
+    },
+    {
+      "id": "moves-after-game-end-are-ignored",
+      "label": "After a win further moves are ignored",
+      "testMethod": "test_moves_after_game_end_are_ignored"
+    }
+  ]
+}

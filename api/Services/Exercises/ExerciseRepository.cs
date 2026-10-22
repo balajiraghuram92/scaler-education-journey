@@ -112,7 +112,25 @@ public sealed class ExerciseRepository : IExerciseRepository
         }
 
         var testPath = ExercisePathRules.ResolveInside(exerciseRoot, manifest.TestSuite.Path);
-        if (!File.Exists(testPath) || IsLink(testPath))
+        if (ExerciseRuntimeProfiles.IsPython(manifest))
+        {
+            // Python suites are a directory of trusted pytest files (test_*.py, conftest.py, helpers).
+            if (!Directory.Exists(testPath) || IsLink(testPath) ||
+                !Directory.EnumerateFiles(testPath, "test_*.py", SearchOption.AllDirectories).Any())
+            {
+                throw new InvalidOperationException($"Trusted pytest directory is missing, linked or empty: '{testPath}'.");
+            }
+
+            foreach (var file in manifest.Files)
+            {
+                var starterPath = ExercisePathRules.ResolveInside(Path.Combine(exerciseRoot, "starter"), file.Path);
+                if (!File.Exists(starterPath) || IsLink(starterPath))
+                {
+                    throw new InvalidOperationException($"Python exercise '{manifest.Id}' is missing starter file '{file.Path}'.");
+                }
+            }
+        }
+        else if (!File.Exists(testPath) || IsLink(testPath))
         {
             throw new InvalidOperationException($"Trusted test file is missing or linked: '{testPath}'.");
         }

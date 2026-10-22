@@ -12,6 +12,10 @@ public sealed class ExerciseExecutionOptions
 
     public Dictionary<string, string> RunnerImagesByProfile { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
+    // Sandbox image for the "python-pytest" profile (runner/python). Used when
+    // RunnerImagesByProfile has no explicit entry for that profile.
+    public string PythonRunnerImage { get; set; } = "neuralascent-python-runner:dev";
+
     public string DockerEndpoint { get; set; } = "unix:///var/run/docker.sock";
 
     public string MavenCacheVolume { get; set; } = "neuralascent-maven-cache";

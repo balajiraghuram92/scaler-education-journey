@@ -1,0 +1,108 @@
+{
+  "id": "py-25-create-order",
+  "lessonSlug": "py-25-design-bookmyshow",
+  "title": "Place Order (Stock Check, Framework-Free)",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 40,
+  "instructions": "The original Django task is rebuilt on an in-memory `Store` (see `ecom/store.py`, read-only) with the same domain rules. Implement `OrderServiceImpl.place_order` in `ecom/services/order_service_impl.py` and `OrderController.place_order` in `ecom/controllers/order_controller.py`. Check the user, then the stock of every product (raise `UserNotFoundError`, `ProductNotFoundError`, `OutOfStockError`), then decrement inventory and create a `PLACED` order with its items. Failures must change nothing, and concurrent requests must never overbook, so do the check and the decrement inside `store.transaction()`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "ecom-models",
+      "path": "ecom/models.py",
+      "displayName": "models.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-exceptions",
+      "path": "ecom/exceptions.py",
+      "displayName": "exceptions.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-dtos",
+      "path": "ecom/dtos.py",
+      "displayName": "dtos.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-store",
+      "path": "ecom/store.py",
+      "displayName": "store.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-order-service",
+      "path": "ecom/services/order_service.py",
+      "displayName": "order_service.py",
+      "editable": false
+    },
+    {
+      "id": "ecom-services-order-service-impl",
+      "path": "ecom/services/order_service_impl.py",
+      "displayName": "order_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "ecom-controllers-order-controller",
+      "path": "ecom/controllers/order_controller.py",
+      "displayName": "order_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "place-order-decrements-stock-and-creates-items",
+      "label": "A valid order is PLACED, has one item per product and decrements each inventory",
+      "testMethod": "test_place_order_decrements_stock_and_creates_items"
+    },
+    {
+      "id": "unknown-user-is-rejected",
+      "label": "An unknown user raises UserNotFoundError and creates nothing",
+      "testMethod": "test_unknown_user_is_rejected"
+    },
+    {
+      "id": "unknown-product-is-rejected",
+      "label": "An unknown product raises ProductNotFoundError",
+      "testMethod": "test_unknown_product_is_rejected"
+    },
+    {
+      "id": "out-of-stock-and-exact-stock-boundary",
+      "label": "More than the stock raises OutOfStockError, exactly the stock is allowed",
+      "testMethod": "test_out_of_stock_and_exact_stock_boundary"
+    },
+    {
+      "id": "failed-order-changes-nothing",
+      "label": "A failure on a later product leaves every inventory and the order table untouched",
+      "testMethod": "test_failed_order_changes_nothing"
+    },
+    {
+      "id": "product-without-inventory-is-out-of-stock",
+      "label": "A product with no inventory row raises OutOfStockError",
+      "testMethod": "test_product_without_inventory_is_out_of_stock"
+    },
+    {
+      "id": "same-product-on-two-lines-is-counted-together",
+      "label": "The same product on several lines is checked against the stock as a total",
+      "testMethod": "test_same_product_on_two_lines_is_counted_together"
+    },
+    {
+      "id": "concurrent-orders-never-overbook",
+      "label": "20 concurrent single-unit orders against 10 in stock succeed exactly 10 times",
+      "testMethod": "test_concurrent_orders_never_overbook"
+    },
+    {
+      "id": "controller-responses",
+      "label": "Controller returns SUCCESS with the order, or FAILURE without raising",
+      "testMethod": "test_controller_responses"
+    }
+  ]
+}

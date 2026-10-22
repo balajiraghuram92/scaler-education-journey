@@ -1,0 +1,67 @@
+{
+  "id": "py-09-compare",
+  "lessonSlug": "py-09-collections-dataclasses-typing-exceptions",
+  "title": "Generic Comparison Function",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 15,
+  "instructions": "Implement and annotate `compare(x, y, key=None)` in `config/compare.py`. It returns `-1`, `0` or `1` for smaller, equal or greater, comparing `key(x)` with `key(y)` when a key is given (each computed exactly once). Declare a `TypeVar` `T`, annotate the signature as `compare(x: T, y: T, key: Callable[[T], Any] | None = None) -> int`, and test for a key with `is not None`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "compare",
+      "path": "config/compare.py",
+      "displayName": "compare.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "direct",
+      "label": "Compares numbers and strings directly",
+      "testMethod": "test_direct_comparison_of_numbers_and_strings"
+    },
+    {
+      "id": "only-three-values",
+      "label": "Returns only -1, 0 or 1",
+      "testMethod": "test_returns_only_minus_one_zero_or_one"
+    },
+    {
+      "id": "with-key",
+      "label": "Compares key(x) with key(y) when a key is given",
+      "testMethod": "test_comparison_with_key_function"
+    },
+    {
+      "id": "key-once",
+      "label": "Calls the key function exactly once per argument",
+      "testMethod": "test_key_is_called_exactly_once_per_argument"
+    },
+    {
+      "id": "none-vs-falsy-key",
+      "label": "Tests key is not None, not truthiness",
+      "testMethod": "test_none_key_uses_direct_comparison_but_falsy_key_is_still_used"
+    },
+    {
+      "id": "lt-eq-only",
+      "label": "Works with objects that define only __lt__ and __eq__",
+      "testMethod": "test_works_with_objects_defining_only_lt_and_eq"
+    },
+    {
+      "id": "no-mutation",
+      "label": "Does not modify its arguments",
+      "testMethod": "test_does_not_modify_or_sort_arguments"
+    },
+    {
+      "id": "type-hints",
+      "label": "Uses a shared TypeVar and typing.Any in the signature",
+      "testMethod": "test_signature_uses_a_shared_typevar_and_typing_any"
+    }
+  ]
+}

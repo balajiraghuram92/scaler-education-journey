@@ -1,0 +1,191 @@
+{
+  "id": "py-23-payment-gateway-adapter",
+  "lessonSlug": "py-23-code-parking-lot-1",
+  "title": "Integrate Payment Gateways (Paytm and Razorpay)",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Wrap the two payment SDKs (`libraries/`, provided) behind `PaymentGatewayAdapter`. Implement `PaytmPaymentGatewayAdapter` and `RazorpayPaymentGatewayAdapter` in `adapters/` (call the SDK with its own method and field names, map the string status to `PaymentStatus`, return a domain `Payment`), `PaymentServiceImpl.make_payment` in `services/payment_service_impl.py` (raise `InvalidBillException(\"Invalid bill id\")`, otherwise charge `bill.get_amount_to_be_paid()` through the injected adapter) and `PaymentController.make_payment` in `controllers/payment_controller.py` (catch only `InvalidBillException`).",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-bill",
+      "path": "models/bill.py",
+      "displayName": "bill.py",
+      "editable": false
+    },
+    {
+      "id": "models-payment",
+      "path": "models/payment.py",
+      "displayName": "payment.py",
+      "editable": false
+    },
+    {
+      "id": "models-payment-status",
+      "path": "models/payment_status.py",
+      "displayName": "payment_status.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-invalid-bill-exception",
+      "path": "exceptions/invalid_bill_exception.py",
+      "displayName": "invalid_bill_exception.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-make-payment-request-dto",
+      "path": "dtos/make_payment_request_dto.py",
+      "displayName": "make_payment_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-make-payment-response-dto",
+      "path": "dtos/make_payment_response_dto.py",
+      "displayName": "make_payment_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response-status",
+      "path": "dtos/response_status.py",
+      "displayName": "response_status.py",
+      "editable": false
+    },
+    {
+      "id": "libraries-paytm-paytm-api",
+      "path": "libraries/paytm/paytm_api.py",
+      "displayName": "paytm_api.py",
+      "editable": false
+    },
+    {
+      "id": "libraries-paytm-paytm-payment-response",
+      "path": "libraries/paytm/paytm_payment_response.py",
+      "displayName": "paytm_payment_response.py",
+      "editable": false
+    },
+    {
+      "id": "libraries-razorpay-razorpay-api",
+      "path": "libraries/razorpay/razorpay_api.py",
+      "displayName": "razorpay_api.py",
+      "editable": false
+    },
+    {
+      "id": "libraries-razorpay-razorpay-payment-response",
+      "path": "libraries/razorpay/razorpay_payment_response.py",
+      "displayName": "razorpay_payment_response.py",
+      "editable": false
+    },
+    {
+      "id": "adapters-payment-gateway-adapter",
+      "path": "adapters/payment_gateway_adapter.py",
+      "displayName": "payment_gateway_adapter.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-bill-repository",
+      "path": "repositories/bill_repository.py",
+      "displayName": "bill_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-bill-repository-impl",
+      "path": "repositories/bill_repository_impl.py",
+      "displayName": "bill_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "services-payment-service",
+      "path": "services/payment_service.py",
+      "displayName": "payment_service.py",
+      "editable": false
+    },
+    {
+      "id": "adapters-paytm-payment-gateway-adapter",
+      "path": "adapters/paytm_payment_gateway_adapter.py",
+      "displayName": "paytm_payment_gateway_adapter.py",
+      "editable": true
+    },
+    {
+      "id": "adapters-razorpay-payment-gateway-adapter",
+      "path": "adapters/razorpay_payment_gateway_adapter.py",
+      "displayName": "razorpay_payment_gateway_adapter.py",
+      "editable": true
+    },
+    {
+      "id": "services-payment-service-impl",
+      "path": "services/payment_service_impl.py",
+      "displayName": "payment_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "controllers-payment-controller",
+      "path": "controllers/payment_controller.py",
+      "displayName": "payment_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "paytm-adapter-maps-response",
+      "label": "PaytmPaymentGatewayAdapter calls PaytmApi and builds a domain Payment",
+      "testMethod": "test_paytm_adapter_maps_response"
+    },
+    {
+      "id": "razorpay-adapter-maps-response",
+      "label": "RazorpayPaymentGatewayAdapter calls process_payment and maps transaction_id to txn_id",
+      "testMethod": "test_razorpay_adapter_maps_response"
+    },
+    {
+      "id": "failure-status-is-mapped-to-enum",
+      "label": "A \"FAILURE\" status string becomes PaymentStatus.FAILURE in both adapters",
+      "testMethod": "test_failure_status_is_mapped_to_enum"
+    },
+    {
+      "id": "adapters-implement-the-interface",
+      "label": "Both adapters are PaymentGatewayAdapters and the interface itself is abstract",
+      "testMethod": "test_adapters_implement_the_interface"
+    },
+    {
+      "id": "service-rejects-invalid-bill-without-charging",
+      "label": "An unknown bill raises InvalidBillException(\"Invalid bill id\") and the gateway is never called",
+      "testMethod": "test_service_rejects_invalid_bill_without_charging"
+    },
+    {
+      "id": "service-charges-total-plus-gst-plus-service-charge",
+      "label": "The gateway is charged total + GST + service charge for the bill",
+      "testMethod": "test_service_charges_total_plus_gst_plus_service_charge"
+    },
+    {
+      "id": "gateway-is-a-one-line-wiring-change",
+      "label": "The same service works with either adapter and returns that gateway's transaction",
+      "testMethod": "test_gateway_is_a_one_line_wiring_change"
+    },
+    {
+      "id": "controller-success-response",
+      "label": "Controller returns SUCCESS with txn_id and payment_status",
+      "testMethod": "test_controller_success_response"
+    },
+    {
+      "id": "controller-invalid-bill-response",
+      "label": "Controller returns FAILURE with txn_id and payment_status set to None",
+      "testMethod": "test_controller_invalid_bill_response"
+    },
+    {
+      "id": "controller-only-catches-invalid-bill",
+      "label": "Controller does not swallow other errors",
+      "testMethod": "test_controller_only_catches_invalid_bill"
+    }
+  ]
+}

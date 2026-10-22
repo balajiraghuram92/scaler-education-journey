@@ -1,0 +1,30 @@
+{
+  "id": "py-19-library-lending-layers",
+  "lessonSlug": "py-19-approach-design-problems",
+  "title": "Machine-Coding Drill: Library Lending in Three Layers",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 40,
+  "instructions": "Implement the in-memory repositories in `library/repositories.py`, the rules in `LibraryService.lend_book` (`library/service.py`) and the DTO adapter `LibraryController.lend_book` (`library/controller.py`). Validate first and mutate last, so a failed lend leaves copies and loans untouched. The controller must catch only `LibraryError`.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "models", "path": "library/models.py", "displayName": "models.py", "editable": false },
+    { "id": "exceptions", "path": "library/exceptions.py", "displayName": "exceptions.py", "editable": false },
+    { "id": "repositories", "path": "library/repositories.py", "displayName": "repositories.py", "editable": true },
+    { "id": "service", "path": "library/service.py", "displayName": "service.py", "editable": true },
+    { "id": "controller", "path": "library/controller.py", "displayName": "controller.py", "editable": true }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "success-path", "label": "A successful lend decrements copies and records a loan", "testMethod": "test_successful_loan_decrements_copies_and_records_loan" },
+    { "id": "returns-loan", "label": "The service returns the Loan it recorded", "testMethod": "test_service_returns_the_loan" },
+    { "id": "unknown-member", "label": "Unknown member raises MemberNotFoundError", "testMethod": "test_unknown_member_raises" },
+    { "id": "unknown-book", "label": "Unknown book raises BookNotFoundError", "testMethod": "test_unknown_book_raises" },
+    { "id": "no-copies", "label": "Zero copies raises NoCopiesAvailableError", "testMethod": "test_no_copies_left_raises" },
+    { "id": "loan-limit", "label": "Loan limit is enforced and a failed call changes nothing", "testMethod": "test_loan_limit_enforced_and_failed_call_leaves_state_unchanged" },
+    { "id": "custom-max-loans", "label": "A member's own max_loans is respected", "testMethod": "test_custom_max_loans_is_respected" },
+    { "id": "controller-failure", "label": "Controller returns FAILURE with the message", "testMethod": "test_controller_wraps_failure_with_message" },
+    { "id": "controller-narrow-catch", "label": "Controller catches only LibraryError", "testMethod": "test_controller_only_catches_library_errors" },
+    { "id": "hierarchy-immutable", "label": "Exceptions share LibraryError and Loan is immutable", "testMethod": "test_exception_hierarchy_and_immutable_loan" }
+  ]
+}

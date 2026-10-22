@@ -1,0 +1,72 @@
+{
+  "id": "py-53-tool-gateway",
+  "lessonSlug": "py-53-structured-output-pydantic",
+  "title": "Pydantic Tool Gateway with Scopes and Approval",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 40,
+  "instructions": "Implement the frozen, slotted `Ctx`, `Observation` and `Tool` dataclasses and `ToolRegistry` (`register`, `definitions`, `call`) in `toolgate.py`. `call` checks in a fixed order: unknown tool, scope (before parsing), strict Pydantic argument validation (at most 3 problems reported), approval, then the handler. A failing handler must be logged server-side but never leak its message to the model.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "toolgate",
+      "path": "toolgate.py",
+      "displayName": "toolgate.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "definitions",
+      "label": "definitions() generates function-calling schemas from the Pydantic models",
+      "testMethod": "test_definitions_are_generated_from_models"
+    },
+    {
+      "id": "session-tenant",
+      "label": "A valid call runs the handler with the validated model and the session context",
+      "testMethod": "test_ok_path_uses_session_tenant"
+    },
+    {
+      "id": "unknown-tool",
+      "label": "An unknown tool returns unknown_tool listing the sorted available names",
+      "testMethod": "test_unknown_tool_lists_available_names"
+    },
+    {
+      "id": "scope-first",
+      "label": "The scope is checked before arguments are parsed, and approval cannot bypass it",
+      "testMethod": "test_scope_is_checked_before_arguments_are_parsed"
+    },
+    {
+      "id": "bad-arguments",
+      "label": "Empty, out-of-range, extra-field, non-object and non-JSON arguments never reach the handler",
+      "testMethod": "test_bad_arguments_never_reach_the_handler"
+    },
+    {
+      "id": "three-problems",
+      "label": "Validation feedback is capped at three \"loc: message\" problems",
+      "testMethod": "test_error_summary_is_capped_at_three_problems"
+    },
+    {
+      "id": "approval",
+      "label": "Destructive tools need approval, which does not skip validation",
+      "testMethod": "test_destructive_tool_needs_approval_and_runs_once_approved"
+    },
+    {
+      "id": "no-leak",
+      "label": "Handler exceptions are logged server-side and never leaked in the observation",
+      "testMethod": "test_handler_exceptions_do_not_leak_details"
+    },
+    {
+      "id": "registration",
+      "label": "Duplicate names and models without extra=\"forbid\" are rejected; dataclasses are frozen and slotted",
+      "testMethod": "test_registration_rules_and_frozen_dataclasses"
+    }
+  ]
+}

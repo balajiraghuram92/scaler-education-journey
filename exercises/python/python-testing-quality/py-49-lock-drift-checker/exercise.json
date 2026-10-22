@@ -1,0 +1,72 @@
+{
+  "id": "py-49-lock-drift-checker",
+  "lessonSlug": "py-49-tooling-project-layout",
+  "title": "Lock File Drift Checker and Version Bumper",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `normalize`, `parse_release`, `satisfies`, `split_requirement`, `find_drift` and `bump` in `lockdrift.py` with the standard library only. Versions compare as zero-padded integer tuples (`0.10.0 > 0.9`), pre-release strings raise `ValueError`, and `find_drift` reads `project.dependencies` plus every dependency group against a uv-style lock, returning sorted messages.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "lockdrift",
+      "path": "lockdrift.py",
+      "displayName": "lockdrift.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "satisfies",
+      "label": "satisfies handles ==, !=, ranges, ~= and numeric (not lexicographic) ordering",
+      "testMethod": "test_satisfies"
+    },
+    {
+      "id": "parse-release",
+      "label": "parse_release returns integer tuples and normalize follows PEP 503",
+      "testMethod": "test_parse_release_and_normalize"
+    },
+    {
+      "id": "reject-prerelease",
+      "label": "Pre-release, post-release and junk version strings raise ValueError",
+      "testMethod": "test_prerelease_and_junk_versions_are_rejected"
+    },
+    {
+      "id": "unsupported-clause",
+      "label": "An unknown specifier clause raises ValueError with \"unsupported specifier clause\"",
+      "testMethod": "test_unsupported_clause_rejected"
+    },
+    {
+      "id": "split-requirement",
+      "label": "split_requirement drops extras and environment markers",
+      "testMethod": "test_split_requirement_handles_extras_and_markers"
+    },
+    {
+      "id": "no-drift",
+      "label": "A consistent pyproject and lock produce no drift",
+      "testMethod": "test_no_drift"
+    },
+    {
+      "id": "missing-and-violating",
+      "label": "Reports a missing package and a locked version that violates its specifier, sorted",
+      "testMethod": "test_drift_detects_missing_and_violating_entries"
+    },
+    {
+      "id": "groups-and-names",
+      "label": "Checks dependency groups, skips include-group items and normalises lock names",
+      "testMethod": "test_drift_covers_dependency_groups_and_normalised_names"
+    },
+    {
+      "id": "bump",
+      "label": "bump follows SemVer reset rules for patch, minor and major",
+      "testMethod": "test_bump"
+    }
+  ]
+}

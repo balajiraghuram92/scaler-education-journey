@@ -1,0 +1,122 @@
+{
+  "id": "py-20-browse-hotel-rooms",
+  "lessonSlug": "py-20-tictactoe-1",
+  "title": "Browse Hotel Rooms",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 20,
+  "instructions": "Implement `RoomServiceImpl.get_rooms` in `services/room_service_impl.py`, `RoomController.get_rooms` in `controllers/room_controller.py` and the in-memory `RoomRepositoryImpl`. A `None` or empty room type returns every room; a valid type returns only rooms of that type; an invalid type makes the controller return `ResponseStatus.FAILURE` with an empty list.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-room",
+      "path": "models/room.py",
+      "displayName": "room.py",
+      "editable": false
+    },
+    {
+      "id": "models-room-type",
+      "path": "models/room_type.py",
+      "displayName": "room_type.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-get-rooms-request-dto",
+      "path": "dtos/get_rooms_request_dto.py",
+      "displayName": "get_rooms_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-get-rooms-response-dto",
+      "path": "dtos/get_rooms_response_dto.py",
+      "displayName": "get_rooms_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response-status",
+      "path": "dtos/response_status.py",
+      "displayName": "response_status.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-room-repository",
+      "path": "repositories/room_repository.py",
+      "displayName": "room_repository.py",
+      "editable": false
+    },
+    {
+      "id": "services-room-service",
+      "path": "services/room_service.py",
+      "displayName": "room_service.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-room-repository-impl",
+      "path": "repositories/room_repository_impl.py",
+      "displayName": "room_repository_impl.py",
+      "editable": true
+    },
+    {
+      "id": "services-room-service-impl",
+      "path": "services/room_service_impl.py",
+      "displayName": "room_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "controllers-room-controller",
+      "path": "controllers/room_controller.py",
+      "displayName": "room_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "no-filter-returns-all-rooms",
+      "label": "A None room type returns all rooms",
+      "testMethod": "test_no_filter_returns_all_rooms"
+    },
+    {
+      "id": "empty-string-returns-all-rooms",
+      "label": "An empty string returns all rooms",
+      "testMethod": "test_empty_string_returns_all_rooms"
+    },
+    {
+      "id": "filter-by-each-type",
+      "label": "A valid type returns only rooms of that type",
+      "testMethod": "test_filter_by_each_type"
+    },
+    {
+      "id": "no-rooms-of-type-returns-empty-list",
+      "label": "A type with no rooms returns an empty list with SUCCESS",
+      "testMethod": "test_no_rooms_of_type_returns_empty_list"
+    },
+    {
+      "id": "invalid-type-makes-controller-fail",
+      "label": "An invalid type returns FAILURE and an empty list",
+      "testMethod": "test_invalid_type_makes_controller_fail"
+    },
+    {
+      "id": "service-rejects-invalid-type",
+      "label": "The service raises for an invalid type",
+      "testMethod": "test_service_rejects_invalid_type"
+    },
+    {
+      "id": "repository-assigns-ids-and-stores-rooms",
+      "label": "The repository assigns ids and keeps saved rooms",
+      "testMethod": "test_repository_assigns_ids_and_stores_rooms"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "py-52-retry-policy-toolkit",
+  "lessonSlug": "py-52-llm-api-clients",
+  "title": "Retry Policy Toolkit for an LLM Gateway",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `TransportError`/`ProviderError`, `parse_retry_after`, `RetryPolicy.delay`, `is_retryable` and `retry_async` in `llm_retry.py`. Classification, timing and execution are separate units: full-jitter backoff with `Retry-After` as a floor, no retry for quota 429s or oversized hints, and `asyncio.CancelledError` must propagate. Sleep and randomness are injected, so no test really waits.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "llm-retry",
+      "path": "llm_retry.py",
+      "displayName": "llm_retry.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "parse-retry-after",
+      "label": "parse_retry_after handles seconds and HTTP dates, clamps negatives and rejects nan/inf/junk",
+      "testMethod": "test_parse_retry_after_seconds_date_and_garbage"
+    },
+    {
+      "id": "error-and-policy",
+      "label": "ProviderError stores its fields and RetryPolicy is a frozen dataclass with the default limits",
+      "testMethod": "test_provider_error_and_policy_defaults"
+    },
+    {
+      "id": "jitter-window",
+      "label": "delay stays inside the full-jitter window [0, min(max_delay, base * 2**attempt)]",
+      "testMethod": "test_delay_stays_inside_full_jitter_window"
+    },
+    {
+      "id": "retry-after-floor",
+      "label": "Retry-After is a lower bound for the delay, not a replacement",
+      "testMethod": "test_retry_after_is_a_floor_not_a_replacement"
+    },
+    {
+      "id": "classification",
+      "label": "is_retryable accepts transport errors, 429 and 5xx, but not quota 429s or client errors",
+      "testMethod": "test_is_retryable"
+    },
+    {
+      "id": "transient-success",
+      "label": "Retries transient failures, honours the hint, then returns the result",
+      "testMethod": "test_retries_transient_then_succeeds_and_sleeps_with_hint"
+    },
+    {
+      "id": "quota-fail-fast",
+      "label": "A quota-exhausted 429 fails after one attempt",
+      "testMethod": "test_quota_error_fails_after_one_attempt"
+    },
+    {
+      "id": "huge-hint",
+      "label": "A Retry-After above max_retry_after is re-raised without sleeping",
+      "testMethod": "test_huge_retry_after_fails_fast_without_sleeping"
+    },
+    {
+      "id": "exhaustion",
+      "label": "Re-raises the last error after max_attempts with no final sleep",
+      "testMethod": "test_exhausts_attempts_and_reraises_last_error"
+    },
+    {
+      "id": "cancellation",
+      "label": "CancelledError is not swallowed, so an outer timeout still works",
+      "testMethod": "test_cancellation_is_not_swallowed"
+    }
+  ]
+}

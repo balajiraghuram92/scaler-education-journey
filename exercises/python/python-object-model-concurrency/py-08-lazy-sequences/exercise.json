@@ -1,0 +1,94 @@
+{
+  "id": "py-08-lazy-sequences",
+  "lessonSlug": "py-08-decorators-iterators-generators",
+  "title": "Lazy Sequences: NumberRange and even_numbers",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement `NumberRange` in `main/iterators.py` and the generator function `even_numbers` in `main/generators.py`. `NumberRange(start, end)` inherits from the provided abstract `LazySequence` (`main/base.py`, do not edit) and is its own iterator over `start` up to but excluding `end`. `even_numbers(limit)` yields 0, 2, 4, ... below `limit`. Neither may build a list, and both validate their input with the exact exceptions from the requirements.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "base",
+      "path": "main/base.py",
+      "displayName": "base.py",
+      "editable": false
+    },
+    {
+      "id": "iterators",
+      "path": "main/iterators.py",
+      "displayName": "iterators.py",
+      "editable": true
+    },
+    {
+      "id": "generators",
+      "path": "main/generators.py",
+      "displayName": "generators.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "range-values",
+      "label": "NumberRange yields start up to but not including end",
+      "testMethod": "test_number_range_yields_start_up_to_but_not_including_end"
+    },
+    {
+      "id": "range-iterator",
+      "label": "NumberRange is a LazySequence and its own iterator",
+      "testMethod": "test_number_range_is_a_lazy_sequence_and_its_own_iterator"
+    },
+    {
+      "id": "range-exhausted",
+      "label": "NumberRange is exhausted after one loop",
+      "testMethod": "test_number_range_is_exhausted_after_one_loop"
+    },
+    {
+      "id": "range-lazy",
+      "label": "NumberRange is lazy for huge ranges",
+      "testMethod": "test_number_range_is_lazy_for_huge_ranges"
+    },
+    {
+      "id": "range-type-error",
+      "label": "Rejects non-integer bounds (including bool) with TypeError",
+      "testMethod": "test_number_range_rejects_non_integer_bounds"
+    },
+    {
+      "id": "range-value-error",
+      "label": "Rejects start >= end with ValueError",
+      "testMethod": "test_number_range_rejects_start_not_less_than_end"
+    },
+    {
+      "id": "base-abstract",
+      "label": "LazySequence stays abstract and unchanged",
+      "testMethod": "test_base_class_is_abstract_and_unchanged"
+    },
+    {
+      "id": "even-values",
+      "label": "even_numbers yields evens below the limit",
+      "testMethod": "test_even_numbers_values_and_boundaries"
+    },
+    {
+      "id": "even-lazy",
+      "label": "even_numbers is a lazy generator function",
+      "testMethod": "test_even_numbers_is_a_lazy_generator"
+    },
+    {
+      "id": "even-type-error",
+      "label": "even_numbers rejects non-integer limits with TypeError",
+      "testMethod": "test_even_numbers_rejects_non_integer_limit"
+    },
+    {
+      "id": "even-value-error",
+      "label": "even_numbers rejects a negative limit with ValueError",
+      "testMethod": "test_even_numbers_rejects_negative_limit"
+    }
+  ]
+}

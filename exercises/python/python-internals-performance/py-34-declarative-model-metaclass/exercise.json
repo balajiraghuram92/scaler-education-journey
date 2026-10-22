@@ -1,0 +1,77 @@
+{
+  "id": "py-34-declarative-model-metaclass",
+  "lessonSlug": "py-34-metaclasses-class-creation",
+  "title": "Declarative Model Metaclass",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 50,
+  "instructions": "Build the declarative model machinery in `declarative.py`: the `Field` descriptor, the `ModelMeta` metaclass (`__prepare__` that rejects duplicate definitions, `__new__` that collects fields across the MRO, handles the `table=` keyword and generates `__signature__`) and `Model.__init__` / `create_sql`. The skeleton `__new__` only swallows `table=`; replace it with the real logic.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "declarative",
+      "path": "declarative.py",
+      "displayName": "declarative.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "fields-are-collected-in-declaration-order-with-inheritance",
+      "label": "Collects fields in declaration order, inherited ones first",
+      "testMethod": "test_fields_are_collected_in_declaration_order_with_inheritance"
+    },
+    {
+      "id": "table-names-and-keyword-forwarding",
+      "label": "Defaults the table to lowercase name plus 's' and honours table=",
+      "testMethod": "test_table_names_and_keyword_forwarding"
+    },
+    {
+      "id": "create-sql",
+      "label": "create_sql renders CREATE TABLE with columns in field order",
+      "testMethod": "test_create_sql"
+    },
+    {
+      "id": "generated-signature-and-defaults",
+      "label": "inspect.signature shows keyword-only fields and defaults are applied",
+      "testMethod": "test_generated_signature_and_defaults"
+    },
+    {
+      "id": "missing-and-unknown-arguments-raise-type-error",
+      "label": "Missing required or unknown fields raise TypeError",
+      "testMethod": "test_missing_and_unknown_arguments_raise_type_error"
+    },
+    {
+      "id": "duplicate-definitions-fail-at-class-creation",
+      "label": "Redefining a name in a class body fails at class creation",
+      "testMethod": "test_duplicate_definitions_fail_at_class_creation"
+    },
+    {
+      "id": "class-access-returns-field",
+      "label": "Class access returns the Field, which knows its name",
+      "testMethod": "test_class_access_returns_field"
+    },
+    {
+      "id": "subclass-can-override-an-inherited-field-keeping-its-position",
+      "label": "A subclass can override a field without reordering or touching the base",
+      "testMethod": "test_subclass_can_override_an_inherited_field_keeping_its_position"
+    },
+    {
+      "id": "other-class-keywords-are-forwarded-to-type-new",
+      "label": "Other class keywords reach __init_subclass__ via type.__new__",
+      "testMethod": "test_other_class_keywords_are_forwarded_to_type_new"
+    },
+    {
+      "id": "instances-keep-their-own-values-in-the-instance-dict",
+      "label": "Each instance stores its values in its own __dict__",
+      "testMethod": "test_instances_keep_their_own_values_in_the_instance_dict"
+    }
+  ]
+}

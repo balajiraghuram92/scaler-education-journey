@@ -1,0 +1,26 @@
+{
+  "id": "py-17-stock-indicator-strategy",
+  "lessonSlug": "py-17-behavioural-patterns",
+  "title": "Stock Indicator Strategy",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 15,
+  "instructions": "Refactor indicator calculation into the Strategy pattern. In `stock/strategies.py` declare the abstract `TradingIndicatorStrategy.calculate_indicator` and implement moving average, momentum and volatility. In `stock/manager.py` make `StockTradingManager` take a strategy object and delegate to it instead of branching on the enum.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "strategies", "path": "stock/strategies.py", "displayName": "strategies.py", "editable": true },
+    { "id": "manager", "path": "stock/manager.py", "displayName": "manager.py", "editable": true },
+    { "id": "model", "path": "stock/model.py", "displayName": "model.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "abstract-interface", "label": "TradingIndicatorStrategy is an ABC declaring calculate_indicator", "testMethod": "test_interface_is_abstract_and_declares_calculate_indicator" },
+    { "id": "subclasses", "label": "Each indicator is its own concrete strategy", "testMethod": "test_each_indicator_is_its_own_concrete_strategy" },
+    { "id": "moving-average", "label": "Moving average is (price + previous_close) / 2", "testMethod": "test_moving_average" },
+    { "id": "momentum", "label": "Momentum is price - previous_close and keeps its sign", "testMethod": "test_momentum_keeps_its_sign" },
+    { "id": "volatility", "label": "Volatility is abs(price - previous_close)", "testMethod": "test_volatility_is_never_negative" },
+    { "id": "needed-attributes", "label": "Strategies use only price and previous_close", "testMethod": "test_strategies_only_use_price_and_previous_close" },
+    { "id": "manager-delegates", "label": "StockTradingManager delegates once with the same stock", "testMethod": "test_manager_delegates_once_with_the_same_stock" },
+    { "id": "open-closed", "label": "One manager serves every strategy, including new ones", "testMethod": "test_one_manager_class_serves_every_strategy_including_new_ones" }
+  ]
+}

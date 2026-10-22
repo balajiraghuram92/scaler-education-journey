@@ -1,0 +1,84 @@
+{
+  "id": "py-04-searchable-protocol",
+  "lessonSlug": "py-04-oop-lab-session",
+  "title": "Searchable Protocol and a Non-Borrowable Magazine",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "Complete `protocols.py`, `magazine.py` and `library.py`. Model lendable items nominally with the `Borrowable` ABC and searchable items structurally with a runtime-checkable `Searchable` protocol, so `Magazine` can be searched without inheriting `Borrowable`. `Library.search` filters with `isinstance(item, Searchable)` and `Library.lend` rejects non-borrowable items with `TypeError`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "protocols",
+      "path": "protocols.py",
+      "displayName": "protocols.py",
+      "editable": true
+    },
+    {
+      "id": "magazine",
+      "path": "magazine.py",
+      "displayName": "magazine.py",
+      "editable": true
+    },
+    {
+      "id": "library",
+      "path": "library.py",
+      "displayName": "library.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "searchable-protocol-is-runtime-checkable",
+      "label": "Searchable supports isinstance and Magazine satisfies it",
+      "testMethod": "test_searchable_protocol_is_runtime_checkable"
+    },
+    {
+      "id": "magazine-is-searchable-but-not-borrowable",
+      "label": "Magazine is searchable but not Borrowable",
+      "testMethod": "test_magazine_is_searchable_but_not_borrowable"
+    },
+    {
+      "id": "magazine-matches-title-case-insensitively",
+      "label": "Magazine matches the title case-insensitively",
+      "testMethod": "test_magazine_matches_title_case_insensitively"
+    },
+    {
+      "id": "book-matches-title-or-author-case-insensitively",
+      "label": "Book matches title or author case-insensitively",
+      "testMethod": "test_book_matches_title_or_author_case_insensitively"
+    },
+    {
+      "id": "borrowable-is-abstract-and-book-implements-it",
+      "label": "Borrowable is abstract and Book implements it",
+      "testMethod": "test_borrowable_is_abstract_and_book_implements_it"
+    },
+    {
+      "id": "search-returns-matching-items-across-types",
+      "label": "Search returns matching items across types in order",
+      "testMethod": "test_search_returns_matching_items_across_types"
+    },
+    {
+      "id": "search-skips-items-that-are-not-searchable",
+      "label": "Search skips items that are not Searchable",
+      "testMethod": "test_search_skips_items_that_are_not_searchable"
+    },
+    {
+      "id": "lend-marks-a-book-unavailable",
+      "label": "Lending marks a book unavailable",
+      "testMethod": "test_lend_marks_a_book_unavailable"
+    },
+    {
+      "id": "lend-rejects-non-borrowable-items-without-side-effects",
+      "label": "Lending a non-borrowable item raises TypeError and changes nothing",
+      "testMethod": "test_lend_rejects_non_borrowable_items_without_side_effects"
+    }
+  ]
+}

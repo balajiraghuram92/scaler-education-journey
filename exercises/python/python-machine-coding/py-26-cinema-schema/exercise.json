@@ -1,0 +1,77 @@
+{
+  "id": "py-26-cinema-schema",
+  "lessonSlug": "py-26-code-bookmyshow-1",
+  "title": "Cinema Schema with Enforced Constraints",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `connect`, `create_schema`, `add_show_inventory`, `shows_in_region` and `seat_counts` in `cinema_schema.py` using the standard-library `sqlite3`. Push every rule you can into the database: foreign keys, composite unique constraints and a status `CHECK`. Inventory creation must be one idempotent SQL statement.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "cinema-schema",
+      "path": "cinema_schema.py",
+      "displayName": "cinema_schema.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "foreign-keys-are-enforced",
+      "label": "Rejects a theatre that points at a non-existent region (foreign keys on)",
+      "testMethod": "test_foreign_keys_are_enforced"
+    },
+    {
+      "id": "duplicate-seat-label-on-one-screen-rejected",
+      "label": "Rejects a duplicate seat label on one screen but allows it on another",
+      "testMethod": "test_duplicate_seat_label_on_one_screen_rejected"
+    },
+    {
+      "id": "status-check-constraint",
+      "label": "Rejects a show-seat status outside AVAILABLE / BLOCKED / BOOKED",
+      "testMethod": "test_status_check_constraint"
+    },
+    {
+      "id": "duplicate-show-seat-rejected",
+      "label": "Rejects a second show_seats row for the same (show, seat)",
+      "testMethod": "test_duplicate_show_seat_rejected"
+    },
+    {
+      "id": "shows-in-region-ordered-by-start-time",
+      "label": "Lists a region's shows by start time, and returns [] for an unknown region",
+      "testMethod": "test_shows_in_region_ordered_by_start_time"
+    },
+    {
+      "id": "inventory-is-idempotent-and-per-screen",
+      "label": "Creates inventory per screen and returns 0 on a repeat call",
+      "testMethod": "test_inventory_is_idempotent_and_per_screen"
+    },
+    {
+      "id": "seat-counts-by-status",
+      "label": "Counts show seats per status, only for statuses that occur",
+      "testMethod": "test_seat_counts_by_status"
+    },
+    {
+      "id": "connect-sets-row-factory-and-enables-foreign-keys",
+      "label": "connect() uses sqlite3.Row and turns PRAGMA foreign_keys on",
+      "testMethod": "test_connect_sets_row_factory_and_enables_foreign_keys"
+    },
+    {
+      "id": "all-eight-plural-tables-exist",
+      "label": "Creates all eight plural-named tables",
+      "testMethod": "test_all_eight_plural_tables_exist"
+    },
+    {
+      "id": "unique-region-and-seat-type-names",
+      "label": "Enforces unique region names and seat type names",
+      "testMethod": "test_unique_region_and_seat_type_names"
+    }
+  ]
+}

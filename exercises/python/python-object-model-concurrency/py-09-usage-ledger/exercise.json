@@ -1,0 +1,82 @@
+{
+  "id": "py-09-usage-ledger",
+  "lessonSlug": "py-09-collections-dataclasses-typing-exceptions",
+  "title": "Usage Ledger with Typed Errors and Exception Groups",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement the usage ledger in `ledger.py`: the `InvalidEvent` error, the frozen slotted dataclasses `UsageEvent` (keyword-only) and `Summary`, `parse_event` and `summarize`. `parse_event` turns every failure into `InvalidEvent` with a proper `__cause__`, and `summarize` aggregates tokens per tenant with a `Counter`, collects errors by position, and in `strict` mode raises them together as an `ExceptionGroup`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "ledger",
+      "path": "ledger.py",
+      "displayName": "ledger.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "aggregates",
+      "label": "Aggregates tokens per tenant",
+      "testMethod": "test_aggregates_valid_events"
+    },
+    {
+      "id": "collects-errors",
+      "label": "Collects errors with their index and keeps going",
+      "testMethod": "test_collects_errors_without_stopping"
+    },
+    {
+      "id": "hierarchy",
+      "label": "InvalidEvent stores index and reason and sits under LedgerError",
+      "testMethod": "test_invalid_event_and_exception_hierarchy"
+    },
+    {
+      "id": "parse-ok",
+      "label": "parse_event builds a UsageEvent with a default model",
+      "testMethod": "test_parse_event_builds_usage_event_with_default_model"
+    },
+    {
+      "id": "cause-chain",
+      "label": "Chains KeyError and ValueError as __cause__",
+      "testMethod": "test_cause_chain_is_preserved"
+    },
+    {
+      "id": "only-invalid-event",
+      "label": "parse_event only raises InvalidEvent for every bad input",
+      "testMethod": "test_parse_event_only_raises_invalid_event"
+    },
+    {
+      "id": "usage-event-shape",
+      "label": "UsageEvent is frozen, slotted, keyword-only and validated",
+      "testMethod": "test_usage_event_is_frozen_slotted_kw_only_and_validates"
+    },
+    {
+      "id": "summary-shape",
+      "label": "Summary has non-shared empty defaults and is frozen and slotted",
+      "testMethod": "test_summary_defaults_are_empty_and_not_shared"
+    },
+    {
+      "id": "strict-group",
+      "label": "Strict mode raises an ExceptionGroup after processing everything",
+      "testMethod": "test_strict_raises_exception_group_after_processing_everything"
+    },
+    {
+      "id": "strict-clean",
+      "label": "Strict mode returns normally when clean",
+      "testMethod": "test_strict_ok_when_clean_and_non_strict_never_raises"
+    },
+    {
+      "id": "generator",
+      "label": "Accepts a one-shot generator",
+      "testMethod": "test_accepts_one_shot_generator_input"
+    }
+  ]
+}

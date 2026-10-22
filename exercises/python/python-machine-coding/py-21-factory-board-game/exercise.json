@@ -1,0 +1,102 @@
+{
+  "id": "py-21-factory-board-game",
+  "lessonSlug": "py-21-tictactoe-2",
+  "title": "Factory Pattern: Board Game Creation",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "The three concrete games in `games/` already call `super().__init__(name)`. Implement the abstract parent `BoardGame` in `board_game.py` (shared `board_game_name`, `get_board_game_name()`, abstract `play_game()` and `game_type()`) and the Simple Factory `BoardGameFactory.create_board_game(game_type, name)` in `board_game_factory.py`. Raise `ValueError` for an unknown type.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "game-type",
+      "path": "game_type.py",
+      "displayName": "game_type.py",
+      "editable": false
+    },
+    {
+      "id": "games-chess-board-game",
+      "path": "games/chess_board_game.py",
+      "displayName": "chess_board_game.py",
+      "editable": false
+    },
+    {
+      "id": "games-snake-ladder-board-game",
+      "path": "games/snake_ladder_board_game.py",
+      "displayName": "snake_ladder_board_game.py",
+      "editable": false
+    },
+    {
+      "id": "games-tic-tac-toe-board-game",
+      "path": "games/tic_tac_toe_board_game.py",
+      "displayName": "tic_tac_toe_board_game.py",
+      "editable": false
+    },
+    {
+      "id": "board-game",
+      "path": "board_game.py",
+      "displayName": "board_game.py",
+      "editable": true
+    },
+    {
+      "id": "board-game-factory",
+      "path": "board_game_factory.py",
+      "displayName": "board_game_factory.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "factory-creates-each-game-type",
+      "label": "The factory returns the right concrete class for every GameType",
+      "testMethod": "test_factory_creates_each_game_type"
+    },
+    {
+      "id": "created-game-reports-its-type",
+      "label": "Each created game reports its own GameType",
+      "testMethod": "test_created_game_reports_its_type"
+    },
+    {
+      "id": "name-is-stored-by-the-parent",
+      "label": "The name passed to the factory is returned by get_board_game_name()",
+      "testMethod": "test_name_is_stored_by_the_parent"
+    },
+    {
+      "id": "unknown-type-raises-value-error",
+      "label": "An unknown game type raises ValueError",
+      "testMethod": "test_unknown_type_raises_value_error"
+    },
+    {
+      "id": "board-game-is-abstract",
+      "label": "BoardGame cannot be instantiated and declares play_game and game_type as abstract",
+      "testMethod": "test_board_game_is_abstract"
+    },
+    {
+      "id": "incomplete-subclass-cannot-be-instantiated",
+      "label": "A subclass that misses an abstract method cannot be instantiated",
+      "testMethod": "test_incomplete_subclass_cannot_be_instantiated"
+    },
+    {
+      "id": "shared-behaviour-lives-in-the-parent",
+      "label": "get_board_game_name is implemented once on BoardGame, not in each game",
+      "testMethod": "test_shared_behaviour_lives_in_the_parent"
+    },
+    {
+      "id": "each-game-plays",
+      "label": "play_game() prints something for every game",
+      "testMethod": "test_each_game_plays"
+    },
+    {
+      "id": "factory-returns-new-instances",
+      "label": "Every call returns a new, independent instance",
+      "testMethod": "test_factory_returns_new_instances"
+    }
+  ]
+}

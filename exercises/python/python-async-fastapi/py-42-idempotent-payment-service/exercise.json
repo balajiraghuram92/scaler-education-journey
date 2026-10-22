@@ -1,0 +1,72 @@
+{
+  "id": "py-42-idempotent-payment-service",
+  "lessonSlug": "py-42-fastapi-dependency-injection-architecture",
+  "title": "Idempotent Payment Service",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `PaymentService` in `payments.py` (the `Payment` dataclass, exceptions and Protocol ports are given). `charge(key, tenant, amount_cents)` reserves the key with a pending payment in one unit of work, calls the gateway with no transaction open, then records the final state in a new unit of work. Retries and concurrent duplicates must never call the gateway twice, and a failed payment is terminal for its key.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "payments",
+      "path": "payments.py",
+      "displayName": "payments.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "happy-path-and-idempotent-retry",
+      "label": "Captures a payment once and returns the stored payment on retry",
+      "testMethod": "test_happy_path_and_idempotent_retry"
+    },
+    {
+      "id": "concurrent-duplicates-capture-once",
+      "label": "Ten concurrent identical requests call the gateway once; nine raise PaymentInFlight",
+      "testMethod": "test_concurrent_duplicates_capture_once"
+    },
+    {
+      "id": "gateway-failure-is-recorded-and-terminal",
+      "label": "Records a gateway failure, re-raises it, and does not retry the gateway for that key",
+      "testMethod": "test_gateway_failure_is_recorded_and_terminal"
+    },
+    {
+      "id": "invalid-amount-never-touches-ports",
+      "label": "Rejects amount_cents <= 0 with ValueError before touching any port",
+      "testMethod": "test_invalid_amount_never_touches_ports"
+    },
+    {
+      "id": "no-transaction-is-open-during-the-gateway-call",
+      "label": "Commits the pending row first and holds no unit of work open during the gateway call",
+      "testMethod": "test_no_transaction_is_open_during_the_gateway_call"
+    },
+    {
+      "id": "pending-payment-for-same-key-raises-in-flight",
+      "label": "Raises PaymentInFlight for a pending payment without calling the gateway",
+      "testMethod": "test_pending_payment_for_same_key_raises_in_flight"
+    },
+    {
+      "id": "replay-of-finished-payment-is-returned-unchanged",
+      "label": "Returns an already finished payment unchanged without calling the gateway",
+      "testMethod": "test_replay_of_finished_payment_is_returned_unchanged"
+    },
+    {
+      "id": "different-keys-are-independent",
+      "label": "Different keys are charged independently",
+      "testMethod": "test_different_keys_are_independent"
+    },
+    {
+      "id": "service-module-imports-no-persistence-or-framework",
+      "label": "The service module imports no persistence or framework package",
+      "testMethod": "test_service_module_imports_no_persistence_or_framework"
+    }
+  ]
+}

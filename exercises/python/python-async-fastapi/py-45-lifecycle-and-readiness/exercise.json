@@ -1,0 +1,72 @@
+{
+  "id": "py-45-lifecycle-and-readiness",
+  "lessonSlug": "py-45-fastapi-production",
+  "title": "Lifecycle Drain and Readiness Checks",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `Lifecycle` and `run_checks` in `lifecycle.py` (`ShuttingDown` and `Readiness` are given). `Lifecycle.track()` counts in-flight work and rejects new work once draining has begun; `shutdown(timeout)` waits for the count to reach zero without cancelling anything. `run_checks` powers `/readyz`: it runs dependency checks concurrently under per-check timeouts, reports `ok`, `timeout` or `error: <ClassName>`, honours hard versus soft dependencies, and short-circuits to not-ready while draining.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "lifecycle",
+      "path": "lifecycle.py",
+      "displayName": "lifecycle.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "track-counts-and-releases-on-error",
+      "label": "track() counts in-flight work and always decrements, even when the body raises",
+      "testMethod": "test_track_counts_and_releases_on_error"
+    },
+    {
+      "id": "shutdown-waits-for-inflight-and-rejects-new-work",
+      "label": "shutdown() waits for in-flight work and new track() calls raise ShuttingDown",
+      "testMethod": "test_shutdown_waits_for_inflight_and_rejects_new_work"
+    },
+    {
+      "id": "shutdown-times-out-without-cancelling-work",
+      "label": "shutdown() returns False on timeout and does not cancel running work",
+      "testMethod": "test_shutdown_times_out_without_cancelling_work"
+    },
+    {
+      "id": "shutdown-with-nothing-in-flight-returns-true-immediately",
+      "label": "shutdown() returns True immediately when nothing is in flight",
+      "testMethod": "test_shutdown_with_nothing_in_flight_returns_true_immediately"
+    },
+    {
+      "id": "checks-run-concurrently-and-report-ok",
+      "label": "run_checks runs checks concurrently and reports each by name",
+      "testMethod": "test_checks_run_concurrently_and_report_ok"
+    },
+    {
+      "id": "timeout-and-error-strings-never-raise",
+      "label": "Reports \"timeout\" and \"error: <ClassName>\" without ever raising",
+      "testMethod": "test_timeout_and_error_strings_never_raise"
+    },
+    {
+      "id": "soft-dependency-does-not-flip-readiness",
+      "label": "Soft dependency failures are reported but only hard ones flip readiness",
+      "testMethod": "test_soft_dependency_does_not_flip_readiness"
+    },
+    {
+      "id": "hard-edge-cases",
+      "label": "No checks is ready; an empty hard set never blocks readiness",
+      "testMethod": "test_hard_edge_cases"
+    },
+    {
+      "id": "draining-short-circuits-checks",
+      "label": "While draining, returns not-ready immediately without running checks",
+      "testMethod": "test_draining_short_circuits_checks"
+    }
+  ]
+}

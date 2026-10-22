@@ -1,0 +1,77 @@
+{
+  "id": "py-04-thread-safe-lending-service",
+  "lessonSlug": "py-04-oop-lab-session",
+  "title": "Thread-Safe Lending Service with Domain Errors",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `LendingService` in `lending.py` (the exception classes and the frozen `Loan` are provided). Lending must be atomic under one `threading.Lock`, use distinct `LibraryError` subclasses for each rule, validate in the order unknown ISBN, no copies, member limit, and take due dates from the injected `clock`. A failed call must change no state.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "lending",
+      "path": "lending.py",
+      "displayName": "lending.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "lend-returns-a-frozen-loan-due-14-days-from-the-injected-clock",
+      "label": "lend returns a frozen Loan due 14 days after the injected clock",
+      "testMethod": "test_lend_returns_a_frozen_loan_due_14_days_from_the_injected_clock"
+    },
+    {
+      "id": "unknown-and-exhausted-items",
+      "label": "Unknown ISBNs and exhausted copies raise the right errors",
+      "testMethod": "test_unknown_and_exhausted_items"
+    },
+    {
+      "id": "borrow-limit",
+      "label": "The borrow limit is enforced per member",
+      "testMethod": "test_borrow_limit"
+    },
+    {
+      "id": "checks-run-in-the-documented-order",
+      "label": "Checks run in the documented order",
+      "testMethod": "test_checks_run_in_the_documented_order"
+    },
+    {
+      "id": "failed-lend-changes-nothing",
+      "label": "A failed lend changes nothing",
+      "testMethod": "test_failed_lend_changes_nothing"
+    },
+    {
+      "id": "return-restores-copy-and-rejects-strangers",
+      "label": "Returns restore the copy and strangers are rejected",
+      "testMethod": "test_return_restores_copy_and_rejects_strangers"
+    },
+    {
+      "id": "all-errors-share-a-base-class",
+      "label": "All business errors share the LibraryError base class",
+      "testMethod": "test_all_errors_share_a_base_class"
+    },
+    {
+      "id": "construction-validates-and-copies-its-input",
+      "label": "max_loans is validated and the input mapping is copied",
+      "testMethod": "test_construction_validates_and_copies_its_input"
+    },
+    {
+      "id": "snapshots-are-independent-copies",
+      "label": "active_loans returns an independent snapshot",
+      "testMethod": "test_snapshots_are_independent_copies"
+    },
+    {
+      "id": "concurrent-lending-never-oversells",
+      "label": "Concurrent lending never oversells or exceeds the member limit",
+      "testMethod": "test_concurrent_lending_never_oversells"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "id": "py-34-init-subclass-provider-registry",
+  "lessonSlug": "py-34-metaclasses-class-creation",
+  "title": "Self-Registering Provider Registry",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "In `providers.py` make `Provider` register its subclasses automatically with `__init_subclass__` (no metaclass): honour the `name=` class keyword, require a `complete` override, reject duplicate names without registering the failing class, and forward other class keywords. Implement `Provider.create` to build a registered provider from keyword config.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "providers",
+      "path": "providers.py",
+      "displayName": "providers.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "subclass-registers-itself-with-default-and-explicit-names",
+      "label": "Subclasses register under their lowercase name or the name= keyword, and store it as cls.name",
+      "testMethod": "test_subclass_registers_itself_with_default_and_explicit_names"
+    },
+    {
+      "id": "duplicate-names-fail-at-class-creation",
+      "label": "A duplicate name fails with TypeError at class creation",
+      "testMethod": "test_duplicate_names_fail_at_class_creation"
+    },
+    {
+      "id": "missing-complete-fails-at-class-creation",
+      "label": "A subclass without complete() fails at creation and is not registered",
+      "testMethod": "test_missing_complete_fails_at_class_creation"
+    },
+    {
+      "id": "create-passes-config-and-unknown-raises",
+      "label": "create() passes config as keywords; unknown names raise UnknownProvider listing known ones",
+      "testMethod": "test_create_passes_config_and_unknown_raises"
+    },
+    {
+      "id": "subclass-of-subclass-inherits-complete-and-registers",
+      "label": "Indirect subclasses register under their own name and inherit complete",
+      "testMethod": "test_subclass_of_subclass_inherits_complete_and_registers"
+    },
+    {
+      "id": "failed-duplicate-leaves-the-original-registered",
+      "label": "A failed duplicate leaves the original registration intact",
+      "testMethod": "test_failed_duplicate_leaves_the_original_registered"
+    },
+    {
+      "id": "extra-class-keywords-are-forwarded-to-the-next-init-subclass",
+      "label": "Unknown class keywords are forwarded to super().__init_subclass__",
+      "testMethod": "test_extra_class_keywords_are_forwarded_to_the_next_init_subclass"
+    }
+  ]
+}

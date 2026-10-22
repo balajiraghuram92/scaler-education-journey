@@ -1,0 +1,67 @@
+{
+  "id": "py-56-streaming-gateway",
+  "lessonSlug": "py-56-serving-ai-fastapi",
+  "title": "Production SSE Streaming Endpoint",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 55,
+  "instructions": "Implement `create_app` in `stream_gateway.py` (`StreamMetrics` is provided): a `POST /chat/stream` Server-Sent Events endpoint that sends a `meta` event, one data event per token and a `done` event. Failures become in-band `error` events without internals, `: ping` comments keep the connection alive without losing the pending read, `deadline_s` bounds the stream, and the upstream is always closed, including on client disconnect.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "stream-gateway",
+      "path": "stream_gateway.py",
+      "displayName": "stream_gateway.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "happy-path",
+      "label": "Emits meta, token and done events in order with SSE headers and closes the upstream",
+      "testMethod": "test_happy_path_event_order_and_cleanup"
+    },
+    {
+      "id": "mid-stream-error",
+      "label": "A mid-stream failure becomes an in-band error event without leaking details",
+      "testMethod": "test_mid_stream_failure_becomes_an_error_event_without_leaking_details"
+    },
+    {
+      "id": "keepalive",
+      "label": "Keep-alive pings are sent while waiting without losing the pending read",
+      "testMethod": "test_keepalive_pings_are_sent_while_waiting_for_the_first_token"
+    },
+    {
+      "id": "deadline",
+      "label": "The deadline ends the stream with deadline_exceeded and closes the upstream",
+      "testMethod": "test_deadline_ends_the_stream_and_closes_upstream"
+    },
+    {
+      "id": "ttft",
+      "label": "Time to first token is recorded with the injected clock",
+      "testMethod": "test_time_to_first_token_is_recorded_with_the_injected_clock"
+    },
+    {
+      "id": "disconnect",
+      "label": "A client disconnect cancels the read and closes the upstream",
+      "testMethod": "test_client_disconnect_cancels_and_closes_upstream"
+    },
+    {
+      "id": "empty-stream",
+      "label": "An empty upstream sends done with zero tokens and no TTFT sample",
+      "testMethod": "test_empty_upstream_sends_done_without_a_ttft_sample"
+    },
+    {
+      "id": "validation",
+      "label": "An empty prompt returns 422",
+      "testMethod": "test_validation_error_for_empty_prompt"
+    }
+  ]
+}

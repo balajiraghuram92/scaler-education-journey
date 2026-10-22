@@ -1,0 +1,57 @@
+{
+  "id": "py-35-single-flight-cache",
+  "lessonSlug": "py-35-bytecode-gil-internals",
+  "title": "Single-Flight Cache for Concurrent Callers",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `SingleFlightCache` in `singleflight.py`: a thread-safe memoizer where concurrent callers for the same key share one computation, different keys compute in parallel, and `compute` runs outside the lock. Hand results to waiters through a `Future`, propagate exceptions to all of them without caching, and support `invalidate` and `len`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "singleflight",
+      "path": "singleflight.py",
+      "displayName": "singleflight.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "same-key-computed-once-under-contention",
+      "label": "Eight simultaneous callers for one key trigger exactly one computation",
+      "testMethod": "test_same_key_computed_once_under_contention"
+    },
+    {
+      "id": "different-keys-compute-concurrently",
+      "label": "Different keys compute at the same time (compute runs outside the lock)",
+      "testMethod": "test_different_keys_compute_concurrently"
+    },
+    {
+      "id": "exception-reaches-all-waiters-and-is-not-cached",
+      "label": "All waiters get the leader's exception, nothing is cached and a later call retries",
+      "testMethod": "test_exception_reaches_all_waiters_and_is_not_cached"
+    },
+    {
+      "id": "invalidate-forces-recompute",
+      "label": "invalidate() forces the next get to recompute",
+      "testMethod": "test_invalidate_forces_recompute"
+    },
+    {
+      "id": "failure-is-not-cached-and-retry-succeeds-sequentially",
+      "label": "A failed computation leaves no cached value and the next call retries",
+      "testMethod": "test_failure_is_not_cached_and_retry_succeeds_sequentially"
+    },
+    {
+      "id": "len-counts-cached-keys-and-invalidate-of-unknown-key-is-harmless",
+      "label": "len counts cached keys; invalidating an unknown key is harmless",
+      "testMethod": "test_len_counts_cached_keys_and_invalidate_of_unknown_key_is_harmless"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "py-01-coverage-zones",
+  "lessonSlug": "py-01-inheritance-mro-polymorphism",
+  "title": "Coverage Zones with Operator Overloading",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement `Zone`, `CircularZone`, `RectangularZone` and `TriangularZone` in `zones.py`. Shapes only implement `area()`; the base class defines `==`, `<` and `+` in terms of `area()` so zones can be compared, sorted and combined. Return `NotImplemented` for operands that are not zones.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "zones",
+      "path": "zones.py",
+      "displayName": "zones.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "shape-areas",
+      "label": "Each shape computes its area",
+      "testMethod": "test_shape_areas"
+    },
+    {
+      "id": "base-zone-has-no-area",
+      "label": "The base Zone.area() raises NotImplementedError",
+      "testMethod": "test_base_zone_has_no_area"
+    },
+    {
+      "id": "shapes-keep-their-name-and-extend-zone",
+      "label": "Shapes extend Zone and keep their attributes",
+      "testMethod": "test_shapes_keep_their_name_and_extend_zone"
+    },
+    {
+      "id": "equality-is-by-area-across-shapes",
+      "label": "Zones are equal when their areas are equal, whatever the shape",
+      "testMethod": "test_equality_is_by_area_across_shapes"
+    },
+    {
+      "id": "sorted-orders-zones-by-area",
+      "label": "sorted() orders zones by area",
+      "testMethod": "test_sorted_orders_zones_by_area"
+    },
+    {
+      "id": "lt-and-derived-comparison",
+      "label": "< compares areas",
+      "testMethod": "test_lt_and_derived_comparison"
+    },
+    {
+      "id": "add-returns-new-zone-with-summed-area",
+      "label": "+ returns a new Zone with the summed area",
+      "testMethod": "test_add_returns_new_zone_with_summed_area"
+    },
+    {
+      "id": "sum-zone-can-be-added-and-compared-again",
+      "label": "A combined zone can be added and compared again",
+      "testMethod": "test_sum_zone_can_be_added_and_compared_again"
+    },
+    {
+      "id": "non-zone-operands-are-handled-politely",
+      "label": "Non-zone operands give False for == and TypeError for < and +",
+      "testMethod": "test_non_zone_operands_are_handled_politely"
+    }
+  ]
+}

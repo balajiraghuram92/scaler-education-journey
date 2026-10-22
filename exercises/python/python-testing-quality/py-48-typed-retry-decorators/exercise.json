@@ -1,0 +1,72 @@
+{
+  "id": "py-48-typed-retry-decorators",
+  "lessonSlug": "py-48-advanced-typing-static-analysis",
+  "title": "Signature-Preserving Retry Decorators (Sync and Async)",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "Implement the `retry` and `aretry` decorator factories in `retry.py` using PEP 695 `[**P, R]` syntax and `functools.wraps`. They retry matching exceptions with `base_delay * 2 ** (attempt - 1)` backoff through an injectable `sleep`, and `attempts < 1` raises `ValueError`. The strict type-check part (`mypy --strict` / pyright, keeping the exact signature) is self-checked; the hidden tests grade runtime behaviour only.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "retry",
+      "path": "retry.py",
+      "displayName": "retry.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "retry-schedule",
+      "label": "Retries then succeeds, sleeping base_delay * 2**(n-1) between attempts",
+      "testMethod": "test_retries_then_succeeds_with_backoff_schedule"
+    },
+    {
+      "id": "give-up",
+      "label": "Re-raises the last error after the final attempt without sleeping again",
+      "testMethod": "test_gives_up_and_reraises_last_error_without_final_sleep"
+    },
+    {
+      "id": "other-errors",
+      "label": "Exceptions not matching `on` propagate after a single call",
+      "testMethod": "test_other_exceptions_are_not_retried"
+    },
+    {
+      "id": "on-tuple",
+      "label": "`on` accepts a tuple of exception types",
+      "testMethod": "test_on_accepts_a_tuple_of_exceptions"
+    },
+    {
+      "id": "metadata",
+      "label": "Preserves __name__, __doc__, __wrapped__ and inspect.signature",
+      "testMethod": "test_signature_and_metadata_are_preserved"
+    },
+    {
+      "id": "attempts-validation",
+      "label": "attempts < 1 raises ValueError(\"attempts must be >= 1\") from both factories",
+      "testMethod": "test_invalid_attempts_rejected_when_factory_is_called"
+    },
+    {
+      "id": "default-sleep",
+      "label": "The default sync sleep does not really wait",
+      "testMethod": "test_default_sleep_is_a_noop"
+    },
+    {
+      "id": "async-retry",
+      "label": "aretry awaits the function and the injected sleep with the same schedule",
+      "testMethod": "test_async_retry_uses_injected_sleep"
+    },
+    {
+      "id": "async-edges",
+      "label": "aretry gives up after the last attempt and does not retry unmatched errors",
+      "testMethod": "test_async_gives_up_and_skips_unmatched_errors"
+    }
+  ]
+}

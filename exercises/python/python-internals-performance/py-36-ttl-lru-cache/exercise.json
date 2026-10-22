@@ -1,0 +1,72 @@
+{
+  "id": "py-36-ttl-lru-cache",
+  "lessonSlug": "py-36-profiling-performance",
+  "title": "TTL + LRU Cache Decorator",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement the `ttl_cache(maxsize, ttl, clock)` decorator in `ttlcache.py`: an LRU cache whose entries also expire after `ttl` seconds, with `cache_info()` / `cache_clear()`, preserved metadata and thread safety. Use an injectable clock, and call the wrapped function outside the lock.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "ttlcache",
+      "path": "ttlcache.py",
+      "displayName": "ttlcache.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "hits-and-misses-are-counted",
+      "label": "Counts hits and misses and reports them in cache_info()",
+      "testMethod": "test_hits_and_misses_are_counted"
+    },
+    {
+      "id": "entries-expire-after-ttl",
+      "label": "Entries expire exactly at ttl seconds",
+      "testMethod": "test_entries_expire_after_ttl"
+    },
+    {
+      "id": "lru-eviction-keeps-recently-used",
+      "label": "Evicts the least recently used entry; a hit counts as a use",
+      "testMethod": "test_lru_eviction_keeps_recently_used"
+    },
+    {
+      "id": "kwargs-form-part-of-the-key-and-unhashable-args-raise",
+      "label": "Keyword arguments are part of the key; unhashable arguments raise TypeError",
+      "testMethod": "test_kwargs_form_part_of_the_key_and_unhashable_args_raise"
+    },
+    {
+      "id": "cache-clear-and-metadata-and-exceptions-not-cached",
+      "label": "Exceptions are not cached; metadata is preserved; cache_clear resets everything",
+      "testMethod": "test_cache_clear_and_metadata_and_exceptions_not_cached"
+    },
+    {
+      "id": "invalid-configuration",
+      "label": "Rejects maxsize < 1 and ttl <= 0 with ValueError",
+      "testMethod": "test_invalid_configuration"
+    },
+    {
+      "id": "a-hit-does-not-extend-the-ttl-and-expired-entries-leave-currsize",
+      "label": "A hit does not refresh the ttl, and stale entries are not counted in currsize",
+      "testMethod": "test_a_hit_does_not_extend_the_ttl_and_expired_entries_leave_currsize"
+    },
+    {
+      "id": "a-slow-call-for-one-key-does-not-block-another-key",
+      "label": "A slow call for one key does not block another (function runs outside the lock)",
+      "testMethod": "test_a_slow_call_for_one_key_does_not_block_another_key"
+    },
+    {
+      "id": "positional-and-keyword-calls-are-distinct-keys-and-clear-resets-counters",
+      "label": "Positional and keyword calls are distinct keys; cache_clear resets the counters",
+      "testMethod": "test_positional_and_keyword_calls_are_distinct_keys_and_clear_resets_counters"
+    }
+  ]
+}

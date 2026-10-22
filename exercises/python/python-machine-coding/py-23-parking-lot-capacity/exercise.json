@@ -1,0 +1,192 @@
+{
+  "id": "py-23-parking-lot-capacity",
+  "lessonSlug": "py-23-code-parking-lot-1",
+  "title": "Display Parking Lot Capacity",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `ParkingLotServiceImpl.get_parking_lot_capacity` in `services/parking_lot_service_impl.py` (count only AVAILABLE spots per floor and vehicle type, with optional floor-id and vehicle-type filters), `ParkingLotController.get_parking_lot_capacity` in `controllers/parking_lot_controller.py` (validate the id, convert vehicle type strings to `VehicleType`, turn every failure into a `FAILURE` response with a message) and the in-memory `ParkingLotRepositoryImpl`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-floor-status",
+      "path": "models/floor_status.py",
+      "displayName": "floor_status.py",
+      "editable": false
+    },
+    {
+      "id": "models-gate",
+      "path": "models/gate.py",
+      "displayName": "gate.py",
+      "editable": false
+    },
+    {
+      "id": "models-gate-type",
+      "path": "models/gate_type.py",
+      "displayName": "gate_type.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-attendant",
+      "path": "models/parking_attendant.py",
+      "displayName": "parking_attendant.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-floor",
+      "path": "models/parking_floor.py",
+      "displayName": "parking_floor.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-lot",
+      "path": "models/parking_lot.py",
+      "displayName": "parking_lot.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-spot",
+      "path": "models/parking_spot.py",
+      "displayName": "parking_spot.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-spot-status",
+      "path": "models/parking_spot_status.py",
+      "displayName": "parking_spot_status.py",
+      "editable": false
+    },
+    {
+      "id": "models-vehicle-type",
+      "path": "models/vehicle_type.py",
+      "displayName": "vehicle_type.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-get-parking-lot-request-validation-exception",
+      "path": "exceptions/get_parking_lot_request_validation_exception.py",
+      "displayName": "get_parking_lot_request_validation_exception.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-invalid-parking-lot-exception",
+      "path": "exceptions/invalid_parking_lot_exception.py",
+      "displayName": "invalid_parking_lot_exception.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-get-parking-lot-capacity-request-dto",
+      "path": "dtos/get_parking_lot_capacity_request_dto.py",
+      "displayName": "get_parking_lot_capacity_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-get-parking-lot-capacity-response-dto",
+      "path": "dtos/get_parking_lot_capacity_response_dto.py",
+      "displayName": "get_parking_lot_capacity_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response",
+      "path": "dtos/response.py",
+      "displayName": "response.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response-status",
+      "path": "dtos/response_status.py",
+      "displayName": "response_status.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-parking-lot-repository",
+      "path": "repositories/parking_lot_repository.py",
+      "displayName": "parking_lot_repository.py",
+      "editable": false
+    },
+    {
+      "id": "services-parking-lot-service",
+      "path": "services/parking_lot_service.py",
+      "displayName": "parking_lot_service.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-parking-lot-repository-impl",
+      "path": "repositories/parking_lot_repository_impl.py",
+      "displayName": "parking_lot_repository_impl.py",
+      "editable": true
+    },
+    {
+      "id": "services-parking-lot-service-impl",
+      "path": "services/parking_lot_service_impl.py",
+      "displayName": "parking_lot_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "controllers-parking-lot-controller",
+      "path": "controllers/parking_lot_controller.py",
+      "displayName": "parking_lot_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "no-filters-counts-all-types-on-all-floors",
+      "label": "With no filters every vehicle type on every floor is reported",
+      "testMethod": "test_no_filters_counts_all_types_on_all_floors"
+    },
+    {
+      "id": "only-available-spots-count",
+      "label": "Occupied and out-of-service spots are not counted",
+      "testMethod": "test_only_available_spots_count"
+    },
+    {
+      "id": "floor-filter",
+      "label": "A floor filter limits the result to those floors with all vehicle types",
+      "testMethod": "test_floor_filter"
+    },
+    {
+      "id": "vehicle-type-filter",
+      "label": "A vehicle type filter limits the types on all floors",
+      "testMethod": "test_vehicle_type_filter"
+    },
+    {
+      "id": "both-filters",
+      "label": "Both filters combine: given types on given floors",
+      "testMethod": "test_both_filters"
+    },
+    {
+      "id": "unknown-lot-raises-in-service",
+      "label": "An unknown parking lot raises InvalidParkingLotException",
+      "testMethod": "test_unknown_lot_raises_in_service"
+    },
+    {
+      "id": "controller-success-response",
+      "label": "Controller converts type strings and returns SUCCESS with the capacity map",
+      "testMethod": "test_controller_success_response"
+    },
+    {
+      "id": "controller-failure-responses",
+      "label": "Unknown lot, non-positive id and invalid vehicle type each give FAILURE with a message and no map",
+      "testMethod": "test_controller_failure_responses"
+    },
+    {
+      "id": "repository-assigns-ids-and-finds-lots",
+      "label": "The repository assigns ids and finds lots by id and by gate id",
+      "testMethod": "test_repository_assigns_ids_and_finds_lots"
+    }
+  ]
+}

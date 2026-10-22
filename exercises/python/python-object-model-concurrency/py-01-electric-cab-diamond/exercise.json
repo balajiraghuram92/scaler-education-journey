@@ -1,0 +1,85 @@
+{
+  "id": "py-01-electric-cab-diamond",
+  "lessonSlug": "py-01-inheritance-mro-polymorphism",
+  "title": "Cooperative Multiple Inheritance (Electric Cab)",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Complete the diamond in `vehicle.py`, `electric.py`, `commercial.py` and `electric_cab.py`. Each initialiser takes only its own argument, forwards the rest with `super().__init__(**kwargs)`, and `Vehicle.__init__` must run exactly once. `ElectricCab` inherits `(ElectricVehicle, CommercialVehicle)` and its priority score is 20.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "vehicle",
+      "path": "vehicle.py",
+      "displayName": "vehicle.py",
+      "editable": true
+    },
+    {
+      "id": "electric",
+      "path": "electric.py",
+      "displayName": "electric.py",
+      "editable": true
+    },
+    {
+      "id": "commercial",
+      "path": "commercial.py",
+      "displayName": "commercial.py",
+      "editable": true
+    },
+    {
+      "id": "electric-cab",
+      "path": "electric_cab.py",
+      "displayName": "electric_cab.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "cab-stores-every-argument",
+      "label": "ElectricCab stores reg_number, battery_capacity and license_type",
+      "testMethod": "test_cab_stores_every_argument"
+    },
+    {
+      "id": "mro-order",
+      "label": "MRO is ElectricCab, ElectricVehicle, CommercialVehicle, Vehicle, object",
+      "testMethod": "test_mro_order"
+    },
+    {
+      "id": "priority-score-comes-from-electric-vehicle",
+      "label": "ElectricCab priority score is 20 (ElectricVehicle wins)",
+      "testMethod": "test_priority_score_comes_from_electric_vehicle"
+    },
+    {
+      "id": "commercial-vehicle-keeps-its-own-score",
+      "label": "CommercialVehicle on its own scores 30",
+      "testMethod": "test_commercial_vehicle_keeps_its_own_score"
+    },
+    {
+      "id": "vehicle-init-runs-exactly-once",
+      "label": "Vehicle.__init__ runs exactly once",
+      "testMethod": "test_vehicle_init_runs_exactly_once"
+    },
+    {
+      "id": "each-class-consumes-only-its-own-arguments",
+      "label": "Each class consumes only its own arguments",
+      "testMethod": "test_each_class_consumes_only_its_own_arguments"
+    },
+    {
+      "id": "unknown-keyword-reaches-object-and-fails",
+      "label": "Unknown keywords are rejected by the end of the chain",
+      "testMethod": "test_unknown_keyword_reaches_object_and_fails"
+    },
+    {
+      "id": "works-with-a-third-cooperative-class-in-the-chain",
+      "label": "Forwarding uses super(), so extra classes in the MRO take part",
+      "testMethod": "test_works_with_a_third_cooperative_class_in_the_chain"
+    }
+  ]
+}

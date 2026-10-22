@@ -1,0 +1,102 @@
+{
+  "id": "py-21-factory-database",
+  "lessonSlug": "py-21-tictactoe-2",
+  "title": "Factory Pattern: Database Connection",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "The three concrete databases in `databases/` already call `super().__init__(name)`. Implement the abstract parent `Database` in `database.py` (shared `database_name`, `get_database_name()`, abstract `database_connection()` and `supports_type()`) and `DatabaseFactory.create_database(db_type, name)` in `database_factory.py`. Raise `ValueError` for an unknown type.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "database-type",
+      "path": "database_type.py",
+      "displayName": "database_type.py",
+      "editable": false
+    },
+    {
+      "id": "databases-mongodb-database",
+      "path": "databases/mongodb_database.py",
+      "displayName": "mongodb_database.py",
+      "editable": false
+    },
+    {
+      "id": "databases-mysql-database",
+      "path": "databases/mysql_database.py",
+      "displayName": "mysql_database.py",
+      "editable": false
+    },
+    {
+      "id": "databases-postgresql-database",
+      "path": "databases/postgresql_database.py",
+      "displayName": "postgresql_database.py",
+      "editable": false
+    },
+    {
+      "id": "database",
+      "path": "database.py",
+      "displayName": "database.py",
+      "editable": true
+    },
+    {
+      "id": "database-factory",
+      "path": "database_factory.py",
+      "displayName": "database_factory.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "factory-creates-each-database",
+      "label": "The factory returns the right concrete class for every DatabaseType",
+      "testMethod": "test_factory_creates_each_database"
+    },
+    {
+      "id": "created-database-supports-its-type",
+      "label": "Each created database reports its own DatabaseType",
+      "testMethod": "test_created_database_supports_its_type"
+    },
+    {
+      "id": "name-is-stored-by-the-parent",
+      "label": "The name passed to the factory is returned by get_database_name()",
+      "testMethod": "test_name_is_stored_by_the_parent"
+    },
+    {
+      "id": "unknown-type-raises-value-error",
+      "label": "An unknown database type raises ValueError",
+      "testMethod": "test_unknown_type_raises_value_error"
+    },
+    {
+      "id": "database-is-abstract",
+      "label": "Database cannot be instantiated and declares database_connection and supports_type as abstract",
+      "testMethod": "test_database_is_abstract"
+    },
+    {
+      "id": "incomplete-subclass-cannot-be-instantiated",
+      "label": "A subclass that misses an abstract method cannot be instantiated",
+      "testMethod": "test_incomplete_subclass_cannot_be_instantiated"
+    },
+    {
+      "id": "shared-behaviour-lives-in-the-parent",
+      "label": "get_database_name is implemented once on Database, not in each database",
+      "testMethod": "test_shared_behaviour_lives_in_the_parent"
+    },
+    {
+      "id": "each-database-connects",
+      "label": "database_connection() prints something for every database",
+      "testMethod": "test_each_database_connects"
+    },
+    {
+      "id": "factory-returns-new-instances",
+      "label": "Every call returns a new, independent instance",
+      "testMethod": "test_factory_returns_new_instances"
+    }
+  ]
+}

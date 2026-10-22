@@ -202,6 +202,18 @@ export const api = {
         ...options,
         method: 'GET'
       }),
+    // Signed-in learner's saved code + run history for an exercise.
+    getWorkspace: (exerciseId, options = {}) =>
+      apiClient(`/api/exercises/${encodeURIComponent(exerciseId)}/workspace`, {
+        ...options,
+        method: 'GET'
+      }),
+    saveDraft: (exerciseId, files, options = {}) =>
+      apiClient(`/api/exercises/${encodeURIComponent(exerciseId)}/draft`, {
+        ...options,
+        method: 'PUT',
+        body: { files }
+      }),
     run: (exerciseId, files, options = {}) => executeExercise('run', exerciseId, files, options),
     // Kept for older API consumers. The learner UI uses getSolution instead.
     check: (exerciseId, files, options = {}) => executeExercise('check', exerciseId, files, options)

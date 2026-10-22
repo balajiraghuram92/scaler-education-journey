@@ -1,0 +1,78 @@
+{
+  "id": "py-04-book-mixin-integration",
+  "lessonSlug": "py-04-oop-lab-session",
+  "title": "Mixin, Value Semantics and Collection Dunders",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "Implement `TimestampedMixin` and `Book` in `models.py`, and the container dunders of `Library` in `library.py`. The mixin stamps `created_at` and forwards all arguments cooperatively. `Book` has a read-only `isbn` used by `__eq__` and `__hash__`, and `Library` supports `len`, iteration, `isbn in library`, indexing and slicing.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models",
+      "path": "models.py",
+      "displayName": "models.py",
+      "editable": true
+    },
+    {
+      "id": "library",
+      "path": "library.py",
+      "displayName": "library.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "mixin-stamps-creation-time",
+      "label": "The mixin stamps created_at from datetime.now()",
+      "testMethod": "test_mixin_stamps_creation_time"
+    },
+    {
+      "id": "mixin-forwards-arguments-to-the-next-class",
+      "label": "The mixin forwards arguments to the next class",
+      "testMethod": "test_mixin_forwards_arguments_to_the_next_class"
+    },
+    {
+      "id": "book-stores-fields-and-isbn-is-read-only",
+      "label": "Book fields work and isbn is read-only",
+      "testMethod": "test_book_stores_fields_and_isbn_is_read_only"
+    },
+    {
+      "id": "book-equality-and-hash-use-the-isbn",
+      "label": "Equality and hash use the ISBN",
+      "testMethod": "test_book_equality_and_hash_use_the_isbn"
+    },
+    {
+      "id": "book-equality-with-foreign-types",
+      "label": "Book equality returns NotImplemented for foreign types",
+      "testMethod": "test_book_equality_with_foreign_types"
+    },
+    {
+      "id": "book-repr",
+      "label": "Book repr matches the documented format",
+      "testMethod": "test_book_repr"
+    },
+    {
+      "id": "library-len-and-repeatable-iteration",
+      "label": "Library supports len and repeatable iteration",
+      "testMethod": "test_library_len_and_repeatable_iteration"
+    },
+    {
+      "id": "library-membership-is-by-isbn-string",
+      "label": "Library membership is by ISBN string",
+      "testMethod": "test_library_membership_is_by_isbn_string"
+    },
+    {
+      "id": "library-indexing-and-slicing",
+      "label": "Library supports indexing and slicing",
+      "testMethod": "test_library_indexing_and_slicing"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "py-01-uber-pricing-plugins",
+  "lessonSlug": "py-01-inheritance-mro-polymorphism",
+  "title": "Pricing Plugin System with Cooperative Mixins",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 30,
+  "instructions": "Implement the pricing classes in `pricing.py`. `BaseFare` charges 10 per km; `SurgeMixin`, `DiscountMixin` and `TaxMixin` each call `super().calculate_fare(distance)` and then adjust the result, so the order in the class statement is the order adjustments are applied. `FinalFare` must initialise every mixin cooperatively and return 189 for distance 10, multiplier 2, discount 10 and tax 5.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "pricing",
+      "path": "pricing.py",
+      "displayName": "pricing.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "base-fare-is-ten-per-km",
+      "label": "BaseFare charges 10 per km",
+      "testMethod": "test_base_fare_is_ten_per_km"
+    },
+    {
+      "id": "final-fare-matches-worked-example",
+      "label": "FinalFare gives 189 for the worked example",
+      "testMethod": "test_final_fare_matches_worked_example"
+    },
+    {
+      "id": "final-fare-mro-order",
+      "label": "FinalFare MRO is Tax, Discount, Surge, Base",
+      "testMethod": "test_final_fare_mro_order"
+    },
+    {
+      "id": "each-mixin-alone",
+      "label": "Each mixin adjusts the fare correctly on its own",
+      "testMethod": "test_each_mixin_alone"
+    },
+    {
+      "id": "mixins-call-super-so-order-follows-the-class-statement",
+      "label": "Mixins call super(), so class order decides application order",
+      "testMethod": "test_mixins_call_super_so_order_follows_the_class_statement"
+    },
+    {
+      "id": "initialisers-store-their-own-arguments",
+      "label": "Initialisers store their own arguments",
+      "testMethod": "test_initialisers_store_their_own_arguments"
+    },
+    {
+      "id": "each-initialiser-runs-once",
+      "label": "Every initialiser runs once and nothing is left over for BaseFare",
+      "testMethod": "test_each_initialiser_runs_once"
+    },
+    {
+      "id": "unknown-keyword-is-rejected",
+      "label": "Unknown keywords are rejected",
+      "testMethod": "test_unknown_keyword_is_rejected"
+    },
+    {
+      "id": "fare-scales-with-distance-and-zero",
+      "label": "Fare scales with distance, including zero",
+      "testMethod": "test_fare_scales_with_distance_and_zero"
+    }
+  ]
+}

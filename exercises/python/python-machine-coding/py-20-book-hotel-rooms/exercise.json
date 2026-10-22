@@ -1,0 +1,210 @@
+{
+  "id": "py-20-book-hotel-rooms",
+  "lessonSlug": "py-20-tictactoe-1",
+  "title": "Book Hotel Rooms",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `BookingServiceImpl.make_booking` in `services/booking_service_impl.py`, `BookingController.make_booking` in `controllers/booking_controller.py`, and the in-memory `CustomerSessionRepositoryImpl` and `BookingRepositoryImpl`. Validate the user and every room before writing anything, reuse the user's ACTIVE session or create one, and make failures atomic (no session, no booking). The controller returns `FAILURE` with `booking=None` for the two domain exceptions.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-booking",
+      "path": "models/booking.py",
+      "displayName": "booking.py",
+      "editable": false
+    },
+    {
+      "id": "models-customer-session",
+      "path": "models/customer_session.py",
+      "displayName": "customer_session.py",
+      "editable": false
+    },
+    {
+      "id": "models-customer-session-status",
+      "path": "models/customer_session_status.py",
+      "displayName": "customer_session_status.py",
+      "editable": false
+    },
+    {
+      "id": "models-room",
+      "path": "models/room.py",
+      "displayName": "room.py",
+      "editable": false
+    },
+    {
+      "id": "models-room-type",
+      "path": "models/room_type.py",
+      "displayName": "room_type.py",
+      "editable": false
+    },
+    {
+      "id": "models-user",
+      "path": "models/user.py",
+      "displayName": "user.py",
+      "editable": false
+    },
+    {
+      "id": "models-user-type",
+      "path": "models/user_type.py",
+      "displayName": "user_type.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-make-booking-request-dto",
+      "path": "dtos/make_booking_request_dto.py",
+      "displayName": "make_booking_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-make-booking-response-dto",
+      "path": "dtos/make_booking_response_dto.py",
+      "displayName": "make_booking_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response-status",
+      "path": "dtos/response_status.py",
+      "displayName": "response_status.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-invalid-room-exception",
+      "path": "exceptions/invalid_room_exception.py",
+      "displayName": "invalid_room_exception.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-user-not-found-exception",
+      "path": "exceptions/user_not_found_exception.py",
+      "displayName": "user_not_found_exception.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-booking-repository",
+      "path": "repositories/booking_repository.py",
+      "displayName": "booking_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-customer-session-repository",
+      "path": "repositories/customer_session_repository.py",
+      "displayName": "customer_session_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-room-repository",
+      "path": "repositories/room_repository.py",
+      "displayName": "room_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-user-repository",
+      "path": "repositories/user_repository.py",
+      "displayName": "user_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-room-repository-impl",
+      "path": "repositories/room_repository_impl.py",
+      "displayName": "room_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-user-repository-impl",
+      "path": "repositories/user_repository_impl.py",
+      "displayName": "user_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "services-booking-service",
+      "path": "services/booking_service.py",
+      "displayName": "booking_service.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-booking-repository-impl",
+      "path": "repositories/booking_repository_impl.py",
+      "displayName": "booking_repository_impl.py",
+      "editable": true
+    },
+    {
+      "id": "repositories-customer-session-repository-impl",
+      "path": "repositories/customer_session_repository_impl.py",
+      "displayName": "customer_session_repository_impl.py",
+      "editable": true
+    },
+    {
+      "id": "services-booking-service-impl",
+      "path": "services/booking_service_impl.py",
+      "displayName": "booking_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "controllers-booking-controller",
+      "path": "controllers/booking_controller.py",
+      "displayName": "booking_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "first-booking-creates-active-session",
+      "label": "The first booking creates an ACTIVE customer session for the user",
+      "testMethod": "test_first_booking_creates_active_session"
+    },
+    {
+      "id": "booking-contains-real-room-objects",
+      "label": "The booking maps real Room objects to the requested counts",
+      "testMethod": "test_booking_contains_real_room_objects"
+    },
+    {
+      "id": "second-booking-reuses-active-session",
+      "label": "A later booking by the same user reuses the active session",
+      "testMethod": "test_second_booking_reuses_active_session"
+    },
+    {
+      "id": "ended-session-is-not-reused",
+      "label": "An ENDED session is not reused: a new ACTIVE one is created",
+      "testMethod": "test_ended_session_is_not_reused"
+    },
+    {
+      "id": "sessions-are-per-user",
+      "label": "Different users get different sessions",
+      "testMethod": "test_sessions_are_per_user"
+    },
+    {
+      "id": "unknown-user-raises-and-stores-nothing",
+      "label": "Unknown user raises UserNotFoundException and stores nothing",
+      "testMethod": "test_unknown_user_raises_and_stores_nothing"
+    },
+    {
+      "id": "invalid-room-is-atomic",
+      "label": "One invalid room id raises InvalidRoomException and leaves no session or booking",
+      "testMethod": "test_invalid_room_is_atomic"
+    },
+    {
+      "id": "controller-success",
+      "label": "Controller returns SUCCESS with the stored booking",
+      "testMethod": "test_controller_success"
+    },
+    {
+      "id": "controller-failures",
+      "label": "Controller returns FAILURE with booking=None for both errors",
+      "testMethod": "test_controller_failures"
+    }
+  ]
+}

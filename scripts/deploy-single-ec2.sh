@@ -9,6 +9,9 @@ IMAGE_TAG="${IMAGE_TAG:-release}"
 API_REF="${API_REF:-}"
 APP_REF="${APP_REF:-}"
 RUNNER_REF="${RUNNER_REF:-}"
+# Optional sandbox for Python live exercises (runner/python); skipped when not provided.
+PYTHON_RUNNER_IMAGE="${PYTHON_RUNNER_IMAGE:-ghcr.io/balajiraghuram92/neuralascent-python-runner}"
+PYTHON_RUNNER_REF="${PYTHON_RUNNER_REF:-}"
 AI_AGENT_REF="${AI_AGENT_REF:-}"
 DOMAIN_NAME="${DOMAIN_NAME:-localhost}"
 LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-}"
@@ -182,6 +185,7 @@ database_is_empty() {
 start_api() {
     local image="$1"
     local runner_ref="${2:-}"
+    local python_runner_ref="${3:-}"
     local args=(
         run -d
         --name "${API_CONTAINER}"
@@ -200,6 +204,10 @@ start_api() {
 
     if [ -n "${runner_ref}" ]; then
         args+=( -e "ExerciseExecution__RunnerImage=${runner_ref}" )
+    fi
+
+    if [ -n "${python_runner_ref}" ]; then
+        args+=( -e "ExerciseExecution__PythonRunnerImage=${python_runner_ref}" )
     fi
 
     docker "${args[@]}" "${image}" >/dev/null
@@ -381,6 +389,22 @@ docker pull "${ai_agent_ref}"
 docker pull "${app_ref}"
 docker pull "${POSTGRES_IMAGE}"
 verify_host_image_platform "${runner_ref}" "Java runner image"
+
+python_runner_ref=""
+if [ -n "${PYTHON_RUNNER_REF}" ]; then
+    verify_digest_ref "${PYTHON_RUNNER_REF}" "PYTHON_RUNNER_REF"
+    verify_image_digest_ref "${PYTHON_RUNNER_REF}" "PYTHON_RUNNER_REF" "${PYTHON_RUNNER_IMAGE}"
+    # Non-fatal: if the Python runner can't be pulled (e.g. registry token lacks access to the
+    # new package), the release still ships; only Python live exercises report "runner unavailable".
+    if docker pull "${PYTHON_RUNNER_REF}"; then
+        python_runner_ref="${PYTHON_RUNNER_REF}"
+        # Like the Java runner, keep the pulled digest tagged so image cleanup never removes it.
+        docker tag "${python_runner_ref}" "${PYTHON_RUNNER_IMAGE}:deployed"
+        verify_host_image_platform "${python_runner_ref}" "Python runner image"
+    else
+        log "WARNING: could not pull the Python exercise runner ${PYTHON_RUNNER_REF}; Python live exercises will be unavailable until it is pulled."
+    fi
+fi
 verify_host_image_platform "${api_ref}" "API image"
 verify_host_image_platform "${ai_agent_ref}" "AI agent image"
 verify_host_image_platform "${app_ref}" "frontend image"
@@ -478,6 +502,7 @@ previous_api_image="$(docker container inspect --format '{{.Config.Image}}' "${A
 previous_ai_agent_image="$(docker container inspect --format '{{.Config.Image}}' "${AI_AGENT_CONTAINER}" 2>/dev/null || true)"
 previous_app_image="$(docker container inspect --format '{{.Config.Image}}' "${APP_CONTAINER}" 2>/dev/null || true)"
 previous_runner_ref="$(docker container inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "${API_CONTAINER}" 2>/dev/null | sed -n 's/^ExerciseExecution__RunnerImage=//p' | tail -n 1 || true)"
+previous_python_runner_ref="$(docker container inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "${API_CONTAINER}" 2>/dev/null | sed -n 's/^ExerciseExecution__PythonRunnerImage=//p' | tail -n 1 || true)"
 
 rollback() {
     local exit_code="${1:-1}"
@@ -488,7 +513,7 @@ rollback() {
     docker stop "${API_CONTAINER}" "${AI_AGENT_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
     docker rm "${API_CONTAINER}" "${AI_AGENT_CONTAINER}" "${APP_CONTAINER}" >/dev/null 2>&1 || true
     if [ -n "${previous_api_image}" ]; then
-        start_api "${previous_api_image}" "${previous_runner_ref}" || true
+        start_api "${previous_api_image}" "${previous_runner_ref}" "${previous_python_runner_ref}" || true
     fi
     if [ -n "${previous_ai_agent_image}" ]; then
         start_ai_agent "${previous_ai_agent_image}" || true
@@ -530,7 +555,7 @@ docker stop "${AI_AGENT_CONTAINER}" >/dev/null 2>&1 || true
 docker rm "${AI_AGENT_CONTAINER}" >/dev/null 2>&1 || true
 docker rm "${APP_CONTAINER}" >/dev/null 2>&1 || true
 
-start_api "${api_ref}" "${runner_ref}"
+start_api "${api_ref}" "${runner_ref}" "${python_runner_ref}"
 start_ai_agent "${ai_agent_ref}"
 start_app "${app_ref}"
 

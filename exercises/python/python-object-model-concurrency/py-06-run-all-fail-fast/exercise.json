@@ -1,0 +1,67 @@
+{
+  "id": "py-06-run-all-fail-fast",
+  "lessonSlug": "py-06-executors-futures",
+  "title": "Fan-Out Runner with Ordered Outcomes and Fail-Fast",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Implement `Outcome` and `run_all` in `fanout.py`. `Outcome` is a frozen, slotted dataclass with an `ok` property. `run_all` runs `fn` over the items on a `ThreadPoolExecutor`, returns one `Outcome` per input in input order, captures exceptions instead of raising, and with `fail_fast=True` cancels work that has not started.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "fanout",
+      "path": "fanout.py",
+      "displayName": "fanout.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "order",
+      "label": "Returns outcomes in input order even if tasks finish out of order",
+      "testMethod": "test_preserves_input_order_even_when_finish_order_differs"
+    },
+    {
+      "id": "errors-captured",
+      "label": "Captures exceptions in Outcome.error instead of raising",
+      "testMethod": "test_errors_are_captured_not_raised"
+    },
+    {
+      "id": "no-fail-fast",
+      "label": "Runs every item when fail_fast is off",
+      "testMethod": "test_without_fail_fast_every_item_runs"
+    },
+    {
+      "id": "fail-fast",
+      "label": "fail_fast cancels queued work but lets running tasks finish",
+      "testMethod": "test_fail_fast_cancels_queued_work_but_lets_running_tasks_finish"
+    },
+    {
+      "id": "bad-workers",
+      "label": "Raises ValueError for max_workers < 1",
+      "testMethod": "test_rejects_bad_worker_count"
+    },
+    {
+      "id": "empty-generator",
+      "label": "Handles empty input and one-shot generators",
+      "testMethod": "test_empty_and_generator_input"
+    },
+    {
+      "id": "max-workers",
+      "label": "Honours max_workers and runs tasks in parallel",
+      "testMethod": "test_respects_max_workers_and_runs_in_parallel"
+    },
+    {
+      "id": "outcome-shape",
+      "label": "Outcome is a frozen, slotted dataclass with a read-only ok property",
+      "testMethod": "test_outcome_is_frozen_slotted_dataclass_with_ok_property"
+    }
+  ]
+}

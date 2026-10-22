@@ -1,0 +1,52 @@
+{
+  "id": "py-07-print-in-order",
+  "lessonSlug": "py-07-synchronization-async-intro",
+  "title": "Print in Order",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `Foo` in `config/printInOrder.py` with semaphores. `first()`, `second()` and `third()` run in three different threads, in any order, yet must append `\"first\"`, `\"second\"`, `\"third\"` to `self.output` in that order. No sleeping, polling or shared flags.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "printinorder",
+      "path": "config/printInOrder.py",
+      "displayName": "printInOrder.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "starts-empty",
+      "label": "output starts as an empty list",
+      "testMethod": "test_output_starts_empty"
+    },
+    {
+      "id": "any-order",
+      "label": "Outputs first, second, third for every thread start order",
+      "testMethod": "test_runs_in_order_for_every_start_order"
+    },
+    {
+      "id": "blocks-until-first",
+      "label": "second and third block until first has run",
+      "testMethod": "test_second_and_third_block_until_first_has_run"
+    },
+    {
+      "id": "third-waits-second",
+      "label": "third waits for second, not just for first",
+      "testMethod": "test_third_waits_for_second_even_after_first_ran"
+    },
+    {
+      "id": "independent",
+      "label": "Separate instances do not share state",
+      "testMethod": "test_independent_instances_do_not_share_state"
+    }
+  ]
+}

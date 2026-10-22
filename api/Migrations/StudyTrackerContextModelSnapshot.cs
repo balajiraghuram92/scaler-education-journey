@@ -821,7 +821,7 @@ namespace StudyTracker.Api.Migrations
 
                     b.ToTable("learning_activity", null, t =>
                         {
-                            t.HasCheckConstraint("ck_learning_activity_event_type", "event_type IN ('LessonCompleted', 'LessonReopened', 'ProblemCompleted', 'ProblemReopened', 'TaskCompleted', 'TaskReopened', 'ReadingScheduled', 'ReadingDeferred', 'ReadingRevisited', 'NoteCreated', 'ChapterImported', 'LessonOpened', 'McqAnswered', 'ProblemAttempted', 'SolutionRevealed')");
+                            t.HasCheckConstraint("ck_learning_activity_event_type", "event_type IN ('LessonCompleted', 'LessonReopened', 'ProblemCompleted', 'ProblemReopened', 'TaskCompleted', 'TaskReopened', 'ReadingScheduled', 'ReadingDeferred', 'ReadingRevisited', 'NoteCreated', 'ChapterImported', 'LessonOpened', 'McqAnswered', 'ProblemAttempted', 'SolutionRevealed', 'ExerciseRun')");
                         });
                 });
 
@@ -2489,6 +2489,105 @@ namespace StudyTracker.Api.Migrations
                     b.ToTable("Verticals", (string)null);
                 });
 
+            modelBuilder.Entity("StudyTracker.Api.Models.UserExerciseAttempt", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("DurationMilliseconds")
+                        .HasColumnType("bigint")
+                        .HasColumnName("duration_ms");
+
+                    b.Property<string>("ExerciseId")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("exercise_id");
+
+                    b.Property<string>("FilesJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("files");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<string>("SummaryJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("summary");
+
+                    b.Property<int>("TestsPassed")
+                        .HasColumnType("integer")
+                        .HasColumnName("tests_passed");
+
+                    b.Property<int>("TestsTotal")
+                        .HasColumnType("integer")
+                        .HasColumnName("tests_total");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ExerciseId", "SubmittedAt")
+                        .HasDatabaseName("ix_user_exercise_attempts_user_exercise_time");
+
+                    b.ToTable("user_exercise_attempts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_user_exercise_attempts_status", "status IN ('success', 'testFailure', 'compilationFailure', 'timeout')");
+                        });
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.UserExerciseDraft", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ExerciseId")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("exercise_id");
+
+                    b.Property<string>("FilesJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("files");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ExerciseId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_user_exercise_drafts_user_exercise");
+
+                    b.ToTable("user_exercise_drafts", (string)null);
+                });
+
             modelBuilder.Entity("StudyTracker.Api.Models.UserLessonProgress", b =>
                 {
                     b.Property<long>("Id")
@@ -3263,6 +3362,28 @@ namespace StudyTracker.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CanonicalVertical");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.UserExerciseAttempt", b =>
+                {
+                    b.HasOne("StudyTracker.Api.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.UserExerciseDraft", b =>
+                {
+                    b.HasOne("StudyTracker.Api.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("StudyTracker.Api.Models.UserLessonProgress", b =>

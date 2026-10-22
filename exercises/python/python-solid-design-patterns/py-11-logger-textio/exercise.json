@@ -1,0 +1,73 @@
+{
+  "id": "py-11-logger-textio",
+  "lessonSlug": "py-11-singleton",
+  "title": "Logger (Singleton, TextIO)",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Complete `LoggerImpl` in `logger/logger_impl.py` as a thread-safe singleton that writes to one file through a `TextIO` handle. Implement `get_instance`/`reset_instance`, `set_log_file` (append mode, closing the previous file), `log`, `get_log_file`, `flush` and `close`. The `Logger` interface and `LogLevel` in `logger/logger.py` are provided.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "logger-logger",
+      "path": "logger/logger.py",
+      "displayName": "logger.py",
+      "editable": false
+    },
+    {
+      "id": "logger-logger-impl",
+      "path": "logger/logger_impl.py",
+      "displayName": "logger_impl.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "get-instance-returns-the-same-logger",
+      "label": "get_instance() returns the same shared logger",
+      "testMethod": "test_get_instance_returns_the_same_logger"
+    },
+    {
+      "id": "same-instance-across-threads",
+      "label": "Concurrent get_instance() calls yield exactly one logger",
+      "testMethod": "test_same_instance_across_threads"
+    },
+    {
+      "id": "reset-instance-gives-a-fresh-logger",
+      "label": "reset_instance() gives a fresh logger with no log file",
+      "testMethod": "test_reset_instance_gives_a_fresh_logger"
+    },
+    {
+      "id": "log-without-a-file-raises-runtime-error",
+      "label": "Logging before set_log_file() raises RuntimeError",
+      "testMethod": "test_log_without_a_file_raises_runtime_error"
+    },
+    {
+      "id": "log-writes-a-line-with-level-and-message",
+      "label": "Each log call writes one line with timestamp, level and message",
+      "testMethod": "test_log_writes_a_line_with_level_and_message"
+    },
+    {
+      "id": "set-log-file-appends-and-switches-files",
+      "label": "set_log_file() appends and closes the previous file when switching",
+      "testMethod": "test_set_log_file_appends_and_switches_files"
+    },
+    {
+      "id": "close-clears-the-handle-so-logging-fails-again",
+      "label": "close() clears the handle; close and flush are safe to repeat",
+      "testMethod": "test_close_clears_the_handle_so_logging_fails_again"
+    },
+    {
+      "id": "set-log-file-wraps-io-errors",
+      "label": "An unopenable path raises RuntimeError",
+      "testMethod": "test_set_log_file_wraps_io_errors"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "py-31-settle-up-service",
+  "lessonSlug": "py-31-code-splitwise-2",
+  "title": "Strategy-Based Settle-Up Service",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 45,
+  "instructions": "In `settle_up.py` implement `net_balances`, the abstract `SettleUpStrategy`, the carry-forward `NaiveSettleUpStrategy`, `SettleUpService` and `build_dummy_expense`. The service must depend only on the strategy abstraction, include every expense a user takes part in (grouped or not), and return just the transactions relevant to the request.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "settle-up",
+      "path": "settle_up.py",
+      "displayName": "settle_up.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "net-balances",
+      "label": "Computes paid minus owed per user",
+      "testMethod": "test_net_balances"
+    },
+    {
+      "id": "naive-strategy-chains-through-the-next-person",
+      "label": "Naive strategy chains payments through the next person in sorted order",
+      "testMethod": "test_naive_strategy_chains_through_the_next_person"
+    },
+    {
+      "id": "naive-strategy-clears-all-balances-and-stays-within-n-minus-1",
+      "label": "Naive transactions clear all balances using at most n-1 transactions",
+      "testMethod": "test_naive_strategy_clears_all_balances_and_stays_within_n_minus_1"
+    },
+    {
+      "id": "settle-up-user-filters-to-transactions-involving-the-user",
+      "label": "settle_up_user returns only transactions involving that user, [] if unknown",
+      "testMethod": "test_settle_up_user_filters_to_transactions_involving_the_user"
+    },
+    {
+      "id": "settle-up-user-includes-ungrouped-and-all-group-expenses",
+      "label": "settle_up_user feeds the strategy every expense the user is in, across groups",
+      "testMethod": "test_settle_up_user_includes_ungrouped_and_all_group_expenses"
+    },
+    {
+      "id": "settle-up-group-only-uses-that-group",
+      "label": "settle_up_group uses only that group's expenses",
+      "testMethod": "test_settle_up_group_only_uses_that_group"
+    },
+    {
+      "id": "dummy-expense-moves-balances-and-validates",
+      "label": "A dummy settlement expense moves balances; invalid amounts and users are rejected",
+      "testMethod": "test_dummy_expense_moves_balances_and_validates"
+    },
+    {
+      "id": "strategy-is-abstract-and-swappable",
+      "label": "The strategy is abstract and a different one can be swapped into the service",
+      "testMethod": "test_strategy_is_abstract_and_swappable"
+    },
+    {
+      "id": "transaction-string-and-empty-input",
+      "label": "Transaction prints as 'payer pays receiver amount'; empty or even inputs give no transactions",
+      "testMethod": "test_transaction_string_and_empty_input"
+    }
+  ]
+}

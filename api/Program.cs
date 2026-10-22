@@ -97,6 +97,7 @@ builder.Services.AddSingleton(sp =>
     return new SemaphoreSlim(options.MaxConcurrentExecutions, options.MaxConcurrentExecutions);
 });
 builder.Services.AddScoped<ExerciseService>();
+builder.Services.AddScoped<ExerciseProgressService>();
 
 // Phase 4 Services & Reconciliation Engine DI
 builder.Services.AddScoped<ProgressService>();

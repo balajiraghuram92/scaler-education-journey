@@ -1,0 +1,27 @@
+{
+  "id": "py-15-model-fallback-gateway",
+  "lessonSlug": "py-15-adapter-facade",
+  "title": "LLM Gateway with Fallback Adapter",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "Build `llm_gateway.py`: make `ChatRequest` and `ChatReply` frozen slotted dataclasses, write `AcmeAdapter` (provider \"acme\") and `NimbusAdapter` (provider \"nimbus\") that normalise request, reply, token counts and `ConnectionError`/`TimeoutError` into `ModelUnavailable` (chained with `from`), and `FallbackChatModel`, itself a `ChatModel`, that tries models in order. The vendor clients in `vendors.py` are provided.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "gateway", "path": "llm_gateway.py", "displayName": "llm_gateway.py", "editable": true },
+    { "id": "vendors", "path": "vendors.py", "displayName": "vendors.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "frozen-dataclasses", "label": "ChatRequest and ChatReply are frozen slotted dataclasses with a 256 default", "testMethod": "test_request_and_reply_are_frozen_slotted_dataclasses" },
+    { "id": "acme-normalised", "label": "AcmeAdapter maps request, reply and token counts", "testMethod": "test_acme_adapter_normalises_request_and_reply" },
+    { "id": "nimbus-normalised", "label": "NimbusAdapter maps request, reply and token counts", "testMethod": "test_nimbus_adapter_normalises_request_and_reply" },
+    { "id": "errors-translated", "label": "Connection and timeout errors become ModelUnavailable with __cause__ kept", "testMethod": "test_adapters_translate_transport_errors_and_keep_the_cause" },
+    { "id": "adapters-no-swallow", "label": "Adapters do not swallow programming errors", "testMethod": "test_adapters_do_not_swallow_programming_errors" },
+    { "id": "falls-back", "label": "Falls back to the second provider with correct token mapping", "testMethod": "test_fallback_uses_the_second_provider_when_the_first_is_down" },
+    { "id": "short-circuits", "label": "Returns the first success without calling later models", "testMethod": "test_fallback_returns_first_success_without_calling_later_models" },
+    { "id": "all-fail", "label": "All failing raises ModelUnavailable chained to the last failure", "testMethod": "test_all_failing_raises_unavailable_chained_to_the_last_failure" },
+    { "id": "keyerror-propagates", "label": "A KeyError from a model propagates and stops the chain", "testMethod": "test_non_transport_error_propagates_and_stops_the_chain" },
+    { "id": "empty-and-composable", "label": "Rejects an empty list and composes like any ChatModel", "testMethod": "test_empty_sequence_is_rejected_and_fallback_is_itself_a_chat_model" }
+  ]
+}

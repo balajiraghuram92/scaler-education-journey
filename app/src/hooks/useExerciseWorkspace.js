@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
+import { useOptionalAuth } from '../context/AuthContext';
 import {
   createWorkingFiles,
   getInitialFileId,
@@ -10,6 +11,28 @@ import {
 } from '../api/exerciseModels';
 
 const EXECUTION_TIMEOUT_MS = 135000;
+const DRAFT_SAVE_DELAY_MS = 1500;
+
+const EMPTY_HISTORY = Object.freeze({
+  attemptCount: 0,
+  lastAttempt: null,
+  bestAttempt: null,
+  solved: false,
+  restoredDraft: false,
+  draftSavedAt: null
+});
+
+function applyDraft(files, draftFiles) {
+  if (!Array.isArray(draftFiles) || draftFiles.length === 0) return { files, restored: false };
+  const byPath = new Map(draftFiles.map((file) => [file.path, file.content]));
+  let restored = false;
+  const next = files.map((file) => {
+    if (file.editable === false || !byPath.has(file.path)) return file;
+    restored = true;
+    return { ...file, content: byPath.get(file.path) };
+  });
+  return { files: next, restored };
+}
 
 function createRequestId() {
   return globalThis.crypto?.randomUUID?.()
@@ -17,6 +40,9 @@ function createRequestId() {
 }
 
 export default function useExerciseWorkspace(exerciseId) {
+  const { isAuthenticated } = useOptionalAuth();
+  const [history, setHistory] = useState(EMPTY_HISTORY);
+  const draftTimerRef = useRef(null);
   const [metadataAttempt, setMetadataAttempt] = useState(0);
   const [metadataState, setMetadataState] = useState('loading');
   const [metadata, setMetadata] = useState(null);
@@ -69,15 +95,32 @@ export default function useExerciseWorkspace(exerciseId) {
       };
     }
 
-    api.exercises.getMetadata(exerciseId, { signal: controller.signal })
-      .then((response) => {
+    setHistory(EMPTY_HISTORY);
+
+    // The learner's saved code is optional: a failure (or being signed out) falls back to the starter.
+    const loadSaved = isAuthenticated
+      ? api.exercises.getWorkspace(exerciseId, { signal: controller.signal }).catch(() => null)
+      : Promise.resolve(null);
+
+    Promise.all([api.exercises.getMetadata(exerciseId, { signal: controller.signal }), loadSaved])
+      .then(([response, saved]) => {
         if (!isCurrent) return;
         const nextMetadata = normalizeExerciseMetadata(response);
-        const nextFiles = createWorkingFiles(nextMetadata);
+        const { files: nextFiles, restored } = applyDraft(createWorkingFiles(nextMetadata), saved?.draftFiles);
         setMetadata(nextMetadata);
         setWorkingFiles(nextFiles);
         filesRef.current = nextFiles;
         setActiveFileId(getInitialFileId(nextFiles));
+        if (saved) {
+          setHistory({
+            attemptCount: saved.attemptCount || 0,
+            lastAttempt: saved.lastAttempt || null,
+            bestAttempt: saved.bestAttempt || null,
+            solved: Boolean(saved.solved),
+            restoredDraft: restored,
+            draftSavedAt: saved.draftUpdatedAt || null
+          });
+        }
         setMetadataState('ready');
       })
       .catch((error) => {
@@ -91,7 +134,24 @@ export default function useExerciseWorkspace(exerciseId) {
       controller.abort();
       if (metadataControllerRef.current === controller) metadataControllerRef.current = null;
     };
-  }, [exerciseId, metadataAttempt]);
+  }, [exerciseId, metadataAttempt, isAuthenticated]);
+
+  // Autosave the editable files (debounced) so work survives reloads and other devices.
+  const scheduleDraftSave = useCallback(() => {
+    if (!isAuthenticated || !exerciseId) return;
+    clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      const files = filesRef.current
+        .filter((file) => file.editable !== false)
+        .map((file) => ({ path: file.path, content: file.content }));
+      if (files.length === 0) return;
+      api.exercises.saveDraft(exerciseId, files)
+        .then(() => setHistory((current) => ({ ...current, draftSavedAt: new Date().toISOString() })))
+        .catch(() => {});
+    }, DRAFT_SAVE_DELAY_MS);
+  }, [exerciseId, isAuthenticated]);
+
+  useEffect(() => () => clearTimeout(draftTimerRef.current), [exerciseId]);
 
   useEffect(() => () => {
     metadataControllerRef.current?.abort();
@@ -114,7 +174,8 @@ export default function useExerciseWorkspace(exerciseId) {
     setExecution((current) => current.result
       ? { ...current, stale: true }
       : current);
-  }, []);
+    scheduleDraftSave();
+  }, [scheduleDraftSave]);
 
   const reset = useCallback(() => {
     if (!metadata || execution.status === 'running') return;
@@ -123,7 +184,9 @@ export default function useExerciseWorkspace(exerciseId) {
     filesRef.current = nextFiles;
     setActiveFileId(getInitialFileId(nextFiles));
     setExecution({ status: 'idle', operation: null, result: null, error: null, stale: false });
-  }, [execution.status, metadata]);
+    setHistory((current) => ({ ...current, restoredDraft: false }));
+    scheduleDraftSave();
+  }, [execution.status, metadata, scheduleDraftSave]);
 
   const retryMetadata = useCallback(() => {
     setMetadataAttempt((current) => current + 1);
@@ -205,6 +268,31 @@ export default function useExerciseWorkspace(exerciseId) {
         evidence: mergeEvidence(metadata.evidence, response.evidence)
       };
       const isStale = getSourceFingerprint(filesRef.current) !== snapshotFingerprint;
+      if (isAuthenticated) {
+        // The server recorded this run (and saved the code); mirror it locally.
+        clearTimeout(draftTimerRef.current);
+        const attempt = {
+          status: response.status,
+          testsTotal: response.summary?.total ?? 0,
+          testsPassed: response.summary?.passed ?? 0,
+          durationMilliseconds: response.durationMilliseconds,
+          submittedAt: new Date().toISOString()
+        };
+        setHistory((current) => {
+          const ratio = (a) => (a && a.testsTotal ? a.testsPassed / a.testsTotal : -1);
+          const better = !current.bestAttempt
+            || (attempt.status === 'success' && current.bestAttempt.status !== 'success')
+            || ratio(attempt) > ratio(current.bestAttempt);
+          return {
+            ...current,
+            attemptCount: current.attemptCount + 1,
+            lastAttempt: attempt,
+            bestAttempt: better ? attempt : current.bestAttempt,
+            solved: current.solved || attempt.status === 'success',
+            draftSavedAt: attempt.submittedAt
+          };
+        });
+      }
       setExecution({
         status: response.status,
         operation,
@@ -226,9 +314,11 @@ export default function useExerciseWorkspace(exerciseId) {
         executionControllerRef.current = null;
       }
     }
-  }, [execution.status, metadata, metadataState]);
+  }, [execution.status, metadata, metadataState, isAuthenticated]);
 
   return {
+    history,
+    isAuthenticated,
     metadata,
     metadataState,
     workingFiles,

@@ -1,0 +1,78 @@
+{
+  "id": "py-14-audio-player-simple-factory",
+  "lessonSlug": "py-14-factory",
+  "title": "Simple Factory for Audio Players",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 20,
+  "instructions": "Implement the player hierarchy in `audio/products.py` (`MP3Player`, `WAVPlayer`, `FLACPlayer` and the shared `set_volume`) and the static `AudioPlayerFactory.create_audio_player` in `audio/factory.py`. The factory builds only the selected player and raises `ValueError` for an unsupported format.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "audio-products",
+      "path": "audio/products.py",
+      "displayName": "products.py",
+      "editable": true
+    },
+    {
+      "id": "audio-factory",
+      "path": "audio/factory.py",
+      "displayName": "factory.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "factory-returns-the-right-concrete-type",
+      "label": "The factory returns the right concrete player for each format",
+      "testMethod": "test_factory_returns_the_right_concrete_type"
+    },
+    {
+      "id": "factory-passes-volume-and-playback-rate",
+      "label": "Volume and playBackRate reach the player",
+      "testMethod": "test_factory_passes_volume_and_playback_rate"
+    },
+    {
+      "id": "create-audio-player-is-a-static-method",
+      "label": "create_audio_player is a static method",
+      "testMethod": "test_create_audio_player_is_a_static_method"
+    },
+    {
+      "id": "unknown-format-raises-value-error",
+      "label": "An unsupported format raises ValueError",
+      "testMethod": "test_unknown_format_raises_value_error"
+    },
+    {
+      "id": "every-supported-format-works-through-the-abstract-interface",
+      "label": "Every format works through the AudioPlayer interface",
+      "testMethod": "test_every_supported_format_works_through_the_abstract_interface"
+    },
+    {
+      "id": "play-prints-the-format-specific-line",
+      "label": "play() prints Playing <FORMAT> audio",
+      "testMethod": "test_play_prints_the_format_specific_line"
+    },
+    {
+      "id": "set-volume-accepts-0-to-100-and-rejects-the-rest",
+      "label": "set_volume accepts 0 to 100 and reports invalid levels",
+      "testMethod": "test_set_volume_accepts_0_to_100_and_rejects_the_rest"
+    },
+    {
+      "id": "audio-player-base-is-abstract",
+      "label": "AudioPlayer itself cannot be instantiated",
+      "testMethod": "test_audio_player_base_is_abstract"
+    },
+    {
+      "id": "factory-builds-only-the-selected-player",
+      "label": "Only the selected player is constructed",
+      "testMethod": "test_factory_builds_only_the_selected_player"
+    }
+  ]
+}

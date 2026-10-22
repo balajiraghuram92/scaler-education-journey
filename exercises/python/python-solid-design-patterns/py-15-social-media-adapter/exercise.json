@@ -1,0 +1,26 @@
+{
+  "id": "py-15-social-media-adapter",
+  "lessonSlug": "py-15-adapter-facade",
+  "title": "Social Media Aggregator Adapter",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Complete `social/adapters.py`. Make `SocialMediaAdapter` an ABC with abstract `get_posts` and `post`, then implement `TwitterAdapter` (client in `twitter_api`) and `FacebookAdapter` (client in `facebook_api`). Convert every platform post into the common `SocialMediaPost`: tweets have no timestamp, Facebook's is copied. Do not edit `services.py` or `model.py`.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "adapters", "path": "social/adapters.py", "displayName": "adapters.py", "editable": true },
+    { "id": "model", "path": "social/model.py", "displayName": "model.py", "editable": false },
+    { "id": "services", "path": "social/services.py", "displayName": "services.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "abstract-interface", "label": "SocialMediaAdapter is an ABC with abstract get_posts and post", "testMethod": "test_interface_is_abstract_with_get_posts_and_post" },
+    { "id": "composition", "label": "Adapters hold the platform clients in the named attributes (composition)", "testMethod": "test_adapters_wrap_platform_clients_by_composition" },
+    { "id": "twitter-mapping", "label": "Tweets map to SocialMediaPost with timestamp None", "testMethod": "test_twitter_maps_tweets_with_no_timestamp" },
+    { "id": "facebook-mapping", "label": "Facebook status maps to text and the timestamp is copied", "testMethod": "test_facebook_maps_status_to_text_and_copies_timestamp" },
+    { "id": "empty-feed", "label": "An empty feed returns an empty list", "testMethod": "test_empty_feed_returns_empty_list" },
+    { "id": "post-delegates", "label": "post() delegates to tweet() and post_facebook_status()", "testMethod": "test_post_delegates_to_each_platform" },
+    { "id": "post-fields", "label": "SocialMediaPost keeps its four fields", "testMethod": "test_common_post_type_keeps_its_four_fields" },
+    { "id": "uniform-clients", "label": "Client code treats both platforms uniformly", "testMethod": "test_aggregator_merges_platforms_through_the_interface" }
+  ]
+}

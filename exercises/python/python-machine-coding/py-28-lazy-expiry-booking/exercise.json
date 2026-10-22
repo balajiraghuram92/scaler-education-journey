@@ -1,0 +1,77 @@
+{
+  "id": "py-28-lazy-expiry-booking",
+  "lessonSlug": "py-28-code-bookmyshow-3",
+  "title": "Lazy-Expiry Booking Service with Injected Clock",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 50,
+  "instructions": "Implement `InMemorySeatRepository` and `BookingService` in `booking_service.py`. A soft-locked seat that is older than the hold window becomes claimable again, but the stored status is not rewritten until someone claims it. Do the check-and-act under the repository lock, validate every seat before mutating any, and drive everything from the injected clock.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "booking-service",
+      "path": "booking_service.py",
+      "displayName": "booking_service.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "hold-blocks-seats-for-the-user",
+      "label": "Holding seats blocks them for the user and reports them BLOCKED",
+      "testMethod": "test_hold_blocks_seats_for_the_user"
+    },
+    {
+      "id": "second-user-is-refused-until-hold-expires-strictly",
+      "label": "A hold lapses only when strictly older than the window (exactly 15 minutes is still held)",
+      "testMethod": "test_second_user_is_refused_until_hold_expires_strictly"
+    },
+    {
+      "id": "stored-status-stays-stale-but-availability-is-effective",
+      "label": "Stored status stays BLOCKED after expiry while availability reports AVAILABLE",
+      "testMethod": "test_stored_status_stays_stale_but_availability_is_effective"
+    },
+    {
+      "id": "claim-is-all-or-nothing",
+      "label": "A claim that includes one unavailable seat changes nothing",
+      "testMethod": "test_claim_is_all_or_nothing"
+    },
+    {
+      "id": "unknown-show-or-seat-is-not-found-and-changes-nothing",
+      "label": "Unknown show or seat raises NotFoundError (also from availability and confirm) and mutates nothing",
+      "testMethod": "test_unknown_show_or_seat_is_not_found_and_changes_nothing"
+    },
+    {
+      "id": "confirm-rules",
+      "label": "Confirm requires the holder, rejects unheld seats and raises HoldExpiredError after expiry",
+      "testMethod": "test_confirm_rules"
+    },
+    {
+      "id": "input-validation",
+      "label": "Rejects an empty label list and a naive clock; duplicate labels count once",
+      "testMethod": "test_input_validation"
+    },
+    {
+      "id": "concurrent-claims-on-an-expired-hold-have-one-winner",
+      "label": "Sixteen racing claims on an expired hold have exactly one winner",
+      "testMethod": "test_concurrent_claims_on_an_expired_hold_have_one_winner"
+    },
+    {
+      "id": "booked-seat-cannot-be-claimed-even-after-the-window",
+      "label": "A BOOKED seat never expires or becomes claimable",
+      "testMethod": "test_booked_seat_cannot_be_claimed_even_after_the_window"
+    },
+    {
+      "id": "expired-hold-can-be-reclaimed-by-the-same-user-with-a-fresh-window",
+      "label": "Reclaiming an expired hold starts a fresh window",
+      "testMethod": "test_expired_hold_can_be_reclaimed_by_the_same_user_with_a_fresh_window"
+    }
+  ]
+}

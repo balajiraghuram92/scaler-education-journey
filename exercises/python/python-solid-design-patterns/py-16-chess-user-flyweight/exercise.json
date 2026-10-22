@@ -1,0 +1,26 @@
+{
+  "id": "py-16-chess-user-flyweight",
+  "lessonSlug": "py-16-decorator-flyweight",
+  "title": "Chess User Flyweight",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "In `config/model.py` complete `UserIntrinsicState` (name, age, gender, email, phone_number, photo) and `UserExtrinsicState` (colour, current_game_streak, intrinsic_state). In `config/registry.py` implement `FlyweightRegistryImpl` so it stores shared intrinsic states in a dict named `_flyweights`, keyed by email, and returns the same object back. Leave `ChessUser` and the `FlyweightRegistry` interface unchanged.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "model", "path": "config/model.py", "displayName": "model.py", "editable": true },
+    { "id": "registry", "path": "config/registry.py", "displayName": "registry.py", "editable": true }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "intrinsic-fields", "label": "UserIntrinsicState holds exactly the shared fields", "testMethod": "test_intrinsic_state_has_the_shared_fields" },
+    { "id": "extrinsic-fields", "label": "UserExtrinsicState holds the per-game fields plus a reference to the intrinsic state", "testMethod": "test_extrinsic_state_has_per_game_fields_and_a_reference" },
+    { "id": "chess-user-untouched", "label": "ChessUser keeps its original fields", "testMethod": "test_original_chess_user_is_untouched" },
+    { "id": "same-object", "label": "The registry returns the very same flyweight object (identity)", "testMethod": "test_registry_returns_the_very_same_object_it_was_given" },
+    { "id": "missing-none", "label": "An unknown email returns None", "testMethod": "test_missing_email_returns_none" },
+    { "id": "dict-by-email", "label": "Storage is a dict named _flyweights keyed by email", "testMethod": "test_storage_is_a_dict_keyed_by_email" },
+    { "id": "replace", "label": "Adding the same email again replaces the entry", "testMethod": "test_adding_the_same_email_again_replaces_the_entry" },
+    { "id": "per-instance", "label": "Each registry has its own storage", "testMethod": "test_registries_do_not_share_storage" },
+    { "id": "shared-across-games", "label": "Many games share one intrinsic state and one photo", "testMethod": "test_many_games_share_one_intrinsic_state" }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "id": "py-14-notification-abstract-factory",
+  "lessonSlug": "py-14-factory",
+  "title": "Abstract Factory for Notification Families",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Complete `config/abstract_factory.py`: declare the abstract `NotificationFactory` (`create_notification`, `create_template`, `create_sender`) and implement `EmailNotificationFactory` and `PushNotificationFactory` so each creates only products of its own channel. The sender is built from a notification, so pass the notification through. The product classes in the other files are provided.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "config-model",
+      "path": "config/model.py",
+      "displayName": "model.py",
+      "editable": false
+    },
+    {
+      "id": "config-template",
+      "path": "config/template.py",
+      "displayName": "template.py",
+      "editable": false
+    },
+    {
+      "id": "config-notification",
+      "path": "config/notification.py",
+      "displayName": "notification.py",
+      "editable": false
+    },
+    {
+      "id": "config-sender",
+      "path": "config/sender.py",
+      "displayName": "sender.py",
+      "editable": false
+    },
+    {
+      "id": "config-abstract-factory",
+      "path": "config/abstract_factory.py",
+      "displayName": "abstract_factory.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "notification-factory-is-abstract-with-three-abstract-methods",
+      "label": "NotificationFactory is abstract and declares the three factory methods",
+      "testMethod": "test_notification_factory_is_abstract_with_three_abstract_methods"
+    },
+    {
+      "id": "concrete-factories-extend-the-abstract-factory",
+      "label": "Email and push factories extend NotificationFactory",
+      "testMethod": "test_concrete_factories_extend_the_abstract_factory"
+    },
+    {
+      "id": "factory-creates-the-concrete-products-of-its-channel",
+      "label": "Each factory creates the concrete template, notification and sender of its channel",
+      "testMethod": "test_factory_creates_the_concrete_products_of_its_channel"
+    },
+    {
+      "id": "products-share-the-common-abstract-parents",
+      "label": "Every product is an instance of its common abstract parent",
+      "testMethod": "test_products_share_the_common_abstract_parents"
+    },
+    {
+      "id": "every-product-reports-the-matching-notification-type",
+      "label": "All products from one factory report the same NotificationType",
+      "testMethod": "test_every_product_reports_the_matching_notification_type"
+    },
+    {
+      "id": "arguments-reach-the-products-and-the-sender-wraps-the-notification",
+      "label": "Arguments reach the products and the sender wraps the given notification",
+      "testMethod": "test_arguments_reach_the_products_and_the_sender_wraps_the_notification"
+    },
+    {
+      "id": "each-call-creates-a-new-product",
+      "label": "Each call creates a new product",
+      "testMethod": "test_each_call_creates_a_new_product"
+    },
+    {
+      "id": "client-code-depends-only-on-the-abstract-factory",
+      "label": "Client code using only NotificationFactory never mixes channels",
+      "testMethod": "test_client_code_depends_only_on_the_abstract_factory"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "py-35-bytecode-inspector",
+  "lessonSlug": "py-35-bytecode-gil-internals",
+  "title": "Bytecode Inspector for Hot Paths",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement the five audit helpers in `bytecode_tools.py` on top of `dis.get_instructions` and code-object attributes only: opcode counts, `LOAD_GLOBAL` names (unique, first-seen order), globals loaded inside loops (found from `JUMP_BACKWARD`), generator detection and closure variables. Anything without a code object must raise `TypeError`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "bytecode-tools",
+      "path": "bytecode_tools.py",
+      "displayName": "bytecode_tools.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "loaded-globals-include-builtins-in-first-seen-order",
+      "label": "Lists LOAD_GLOBAL names including builtins, unique and in first-seen order",
+      "testMethod": "test_loaded_globals_include_builtins_in_first_seen_order"
+    },
+    {
+      "id": "globals-loaded-in-loops",
+      "label": "Finds the global names loaded inside a for-loop body",
+      "testMethod": "test_globals_loaded_in_loops"
+    },
+    {
+      "id": "hoisting-moves-global-loads-out-of-the-loop",
+      "label": "Hoisting globals into locals empties the in-loop list",
+      "testMethod": "test_hoisting_moves_global_loads_out_of_the_loop"
+    },
+    {
+      "id": "opcode-counts-are-names-to-positive-ints",
+      "label": "Counts opcodes by name as positive integers",
+      "testMethod": "test_opcode_counts_are_names_to_positive_ints"
+    },
+    {
+      "id": "generator-and-closure-detection",
+      "label": "Detects generator functions and closure variable names",
+      "testMethod": "test_generator_and_closure_detection"
+    },
+    {
+      "id": "non-function-is-rejected",
+      "label": "Rejects a non-function with TypeError",
+      "testMethod": "test_non_function_is_rejected"
+    },
+    {
+      "id": "nested-function-bytecode-is-excluded",
+      "label": "Ignores the bytecode of nested functions",
+      "testMethod": "test_nested_function_bytecode_is_excluded"
+    },
+    {
+      "id": "while-loops-are-detected-and-names-are-unique",
+      "label": "Detects while loops and reports repeated globals once",
+      "testMethod": "test_while_loops_are_detected_and_names_are_unique"
+    },
+    {
+      "id": "builtins-and-other-non-functions-are-rejected-everywhere",
+      "label": "Every helper raises TypeError for builtins and non-callables",
+      "testMethod": "test_builtins_and_other_non_functions_are_rejected_everywhere"
+    }
+  ]
+}

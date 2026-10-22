@@ -1,0 +1,77 @@
+{
+  "id": "py-21-budget-guard-counters",
+  "lessonSlug": "py-21-tictactoe-2",
+  "title": "O(1) Budget Guard with Refunds and a Rescan Oracle",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "In `budget/guard.py` implement `BudgetGuard` (per-tenant running counters; `charge`, `refund`, `used`), with the declared exceptions `BudgetExceededError(tenant, limit)` and `UnknownCallError`, and the slow oracle `RescanGuard` that recomputes usage from the full call history. `charge` must validate every limit before changing anything, be atomic under threads, and never depend on how many calls were made before.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "budget-guard",
+      "path": "budget/guard.py",
+      "displayName": "guard.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "charge-and-refund-update-usage",
+      "label": "charge adds to usage and refund reverses exactly that call",
+      "testMethod": "test_charge_and_refund_update_usage"
+    },
+    {
+      "id": "charge-returns-distinct-call-ids",
+      "label": "Each charge returns a new call id",
+      "testMethod": "test_charge_returns_distinct_call_ids"
+    },
+    {
+      "id": "a-rejected-charge-changes-nothing-in-any-limit",
+      "label": "A rejected charge changes no limit, not even the ones that would have fit",
+      "testMethod": "test_a_rejected_charge_changes_nothing_in_any_limit"
+    },
+    {
+      "id": "cap-boundary-is-inclusive",
+      "label": "Using exactly the cap is allowed, one more unit is not",
+      "testMethod": "test_cap_boundary_is_inclusive"
+    },
+    {
+      "id": "invalid-usage-raises-value-error",
+      "label": "Negative amounts and unknown limit names raise ValueError and change nothing",
+      "testMethod": "test_invalid_usage_raises_value_error"
+    },
+    {
+      "id": "tenants-are-isolated",
+      "label": "Tenants never share budget",
+      "testMethod": "test_tenants_are_isolated"
+    },
+    {
+      "id": "refund-is-single-use",
+      "label": "Refunding an unknown or already refunded call raises UnknownCallError",
+      "testMethod": "test_refund_is_single_use"
+    },
+    {
+      "id": "budget-exceeded-error-carries-tenant-and-limit",
+      "label": "BudgetExceededError exposes tenant and limit",
+      "testMethod": "test_budget_exceeded_error_carries_tenant_and_limit"
+    },
+    {
+      "id": "fast-guard-agrees-with-rescan-oracle-on-random-operations",
+      "label": "The guard matches the RescanGuard oracle on seeded random charges and refunds",
+      "testMethod": "test_fast_guard_agrees_with_rescan_oracle_on_random_operations"
+    },
+    {
+      "id": "concurrent-charges-never-exceed-the-cap",
+      "label": "400 concurrent one-token charges against a cap of 200 succeed exactly 200 times",
+      "testMethod": "test_concurrent_charges_never_exceed_the_cap"
+    }
+  ]
+}

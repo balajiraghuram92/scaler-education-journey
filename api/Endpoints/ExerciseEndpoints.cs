@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Options;
 using StudyTracker.Api.Models;
+using StudyTracker.Api.Options;
+using StudyTracker.Api.Services.Auth;
 using StudyTracker.Api.Services.Exercises;
 
 namespace StudyTracker.Api.Endpoints;
@@ -23,6 +26,60 @@ public static class ExerciseEndpoints
 
         group.MapPost("/{exerciseId}/check", ExecuteAsync)
             .WithName("CheckExercise");
+
+        // The signed-in learner's saved code and run history for one exercise.
+        group.MapGet("/{exerciseId}/workspace", GetWorkspaceStateAsync)
+            .WithName("GetExerciseWorkspaceState")
+            .RequireAuthorization();
+
+        group.MapPut("/{exerciseId}/draft", SaveDraftAsync)
+            .WithName("SaveExerciseDraft")
+            .RequireAuthorization();
+    }
+
+    private static async Task<IResult> GetWorkspaceStateAsync(
+        string exerciseId,
+        IExerciseRepository repository,
+        ExerciseProgressService progress,
+        ICurrentUser currentUser,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        if (repository.GetById(exerciseId) is null)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Exercise not found.", "The requested exercise does not exist.");
+        }
+
+        return Results.Ok(await progress.GetStateAsync(currentUser.UserId!.Value, exerciseId, cancellationToken));
+    }
+
+    private static async Task<IResult> SaveDraftAsync(
+        string exerciseId,
+        ExerciseDraftRequest request,
+        IExerciseRepository repository,
+        ExerciseProgressService progress,
+        ICurrentUser currentUser,
+        IOptions<ExerciseExecutionOptions> options,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var definition = repository.GetById(exerciseId);
+        if (definition is null)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Exercise not found.", "The requested exercise does not exist.");
+        }
+
+        var files = request?.Files ?? new List<ExerciseDraftFileDto>();
+        var totalBytes = files.Sum(f => System.Text.Encoding.UTF8.GetByteCount(f.Content ?? string.Empty));
+        if (files.Count == 0 ||
+            files.Any(f => f.Path is null || !definition.EditableFiles.ContainsKey(f.Path)) ||
+            totalBytes > options.Value.MaxSubmissionBytes)
+        {
+            return Problem(httpContext, StatusCodes.Status400BadRequest, "Invalid draft.", "Drafts may only contain the exercise's editable files within the size limit.");
+        }
+
+        await progress.SaveDraftAsync(currentUser.UserId!.Value, exerciseId, files, cancellationToken);
+        return Results.NoContent();
     }
 
     private static IResult GetMetadata(
@@ -71,12 +128,29 @@ public static class ExerciseEndpoints
         string exerciseId,
         ExerciseSubmissionRequest request,
         ExerciseService exerciseService,
+        ExerciseProgressService progress,
+        ICurrentUser currentUser,
+        ILoggerFactory loggerFactory,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
         try
         {
             var result = await exerciseService.ExecuteAsync(exerciseId, request, cancellationToken);
+
+            if (currentUser.UserId is int userId)
+            {
+                try
+                {
+                    await progress.RecordRunAsync(userId, exerciseId, request, result, cancellationToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    // Recording history must never hide the learner's test result.
+                    loggerFactory.CreateLogger("ExerciseEndpoints").LogWarning(ex, "Failed to record exercise run for {ExerciseId}.", exerciseId);
+                }
+            }
+
             return Results.Ok(result);
         }
         catch (ExerciseNotFoundException)

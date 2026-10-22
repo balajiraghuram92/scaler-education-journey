@@ -1,0 +1,144 @@
+{
+  "id": "py-21-tictactoe-undo",
+  "lessonSlug": "py-21-tictactoe-2",
+  "title": "Tic Tac Toe with Undo",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "The models, controller and `make_move` are given. Implement `GameService.undo` in `services/game_service.py` (raise `EmptyMovesException` when there is nothing to undo, otherwise pop the move, empty its cell, give the turn back to the player who made it and return an ended or drawn game to `IN_PROGRESS`) and `WinningStrategyImpl.handle_undo` in `strategies/winning_strategy_impl.py` (decrement exactly the counters that `check_winner` incremented).",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-board",
+      "path": "models/board.py",
+      "displayName": "board.py",
+      "editable": false
+    },
+    {
+      "id": "models-cell",
+      "path": "models/cell.py",
+      "displayName": "cell.py",
+      "editable": false
+    },
+    {
+      "id": "models-enums",
+      "path": "models/enums.py",
+      "displayName": "enums.py",
+      "editable": false
+    },
+    {
+      "id": "models-game",
+      "path": "models/game.py",
+      "displayName": "game.py",
+      "editable": false
+    },
+    {
+      "id": "models-move",
+      "path": "models/move.py",
+      "displayName": "move.py",
+      "editable": false
+    },
+    {
+      "id": "models-player",
+      "path": "models/player.py",
+      "displayName": "player.py",
+      "editable": false
+    },
+    {
+      "id": "models-symbol",
+      "path": "models/symbol.py",
+      "displayName": "symbol.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-exceptions",
+      "path": "exceptions/exceptions.py",
+      "displayName": "exceptions.py",
+      "editable": false
+    },
+    {
+      "id": "controllers-game-controller",
+      "path": "controllers/game_controller.py",
+      "displayName": "game_controller.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-winning-strategy",
+      "path": "strategies/winning_strategy.py",
+      "displayName": "winning_strategy.py",
+      "editable": false
+    },
+    {
+      "id": "services-game-service",
+      "path": "services/game_service.py",
+      "displayName": "game_service.py",
+      "editable": true
+    },
+    {
+      "id": "strategies-winning-strategy-impl",
+      "path": "strategies/winning_strategy_impl.py",
+      "displayName": "winning_strategy_impl.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "undo-with-no-moves-raises",
+      "label": "Undo on a game with no moves raises EmptyMovesException",
+      "testMethod": "test_undo_with_no_moves_raises"
+    },
+    {
+      "id": "undo-empties-the-cell-and-pops-the-move",
+      "label": "Undo empties the last cell, clears its player and removes the move from the log",
+      "testMethod": "test_undo_empties_the_cell_and_pops_the_move"
+    },
+    {
+      "id": "undo-gives-the-turn-back",
+      "label": "The turn goes back to the player who made the undone move",
+      "testMethod": "test_undo_gives_the_turn_back"
+    },
+    {
+      "id": "undo-after-win-resumes-game",
+      "label": "Undoing the winning move returns the game to IN_PROGRESS with no winner",
+      "testMethod": "test_undo_after_win_resumes_game"
+    },
+    {
+      "id": "undo-after-draw-resumes-game",
+      "label": "Undoing the last move of a draw returns the game to IN_PROGRESS",
+      "testMethod": "test_undo_after_draw_resumes_game"
+    },
+    {
+      "id": "undone-move-does-not-count-towards-a-win",
+      "label": "A move that was undone no longer counts towards a row, so it cannot cause a false win",
+      "testMethod": "test_undone_move_does_not_count_towards_a_win"
+    },
+    {
+      "id": "handle-undo-decrements-counters",
+      "label": "handle_undo decrements the row, column and both diagonal counters of the move",
+      "testMethod": "test_handle_undo_decrements_counters"
+    },
+    {
+      "id": "undo-everything-then-replay",
+      "label": "Undoing every move restores an empty board that can be replayed to a win",
+      "testMethod": "test_undo_everything_then_replay"
+    },
+    {
+      "id": "controller-delegates-undo",
+      "label": "GameController.undo delegates to the service",
+      "testMethod": "test_controller_delegates_undo"
+    }
+  ]
+}

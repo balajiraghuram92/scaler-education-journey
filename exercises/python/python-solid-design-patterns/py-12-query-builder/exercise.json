@@ -1,0 +1,73 @@
+{
+  "id": "py-12-query-builder",
+  "lessonSlug": "py-12-builder",
+  "title": "Query Builder",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 15,
+  "instructions": "Implement `Query.builder()` and the nested `QueryBuilder` in `config/query_builder.py`. The chained setters `select`, `from_`, `where`, `join`, `order_by` and `group_by` each store a clause and return the builder; `build()` returns a `Query` that later setter calls must not change. The `Builder` interface in `config/builder.py` is provided.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "config-builder",
+      "path": "config/builder.py",
+      "displayName": "builder.py",
+      "editable": false
+    },
+    {
+      "id": "config-query-builder",
+      "path": "config/query_builder.py",
+      "displayName": "query_builder.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "builder-returns-a-new-builder-each-time",
+      "label": "builder() returns a fresh builder on every call",
+      "testMethod": "test_builder_returns_a_new_builder_each_time"
+    },
+    {
+      "id": "every-setter-returns-the-same-builder-for-chaining",
+      "label": "Every setter returns the builder so calls chain",
+      "testMethod": "test_every_setter_returns_the_same_builder_for_chaining"
+    },
+    {
+      "id": "every-setter-stores-its-clause",
+      "label": "Each setter stores its clause in the matching field",
+      "testMethod": "test_every_setter_stores_its_clause"
+    },
+    {
+      "id": "build-with-nothing-set-gives-all-none",
+      "label": "build() with nothing set returns a Query of all None",
+      "testMethod": "test_build_with_nothing_set_gives_all_none"
+    },
+    {
+      "id": "partial-query-leaves-other-clauses-none",
+      "label": "Clauses that were never set stay None",
+      "testMethod": "test_partial_query_leaves_other_clauses_none"
+    },
+    {
+      "id": "full-chain-builds-the-expected-query",
+      "label": "A full chain builds the expected Query",
+      "testMethod": "test_full_chain_builds_the_expected_query"
+    },
+    {
+      "id": "two-builders-do-not-share-state",
+      "label": "Two builders do not share state",
+      "testMethod": "test_two_builders_do_not_share_state"
+    },
+    {
+      "id": "built-object-is-independent-of-the-builder",
+      "label": "A built Query is not changed by later builder calls",
+      "testMethod": "test_built_object_is_independent_of_the_builder"
+    }
+  ]
+}

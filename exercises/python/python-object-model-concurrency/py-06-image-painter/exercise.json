@@ -1,0 +1,62 @@
+{
+  "id": "py-06-image-painter",
+  "lessonSlug": "py-06-executors-futures",
+  "title": "Parallel Matrix Painting",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement `paint_quadrant` and `divide_and_paint` in `config/imagePainter.py`. `paint_quadrant` fills a half-open rectangle of the matrix in place. `divide_and_paint` splits the matrix into four quadrants, submits one task per quadrant to a `ThreadPoolExecutor`, and waits for all of them so any worker exception reaches the caller.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "imagepainter",
+      "path": "config/imagePainter.py",
+      "displayName": "imagePainter.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "four-quadrants",
+      "label": "Paints the four quadrants of an even matrix",
+      "testMethod": "test_paints_four_quadrants_of_even_matrix"
+    },
+    {
+      "id": "odd-sizes",
+      "label": "Paints every cell exactly once for odd and degenerate sizes",
+      "testMethod": "test_odd_and_degenerate_sizes_paint_every_cell_once"
+    },
+    {
+      "id": "paint-quadrant",
+      "label": "paint_quadrant fills only its half-open region, in place",
+      "testMethod": "test_paint_quadrant_fills_only_half_open_region_in_place"
+    },
+    {
+      "id": "concurrent",
+      "label": "Quadrants run concurrently on executor worker threads",
+      "testMethod": "test_quadrants_run_concurrently_on_worker_threads"
+    },
+    {
+      "id": "waits",
+      "label": "Waits for a slow quadrant before returning",
+      "testMethod": "test_waits_for_slow_quadrant_before_returning"
+    },
+    {
+      "id": "propagates",
+      "label": "Propagates a worker exception to the caller",
+      "testMethod": "test_task_exception_propagates_to_caller"
+    },
+    {
+      "id": "no-print",
+      "label": "Does not print",
+      "testMethod": "test_does_not_print"
+    }
+  ]
+}

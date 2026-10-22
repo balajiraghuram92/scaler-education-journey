@@ -1,0 +1,67 @@
+{
+  "id": "py-09-unique-persons",
+  "lessonSlug": "py-09-collections-dataclasses-typing-exceptions",
+  "title": "Unique Persons Finder",
+  "language": "python",
+  "difficulty": "warm-up",
+  "estimatedMinutes": 10,
+  "instructions": "Implement `find_unique_persons(people)` in `config/uniquePersons.py` (the `Person` class is provided; do not change it). Return a new list with only the first `Person` for each distinct `name`, keeping the original order. Track the names you have seen in a `set` so it runs in O(n).",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "uniquepersons",
+      "path": "config/uniquePersons.py",
+      "displayName": "uniquePersons.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "one-per-name",
+      "label": "Keeps one person per name",
+      "testMethod": "test_keeps_one_person_per_name"
+    },
+    {
+      "id": "first-occurrence",
+      "label": "Keeps the first occurrence, not a later duplicate",
+      "testMethod": "test_keeps_the_first_occurrence_not_a_later_duplicate"
+    },
+    {
+      "id": "order",
+      "label": "Preserves the order of first occurrences",
+      "testMethod": "test_preserves_order_of_first_occurrences"
+    },
+    {
+      "id": "new-list",
+      "label": "Returns a new list and leaves the input unchanged",
+      "testMethod": "test_returns_new_list_and_does_not_modify_input"
+    },
+    {
+      "id": "empty-unique",
+      "label": "Handles empty and all-unique inputs",
+      "testMethod": "test_empty_and_all_unique_inputs"
+    },
+    {
+      "id": "exact-names",
+      "label": "Compares names exactly",
+      "testMethod": "test_names_are_compared_exactly"
+    },
+    {
+      "id": "person-unchanged",
+      "label": "Person class is unchanged",
+      "testMethod": "test_person_class_is_unchanged"
+    },
+    {
+      "id": "linear",
+      "label": "Runs in linear time using a set",
+      "testMethod": "test_runs_in_linear_time_using_a_set"
+    }
+  ]
+}

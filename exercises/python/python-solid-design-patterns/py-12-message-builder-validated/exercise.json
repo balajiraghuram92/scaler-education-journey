@@ -1,0 +1,72 @@
+{
+  "id": "py-12-message-builder-validated",
+  "lessonSlug": "py-12-builder",
+  "title": "Validated Message Builder with an Injectable Clock",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 30,
+  "instructions": "In `messaging.py`, implement `Message.builder(clock=None)` and `MessageBuilder`. `build()` applies the cross-field rules (type, sender and recipient required, TEXT content non-empty, media content an `https://` URL, no negative timestamp), takes the timestamp from the injected clock unless one was set, and returns a new frozen `Message` every time.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "messaging",
+      "path": "messaging.py",
+      "displayName": "messaging.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "text-message-builds-with-clock-timestamp",
+      "label": "A valid TEXT message takes its timestamp from the injected clock",
+      "testMethod": "test_text_message_builds_with_clock_timestamp"
+    },
+    {
+      "id": "setters-return-the-builder-and-is-delivered-is-applied",
+      "label": "Setters chain and is_delivered is applied",
+      "testMethod": "test_setters_return_the_builder_and_is_delivered_is_applied"
+    },
+    {
+      "id": "default-clock-is-epoch-seconds",
+      "label": "Without a clock the timestamp is the current epoch seconds",
+      "testMethod": "test_default_clock_is_epoch_seconds"
+    },
+    {
+      "id": "explicit-timestamp-wins-over-the-clock-and-negative-is-rejected",
+      "label": "An explicit timestamp wins; a negative one raises ValueError",
+      "testMethod": "test_explicit_timestamp_wins_over_the_clock_and_negative_is_rejected"
+    },
+    {
+      "id": "message-type-is-required",
+      "label": "A missing message type raises ValueError",
+      "testMethod": "test_message_type_is_required"
+    },
+    {
+      "id": "sender-and-recipient-are-required",
+      "label": "Missing sender or recipient raises ValueError",
+      "testMethod": "test_sender_and_recipient_are_required"
+    },
+    {
+      "id": "text-needs-non-empty-content",
+      "label": "TEXT content must be non-blank",
+      "testMethod": "test_text_needs_non_empty_content"
+    },
+    {
+      "id": "media-needs-https-url",
+      "label": "IMAGE, AUDIO and VIDEO content must start with https://",
+      "testMethod": "test_media_needs_https_url"
+    },
+    {
+      "id": "message-is-immutable-and-builds-are-independent",
+      "label": "Messages are frozen and each build() is an independent new object",
+      "testMethod": "test_message_is_immutable_and_builds_are_independent"
+    }
+  ]
+}

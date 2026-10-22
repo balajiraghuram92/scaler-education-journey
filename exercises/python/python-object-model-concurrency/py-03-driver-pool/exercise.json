@@ -1,0 +1,77 @@
+{
+  "id": "py-03-driver-pool",
+  "lessonSlug": "py-03-magic-methods-data-model",
+  "title": "Driver Value Object and a Pythonic Container",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `Driver` and `DriverPool` in `pool.py`. `Driver` identity is its read-only `driver_id` (used by both `__eq__` and `__hash__`). `DriverPool` keeps the first driver per ID in insertion order and behaves like a built-in collection: `len`, repeatable iteration, indexing, slicing to a new pool, membership by driver or ID, `+` and `repr`. Do not subclass `list`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "pool",
+      "path": "pool.py",
+      "displayName": "pool.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "driver-identity-is-the-id-and-hash-survives-rating-change",
+      "label": "Drivers are equal and hash equal by ID; rating changes keep set membership",
+      "testMethod": "test_driver_identity_is_the_id_and_hash_survives_rating_change"
+    },
+    {
+      "id": "driver-compares-politely-with-foreign-types",
+      "label": "Driver equality returns NotImplemented for foreign types",
+      "testMethod": "test_driver_compares_politely_with_foreign_types"
+    },
+    {
+      "id": "driver-id-is-read-only-but-other-fields-are-plain",
+      "label": "driver_id is read-only while name and rating are plain attributes",
+      "testMethod": "test_driver_id_is_read_only_but_other_fields_are_plain"
+    },
+    {
+      "id": "reprs",
+      "label": "Driver and DriverPool reprs match the documented format",
+      "testMethod": "test_reprs"
+    },
+    {
+      "id": "pool-dedupes-keeping-first-and-preserves-order",
+      "label": "The pool keeps the first driver per ID in insertion order",
+      "testMethod": "test_pool_dedupes_keeping_first_and_preserves_order"
+    },
+    {
+      "id": "pool-truthiness-len-and-repeatable-iteration",
+      "label": "Empty pool is falsy via __len__ and iteration is repeatable",
+      "testMethod": "test_pool_truthiness_len_and_repeatable_iteration"
+    },
+    {
+      "id": "pool-indexing-and-slicing-returns-pool",
+      "label": "Indexing returns a Driver and slicing returns a new DriverPool",
+      "testMethod": "test_pool_indexing_and_slicing_returns_pool"
+    },
+    {
+      "id": "pool-contains-driver-or-id",
+      "label": "Membership works by Driver or by ID string",
+      "testMethod": "test_pool_contains_driver_or_id"
+    },
+    {
+      "id": "pool-add-unions-and-rejects-foreign-types",
+      "label": "+ unions pools and rejects other types",
+      "testMethod": "test_pool_add_unions_and_rejects_foreign_types"
+    },
+    {
+      "id": "pool-is-independent-of-its-input-and-accepts-any-iterable",
+      "label": "The pool copies its input, accepts any iterable and does not subclass list",
+      "testMethod": "test_pool_is_independent_of_its_input_and_accepts_any_iterable"
+    }
+  ]
+}

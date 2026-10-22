@@ -1,0 +1,257 @@
+{
+  "id": "py-23-generate-ticket",
+  "lessonSlug": "py-23-code-parking-lot-1",
+  "title": "Generate a Ticket for the Parking Lot",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `TicketServiceImpl.generate_ticket` in `services/ticket_service_impl.py` (entry gates only, find-or-create the vehicle, assign a spot, store the ticket), the assignment rules in `SpotAssignmentStrategyImpl.assign_spot` (`strategies/spot_assignment_strategy_impl.py`) and `TicketController.generate_ticket` in `controllers/ticket_controller.py`. Only operational floors count; pick the floor with the fewest available spots of the vehicle's type (ties go to the lowest floor number), then its lowest-numbered spot, and mark it `OCCUPIED`. Every failure becomes `ResponseStatus.FAILURE` with `ticket=None`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "models-base-model",
+      "path": "models/base_model.py",
+      "displayName": "base_model.py",
+      "editable": false
+    },
+    {
+      "id": "models-floor-status",
+      "path": "models/floor_status.py",
+      "displayName": "floor_status.py",
+      "editable": false
+    },
+    {
+      "id": "models-gate",
+      "path": "models/gate.py",
+      "displayName": "gate.py",
+      "editable": false
+    },
+    {
+      "id": "models-gate-type",
+      "path": "models/gate_type.py",
+      "displayName": "gate_type.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-attendant",
+      "path": "models/parking_attendant.py",
+      "displayName": "parking_attendant.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-floor",
+      "path": "models/parking_floor.py",
+      "displayName": "parking_floor.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-lot",
+      "path": "models/parking_lot.py",
+      "displayName": "parking_lot.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-spot",
+      "path": "models/parking_spot.py",
+      "displayName": "parking_spot.py",
+      "editable": false
+    },
+    {
+      "id": "models-parking-spot-status",
+      "path": "models/parking_spot_status.py",
+      "displayName": "parking_spot_status.py",
+      "editable": false
+    },
+    {
+      "id": "models-ticket",
+      "path": "models/ticket.py",
+      "displayName": "ticket.py",
+      "editable": false
+    },
+    {
+      "id": "models-vehicle",
+      "path": "models/vehicle.py",
+      "displayName": "vehicle.py",
+      "editable": false
+    },
+    {
+      "id": "models-vehicle-type",
+      "path": "models/vehicle_type.py",
+      "displayName": "vehicle_type.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-invalid-gate-exception",
+      "path": "exceptions/invalid_gate_exception.py",
+      "displayName": "invalid_gate_exception.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-invalid-parking-lot-exception",
+      "path": "exceptions/invalid_parking_lot_exception.py",
+      "displayName": "invalid_parking_lot_exception.py",
+      "editable": false
+    },
+    {
+      "id": "exceptions-parking-spot-not-available-exception",
+      "path": "exceptions/parking_spot_not_available_exception.py",
+      "displayName": "parking_spot_not_available_exception.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-generate-ticket-request-dto",
+      "path": "dtos/generate_ticket_request_dto.py",
+      "displayName": "generate_ticket_request_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-generate-ticket-response-dto",
+      "path": "dtos/generate_ticket_response_dto.py",
+      "displayName": "generate_ticket_response_dto.py",
+      "editable": false
+    },
+    {
+      "id": "dtos-response-status",
+      "path": "dtos/response_status.py",
+      "displayName": "response_status.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-gate-repository",
+      "path": "repositories/gate_repository.py",
+      "displayName": "gate_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-gate-repository-impl",
+      "path": "repositories/gate_repository_impl.py",
+      "displayName": "gate_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-parking-lot-repository",
+      "path": "repositories/parking_lot_repository.py",
+      "displayName": "parking_lot_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-parking-lot-repository-impl",
+      "path": "repositories/parking_lot_repository_impl.py",
+      "displayName": "parking_lot_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-ticket-repository",
+      "path": "repositories/ticket_repository.py",
+      "displayName": "ticket_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-ticket-repository-impl",
+      "path": "repositories/ticket_repository_impl.py",
+      "displayName": "ticket_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-vehicle-repository",
+      "path": "repositories/vehicle_repository.py",
+      "displayName": "vehicle_repository.py",
+      "editable": false
+    },
+    {
+      "id": "repositories-vehicle-repository-impl",
+      "path": "repositories/vehicle_repository_impl.py",
+      "displayName": "vehicle_repository_impl.py",
+      "editable": false
+    },
+    {
+      "id": "services-ticket-service",
+      "path": "services/ticket_service.py",
+      "displayName": "ticket_service.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-spot-assignment-strategy",
+      "path": "strategies/spot_assignment_strategy.py",
+      "displayName": "spot_assignment_strategy.py",
+      "editable": false
+    },
+    {
+      "id": "strategies-spot-assignment-strategy-impl",
+      "path": "strategies/spot_assignment_strategy_impl.py",
+      "displayName": "spot_assignment_strategy_impl.py",
+      "editable": true
+    },
+    {
+      "id": "services-ticket-service-impl",
+      "path": "services/ticket_service_impl.py",
+      "displayName": "ticket_service_impl.py",
+      "editable": true
+    },
+    {
+      "id": "controllers-ticket-controller",
+      "path": "controllers/ticket_controller.py",
+      "displayName": "ticket_controller.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "ticket-is-issued-at-an-entry-gate",
+      "label": "A ticket records the vehicle, spot, gate, attendant and entry time and marks the spot OCCUPIED",
+      "testMethod": "test_ticket_is_issued_at_an_entry_gate"
+    },
+    {
+      "id": "exit-or-unknown-gate-is-rejected",
+      "label": "An exit gate or unknown gate raises InvalidGateException and issues nothing",
+      "testMethod": "test_exit_or_unknown_gate_is_rejected"
+    },
+    {
+      "id": "vehicle-is-found-or-created",
+      "label": "A new vehicle is created once and an existing registration is reused",
+      "testMethod": "test_vehicle_is_found_or_created"
+    },
+    {
+      "id": "floor-with-fewest-available-spots-is-chosen",
+      "label": "The floor with the fewest available spots of the type is chosen",
+      "testMethod": "test_floor_with_fewest_available_spots_is_chosen"
+    },
+    {
+      "id": "tie-goes-to-lowest-floor-and-nearest-spot",
+      "label": "A tie goes to the lowest floor number and the lowest-numbered spot",
+      "testMethod": "test_tie_goes_to_lowest_floor_and_nearest_spot"
+    },
+    {
+      "id": "non-operational-floors-and-other-types-are-ignored",
+      "label": "Floors under maintenance, occupied spots and spots of another type are never assigned",
+      "testMethod": "test_non_operational_floors_and_other_types_are_ignored"
+    },
+    {
+      "id": "no-spot-available-issues-no-ticket",
+      "label": "No available spot raises ParkingSpotNotAvailableException and stores no ticket",
+      "testMethod": "test_no_spot_available_issues_no_ticket"
+    },
+    {
+      "id": "vehicle-type-string-is-parsed",
+      "label": "Vehicle type strings are parsed and an invalid one raises ValueError",
+      "testMethod": "test_vehicle_type_string_is_parsed"
+    },
+    {
+      "id": "controller-success-and-failures",
+      "label": "Controller returns SUCCESS with the ticket, and FAILURE with ticket=None for every error",
+      "testMethod": "test_controller_success_and_failures"
+    },
+    {
+      "id": "strategy-marks-each-assigned-spot-occupied",
+      "label": "The strategy marks spots OCCUPIED so consecutive calls hand out different spots",
+      "testMethod": "test_strategy_marks_each_assigned_spot_occupied"
+    }
+  ]
+}

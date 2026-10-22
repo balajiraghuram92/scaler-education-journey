@@ -1,0 +1,67 @@
+{
+  "id": "py-38-deadline-fan-out",
+  "lessonSlug": "py-38-asyncio-deep-dive",
+  "title": "Deadline-Bound Fan-Out with TaskGroup",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement `fan_out(factories, *, timeout)` in `fanout.py`. It calls every zero-argument coroutine factory inside an `asyncio.TaskGroup`, under one shared `asyncio.timeout`, and returns the results in input order. A failing call must cancel its siblings and surface as an `ExceptionGroup`; an expired deadline must cancel everything and raise `TimeoutError`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "fanout",
+      "path": "fanout.py",
+      "displayName": "fanout.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "results-keep-input-order",
+      "label": "Returns results in input order, not completion order",
+      "testMethod": "test_results_keep_input_order"
+    },
+    {
+      "id": "empty-input",
+      "label": "Returns [] for an empty sequence",
+      "testMethod": "test_empty_input"
+    },
+    {
+      "id": "calls-run-concurrently",
+      "label": "Runs the calls concurrently, not one after another",
+      "testMethod": "test_calls_run_concurrently"
+    },
+    {
+      "id": "each-factory-is-called-exactly-once",
+      "label": "Calls each factory exactly once",
+      "testMethod": "test_each_factory_is_called_exactly_once"
+    },
+    {
+      "id": "failure-cancels-siblings-and-raises-group",
+      "label": "Cancels siblings (finally blocks run) and raises an ExceptionGroup on failure",
+      "testMethod": "test_failure_cancels_siblings_and_raises_group"
+    },
+    {
+      "id": "multiple-failures-are-all-reported",
+      "label": "Reports every failure in the ExceptionGroup without unwrapping it",
+      "testMethod": "test_multiple_failures_are_all_reported"
+    },
+    {
+      "id": "timeout-cancels-everything",
+      "label": "Cancels all calls and raises TimeoutError when the deadline passes",
+      "testMethod": "test_timeout_cancels_everything"
+    },
+    {
+      "id": "does-not-use-gather",
+      "label": "Uses TaskGroup, never asyncio.gather",
+      "testMethod": "test_does_not_use_gather"
+    }
+  ]
+}

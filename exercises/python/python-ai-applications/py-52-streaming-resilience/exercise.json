@@ -1,0 +1,83 @@
+{
+  "id": "py-52-streaming-resilience",
+  "lessonSlug": "py-52-llm-api-clients",
+  "title": "Streaming Retries, Truncation and Metering",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `StreamInterrupted`, `TokenBudget`, `stream_with_retry` and `metered_stream` in `llm_stream.py` (`llm_retry.py` is provided). Retry only while no chunk has reached the consumer, otherwise raise `StreamInterrupted` with the partial text. Reserve tokens synchronously, always settle actual usage in a `finally` (early break, error or cancellation), and close upstream generators with `contextlib.aclosing`.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "llm-retry",
+      "path": "llm_retry.py",
+      "displayName": "llm_retry.py",
+      "editable": false
+    },
+    {
+      "id": "llm-stream",
+      "path": "llm_stream.py",
+      "displayName": "llm_stream.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "retry-before-token",
+      "label": "Retries a failure that happens before any token is delivered",
+      "testMethod": "test_retries_when_failure_happens_before_first_token"
+    },
+    {
+      "id": "interrupted-after-token",
+      "label": "A failure after the first token raises StreamInterrupted with the partial text, chained from the cause",
+      "testMethod": "test_failure_after_first_token_is_not_retried"
+    },
+    {
+      "id": "non-retryable",
+      "label": "Non-retryable errors propagate unchanged after one attempt",
+      "testMethod": "test_non_retryable_error_is_raised_immediately"
+    },
+    {
+      "id": "limits",
+      "label": "Respects max_attempts and refuses to retry a Retry-After above max_retry_after",
+      "testMethod": "test_attempt_limit_and_large_retry_after_propagate_the_original_error"
+    },
+    {
+      "id": "break-closes-upstream",
+      "label": "Consumer break closes the upstream stream immediately",
+      "testMethod": "test_consumer_break_closes_the_upstream_stream_immediately"
+    },
+    {
+      "id": "budget-semantics",
+      "label": "reserve is synchronous, rejects over-limit requests untouched; settle records actual usage",
+      "testMethod": "test_token_budget_reserve_and_settle"
+    },
+    {
+      "id": "early-exit-settles",
+      "label": "metered_stream settles actual usage and closes the upstream on early exit",
+      "testMethod": "test_metered_stream_settles_actual_usage_on_early_exit"
+    },
+    {
+      "id": "rejected-first",
+      "label": "An over-budget stream is rejected before the upstream is touched",
+      "testMethod": "test_over_budget_stream_is_rejected_before_touching_upstream"
+    },
+    {
+      "id": "cancel-settles",
+      "label": "A cancelled consumer still releases its reservation",
+      "testMethod": "test_metered_stream_settles_when_the_task_is_cancelled"
+    },
+    {
+      "id": "concurrent-budget",
+      "label": "With 20 concurrent consumers exactly 10 fit the budget and the totals stay consistent",
+      "testMethod": "test_concurrent_consumers_exactly_budget_many_succeed"
+    }
+  ]
+}

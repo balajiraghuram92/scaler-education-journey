@@ -1,0 +1,27 @@
+{
+  "id": "py-15-booking-facade",
+  "lessonSlug": "py-15-adapter-facade",
+  "title": "Travel Booking Facade",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement the `BookingProcessor` facade in `booking/booking_processor.py`. Its constructor takes the five services in the same order as `BookingManager`, and `process(...)` runs availability, payment, confirmation, loyalty and accommodation updates in order, returning the right `BookingResult` on each failure. `BookingManager` is provided and only forwards to the processor.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "processor", "path": "booking/booking_processor.py", "displayName": "booking_processor.py", "editable": true },
+    { "id": "manager", "path": "booking/booking_manager.py", "displayName": "booking_manager.py", "editable": false },
+    { "id": "model", "path": "booking/model.py", "displayName": "model.py", "editable": false },
+    { "id": "services", "path": "booking/services.py", "displayName": "services.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "manager-hides-services", "label": "BookingManager keeps none of the five services", "testMethod": "test_manager_does_not_keep_the_services" },
+    { "id": "constructor-order", "label": "The processor takes the services in the manager's order", "testMethod": "test_processor_takes_services_in_the_managers_order" },
+    { "id": "call-order", "label": "Happy path runs availability, payment, notify, loyalty, details in order", "testMethod": "test_happy_path_calls_every_step_in_order" },
+    { "id": "exact-arguments", "label": "Every service call receives the exact arguments", "testMethod": "test_each_step_receives_the_exact_arguments" },
+    { "id": "unavailable", "label": "Unavailable accommodation stops before payment", "testMethod": "test_unavailable_stops_before_payment" },
+    { "id": "payment-failed", "label": "Failed payment stops before any side effect", "testMethod": "test_payment_failure_stops_before_side_effects" },
+    { "id": "status-representation", "label": "Payment status works as a string or an Enum", "testMethod": "test_payment_status_may_be_a_string_or_an_enum" },
+    { "id": "manager-delegates", "label": "BookingManager works end to end through the facade", "testMethod": "test_manager_delegates_to_the_facade_with_real_services" }
+  ]
+}

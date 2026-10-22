@@ -1,0 +1,67 @@
+{
+  "id": "py-10-payment-gateway-router",
+  "lessonSlug": "py-10-solid-principles",
+  "title": "Payment Gateway Router (DIP and OCP)",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Implement `CheckoutService` in `payments.py`. It receives its gateways and a country routing table from outside, validates them at construction, and routes `checkout(...)` to the right gateway by country. It must depend only on the `PaymentGateway` Protocol, so adding a gateway never requires editing it.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "payments",
+      "path": "payments.py",
+      "displayName": "payments.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "routes-by-country",
+      "label": "Routes each payment to the gateway for its country",
+      "testMethod": "test_routes_by_country"
+    },
+    {
+      "id": "unknown-country-uses-default",
+      "label": "Unrouted countries use the default gateway",
+      "testMethod": "test_unknown_country_uses_default"
+    },
+    {
+      "id": "country-lookup-is-case-insensitive",
+      "label": "Country lookup is case-insensitive",
+      "testMethod": "test_country_lookup_is_case_insensitive"
+    },
+    {
+      "id": "rejects-non-positive-amount-without-calling-gateway",
+      "label": "Zero or negative amount raises ValueError without calling a gateway",
+      "testMethod": "test_rejects_non_positive_amount_without_calling_gateway"
+    },
+    {
+      "id": "unknown-gateway-in-config-fails-fast",
+      "label": "Constructor raises ConfigurationError for unknown gateway names",
+      "testMethod": "test_unknown_gateway_in_config_fails_fast"
+    },
+    {
+      "id": "new-gateway-needs-no-change-to-service",
+      "label": "A brand new gateway works with no change to CheckoutService",
+      "testMethod": "test_new_gateway_needs_no_change_to_service"
+    },
+    {
+      "id": "caller-mutating-inputs-after-construction-has-no-effect",
+      "label": "Later mutation of the caller's mappings has no effect",
+      "testMethod": "test_caller_mutating_inputs_after_construction_has_no_effect"
+    },
+    {
+      "id": "charge-is-frozen-and-service-names-no-concrete-gateway",
+      "label": "Charge is frozen and the service names no concrete gateway",
+      "testMethod": "test_charge_is_frozen_and_service_names_no_concrete_gateway"
+    }
+  ]
+}

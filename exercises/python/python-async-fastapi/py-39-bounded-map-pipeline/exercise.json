@@ -1,0 +1,72 @@
+{
+  "id": "py-39-bounded-map-pipeline",
+  "lessonSlug": "py-39-async-patterns-backpressure",
+  "title": "Bounded Worker-Pool Map",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement `bounded_map(func, items, *, workers, queue_size=None)` in `pipeline.py`. A fixed pool of `workers` tasks consumes a bounded `asyncio.Queue` that a producer fills lazily from `items`, so memory stays bounded for any iterable. Return results in input order, stop workers with one `None` sentinel each, and make the first failure cancel everything without deadlocking.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "pipeline",
+      "path": "pipeline.py",
+      "displayName": "pipeline.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "results-keep-input-order",
+      "label": "Returns results in input order even when items finish out of order",
+      "testMethod": "test_results_keep_input_order"
+    },
+    {
+      "id": "empty-input-returns-empty-list",
+      "label": "Returns [] for an empty iterable",
+      "testMethod": "test_empty_input_returns_empty_list"
+    },
+    {
+      "id": "concurrency-equals-workers",
+      "label": "Runs exactly `workers` calls at the same time",
+      "testMethod": "test_concurrency_equals_workers"
+    },
+    {
+      "id": "fewer-items-than-workers",
+      "label": "Handles fewer items than workers",
+      "testMethod": "test_fewer_items_than_workers"
+    },
+    {
+      "id": "accepts-a-generator",
+      "label": "Accepts a generator as the items source",
+      "testMethod": "test_accepts_a_generator"
+    },
+    {
+      "id": "items-are-pulled-lazily",
+      "label": "Applies backpressure: pulls at most workers + queue_size + 1 items ahead",
+      "testMethod": "test_items_are_pulled_lazily"
+    },
+    {
+      "id": "failure-cancels-workers-and-does-not-deadlock",
+      "label": "A failure cancels the other workers, raises an ExceptionGroup and never deadlocks",
+      "testMethod": "test_failure_cancels_workers_and_does_not_deadlock"
+    },
+    {
+      "id": "workers-must-be-positive",
+      "label": "Raises ValueError when workers < 1",
+      "testMethod": "test_workers_must_be_positive"
+    },
+    {
+      "id": "queue-size-must-be-positive",
+      "label": "Raises ValueError when queue_size < 1",
+      "testMethod": "test_queue_size_must_be_positive"
+    }
+  ]
+}

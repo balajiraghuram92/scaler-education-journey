@@ -1,0 +1,72 @@
+{
+  "id": "py-42-mini-dependency-resolver",
+  "lessonSlug": "py-42-fastapi-dependency-injection-architecture",
+  "title": "Mini Dependency Resolver",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `Resolver` in `di_mini.py` (`Depends` and `CircularDependencyError` are given). `await Resolver(overrides).run(endpoint, **values)` inspects the endpoint signature, resolves every `Depends` default recursively, caches per run by the original callable, supports plain, async and async-generator dependencies with reverse-order teardown that receives the endpoint's exception, honours overrides, and reports cycles and missing values.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "di-mini",
+      "path": "di_mini.py",
+      "displayName": "di_mini.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "cache-is-shared-and-use-cache-false-opts-out",
+      "label": "Caches a dependency per run and calls it again when use_cache=False",
+      "testMethod": "test_cache_is_shared_and_use_cache_false_opts_out"
+    },
+    {
+      "id": "cache-lives-for-one-run-only",
+      "label": "The cache lives for one run call only",
+      "testMethod": "test_cache_lives_for_one_run_only"
+    },
+    {
+      "id": "generator-dependencies-are-torn-down-in-reverse-order",
+      "label": "Tears generator dependencies down in reverse order of setup",
+      "testMethod": "test_generator_dependencies_are_torn_down_in_reverse_order"
+    },
+    {
+      "id": "endpoint-exception-is-thrown-into-generators",
+      "label": "Throws the endpoint exception into each generator at its yield and re-raises it",
+      "testMethod": "test_endpoint_exception_is_thrown_into_generators"
+    },
+    {
+      "id": "overrides-and-runtime-values",
+      "label": "Replaces overridden dependencies and fills plain parameters from runtime values",
+      "testMethod": "test_overrides_and_runtime_values"
+    },
+    {
+      "id": "override-keeps-original-cache-key-and-resolves-its-own-dependencies",
+      "label": "Keys the cache by the original callable and resolves the override's own dependencies",
+      "testMethod": "test_override_keeps_original_cache_key_and_resolves_its_own_dependencies"
+    },
+    {
+      "id": "sync-async-and-nested-dependencies-and-sync-endpoint",
+      "label": "Supports sync, async and async-generator dependencies, nested, plus a sync endpoint",
+      "testMethod": "test_sync_async_and_nested_dependencies_and_sync_endpoint"
+    },
+    {
+      "id": "cycles-are-reported-with-the-chain",
+      "label": "Raises CircularDependencyError listing the chain (a -> b -> a)",
+      "testMethod": "test_cycles_are_reported_with_the_chain"
+    },
+    {
+      "id": "missing-value-raises-type-error-and-defaults-are-used",
+      "label": "Raises TypeError naming a missing parameter; uses parameter defaults otherwise",
+      "testMethod": "test_missing_value_raises_type_error_and_defaults_are_used"
+    }
+  ]
+}

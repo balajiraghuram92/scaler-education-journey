@@ -1,0 +1,72 @@
+{
+  "id": "py-14-provider-factory-entry-points",
+  "lessonSlug": "py-14-factory",
+  "title": "Provider Factory with Lazy Plugin Entry Points",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 40,
+  "instructions": "In `provfac.py`, implement `ProviderFactory`: a decorator-based registry of built-in providers plus plugin entry points that are recorded without importing, loaded exactly once on first use (even under concurrent first use), never allowed to replace a built-in, and isolated when broken (`ProviderLoadError` chained from the cause).",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 40
+  },
+  "files": [
+    {
+      "id": "provfac",
+      "path": "provfac.py",
+      "displayName": "provfac.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "create-passes-keyword-arguments-and-register-returns-the-builder",
+      "label": "register() returns the builder unchanged and create() passes kwargs",
+      "testMethod": "test_create_passes_keyword_arguments_and_register_returns_the_builder"
+    },
+    {
+      "id": "unknown-name-lists-known-names",
+      "label": "An unknown name raises UnknownProviderError listing the known names",
+      "testMethod": "test_unknown_name_lists_known_names"
+    },
+    {
+      "id": "duplicate-registration-is-rejected",
+      "label": "Registering a duplicate name raises ValueError",
+      "testMethod": "test_duplicate_registration_is_rejected"
+    },
+    {
+      "id": "plugins-are-loaded-lazily-and-only-once",
+      "label": "Plugins are recorded without loading and loaded exactly once",
+      "testMethod": "test_plugins_are_loaded_lazily_and_only_once"
+    },
+    {
+      "id": "names-are-sorted-and-include-builtins-and-pending-plugins",
+      "label": "names() lists built-ins and pending plugins, sorted",
+      "testMethod": "test_names_are_sorted_and_include_builtins_and_pending_plugins"
+    },
+    {
+      "id": "a-broken-plugin-only-affects-itself",
+      "label": "A broken plugin raises a chained ProviderLoadError and nothing else breaks",
+      "testMethod": "test_a_broken_plugin_only_affects_itself"
+    },
+    {
+      "id": "plugin-cannot-replace-a-builtin-and-a-warning-is-logged",
+      "label": "A plugin cannot replace a built-in and a warning is logged",
+      "testMethod": "test_plugin_cannot_replace_a_builtin_and_a_warning_is_logged"
+    },
+    {
+      "id": "earlier-plugin-wins-over-a-later-plugin-with-the-same-name",
+      "label": "The earlier plugin wins over a later one with the same name",
+      "testMethod": "test_earlier_plugin_wins_over_a_later_plugin_with_the_same_name"
+    },
+    {
+      "id": "concurrent-first-use-loads-the-plugin-once",
+      "label": "Eight concurrent first calls load the plugin exactly once",
+      "testMethod": "test_concurrent_first_use_loads_the_plugin_once"
+    }
+  ]
+}

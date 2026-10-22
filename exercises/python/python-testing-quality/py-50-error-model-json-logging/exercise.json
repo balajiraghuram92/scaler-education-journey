@@ -1,0 +1,78 @@
+{
+  "id": "py-50-error-model-json-logging",
+  "lessonSlug": "py-50-errors-logging-resilience",
+  "title": "Error Taxonomy and Structured JSON Logging with Request Context",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 35,
+  "instructions": "Implement the error taxonomy in `errors.py` (`GatewayError`, `UpstreamError` and its retryable/non-retryable subclasses, plus `from_status` that preserves `__cause__`) and the JSON logging in `jsonlog.py` (`request_id` ContextVar helpers, `ContextFilter`, `JsonFormatter`, `configure` via `dictConfig`). Every record must carry the request id of the task that logged it.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "errors",
+      "path": "errors.py",
+      "displayName": "errors.py",
+      "editable": true
+    },
+    {
+      "id": "jsonlog",
+      "path": "jsonlog.py",
+      "displayName": "jsonlog.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "status-translation",
+      "label": "Maps 429, 408/504, other 5xx and 4xx statuses to the right error class and retryable flag",
+      "testMethod": "test_status_translation"
+    },
+    {
+      "id": "hierarchy",
+      "label": "Errors form the expected hierarchy and expose status and retry_after",
+      "testMethod": "test_hierarchy_and_attributes"
+    },
+    {
+      "id": "retry-after-cause",
+      "label": "from_status keeps retry_after and chains the given cause",
+      "testMethod": "test_retry_after_and_cause_are_kept"
+    },
+    {
+      "id": "non-error-status",
+      "label": "Statuses below 400 raise ValueError(\"not an error status: <n>\")",
+      "testMethod": "test_non_error_status_rejected"
+    },
+    {
+      "id": "json-line",
+      "label": "Logs one sorted-key JSON object per line with level, logger, msg, request_id and extras",
+      "testMethod": "test_json_line_has_context_and_extras"
+    },
+    {
+      "id": "request-id-reset",
+      "label": "bind_request_id restores the previous value, even when the block raises",
+      "testMethod": "test_request_id_defaults_and_resets_after_context"
+    },
+    {
+      "id": "exception-record",
+      "label": "Exception records include exc_type, exc and the cause (only when one exists)",
+      "testMethod": "test_exception_logging_includes_type_and_cause"
+    },
+    {
+      "id": "configure",
+      "label": "configure honours the level, does not stack handlers and keeps existing loggers enabled",
+      "testMethod": "test_configure_sets_level_and_isolates_the_logger"
+    },
+    {
+      "id": "async-isolation",
+      "label": "Concurrent asyncio tasks each log their own request id",
+      "testMethod": "test_concurrent_tasks_do_not_share_request_ids"
+    }
+  ]
+}

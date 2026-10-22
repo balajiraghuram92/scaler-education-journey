@@ -1,0 +1,57 @@
+{
+  "id": "py-07-foo-bar",
+  "lessonSlug": "py-07-synchronization-async-intro",
+  "title": "FooBar Alternating Printer",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 20,
+  "instructions": "Implement `FooBar` in `config/fooBar.py`. One thread runs `foo()` and another runs `bar()`; together they must print `foobar` exactly `n` times by strictly alternating. Use `threading.Semaphore` (no sleep, polling or boolean flag) and make `n = 0` and `n = 1` work.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "foobar",
+      "path": "config/fooBar.py",
+      "displayName": "fooBar.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "foobar-n",
+      "label": "Prints foobar n times for either thread start order",
+      "testMethod": "test_output_is_foobar_repeated_n_times"
+    },
+    {
+      "id": "n-zero",
+      "label": "n = 0 prints nothing and does not hang",
+      "testMethod": "test_n_zero_prints_nothing_and_does_not_hang"
+    },
+    {
+      "id": "n-one",
+      "label": "n = 1 prints foobar",
+      "testMethod": "test_n_one"
+    },
+    {
+      "id": "strict-alternation",
+      "label": "Strictly alternates under heavy thread switching",
+      "testMethod": "test_strict_alternation_under_heavy_switching"
+    },
+    {
+      "id": "bar-waits",
+      "label": "bar cannot print before foo",
+      "testMethod": "test_bar_cannot_print_before_foo"
+    },
+    {
+      "id": "foo-waits",
+      "label": "foo cannot run ahead of bar",
+      "testMethod": "test_foo_cannot_run_ahead_of_bar"
+    }
+  ]
+}

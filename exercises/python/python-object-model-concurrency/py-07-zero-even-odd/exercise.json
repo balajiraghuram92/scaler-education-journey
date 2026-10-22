@@ -1,0 +1,57 @@
+{
+  "id": "py-07-zero-even-odd",
+  "lessonSlug": "py-07-synchronization-async-intro",
+  "title": "Zero Even Odd",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 30,
+  "instructions": "Implement `ZeroEvenOdd` in `config/zeroEvenOdd.py` (the `PrintNumber` helper is provided; use it as is). `zero`, `even` and `odd` each run in their own thread and together print `0` before every number from 1 to `n`, so `n = 5` gives `0102030405`. Coordinate with `threading.Semaphore` and make sure `n = 1` does not deadlock.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 30
+  },
+  "files": [
+    {
+      "id": "zeroevenodd",
+      "path": "config/zeroEvenOdd.py",
+      "displayName": "zeroEvenOdd.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "n-five",
+      "label": "n = 5 prints 0102030405",
+      "testMethod": "test_n_five_prints_0102030405"
+    },
+    {
+      "id": "any-start-order",
+      "label": "Correct output for every thread start order",
+      "testMethod": "test_any_thread_start_order_gives_correct_output"
+    },
+    {
+      "id": "n-one",
+      "label": "n = 1 has no even work and does not deadlock",
+      "testMethod": "test_n_one_has_no_even_work_and_does_not_deadlock"
+    },
+    {
+      "id": "heavy-switching",
+      "label": "Correct for even and odd n under heavy thread switching",
+      "testMethod": "test_even_n_and_larger_values_under_heavy_switching"
+    },
+    {
+      "id": "through-accept",
+      "label": "Every number goes through printNumber.accept",
+      "testMethod": "test_output_goes_through_print_number_accept"
+    },
+    {
+      "id": "helper-unchanged",
+      "label": "PrintNumber helper is left unchanged",
+      "testMethod": "test_print_number_helper_is_unchanged"
+    }
+  ]
+}

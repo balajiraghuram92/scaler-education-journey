@@ -1,0 +1,77 @@
+{
+  "id": "py-43-unit-of-work-savepoints",
+  "lessonSlug": "py-43-sqlalchemy-async-persistence",
+  "title": "Unit of Work with Savepoints",
+  "language": "python",
+  "difficulty": "stretch",
+  "estimatedMinutes": 45,
+  "instructions": "Implement `UnitOfWork` and `import_messages` in `uow.py` on top of `sqlite3` with `isolation_level=None`. `begin()` runs BEGIN/COMMIT/ROLLBACK, `begin_nested()` runs uniquely named SAVEPOINTs with RELEASE or ROLLBACK TO, and the properties `in_transaction` and `depth` stay correct after exceptions. `import_messages` skips duplicate rows with one savepoint per row inside a single transaction.",
+  "runtime": {
+    "profile": "python-pytest",
+    "timeoutSeconds": 20
+  },
+  "files": [
+    {
+      "id": "uow",
+      "path": "uow.py",
+      "displayName": "uow.py",
+      "editable": true
+    }
+  ],
+  "testSuite": {
+    "visible": false,
+    "path": "tests"
+  },
+  "evidence": [
+    {
+      "id": "import-skips-duplicates-only",
+      "label": "import_messages saves new rows and skips only the duplicates",
+      "testMethod": "test_import_skips_duplicates_only"
+    },
+    {
+      "id": "import-is-one-transaction",
+      "label": "An unexpected error during an import rolls back the whole batch",
+      "testMethod": "test_import_is_one_transaction"
+    },
+    {
+      "id": "outer-failure-rolls-back-released-savepoints",
+      "label": "An outer failure undoes work from already released savepoints",
+      "testMethod": "test_outer_failure_rolls_back_released_savepoints"
+    },
+    {
+      "id": "begin-twice-raises-and-outer-still-commits",
+      "label": "begin() inside begin() raises TransactionAlreadyBegun without disturbing the outer transaction",
+      "testMethod": "test_begin_twice_raises_and_outer_still_commits"
+    },
+    {
+      "id": "begin-nested-requires-transaction",
+      "label": "begin_nested() without a transaction raises NoActiveTransaction",
+      "testMethod": "test_begin_nested_requires_transaction"
+    },
+    {
+      "id": "two-level-nesting-inner-failure-keeps-outer-work",
+      "label": "An inner savepoint failure keeps the outer savepoint's work and depth tracks nesting",
+      "testMethod": "test_two_level_nesting_inner_failure_keeps_outer_work"
+    },
+    {
+      "id": "requires-autocommit-connection",
+      "label": "Raises ValueError unless the connection uses isolation_level=None",
+      "testMethod": "test_requires_autocommit_connection"
+    },
+    {
+      "id": "base-exceptions-roll-back-and-state-is-reusable",
+      "label": "BaseException rolls everything back and resets state so a new transaction can begin",
+      "testMethod": "test_base_exceptions_roll_back_and_state_is_reusable"
+    },
+    {
+      "id": "statements-issued-use-unique-savepoint-names",
+      "label": "Issues BEGIN/COMMIT and uniquely named SAVEPOINT, ROLLBACK TO and RELEASE statements",
+      "testMethod": "test_statements_issued_use_unique_savepoint_names"
+    },
+    {
+      "id": "commit-makes-changes-visible-to-other-connections",
+      "label": "COMMIT publishes changes to other connections; uncommitted rows are invisible",
+      "testMethod": "test_commit_makes_changes_visible_to_other_connections"
+    }
+  ]
+}

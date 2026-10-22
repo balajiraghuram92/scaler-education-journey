@@ -1,0 +1,26 @@
+{
+  "id": "py-15-translation-adapter",
+  "lessonSlug": "py-15-adapter-facade",
+  "title": "Translation API Adapter",
+  "language": "python",
+  "difficulty": "core",
+  "estimatedMinutes": 25,
+  "instructions": "Complete `translation/adapters.py`. Declare the `TranslationAdapter` interface, then implement `MicrosoftTranslationAdapter` and `GoogleTranslationAdapter` by composition, keeping the vendor clients in `translate_api` and `google_translate_api`. The Google adapter must convert a `TranslationRequest` into a `GoogleTranslationRequest`. Do not edit the provided `services.py` or `model.py`.",
+  "runtime": { "profile": "python-pytest", "timeoutSeconds": 20 },
+  "files": [
+    { "id": "adapters", "path": "translation/adapters.py", "displayName": "adapters.py", "editable": true },
+    { "id": "model", "path": "translation/model.py", "displayName": "model.py", "editable": false },
+    { "id": "services", "path": "translation/services.py", "displayName": "services.py", "editable": false }
+  ],
+  "testSuite": { "visible": false, "path": "tests" },
+  "evidence": [
+    { "id": "interface-two-ops", "label": "TranslationAdapter declares exactly translate and get_supported_languages", "testMethod": "test_interface_declares_exactly_two_operations" },
+    { "id": "composition", "label": "Adapters implement the interface and wrap (not subclass) the vendor clients", "testMethod": "test_adapters_are_translation_adapters_built_by_composition" },
+    { "id": "ms-delegates", "label": "Microsoft adapter unpacks the request into the vendor call", "testMethod": "test_microsoft_translate_delegates_with_unpacked_arguments" },
+    { "id": "google-converts", "label": "Google adapter converts to GoogleTranslationRequest before convert()", "testMethod": "test_google_translate_converts_request_to_google_shape" },
+    { "id": "google-threshold", "label": "Google adapter forwards the confidence threshold", "testMethod": "test_google_translate_carries_confidence_threshold" },
+    { "id": "languages-pass-through", "label": "Supported languages come straight from each vendor", "testMethod": "test_supported_languages_pass_through_unchanged" },
+    { "id": "request-not-mutated", "label": "The caller's request is left unchanged", "testMethod": "test_application_request_is_not_mutated" },
+    { "id": "polymorphic", "label": "Client code can use both vendors through the interface", "testMethod": "test_client_code_works_against_the_interface_only" }
+  ]
+}
