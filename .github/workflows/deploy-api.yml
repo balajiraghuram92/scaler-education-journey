@@ -22,12 +22,12 @@ env:
   IMAGE_RUNNER: ghcr.io/balajiraghuram92/neuralascent-java-runner
   IMAGE_PYTHON_RUNNER: ghcr.io/balajiraghuram92/neuralascent-python-runner
   IMAGE_AI_AGENT: ghcr.io/balajiraghuram92/scaler-education-journey-ai-agent
-  AWS_REGION: ap-south-2
+  AWS_REGION: ap-southeast-2
   DOMAIN_NAME: neuralascent.top
   LETSENCRYPT_EMAIL: admin@neuralascent.top
   STUDYTRACKER_ENV_PARAMETER: /neuralascent/prod/api-env
   STUDYTRACKER_REGISTRY_TOKEN_PARAMETER: /neuralascent/prod/ghcr-read-token
-  BACKUP_S3_URI: s3://scaler-studytracker-backups-781863099926-ap-south-2-an/database-backups
+  BACKUP_S3_URI: ""
 
 jobs:
   build-and-deploy:
@@ -179,10 +179,8 @@ jobs:
               "curl -fsSL -H \"Authorization: token ${{ secrets.GITHUB_TOKEN }}\" $SCRIPT_BASE/scripts/deploy-single-ec2.sh -o /tmp/deploy-single-ec2.sh",
               "chmod 700 /tmp/bootstrap-single-ec2.sh /tmp/deploy-single-ec2.sh",
               "STUDYTRACKER_ENV_PARAMETER=${{ env.STUDYTRACKER_ENV_PARAMETER }} STUDYTRACKER_REGISTRY_TOKEN_PARAMETER=${{ env.STUDYTRACKER_REGISTRY_TOKEN_PARAMETER }} /tmp/bootstrap-single-ec2.sh",
-              "API_IMAGE=${{ env.IMAGE_API }} APP_IMAGE=${{ env.IMAGE_APP }} RUNNER_IMAGE=${{ env.IMAGE_RUNNER }} API_REF=${{ env.IMAGE_API }}@${{ steps.build_api.outputs.digest }} APP_REF=${{ env.IMAGE_APP }}@${{ steps.build_app.outputs.digest }} RUNNER_REF=${{ env.IMAGE_RUNNER }}@${{ steps.build_runner.outputs.digest }} PYTHON_RUNNER_IMAGE=${{ env.IMAGE_PYTHON_RUNNER }} PYTHON_RUNNER_REF=${{ env.IMAGE_PYTHON_RUNNER }}@${{ steps.build_python_runner.outputs.digest }} AI_AGENT_IMAGE=${{ env.IMAGE_AI_AGENT }} AI_AGENT_REF=${{ env.IMAGE_AI_AGENT }}@${{ steps.build_ai_agent.outputs.digest }} IMAGE_TAG=${{ github.sha }} DOMAIN_NAME=${{ env.DOMAIN_NAME }} LETSENCRYPT_EMAIL=${{ env.LETSENCRYPT_EMAIL }} BACKUP_S3_URI=${{ env.BACKUP_S3_URI }} RESTORE_LATEST_BACKUP=true ALLOW_CREATE_DATABASE=false /tmp/deploy-single-ec2.sh"
+              "API_IMAGE=${{ env.IMAGE_API }} APP_IMAGE=${{ env.IMAGE_APP }} RUNNER_IMAGE=${{ env.IMAGE_RUNNER }} API_REF=${{ env.IMAGE_API }}@${{ steps.build_api.outputs.digest }} APP_REF=${{ env.IMAGE_APP }}@${{ steps.build_app.outputs.digest }} RUNNER_REF=${{ env.IMAGE_RUNNER }}@${{ steps.build_runner.outputs.digest }} PYTHON_RUNNER_IMAGE=${{ env.IMAGE_PYTHON_RUNNER }} PYTHON_RUNNER_REF=${{ env.IMAGE_PYTHON_RUNNER }}@${{ steps.build_python_runner.outputs.digest }} AI_AGENT_IMAGE=${{ env.IMAGE_AI_AGENT }} AI_AGENT_REF=${{ env.IMAGE_AI_AGENT }}@${{ steps.build_ai_agent.outputs.digest }} IMAGE_TAG=${{ github.sha }} DOMAIN_NAME=${{ env.DOMAIN_NAME }} LETSENCRYPT_EMAIL=${{ env.LETSENCRYPT_EMAIL }} BACKUP_S3_URI=${{ env.BACKUP_S3_URI }} RESTORE_LATEST_BACKUP=false ALLOW_CREATE_DATABASE=true /tmp/deploy-single-ec2.sh"
             ]' \
-            --output-s3-bucket-name scaler-studytracker-backups-781863099926-ap-south-2-an \
-            --output-s3-key-prefix deploy-logs/${GITHUB_SHA} \
             --region "${AWS_REGION}" \
             --query 'Command.CommandId' \
             --output text)
@@ -222,9 +220,3 @@ jobs:
             --query '{Status:Status,Stdout:StandardOutputContent,Stderr:StandardErrorContent}'
 
           test "${STATUS}" = "Success"
-
-      - name: Show full deploy log location on failure
-        if: failure()
-        run: |
-          echo "Full untruncated deploy output (stdout/stderr) is at:"
-          echo "s3://scaler-studytracker-backups-781863099926-ap-south-2-an/deploy-logs/${GITHUB_SHA}/"
