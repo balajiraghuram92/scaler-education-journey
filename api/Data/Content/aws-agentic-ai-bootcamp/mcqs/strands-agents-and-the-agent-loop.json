@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q14",
+      "questionText": "In the agent loop, who actually executes the tool the model asked for?",
+      "explanation": "The model decides and asks, and the agent runs the tool and returns the result for the next pass.\n\n(A) The model only requests the tool. It never runs code itself.\n\n(C) The loop is automatic. The agent runs the tool without waiting for the user.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model, from inside Bedrock",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The agent, which runs it and sends the result back to the model",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The user, who must run the tool by hand",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q15",
+      "questionText": "What makes a Strands agent model-driven rather than workflow-driven?",
+      "explanation": "You describe the goal and hand over the tools. The cab driver in the analogy picks the roads on their own.\n\n(B) That is the workflow-driven approach, like turn-by-turn directions that get stuck when a road is closed.\n\n(C) A Strands agent always calls a model. It is the model that decides the next step.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model plans, reasons and chooses tools by itself, from the goal and the tools you give it",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The developer writes a fixed list of steps that the agent must follow in order",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The agent is a plain function with no model in it",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

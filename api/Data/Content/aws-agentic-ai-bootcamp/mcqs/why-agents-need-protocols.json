@@ -1,0 +1,124 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q01",
+      "questionText": "An app uses 3 models and 4 tools. How many connections does each approach need?",
+      "explanation": "Without MCP, each of the 3 models needs its own connection to each of the 4 tools: 3 × 4 = 12. With MCP, each model and each tool connects once: 3 + 4 = 7.\n\n(A) It's the other way round. Without MCP every model wires to every tool (3 × 4 = 12). With MCP each side connects once (3 + 4 = 7).\n\n(C) Those are the counts of models and tools. The connections are the pairs between them.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "7 without MCP and 12 with MCP",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "12 without MCP and 7 with MCP",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "3 without MCP and 4 with MCP",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q02",
+      "questionText": "A fourth tool is added to an MCP setup. What new work does it need?",
+      "explanation": "Every model already speaks MCP, so the new tool only has to join that one shared layer.\n\n(A) That is the traditional cost. With MCP, the new tool connects once, to MCP.\n\n(B) Discovery happens over a connection. The new tool still has to connect to MCP so that it can be discovered.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Three new connections, one to each model",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "No connection at all, because models find tools automatically",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "One new connection, to MCP",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q03",
+      "questionText": "Which part does the user actually interact with?",
+      "explanation": "The host owns the user experience: the interface, session memory and prompt orchestration.\n\n(B) The server exposes tools, resources and prompts. It does not handle the user's experience.\n\n(C) Clients are protocol-level components inside the host, each with a one-to-one link to a single server. Users do not interact with them directly.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The host, such as a code editor or AI assistant",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The MCP server, because it holds the data",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The MCP client, which talks to each server",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q04",
+      "questionText": "Which lifecycle stage closes the connection gracefully, letting ongoing operations finish?",
+      "explanation": "The client closes the connection gracefully, lets ongoing operations finish and releases resources.\n\n(A) Initialisation is the handshake at the start, where versions and capabilities are agreed.\n\n(C) Operation is the normal traffic between the handshake and the end. It does not close anything.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Initialisation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Shutdown",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Operation",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q05",
+      "questionText": "What happens during the initialisation stage of an MCP connection?",
+      "explanation": "The handshake comes first. Nothing else may happen until the two sides agree on what they support.\n\n(A) Tool calls belong to the operation stage, which comes after the handshake.\n\n(B) That happens in the shutdown stage, at the end of the connection.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The client sends its first tool call",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The server shuts down and releases its resources",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The client and server agree on a protocol version and each other's capabilities",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

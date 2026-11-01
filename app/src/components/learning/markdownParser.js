@@ -1,11 +1,18 @@
 /**
  * Small, dependency-free Markdown block parser shared by the chapter reader and the
  * MCQ quiz. It covers the subset the curriculum uses: headings, paragraphs, lists,
- * fenced code (blank lines inside fences are kept), pipe tables, `>` callouts and
- * horizontal rules. Inline formatting is handled by MarkdownBlock's renderInline.
+ * fenced code (blank lines inside fences are kept), pipe tables, `>` callouts,
+ * horizontal rules and `{{diagram:N}}` placeholders. Inline formatting is handled by
+ * MarkdownBlock's renderInline.
+ *
+ * A fence's info string may carry attributes after the language:
+ *   ```pseudo title="hello_agent.py"   → pseudo code, keywords highlighted
+ *   ```python reveal title="hello_agent.py" → code hidden behind a "View code" toggle
  */
 
 const FENCE_PATTERN = /^(`{3,}|~{3,})\s*([^\s`]*)/;
+const FENCE_TITLE_PATTERN = /\btitle="([^"]*)"/;
+const DIAGRAM_PATTERN = /^\{\{diagram:(\d+)\}\}$/;
 const HEADING_PATTERN = /^(#{1,6})\s+(.*)$/;
 const UNORDERED_PATTERN = /^[-*+]\s+(.+)$/;
 const ORDERED_PATTERN = /^\d+[.)]\s+(.+)$/;
@@ -20,7 +27,10 @@ function leadingSpaces(line) {
 
 function readFence(lines, startIndex) {
   const openLine = lines[startIndex];
-  const [, marker, language] = openLine.trim().match(FENCE_PATTERN);
+  const [opening, marker, language] = openLine.trim().match(FENCE_PATTERN);
+  const info = openLine.trim().slice(opening.length);
+  const title = info.match(FENCE_TITLE_PATTERN)?.[1] || '';
+  const reveal = /(^|\s)reveal(\s|$)/.test(info.replace(FENCE_TITLE_PATTERN, ''));
   const indent = leadingSpaces(openLine);
   const codeLines = [];
   let index = startIndex + 1;
@@ -38,7 +48,7 @@ function readFence(lines, startIndex) {
   }
 
   return {
-    block: { type: 'code', language: language || '', text: codeLines.join('\n') },
+    block: { type: 'code', language: language || '', text: codeLines.join('\n'), title, reveal },
     nextIndex: index
   };
 }
@@ -123,7 +133,7 @@ function parseCallout(quoteLines) {
 
 /**
  * Parses Markdown text into a flat list of blocks:
- * paragraph | heading | unordered-list | ordered-list | code | table | callout | rule
+ * paragraph | heading | unordered-list | ordered-list | code | table | callout | rule | diagram
  */
 export function parseMarkdownBlocks(text) {
   const lines = (text || '').replace(/\r\n?/g, '\n').split('\n');
@@ -184,6 +194,14 @@ export function parseMarkdownBlocks(text) {
         index += 1;
       }
       blocks.push(parseCallout(quoteLines));
+      continue;
+    }
+
+    const diagram = line.match(DIAGRAM_PATTERN);
+    if (diagram) {
+      flushAll();
+      blocks.push({ type: 'diagram', index: Number(diagram[1]) });
+      index += 1;
       continue;
     }
 

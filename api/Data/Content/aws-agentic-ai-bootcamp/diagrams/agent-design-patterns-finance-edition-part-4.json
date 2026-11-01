@@ -1,0 +1,9 @@
+{
+  "diagrams": [
+    {
+      "title": "Three memory-strength curves decaying over 60 days, each jumping back to full strength when recalled, with a fade threshold line.",
+      "caption": "",
+      "svg": "<svg viewBox=\"0 0 700 270\" aria-label=\"Three memory-strength curves decaying over 60 days, each jumping back to full strength when recalled, with a fade threshold line.\" style=\"max-width:100%;height:auto;display:block\" xmlns=\"http://www.w3.org/2000/svg\"></svg>"
+    }
+  ]
+}

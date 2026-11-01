@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q09",
+      "questionText": "The model extracts \"biryani\" with quantity 9, but the order has 4 biryanis at ₹320 each. What does `price()` return for this MISSING_ITEM grievance?",
+      "explanation": "`min(qty, ordered)` stops a mis-extraction or a lying customer from pushing the refund past what was bought. `check_rules.py` asserts 1280.\n\n(A) The quantity is not trusted above what was ordered, so the refund cannot reach 9 × ₹320.\n\n(B) Nothing is rejected at pricing. The quantity is clamped to what was ordered, so the grievance is still priced.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "₹2,880, because the customer asked for nine",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "0, because a quantity above the order is rejected outright",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "₹1,280, because the quantity is capped at the 4 biryanis ordered",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q10",
+      "questionText": "The extraction returns an item called \"Pizza\", which is not on the order, for a QUALITY grievance. What does `price()` return?",
+      "explanation": "None tells the pipeline that code cannot price this grievance. An upheld grievance with no price becomes an escalation, not a payment.\n\n(B) Zero is reserved for partner conduct, which is an ops matter. A missing item is not priced at zero.\n\n(C) The code never guesses. `find_item` looks for a name match, and when none is found the price is None.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "None, which means a human prices it",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "0, so the grievance is dropped with no refund",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The unit price of the closest item on the order",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

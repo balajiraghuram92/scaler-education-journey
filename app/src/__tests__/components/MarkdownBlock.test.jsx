@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
-import MarkdownBlock from '../../components/learning/MarkdownBlock';
+import MarkdownBlock, { MarkdownBlocks } from '../../components/learning/MarkdownBlock';
 import { buildContentSections, parseMarkdownBlocks } from '../../components/learning/markdownParser';
 
 describe('parseMarkdownBlocks', () => {
@@ -44,6 +44,24 @@ describe('parseMarkdownBlocks', () => {
     const [callout] = parseMarkdownBlocks('> **Interview tip:** Say *why* first.\n> Then show code.');
     expect(callout).toMatchObject({ type: 'callout', label: 'Interview tip', tone: 'tip' });
     expect(callout.blocks[0]).toEqual({ type: 'paragraph', text: 'Say *why* first. Then show code.' });
+  });
+
+  it('reads fence attributes and diagram placeholders', () => {
+    const blocks = parseMarkdownBlocks([
+      '```pseudo title="hello_agent.py (trimmed)"',
+      'CREATE agent = Agent that uses model',
+      '```',
+      '',
+      '```bash reveal title="terminal"',
+      'aws configure',
+      '```',
+      '',
+      '{{diagram:2}}'
+    ].join('\n'));
+
+    expect(blocks[0]).toMatchObject({ type: 'code', language: 'pseudo', title: 'hello_agent.py (trimmed)', reveal: false });
+    expect(blocks[1]).toMatchObject({ type: 'code', language: 'bash', title: 'terminal', reveal: true, text: 'aws configure' });
+    expect(blocks[2]).toEqual({ type: 'diagram', index: 2 });
   });
 });
 
@@ -105,6 +123,32 @@ describe('MarkdownBlock', () => {
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noreferrer');
     expect(screen.queryByRole('link', { name: 'this' })).not.toBeInTheDocument();
+  });
+
+  it('renders pseudo code with highlighted keywords and comments', () => {
+    const { container } = render(<MarkdownBlock text={'```pseudo title="agent"\nSET region = "us-east-1"   // default\n```'} />);
+
+    expect(screen.getByText('Pseudo code · agent')).toHaveClass('md-code__label');
+    expect(container.querySelector('.md-pseudo__kw')).toHaveTextContent('SET');
+    expect(container.querySelector('.md-pseudo__comment')).toHaveTextContent('// default');
+  });
+
+  it('hides revealable code behind a View code toggle with a copy button', () => {
+    const { container } = render(<MarkdownBlock text={'```bash reveal title="terminal"\naws configure\n```'} />);
+
+    const details = container.querySelector('details.md-reveal');
+    expect(details).not.toHaveAttribute('open');
+    expect(within(details).getByText('View code')).toBeInTheDocument();
+    expect(within(details).getByRole('button', { name: 'Copy' })).toBeInTheDocument();
+    expect(details.querySelector('code.language-bash')).toHaveTextContent('aws configure');
+  });
+
+  it('places a diagram inline by its order index', () => {
+    const diagrams = new Map([[1, { orderIndex: 1, title: 'Agent loop', svgContent: '<svg viewBox="0 0 10 10"><text>loop</text></svg>' }]]);
+    const { container } = render(<MarkdownBlocks blocks={parseMarkdownBlocks('Before\n\n{{diagram:1}}\n\nAfter')} diagrams={diagrams} />);
+
+    expect(screen.getByRole('img', { name: 'Agent loop' })).toBeInTheDocument();
+    expect(container.querySelector('.md-diagram svg')).toHaveTextContent('loop');
   });
 
   it('does not treat snake_case identifiers as italics', () => {

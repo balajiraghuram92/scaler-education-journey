@@ -1,0 +1,25 @@
+{
+  "page": "AWS-Bootcamp/finance-nps-project/index.html",
+  "inserts": [
+    {
+      "section": "The problem, explained with 10 customers",
+      "after": "🧪 Try it",
+      "md": "**Default score, customer #10 as reported:** 3 promoters (30%) − 5 detractors (50%), with 2 passives in the total → NPS = **−20**\n\n**Button “What if customer #10 meant 10, not 0?”:** 4 promoters (40%) − 4 detractors (40%), with 2 passives in the total → NPS = **0** — one misread answer moved the NPS by 20 points."
+    },
+    {
+      "section": "What we are building, and why a bank cares",
+      "after": "**Detractors (0–6)** 157 157",
+      "md": "**Button “+50 passives”:** Nobody new is unhappy, yet the NPS **fell**: passives add nothing to the top line but they grow the total you divide by.\n\n**Button “10 detractors → passives”:** Each detractor who becomes a passive adds 100 ÷ (answers) points. 10 × 100 ÷ 600 ≈ **+1.7**. This is exactly the maths inside `estimate_fix_impact`.\n\n**Button “10 detractors → promoters”:** Twice the gain (≈ **+3.3**): the customer stops counting against you *and* starts counting for you. Our what-if tool assumes the cautious version — detractors become passives, not promoters.\n\n**Button “Reset to our survey”:** Our survey: 268 / 175 / 157 → +18.5, the number every tool and agent must agree on."
+    }
+  ],
+  "glossary": [],
+  "skipped": [
+    { "text": "Bash · one-time setup (macOS / Linux; Windows notes in the comments)", "reason": "code block caption; the fenced block below already shows the commands" },
+    { "text": "Text · requirements.txt", "reason": "code block caption; the fence already shows the file contents" },
+    { "text": "Text · .env.example", "reason": "code block caption; the fence already shows the file contents" },
+    { "text": "Bash · download the survey into data/", "reason": "code block caption; the fenced curl commands are already in the page" },
+    { "text": "No answers yet — move a slider.", "reason": "empty-state message of the simulation, UI chrome shown only before any input" },
+    { "text": "Back to the score as reported (0)", "reason": "button label that toggles the what-if example, UI chrome" },
+    { "text": "Prism syntax-highlighter library code", "reason": "vendored third-party script, not page text" }
+  ]
+}

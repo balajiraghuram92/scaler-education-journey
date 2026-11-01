@@ -1,0 +1,236 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q03",
+      "questionText": "`escalate_chain` and `draft_email_chain` both receive `amount`. What is the model supposed to do with it?",
+      "explanation": "The model narrates a number it was given. It never produces one, and both prompts forbid changing it.\n\n(B) The model is never asked to work out money. Code computes the amount before either chain runs.\n\n(C) Both prompts tell the model not to change the amount, so rounding it would break the instruction.\n\n(D) The amount is an input to both writing prompts, and the email must not state any other amount.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Narrate the amount it was given, without changing it",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Recalculate the amount from the report text",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Round it to a friendlier number",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Ignore it and write about the category only",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q04",
+      "questionText": "The classify prompt has a `{report_text}` placeholder in its human message. What happens to it when the chain runs?",
+      "explanation": "The input dict's `report_text` value is inserted into the human message, and then the filled prompt goes to the model.\n\n(A) The placeholder is not a request. It is replaced by the value you pass in.\n\n(B) The human message holds the data and the system message holds the instructions. The placeholder sits in the human message.\n\n(C) This is a LangChain template, not an f-string. The chain fills it at run time from the input dict.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model is asked to rewrite the placeholder",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Its value is stored in the system message, so the model follows it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing, because placeholders only work in f-strings",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The template fills it with the report text before the model sees anything",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q05",
+      "questionText": "The classifier says `delayed`. A standard customer reports a delay on a $5,000 shipment with no urgent words. What happens?",
+      "explanation": "5% of $5,000 is $250. That is above the $200 standard threshold, so a manager has to approve it.\n\n(A) $250 is above the standard threshold of $200, so the case cannot auto-resolve.\n\n(C) $40 is the demo case, an $800 shipment. This shipment is $5,000, so the amount is different.\n\n(D) $0 is the amount for unknown reports. This one is classified as delayed, so the delay calculator sets the amount.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Auto-resolves at $250",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Escalates to a manager at $250",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Auto-resolves at $40",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Escalates at $0",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q06",
+      "questionText": "A manager asks why a case escalated. Which field holds the step-by-step answer?",
+      "explanation": "Each step appends a line in the order it ran, so the reason for the escalation is already written down.\n\n(A) `category` holds the cleaned-up category. The raw reply appears only inside one log line.\n\n(B) The drafted message is the text the manager or customer reads. It does not record the checks.\n\n(C) That field explains the rate and the amount. It does not record the threshold or the escalation decision.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`category`, which holds the raw model reply",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`drafted_message`, which the LLM wrote",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`compensation_reasoning` only",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "`log`, a list that each step appends a line to",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q07",
+      "questionText": "The day has 4 exceptions and 1 of them is escalated. What escalation rate does `generate_daily_summary` print?",
+      "explanation": "The formula is escalated ÷ processed × 100, so 1 ÷ 4 × 100 = 25. The output is shown with no decimals.\n\n(A) The formula multiplies by 100 as well. 1 ÷ 4 is 0.25, and × 100 makes it 25.\n\n(B) The division is the wrong way round. The formula is escalated ÷ processed, so it is 1 ÷ 4, not 4 ÷ 1.\n\n(D) 75% is the share that auto-resolved. The escalation rate counts only the escalated cases.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "0.25%",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "400%",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "25%",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "75%",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q08",
+      "questionText": "What does `max(by_category, key=by_category.get)` return?",
+      "explanation": "`by_category` maps each category to its summed compensation. `max` with `key=by_category.get` returns the key with the largest value.\n\n(B) The code adds up money, not rows. `by_category` stores total compensation per category, not a count.\n\n(C) That would need a max over the amounts in `daily_log`. This line takes the largest total per category.\n\n(D) `max` returns a key, not a dict. The printed line then uses that key to look up its total.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The category whose total compensation is highest",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The category that appears most often",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The largest single payout",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The dict with the highest total",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q09",
+      "questionText": "A reviewer asks where the compensation rules live in this project. Which answer is right?",
+      "explanation": "The calculators in `tools.py` set the amount, and the pipeline compares it with the threshold. The UI only shows the result.\n\n(A) `on_submit` only validates the input, calls the pipeline, records the result and renders it. The doubling is in `tools.py`.\n\n(C) The number box only collects the shipment value. It does not compute anything.\n\n(D) The prompts never receive a rate. They receive the amount, and the model is not asked to compute compensation.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "In `on_submit`, which doubles the rate for urgent reports",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "In `tools.py`, with the thresholds in `pipeline.py`. `app.py` only formats",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In the Gradio number box, which holds the shipment value",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "In the prompts, which are told the rates",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q10",
+      "questionText": "What is the expected-outcome column in `SCENARIOS` for?",
+      "explanation": "A scenario fails when its category or escalation differs from the stated value. The printed `got` value shows which one.\n\n(A) Nothing in the script trains or changes the model. The script only compares results with these values.\n\n(B) The scenarios test the calculators through the pipeline. They do not replace them.\n\n(D) Only the category and the escalation are compared. The amounts are printed for you to check, not compared.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It trains the classifier on the four categories",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It replaces the calculators, so they are not needed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It states the result your rules should give, so a failure shows that something changed",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It sets the amount the email should state",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

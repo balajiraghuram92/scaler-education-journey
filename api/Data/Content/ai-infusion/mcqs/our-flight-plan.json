@@ -1,0 +1,201 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q01",
+      "questionText": "A support bot must give the same answer to the same question every time. Which temperature fits best?",
+      "explanation": "A low temperature focuses the choice on the most likely next tokens, which gives consistent answers.\n\n(A) At a high temperature, surprising words become more likely, so the answers vary more. That is the opposite of what a support bot needs.\n\n(B) 0.7 is only the balanced default in the demo. A support bot needs a lower value to keep its answers steady.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "About 1.0, so the answers stay varied",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "About 0.7, the balanced middle setting",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "About 0.2, so the model keeps picking its most likely words",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q02",
+      "questionText": "The word `\"unbelievableness\"` is split into several tokens. Why is that useful?",
+      "explanation": "The model knows pieces such as \"un\", \"believ\", \"able\" and \"ness\", so it can handle a word it never saw in training.\n\n(A) Rare words are chopped into several pieces, not stored whole. Splitting is what lets one fixed vocabulary cover every word.\n\n(C) The model reads the whole sequence of tokens. Splitting a word does not cut it short.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Rare words are stored as one token, which keeps them cheap",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model can build any word, even one it never saw, from familiar pieces",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The model stops reading after the first token",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q03",
+      "questionText": "You ask a follow-up question in a chat. Why must your code send the earlier messages again?",
+      "explanation": "An LLM forgets everything between calls. Anything it should know must be re-sent every time.\n\n(B) That is the opposite of how it works. An LLM has no memory between calls.\n\n(C) The model is the one that needs the history. Without it, the model cannot know what a follow-up such as \"make it shorter\" refers to.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model has no memory between calls, so the context has to be re-sent",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model keeps the chat in memory, so it only needs the new message",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Resending the history only helps the user, not the model",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q04",
+      "questionText": "What is the context window measured in?",
+      "explanation": "The context window is limited in tokens, the same unit the model reads and bills in.\n\n(A) Messages are made of many tokens, so the limit is counted in tokens, not messages.\n\n(B) Characters are not the unit. Tokens are, and one token is roughly 4 characters.\n\n(C) The window has nothing to do with time. It limits how many tokens the model can see at once.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Number of chat messages",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Characters of text",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Seconds of conversation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Tokens",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q05",
+      "questionText": "Nobody labelled the internet's text for this model. Where does the answer come from during training?",
+      "explanation": "The answer is already in the text, so the internet becomes its own teacher.\n\n(A) That is the old, slow way the page contrasts with. Self-supervision needs no human labels.\n\n(C) The model learns from text by predicting words, not from hand-written rules.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Humans write a correct answer for every sentence",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The text itself: a word is hidden, and the real word is already known from the source",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A fixed list of rules that engineers write by hand",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q06",
+      "questionText": "Why can an LLM sound confident and still give a wrong answer?",
+      "explanation": "Because it learned by predicting likely text, it can produce confident wrong answers, called hallucinations.\n\n(A) The model does not look facts up. It generates the most plausible next tokens.\n\n(B) Wrong answers do not come from a random switch. They come from predicting plausible text.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It looks each fact up in a database that may be out of date",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It has a random error switch that flips some answers",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It was trained to predict plausible text, and plausible text is not always true",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q07",
+      "questionText": "A coding tool, a legal-document reader and a support chatbot look different. What do they share under the hood?",
+      "explanation": "That is the same pattern for all of them, so learning it once makes each of these buildable.\n\n(A) The page says you do not build the AI. You connect to a model and use it through an API.\n\n(C) These products run on a language model. They are not lists of hand-written rules.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Each one has its own AI model, trained from scratch",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They connect to a model, give it the right context, get a useful answer and wrap it in a UI",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A fixed set of if-else rules, with no model at all",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q08",
+      "questionText": "What does \"multimodal\" add to a foundation model?",
+      "explanation": "Multimodal models can see, hear and speak as well as read and write text.\n\n(A) Multimodal is the opposite. One general-purpose model handles several kinds of input and output.\n\n(B) Output format is set in the prompt. It is not what makes a model multimodal.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A separate model for each use case",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A rule that every answer must be in markdown",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The ability to take in and produce more than text, such as images, audio and video",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

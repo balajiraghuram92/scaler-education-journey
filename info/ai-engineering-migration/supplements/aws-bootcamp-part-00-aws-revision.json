@@ -1,0 +1,180 @@
+{
+  "page": "AWS-Bootcamp/part-00-AWS-Revision/index.html",
+  "inserts": [
+    {
+      "section": "0.3 Same chain, local model",
+      "after": "```",
+      "md": "**If you pick \"Cloud: ChatOpenAI\":** **Cloud, paid per token.** Follows the three-part contract: one headline, exactly three bullets, one interview question. `response.content` is a list of blocks, so read `.text`.\n\n**If you pick \"Local: ChatOllama\":** **Local, free and private.** Comes back fast, but a 270M-parameter model often ignores parts of the instructions: four bullets instead of three, or no interview question. `.content` is already a string; `.text` still works."
+    },
+    {
+      "section": "0.5 From chain to agent",
+      "after": "Press the button to follow one run.",
+      "md": "- 1 · Your question goes to the model as a HumanMessage.\n- 2 · The model replies with a tool call: search({'query': 'Bengaluru weather now'}).\n- 3 · LangChain runs search() and sends back a ToolMessage with the result.\n- 4 · No more tool calls, so the model writes the final answer. Done."
+    },
+    {
+      "section": "0.11 Recap and self-check",
+      "after": "Ten quick questions. Pick an answer to see why it's right or wrong.",
+      "md": "**1. Why do the scripts load keys with load_dotenv() from a .env file?**\n\n- It makes the model answer faster\n- Keys stay out of the code and out of git, and every SDK reads them from environment variables\n- OpenAI refuses keys typed into code\n- It encrypts the keys\n\n> **Correct answer:** Keys stay out of the code and out of git, and every SDK reads them from environment variables\n> .env is listed in .gitignore, and load_dotenv() copies each KEY=value line into the environment, where OpenAI, Tavily and LangSmith look for their keys.\n\n**2. What does prompt | llm create?**\n\n- A Python list of two objects\n- A RunnableSequence: the filled prompt flows into the model\n- A shell pipe between two processes\n- A second copy of the template\n\n> **Correct answer:** A RunnableSequence: the filled prompt flows into the model\n> The pipe operator (LCEL) joins runnables. chain.invoke({...}) runs the template first, then the model.\n\n**3. To move Script 02 from OpenAI to a local Ollama model, what changes?**\n\n- The prompt template\n- The chain and invoke() call\n- Only the model object: ChatOpenAI becomes ChatOllama\n- Everything, local models need a different library for chains\n\n> **Correct answer:** Only the model object: ChatOpenAI becomes ChatOllama\n> Every LangChain chat model has the same interface, so the prompt, the chain and invoke() stay identical.\n\n**4. Why does every script print response.text instead of response.content?**\n\n- content is always empty\n- On newer OpenAI models content can be a list of content blocks; text is always one plain string\n- text is faster to compute\n- content holds the prompt, not the answer\n\n> **Correct answer:** On newer OpenAI models content can be a list of content blocks; text is always one plain string\n> Through the Responses API, .content may be a list. .text works the same for every provider.\n\n**5. Where do you find how many tokens a call used?**\n\n- response.id\n- response.tool_calls\n- response.usage_metadata\n- response.type\n\n> **Correct answer:** response.usage_metadata\n> usage_metadata holds input, output and total tokens in a provider-independent shape. That's your cost.\n\n**6. With @tool, what does the model actually see about your function?**\n\n- The full source code\n- Its name, type hints (input schema) and docstring (description)\n- Only the return value\n- Nothing until it's called\n\n> **Correct answer:** Its name, type hints (input schema) and docstring (description)\n> That 'menu card' is all the model knows, which is why the docstring is written for the model.\n\n**7. In the agent loop, who runs the search function?**\n\n- The LLM, on OpenAI's servers\n- LangChain, after the model requests it in a tool call\n- Tavily decides when to run it\n- The user, by pressing Enter\n\n> **Correct answer:** LangChain, after the model requests it in a tool call\n> The model only requests a call. LangChain executes the function and adds a ToolMessage with the result.\n\n**8. The placeholder run prints 4 messages. What's the order?**\n\n- Human, Tool, AI, AI\n- AI, Human, Tool, AI\n- Human, AI (tool call), Tool, AI (answer)\n- Human, AI, AI, Tool\n\n> **Correct answer:** Human, AI (tool call), Tool, AI (answer)\n> Question, the model's tool request, the tool's result, then the final answer with no tool calls.\n\n**9. What's the main gain from swapping your own Tavily wrapper for TavilySearch()?**\n\n- It's the only way to search the web\n- Less code to maintain and a richer menu card: the model can set time_range, topic, include_domains and more\n- It doesn't need an API key\n- It always returns exactly three results\n\n> **Correct answer:** Less code to maintain and a richer menu card: the model can set time_range, topic, include_domains and more\n> The vendor-maintained tool documents extra arguments, and the model used them on its own (time_range='month').\n\n**10. When does LangChain use ToolStrategy for response_format?**\n\n- Always\n- When the model has no native structured output: it adds an extra 'answer' tool whose arguments are the schema\n- Only with Tavily tools\n- When the schema has no fields\n\n> **Correct answer:** When the model has no native structured output: it adds an extra 'answer' tool whose arguments are the schema\n> Providers with native support (OpenAI, Anthropic, xAI) get ProviderStrategy. Either way you read result[\"structured_response\"].\n\n> **Score 8 or more of 10:** Great work, you're ready for Lesson 1.\n>\n> **Score under 8:** Revisit the parts you missed, then try Lesson 1."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "API key",
+      "definition": "A secret string that proves who you are to a service such as OpenAI or Tavily. Anyone holding it can spend your credits, so keep it out of code and screenshots."
+    },
+    {
+      "term": ".env file",
+      "definition": "A plain text file of KEY=value lines kept next to your code but listed in .gitignore, so secrets never reach git. load_dotenv() reads it."
+    },
+    {
+      "term": "Environment variable",
+      "definition": "A named value the operating system hands to every program it starts. SDKs read their keys from fixed names such as OPENAI_API_KEY."
+    },
+    {
+      "term": "uv",
+      "definition": "A fast Python project tool. uv sync creates the virtual environment and installs the exact locked versions; uv run runs a command inside it."
+    },
+    {
+      "term": "Virtual environment",
+      "definition": "A private folder of Python libraries for one project, so different projects don't clash over versions."
+    },
+    {
+      "term": "PromptTemplate",
+      "definition": "A prompt with {placeholders} that LangChain fills in at run time, so the same instructions work on any input."
+    },
+    {
+      "term": "Placeholder",
+      "definition": "A {name} in a template that gets replaced by real text when the chain runs. The keys you pass to invoke() must match."
+    },
+    {
+      "term": "Chat model",
+      "definition": "A Python object that talks to an LLM, such as ChatOpenAI or ChatOllama. All of them share the same interface."
+    },
+    {
+      "term": "Runnable / RunnableSequence",
+      "definition": "LangChain's common building block: anything you can .invoke(). Joining runnables with | makes a RunnableSequence."
+    },
+    {
+      "term": "LCEL",
+      "definition": "LangChain Expression Language: building chains with the pipe operator, so the output of one block flows into the next."
+    },
+    {
+      "term": "Temperature",
+      "definition": "A setting for how random the model's wording is. 0 asks for the most predictable answer."
+    },
+    {
+      "term": "Ollama",
+      "definition": "A free app that downloads open-weights models and serves them on your own machine at localhost:11434. No key, no cost."
+    },
+    {
+      "term": "Open-weights model",
+      "definition": "A model whose trained weights are published, so anyone can download and run it locally. Gemma, Qwen and Llama are examples."
+    },
+    {
+      "term": "AIMessage",
+      "definition": "The object a chat model returns: the answer (.text), raw content, tool_calls, usage_metadata, response_metadata and an id."
+    },
+    {
+      "term": "Token",
+      "definition": "The unit LLMs read and write: roughly three-quarters of an English word. Prices and limits are counted in tokens."
+    },
+    {
+      "term": "Responses API",
+      "definition": "OpenAI's newer API. Its replies can be a list of content blocks, which is why .content may be a list and .text is safer."
+    },
+    {
+      "term": "LangSmith",
+      "definition": "LangChain's tracing service. With LANGSMITH_TRACING=true and a key in .env, every run is recorded with no code changes."
+    },
+    {
+      "term": "Trace",
+      "definition": "A recorded run showing each step, its inputs and outputs, latency, tokens and cost."
+    },
+    {
+      "term": "Tool",
+      "definition": "A function an agent may call. The model sees only its name, input schema and description, and asks for it; the framework runs it."
+    },
+    {
+      "term": "Agent",
+      "definition": "An LLM that decides which tools to call, in a loop, until it can answer. Agent = LLM + tools."
+    },
+    {
+      "term": "Agent loop",
+      "definition": "Ask the model; if it requests a tool, run it and send back the result; repeat until it answers in plain text. Also called the ReAct loop."
+    },
+    {
+      "term": "Decorator",
+      "definition": "A line starting with @ placed above a function to add behaviour. @tool turns a function into an agent tool."
+    },
+    {
+      "term": "Type hints",
+      "definition": "Annotations like query: str that say what type a value should be. LangChain turns them into the tool's input schema."
+    },
+    {
+      "term": "Docstring",
+      "definition": "The text in triple quotes at the top of a function. For a tool it's the description the model reads to decide when to call it."
+    },
+    {
+      "term": "HumanMessage",
+      "definition": "A message typed by the user. An agent's input is a list of messages, starting with one of these."
+    },
+    {
+      "term": "ToolMessage",
+      "definition": "The message LangChain adds after running a tool. It holds the tool's result, which the model reads next."
+    },
+    {
+      "term": "Tavily",
+      "definition": "A web search API built for LLMs. Free tier: 1,000 credits a month. Its key must be named TAVILY_API_KEY."
+    },
+    {
+      "term": "SDK",
+      "definition": "Software development kit: a vendor's library for calling its service from code, such as TavilyClient."
+    },
+    {
+      "term": "Integration",
+      "definition": "A ready-made LangChain component published by a vendor, such as langchain_tavily.TavilySearch. Less code for you, kept up to date by them."
+    },
+    {
+      "term": "Structured output",
+      "definition": "Making the model return data that matches a schema, instead of free text, so programs can use it without parsing."
+    },
+    {
+      "term": "Pydantic",
+      "definition": "A Python library for describing data shapes as classes (BaseModel) and validating that data fits them."
+    },
+    {
+      "term": "JSON",
+      "definition": "A simple text format for structured data: {curly braces} for objects, [square brackets] for lists. The common language of APIs."
+    }
+  ],
+  "skipped": [
+    {
+      "text": ")|(^| |&& || )(aws|python3?|pip|cd|cp|uv|ollama|export|source|unzip|jupyter)\b/g; else re=/(#[^ ]*)/g; let out=\"\",last=0,m;",
+      "reason": "JavaScript syntax-highlighter source, not learner text"
+    },
+    {
+      "text": "$$(\"pre code[class^=",
+      "reason": "JavaScript selector in the page script, not learner text"
+    },
+    {
+      "text": "}  return out+esc(src.slice(last));",
+      "reason": "JavaScript code from the syntax-highlighter function, not learner text"
+    },
+    {
+      "text": "is all the model knows, which is why the docstring is written for the model.\"],",
+      "reason": "checker artefact: script-string scan ran across quote characters; the same sentence is included verbatim in the self-check explanation"
+    },
+    {
+      "text": "s the order?\",[\"Human, Tool, AI, AI\"...",
+      "reason": "checker artefact: fragment of the self-check question \"What is the order?\" which is included verbatim in the self-check list"
+    },
+    {
+      "text": "”. The correct answer is",
+      "reason": "runtime feedback template shown after a click (\"Not quite. You picked ... The correct answer is ...\"); the correct answers and explanations are included in the self-check list"
+    },
+    {
+      "text": "Correct. / Not quite. / Score: N of M answered",
+      "reason": "runtime quiz feedback and counter text generated by the script; the score bands are included"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q01",
+      "questionText": "What does the `@tool` decorator do to `check_server_status`?",
+      "explanation": "The decorator tells Strands to offer the function to the agent as a tool. Without it, the agent has no way to call the function.\n\n(A) The decorator does not change how the function runs. It only changes how the function is offered to the agent.\n\n(C) The model is shown the name, the description and the input schema. The function body is never shown.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It makes the function run faster by caching its result",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It registers the function so the agent can see it and call it",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It sends the whole source code of the function to the model",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q02",
+      "questionText": "You delete the docstring from `check_server_status`. What is the most likely effect?",
+      "explanation": "The docstring becomes the description the model sees. Without it, the model has less guidance on when to call the tool.\n\n(A) The body still runs. The docstring is only text, so removing it does not break the function.\n\n(B) The docstring and the body are separate parts of the function. Deleting one does not remove the other.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The function stops working when the agent calls it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The try and except block is removed as well",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The model loses the description of when to use the tool",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

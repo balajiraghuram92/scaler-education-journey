@@ -1,0 +1,404 @@
+{
+  "page": "AWS-Bootcamp/shipping-agents-to-production/index.html",
+  "inserts": [
+    {
+      "section": "6.1 What actually changes in production",
+      "after": "Tick the ones you can honestly answer \"yes\" to.",
+      "md": "- You've estimated what it will cost per month: *the pricing models compared (6.7) and each lab's cost notes*"
+    },
+    {
+      "section": "6.3 AWS Lambda: serverless and event-driven",
+      "after": "*Pay the setup once per environment, not once per request. Anything at module level runs in INIT; anything inside the handler runs on every call.*",
+      "md": "**Quiet weekend, provisioned environments kept:** Provisioned environments survived the weekend, so Monday's first requests are warm. The price: you paid for them all weekend while nobody used them.\n\n**Quiet weekend, everything recycled:** Everything was recycled. Nothing ran and nothing was billed all weekend, but Monday's first customer gets a cold start."
+    },
+    {
+      "section": "6.5 Amazon Bedrock AgentCore",
+      "after": "Click step 1 to begin.",
+      "md": "- **1. Authentication:** The request reaches AgentCore Identity, which validates the user's bearer token against their identity provider and creates the right session credentials. Nothing reaches your agent without this.\n- **2. Agent processing:** The request lands on your agent in Runtime, in its own microVM. It checks Memory for context, including long-term insights like *this user prefers visual charts and usually asks for quarter-over-quarter comparisons*.\n- **3. Tool discovery:** The agent asks Gateway: *I need tools for data analysis and report generation.* Gateway's semantic search returns the most relevant tools from the catalogue.\n- **4. Policy evaluation:** Before any tool runs, Policy intercepts the call and checks it against Cedar rules: may this user query sales data only for their own region, or company-wide? Is the report limited to a department? May the agent call the export tool? Only if Policy permits does the call proceed.\n- **5. Tool execution:** Gateway routes the authorised calls. The agent uses Code Interpreter to analyse the data in a sandbox and draw charts in the user's preferred style, and maybe Browser to pull market context from a web portal.\n- **6. Memory update:** Short-term memory records the conversation. In the background, long-term extraction reinforces the chart preference, notes that this user often asks for sales analysis, and stores any new facts.\n- **7. Observability and evaluation:** Throughout, Observability captured every step: authentication, memory retrieval, each tool call with parameters and results, each policy decision, each model call. Evaluations scores the interaction against your criteria (accurate? right steps? in scope?). Both land in the same trace."
+    },
+    {
+      "section": "6.6 AgentCore Runtime",
+      "after": "Start by sending a message. Timings are illustrative.",
+      "md": "**A minute of silence.** The session is Idle: the microVM and the conversation are kept, but the CPU isn't working, so CPU isn't billed (memory still is, while the session is open). Send another message and you're back in the same session."
+    },
+    {
+      "section": "6.7 How Runtime compares to Lambda and ECS",
+      "after": "##### Pick the home for each agent",
+      "md": "- Summarise every invoice PDF uploaded to S3, about 20 seconds each, with traffic that comes and goes. **Answer: Lambda.** Short, independent and event-triggered: a Lambda function attached to the S3 upload event.\n- A support agent where each customer chats over several turns and must never see another customer's data. **Answer: AgentCore Runtime.** Multi-turn and many users who must be isolated: one microVM per session on AgentCore Runtime.\n- A team of six agents that call each other with plain function calls, plus a GPU for a local model. **Answer: ECS.** One container holds the whole team, and only ECS (with the EC2 launch type) gives you GPUs.\n- Continuous monitoring of factory sensors that never stops and has no user sessions. **Answer: ECS.** A long-lived service on ECS. Lambda's 15 minutes rules it out, and Runtime's per-session model doesn't fit.\n- Score each card transaction as it arrives: one independent decision, scaling to zero at night. **Answer: Lambda.** Each event is independent with no state: Lambda scales from zero to hundreds of concurrent invocations.\n- A research agent that sometimes needs three hours for a report, and you'd rather not build auth and tracing yourself. **Answer: AgentCore Runtime.** Runtime allows asynchronous jobs of up to 8 hours and gives you Identity and Observability as managed services."
+    },
+    {
+      "section": "6.4 Amazon ECS: always-on and container-driven",
+      "after": "*Seven steps, all visible in one script. Every `aws` command in `deploy.sh` is something a platform team would otherwise do in the console.*",
+      "md": "- **3. Creates two IAM roles:** Creates two **IAM roles**. The *execution role* (with AWS's managed policy) lets ECS pull the image and write logs. The *task role* gets only Bedrock invoke permissions; that's what your agent code runs as. Then it waits 10 seconds for IAM to propagate."
+    },
+    {
+      "section": "6.8 AgentCore Gateway",
+      "after": "*Search first, then call. The agent loads a short list instead of 200 definitions: fewer tokens per request and better tool choices.*",
+      "md": "**Can you check Priya's leave balance before I approve her request?** Search query: \"employee leave balance\". Top matches: `hr_api_get_leave_balance` (0.93), `hr_api_get_employee` (0.74), `hr_api_create_leave_request` (0.70).\n\n**Every request carries all 200 definitions.** That's roughly 30,000 tokens before the user's question is even read, and the model has to pick the right tool from a very long list, which it does less reliably as the list grows. With vague names and no descriptions, it's guessing.\n\n**Poor matches.** The right operation exists, but with a vague name and no description its embedding says almost nothing, so it doesn't make the top three. Search is only as good as your API documentation."
+    },
+    {
+      "section": "6.10 Lab: MCP + A2A on AgentCore",
+      "after": "*Three runtimes, one request. AgentCore checks the token at every door before any of your code runs.*",
+      "md": "- **1. Get a token:** `setup_cognito.sh` logs your test user in to the Cognito user pool and exports the access token as `$BEARER_TOKEN`. It's valid for one hour.\n- **2. Call the orchestrator:** Your `curl` sends an A2A `message/send` to the orchestrator's Runtime URL with `Authorization: Bearer …` and a session ID. AgentCore checks the JWT against Cognito's discovery URL and the allowed client *before* any of your code runs; a bad or expired token never reaches the agent.\n- **3. Orchestrator calls the stock agent:** The orchestrator's model decides to use `ask_stock_agent`. Inside it, `A2AAgent` fetches the stock agent's card and sends an A2A message to its Runtime URL, adding the bearer token.\n- **4. Stock agent calls the tool:** The stock agent's model calls `get_stock_price`, which reaches the MCP server's Runtime URL over Streamable HTTP, again with the bearer token in the header.\n- **5. MCP server:** The MCP server (stateless, port 8000, `/mcp`) looks up the live price with yfinance.\n- **6. Result:** The result flows back: MCP result → stock agent's answer (A2A task) → orchestrator adds context → A2A task with an artifact → your terminal."
+    },
+    {
+      "section": "6.11 Enterprise integration patterns",
+      "after": "##### Forty users and a connection pool",
+      "md": "**Too many connections.** 120 connections against a limit of 100: 20 queries fail with \"too many connections\", and the agent's tools start erroring for real users."
+    },
+    {
+      "section": "6.11 Enterprise integration patterns",
+      "after": "##### When the underwriting API misbehaves",
+      "md": "**Healthy API.** Healthy API: one quick call, nothing else needed.\n\n**Hanging, no timeout.** no reply… still waiting… (no timeout set). Then: nothing: the request hangs until the platform kills it (for example a `504` after 29 s behind API Gateway).\n\n> **The worst failure is silence.** With no timeout, the tool waits as long as the platform allows while the user stares at a spinner.\n\n**Hanging, with timeouts and retries.** timed out after 5 s → wait 1 s; timed out after 5 s → wait 2 s; timed out after 5 s → give up.\n\n> **Bounded and explained.** Timeouts cap each attempt and backoff spaces the retries, so the agent gets a structured error after 18 seconds instead of hanging. Turn on the circuit breaker to stop paying those 18 seconds on every call. Call again: the breaker is counting failures.\n\n**Circuit breaker open.** open: answered instantly without calling the API · 0 s. Breaker opens after repeated failures: the next calls fail fast instead of waiting. Cool-down over: the breaker is half-open and will let the next call through as a test.\n\n> **Fail fast.** While the breaker is open, nobody waits on a service that's clearly down. The agent gets a clear, structured message and carries on with a preliminary assessment.\n\n**Connection refused.** 500 Internal Server Error: ConnectError\n\n> **A raw error.** The agent can't tell a temporary blip from an outage, and may make something up or give up badly.\n\n**Connection refused, with retries.** refused → wait 1 s; refused → wait 2 s; refused → give up.\n\n> Retries ride out short blips (deployments often cause them). If the service stays down, the agent still gets a message it can reason about.\n\n**Rate limited.** 429 Too Many Requests · Retry-After: 2\n\n> Rate limited, and the tool just passes the error on.\n\n**Rate limited, with retries.** 429 Too Many Requests · Retry-After: 2 → wait 2 s as told; 200 OK · 0.4 s.\n\n> **Respect Retry-After.** The API said when to come back; waiting exactly that long turns a failure into a success. Caching unchanged responses avoids many of these calls entirely."
+    },
+    {
+      "section": "6.13 Recap and self-check",
+      "after": "#### Self-check",
+      "md": "**1.** In the Lambda lab, why is the model client created at module level but a new Agent created inside the handler?\n\n- Agents can't be created at module level\n- The model client is expensive and holds no conversation; the agent holds history, and a warm environment serves many different callers\n- It makes cold starts disappear\n- Lambda requires it\n\n> **Answer:** The model client is expensive and holds no conversation; the agent holds history, and a warm environment serves many different callers. Share what's expensive and stateless; create per request what holds one caller's conversation.\n\n**2.** The Lambda lab sits behind an API Gateway REST API. Roughly how long can a request take before it times out by default?\n\n- 29 seconds\n- 15 minutes\n- 60 minutes\n- 8 hours\n\n> **Answer:** 29 seconds. Lambda itself allows 15 minutes, but the REST API in front of it times out at 29 seconds by default.\n\n**3.** Your Lambda agent uses global.anthropic.claude-sonnet-4-6 and gets AccessDeniedException. What's most likely missing from the IAM policy?\n\n- s3:GetObject\n- ecs:RunTask\n- Nothing; it must be a model ID typo\n- The inference-profile ARN (and the region-less foundation-model ARN)\n\n> **Answer:** The inference-profile ARN (and the region-less foundation-model ARN). IDs starting with us. or global. are inference profiles; IAM must allow the profile and the models behind it.\n\n**4.** On ECS, what keeps two copies of your agent running and replaces one that crashes at 3 AM?\n\n- The task definition\n- The load balancer\n- The ECS service\n- CloudWatch\n\n> **Answer:** The ECS service. The task definition is the recipe; the service keeps the desired number of tasks running and replaces failed ones.\n\n**5.** In the ECS lab, how does the agent know \"the 9 AM slot\" refers to Dr. Arti's knee replacement?\n\n- The browser sends the full history with each message and the server seeds a fresh agent with it\n- The container remembers every user\n- The load balancer keeps sessions\n- AgentCore Memory\n\n> **Answer:** The browser sends the full history with each message and the server seeds a fresh agent with it. The browser carries the history; production systems usually store it server-side instead.\n\n**6.** A user takes a minute to reply between messages in an AgentCore Runtime session. What happens to CPU billing during that minute?\n\n- You pay full CPU for the whole minute\n- The session is terminated\n- CPU isn't billed while the agent is just waiting\n- The microVM is shared with another user meanwhile\n\n> **Answer:** CPU isn't billed while the agent is just waiting. Runtime bills per second for resources actually consumed: CPU drops to zero while waiting, while memory is billed as long as the session is open and the state is kept.\n\n**7.** What is the default idle timeout for an AgentCore Runtime session?\n\n- 1 minute\n- 15 minutes\n- 60 minutes\n- 8 hours\n\n> **Answer:** 15 minutes. 15 minutes of inactivity, configurable; a session can live up to 8 hours in total by default.\n\n**8.** What do the four BedrockAgentCoreApp lines add to a Strands agent?\n\n- A Dockerfile\n- A Cognito user pool\n- An MCP server\n- An HTTP server on port 8080 with POST /invocations and GET /ping\n\n> **Answer:** An HTTP server on port 8080 with POST /invocations and GET /ping. The SDK provides the web server, the routes and the health check; your agent logic is unchanged.\n\n**9.** Your gateway exposes 200 tools. How does the agent avoid loading all 200 definitions into every prompt?\n\n- Use the gateway's semantic search tool, x_amz_bedrock_agentcore_search\n- Split the agent into 200 agents\n- Use a bigger model\n- Delete 190 tools\n\n> **Answer:** Use the gateway's semantic search tool, x_amz_bedrock_agentcore_search. The agent searches by meaning and loads only the few best matches; good API descriptions make the search accurate.\n\n**10.** The agent must read a user's own Google Calendar on their behalf. Which flow does AgentCore Identity use?\n\n- OAuth client credentials (machine to machine)\n- A shared admin API key in an environment variable\n- OAuth authorisation code grant: the user clicks Allow once and Identity stores and refreshes the tokens\n- No authentication\n\n> **Answer:** OAuth authorisation code grant: the user clicks Allow once and Identity stores and refreshes the tokens. User-delegated access needs the user's consent; client credentials are for the agent acting as itself on shared resources.\n\n> **Scoring:** Great work, you're ready for Section 7. Revisit the parts you missed, then try Section 7."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "IAM (Identity and Access Management)",
+      "definition": "AWS's permission system. Roles and policies say exactly which AWS actions a person or a piece of software may perform on which resources."
+    },
+    {
+      "term": "Container",
+      "definition": "A sealed package of your code plus everything it needs to run (Python, libraries, settings), built from a Dockerfile. It runs the same on a laptop and in the cloud."
+    },
+    {
+      "term": "Circuit breaker",
+      "definition": "A safety switch around calls to another service: after repeated failures it stops calling for a while and fails fast, then tries again later, so one broken service doesn't stall everything."
+    },
+    {
+      "term": "Graceful degradation",
+      "definition": "Keeping a reduced but useful service when something fails, for example answering with a preliminary assessment instead of crashing."
+    },
+    {
+      "term": "Least privilege",
+      "definition": "Giving each person or program only the permissions it truly needs, and nothing more, so a mistake or breach can do less damage."
+    },
+    {
+      "term": "Distributed tracing",
+      "definition": "Recording one request's journey across many services as a single linked timeline, so you can see where time went and where it failed."
+    },
+    {
+      "term": "AWS Lambda",
+      "definition": "AWS's serverless functions: you upload code with a handler, and AWS runs it when an event arrives, scaling from zero to many copies automatically."
+    },
+    {
+      "term": "Amazon API Gateway",
+      "definition": "A managed front door for HTTP APIs. It receives web requests and forwards them to a backend such as a Lambda function."
+    },
+    {
+      "term": "Serverless",
+      "definition": "Running code without managing servers: the cloud provider starts, scales and stops the compute for you, and you pay only while it runs."
+    },
+    {
+      "term": "Execution environment",
+      "definition": "The small, isolated runtime Lambda creates to run your function. It's reused for many invocations while traffic flows, then recycled when idle."
+    },
+    {
+      "term": "Cold start",
+      "definition": "The extra delay when a new execution environment has to start and run your setup code before it can handle a request."
+    },
+    {
+      "term": "Provisioned concurrency",
+      "definition": "A Lambda setting that keeps a fixed number of environments warm and ready, removing cold starts but costing money even when idle."
+    },
+    {
+      "term": "Lambda durable functions",
+      "definition": "A Lambda feature for long workflows: progress is checkpointed, and when the function reruns it skips completed steps and resumes where it left off."
+    },
+    {
+      "term": "AWS SAM",
+      "definition": "The Serverless Application Model: a short YAML template format plus a CLI (sam build, sam deploy) for defining and deploying serverless apps."
+    },
+    {
+      "term": "AWS CloudFormation",
+      "definition": "AWS's infrastructure-as-code service. A template describes resources; CloudFormation creates them together as a stack and can delete them together."
+    },
+    {
+      "term": "Inference profile",
+      "definition": "A Bedrock model ID such as global.anthropic.claude-sonnet-4-6 that can route requests across regions for capacity. IAM must allow the profile and the models behind it."
+    },
+    {
+      "term": "ARN (Amazon Resource Name)",
+      "definition": "AWS's unique address for a resource, such as arn:aws:bedrock:us-east-1::foundation-model/…. IAM policies use ARNs to say what may be accessed."
+    },
+    {
+      "term": "Amazon DynamoDB",
+      "definition": "AWS's fully managed key-value and document database. Fast lookups by key, no servers to manage; a natural home for session state."
+    },
+    {
+      "term": "Amazon ECS",
+      "definition": "Elastic Container Service: AWS's service for running and keeping containers alive, behind load balancers, at the scale you choose."
+    },
+    {
+      "term": "ECS service",
+      "definition": "The part of ECS that keeps a chosen number of copies (tasks) of your container running, replaces failed ones and rolls out new versions."
+    },
+    {
+      "term": "FastAPI",
+      "definition": "A popular Python framework for building web APIs. You decorate functions with routes like @app.post(\"/schedule\") and it handles the HTTP."
+    },
+    {
+      "term": "Application Load Balancer",
+      "definition": "A managed load balancer that receives web traffic and spreads it across healthy targets, such as your containers."
+    },
+    {
+      "term": "Health check",
+      "definition": "A regular probe (here, a request to /health or /ping) that tells the platform whether a container is working. Failing ones are taken out of service and replaced."
+    },
+    {
+      "term": "Task definition",
+      "definition": "ECS's recipe for a container: which image, how much CPU and memory, which ports, environment variables, roles and where logs go."
+    },
+    {
+      "term": "AWS Fargate",
+      "definition": "A way to run containers on ECS without managing servers: you choose CPU and memory per task, AWS provides and patches the machines."
+    },
+    {
+      "term": "VPC (Virtual Private Cloud)",
+      "definition": "Your own private network inside AWS, with its own address range, subnets, routing and firewalls."
+    },
+    {
+      "term": "Subnet",
+      "definition": "A slice of a VPC's address range in one availability zone. Public subnets route to the internet; private subnets don't."
+    },
+    {
+      "term": "Amazon Bedrock AgentCore",
+      "definition": "A set of AWS managed services built specifically for running agents in production: Runtime, Gateway, Identity, Policy, Memory, Observability, Evaluations, Browser and Code Interpreter."
+    },
+    {
+      "term": "Cedar",
+      "definition": "An open-source policy language created by AWS for writing precise allow/deny rules. AgentCore Policy uses it to check every tool call before it runs."
+    },
+    {
+      "term": "OpenTelemetry",
+      "definition": "An open standard for collecting traces, metrics and logs from software, supported by most monitoring tools."
+    },
+    {
+      "term": "LLM-as-judge",
+      "definition": "Using a language model to score another model's or agent's output against criteria such as accuracy, faithfulness or helpfulness."
+    },
+    {
+      "term": "microVM",
+      "definition": "A very lightweight virtual machine that starts in a fraction of a second but keeps the strong isolation of a full VM: its own kernel, memory and files."
+    },
+    {
+      "term": "AgentCore starter toolkit",
+      "definition": "A Python package (bedrock-agentcore-starter-toolkit) with a Runtime class and an agentcore CLI that configure, deploy, invoke and destroy AgentCore agents."
+    },
+    {
+      "term": "AWS CodeBuild",
+      "definition": "AWS's managed build service. AgentCore's toolkit uses it to build your container image in the cloud, so you don't need Docker locally."
+    },
+    {
+      "term": "Amazon ECR",
+      "definition": "Elastic Container Registry: AWS's private store for container images, from which Lambda, ECS and AgentCore pull them."
+    },
+    {
+      "term": "ARM64 (Graviton)",
+      "definition": "A processor architecture used by AWS Graviton chips and Apple Silicon. Container images must be built for the architecture they'll run on."
+    },
+    {
+      "term": "OpenAPI",
+      "definition": "A standard JSON or YAML document describing a REST API: its endpoints, parameters and responses. Also known by its older name, Swagger."
+    },
+    {
+      "term": "AgentCore Gateway",
+      "definition": "An AgentCore service that turns OpenAPI specs, Lambda functions, Smithy models and MCP servers into one catalogue of MCP tools, with authentication handled for you."
+    },
+    {
+      "term": "Gateway target",
+      "definition": "One API registered with an AgentCore Gateway. The gateway generates one MCP tool for each of its operations."
+    },
+    {
+      "term": "Semantic search",
+      "definition": "Finding things by meaning rather than exact words, by comparing embeddings. Gateway uses it to pick the few relevant tools out of hundreds."
+    },
+    {
+      "term": "Embedding",
+      "definition": "A list of numbers representing the meaning of a piece of text. Texts with similar meanings have embeddings that are close together."
+    },
+    {
+      "term": "JWT (JSON Web Token)",
+      "definition": "A compact, signed token that carries who someone is and what they may do. Services verify the signature instead of asking for a password."
+    },
+    {
+      "term": "Amazon Cognito",
+      "definition": "AWS's user directory and sign-in service. It issues OAuth/OIDC tokens (JWTs) that other services can verify."
+    },
+    {
+      "term": "OIDC (OpenID Connect)",
+      "definition": "A standard identity layer on top of OAuth 2.0 that lets a service verify who a user is from a token issued by an identity provider."
+    },
+    {
+      "term": "Token vault",
+      "definition": "AgentCore Identity's encrypted store for OAuth tokens and API keys, bound to a specific agent and user, with every access logged."
+    },
+    {
+      "term": "Amazon RDS Proxy",
+      "definition": "A managed proxy in front of a relational database that pools and shares connections, so many short-lived clients don't exhaust the database."
+    },
+    {
+      "term": "Rate limit",
+      "definition": "A cap on how many requests a client may make in a period. Over the limit, APIs answer 429 Too Many Requests, often with a Retry-After header."
+    },
+    {
+      "term": "Exponential backoff",
+      "definition": "Retrying after waits that double each time (1 s, 2 s, 4 s…), usually with a little randomness, so retries don't overwhelm a struggling service."
+    },
+    {
+      "term": "Amazon EventBridge",
+      "definition": "AWS's event bus: rules match events (like a file landing in S3) and route them to targets; EventBridge Scheduler also runs things on a timetable."
+    },
+    {
+      "term": "Amazon SQS",
+      "definition": "Simple Queue Service: a managed message queue. Producers drop messages in, consumers take them out at their own pace, smoothing out bursts."
+    },
+    {
+      "term": "Dead-letter queue",
+      "definition": "A side queue where messages go after failing several times, so they can be inspected and replayed instead of being lost or retried forever."
+    },
+    {
+      "term": "Amazon SageMaker",
+      "definition": "AWS's platform for building, training and hosting machine-learning models. A SageMaker endpoint serves a trained model's predictions."
+    },
+    {
+      "term": "CIDR notation",
+      "definition": "A compact way to write a range of IP addresses: 203.0.113.7/32 means exactly one address; 0.0.0.0/0 means every address on the internet."
+    },
+    {
+      "term": "Listener",
+      "definition": "The part of a load balancer that waits on a port (here, 80) and decides where incoming requests go."
+    },
+    {
+      "term": "Target group",
+      "definition": "The set of destinations (here, your containers) a load balancer forwards requests to, with a health check that removes unhealthy ones."
+    },
+    {
+      "term": "uvicorn",
+      "definition": "A fast Python web server that runs FastAPI apps and listens for HTTP requests on a port."
+    },
+    {
+      "term": "Smithy",
+      "definition": "AWS's open-source language for describing service APIs, used to define many AWS services; Gateway can turn Smithy models into tools."
+    },
+    {
+      "term": "AWS Step Functions",
+      "definition": "A service for wiring AWS steps into visual workflows (do this, then that, retry on failure), often used to orchestrate other services."
+    },
+    {
+      "term": "AWS KMS",
+      "definition": "Key Management Service: AWS's managed service for creating and controlling the encryption keys that protect your data."
+    },
+    {
+      "term": "Amazon Redshift and Athena",
+      "definition": "Two AWS analytics services: Redshift is a data warehouse; Athena runs SQL directly over files in S3. Both keep heavy reports off your live database."
+    },
+    {
+      "term": "Internet gateway",
+      "definition": "The component that connects a VPC to the public internet. Subnets whose routes point to it are public."
+    },
+    {
+      "term": "EHR (Electronic Health Record)",
+      "definition": "The hospital system holding patients' medical histories, diagnoses, procedures and treatments."
+    }
+  ],
+  "skipped": [
+    {
+      "text": "[js] )|(^| |&& |\\| )(aws|python3?|pip|cd|export|source|unzip|jupyter|sam|docker|curl|chmod|agentcore|uvicorn|npx)\\b/g; else re=/(#[^ ]*)/g; let out=\"\",last=0,m;",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] ;} last=re.lastIndex; } return out+esc(src.slice(last)); } $$(\"pre code[class^=",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] ';list.appendChild(l);}); function upd(){ const boxes=$$(",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] ); function seen(){return mode===",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] ); const reply=!isTwo?R1:(knows?R2:R2X); addLog(ul,isTwo&&!knows?",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] ;})); })(); /* ---------------- S4: ECS deploy steps ---------------- */ stepper(",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] ]); /* ---------------- S5: AgentCore request walk-through ---------------- */ stepper(",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] );render(); })(); /* ---------------- S7: pick the home ---------------- */ sorter(",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] s data.\",2,\"Multi-turn and many users who must be isolated: one microVM per session on AgentCore Runtime.\"], [\"A team of six agents that call each other wi",
+      "reason": "checker artifact: a JavaScript apostrophe or markup split produced a broken run; the sentence itself is present in an insert above"
+    },
+    {
+      "text": "[js] s leave balance before I approve her request?\",\"employee leave balance\", [[\"hr_api_get_leave_balance\",0.93],[\"hr_api_get_employee\",0.74],[\"hr_api_create_le",
+      "reason": "checker artifact: a JavaScript apostrophe or markup split produced a broken run; the sentence itself is present in an insert above"
+    },
+    {
+      "text": "[js] ,0.38]]] ]; const sel=$(",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] ; function draw(){ const q=Q[+sel.value],bad=$(",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] ),b);mode=b.dataset.m;draw();})); draw(); })(); /* ---------------- S9: multi-agent request path ---------------- */ stepper(",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] s valid for one hour.\", \"Your",
+      "reason": "checker artifact: a JavaScript apostrophe or markup split produced a broken run; the sentence itself is present in an insert above"
+    },
+    {
+      "text": "[js] any of your code runs; a bad or expired token never reaches the agent.\", \"The orchestrator",
+      "reason": "checker artifact: a JavaScript apostrophe or markup split produced a broken run; the sentence itself is present in an insert above"
+    },
+    {
+      "text": "[js] s card and sends an A2A message to its Runtime URL, adding the bearer token.\", \"The stock agent",
+      "reason": "checker artifact: a JavaScript apostrophe or markup split produced a broken run; the sentence itself is present in an insert above"
+    },
+    {
+      "text": "[js] s Runtime URL over Streamable HTTP, again with the bearer token in the header.\", \"The MCP server (stateless, port 8000,",
+      "reason": "checker artifact: a JavaScript apostrophe or markup split produced a broken run; the sentence itself is present in an insert above"
+    },
+    {
+      "text": "[js] ) looks up the live price with yfinance.\", \"The result flows back: MCP result → stock agent",
+      "reason": "checker artifact: a JavaScript apostrophe or markup split produced a broken run; the sentence itself is present in an insert above"
+    },
+    {
+      "text": "[js] );if(!root)return;const LIMIT=100,PROXY_POOL=25; function draw(){ const u=+$(",
+      "reason": "dynamic output template with concatenated variables; the default-state sentence (120 connections) is in the 6.11 insert"
+    },
+    {
+      "text": "[js] ).textContent=q; const ask=u*q,db=px?Math.min(ask,PROXY_POOL):ask; $(",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] \"+ask+\" connections against a limit of \"+LIMIT+\": \"+(ask-LIMIT)+\" queries fail with \\\"too many connections\\\", and the agent",
+      "reason": "dynamic output template with concatenated variables; the default-state sentence (120 connections) is in the 6.11 insert"
+    },
+    {
+      "text": "[js] }'; function setState(s){state=s;const p=$(",
+      "reason": "JavaScript code from the page script, not learner text"
+    },
+    {
+      "text": "[js] );} function finish(ok,wait,agentGets,cls){ n++;t+=wait;$(",
+      "reason": "JavaScript code from the page script, not learner text"
+    }
+  ]
+}

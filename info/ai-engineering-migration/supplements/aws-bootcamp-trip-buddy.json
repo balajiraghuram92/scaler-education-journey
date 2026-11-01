@@ -1,0 +1,115 @@
+{
+  "page": "AWS-Bootcamp/trip-buddy/index.html",
+  "inserts": [
+    {
+      "section": "The problem, explained with one trip",
+      "after": "> 3 friends need **2 rooms**, not 1.5. An LLM doing the maths in its head often divides 3 by 2 and carries on. That makes Manali look like **₹19,200**, inside the ₹20,000 budget, when the real cost is **₹20,866.67**, over it. Press \"Show the LLM's slip\" above to see it. That one rounding step is why script 06 exists.",
+      "md": "> **If you press \"Show the LLM's slip\" on the Manali numbers:**\n>\n> Rooms = 3 ÷ 2 = 1.5 **(not rounded up!)** · stay = 1.5 × ₹2,500 × 4 ÷ 3 · total = ₹9,000 + ₹5,000 + ₹5,200 = ₹19,200 → Fits, with ₹800 to spare.\n>\n> The correct answer is **₹20,866.67**: the slip turned an over-budget trip into one that looks affordable."
+    },
+    {
+      "section": "What we are building, and what you need",
+      "after": "trip-buddy/ ├── .env # YOUR key, never committed ├── trip_01_sqlite_basics.py # places + stays in SQLite ├── trip_02_embeddings_basics.py # sentences → 384 numbers ├── trip_03_chromadb_retrieval.py # the travel notebook, with shelves ├── trip_04_llm_chain.py # the planner, maths in its head ├── trip_05_rag_chain.py # the planner reads the notebook first ├── trip_06_tool_calling.py # the planner uses a calculator ├── trip_07_multi_chain.py # compute → explain → decide ├── trip_08_full_agent.py # the full agent + Gradio chat ├── trip_mcp_server.py # the database + tools as an MCP server ├── trip_09_mcp_client_demo.py # the MCP protocol, by hand ├── trip_10_mcp_agent.py # the agent, tools over MCP ├── slack_bot.py # optional, T15 └── whatsapp_bot.py # optional, T15",
+      "md": "**Text · .env.example**\n\n```text\n# Copy this file to .env (same folder) and paste your key. Never commit .env.\nOPENAI_API_KEY=sk-...\n\n# Optional: any chat model your key can use (default gpt-6-luna)\n# OPENAI_MODEL=gpt-4.1-mini   # older non-reasoning model: drop reasoning_effort, use temperature=0\n```"
+    },
+    {
+      "section": "Ten scripts and a server, bottom-up",
+      "after": "one prompt",
+      "md": "**① Retrieve.** The trip becomes a search query, `\"Hills trip to Manali in July\"`. The notebook returns the three closest tips, typically:\n\n- Hill trips (Coorg, Ooty, Manali): best March-June and October. Avoid July-August: heavy rain and landslides block hill roads.\n- Mountain weather changes fast: carry a rain jacket and warm layers even in summer.\n- Keep a 10% buffer on top of the total for surprises like a cab surge or a missed bus.\n\n**② Augment.** Those lines are pasted into the system message in place of `{rag_context}`. Nothing else changes: same model, same human message.\n\n```text\nYou are a trip planner for a group of friends. Give advice on this trip plan.\n\nRelevant travel tips:\n- Hill trips (Coorg, Ooty, Manali): best March-June and October. Avoid July-August: heavy rain and landslides block hill roads.\n- Mountain weather changes fast: carry a rain jacket and warm layers even in summer.\n- Keep a 10% buffer on top of the total for surprises like a cab surge or a missed bus.\n```\n\n**③ Generate.** The LLM answers with the tips in front of it, so it can say *avoid July*, *landslides block hill roads*, *pack a rain jacket* and *keep a 10% buffer*, instead of general advice about Manali. The exact wording changes every run."
+    },
+    {
+      "section": "Ten scripts and a server, bottom-up",
+      "after": "breakdown text",
+      "md": "**① Tool, called by Python.** No LLM yet: `trip_cost_tool.invoke({...})` takes the prices from the 3-table JOIN. For Manali, 3 friends, 4 nights:\n\n```text\n[Tool] trip_cost_tool → {'rooms_needed': 2, 'stay_share': 6666.67, 'food_and_fun': 5200.0, 'total_per_person': 20866.67}\n```\n\n**② Chain 1 explains.** Its system prompt says the numbers come from a trusted tool, *do NOT redo them*, and it must end with `COST_PER_PERSON: 20866.67`. The LLM only turns the numbers into plain words.\n\n**③ Chain 2 decides.** It never sees the tool. It reads chain 1's text, the place name and the budget, and says **GO** or **NOT YET**. Manali is ₹866.67 over ₹20,000, so it should say NOT YET and suggest one change, such as fewer nights, a cheaper place or a fourth friend. (Wording varies run to run.)"
+    },
+    {
+      "section": "Ten scripts and a server, bottom-up",
+      "after": "##### Follow one run: \"Can 3 friends do Manali for 4 nights with ₹20,000 each?\"",
+      "md": "**1. The question goes in.** `messages` holds one HumanMessage. The model also sees the menu of three tools from `bind_tools`.\n\n```text\n[HumanMessage(\"Can 3 friends do Manali for 4 nights with ₹20,000 each? Show the total per person.\")]\n```\n\n**2. The model asks for prices.** The reply has a tool call, so the loop runs `lookup_place` and appends a ToolMessage with the result.\n\n```text\nlookup_place({'place': 'Manali'})\n→ {'place': 'Manali', 'trip_type': 'Hills', 'room_price_per_night': 2500,\n   'travel_cost_per_person': 9000, 'daily_spend_per_person': 1300}\n```\n\n**3. The model asks for the stay share.** It copies the room price from the last result. Python rounds the rooms up: 3 friends → 2 rooms.\n\n```text\ncalculate_stay_share({'room_price_per_night': 2500, 'nights': 4, 'people': 3})\n→ {'rooms_needed': 2, 'stay_share': 6666.67}\n```\n\n**4. The model asks for the total.** Again a tool, not mental maths: 9,000 + 6,666.67 + 1,300 × 4.\n\n```text\ncalculate_trip_cost({'travel_cost_per_person': 9000, 'stay_share': 6666.67,\n                     'daily_spend_per_person': 1300, 'nights': 4})\n→ 20866.67\n```\n\n**5. No more tool calls: the answer.** The reply has no tool calls, so `run_agent` returns its text. The numbers in it came from Python. (Wording varies run to run.)\n\n```text\nEach friend pays about ₹20,866.67: travel ₹9,000, stay share ₹6,666.67\n(2 rooms for 3 people) and ₹5,200 for food and fun. That is ₹866.67 over\nthe ₹20,000 budget, so trim the daily spend or add a fourth friend.\n```"
+    },
+    {
+      "section": "Ten scripts and a server, bottom-up",
+      "after": "##### \"Which trips fit my budget?\": the maths the agent runs, for all 10 places",
+      "md": "**6 of 10** fit ₹8,000 each for 3 friends, 2 nights: Hampi, Gokarna, Ooty, Coorg, Dandeli, Pondicherry. Rooms = 3 ÷ 2 rounded up = 2, the same rule as `compute_trip_cost`."
+    },
+    {
+      "section": "Ten scripts and a server, bottom-up",
+      "after": "##### Follow one message: \"/plan Hampi 5 2 6000\"",
+      "md": "**1. Start the server and shake hands.** `stdio_client(SERVER)` starts `trip_mcp_server.py`; `session.initialize()` does the handshake.\n\n```text\n[mcp] handshake done\n```\n\n**2. A user-picked PROMPT.** The message starts with `/plan`, so the server's `plan_trip` prompt writes the question.\n\n```text\n[mcp] get_prompt plan_trip → We are 5 friends with ₹6000 each. Can we do Hampi for 2 nights?\nGive the cost per person, say whether it fits our budget, and add 2 useful tips.\n```\n\n**3. Tool DISCOVERY.** The LLM only knows what the server says it has. Their schemas are converted with `mcp_tool_to_openai` and bound to the model.\n\n```text\n[mcp] tools discovered: ['compute_trip_cost', 'db_lookup', 'list_destinations']\n```\n\n**4. A RESOURCE, read by the app.** The app, not the LLM, reads the place list and puts it in the system prompt, next to the notebook tips from RAG.\n\n```text\n[mcp] read resource trips://destinations\n```\n\n**5. The ReAct loop calls the server.** Same loop as script 08. Each tool call goes to the server with `await session.call_tool(...)`, only if its name was discovered.\n\n```text\n  [mcp] call_tool db_lookup({'place': 'Hampi'})\n  [mcp] call_tool compute_trip_cost({'travel_cost_per_person': 900, 'room_price_per_night': 1500,\n      'daily_spend_per_person': 800, 'people': 5, 'nights': 2, 'budget_per_person': 6000})\n→ {\"rooms_needed\": 3, \"stay_share_per_person\": 1800.0, \"food_and_fun_per_person\": 1600.0,\n   \"total_per_person\": 4300.0, \"within_budget\": true, \"money_left_per_person\": 1700.0}\n```\n\n**6. The answer, then the server stops.** No more tool calls, so the text goes back to Gradio and the session closes. (Wording varies run to run.)\n\n```text\nYes! Hampi works: about ₹4,300 each (3 rooms for 5 of you), so ₹1,700 left\nfrom ₹6,000. Go between October and February, and explore early in the morning.\n```"
+    }
+  ],
+  "glossary": [],
+  "skipped": [
+    {
+      "text": "Bash · one-time setup (macOS / Linux / WSL)",
+      "reason": "code block header label; the bash commands are already in the output"
+    },
+    {
+      "text": "Python · trip_01_sqlite_basics.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_02_embeddings_basics.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_03_chromadb_retrieval.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_04_llm_chain.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_05_rag_chain.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_06_tool_calling.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_07_multi_chain.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_08_full_agent.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_mcp_server.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_09_mcp_client_demo.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · trip_10_mcp_agent.py",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · slack_bot.py (suggested)",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Python · whatsapp_bot.py (suggested)",
+      "reason": "code block header label; the code is already in the output"
+    },
+    {
+      "text": "Output · uv run trip_01_sqlite_basics.py",
+      "reason": "output block caption; the output itself is already in the output"
+    },
+    {
+      "text": "Output · mcp 1.30, Python 3.13",
+      "reason": "output block caption; the output itself is already in the output"
+    },
+    {
+      "text": "Try asking · in the chat window",
+      "reason": "UI caption; the example questions are already in the output"
+    },
+    {
+      "text": "Back to the correct maths (round rooms up)",
+      "reason": "button label that toggles the slip view"
+    }
+  ]
+}

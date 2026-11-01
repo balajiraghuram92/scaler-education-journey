@@ -1,0 +1,172 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q01",
+      "questionText": "You build an image, then edit `app.py` and run a container from the *old* image without rebuilding. What code does the container run?",
+      "explanation": "An image is a photograph, not a mirror. It stays frozen until you build again.\n\n(A) A container runs the image, not your folder. Your files were copied in at build time.\n\n(C) Docker does not patch images. The image stays exactly as it was built, and the edit only shows up after a rebuild.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The edited code, because Docker re-reads your project folder when the container starts",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The code exactly as it was when the image was built",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A mix of old and new code, because Docker patches only the lines you changed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q02",
+      "questionText": "Docker is installed, but every `docker` command fails with *\"Cannot connect to the Docker daemon\"*. What is the most likely cause?",
+      "explanation": "The engine runs inside Docker Desktop. Open the app, wait for the whale icon, then try again.\n\n(B) Docker commands never run your Python code, so a code bug cannot cause this message.\n\n(C) Docker would download a missing image instead. This error means the command cannot reach Docker itself.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Docker Desktop is not open, so its background engine is not running",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Your Python code has a bug, so the daemon refuses the command",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The hello-world image was never downloaded",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q03",
+      "questionText": "Your Dockerfile has `COPY . .` above `RUN pip install -r requirements.txt`. You edit one line in `app.py` and rebuild. What happens?",
+      "explanation": "When a layer changes, every layer below it is rebuilt too, so pip installs everything again.\n\n(A) Cache reuse stops at the first changed layer. A changed `COPY . .` breaks the cache for every layer below it.\n\n(B) Docker does notice changes in copied files. That is exactly what invalidates the cache.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Only `app.py` is rebuilt, and pip reuses its cached install",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing is rebuilt, because Docker ignores files it has already copied",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The pip install layer runs again, because the layer above it changed",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q04",
+      "questionText": "Why are `requirements.txt` and the install step placed *before* the rest of the code?",
+      "explanation": "Put rarely-changing steps at the top. The pip layer then only rebuilds when `requirements.txt` changes.\n\n(A) Docker runs the `RUN` line to install packages. The position of `COPY` does not decide what gets installed.\n\n(C) `requirements.txt` is only needed while the image is built. The container does not read it when it starts.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Docker installs packages only from the first `COPY` line it sees",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The package list changes rarely, so the slow install layer stays cached while the code changes",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The container needs `requirements.txt` at runtime to start uvicorn",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q05",
+      "questionText": "Which setting lets connections from outside the container reach the server?",
+      "explanation": "`0.0.0.0` means accept connections from outside the container. Without it, port mapping silently fails.\n\n(B) `EXPOSE` is only a label. It does not open anything; the `-p` flag in `docker run` does that.\n\n(C) `WORKDIR` chooses the folder that commands run in. It has nothing to do with which connections are accepted.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`--host 0.0.0.0` in the `CMD` line",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`EXPOSE 8000`, because it opens the port on your Mac",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`WORKDIR /app`, because it decides which connections are accepted",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q06",
+      "questionText": "`docker ps` does not list `eta-service`, but you know it crashed. Which command shows it?",
+      "explanation": "Plain `ps` hides dead containers. The `-a` flag shows all of them, including the crashed one.\n\n(A) `docker images` lists images, the master tiffins. It does not list containers.\n\n(C) `docker build` creates an image from the Dockerfile. It does not report on containers.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`docker images`, which lists containers as well",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`docker ps -a`, which also lists stopped containers",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`docker build`, which checks whether the container is running",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q07",
+      "questionText": "After you change the message in `app.py`, which sequence makes the new message appear?",
+      "explanation": "Rebuilding takes a new photograph, and the fresh container is made from it. This is the fix from the box above.\n\n(A) A restart runs the same container, which was made from the old photograph. Nothing is rebuilt.\n\n(B) `logs` only shows what the container has printed. It does not change the code the container runs.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`docker restart eta-service`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`docker logs -f eta-service`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Rebuild the image, remove the old container with `rm -f`, then run a fresh one",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

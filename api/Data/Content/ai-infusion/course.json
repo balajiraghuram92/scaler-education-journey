@@ -1,0 +1,285 @@
+{
+  "slug": "ai-infusion",
+  "title": "AI-Infusion: Applied AI from First API Call to Production",
+  "description": "Ten lessons from your first API call to designing, evaluating and building a production-shaped AI system: prompting, LangChain, RAG, Docker, agents on AWS, multi-agent systems and evaluation benches.",
+  "verticalName": "AI Engineering",
+  "verticalDescription": "Applied AI engineering: LLM apps, RAG, agents on AWS, evaluation and shipping AI systems to production.",
+  "orderIndex": 3,
+  "modules": [
+    {
+      "slug": "ai-infusion-start-here",
+      "title": "Start Here: Course Map and Setup",
+      "description": "My notes from two programmes, with every lesson, class recording and solution in one place. Pick one to start.",
+      "badge": "Start",
+      "lessons": [
+        {
+          "slug": "course-overview",
+          "title": "Course Overview",
+          "description": "Start Here: Course Map and Setup: Scaler AWS AI Bootcamp · AI-Infusion lessons · The ten lessons",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "setup-guide",
+          "title": "Setup Guide",
+          "description": "Start Here: Course Map and Setup: How every lesson is taught · What you need, at a glance · Which model does what · What each lesson needs · Set up WSL, step by step · One shopping list for all ten lessons · One .env, one switch, one check",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "lesson-01-first-ai-app",
+      "title": "Lesson 1 · Build & Ship Your First AI App",
+      "description": "No PhD. No math. No machine learning background. In one class you'll understand how AI actually works — and you'll build a real, shareable AI Website Summarizer — then post it on LinkedIn. Let's go.",
+      "badge": "Lesson 1",
+      "lessons": [
+        {
+          "slug": "our-flight-plan",
+          "title": "Our flight plan",
+          "description": "Lesson 1 · Build & Ship Your First AI App: Our flight plan · Why is AI suddenly everywhere? · What is an LLM, really? · The trick that made all of this possible · So… what can you actually build?",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "your-first-6-lines-that-talk-to-an-ai",
+          "title": "Your first 6 lines that talk to an AI",
+          "description": "Lesson 1 · Build & Ship Your First AI App: Your first 6 lines that talk to an AI · Mini-Project: AI Website Summarizer",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "now-put-it-on-linkedin-today",
+          "title": "Now put it on LinkedIn — today",
+          "description": "Lesson 1 · Build & Ship Your First AI App",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "try-the-concepts-live",
+          "title": "Try the concepts live",
+          "description": "Lesson 1 · Build & Ship Your First AI App: Try the concepts live · Tokenizer playground · Next-token & temperature · Getting your API key · Anatomy of one API round-trip · Self-supervision: fill in the blank · AI Website Summarizer — live demo",
+          "minutes": 8,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "lesson-02-langchain-first-agent",
+      "title": "Lesson 2 · LangChain & Your First Agent",
+      "description": "Class 1: you talked to a model. Class 2: you give it hands. You'll meet LangChain, snap your first chain together, then build an agent that decides — on its own — when to use a tool. Watch it happen live on the right. 👉",
+      "badge": "Lesson 2",
+      "lessons": [
+        {
+          "slug": "you-already-did-the-hard-part",
+          "title": "You already did the hard part",
+          "description": "Lesson 2 · LangChain & Your First Agent: You already did the hard part · Our Class 2 flight plan · 3 ways to make a model do what you want · LangChain: snap it together · Your first (tiny) agent",
+          "minutes": 16,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "project-smart-shop-assistant",
+          "title": "Project: Smart Shop Assistant",
+          "description": "Lesson 2 · LangChain & Your First Agent: Project: Smart Shop Assistant · Ship your first agent to LinkedIn · What you did & what's next",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "lessons-03-04-rag",
+      "title": "Lessons 3–4 · RAG: Give Your AI a Library",
+      "description": "Class 2: your agent could act — but it still didn't know your data. Today you fix that. You'll build a system that reads your PDFs, finds the right passage for any question, and answers from real text — not vibes. It's called RAG, and it's how every \"chat with your docs\" app…",
+      "badge": "Lessons 3–4",
+      "lessons": [
+        {
+          "slug": "what-you-can-already-do",
+          "title": "What you can already do",
+          "description": "Lessons 3–4 · RAG: Give Your AI a Library: What you can already do · Our Class 3 flight plan · Why does RAG exist? · RAG in one simple picture · Embeddings: words become coordinates",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "chunking-cut-the-book-into-snippets",
+          "title": "Chunking: cut the book into snippets",
+          "description": "Lessons 3–4 · RAG: Give Your AI a Library: Chunking: cut the book into snippets · Vector databases: a search engine for meaning · Build a real RAG in 30 lines · Make it better: rerank + hybrid search",
+          "minutes": 18,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "mini-project-chat-with-your-pdf",
+          "title": "Mini-Project: Chat with your PDF",
+          "description": "Lessons 3–4 · RAG: Give Your AI a Library: Mini-Project: Chat with your PDF · Ship it to LinkedIn — today · Where this is going",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "lesson-05-dockerize-everything",
+      "title": "Lesson 5 · Dockerize Everything",
+      "description": "Everything from the masterclass, rebuilt for revision. Three real projects, every command decoded word by word, and one tiffin-delivery analogy you'll never forget. 🍱 Read it, run it, then test yourself at the bottom.",
+      "badge": "Lesson 5",
+      "lessons": [
+        {
+          "slug": "the-dabbawala-analogy-mac-setup",
+          "title": "The Dabbawala Analogy + Mac Setup",
+          "description": "Lesson 5 · Dockerize Everything: The Dabbawala Analogy + Mac Setup · Dockerize an ML Project — \"QuickBite ETA\" 🛵",
+          "minutes": 18,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "dockerize-an-llm-project-scalergpt-rag-bot",
+          "title": "Dockerize an LLM Project — \"ScalerGPT\" RAG bot 📚",
+          "description": "Lesson 5 · Dockerize Everything",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "dockerize-an-agentic-project-deskbuddy",
+          "title": "Dockerize an Agentic Project — \"DeskBuddy\" 🤖",
+          "description": "Lesson 5 · Dockerize Everything: Dockerize an Agentic Project — \"DeskBuddy\" 🤖 · Cheatsheet, Golden Rules & Debugging",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "self-test-30-flashcards",
+          "title": "Self-test — 30 flashcards",
+          "description": "Lesson 5 · Dockerize Everything",
+          "minutes": 10,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "lesson-06-ai-agents-on-aws",
+      "title": "Lesson 6 · AI Agents on AWS",
+      "description": "A hands-on masterclass for anyone who already knows LLMs and agents at a basic level. Every concept in plain language, every diagram, and a runnable command after each idea — plus AWS setup from scratch and a capstone project.",
+      "badge": "Lesson 6",
+      "lessons": [
+        {
+          "slug": "aws-setup-from-zero",
+          "title": "AWS setup from zero",
+          "description": "Lesson 6 · AI Agents on AWS: AWS setup from zero · Why agents exist at all · RAG and how it works · What is an agent? · From LLMs to multi-agent systems · Agent protocols — MCP and A2A",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "the-aws-agentic-stack",
+          "title": "The AWS agentic stack",
+          "description": "Lesson 6 · AI Agents on AWS: The AWS agentic stack · The Strands SDK and the agentic loop · Building a \"Hello World\" agent · LLM, agent, and tools — who does what · From function to tool · Your first tool-enabled agent — the tip calculator · When one tool isn't enough · Pre-built community tools · AWS integration with use_aws · Building custom tools",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "when-simple-tools-aren-t-enough",
+          "title": "When simple tools aren't enough",
+          "description": "Lesson 6 · AI Agents on AWS: When simple tools aren't enough · Project — build a Travel Assistant Agent · Every command in one place · Study plan & troubleshooting",
+          "minutes": 7,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "lesson-07-interview-coach",
+      "title": "Lesson 7 · The Interview Coach",
+      "description": "A real AI-engineering take-home, solved live in one sitting. An interview coach that grades a candidate's written answers with deterministic tools, remembers the whole session, answers “how am I doing?” mid-interview, and ships behind a Gradio UI.",
+      "badge": "Lesson 7",
+      "lessons": [
+        {
+          "slug": "why-hand-an-llm-a-ruler",
+          "title": "Why hand an LLM a ruler?",
+          "description": "Lesson 7 · The Interview Coach: Why hand an LLM a ruler? · Screen out the people applying only for the package · Four asks, one graded deliverable · One loop, one list, two front doors · Wire nothing until it works alone · Three functions, each returning a dict",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "run-the-three-tools-in-your-browser",
+          "title": "Run the three tools in your browser",
+          "description": "Lesson 7 · The Interview Coach: Run the three tools in your browser · The loop that decides when it's done · A list that remembers, and arithmetic over it · Six components, three click handlers · Prove the memory with a planted weak answer",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "add-an-interviewer-that-chases-weak-spots",
+          "title": "Add an interviewer that chases weak spots",
+          "description": "Lesson 7 · The Interview Coach: Add an interviewer that chases weak spots · Six decisions people get wrong · Eight questions before you build it yourself",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "lesson-08-shipment-exception-desk",
+      "title": "Lesson 8 · The Shipment Exception Desk",
+      "description": "A customer reports a late, broken or missing parcel. One LLM call works out what kind of problem it is. Python computes the compensation and decides whether a manager has to approve it. A second LLM call writes the customer email or the internal escalation note. Built live…",
+      "badge": "Lesson 8",
+      "lessons": [
+        {
+          "slug": "you-have-two-hours-solve-it-in-front-of-us",
+          "title": "You have two hours. Solve it in front of us.”",
+          "description": "Lesson 8 · The Shipment Exception Desk: You have two hours. Solve it in front of us.” · What the weekend intensives will build · A support desk for parcels that went wrong · Four decisions, two owners · Three asks, no starter code · Two LLM calls with code in between · Company policy, written as constants",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "run-the-desk-in-your-browser",
+          "title": "Run the desk in your browser",
+          "description": "Lesson 8 · The Shipment Exception Desk: Run the desk in your browser · Three chains, one model, three jobs · Where every piece meets · A daily log that can actually be summed · A form, an outcome, a log · Six decisions people get wrong · Eight questions before you build it yourself",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "lessons-09-10-refund-bench",
+      "title": "Lessons 9–10 · The Refund Bench",
+      "description": "AI Infusion · Classes 9 & 10 · Design → evals → hands-on build",
+      "badge": "Lessons 9–10",
+      "lessons": [
+        {
+          "slug": "why-does-a-serious-court-seat-three-judges",
+          "title": "Why does a serious court seat three judges?",
+          "description": "Lessons 9–10 · The Refund Bench: Why does a serious court seat three judges? · One angry paragraph, four separate accusations · Four grievances, twelve rulings, one cheque · Four stages, one of which explodes",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "calls-and-where-they-go",
+          "title": "calls, and where they go",
+          "description": "Lessons 9–10 · The Refund Bench: calls, and where they go · KB a dispute, 380 GB a year · Submission is synchronous. The work is not.",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "twenty-lines-five-landmines",
+          "title": "Twenty lines, five landmines",
+          "description": "Lessons 9–10 · The Refund Bench: Twenty lines, five landmines · Three prompts, and the one line in each that does the work · Four decisions people get wrong · Two extensions worth the money · Six places to seat a bench · You already know every idea in this build",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "from-one-angry-paragraph-to-a-requirements-list",
+          "title": "From one angry paragraph to a requirements list",
+          "description": "Lessons 9–10 · The Refund Bench: From one angry paragraph to a requirements list · The project folder · The evidence, and why we freeze it · Write the money rules before the model · One wrapper for every LLM call · The three prompts, with two edits · Extract, judge, settle: three functions",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "measure-the-judges-before-you-trust-them-with-money",
+          "title": "Measure the judges before you trust them with money",
+          "description": "Lessons 9–10 · The Refund Bench: Measure the judges before you trust them with money · The ledger: Part 1's four tables, in SQLite · resolve_dispute(): the twenty lines, for real · Replay it, break it, check the money",
+          "minutes": 10,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "a-gradio-app-in-thirty-lines",
+          "title": "A Gradio app in thirty lines",
+          "description": "Lessons 9–10 · The Refund Bench: A Gradio app in thirty lines · Rule on the case yourself · Ten milestones, then post it · Four upgrades, each one file · Eight questions on the build",
+          "minutes": 7,
+          "difficulty": "Intermediate"
+        }
+      ]
+    }
+  ]
+}

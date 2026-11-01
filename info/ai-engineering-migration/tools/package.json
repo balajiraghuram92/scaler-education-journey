@@ -1,0 +1,9 @@
+{
+  "name": "ai-engineering-migration-tools",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "postcss": "^8.4.47"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q16",
+      "questionText": "`check_setup.py` prints your account and caller ARN, but then the model call fails for both models. Where is the problem most likely?",
+      "explanation": "STS worked, so the identity is good. The remaining causes are missing Bedrock permissions, the wrong Region, or the Anthropic first-time use form not yet submitted.\n\n(A) Printing the account and ARN means the STS \"who am I?\" call worked, so your credentials are fine.\n\n(C) An old Python only prints a warning near the top of the output. It does not make the model call fail by itself.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Your AWS credentials, because they are not working",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Permissions, the Region or model access, because only the model call failed",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Your Python version, because it is older than 3.10",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q17",
+      "questionText": "Why do the model IDs in this course start with `global.`?",
+      "explanation": "That is why it works from any supported source Region, including India, and why a bare model ID can fail with \"on-demand throughput isn't supported\".\n\n(A) You still pay per token. The prefix has nothing to do with price.\n\n(B) It does the opposite. A `global.` profile lets Bedrock route the request to whichever Region can serve it.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It makes the model free to call",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It tells Bedrock to keep the request inside one Region",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is a cross-Region inference profile that routes each call to a Region with capacity",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q18",
+      "questionText": "In Step 4 you ask for the time in Bangalore and in New York. How many times does the model request `current_time`?",
+      "explanation": "That is the agent loop with real tools: two requests, two results, then the final answer.\n\n(A) The tool takes one timezone per call, so one request cannot cover both cities.\n\n(B) A model has no clock. It only knows the time from a tool, which is why the tool exists.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Once, with both cities in a single argument",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Never, because the model already knows the time",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Twice, once per timezone, and then it answers from the two results",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q19",
+      "questionText": "Why does Step 5 give the agent the prebuilt `calculator` tool?",
+      "explanation": "The GST question has an exact answer, 15,299.82. The calculator computes it rather than the model guessing.\n\n(B) One tool, or none, is fine. Step 3 builds an agent with no tools at all.\n\n(C) That overstates it. The page says LLMs are surprisingly unreliable at arithmetic, which is why exact sums go to a tool.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "So the sum is computed exactly instead of \"in its head\", where LLMs are unreliable",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "An agent must have at least two tools to work",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The model cannot do any maths, so every number needs a tool",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q20",
+      "questionText": "What does the system prompt in Step 6 do?",
+      "explanation": "It works like the day-one briefing for a new employee. It applies to every customer request that follows.\n\n(A) The user's question is still sent. The system prompt is extra instruction that sits alongside it.\n\n(C) Tools are passed with `tools=[...]`. The system prompt is only text that shapes behaviour.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It replaces the user's question on every turn",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It sets the agent's role, tone and rules for every turn of the conversation",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It gives the agent a new tool to call",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q15",
+      "questionText": "A remote agent speaks only gRPC, and your client speaks only HTTP with JSON. What happens when they try to talk?",
+      "explanation": "Both sides must share a binding. The agent cards say which bindings each agent supports.\n\n(A) The binding is the physical format of the connection. Different bindings are not interchangeable like this.\n\n(C) The page says agents without a shared binding cannot talk directly. Nothing translates between bindings for them.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "They talk fine, because A2A messages look the same in every binding",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They cannot talk directly, so they must agree on a shared binding, which their agent cards declare",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The orchestrator translates the bytes between them automatically",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q16",
+      "questionText": "A client asks for work that takes an hour, and it should not sit waiting on one open answer. Which style fits best?",
+      "explanation": "The client carries on with other work. It polls with `GetTask`, or the server calls a webhook when the task changes.\n\n(A) Synchronous means the client waits for the result. That suits quick, short tasks, not hour-long ones.\n\n(B) Streaming keeps an HTTP connection open while events arrive. For a long job, polling or push avoids holding that connection.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Synchronous, because it always gives the fastest answer",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Streaming, because the client must keep one connection open for the whole hour",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Asynchronous: the server returns a task at once, and the client checks back later or gets a push notification",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q17",
+      "questionText": "In A2A, what is the difference between a task and an artifact?",
+      "explanation": "That is why `GetTask` returns the latest status together with whatever artifacts exist so far.\n\n(B) They are different. A task tracks the work, and an artifact holds what the work produces.\n\n(C) It is the other way round. The task tracks progress over time, and artifacts hold the output.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A task tracks the work with an ID and a status, and artifacts hold the output it produces",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They are two names for the same output",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "An artifact tracks progress, and a task holds the final answer",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

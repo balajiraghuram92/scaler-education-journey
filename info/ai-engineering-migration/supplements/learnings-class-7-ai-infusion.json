@@ -1,0 +1,68 @@
+{
+  "page": "Learnings/Class-7-AI-infusion/index.html",
+  "inserts": [
+    {
+      "section": "Three functions, each returning a dict",
+      "after": "> - `re` Python standard library: regular expressions. Used to match whole words only, so “um” is not found inside “summary”.",
+      "md": "**tools.py** · ask 1 · run it directly to test"
+    },
+    {
+      "section": "The loop that decides when it's done",
+      "after": "The question bank comes first, because `score_relevance` needs the expected keywords for each question:",
+      "md": "**interview_bank.py** · questions are hard-coded on purpose"
+    },
+    {
+      "section": "The loop that decides when it's done",
+      "after": "> - `score_relevance` from your `tools.py`: scores the answer against the expected keywords.",
+      "md": "**agent.py** · ask 1 + ask 2 · the heart of the project"
+    },
+    {
+      "section": "Run the three tools in your browser",
+      "after": "Type an answer, or load one of the samples…",
+      "md": "**Q1 · weak sample:** Um, I basically just, like, kept trying stuff until it worked, you know.\n\n**Q2 · strong sample:** At my previous company a teammate wanted to rewrite our payments service. I was responsible for its uptime, so I listened to his reasons first, then I proposed we look at the incident data together. We agreed on a compromise and communicated it to the team. As a result the outcome was a 30% drop in incidents.\n\n**Q3 · strong sample:** While working on our orders API we had a query regress to 4 seconds. My task was to fix it before the sale. I ran EXPLAIN ANALYZE, read the query plan, saw a sequential scan, added a composite index and removed an N+1 in the ORM. I added a cache for the hot path. As a result p95 went back to 40 ms.\n\n**Q3 · weak sample:** I would actually just add more servers and literally restart the database, I mean that usually works.\n\n**Q4 · strong sample:** At my last job we had a scraping problem. I had to protect the API. I implemented a token bucket per user stored in Redis, with a sliding window fallback, and returned 429 with Retry-After. This led to a 90% drop in abusive traffic.\n\n**Q4 · weak sample:** Uh, you know, some kind of limit, sort of like blocking people who call too much.\n\n**Q5 · strong sample:** When I was leading a migration, a dependency slipped two weeks. My job was to land it for quarter end. I decided to cut scope, prioritised the three critical tables, and communicated the plan to every stakeholder. We delivered on time and finished the rest the next sprint.\n\n**Q5 · weak sample:** Basically we were, like, late, and um, it was kind of stressful but it got done."
+    },
+    {
+      "section": "Six components, three click handlers",
+      "after": "> - `QUESTIONS` from `interview_bank`, your own file: the fixed question list, shown one at a time.",
+      "md": "**app.py** · ask 3 · python app.py"
+    },
+    {
+      "section": "Prove the memory with a planted weak answer",
+      "after": "> - `QUESTIONS` from `interview_bank`, your own file: supplies the questions for the two planted answers.",
+      "md": "**memory_check.py** · milestone 10 · python memory_check.py"
+    },
+    {
+      "section": "Add an interviewer that chases weak spots",
+      "after": "> - `QUESTIONS` from `interview_bank`, your own file: used to list the categories and find unasked questions.",
+      "md": "**interviewer_agent.py** · bonus · the second agent"
+    },
+    {
+      "section": "Add an interviewer that chases weak spots",
+      "after": "> - `choose_next_question` from `interviewer_agent`, your own file: the interviewer agent that picks each next question.",
+      "md": "**run_multi_agent.py** · bonus · python run_multi_agent.py"
+    }
+  ],
+  "glossary": [],
+  "skipped": [
+    {
+      "text": ":\"&quot;\"}[c];}); } function reEsc(s){ return s.replace(/[.*+?^${}()|[]\\]/g,'\\$&'); }",
+      "reason": "JavaScript source of the in-browser InterviewIQ grader (code identifiers, regex and DOM calls, not learner-facing prose)"
+    },
+    {
+      "text": "); } function count(phrase, text){ var m = text.match(new RegExp(",
+      "reason": "JavaScript source of the in-browser InterviewIQ grader (code identifiers, regex and DOM calls, not learner-facing prose)"
+    },
+    {
+      "text": "+q.question; sel.appendChild(o); }); function card(){ $(",
+      "reason": "JavaScript source of the in-browser InterviewIQ grader (code identifiers, regex and DOM calls, not learner-facing prose)"
+    },
+    {
+      "text": "; } function report(){ if(!log.length) return",
+      "reason": "JavaScript source of the in-browser InterviewIQ grader (code identifiers, regex and DOM calls, not learner-facing prose)"
+    },
+    {
+      "text": "; return; } var r={detect_filler_words:detectFiller(a), check_star_structure:checkStar(a), score_relevance:scoreRel(a,q.kw)}; log.push({question:q.question, category:q.category, answer:a, results:r}); var f=r",
+      "reason": "JavaScript source of the in-browser InterviewIQ grader (code identifiers, regex and DOM calls, not learner-facing prose)"
+    }
+  ]
+}

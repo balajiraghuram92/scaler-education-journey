@@ -1,0 +1,233 @@
+{
+  "page": "AWS-Bootcamp/How-agents-talk/index.html",
+  "inserts": [
+    {
+      "section": "5.1 MCP: why tools need a standard",
+      "after": "Tools and systems (M) = 3 3",
+      "md": "**Traditional (default: 3 apps, 3 tools):**\n\n**3 × 3 = 9 custom integrations** to build, test and maintain. Every new app has to be wired to every tool again, and one API change in a tool breaks 3 integrations. Try adding one more tool: that's 3 more connectors.\n\n**With MCP (default: 3 apps, 3 tools):**\n\n**3 + 3 = 6 MCP implementations.** Each app builds one MCP client, each tool ships one MCP server, and any app can use any tool. That's 3 fewer pieces of glue code than the 9 custom integrations, and adding a tool costs exactly one server."
+    },
+    {
+      "section": "5.2 How MCP works",
+      "after": "not connected",
+      "md": "**Client → server · `initialize` · request id 0**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 0, \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2025-11-25\",\n    \"capabilities\": { \"roots\": { \"listChanged\": true } },\n    \"clientInfo\": { \"name\": \"mcp\", \"version\": \"0.1.0\" }\n  }\n}\n```\n\n`session.initialize()` sends this. The client says which protocol version it speaks and what *it* can offer: roots, because `client.py` passes a `list_roots` callback. The Python SDK numbers its requests from 0.\n\n**Server → client · result for id 0**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 0,\n  \"result\": {\n    \"protocolVersion\": \"2025-11-25\",\n    \"capabilities\": {\n      \"prompts\":   { \"listChanged\": false },\n      \"resources\": { \"subscribe\": false, \"listChanged\": false },\n      \"tools\":     { \"listChanged\": false }\n    },\n    \"serverInfo\": { \"name\": \"WeatherServer\", \"version\": \"1.30.0\" }\n  }\n}\n```\n\nSame `id`, so the client knows which request this answers. The server agrees on the version and lists its features: prompts, resources and tools. (The version number is the MCP SDK's.)\n\n**Client → server · `notifications/initialized` · notification**\n\n```json\n{ \"jsonrpc\": \"2.0\", \"method\": \"notifications/initialized\" }\n```\n\nNo `id`: it's a notification, so no reply comes back. The handshake is complete and normal work can begin.\n\n**Client → server · `tools/list` · request id 1**\n\n```json\n{ \"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"tools/list\" }\n```\n\nDiscovery: what tools do you have?\n\n**Server → client · result for id 1 (shortened)**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 1,\n  \"result\": { \"tools\": [\n    {\n      \"name\": \"get_weather\",\n      \"description\": \"Get the current weather for a given city.\",\n      \"inputSchema\": {\n        \"type\": \"object\",\n        \"properties\": { \"city\": { \"type\": \"string\", \"title\": \"City\" } },\n        \"required\": [\"city\"]\n      },\n      \"outputSchema\": { … }\n    },\n    { \"name\": \"list_client_roots\",\n      \"inputSchema\": { \"type\": \"object\", \"properties\": {} }, … }\n  ]}\n}\n```\n\nFastMCP built the `inputSchema` from the Python signature `get_weather(city: str)` and the description from its docstring. Next, `client.py` sends `resources/list`, `resources/templates/list` and `prompts/list` (ids 2 to 4) the same way; they're skipped here.\n\n**Client → server · `tools/call` · request id 5**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 5, \"method\": \"tools/call\",\n  \"params\": { \"name\": \"get_weather\", \"arguments\": { \"city\": \"London\" } }\n}\n```\n\nRun one tool with arguments. In an agent, the model chooses the tool and the arguments; here `client.py` hard-codes them.\n\n**Server → client · result for id 5**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 5,\n  \"result\": {\n    \"content\": [ { \"type\": \"text\", \"text\": \"Weather in London: 15°C, cloudy\" } ],\n    \"structuredContent\": { \"result\": \"Weather in London: 15°C, cloudy\" },\n    \"isError\": false\n  }\n}\n```\n\n`content` is what a model reads; `structuredContent` matches the output schema for programs; `isError` says whether the tool failed. (Next, id 6 asks for Berlin and gets a polite \"no data\" answer.)\n\n**Client → server · `resources/read` · request id 7**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 7, \"method\": \"resources/read\",\n  \"params\": { \"uri\": \"greeting://Developer\" }\n}\n```\n\nRead a resource by URI. `greeting://{name}` is a template; the client filled in `Developer`.\n\n**Server → client · result for id 7**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 7,\n  \"result\": { \"contents\": [ {\n    \"uri\": \"greeting://Developer\",\n    \"mimeType\": \"text/plain\",\n    \"text\": \"Hello, Developer! Welcome to the WeatherServer.\"\n  } ] }\n}\n```\n\nRead-only content with its MIME type. Nothing changed on the server. (Id 8 reads `courses://directory` the same way and gets JSON back.)\n\n**Client → server · `prompts/get` · request id 9**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 9, \"method\": \"prompts/get\",\n  \"params\": { \"name\": \"weather_report\", \"arguments\": { \"city\": \"Tokyo\" } }\n}\n```\n\nFill in a prompt template with arguments.\n\n**Server → client · result for id 9**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 9,\n  \"result\": {\n    \"description\": \"Generate a prompt asking for a weather report.\",\n    \"messages\": [ { \"role\": \"user\", \"content\": { \"type\": \"text\",\n      \"text\": \"Please provide a detailed weather report for Tokyo, including temperature, humidity, and forecast.\" } } ]\n  }\n}\n```\n\nReady-made messages the host can send to its model. The server doesn't run a model itself. (Id 10 fills in `generate_study_plan` the same way.)\n\n**Client → server · `tools/call` · request id 11**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 11, \"method\": \"tools/call\",\n  \"params\": { \"name\": \"list_client_roots\", \"arguments\": {} }\n}\n```\n\nThe last call. To answer it, the server needs something only the client knows…\n\n**Server → client · `roots/list` · server's request id 0**\n\n```json\n{ \"jsonrpc\": \"2.0\", \"id\": 0, \"method\": \"roots/list\" }\n```\n\nThe protocol runs *backwards*: while request 11 is still open, the server sends its own request to the client. Each side numbers its own requests, so this one is the server's id 0.\n\n**Client → server · result for the server's id 0**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 0,\n  \"result\": { \"roots\": [\n    { \"uri\": \"file:///…/mcp-basics\", \"name\": \"Course workspace\" }\n  ] }\n}\n```\n\n`client.py`'s `list_roots` callback answers with the course folder.\n\n**Server → client · result for id 11**\n\n```json\n{\n  \"jsonrpc\": \"2.0\", \"id\": 11,\n  \"result\": {\n    \"content\": [ { \"type\": \"text\",\n      \"text\": \"Course workspace: file:///…/mcp-basics\" } ],\n    \"isError\": false, …\n  }\n}\n```\n\nNow the tool can finish, using what the client told it.\n\n**Shutdown · no JSON-RPC message**\n\nThe `async with` blocks in `client.py` end, the client closes the server's input stream, and the server process exits. (Over HTTP, the client closes the connection or ends the session.) MCP has no special \"shutdown\" method."
+    },
+    {
+      "section": "5.3 MCP server features",
+      "after": "0 of 6 answered",
+      "md": "**1. get_weather(city): fetch the current conditions when the model decides it needs them.**\n\n**Answer: Tool.** It's a function the model calls to do something or fetch live data. That's a tool.\n\n**2. greeting://{name}: a short read-only text the app can load into context.**\n\n**Answer: Resource.** Read-only content addressed by a URI (with a template placeholder), no side effects. That's a resource.\n\n**3. weather_report(city): a ready-made request for a detailed weather report that the user picks from a menu.**\n\n**Answer: Prompt template.** Reusable instructions with an argument, chosen by the user. That's a prompt template.\n\n**4. Send an email to the course coordinator.**\n\n**Answer: Tool.** It performs an action with a side effect in an outside system. That's a tool, and a good one to require user approval for.\n\n**5. The student directory as a JSON file, for the model to look things up in.**\n\n**Answer: Resource.** Persistent data to browse and reference without triggering any operation. That's a resource.\n\n**6. A study-plan instruction that takes a course name and an exam date.**\n\n**Answer: Prompt template.** A predefined prompt with arguments that structures the model's work. That's a prompt template, like generate_study_plan in this section's server.\n\nYou can tell the three apart: do, read, ask."
+    },
+    {
+      "section": "5.4 MCP client features",
+      "after": "Inside the root, the server can save updated attendee lists to `conference-2025`. Outside it, personal documents and other projects, it has no access. That's deliberate. When the planner switches projects, the client updates the roots list and notifies the server, so access stays tightly scoped.",
+      "md": "- **Save an updated attendees.csv:** **✓ Inside the root** `file:///Users/planner/conference-2025`. This is the workspace the client shared, so the server may work here.\n- **Read venues/hotel-quotes.pdf to compare prices:** **✓ Inside the root** `file:///Users/planner/conference-2025`. This is the workspace the client shared, so the server may work here.\n- **Open personal/tax-return.pdf:** **✗ Outside every root.** Personal documents were never shared. A well-behaved server stays inside the roots, and the client can refuse anything outside them.\n- **Update gala-2025/budget.xlsx:** **✗ Outside every root.** That's a different project, not the current workspace. A well-behaved server stays inside the roots, and the client can refuse anything outside them.\n- **The planner switches to the gala project:** **Roots changed.** The client sends `notifications/roots/list_changed`; the server asks again with `roots/list` and now gets `file:///Users/planner/gala-2025`. Same server, new scope, no restart."
+    },
+    {
+      "section": "5.9 How A2A works",
+      "after": "##### Four ways to ask the flights agent to book a ticket",
+      "md": "**Synchronous**\n\n- **Agent A:** `SendMessage` “Book flight AE303 for Asha Rao”. The connection stays open while it waits.\n- **Agent A:** Waiting… can't do anything else with this request until the reply arrives.\n- **Agent B:** Checks the flight, reserves a seat, issues the booking.\n- **Agent B:** Reply on the same connection: task **completed**, artifact “Booking confirmed: AE303, Asha Rao”.\n\n**Synchronous:** one request, one response. The simplest style, but Agent A is blocked until B finishes. Best for quick jobs.\n\n**Asynchronous (polling)**\n\n- **Agent A:** `SendMessage` “Book flight AE303 for Asha Rao”.\n- **Agent B:** Returns at once: `Task {id: 12345, status: submitted}`.\n- **Agent A:** Free to do other work. Checks back later.\n- **Agent A:** `GetTask 12345` → **working**\n- **Agent A:** `GetTask 12345` → **input-required**: “Window or aisle seat?”\n- **Agent A:** Sends a follow-up message on the same task: “Aisle, please.”\n- **Agent A:** `GetTask 12345` → **working**\n- **Agent A:** `GetTask 12345` → **completed**, artifact “Booking confirmed: AE303, seat 14C”.\n\n**Asynchronous polling:** B hands back a task ID immediately and A checks its status with `GetTask`. The task can pause in **input-required** until A answers. Good for longer jobs when A can't hold a connection open.\n\n**Streaming**\n\n- **Agent A:** Card says `capabilities.streaming: true`, so it sends `SendStreamingMessage` “Book flight AE303 for Asha Rao”.\n- **Agent B:** event: status = **working**\n- **Agent B:** event: “Checking seat availability on AE303…”\n- **Agent B:** event: “Seat 14C held, issuing ticket…”\n- **Agent B:** event: artifact update “Booking confirmed: AE303, seat 14C”\n- **Agent B:** event: status = **completed**. The stream closes.\n\n**Streaming:** one long-lived connection carrying server-sent events. A sees progress and partial results live. Good when a human is watching.\n\n**Push notification**\n\n- **Agent A:** Card says `capabilities.pushNotifications: true`, so it sends `SendMessage` “Book flight AE303 for Asha Rao” with a `PushNotificationConfig`: webhook URL plus a token.\n- **Agent B:** Returns: `Task {id: 12345, status: submitted}`.\n- **Agent A:** Disconnects. No open connection, no polling. Hours can pass.\n- **Agent B:** The airline confirms. Agent B POSTs to Agent A's webhook: “task 12345 completed”.\n- **Agent A:** Verifies the token, then calls `GetTask 12345` for the full result.\n- **Agent A:** Task **completed**, artifact “Booking confirmed: AE303, seat 14C”.\n\n**Push notifications:** B calls A's webhook when something important happens. Best for long-running, event-driven work where staying connected or polling is wasteful."
+    },
+    {
+      "section": "5.11 Lab: a travel assistant over A2A",
+      "after": "on Terminal 2 isn't running (flights agent down)",
+      "md": "**Default demo: Destination London, route New York → London, flights agent running.**\n\n**Terminal 3**\n\n```bash\npython travel_orchestrator.py \"London\" \"New York\" \"London\"\n```\n\nThree arguments: the city for the weather, then the flight origin and destination.\n\n**→ Weather agent :9001 · `GET /.well-known/agent-card.json`**\n\nStep 1: discover the agent before talking to it.\n\n**← Agent card**\n\n```text\n{ \"name\": \"Weather Agent\", \"capabilities\": { \"streaming\": true },\n  \"skills\": [ { \"id\": \"get_weather\", … } ] }\n```\n\n`streaming: true`, so the orchestrator logs `mode: streaming` and will use `message/stream`.\n\n**→ `POST /` · JSON-RPC `message/stream`**\n\n```text\n{ \"role\": \"user\", \"parts\": [ { \"kind\": \"text\",\n  \"text\": \"What is the weather in London?\" } ] }\n```\n\n**← Task completed · artifact**\n\n```text\nThe weather in London is currently 15°C, cloudy with occasional rain.\n```\n\nInside, the agent's LLM called `get_weather(\"London\")` and got `Weather in London: 15°C, cloudy with occasional rain`. The orchestrator never sees that call. (The real wording varies; the facts come from the tool.)\n\n**→ Flights agent :9002 · `GET /.well-known/agent-card.json`**\n\n**← Agent card**\n\n```text\n{ \"name\": \"Flights Agent\", \"capabilities\": { \"streaming\": true },\n  \"skills\": [ { \"id\": \"search_flights\", … }, { \"id\": \"book_flight\", … } ] }\n```\n\n**→ `POST /` · JSON-RPC `message/stream`**\n\n```text\n{ \"role\": \"user\", \"parts\": [ { \"kind\": \"text\",\n  \"text\": \"Search flights from New York to London\" } ] }\n```\n\n**← Task completed · artifact**\n\n```text\nHere are the available flights from New York to London:\n1. TransAtlantic TA501: departs 22:00, arrives 10:00+1, $450\n2. AirEurope AE303: departs 18:00, arrives 06:00+1, $380\n```\n\nInside, the agent's LLM called `search_flights(\"New York\", \"London\")`.\n\n**Terminal 3 · Trip Summary**\n\n```text\nDestination: London\nWeather: The weather in London is currently 15°C, cloudy with occasional rain.\n\nFlights (New York → London):\nHere are the available flights from New York to London:\n1. TransAtlantic TA501: departs 22:00, arrives 10:00+1, $450\n2. AirEurope AE303: departs 18:00, arrives 06:00+1, $380\n```\n\nTwo independent agents, one combined answer. The orchestrator itself has no LLM: it just routes messages and prints.\n\n**If Terminal 2 isn't running (flights agent down):**\n\n**→ Flights agent :9002 · `GET /.well-known/agent-card.json`**\n\n**✗ Nothing is listening on port 9002**\n\n```text\nA2AClientHTTPError: HTTP Error 503: Network communication error fetching agent card from http://127.0.0.1:9002/.well-known/agent-card.json: All connection attempts failed\n```\n\nThe orchestrator doesn't catch this error, so it stops with a traceback after printing the weather. Start `flights_agent_server.py` in terminal 2 and run it again. Notice the weather agent was unaffected: independent agents fail independently.\n\n**If the route isn't in the data (London to Tokyo):**\n\n**← Task completed · artifact**\n\n```text\nSorry, there are no flights from London to Tokyo. Available routes are: London → Paris, New York → London, Tokyo → Sydney, Paris → Rome, Dubai → Bangkok, New York → Cancun.\n```\n\nInside, the agent's LLM called `search_flights(\"London\", \"Tokyo\")`, which returned the list of available routes, and relayed it."
+    },
+    {
+      "section": "5.12 Recap and self-check",
+      "after": "0 of 6 answered",
+      "md": "**1. Give a coding assistant access to your GitHub issues and pull requests.**\n\n**Answer: MCP.** An LLM app reaching a tool and its data: that's MCP. A GitHub MCP server gives any MCP host the same access.\n\n**2. A hospital's scheduling agent asks an insurance company's agent to verify a patient's coverage.**\n\n**Answer: A2A.** Two independent agents owned by different organisations, collaborating without sharing their insides: that's A2A.\n\n**3. Let a chat app read your team's database schema as context.**\n\n**Answer: MCP.** Read-only context for a model is an MCP resource.\n\n**4. Your travel orchestrator delegates weather questions to another team's weather agent, without knowing how it works inside.**\n\n**Answer: A2A.** Delegating to an opaque agent, discovered through its agent card: that's A2A, exactly as in the lab.\n\n**5. Share a “summarise this meeting” instruction template that every AI app in your company can reuse.**\n\n**Answer: MCP.** A reusable prompt template offered by a server: that's MCP.\n\n**6. A booking agent that takes hours to confirm must tell the requesting agent when it's done.**\n\n**Answer: A2A.** Agent-to-agent, long-running and event-driven: A2A push notifications to a webhook.\n\nMCP connects agents to tools and data; A2A connects agents to agents."
+    },
+    {
+      "section": "5.12 Recap and self-check",
+      "after": "Score: 0 of 10 answered",
+      "md": "**1. What problem does MCP mainly solve?**\n\n- Models being too slow\n- Every AI app needing its own custom integration with every tool (N × M)\n- Agents forgetting earlier conversations\n- Agents sharing GPUs\n\n**Answer: Every AI app needing its own custom integration with every tool (N × M).** MCP replaces N × M custom integrations with N + M implementations of one standard: one client per app, one server per tool.\n\n**2. How many MCP servers does a single MCP client talk to?**\n\n- Exactly one\n- Up to three\n- As many as the host has\n- None; servers talk to hosts\n\n**Answer: Exactly one.** Each client keeps a one-to-one connection with one server. A host that uses five servers creates five clients.\n\n**3. Your client starts the server as a child process on the same machine. Which transport is that?**\n\n- Streamable HTTP\n- gRPC\n- stdio\n- A webhook\n\n**Answer: stdio.** With stdio, the client launches the server and they exchange JSON-RPC messages through standard input and output, as in mcp-basics/client.py.\n\n**4. Which message completes the MCP initialization handshake?**\n\n- tools/list\n- notifications/initialized\n- resources/read\n- shutdown\n\n**Answer: notifications/initialized.** After the initialize request and its result, the client sends notifications/initialized. It has no id, so no reply comes back.\n\n**5. A server wants to share a read-only student directory that the model can look things up in, with no side effects. Which feature fits?**\n\n- A tool\n- A prompt template\n- A resource\n- Elicitation\n\n**Answer: A resource.** Resources are read-only data addressed by a URI. Reading one changes nothing.\n\n**6. A server has the data but no AI model. It wants an AI to rank activities, with the user approving. Which client feature allows that?**\n\n- Sampling\n- Roots\n- Elicitation\n- Authorization\n\n**Answer: Sampling.** Sampling lets the server ask the client's model to do an AI task, with the user able to review and approve.\n\n**7. Where does an A2A client look first to learn what a remote agent can do?**\n\n- Its source code\n- Its system prompt\n- The agent card at /.well-known/agent-card.json\n- The model's documentation\n\n**Answer: The agent card at /.well-known/agent-card.json.** The agent card lists the agent's name, skills, capabilities and endpoint. Clients fetch it before sending any message.\n\n**8. A remote agent returns a task with status input-required. What does that mean?**\n\n- The task failed\n- The agent needs more information from the client before it can continue\n- The client must restart the agent\n- The task was rejected\n\n**Answer: The agent needs more information from the client before it can continue.** input-required pauses the task until the client sends a follow-up message with the missing detail, like choosing a seat.\n\n**9. In the lab, how does travel_orchestrator.py decide whether to use streaming?**\n\n- It always streams\n- A command-line flag\n- It reads capabilities.streaming from the agent card\n- It asks the LLM\n\n**Answer: It reads capabilities.streaming from the agent card.** use_streaming = bool(card.capabilities and card.capabilities.streaming). Strands' A2AServer always advertises streaming in the card, so the lab streams; enable_a2a_compliant_streaming only chooses the event format.\n\n**10. Which sentence best describes how MCP and A2A relate?**\n\n- A2A replaces MCP\n- They are two names for the same protocol\n- MCP is for agents, A2A is for tools\n- A2A connects agents to agents; MCP connects each agent to its tools and data\n\n**Answer: A2A connects agents to agents; MCP connects each agent to its tools and data.** They work at different layers and complement each other, as in the A2A-outside, MCP-inside design.\n\n**If you score 8 or more:** Great work, you're ready for Section 6.\n\n**If you score fewer than 8:** Revisit the parts you missed, then try Section 6."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "MCP (Model Context Protocol)",
+      "definition": "An open standard for connecting AI applications to tools, data and prompt templates. Build a connector once as an MCP server and any MCP-compatible app can use it."
+    },
+    {
+      "term": "MCP host",
+      "definition": "The AI application the user actually works in, such as a chat app, an IDE or your own agent. It contains one MCP client for each server it connects to."
+    },
+    {
+      "term": "MCP client",
+      "definition": "The connector inside a host that talks to exactly one MCP server: it opens the connection, discovers what the server offers and passes requests and results back and forth."
+    },
+    {
+      "term": "MCP server",
+      "definition": "A program that offers tools, resources and prompt templates to MCP clients. It can run on your machine (started as a child process) or remotely over HTTP."
+    },
+    {
+      "term": "Transport",
+      "definition": "How MCP messages physically travel between client and server: through standard input/output pipes (stdio), over HTTP, or a custom channel. The messages themselves are the same."
+    },
+    {
+      "term": "JSON-RPC 2.0",
+      "definition": "A simple standard for remote calls written in JSON. A request names a method and its parameters and carries an ID; the response carries the same ID with a result or an error. Notifications have no ID and expect no reply."
+    },
+    {
+      "term": "stdio (standard input/output)",
+      "definition": "The text pipes every program has for input and output. With the stdio transport, the client starts the server as a child process and they write JSON-RPC messages to each other through these pipes."
+    },
+    {
+      "term": "SSE (server-sent events)",
+      "definition": "A way for a server to keep an HTTP response open and push a stream of small events to the client as they happen, instead of one reply at the end."
+    },
+    {
+      "term": "Lifecycle",
+      "definition": "The fixed order of an MCP connection: initialize (agree on versions and capabilities), normal operation, then shutdown."
+    },
+    {
+      "term": "Authorization",
+      "definition": "Checking that a caller is allowed to use a server. Remote MCP servers over HTTP can use OAuth 2.1 access tokens; local stdio servers take credentials from their environment instead."
+    },
+    {
+      "term": "Tool (in MCP)",
+      "definition": "A function an MCP server exposes for the model to call, such as searching, sending a message or updating a record. Clients find them with tools/list and run them with tools/call."
+    },
+    {
+      "term": "Resource",
+      "definition": "Read-only data an MCP server exposes, such as a file, a database record or an API response. Reading a resource gives context without changing anything."
+    },
+    {
+      "term": "URI",
+      "definition": "A unique address for a piece of data, written like file:///docs/notes.md or greeting://Asha. MCP uses URIs to name resources."
+    },
+    {
+      "term": "MIME type",
+      "definition": "A standard label for what kind of content something is, such as text/plain, application/json or application/pdf, so the receiver knows how to handle it."
+    },
+    {
+      "term": "Resource template",
+      "definition": "A pattern for a family of resources with a placeholder, such as greeting://{name}. The client fills in the placeholder to read a specific one."
+    },
+    {
+      "term": "Prompt template",
+      "definition": "A reusable, predefined prompt that an MCP server offers, with arguments to fill in, such as a weather report for a given city. Users usually pick them explicitly."
+    },
+    {
+      "term": "Sampling",
+      "definition": "An MCP client feature that lets a server ask the client's model to generate text for it, with the user able to review and approve. The server needs no model of its own."
+    },
+    {
+      "term": "Roots",
+      "definition": "Folders or URIs the client tells a server it may work within. They scope what the server should touch, and the client can update them when the user switches projects."
+    },
+    {
+      "term": "Elicitation",
+      "definition": "An MCP client feature that lets a server ask the user for missing information in the middle of a task, either through a structured form or by sending them to a URL."
+    },
+    {
+      "term": "FastMCP",
+      "definition": "The high-level part of the Python MCP SDK. Decorators like @mcp.tool(), @mcp.resource() and @mcp.prompt() turn ordinary Python functions into MCP features."
+    },
+    {
+      "term": "FastAPI",
+      "definition": "A popular Python framework for building web APIs for any client. Its design inspired FastMCP, but it speaks plain HTTP, not MCP."
+    },
+    {
+      "term": "uvx",
+      "definition": "A command that comes with the uv package manager. It downloads a Python tool into a temporary environment and runs it in one step, which is handy for starting MCP servers."
+    },
+    {
+      "term": "A2A (Agent2Agent protocol)",
+      "definition": "An open standard that lets independent AI agents, built by different teams on different frameworks, discover each other and work together over HTTP."
+    },
+    {
+      "term": "Opaque agent",
+      "definition": "An agent that collaborates without revealing its internals: other agents see only its card, its messages and its results, never its memory, tools or prompts."
+    },
+    {
+      "term": "Agent card",
+      "definition": "A JSON document an A2A agent publishes, usually at /.well-known/agent-card.json, describing its name, skills, capabilities, endpoint and how to authenticate. Clients read it before sending anything."
+    },
+    {
+      "term": "Agent skill",
+      "definition": "One entry in an agent card describing something the agent can do: an ID, a name, a description, tags and example requests. In Python it's an AgentSkill object."
+    },
+    {
+      "term": "Protocol binding",
+      "definition": "The concrete format A2A messages travel in: JSON-RPC, gRPC or plain HTTP+JSON. The meaning is the same; only the wrapping differs."
+    },
+    {
+      "term": "Message (A2A)",
+      "definition": "One turn of communication between agents, with a role (user or agent) and one or more parts: text, files or structured data."
+    },
+    {
+      "term": "Task (A2A)",
+      "definition": "The unit of work a remote agent creates to track a request, with an ID and a status such as submitted, working, input-required or completed."
+    },
+    {
+      "term": "Artifact",
+      "definition": "An output a remote agent produces for a task, such as a report, a booking confirmation or a file, made up of parts."
+    },
+    {
+      "term": "Webhook",
+      "definition": "A URL you give to another system so it can call you when something happens. It's how A2A push notifications reach the client."
+    },
+    {
+      "term": "OAuth 2.1",
+      "definition": "The standard way for an app to get a limited, expiring access token to act on a user's behalf, instead of handling their password. MCP uses it to protect remote servers."
+    },
+    {
+      "term": "gRPC",
+      "definition": "A fast way for programs to call each other over the network, using compact binary messages instead of JSON text. Popular for high-traffic internal services."
+    },
+    {
+      "term": "OpenAPI (Swagger)",
+      "definition": "A standard JSON or YAML document that describes a web API: its endpoints, inputs and outputs. Tools can read it to learn how to call the API."
+    },
+    {
+      "term": "Stateless",
+      "definition": "Keeps no memory between calls: the same input always gets handled the same way, with nothing remembered from earlier requests."
+    },
+    {
+      "term": "EMR / EHR",
+      "definition": "Electronic medical record / electronic health record: the hospital systems that store patients' histories, diagnoses and treatments."
+    },
+    {
+      "term": "ERP system",
+      "definition": "Enterprise resource planning: a company's central software for inventory, orders, shipping, finance and other operations."
+    },
+    {
+      "term": "uvicorn",
+      "definition": "A fast Python web server that runs async web apps. A2AServer.serve() uses it to listen for HTTP requests."
+    }
+  ],
+  "skipped": [
+    {
+      "text": ")|(^| |&& |\\| )(aws|python3?|pip|cd|export|source|unzip|jupyter)\\b/g; else re=/(#[^ ]*)/g; (syntax-highlighter source)",
+      "reason": "JavaScript syntax-highlighter code (hl function regex and loop), not learner text"
+    },
+    {
+      "text": ";} last=re.lastIndex; } return out+esc(src.slice(last));",
+      "reason": "JavaScript syntax-highlighter code, not learner text"
+    },
+    {
+      "text": "$$(\"pre code[class^=",
+      "reason": "JavaScript selector for the code highlighter, not learner text"
+    },
+    {
+      "text": ">\"+n+\" × \"+m+\" = \"+nm+\" custom integrations",
+      "reason": "JavaScript template for the N x M simulator output; the default-value result (3 apps, 3 tools) is included under 5.1"
+    },
+    {
+      "text": "to build, test and maintain. Every new app has to be wired to every tool again, ... Try adding one more tool",
+      "reason": "JavaScript template for the N x M simulator output; the default-value result is included under 5.1"
+    },
+    {
+      "text": "s a notification, so no reply comes back. The handshake is complete and normal work can begin.",
+      "reason": "text already present in the JSON-RPC log (verifier split the string at an apostrophe)"
+    },
+    {
+      "text": "· request id 1 (label of the tools/list message)",
+      "reason": "text already present in the JSON-RPC log label (verifier split the string at a quote)"
+    },
+    {
+      "text": "”. The correct answer is",
+      "reason": "quiz feedback template fragment; the correct answers and explanations are included in the self-check"
+    }
+  ]
+}

@@ -1,0 +1,281 @@
+{
+  "page": "AWS-Bootcamp/finance-section-1/index.html",
+  "inserts": [
+    {
+      "section": "",
+      "after": "| `HF_TOKEN` + a GPU | Llama comparison in Lab 1A (optional) | Free token; request access to Llama 3.1 8B Instruct on its Hugging Face page first |",
+      "md": "**Terminal · install once**"
+    },
+    {
+      "section": "",
+      "after": "> Agents wait on the internet (the LLM, a price API). The SDK lets Python *wait without freezing* — that is what `async`/`await` means. In **Jupyter or Colab** you can type `await Runner.run(...)` directly in a cell. In a normal **.py file**, either use `Runner.run_sync(...)` (no await needed) or wrap your code like this:",
+      "md": "**Python · running async code from a .py file**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "##### See a classifier in action (runs on a laptop CPU)",
+      "md": "**Python · finbert_sentiment.py**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "##### Step 1 — Write the two prompts",
+      "md": "**Python · lab_1a_earnings_json.py · step 1**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "##### Step 2 — Call the model and unpack the answer",
+      "md": "**Python · lab_1a_earnings_json.py · step 2**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "##### Same prompts, two other models",
+      "md": "**Python · Gemini 2.5 Flash (free tier)**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "All three replies are valid JSON, yet the fund manager's dashboard runs `summary[\"revenue\"] > 90e9`. It works for GPT and **crashes** for the other two, because their revenue is text. In finance, numbers must arrive as numbers, in a known unit. Fix it in the prompt — name every key, its type and its unit:",
+      "md": "**Python · a stricter output contract**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "A fine-tuning dataset is just many rows of \"here is the input, here is the answer I want\". For headline sentiment, one training row looks like this:",
+      "md": "**JSONL · one training example per line**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "A two-line experiment you can show in class. Ask a model with a known training cutoff (GPT-4.1: June 2024) for \"the latest\" news:",
+      "md": "**Python · lab_1b_knowledge_cutoff.py**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "##### Without an agent",
+      "md": "**Python · lab_1c_price.py · plain LLM call**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "##### Step 1 — The tool: a normal Python function plus one decorator",
+      "md": "**Python · lab_1c_price.py · step 1 (pip install openai-agents yfinance)**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "##### Step 2 — The agent, then run it",
+      "md": "**Python · lab_1c_price.py · step 2**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 1 — Imports and keys",
+      "md": "**Python · lab_2a_ratio_tool.py · step 1 (pip install openai-agents financetoolkit)**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 2 — The tool: fetch everything, keep only what we need",
+      "md": "**Python · lab_2a_ratio_tool.py · step 2**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 3 — The agent and the question",
+      "md": "**Python · lab_2a_ratio_tool.py · step 3**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 1 — The agent",
+      "md": "**Python · lab_2b_working_memory.py · step 1**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 2 — Create the notepad (the session)",
+      "md": "**Python · lab_2b_working_memory.py · step 2**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 3 — Two turns, same notepad",
+      "md": "**Python · lab_2b_working_memory.py · step 3**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "> A user message is a **single letter**: read it directly. An assistant message is an **envelope** that can hold several pages (text, citations, …). To read it you open the envelope and take page 0's text: `content[0][\"text\"]`.",
+      "md": "**Python · lab_2b_working_memory.py · step 4 (simplified, same result)**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "**Step 2 · Flatten the chat into one string.** An LLM prompt is one piece of text, not a Python list.",
+      "md": "**Python · lab_2c_episodic_memory.py · step 2**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "**Step 3 · The prompt template** (shortened). It tells the LLM what a good journal page looks like.",
+      "md": "**Python · lab_2c_episodic_memory.py · step 3**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "**Step 4 · Ask the LLM to write the journal page.**",
+      "md": "**Python · lab_2c_episodic_memory.py · step 4**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "**Step 5 · Prepare two versions of the same page.**",
+      "md": "**Python · lab_2c_episodic_memory.py · step 5**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "**Step 6 · Open the filing cabinet.**",
+      "md": "**Python · lab_2c_episodic_memory.py · step 6 (pip install chromadb)**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "**Step 7 · File the page.**",
+      "md": "**Python · lab_2c_episodic_memory.py · step 7**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "**Step 8 · Days later: a new question searches the cabinet.**",
+      "md": "**Python · lab_2c_episodic_memory.py · step 8**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "**Step 9 · Paste the lesson into the new question and run with a fresh notepad.**",
+      "md": "**Python · lab_2c_episodic_memory.py · step 9**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "{{diagram:aws-bootcamp-finance-section-1-daily-closing-prices-and-the-20-day}}",
+      "md": "**Python · trend_check.py · the same plan, as plain code**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "Same goal as Lab 1C, different framework. Here you can *watch* the Thought → Action → Observation loop as it streams.",
+      "md": "**Python · lab_2d_react_price.py · step 1 (pip install llama-index yfinance)**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "5. `FunctionTool.from_defaults(fn)` is LlamaIndex's equivalent of `@function_tool`: it reads the name, docstring and type hints.",
+      "md": "**Python · lab_2d_react_price.py · step 2 · run it and stream the thinking**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Click a path to flip its conclusion, and watch the vote",
+      "md": "**Python · self_consistency.py · try it yourself**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 1 — Dates, so the window is always \"the last two days\"",
+      "md": "**Python · lab_2e_news_loop.py · step 1 (pip install openai-agents)**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 2 — The searcher",
+      "md": "**Python · lab_2e_news_loop.py · step 2**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 3 — The evaluator and its \"form\"",
+      "md": "**Python · lab_2e_news_loop.py · step 3**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 4 — The loop (with comments on every line)",
+      "md": "**Python · lab_2e_news_loop.py · step 4**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "Same function as Lab 2A, but the liquidity list is gone: a long-term Buy/Hold/Sell call is about business quality and price, so we keep the context small and focused.",
+      "md": "**Python · lab_2f_buy_hold_sell.py · step 1**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 2 — Three agents, each with a JSON contract",
+      "md": "**Python · lab_2f_buy_hold_sell.py · step 2**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step 3 — The whole orchestration is three lines",
+      "md": "**Python · lab_2f_buy_hold_sell.py · step 3**"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "> One listed risk was \"market competition impacting future growth\". No ratio says that — the LLM added it from its own general knowledge. In a regulated memo every claim should trace to evidence. Fix: add \"every risk must cite a ratio from the input\" to the analysis instructions, or ground it with retrieved industry reports.",
+      "md": "**Python · a task guardrail on the final baton (optional add-on)**"
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "260",
+      "md": "**Step 1 · Calculate both margins**\n\n**Step 2 · Compare**\n\n**Step 3 · Conclude**\n\n- **Improving:** The company keeps more of each dollar of sales.\n- **Declining:** The company keeps less of each dollar of sales.\n- **Flat:** Profitability is unchanged.\n\n> **Check:** Revenue must be above zero — a margin divides by revenue."
+    },
+    {
+      "section": "LLMs through a finance lens",
+      "after": "{{diagram:aws-bootcamp-finance-section-1-agent-loop}}",
+      "md": "**1 · You ask.** `Runner.run_sync` sends your question to the LLM — together with the tool's \"menu card\": its name, its description (the docstring) and its input (`symbol: str`).\n\n**What travels on the arrow:**\n\n```\ninput = \"What is today's date, and what is the current stock price of Nvidia?\"\n```\n\n**2 · The LLM chooses the tool.** The model knows it can't know today's price. Instead of answering, it replies with a tool-call request. Notice it turned \"Nvidia\" into the ticker `NVDA` on its own.\n\n**What travels on the arrow:**\n\n```\n{\"tool\": \"get_latest_stock_price\", \"arguments\": {\"symbol\": \"NVDA\"}}\n```\n\n**3 · The Runner runs YOUR function.** The LLM never runs code. The SDK calls `get_latest_stock_price(\"NVDA\")` on your machine, and yfinance downloads the last trading day from Yahoo Finance.\n\n**What travels on the arrow:**\n\n```\nhist = yf.Ticker(\"NVDA\").history(period=\"1d\")\n```\n\n**4 · The facts come back.** Your function picks the last Close and its date, and returns a small dictionary.\n\n**What travels on the arrow:**\n\n```\n{\"price\": 178.89, \"date\": \"2025-08-15\"}\n```\n\n**5 · The result is injected.** The Runner adds that result to the conversation and calls the LLM again. Now real, fresh numbers are in the model's context.\n\n**What travels on the arrow:**\n\n```\ntool result → appended to the conversation → second LLM call\n```\n\n**6 · The final answer.** The LLM writes the reply in plain English. That text is `output.final_output`. One loop: think → act → observe → answer.\n\n**What travels on the arrow:**\n\n```\nThe current stock price of Nvidia (NVDA) is $178.89 (data date: August 15, 2025).\n```"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "> A ratio is a fraction — always look at the denominator. Same with liquidity: in our run the agent said Apple's current ratio below 1 signals \"potential liquidity issues\". A human analyst would add that Apple generates very large operating cash flow every quarter and keeps big long-term investments, so a ratio under 1 is a deliberate choice, not distress. **The tool makes the numbers trustworthy; the interpretation is still the LLM's** — and it can be shallow. Ask for comparisons with peers and with the company's own history in your prompt.",
+      "md": "- This is Apple territory: years of buybacks have shrunk equity so much that ROE looks enormous.\n- Already far above a typical company's 10–20%. Nothing changed in the business — only the denominator.\n- A normal-looking ROE.\n\nPrice-to-book has the same denominator (equity), which is why Apple's P/B is 55."
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "Your shopping list (green = found in the table, red = not found → dropped):",
+      "md": "`ratios.index.intersection(list)` → 5 of 5 names found → `ratios.loc[...]` returns those **5 highlighted rows**.\n\nTypo list example — Dropped: `Return on Equities`, `Current Ratios` — not a row label in the table. Without `.intersection()`, `ratios.loc[list]` would stop with a `KeyError`. With it, the typo is silently skipped — safe, but check your spelling!"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "Agent's proposal: sell 8% Tech, buy 6% Healthcare + 2% Utilities. Client's tweak: exit Energy completely, put that 10% into Utilities (\"I want stable dividends\").",
+      "md": "Rebalancing checker messages (default state, shown in order):\n\n- ✗ Sector cap broken: Tech 40% > 35%\n- ✗ Defensive too low: Healthcare + Utilities = 25% < 30%\n- ✓ Weights add up to 100%\n- ✓ No sector above 35%\n- ✓ Defensive OK: Healthcare + Utilities = 30% ≥ 30%\n- ✗ Weights add up to 105%, not 100%\n\nRed tick = sector cap. Blue = defensive sectors."
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### What does the LLM actually receive on turn 2?",
+      "md": "**user · turn 1:** Volatility high, trend declining. Portfolio: stocks 0.70, bonds 0.20, cash 0.10. What rebalancing action should I take?\n\n**assistant · turn 1:** Assumption: capital preservation. Suggest stocks 50%, bonds 40%, cash 10% …\n\n**user · turn 2:** In this case, I'm reducing equity to 50%, increasing bonds to 35% and cash to 15%.\n\nWith the session, the model sees all three messages. It knows you started at 70 / 20 / 10, so it can size the trades: **sell 20% stocks, buy 15% bonds, add 5% cash**.\n\nWithout the session, only turn 2 is sent. \"In this case\"? Reducing equity *from what*? The model must guess the starting portfolio — and may confidently invent one."
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "The trail below is a mini version of the map: **gold** = this step, **green** = already filled.",
+      "md": "**1 · Read the notepad**\n\nVariable now holds · `conversation_history`\n\nThe session lives in RAM and dies with the notebook. First we copy it into a clean Python list of (who, what) pairs.\n\n```\nall_items = await session_ptf_rebal.get_items()\n# ...the loop from Lab 2B builds:\nconversation_history.append((role, text))\n```\n\n```\n[\n  (\"user\", \"Current Market Situation: volatility high, trend declining. Portfolio {stocks 0.70, bonds 0.20, cash 0.10} ...\"),\n  (\"assistant\", \"### Current Portfolio Analysis ... target: stocks 50%, bonds 40%, cash 10% ...\"),\n  (\"user\", \"In this case, I'm reducing equity to 50%, increasing bonds to 35% and cash to 15%.\"),\n  (\"assistant\", \"### Summary of Final Rebalanced Portfolio: stocks 50%, bonds 35%, cash 15% ...\")\n]\n```\n\n**2 · Flatten into one string**\n\nA prompt is text, not a Python list. Each message becomes one fenced line; a blank line separates them.\n\n```\nconversation_history_string = \"\\n\\n\".join(\n    [f'{role}: \"\"\"{text}\"\"\"' for role, text in conversation_history]\n)\n```\n\nVariable now holds · `conversation_history_string`\n\n```\nuser: \"\"\"Current Market Situation: ...\"\"\"\n\nassistant: \"\"\"### Current Portfolio Analysis ...\"\"\"\n\nuser: \"\"\"In this case, I'm reducing equity to 50% ...\"\"\"\n\nassistant: \"\"\"### Summary of Final Rebalanced Portfolio ...\"\"\"\n```\n\n**3 · Fill the template**\n\nThe {conversation} slot receives the chat. Doubled braces {{ }} turn into single braces, giving the LLM a clean JSON example.\n\n```\nuser_prompt = episodic_memory_prompt_template.format(\n    conversation=conversation_history_string\n)\n```\n\nVariable now holds · `user_prompt`\n\n```\nYou will read a conversation between a user and a portfolio-rebalancing agent.\n...\nReturn only valid JSON in this exact schema:\n{                                      <- was {{ in the template\n  \"conversation_summary\": string, ...\n}                                      <- was }} in the template\nHere is the conversation ...:\nuser: \"\"\"Current Market Situation: ...\"\"\"   <- {conversation} was filled in\n...\n```\n\n**4 · The LLM writes the journal page**\n\nJSON mode makes the model return exactly the five keys. json.loads turns the text into a Python dictionary.\n\n```\nresponse = client.responses.create(model=\"gpt-4.1-mini\",\n    input=[{\"role\": \"user\", \"content\": user_prompt}],\n    text={\"format\": {\"type\": \"json_object\"}})\nepisodic_memory = json.loads(response.output[0].content[0].text)\n```\n\nVariable now holds · `episodic_memory`\n\n```\n{\n  \"conversation_summary\": \"With high volatility and a declining market, the user cut equity from 70% to 50% ...\",\n  \"portfolio_allocation_trajectory\": \"[{market: {volatility: high, trend: declining}, allocation: {stocks: 0.70, bonds: 0.20, cash: 0.10}}, ...]\",\n  \"what_worked\": \"Progressive adjustments matched market conditions ...\",\n  \"what_didnt_work\": \"Large shifts without discussing risk tolerance ...\",\n  \"key_points\": [\"High vol + falling market justified cutting equity\", \"Consider risk profile and trading costs\"]\n}\n```\n\n**5 · Two versions of the same page**\n\nThe readable page gets embedded (searched by meaning). The plain fields become folder labels.\n\n```\ndocument_text = f\"\"\"Conversation Summary: {episodic_memory['conversation_summary']} ...\"\"\"\nmetadata_clean = {..., \"key_points\": \" | \".join(episodic_memory[\"key_points\"])}\n```\n\nVariable now holds · `document_text  +  metadata_clean`\n\n```\ndocument_text =\n\"Conversation Summary: With high volatility ...\n Portfolio Allocation Trajectory: [...]\n What Worked: ...\n What Didn't Work: ...\n Key Points: High vol + falling market ..., Consider risk profile ...\"\n\nmetadata_clean = {\n  \"conversation_summary\": \"...\", ...,\n  \"key_points\": \"High vol + falling market ... | Consider risk profile ...\"   <- list became one string\n}\n```\n\n**6 · Open the cabinet and the drawer**\n\nUnlike the notepad, this lives on disk. The embedding function (the translator) is attached to the drawer, so everything filed here gets translated the same way.\n\n```\npersistent_client = chromadb.PersistentClient(path=\"./chroma_ptf_rebal\")\ncollection = persistent_client.get_or_create_collection(\n    \"episodic_memory_ptf_rebal\", embedding_function=embedding_function)\n```\n\nVariable now holds · `collection`\n\n```\nCollection(name=\"episodic_memory_ptf_rebal\")   # empty drawer\nstored in the folder ./chroma_ptf_rebal/ on disk\n```\n\n**7 · File the page**\n\nChroma calls the translator on document_text and stores vector + text + labels. Close the notebook, restart the laptop — it's still there.\n\n```\ncollection.add(ids=[\"memory_1\"], documents=[document_text], metadatas=[metadata_clean])\n```\n\nVariable now holds · `collection (now 1 page)`\n\n```\nid:        \"memory_1\"\nembedding: [0.012, -0.034, 0.051, ...]   # 1,536 numbers, made automatically\ndocument:  \"Conversation Summary: With high volatility ...\"\nmetadata:  {conversation_summary: ..., key_points: \"... | ...\"}\n```\n\n**8 · Next session: search by meaning**\n\nThe new question (low volatility, bullish) is translated with the same translator. Chroma returns the closest pages — outer list per question, inner list best-first.\n\n```\nepisodic_memory_recap = collection.query(\n    query_texts=[input_user_init], n_results=3)\n```\n\nVariable now holds · `episodic_memory_recap`\n\n```\n{\n  \"ids\":       [[\"memory_1\", \"memory_7\", \"memory_3\"]],\n  \"documents\": [[\"Conversation Summary: With high volatility ...\", \"...\", \"...\"]],\n  \"distances\": [[0.21, 0.35, 0.48]],      # smaller = more similar\n  \"metadatas\": [[{...}, {...}, {...}]]\n}\n```\n\n**9 · Paste the lesson, run with a fresh notepad**\n\nEmpty notepad + yesterday's lesson inside the question = an agent that \"remembers\". That's long-term memory.\n\n```\ninput_user_with_memory = input_user_init + f\"\"\"\nHere are relevant insights from past rebalancing episodes. ...\n{episodic_memory_recap['documents'][0][0]}\n...\"\"\"\nawait Runner.run(portfolio_agent, input_user_with_memory, session=session_ptf_rebal_2)\n```\n\nVariable now holds · `input_user_with_memory`\n\n```\nCurrent Market Situation:\n- Volatility Regime: low\n- Market Trend: bullish\nWhat rebalancing action should I take?\nHere are relevant insights from past rebalancing episodes. Use them as guidance, not strict rules:\nConversation Summary: With high volatility and a declining market, the user cut equity ...\n...\nArgue your proposition using past rebalancing episodes if needed.\n```"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Decode `['documents'][q][r]` — click any cell",
+      "md": "q=0 · \"low vol, bullish — what now?\"\n\nq=1 · \"client wants more dividends\"\n\n`episodic_memory_recap['documents'][0][0]` = the **best** matching page for question **0** (\"low vol, bullish — what now?\")\n\nIts id: `episodic_memory_recap['ids'][0][0]` → `'memory_1'` · distance 0.21\n\nThis is the cell Lab 2C uses — first question, best match."
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "{{diagram:aws-bootcamp-finance-section-1-daily-closing-prices-and-the-20-day}}",
+      "md": "**Step 3:** MA20 today = `value`, five trading days ago = `value` → **Step 4:** Uptrend or Downtrend.\n\nThe green line only starts on day 20 — you need 20 prices before the first average exists (that's why `ma20` is empty/NaN for the first 19 rows). Notice how much smoother it is than the grey daily line."
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Click a path to flip its conclusion, and watch the vote",
+      "md": "- **Path 1** · EPS beat by ~4% → Positive surprise\n- **Path 2** · EPS beat and revenue increased → Positive surprise\n- **Path 3** · EPS beat but margins declined → Neutral surprise\n- **Path 4** · EPS beat and guidance is positive → Positive surprise\n- **Path 5** · EPS beat but a leadership change was announced → Neutral surprise\n\nMajority vote → **Positive surprise** (3 of 5 paths). One brittle line of reasoning can't decide alone.\n\nIn practice, sample an odd number of paths, or one more to break the tie."
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Step through two rounds of the loop (the map above lights up)",
+      "md": "**Start.** Your request becomes the first item in the searcher's chat: `[{\"content\": msg, \"role\": \"user\"}]`. `latest_outline` is still `None`.\n\n**Round 1 · the searcher writes.** It searches Reuters and writes 5 items. `to_input_list()` = your message + its reply. `latest_outline` = just the new summary text.\n\n**Round 1 · the evaluator grades.** The judge sees only `latest_outline`. Its form: score **unsuccessful**, feedback *\"Only 2 of the 5 news items fall strictly within the required date window.\"*\n\n**Round 1 · feedback goes back in.** Two items are appended: a system message `\"News Summary: …\"` and a user message `\"Feedback: … provide an external source link:\"`. Counter → 1. Is 1 > 4? No → loop again.\n\n**Round 2 · the searcher rewrites.** This time it sees its own earlier answer *and* the judge's complaint. It replaces the out-of-window stories and adds a date and link for each item.\n\n**Round 2 · pass → stop.** Score **successful** — *\"The news summary rigorously fulfills the specified requirements.\"* → `break` → `print(latest_outline)`.\n\n* Web-search call items are also added to `input_items`; we leave them out of the count to keep it simple."
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "##### Click each agent to see what it adds to the baton",
+      "md": "**Agent 1 output** — Adds: raw numbers only. No opinions — that's the analyst's job.\n\n```\n{\n  \"ticker\": \"AAPL\",\n  \"fundamentals\": {\n    \"profitability_ratios\": { \"2025\": { \"Gross Margin\": 0.4691, \"Operating Margin\": 0.3197,\n        \"Net Profit Margin\": 0.2692, \"Return on Assets\": 0.3093, \"Return on Equity\": 1.7142 } },\n    \"valuation_ratios\": { \"2025\": { \"Price-to-Earnings\": 36.418, \"Price-to-Book\": 55.3236,\n        \"Price-to-Cash-Flow\": 36.5905, \"Price-to-Free-Cash-Flow\": 41.301,\n        \"EV-to-Sales\": 9.9914, \"EV-to-EBITDA\": 28.7259 } }\n  }\n}\n```\n\n**Agent 2 output** — Keeps the numbers, adds ratings with evidence and a risk list.\n\n```\n{\n  \"ticker\": \"AAPL\",\n  \"fundamentals\": { ...copied from agent 1... },\n  \"analysis\": {\n    \"Profitability\": { \"rating\": \"strong\", \"evidence\": [\"High and improving Gross Margins\",\n        \"Strong Operating Margins above 30%\", \"Consistent Net Profit Margins around 25%\"] },\n    \"valuation\": { \"rating\": \"expensive\", \"evidence\": [\"Rising P/E ratio from 21.25 to 41.16 in 3 years\",\n        \"High Price-to-Book ratio indicating overvaluation\", \"EV-to-Sales increasing\"] },\n    \"risks\": [\"Valuation risk due to high P/E and Price-to-Book ratios\",\n              \"Margin sustainability risk\",\n              \"Market competition impacting future growth\"]   <- not from any ratio!\n  }\n}\n```\n\n**Agent 3 output** — Decides only from the analysis: a stance, three reasons, and three tripwires.\n\n```\n{\n  \"ticker\": \"AAPL\",\n  \"stance\": \"HOLD\",\n  \"summary\": {\n    \"reasons\": [\"Strong profitability with improving Gross and Operating Margins.\",\n                \"Consistent Net Profit Margins around 25% indicate solid earnings.\",\n                \"While the valuations are high, the company's fundamental performance remains strong.\"],\n    \"watchlist\": [\"Decrease in valuation ratios such as P/E or Price-to-Book.\",\n                  \"Sustained Net Profit Margin decline below 25%.\",\n                  \"Market developments that could affect growth prospects.\"]\n  }\n}\n```"
+    },
+    {
+      "section": "Agent design patterns — finance edition",
+      "after": "{{diagram:aws-bootcamp-finance-section-1-three-memory-strength-curves-decaying-over-60}}",
+      "md": "- Client: no Energy exposure\n- High-volatility playbook: not created yet (day 3)\n- One-off gold-ETF question: not created yet (day 9)\n\nfade line → archive or forget\n\nEach recall resets the memory to 100% and doubles how slowly it fades next time. Frequently used client preferences stay; one-off trivia fades out of retrieval.\n\nMove the day slider past this memory's last recall (day `last recall`) first."
+    },
+    {
+      "section": "What to remember",
+      "after": "#### Quiz Check yourself",
+      "md": "Answer all six to see your score.\n\n**1.** Apple's return on equity is 171%. What's the most likely reason?\n\n- Apple is a very risky company\n- Buybacks have made shareholders' equity small, so profit ÷ equity is huge\n- The data API made an error\n- Revenue doubled last year\n\n> **Correct answer:** Buybacks have made shareholders' equity small, so profit ÷ equity is huge\n> ROE = net income ÷ equity. Shrink the denominator and the ratio balloons — no change in the business needed.\n\n**2.** Turn 2 of the rebalancing chat is run WITHOUT the session. What goes wrong?\n\n- The agent doesn't know the 70/20/10 starting point, so it can't size the trades\n- Nothing — the agent still remembers\n- The API call fails with an error\n- The answer is slower\n\n> **Correct answer:** The agent doesn't know the 70/20/10 starting point, so it can't size the trades\n> Each run only sees what you send. The session is what re-sends the earlier turns.\n\n**3.** In episodic_memory_recap['documents'][0][0], what does the FIRST [0] pick?\n\n- The best match\n- The first memory ever stored\n- The first word of the document\n- The first question you passed in query_texts\n\n> **Correct answer:** The first question you passed in query_texts\n> Outer list = one entry per question. The second [0] then picks the best match for that question.\n\n**4.** Why does the prompt template write {{ and }} around the JSON example?\n\n- It's a typo\n- JSON needs double braces\n- So .format() leaves a literal { } instead of treating it as a slot\n- To make the LLM think harder\n\n> **Correct answer:** So .format() leaves a literal { } instead of treating it as a slot\n> .format() fills every {name}. Doubling the braces escapes them; after formatting they become single braces.\n\n**5.** With max_iteration = 4 and the check nbr_iterations > max_iteration, how many times can the news searcher run?\n\n- 3\n- 4\n- 5\n- Forever\n\n> **Correct answer:** 5\n> The first try plus 4 retries. The 5th failure makes the counter 5, and 5 > 4 stops the loop.\n\n**6.** You must tag 50,000 public headlines with sentiment every hour. Best fit?\n\n- A fast non-reasoning model or a FinBERT-style classifier\n- A hosted reasoning model at high effort\n- Fine-tune a 70B model first\n- A multi-agent pipeline\n\n> **Correct answer:** A fast non-reasoning model or a FinBERT-style classifier\n> Public data, simple task, huge volume → fast and cheap. Save reasoning models for deep, multi-step analysis.\n\nScore: **n / 6** — ready for Section 3.\n\nScore: **n / 6** — revisit the sections you missed."
+    }
+  ],
+  "glossary": [],
+  "skipped": [
+    {
+      "text": "Python · load your keys (top of every lab)",
+      "reason": "code-block header label; the line before its code block is a closing fence that repeats elsewhere in the section, so the insert point cannot be anchored uniquely"
+    },
+    {
+      "text": "Python · Llama 3.1 8B Instruct (open weights · needs a GPU, e.g. Colab T4)",
+      "reason": "code-block header label; the line before its code block is a closing fence that repeats elsewhere in the section, so the insert point cannot be anchored uniquely"
+    }
+  ]
+}

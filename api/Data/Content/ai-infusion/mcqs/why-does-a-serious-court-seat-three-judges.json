@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q01",
+      "questionText": "A customer writes \"The delivery guy was rude when I asked him about it.\" Which statement matches the design on this page?",
+      "explanation": "It is a claim about an event, so it belongs in the pipeline. Having no evidence matters at judgement, not at extraction.\n\n(A) Extraction does not check evidence. It keeps any statement about something that happened to this order, and whether evidence supports it is decided later, at judgement.\n\n(C) The extraction prompt says \"Do NOT judge whether the grievance is true\". Judging is the bench's job.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Extraction drops it, because no evidence can confirm it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Extraction keeps it as a grievance, and judgement later rules on it against the evidence",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Extraction judges it, so the extraction prompt has to decide whether it is true",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q02",
+      "questionText": "The extraction prompt turns \"Two of the four were missing\" into \"2 of the 4 Hyderabadi Biryani units ordered were not delivered\". Why?",
+      "explanation": "Each grievance must make sense without the rest of the complaint. The references are resolved against the order before any judge sees the text.\n\n(A) The model never computes money. Pricing is code that looks up the order's prices, so the model only names the item and the quantity.\n\n(B) A rule like that only tells the model what not to do. The prompt gives a procedure instead: resolve each reference against the order's line items.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "So the model can work out the refund amount from the sentence",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because the prompt forbids pronouns, so the model may not use them at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "So each grievance is self-contained and can be judged on its own",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q03",
+      "questionText": "The bench is split three ways on one grievance: one judge says UPHELD, one says REJECTED and one says ESCALATE. What is the verdict?",
+      "explanation": "Each ruling gets one vote, so none has more than half of the votes. The code's rule for that case is ESCALATE.\n\n(B) The design never rejects when unsure. A wrong refusal costs a customer, so the uncertain case goes to a human.\n\n(C) One vote is not a majority. Upholding on a single judge is the very mistake the bench exists to prevent.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "ESCALATE, because no ruling has a majority, so a human decides",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "REJECTED, because refusing is the safer choice",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "UPHELD, because one judge found the evidence supports it",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q04",
+      "questionText": "A judge reports a confidence of 0.31. Which number should decide whether money moves automatically?",
+      "explanation": "A split like 2-1 is counted in plain code and can be defended. Confidence is logged and charted, but no payout decision reads it.\n\n(A) Confidence is a number the model generated, not a calibrated probability. Never branch a payout on it.\n\n(C) The judges are independent and none is treated as the leader. Counting in code decides, not the order of replies.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The average confidence of the judges who agreed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The vote split, which the code counts itself",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Whichever judge answered first",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

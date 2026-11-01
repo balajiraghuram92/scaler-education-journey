@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q11",
+      "questionText": "You ask \"What's your return policy?\" and no 🔧 line appears. Why?",
+      "explanation": "The model chooses when to call tools. A question with no matching tool gets a plain answer.\n\n(A) A crash would show an error. Here the model simply chose to answer.\n\n(C) Gradio sends every message to `chat()`. The model is the one that decides about tools.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The tool crashed silently",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model decided no tool fits this question, so it answered directly",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Gradio only sends price questions to the agent",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q12",
+      "questionText": "The homework hint says the agent can gain memory. What does that take?",
+      "explanation": "Re-sending past turns is the memory trick from the LangChain section.\n\n(A) Model size does not add memory. The hint is about passing the chat history in.\n\n(C) `share=True` only creates the public link. It does not affect memory.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A bigger model number",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Passing `history` into the agent so it can see past turns",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Turning off `share=True`",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

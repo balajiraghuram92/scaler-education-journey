@@ -1,0 +1,124 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q03",
+      "questionText": "In `calculate_tip`, `num_people` has the default `= 1`. What does that default allow?",
+      "explanation": "With no value given, `num_people` is 1, so `per_person` equals the total. The function does not need the number to run.\n\n(A) A default means the argument is optional. Leaving it out is allowed, and the function still runs.\n\n(C) The default is a fixed value written in the function. The agent does not invent one.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Every call must pass `num_people`, or the function raises an error",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A request that does not mention people still works, and the bill is split one way",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The agent picks a random number of people each time",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q04",
+      "questionText": "`calculate_tip` returns a dict of numbers. Who turns that dict into a sentence for you?",
+      "explanation": "The agent hands the dict back to the model, and the model writes the final answer in plain English.\n\n(A) The function only returns the numbers. It does not write any text for you.\n\n(C) The dict is data, not text. The model turns it into the sentence you read.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The `calculate_tip` function, through its `return` line",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model, which reads the returned values and writes the reply",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nobody, because the dict is shown exactly as it is",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q05",
+      "questionText": "The calculator tool solves `sin(x) * cos(x)`. Why use it instead of letting the model answer from memory?",
+      "explanation": "Exact computation is the point of the tool. The model writes the expression, and the tool does the arithmetic and the calculus.\n\n(A) The model reads maths notation well. The problem is that it can get exact digits and steps wrong when it works them out in its head.\n\n(B) Nothing forbids the model from answering. The calculator is simply the more reliable choice for exact results.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model cannot read maths notation at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Only the calculator is allowed to answer maths questions",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The calculator computes the exact answer with SymPy, instead of the model guessing",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q06",
+      "questionText": "Notebook 2 creates and deletes its demo resources with plain boto3, not with the agent. Why?",
+      "explanation": "Setup and clean-up must happen exactly the same way every time, so they are plain code. The agent is used for the requests in 3.1 to 3.4.\n\n(A) `use_aws` can make many AWS calls. The notebook simply chooses not to use it for setup.\n\n(C) Speed is not the reason. The point is predictable create and delete steps.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because `use_aws` cannot create anything",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "So that setup and clean-up are predictable, and only the middle part is the agent working in English",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because boto3 is faster than the agent at every task",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q07",
+      "questionText": "Why does the setup cell add a random `suffix` to the bucket, table, function and role names?",
+      "explanation": "Every demo resource gets its own name, so setup cannot overwrite anything in your account and the clean-up cell deletes only what the notebook made.\n\n(B) AWS has no such rule. The suffix is the notebook's own safety choice.\n\n(C) The agent is given the real names in the request. The suffix does not help it guess.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "So the names are unique and resources you already own are never touched",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because AWS requires every name to end with six random characters",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "So the model can guess the names without being told",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

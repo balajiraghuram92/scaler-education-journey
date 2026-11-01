@@ -1,0 +1,196 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q03",
+      "questionText": "The model asks for a tool and the agent runs it. What happens to the tool's result?",
+      "explanation": "That is the loop from Diagram 9. Results feed back, and the cycle repeats until the task is fully addressed.\n\n(B) One tool call does not end the loop. It ends when the agent determines the prompt has been fully addressed.\n\n(C) The page describes results feeding back into the loop, not tools being removed.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is fed back into the agent, which may call the model again.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The loop ends and the raw result is returned as the final answer.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The tool is removed from the agent for the rest of the run.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q04",
+      "questionText": "What tells the agentic loop to stop?",
+      "explanation": "That is the stop condition on this page. Then the agent compiles everything and returns the result.\n\n(A) The model picks tools based on the task. It does not have to use all of them.\n\n(B) The page gives no fixed count. The loop repeats until the task is addressed.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model has used every tool at least once.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The agent has run as many loops as it has tools.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The agent determines the prompt has been fully addressed.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q05",
+      "questionText": "The LangGraph run prints an empty `ai:` line before the tool output. What does that mean?",
+      "explanation": "That is the agentic loop from Diagram 9, visible in your terminal output.\n\n(A) The `tool:` lines that follow show that the request reached the model and the tool ran.\n\n(B) The page says the empty `ai:` line is the model choosing a tool, so it is not an answer from training data.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The Bedrock connection failed, so the model returned nothing.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model is answering from its training data, not from the tool.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The model chose to call the greet tool instead of answering in text.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q06",
+      "questionText": "You run `python shivank1/02_hello_world_langgraph.py` from inside `shivank1/` and get `ModuleNotFoundError: No module named 'config'`. What is the fix?",
+      "explanation": "The scripts import shared settings from `config.py`, so they need to run from that folder.\n\n(B) `config.py` is a file in this project, not a package to install. The problem is where you run from.\n\n(C) The script uses `MODEL_ID` from `config.py`, so deleting that import breaks the model choice instead of fixing the path.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Run it from the project root, the folder that contains `config.py`.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Install a package called `config` with pip.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Delete the `from config` import line.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q07",
+      "questionText": "You change a tool's docstring to \"Does a thing.\" What is the most likely result?",
+      "explanation": "The page's rule: a vague docstring makes an unreliable agent. The model decides from the description alone.\n\n(A) A docstring is just a string. Changing its wording does not break the Python syntax.\n\n(B) The docstring is never printed. The model reads it to decide when to call the tool.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The file stops with a SyntaxError when it runs.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The agent prints the docstring as its answer.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The agent may stop calling the tool, because the docstring is how it decides when to use it.",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q08",
+      "questionText": "Why does the function use type hints, such as `server_url: str`?",
+      "explanation": "The page's table says exactly this. The hints describe each input so the agent knows what to pass.\n\n(A) Type hints are optional in Python. Here their job is to tell the agent what to expect.\n\n(C) Type hints do not change how fast the request runs. Their job is to describe the inputs to the agent.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python will not run a function that has no type hints.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They tell the agent what data types to expect.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "They make the requests call run faster.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q09",
+      "questionText": "A notebook cell sits on `[*]` and never finishes. What is the most likely cause?",
+      "explanation": "The page says `[*]` means a tool is waiting for consent. Type `y`, or set `BYPASS_TOOL_CONSENT` in an earlier cell.\n\n(A) A retired model gives a `ResourceNotFoundException` error, not a cell stuck on `[*]`.\n\n(C) The page ties `[*]` to the consent prompt, not to memory use.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The Bedrock model has been retired.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A tool is waiting for your `y` at a hidden consent prompt.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The calculator tool ran out of memory.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q10",
+      "questionText": "Why does the page treat the consent prompt as a safety feature?",
+      "explanation": "Some tools are sensitive, so Strands pauses and asks. In production you often want a human approving actions.\n\n(A) The consent prompt is about approval, not encryption.\n\n(B) Speed is not the point. The prompt is about a person approving actions first.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It encrypts the output of each tool.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It makes sensitive tools run faster.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It keeps a person approving actions that write files or touch cloud resources.",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

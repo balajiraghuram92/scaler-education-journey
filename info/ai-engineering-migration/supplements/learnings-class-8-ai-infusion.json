@@ -1,0 +1,24 @@
+{
+  "page": "Learnings/Class-8-AI-infusion/index.html",
+  "inserts": [
+    {
+      "section": "Run the desk in your browser",
+      "after": "> Things to try: send the routine delay as *premium* and nothing changes, because $40 is under $100. Make it a $1,500 urgent delay and the doubled rate pushes it past $100. Force *unknown* on anything and it always escalates at $0.",
+      "md": "**Sample · Urgent premium:** URGENT: medical kit arrived three days late, the patient had to wait.\n\n**Sample · Scratch:** Small scratch on the lid of the speaker, works fine otherwise."
+    }
+  ],
+  "glossary": [],
+  "skipped": [
+    { "text": "· milestones 2–4 · python tools.py", "reason": "file-bar caption; the code block already carries the filename tools.py" },
+    { "text": "· ask 1 · the three LLM jobs", "reason": "file-bar caption; the code block already carries the filename chains.py" },
+    { "text": "· milestones 5–6 · the wiring", "reason": "file-bar caption; the code block already carries the filename pipeline.py" },
+    { "text": "· ask 2 · real aggregation", "reason": "file-bar caption; the code block already carries the filename session.py" },
+    { "text": "· ask 3 · python app.py", "reason": "file-bar caption; the code block already carries the filename app.py" },
+    { "text": "· milestones 5–6 · python main.py", "reason": "file-bar caption; the code block already carries the filename main.py" },
+    { "text": "· milestone 8 · python triage_check.py", "reason": "file-bar caption; the code block already carries the filename triage_check.py" },
+    { "text": "Please paste an exception report first. (No LLM call is made.)", "reason": "form validation message of the in-browser desk, UI chrome" },
+    { "text": "Enter a shipment value.", "reason": "form validation message of the in-browser desk, UI chrome" },
+    { "text": "Internal note / Email stand-in templates (re sorry about the trouble...)", "reason": "runtime output template of the in-browser stand-in; the section prose already explains the stand-ins" },
+    { "text": "Code fragments of the desk script (process, delay, damage, fakeClassify, summary)", "reason": "JavaScript logic, not learner prose" }
+  ]
+}

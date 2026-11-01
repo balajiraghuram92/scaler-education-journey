@@ -1,0 +1,124 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q01",
+      "questionText": "In the exam-hall analogy, what is an agent?",
+      "explanation": "An agent adds tools and a loop, so the model can act. That is the phone and laptop in the analogy.\n\n(B) That is RAG: the right information is handed over before the model answers.\n\n(C) That is retraining. Neither fix in this section changes what the model learned.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Giving the topper a phone, a laptop and permission to make calls on your behalf",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Slipping the right pages under the door",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Making the topper read more books before the exam",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q02",
+      "questionText": "What is the main difference between RAG and an agent?",
+      "explanation": "RAG makes the model know more. Agents make it able to do things.\n\n(A) RAG does not retrain the model. It changes what goes into the prompt.\n\n(B) Model size is not the difference. An agent adds tools and a loop of plan, act and reason.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "RAG retrains the model on your data, while an agent only writes better prompts",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "An agent is a RAG chatbot with a bigger model behind it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "RAG gives the model the right facts before it answers, while an agent also gets tools and a loop to act",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q03",
+      "questionText": "Why are filtering and reranking optional steps in the RAG pipeline?",
+      "explanation": "Like paying for interviews only when the quick resume screen is not good enough, you add the extra scoring when plain retrieval falls short.\n\n(B) Similarity search is fast but rough. Reranking and filtering exist because it sometimes returns weak chunks.\n\n(C) They work on the retrieved chunks, whatever the source documents were.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "They improve answer quality, but add cost, latency and moving parts, so you add them only when needed",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Similarity search is already perfect, so they never help",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "They only work with PDF documents",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q04",
+      "questionText": "A user asks \"How many days off do I get?\" The handbook says \"Every employee gets 24 days of paid leave.\" Why can a vector search still find that sentence?",
+      "explanation": "An embedding captures meaning, so the question lands near the leave-policy sentence.\n\n(A) They share almost no words, which is exactly why plain keyword search would miss the match.\n\n(C) Stored chunks are document text with their vectors. The database finds the nearest vectors; it does not hold pre-written answers.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both sentences share most of the same words",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Similar meanings produce vectors that sit close together, even with few shared words",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The database stores each likely question next to its answer",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q05",
+      "questionText": "Why is the user's question turned into a vector with the same embedding model used for the chunks?",
+      "explanation": "Both sit in the same space, so the closest vectors are the chunks nearest in meaning to the question. A different model would give vectors that cannot be compared.\n\n(B) The language model reads text. Vectors are used only to find the right chunks, which are then sent as text.\n\n(C) Embedding is not encryption. It turns text into numbers that capture its meaning.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "So that the question can be compared with the chunk vectors by meaning",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because the language model can only read vectors",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "To encrypt the question before it reaches the database",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

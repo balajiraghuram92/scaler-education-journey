@@ -47,7 +47,8 @@ function ChapterMarkdown({
   onToggleExerciseExpanded,
   quiz,
   pythonProblems,
-  isAuthenticated
+  isAuthenticated,
+  diagrams
 }) {
   const hasConceptsSection = sections.some((section) => section.id === 'concepts-covered');
   const hasPracticeLoop = sections.some((section) => section.id === 'practice-loop');
@@ -100,7 +101,7 @@ function ChapterMarkdown({
         <section key={section.id} id={section.id} className="chapter-content-section">
           {section.title !== 'Introduction' && <h3 className="chamber-section-heading">{section.title}</h3>}
           <div className="chamber-prose">
-            <MarkdownBlocks blocks={section.blocks} keyPrefix={section.id} />
+            <MarkdownBlocks blocks={section.blocks} keyPrefix={section.id} diagrams={diagrams} />
           </div>
 
           {section.id === 'concepts-covered' && conceptChecks.map((check) => <ConceptCheck key={check.id} {...check} />)}
@@ -175,6 +176,22 @@ export default function ChapterReader() {
     () => buildContentSections(chapter?.contentBody),
     [chapter?.contentBody]
   );
+
+  // Diagrams placed inline with {{diagram:N}} render in the prose; the rest keep the
+  // closing "Architecture diagram" section.
+  const { inlineDiagrams, trailingDiagrams } = useMemo(() => {
+    const byIndex = new Map((chapter?.diagrams || []).map((diagram) => [diagram.orderIndex, diagram]));
+    const referenced = new Set();
+    const collect = (blocks) => blocks.forEach((block) => {
+      if (block.type === 'diagram') referenced.add(block.index);
+      if (block.type === 'callout') collect(block.blocks);
+    });
+    contentSections.forEach((section) => collect(section.blocks));
+    return {
+      inlineDiagrams: byIndex,
+      trailingDiagrams: (chapter?.diagrams || []).filter((diagram) => !referenced.has(diagram.orderIndex))
+    };
+  }, [chapter?.diagrams, contentSections]);
 
   const chapterCourseSlug = chapter?.course?.slug || verticalOrCourseSlug || '';
   const chapterModuleSlug = chapter?.module?.slug || moduleSlug || '';
@@ -430,7 +447,7 @@ export default function ChapterReader() {
   const tocItems = [
     ...contentSections.map((section) => ({ id: section.id, label: section.title, level: 1 })),
     ...(chapter.codeComparisons?.length > 0 ? [{ id: 'code-comparison', label: 'Code comparison', level: 1 }] : []),
-    ...(chapter.diagrams?.length > 0 ? [{ id: 'architecture-hierarchy', label: 'Architecture diagram', level: 1 }] : []),
+    ...(trailingDiagrams.length > 0 ? [{ id: 'architecture-hierarchy', label: 'Architecture diagram', level: 1 }] : []),
     ...(javaProblems.length > 0 ? [{ id: 'practice-problems', label: 'Practice problems', level: 1 }] : [])
   ];
 
@@ -557,6 +574,7 @@ export default function ChapterReader() {
             quiz={quiz}
             pythonProblems={pythonProblems}
             isAuthenticated={isAuthenticated}
+            diagrams={inlineDiagrams}
           />
 
           {chapter.codeComparisons?.length > 0 && (
@@ -566,10 +584,10 @@ export default function ChapterReader() {
             </section>
           )}
 
-          {chapter.diagrams?.length > 0 && (
+          {trailingDiagrams.length > 0 && (
             <section id="architecture-hierarchy" className="chapter-content-section">
               <h3 className="chamber-section-heading">Architecture diagram</h3>
-              {chapter.diagrams.map((diag) => (
+              {trailingDiagrams.map((diag) => (
                 <div key={diag.id} className="chamber-diagram-card">
                   <div className="chamber-svg-canvas" dangerouslySetInnerHTML={{ __html: diag.svgContent }} />
                   {diag.caption && <p className="chamber-diagram-caption">{diag.caption}</p>}

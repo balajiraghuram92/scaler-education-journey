@@ -1,0 +1,244 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q01",
+      "questionText": "A support bot must always sound like your brand, and you have no training data. Which way should you try first?",
+      "explanation": "Prompting needs no training. Telling the model the tone you want in the prompt is the first thing to try.\n\n(A) Fine-tuning re-trains the model on examples. It is powerful but costly, so the page says to reach for it last.\n\n(C) RAG gives the model documents to answer from. It does not set a tone.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Fine-tuning, because it changes how the model talks",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Prompting, because clear instructions are free and instant",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "RAG, because it hands the model your documents",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q02",
+      "questionText": "Your bot must answer from 500 internal PDFs that change every week. Which way fits best?",
+      "explanation": "RAG hands the model your documents when a question is asked, so answers follow the latest files.\n\n(A) Prompting steers how the model answers. It does not give the model facts from your files.\n\n(B) Re-training on every weekly change is costly, and the page says to reach for fine-tuning last.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Prompting alone, because it is the free option",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Fine-tuning, so the model memorizes the PDFs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "RAG, so the model reads your documents at question-time",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q03",
+      "questionText": "In `chain = prompt | model | parser`, what does the parser do?",
+      "explanation": "The model returns an AIMessage package. The parser unwraps it, so you get a plain string.\n\n(A) That is the prompt's job. The parser runs last and only works on the model's reply.\n\n(C) The model runs once in this chain. The parser only handles the reply it gets back.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It fills the `{website}` blank with the page text",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It opens the model's reply and returns just the text",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It calls the model a second time",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q04",
+      "questionText": "The memory demo answers \"Your name is Aarav.\" Why does it know the name?",
+      "explanation": "MessagesPlaceholder holds the history list. Re-sending the history is the whole memory trick.\n\n(A) Models forget between calls. The code has to send the earlier messages again.\n\n(B) Temperature only changes how varied the replies are. It does not add memory.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model stored the name from the last call",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The temperature setting keeps facts in memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The code re-sends the earlier messages, and the placeholder puts them in the prompt",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q05",
+      "questionText": "The memory demo ends with `.content`. What changes if you add `| parser` to the chain?",
+      "explanation": "The parser opens the AIMessage package for you, so the result is already the string.\n\n(B) The parser comes after the model, so the model still runs. Only the output changes.\n\n(C) Adding a parser does not touch the history. It only changes what comes out of the chain.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "You can drop `.content`, because the parser already returns plain text",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The chain stops calling the model",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The history is sent twice",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q06",
+      "questionText": "A customer types `SHOES`. What does `get_price` return?",
+      "explanation": "`item.lower()` makes the lookup ignore capital letters.\n\n(A) The code lowercases the input first, so SHOES becomes shoes and is found.\n\n(C) Shoes is in the list, so nothing fails. `.get()` returns a default instead of crashing.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "₹unknown, because the keys are case-sensitive",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "₹799, because the input is lowercased before the lookup",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "An error, because `.get()` crashes on unfamiliar keys",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q07",
+      "questionText": "A customer asks for `socks`, which the shop does not have. What does `get_price` return?",
+      "explanation": "The default `'unknown'` is used when the item is missing, and the ₹ sign is still added.\n\n(B) A default of `'unknown'` was given, so the function returns that text, not `None`.\n\n(C) The page says `.get()` is there to avoid crashing. The default is the point.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The text ₹unknown, with no crash",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "None, so nothing is printed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "An error that stops the agent",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q08",
+      "questionText": "In the agent loop, who actually runs `get_price`?",
+      "explanation": "The model asks through `msg.tool_calls`. Your code calls the function and sends the result back.\n\n(A) The model never runs code. It only asks for a tool call.\n\n(B) Gradio is only the chat window you add later in the project. The loop in `agent()` decides when a tool runs.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model runs it inside its reply, then reports the answer",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Gradio runs it on every message",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Your Python code, after the model asks for it",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q09",
+      "questionText": "What does `msg.tool_calls` tell the code?",
+      "explanation": "If it is set, the code runs the tool. If it is empty, the code skips straight to the answer.\n\n(B) Prices live in the `PRICES` dict. `tool_calls` is about the model's request.\n\n(C) That list is the menu you send in. `tool_calls` only appears in the model's reply.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Whether the model asked to run a tool, and which tool with what input",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The price of every item in the shop",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The full list of tools you defined",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-2-ai-infusion-q10",
+      "questionText": "Why does the description in the tools menu matter?",
+      "explanation": "A vague description leads to misuse, and a clear one makes the agent behave.\n\n(A) The model reads it. It is how the model decides whether to call the tool.\n\n(C) That is the `name` field. The description is free text for the model to read.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is only a comment for people reading the code",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model reads it to decide when to use the tool",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It must match the Python function's name exactly",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q01",
+      "questionText": "A RAG system answers a question from a knowledge base. Which change turns it into an agent?",
+      "explanation": "The page's distinction: RAG answers questions, while agents accomplish goals by acting, checking, and retrying.\n\n(A) A vector database is only how the knowledge is stored for search. A system that only retrieves is still RAG.\n\n(C) The page defines an agent by its tools and reasoning loop, not by the size of the model.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It stores its documents in a vector database.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It can call tools, check the result, and try again until the goal is met.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It uses a larger model than a basic chatbot.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q02",
+      "questionText": "In the travel-planner example, what makes the final recommendation the agent's decision rather than a lookup?",
+      "explanation": "The page calls that synthesis the decision-making that separates an agent from simple retrieval.\n\n(A) Fetching the weather is one RAG step. On its own, that is still retrieval.\n\n(B) The answer is not one API response. The agent combines several sources.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It reads the historical weather from a knowledge base.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It copies the answer from a single API response.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It combines the weather, a live forecast and the user's preferences into one judgement.",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

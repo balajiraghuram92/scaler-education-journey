@@ -1,0 +1,220 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-trip-buddy-q01",
+      "questionText": "4 friends, 3 nights, room ₹3,000 a night. What is each friend's stay share?",
+      "explanation": "Rooms = 4 ÷ 2 = 2. Stay share = 2 × 3,000 × 3 ÷ 4 = ₹4,500.\n\n(A) That is one room's cost split four ways: 3,000 × 3 ÷ 4. Four friends need two rooms.\n\n(C) That is the cost of one room for three nights, not one friend's share.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "₹2,250",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "₹4,500",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "₹9,000",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-trip-buddy-q02",
+      "questionText": "Why does script 02 use `normalize_embeddings=True`?",
+      "explanation": "With unit vectors, `passage_vectors @ qv` gives the cosine score directly, with no extra division.\n\n(A) The model is the same size either way. Normalising only changes the vectors it returns.\n\n(C) Each sentence still has 384 numbers. Only their overall length changes.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It makes the model download smaller",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Every vector gets length 1, so a plain dot product equals the cosine similarity",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It turns 384 numbers into 1 number",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-trip-buddy-q03",
+      "questionText": "In script 03, what does `where={\"topic\": \"money\"}` do?",
+      "explanation": "That's the \"shelf\" in the library: a metadata filter applied before similarity ranking.\n\n(A) The query text is unchanged. `where` filters on the metadata label.\n\n(B) Chroma still ranks by meaning. `where` only decides which documents are allowed.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It adds the word \"money\" to the search query",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It sorts the results by price",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It only searches tips whose label is money, then ranks those by meaning",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-trip-buddy-q04",
+      "questionText": "What is the only difference between `bare_chain` and `rag_chain` in script 05?",
+      "explanation": "Same model, same parser, same trip. The retrieved text pasted into the system message is the whole difference.\n\n(B) Both chains share the same `llm`. The improvement comes from the context, not the model.\n\n(C) Nothing is trained. RAG adds knowledge at question time by putting it in the prompt.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The RAG prompt has a `{rag_context}` placeholder filled with the retrieved tips",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The RAG chain uses a bigger model",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The RAG chain was fine-tuned on the travel notebook",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-trip-buddy-q05",
+      "questionText": "In script 06, when does `run_agent` return the final answer?",
+      "explanation": "No tool calls means the model is done. Its text becomes the answer. `MAX_STEPS` is only the safety net.\n\n(A) The model may call some tools several times and others not at all. Calling every tool is not the stop rule.\n\n(C) The result goes back to the model as a ToolMessage. The model decides whether to call more tools or answer.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "After every tool has been called once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "When the model's response has no tool calls",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "When `calculate_trip_cost` returns a number",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-trip-buddy-q06",
+      "questionText": "In script 07, what does `decide_chain` read to make its GO or NOT YET call?",
+      "explanation": "That is the multi-chain idea: `breakdown`, the output of chain 1, is an input of chain 2.\n\n(A) The database row goes into the tool and into chain 1. Chain 2 gets the place name, the budget and chain 1's text.\n\n(C) Chain 2 has no tools. The numbers were computed once, by Python, before either chain ran.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The raw database row",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Chain 1's breakdown text, plus the place name and the budget",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing: it calls `trip_cost_tool` again itself",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-trip-buddy-q07",
+      "questionText": "In the Trip Buddy MCP server, who decides when `trips://destinations` is read?",
+      "explanation": "That's the resource rule: the host decides. Tools are picked by the LLM, prompts by the user.\n\n(A) Tools are what the LLM calls. A resource is read-only data the app chooses to read.\n\n(C) `/plan` uses the `plan_trip` prompt, the user-picked building block.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The LLM, like a tool call",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The app: script 10 reads it at the start of every chat and puts it in the system prompt",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The user, by typing `/plan`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-trip-buddy-q08",
+      "questionText": "Script 09 calls `compute_trip_cost` with `people = 0`. What happens?",
+      "explanation": "`Field(ge=1, le=20)` is in the schema, so FastMCP rejects 0 before your code runs, and the model can read the message.\n\n(A) Nothing crashes. The error comes back as a normal result.\n\n(B) The function never runs: the schema check fails first.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The server crashes and the session closes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It returns a cost, divided by zero",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The result comes back with `isError = True` and a validation message",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-trip-buddy-q09",
+      "questionText": "What do you change in `trip_08_full_agent.py` to answer questions from Slack?",
+      "explanation": "The adapter receives the message, calls `run_agent` and replies. Gradio only starts under `if __name__ == \"__main__\"`, so importing is safe.\n\n(A) The tools don't know where the question came from, and they shouldn't.\n\n(B) The loop stays as it is. Only the front door changes.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Rewrite the tools so they post to Slack",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Replace Gradio's `ChatInterface` with a Slack version of the ReAct loop",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing: a small `slack_bot.py` imports `run_agent` and sends its text back",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

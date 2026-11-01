@@ -1,0 +1,227 @@
+{
+  "page": "AWS-Bootcamp/giving-agents-tools/index.html",
+  "inserts": [
+    {
+      "section": "2.1 Why agents need tools",
+      "after": "##### Same question, with and without the GitHub tool",
+      "md": "**Agent without tools:**\n- **You:** How many open issues do I have in my project repo, and which one has been sitting there the longest?\n- **Model:** No tool can reach GitHub, so I can only explain how to look it up.\n- **Agent:** “I can't access your GitHub account, but you can check by going to your repository's Issues tab and sorting by creation date.”\n\n**Agent with a GitHub tool:**\n- **You:** How many open issues do I have in my project repo, and which one has been sitting there the longest?\n- **Model:** I have a GitHub tool. I need open issues for this repo.\n- **Tool call:** `list_issues(repo=\"myproject\", state=\"open\")`\n- **Result:** 23 open issues. Oldest: #47 “Memory leak in data processor”, created 127 days ago.\n- **Agent:** “You've got 23 open issues. The oldest is #47 about a memory leak in the data processor; it's been open for 127 days. Probably worth tackling that one.”"
+    },
+    {
+      "section": "2.1 Why agents need tools",
+      "after": "What that means",
+      "md": "- **Without @tool:** **Invisible.** The agent can't discover the function. Ask \"Is the staging server running?\" and you get: \"I don't have the ability to check server status. You can use curl or ping.\"\n- **Without type hints:** **Guessing the format.** The model knows it should send `server_url` but not what type it is. Fine for one string; risky for numbers, dates or lists.\n- **Without a docstring:** **Guessing the purpose.** The model only has the name to go on. \"check_server_status\" is a decent hint, but a name like `run_check` would leave it lost, and it doesn't know what the argument means.\n- **With all three:** **Ready.** The model knows what the tool does, when to use it and exactly what to send."
+    },
+    {
+      "section": "2.1 Why agents need tools",
+      "after": "Press \"Next step\". The matching arrow in the diagram above lights up.",
+      "md": "**Steps through the sales request:**\n- **Step 1 of 14.** You ask: “Pull last quarter's sales data and email a summary to team@company.com”.\n- **Step 2 of 14.** The agent sends your request to the model, together with the specs of all three tools.\n- **Step 3 of 14.** The model's first decision: it needs data. stop_reason = tool_use for get_sales_data.\n- **Step 4 of 14.** The agent runs get_sales_data(quarter=\"Q3 2026\"). The model worked out which quarter “last quarter” is.\n- **Step 5 of 14.** The tool returns {revenue: 1250000, deals: 47, quarter: \"Q3 2026\"}.\n- **Step 6 of 14.** The agent hands that result back to the model.\n- **Step 7 of 14.** The model pulls the numbers out of the result and asks for analyze_sales.\n- **Step 8 of 14.** The agent runs analyze_sales(revenue=1250000, deals=47, quarter=\"Q3 2026\").\n- **Step 9 of 14.** It returns “Q3 2026: $1,250,000 revenue, 47 deals, $26,596 avg deal size”.\n- **Step 10 of 14.** Back to the model with the summary.\n- **Step 11 of 14.** The model writes the email body and asks for send_email.\n- **Step 12 of 14.** The agent runs send_email(to=\"team@company.com\", subject=…, body=…). In the notebook, the tool's print shows an [EMAIL] line.\n- **Step 13 of 14.** “Email sent to team@company.com”.\n- **Step 14 of 14.** The model replies with stop_reason = end_turn, and the agent tells you it's done. Three tools, and you never wrote the order."
+    },
+    {
+      "section": "2.2 Your first tool-enabled agent",
+      "after": "Or type your own e.g. Dinner was $240, tip 10%, five of us",
+      "md": "**Example prompts and the agent's answers:**\n1. **The bill is $85. What's a 20% tip, and how much does each person pay if we're splitting it 4 ways?** Agent: A 20% tip on $85.00 is $17.00, making the total $102.00. Split 4 ways, each person pays $25.50.\n2. **What's a 15% tip on $42?** Agent: A 15% tip on $42.00 is $6.30, making the total $48.30. (No split mentioned, so `num_people` used its default of 1.)\n3. **Bill is $120, we want to tip 18%, split between 3 people** Agent: A 18% tip on $120.00 is $21.60, making the total $141.60. Split 3 ways, each person pays $47.20.\n4. **Calculate tip for $67.50 at 20%** Agent: A 20% tip on $67.50 is $13.50, making the total $81.00. (No split mentioned, so `num_people` used its default of 1.)\n5. **Dinner came to ₹1,700, add 10% and split it five ways** Agent: A 10% tip on ₹1,700.00 is ₹170.00, making the total ₹1,870.00. Split 5 ways, each person pays ₹374.00.\n\n**If a value is missing:** The agent would ask a follow-up: \"What was the bill amount?\" (`bill_amount` is required, so the model asks rather than guesses.)\n**If the tip is missing:** The agent would ask a follow-up: \"What tip percentage would you like?\" (`tip_percentage` is required, so the model asks rather than guesses.)"
+    },
+    {
+      "section": "2.3 The Strands tool ecosystem",
+      "after": "Toolbox: tap the tools this agent needs",
+      "md": "**Tasks to match against the toolbox (tap a task, then tap the tools you'd give the agent):**\n- **Task 1:** Fetch Bangalore's 7-day forecast, average the max temperatures, and save a summary file\n- **Task 2:** Read last month's sales CSV from S3 and add up the revenue\n- **Task 3:** Find today's top AI headline and post it to our team Slack\n- **Task 4:** Run this Python snippet and tell me what it prints\n- **Task 5:** Create a picture of a robot painting a sunset\n\n**After choosing a task:** Now tap the tools you'd give this agent, then check.\n\n**Feedback when you check:**\n- **Spot on.** No missing or extra tools.\n- **Missing:** the tool you needed (for example `http_request` or `tavily_search`).\n- **Not needed:** the extra tool (harmless, but more for the model to choose from).\n- **Works.** All needed tools are there, with extras.\n\n**Why each task needs the tools it needs:**\n> **Task 1:** http_request fetches the forecast, calculator averages it, file_write saves it. Exactly the chain notebook 2 runs.\n> **Task 2:** use_aws reads the object from S3; calculator does exact addition.\n> **Task 3:** A web tool (tavily_search, or http_request to a news API) finds the headline; slack posts it.\n> **Task 4:** python_repl executes Python. shell would also run code, but it's broader and riskier than you need.\n> **Task 5:** generate_image creates images with a Bedrock image model."
+    },
+    {
+      "section": "2.3 The Strands tool ecosystem",
+      "after": "##### See the AWS calls behind each English request",
+      "md": "**Request:** List all S3 buckets in my account\n- **use_aws:** `s3.list_buckets()`\n- **Result:** 3 buckets, including agent-tools-demo-…-a1b2c3\n- **Agent:** “You have 3 S3 buckets: … and agent-tools-demo-…-a1b2c3.”\n\n**Request:** Read sales-2024.csv from the demo bucket, total the revenue, save a summary back\n- **use_aws:** `s3.get_object(Bucket='agent-tools-demo-…', Key='sales-2024.csv')`\n- **Result:** 6 rows: North 120,000 / 135,000 / 142,000; South 98,000 / 104,000 / 111,000\n- **calculator:** `calculator('120000+135000+142000+98000+104000+111000')`\n- **Result:** 710000\n- **use_aws:** `s3.put_object(Bucket='agent-tools-demo-…', Key='sales-summary.txt', Body='Total revenue: 710,000 …')` (a change: would ask for consent; the notebook bypasses it)\n- **Restricted user:** AccessDeniedException: not authorized to perform `s3:PutObject`\n- **Result:** Saved sales-summary.txt\n- **Agent:** “Total revenue for Jan to Mar 2024 is 710,000 (North 397,000, South 313,000). I saved the summary as sales-summary.txt.”\n- **Agent, restricted user:** “Total revenue is 710,000, but I don't have permission to write sales-summary.txt to the bucket.”\n\n**Request:** Look up customer 12345 and update their email to newemail@example.com\n- **use_aws:** `dynamodb.get_item(TableName='customers-a1b2c3', Key={'customer_id': {'S': '12345'}})`\n- **Result:** Asha Rao, asha@example.com\n- **use_aws:** `dynamodb.update_item(TableName='customers-a1b2c3', Key=…, UpdateExpression='SET email = :e', …)` (a change: would ask for consent; the notebook bypasses it)\n- **Restricted user:** AccessDeniedException: not authorized to perform `dynamodb:UpdateItem`\n- **Result:** Updated\n- **use_aws:** `dynamodb.get_item(TableName='customers-a1b2c3', Key=…)`\n- **Result:** Asha Rao, newemail@example.com\n- **Agent:** “Done. Customer 12345 (Asha Rao) now has the email newemail@example.com; I read the record back to confirm.”\n- **Agent, restricted user:** “I found Asha Rao (customer 12345), but I'm not allowed to update the record. Ask an admin for dynamodb:UpdateItem.”\n\n**Request:** Invoke the order-processor Lambda with order 67890\n- **use_aws:** `lambda.invoke(FunctionName='order-processor-a1b2c3', Payload='{\"order_id\": \"67890\"}')`\n- **Restricted user:** AccessDeniedException: not authorized to perform `lambda:InvokeFunction`\n- **Result:** {\"order_id\": \"67890\", \"status\": \"PROCESSED\", \"message\": \"Order 67890 processed successfully\"}\n- **Agent:** “The function ran: order 67890 is PROCESSED.”\n- **Agent, restricted user:** “I can't invoke that function with your current permissions.”\n"
+    },
+    {
+      "section": "2.4 Building custom tools",
+      "after": "##### Regex chatbot vs agent: who understands the question?",
+      "md": "**Each question, run through both approaches:**\n1. **Is PROD-123 in stock?**\n- **Regex chatbot:** Matched. Product PROD-123 is in stock. We have 15 units available.\n- **Tool call:** `check_inventory(product_id=\"PROD-123\")`\n- **Agent:** “Product PROD-123 is in stock. We have 15 units available.”\n2. **Do we have PROD-456 available?**\n- **Regex chatbot:** Matched. Product PROD-456 is currently out of stock.\n- **Tool call:** `check_inventory(product_id=\"PROD-456\")`\n- **Agent:** “Product PROD-456 is currently out of stock.”\n3. **Check inventory for PROD-789**\n- **Regex chatbot:** “Sorry, I didn't understand that.” No rule for this phrasing. Someone has to add one.\n- **Tool call:** `check_inventory(product_id=\"PROD-789\")`\n- **Agent:** “Product PROD-789 is in stock. We have 8 units available.”\n4. **Can I order PROD-123 right now?**\n- **Regex chatbot:** “Sorry, I didn't understand that.” No rule for this phrasing. Someone has to add one.\n- **Tool call:** `check_inventory(product_id=\"PROD-123\")`\n- **Agent:** “Product PROD-123 is in stock. We have 15 units available.”\n5. **Are there any PROD-789 left?**\n- **Regex chatbot:** “Sorry, I didn't understand that.” No rule for this phrasing. Someone has to add one.\n- **Tool call:** `check_inventory(product_id=\"PROD-789\")`\n- **Agent:** “Product PROD-789 is in stock. We have 8 units available.”\n6. **I want to buy PROD-456 today, possible?**\n- **Regex chatbot:** “Sorry, I didn't understand that.” No rule for this phrasing. Someone has to add one.\n- **Tool call:** `check_inventory(product_id=\"PROD-456\")`\n- **Agent:** “Product PROD-456 is currently out of stock.”\n\n**If the question has no product ID:** Agent: “Which product ID do you mean? For example, PROD-123.” (product_id is required, so it asks.)"
+    },
+    {
+      "section": "2.5 When simple tools aren't enough",
+      "after": "Assumes about 50 ms to open each connection. Connection limits (100 for PostgreSQL, 151 for MySQL by default) count connections open *at the same moment*, so bursts of overlapping requests hit them long before the per-minute total looks scary.",
+      "md": "**Default example, 30 requests per minute with 4 tool calls each:**\n- **Function tools:** **120** connections opened per minute, about **6.0 s** of every minute spent just opening them.\n- **Class tools:** **1** connection per running copy of your app, opened once and reused for all 120 tool calls."
+    },
+    {
+      "section": "2.6 Quick start with Strands Agent Builder",
+      "after": "```text title=\"terminal\"",
+      "md": "$ export STRANDS_MODEL_ID=global.anthropic.claude-sonnet-4-6\n$ strands\nWelcome to Strands Agents Builder\n\n~ Build a tool that converts Celsius to Fahrenheit\nI'll create that tool and test it.\n\n@tool\ndef celsius_to_fahrenheit(celsius: float) -> float:\n    \"\"\"Convert a temperature from Celsius to Fahrenheit.\"\"\"\n    return celsius * 9 / 5 + 32\n\nTesting: What's 100°C in Fahrenheit?\n→ 100°C is 212°F\n\nWant to try another conversion?\n~ What's 37°C in Fahrenheit?\n→ 37°C is 98.6°F"
+    },
+    {
+      "section": "2.8 Recap and self-check",
+      "after": "Ten quick questions. Pick an answer to see why it's right or wrong.",
+      "md": "**1. You ask an agent with no tools how many open issues your GitHub repo has. What do you get?**\n\n- The exact count, from its training data\n- Instructions for checking it yourself\n- An error, because agents need tools to run\n- A random number\n\n> **Correct answer:** Instructions for checking it yourself\n> Without tools the model can't reach GitHub, so the best it can do is tell you how to look it up. That's the gap tools close.\n\n**2. Which three things turn a plain function into a Strands tool?**\n\n- A class, a lock and async\n- @tool, type hints and a docstring\n- A REST API, JSON and a URL\n- An MCP server, a client and a host\n\n> **Correct answer:** @tool, type hints and a docstring\n> The decorator registers it, the type hints define the inputs, and the docstring tells the model what it does and when to use it.\n\n**3. What does the model actually see of your tool?**\n\n- The whole function, including its body\n- Only the return value\n- The name, the description and the input schema\n- Nothing until the tool has run once\n\n> **Correct answer:** The name, the description and the input schema\n> The body stays private. The model sees the spec built from the name, docstring and type hints, plus whatever result the tool returns.\n\n**4. In the sales assistant, who decided to call get_sales_data, then analyze_sales, then send_email?**\n\n- You, in an if/else block\n- Strands, alphabetically\n- The model, at run time, from the request and the tool descriptions\n- The order of the tools list\n\n> **Correct answer:** The model, at run time, from the request and the tool descriptions\n> Nobody scripted the order. The model chose each next step based on the request and each result.\n\n**5. Why prefer several focused tools over one mega-tool?**\n\n- Python can't handle long functions\n- They're easier for the agent to reason about, easier to maintain and reusable elsewhere\n- Bedrock limits tool size\n- Mega-tools can't have docstrings\n\n> **Correct answer:** They're easier for the agent to reason about, easier to maintain and reusable elsewhere\n> Single-purpose tools are like clearly labelled buttons: the model picks the right one, and you can reuse them in other agents.\n\n**6. use_aws is about to call dynamodb.update_item. What happens by default?**\n\n- It runs silently\n- It asks you to confirm first, unless BYPASS_TOOL_CONSENT=true\n- It refuses, because use_aws is read-only\n- It converts the call to a Lambda invocation\n\n> **Correct answer:** It asks you to confirm first, unless BYPASS_TOOL_CONSENT=true\n> use_aws asks for confirmation before create, update and delete operations. Notebook 2 sets BYPASS_TOOL_CONSENT=true so the demo runs end to end.\n\n**7. You're signed in as a read-only user and ask the agent to update a DynamoDB item. What happens?**\n\n- use_aws escalates its own permissions\n- The update succeeds because the agent asked nicely\n- AWS returns AccessDenied: the agent can only do what your IAM permissions allow\n- The agent creates a new table instead\n\n> **Correct answer:** AWS returns AccessDenied: the agent can only do what your IAM permissions allow\n> use_aws calls AWS with your credentials. IAM still decides what's allowed, which is exactly what you want.\n\n**8. Your agent opens a new database connection on every tool call. The fix?**\n\n- Make every tool async\n- Group the related tools in a class that opens one connection and shares it\n- Add more docstrings\n- Switch to a bigger model\n\n> **Correct answer:** Group the related tools in a class that opens one connection and shares it\n> A class holds the shared connection in self.db, opened once in __init__ and reused by every tool method.\n\n**9. Three independent warehouse APIs each take 2 seconds. As async tools called in one turn, roughly how long do the checks take?**\n\n- 6 seconds\n- 4 seconds\n- About 2 seconds\n- Under 100 ms\n\n> **Correct answer:** About 2 seconds\n> Concurrent calls take about as long as the slowest one, not the sum.\n\n**10. Should a tool that adds two numbers locally be async?**\n\n- Yes, everything should be async\n- No: it does no slow I/O, so async adds complexity without any speed-up\n- Yes, otherwise it can't be a tool\n- Only on Lambda\n\n> **Correct answer:** No: it does no slow I/O, so async adds complexity without any speed-up\n> Async helps when a tool waits on slow input/output. Pure, instant calculations gain nothing.\n\n> **8 or more correct:** Great work, you're ready for Section 3.\n> **Fewer than 8 correct:** Revisit the parts you missed, then try Section 3."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "Tool",
+      "definition": "A function or service an agent can call to do something it can't do with words alone: fetch data, compute exactly, change a system."
+    },
+    {
+      "term": "Function calling (tool use)",
+      "definition": "The model's ability to say \"run this function with these arguments\" instead of only writing text. The agent runs it and returns the result."
+    },
+    {
+      "term": "Decorator",
+      "definition": "A line starting with @ placed above a Python function to add behaviour. @tool registers a function as an agent tool."
+    },
+    {
+      "term": "Type hints",
+      "definition": "Annotations like server_url: str or -> dict that say what type a value should be. Strands turns them into the tool's input schema."
+    },
+    {
+      "term": "Docstring",
+      "definition": "The text in triple quotes at the top of a function. For tools, it becomes the description the model reads to decide when to call it."
+    },
+    {
+      "term": "API",
+      "definition": "Application programming interface: a defined way for one program to ask another to do something, usually over the network."
+    },
+    {
+      "term": "JSON",
+      "definition": "A simple text format for structured data: {curly braces} for objects, [square brackets] for lists. Most APIs speak it."
+    },
+    {
+      "term": "REST API",
+      "definition": "A common style of web API: send an HTTP request (GET, POST…) to a URL and get JSON back."
+    },
+    {
+      "term": "Timeout",
+      "definition": "The longest you're willing to wait for a response. requests.get(…, timeout=5) gives up after 5 seconds instead of hanging forever."
+    },
+    {
+      "term": "HTTP status code",
+      "definition": "A number a server returns with every response: 200 means OK, 404 not found, 500 server error."
+    },
+    {
+      "term": "Exception",
+      "definition": "Python's way of signalling an error. try/except catches it so your code can respond instead of crashing."
+    },
+    {
+      "term": "Regex (regular expression)",
+      "definition": "A pattern language for matching text, like PROD-\\d+ to find product IDs. Precise but brittle: it only matches what you anticipated."
+    },
+    {
+      "term": "Intent classifier",
+      "definition": "A model trained to map a sentence to a fixed label like CHECK_INVENTORY. Traditional chatbots need one; tool-using agents don't."
+    },
+    {
+      "term": "SymPy",
+      "definition": "A Python library for symbolic maths: exact arithmetic, solving equations, derivatives and integrals. The calculator tool is built on it."
+    },
+    {
+      "term": "Environment variable",
+      "definition": "A named setting that lives outside your code, like BEDROCK_MODEL_ID or BYPASS_TOOL_CONSENT. Programs read it at run time."
+    },
+    {
+      "term": "Deprecation",
+      "definition": "A warning that a feature still works but will be removed or replaced in a future version."
+    },
+    {
+      "term": "boto3",
+      "definition": "The official AWS SDK for Python. Every AWS call in this course, including the ones use_aws makes, goes through it."
+    },
+    {
+      "term": "IAM",
+      "definition": "AWS Identity and Access Management: decides who can do what in your AWS account. An agent can never do more than the credentials it runs with."
+    },
+    {
+      "term": "Amazon S3",
+      "definition": "AWS object storage: files (objects) kept in buckets, read and written over an API."
+    },
+    {
+      "term": "Amazon DynamoDB",
+      "definition": "A fully managed AWS NoSQL database. Items are looked up by key, like customer_id = 12345."
+    },
+    {
+      "term": "AWS Lambda",
+      "definition": "Run a function in the cloud without managing servers. You pay only while it runs."
+    },
+    {
+      "term": "CSV",
+      "definition": "Comma-separated values: a plain-text table, one row per line, columns separated by commas."
+    },
+    {
+      "term": "MCP (Model Context Protocol)",
+      "definition": "An open standard for exposing tools and data to AI apps. Any MCP server can be plugged into a Strands agent. Covered in Section 5."
+    },
+    {
+      "term": "Lock",
+      "definition": "A guard that lets only one thread use a shared resource at a time, so two tool calls don't trample the same database connection."
+    },
+    {
+      "term": "Thread",
+      "definition": "A separate line of execution inside one program. Strands can run several tool calls on different threads at once."
+    },
+    {
+      "term": "Parameterised query",
+      "definition": "SQL with placeholders (?) whose values are passed separately. The database treats them as data, never as SQL code."
+    },
+    {
+      "term": "SQL injection",
+      "definition": "An attack where text meant as data is run as SQL. Building queries with f-strings invites it; parameterised queries prevent it."
+    },
+    {
+      "term": "async",
+      "definition": "Marks a Python function that can pause while waiting (for a network reply, say) so other work runs meanwhile."
+    },
+    {
+      "term": "await",
+      "definition": "Inside an async function: \"wait here for this result, and let other tasks run in the meantime\"."
+    },
+    {
+      "term": "Event loop",
+      "definition": "The scheduler that runs async functions, switching to whichever one is ready whenever another is waiting."
+    },
+    {
+      "term": "Concurrency",
+      "definition": "Several tasks making progress in overlapping time, for example three API calls all waiting at once."
+    },
+    {
+      "term": "CLI",
+      "definition": "Command-line interface: a program you use by typing commands in a terminal, like aws, pip or strands."
+    },
+    {
+      "term": "pipx",
+      "definition": "Installs a Python command-line app into its own isolated environment, so its libraries don't clash with your projects."
+    },
+    {
+      "term": "Knowledge base (Bedrock)",
+      "definition": "A managed Amazon Bedrock store that indexes your documents for retrieval. Agent Builder can use one to keep tools between sessions."
+    },
+    {
+      "term": "Large language model (LLM)",
+      "definition": "A model trained on huge amounts of text that understands and writes language. The agent's brain."
+    },
+    {
+      "term": "AI agent",
+      "definition": "Software that uses an LLM to plan, call tools, look at results and keep working towards a goal."
+    }
+  ],
+  "skipped": [
+    {
+      "text": "$$(\"pre code[class^='lang-']\")",
+      "reason": "syntax-highlighter selector in the script, not learner text"
+    },
+    {
+      "text": "hl() regex and highlighter token code",
+      "reason": "code in the script that colours code blocks, not learner text"
+    },
+    {
+      "text": "Copied",
+      "reason": "copy-button UI label"
+    },
+    {
+      "text": "Correct. / Not quite. / You picked / The correct answer is",
+      "reason": "quiz feedback labels; the correct answer and explanation are kept as static text"
+    },
+    {
+      "text": "Spec JSON shown in the spec pane (name, description, inputSchema)",
+      "reason": "generated JSON code output, not prose; the prose verdict is kept"
+    },
+    {
+      "text": "Fragments of script string literals (e.g. `]],[\"obs\"`, `s Issues tab...`)",
+      "reason": "parser artefacts of multi-part script arrays; the full strings are kept"
+    }
+  ]
+}

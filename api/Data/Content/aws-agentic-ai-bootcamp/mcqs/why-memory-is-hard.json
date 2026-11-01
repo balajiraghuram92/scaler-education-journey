@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q03",
+      "questionText": "A shared agent starts showing one customer's card details in another customer's answers. Which of the six challenges is this?",
+      "explanation": "Memory often holds personal data, and one user's memory leaking into another user's answers is the multi-tenancy risk that must be tightly controlled.\n\n(B) Retrieval accuracy is about finding the right piece of memory without noisy or loosely related results. Here the problem is that the wrong person's data is reachable at all.\n\n(C) Scalability is about the store growing fast and staying quick and affordable. It says nothing about who can see which memories.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Privacy and security, specifically the multi-tenancy risk",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Retrieval accuracy",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Storage scalability",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q04",
+      "questionText": "An agent stored \"I live in Pune\". The user has since moved to Chennai. Which challenge is the agent facing?",
+      "explanation": "Real life changes, so the agent must update or overwrite old facts, deciding what to keep and what to forget without corrupting the rest of its memory.\n\n(A) Integration complexity is about connecting the LLM, vector databases, APIs and memory layers in real time. It is not about outdated facts.\n\n(B) Observability is about seeing why the agent remembered or missed something. The issue here is the stored fact being out of date.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Integration complexity",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Observability",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Memory refresh",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q05",
+      "questionText": "In the loop, which step writes information back, so that the next request starts smarter?",
+      "explanation": "Step 6 stores updated goals, success or failure signals and structured insights, so future requests can use them.\n\n(B) Step 3 only reads preferences, history and knowledge. Reading is not writing.\n\n(C) Reasoning uses the context to decide what to do, but it does not save anything. Saving happens in step 6.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Step 6, save and learn: new information goes back into memory",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Step 3, query long-term memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Step 4, reason: the LLM combines everything into one prompt",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q06",
+      "questionText": "Why does the loop read short-term and long-term memory before the LLM reasons (steps 2 and 3), instead of letting the model answer from its own knowledge alone?",
+      "explanation": "Step 4 builds one prompt from the new query and the retrieved context. Memory the model never receives cannot shape its answer.\n\n(A) The model can always generate text. The problem is that it lacks this user's history unless that history is in the prompt.\n\n(C) Every request goes through the same loop, so memory is read each time a new request arrives.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The LLM cannot generate any text without first reading memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The LLM only sees what is in its prompt, so the relevant memory must be retrieved and combined into that prompt first",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Memory is only read for the first request in a session",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

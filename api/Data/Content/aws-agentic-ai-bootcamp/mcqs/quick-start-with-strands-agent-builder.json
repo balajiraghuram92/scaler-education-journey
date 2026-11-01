@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q13",
+      "questionText": "The two tool examples above come from different frameworks, but the table says the idea is the same. What do both versions need to describe a tool?",
+      "explanation": "Both versions use `@tool`, type hints and a docstring. That is the shared recipe from this section.\n\n(A) Neither framework needs a separate YAML file. The description comes from the function itself.\n\n(B) The model does not read the body. The docstring is what tells it what the tool does.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A YAML file that lists the tool's inputs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "No docstring, because the framework reads the function body",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A decorator, type hints and a docstring",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q14",
+      "questionText": "What is the main difference the page gives between the two frameworks?",
+      "explanation": "That is the approach difference in the page's comparison. Strands leaves the planning to the model, and LangChain has you control it.\n\n(A) Both frameworks turn Python functions into tools and let agents use them.\n\n(C) The table says Strands fits AWS natively, and LangChain reaches AWS through integrations. Neither is limited to one place.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "LangChain cannot call tools, while Strands can",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Strands is model-driven, with minimal code where the LLM plans the workflow, while LangChain gives explicit control over execution with more setup",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Strands only runs on a local computer, while LangChain runs only on AWS",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

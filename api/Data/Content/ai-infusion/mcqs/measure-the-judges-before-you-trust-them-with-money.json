@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q11",
+      "questionText": "The `evidence_snapshots` table is written with `INSERT OR IGNORE`. What does that guarantee when a retry runs?",
+      "explanation": "`dispute_id` is the primary key, so a second save for the same dispute is ignored. The evidence stays frozen in the database too.\n\n(B) The key is `dispute_id`, not the complaint text. The ignore rule applies only to one dispute's snapshot.\n\n(C) `INSERT OR IGNORE` decides what gets written, not how quickly rows are read.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The first frozen snapshot stays, and a retry cannot replace it with a fresher copy",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Each complaint is stored only once across all disputes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Reads from the table are faster than with a plain INSERT",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q12",
+      "questionText": "A worker crashes in the middle of `save_ruling`. What state does `judge_rulings` end up in?",
+      "explanation": "The `with DB:` block is a transaction. Only completed saves are kept, and the retry asks again for any slot that has no saved row.\n\n(A) The `with DB:` block makes each save a transaction, so a half-written row is never left behind.\n\n(C) Each save is its own transaction. Rulings that were saved before the crash stay in the table.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A half-written row, which must be repaired by hand before the retry",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Either the whole ruling is saved or none of it is, so the retry judges that slot again",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The whole table is rolled back, including the rulings saved earlier",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

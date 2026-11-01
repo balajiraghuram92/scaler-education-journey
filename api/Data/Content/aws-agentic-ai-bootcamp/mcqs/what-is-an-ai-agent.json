@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q06",
+      "questionText": "An agent should remember next week that a user prefers vegetarian food. Which part of the agent does this?",
+      "explanation": "Memory stores past interactions, short-term and long-term, so the agent keeps context across sessions.\n\n(A) Planning decides the best order of actions for a goal. It does not store facts about a user.\n\n(B) Tools reach beyond the model's own knowledge to do things. They do not keep a record of the user.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Planning, which sets the order of tasks",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Tools, which fetch information from outside",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Memory, which keeps long-term facts as well as the current conversation",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q07",
+      "questionText": "A booking agent first checks calendars, then books a room, then sends invites. Which ability is it using to set this order?",
+      "explanation": "Planning turns a high-level objective into tasks that can actually be carried out.\n\n(A) Reasoning means looking at results and updating the plan. Here the agent sets the order of tasks before it starts.\n\n(C) Memory stores past interactions and context. Knowing the calendar is not the same as deciding the order of work.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Reasoning, because it looks at each result",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Planning, because it breaks the goal into tasks in a sensible order",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Memory, because it remembers the calendar",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

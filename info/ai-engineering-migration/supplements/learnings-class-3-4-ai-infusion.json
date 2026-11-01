@@ -1,0 +1,71 @@
+{
+  "page": "Learnings/Class-3-4-AI-infusion/index.html",
+  "inserts": [
+    {
+      "section": "16 Embeddings: words become coordinates",
+      "after": "Type or click a preset to score.",
+      "md": "**What the meter says:**\n\n- 🟢 Near-synonyms — same meaning, different words.\n- 🟢 Strongly related — same topic.\n- 🟡 Loosely related — shares some concepts.\n- 🟠 Distantly related — barely overlapping.\n- 🔴 Unrelated — totally different vector neighbourhoods."
+    },
+    {
+      "section": "17 Chunking: cut the book into snippets",
+      "after": "```text",
+      "md": "# Bengaluru Overview\n\n## Tech Industry\nBengaluru is known as India's Silicon Valley. Tech parks like Electronic City and Whitefield host thousands of tech companies. Major firms include Infosys, Wipro, and TCS.\n\n## Climate\nThe city sits at 920 meters altitude. This gives it pleasantly cool weather year-round. Average temperatures rarely exceed 30 degrees.\n\n## Food\nBengaluru's food scene is legendary. South Indian classics like masala dosa and idli thrive here. Filter coffee shops dot every street corner."
+    },
+    {
+      "section": "17 Chunking: cut the book into snippets",
+      "after": "**Try this sequence in class:** start on *Fixed* at size 80 → count the 🪓 mid-word cuts → flip to *Recursive* at the same size → they're all gone → flip to *Semantic* → notice three chunks emerge that align perfectly with the three topics → flip to *Structure* → see how the markdown `##` headers do the work for free.",
+      "md": "**What to notice · Fixed**\n\n> **Cuts land at character N — no respect for words, sentences, or paragraphs.** Chunks marked 🪓 were split *mid-word*; context gets fragmented. Cheap to write (one for-loop), but bad for retrieval. Prototypes only.\n\n**What to notice · Recursive**\n\n> **Same character budget, far cleaner cuts.** Splits at paragraph breaks first, then sentences, then words. Almost nothing fragments mid-thought. This is LangChain's `RecursiveCharacterTextSplitter` — the safe default for ~90% of RAG apps.\n\n**What to notice · Semantic**\n\n> **Chunks shaped by meaning, not size.** All *tech* sentences join into one chunk; all *climate* another; all *food* a third. Sizes vary wildly — that's the feature. Best when topic shifts matter more than uniform length. Slower (embed every sentence first).\n\n**What to notice · Structure**\n\n> **Each `##` section becomes its own chunk — header attached to its content.** Markdown, HTML, and code already have natural structure — use it. Unbeatable for docs, wikis, source code: the author already told you how to split.\n\n**Controls**\n\n- **Fixed and Recursive:** Chunk size (characters) · try 80 to see the difference\n- **Semantic:** No size knob. Sentences are tagged by topic (tech · climate · food) and adjacent same-topic sentences are merged. Meaning sets the boundaries.\n- **Structure:** No size knob. Splits on Markdown headers (`##`). Document structure sets the boundaries."
+    },
+    {
+      "section": "19 Build a real RAG in 30 lines",
+      "after": "Press *Next* to see exactly what happens inside `rag_answer(\"How long do I have to return something?\")`. Each step is a card; this is the whole RAG flow on one screen:",
+      "md": "- **1 · USER QUESTION:** `\"How long do I have to return something?\"`\n- **2 · EMBED THE QUESTION:** Turn the question into a 384-number vector via `model.encode(question)`. We can't show 384 numbers, but think of it as the question's \"coordinates\".\n- **3 · SEARCH THE VECTOR DB:** `db.similarity_search(query, k=3)` → finds the 3 nearest chunks: refunds within 30 days... · shipping is free above ₹999 · corporate orders contact sales@\n- **4 · STUFF INTO THE PROMPT:** The retrieved chunks become `{context}` in our prompt template. Question goes into `{question}`. One single string is sent to the LLM.\n- **5 · LLM ANSWERS FROM CONTEXT:** GPT-4o-mini reads the prompt and replies: *\"You can return items within 30 days of purchase.\"* ✅ Pulled from the chunk, not from memory.\n\n✓ RAG complete · same loop runs every question."
+    },
+    {
+      "section": "20 Make it better: rerank + hybrid search",
+      "after": "query: \"how do I return a defective product?\"",
+      "md": "Press *Run* to see the cross-encoder rerank.\n\n**Stage 1 · before rerank**\n\n1. Our shipping is fast and reliable for all returns. — 0.78\n2. Refund policy: items can be returned within 30 days. — 0.74\n3. Return shipping labels are emailed after request. — 0.71\n4. For damaged or defective items, replacements are sent free of cost. — 0.69\n5. Our return desk is at the warehouse in Pune. — 0.66\n\n**Stage 2 · after cross-encoder rerank**\n\n1. For damaged or defective items, replacements are sent free of cost. — 0.94\n2. Refund policy: items can be returned within 30 days. — 0.88\n3. Return shipping labels are emailed after request. — 0.81\n4. Our return desk is at the warehouse in Pune. — 0.62\n5. Our shipping is fast and reliable for all returns. — 0.45"
+    },
+    {
+      "section": "20 Make it better: rerank + hybrid search",
+      "after": "same query, three rankings",
+      "md": "press ▶ Compare\n\n**Document set**\n\n1. Adidas Ultraboost sneakers · Marathon running shoes\n2. Nike Air Zoom Pegasus trainers\n3. Puma casual footwear for everyday wear\n4. Asics Gel-Kayano stability trainers\n5. Reebok CrossFit gym shoes\n6. Woodland leather trekking boots\n7. Bata kids school shoes"
+    },
+    {
+      "section": "21 Mini-Project: Chat with your PDF",
+      "after": "",
+      "md": "##### Live sim · chat with a document\n\nDocument names: 📋 HR Policy · 💰 TCS Q3 Earnings · 📜 Indian Constitution (Part III)\n\nOn load: Indexed \"<document name>\" — 1 page, ~8 chunks. Ask me anything!\n\n**📋 HR Policy · preview**\n\n```text\nAnnual leave: 22 days/year for full-time employees, accrued monthly.\nSick leave: 12 days/year, no carry-forward.\nWork from home: up to 2 days per week with manager approval.\nMaternity leave: 26 weeks paid as per Indian law.\nPaternity leave: 10 working days.\nReimbursements: internet ₹1500/month, mobile ₹800/month.\nNotice period: 60 days for senior roles, 30 days for others.\nProbation: 6 months. Probation extension requires HR approval.\n```\n\n**Try:** How many leaves do I get? · Can I work from home? · What is the notice period? · What is the maternity policy?\n\n**Bot replies**\n\n- Full-time employees get 22 days of annual leave (accrued monthly) plus 12 days of sick leave per year. Sources: page 1.\n- Yes — up to 2 days per week with your manager's approval. Sources: page 1.\n- 26 weeks of paid maternity leave, in line with Indian law. Sources: page 1.\n- 10 working days of paternity leave. Sources: page 1.\n- Notice period is 60 days for senior roles, 30 days for others. Sources: page 1.\n- Internet: ₹1500/month. Mobile: ₹800/month. Sources: page 1.\n- Internet reimbursement is ₹1500/month. Sources: page 1.\n- Probation period is 6 months. Extensions require HR approval. Sources: page 1.\n\n**💰 TCS Q3 Earnings · preview**\n\n```text\nRevenue: ₹62,613 cr, up 4.0% YoY in constant currency.\nOperating margin: 24.6%, up 50 bps QoQ.\nNet profit: ₹12,380 cr.\nTCV (Total Contract Value): $13.2 bn, highest in 7 quarters.\nHeadcount: 612,724 employees, net addition of 5,370 this quarter.\nAttrition: 13.0% (LTM), down from 13.3%.\nCash and equivalents: ₹58,200 cr.\nDividend: ₹76/share interim declared.\nBFSI segment grew 3.8%, retail 2.1%, manufacturing 5.9%.\n```\n\n**Try:** What was the revenue? · How was the operating margin? · What is the attrition rate? · How big is the latest TCV?\n\n**Bot replies**\n\n- Revenue was ₹62,613 cr, up 4.0% YoY in constant currency. Sources: page 1.\n- Operating margin was 24.6%, up 50 basis points quarter-on-quarter. Sources: page 1.\n- Net profit was ₹12,380 cr. Sources: page 1.\n- TCV (Total Contract Value) hit $13.2 bn — the highest in 7 quarters. Sources: page 1.\n- 612,724 employees, with a net addition of 5,370 this quarter. Sources: page 1.\n- Attrition (LTM) was 13.0%, down from 13.3%. Sources: page 1.\n- Interim dividend of ₹76 per share was declared. Sources: page 1.\n- BFSI segment grew 3.8% this quarter. Sources: page 1.\n\n**📜 Indian Constitution (Part III) · preview**\n\n```text\nArticle 14: Equality before law — the State shall not deny equality to any person.\nArticle 15: Prohibition of discrimination on grounds of religion, race, caste, sex or place of birth.\nArticle 19: Six fundamental freedoms — speech, assembly, association, movement, residence, profession.\nArticle 21: Right to life and personal liberty — no person shall be deprived except by procedure established by law.\nArticle 21A: Right to education for children aged 6-14.\nArticle 25: Freedom of conscience and free profession of religion.\nArticle 32: Right to constitutional remedies — Supreme Court can be approached for enforcement.\n```\n\n**Try:** What does Article 21 say? · Tell me about Article 19 · What is the right to education? · Which article covers religion?\n\n**Bot replies**\n\n- Article 14 guarantees equality before law — the State shall not deny equality to any person. Sources: page 1.\n- Article 15 prohibits discrimination on grounds of religion, race, caste, sex or place of birth. Sources: page 1.\n- Article 19 grants six fundamental freedoms: speech, assembly, association, movement, residence, and profession. Sources: page 1.\n- Article 21 protects the right to life and personal liberty — no person shall be deprived except by procedure established by law. Sources: page 1.\n- Article 32 is the right to constitutional remedies — citizens can approach the Supreme Court for enforcement of Fundamental Rights. Sources: page 1.\n- Article 21A guarantees the right to education for children aged 6 to 14. Sources: page 1.\n- Article 25 guarantees freedom of conscience and free profession of religion. Article 15 prohibits discrimination on grounds of religion. Sources: page 1.\n- Article 19 grants freedom of speech as one of six fundamental freedoms. Sources: page 1.\n\n**Not in the document:** I couldn't find that in the document. 🤷 (This is RAG *refusing to hallucinate* — exactly what we want.)"
+    }
+  ],
+  "glossary": [],
+  "skipped": [
+    {
+      "text": "cat sleeping couch|kitten napping sofa",
+      "reason": "lookup key for the similarity table (code only)"
+    },
+    {
+      "text": "cat sleeping couch|dog running park",
+      "reason": "lookup key for the similarity table (code only)"
+    },
+    {
+      "text": "cat sleeping couch|stock market crash",
+      "reason": "lookup key for the similarity table (code only)"
+    },
+    {
+      "text": "love programming|i write software",
+      "reason": "lookup key for the similarity table (code only)"
+    },
+    {
+      "text": "flight to mumbai|plane to bombay",
+      "reason": "lookup key for the similarity table (code only)"
+    },
+    {
+      "text": "how to fix bug|debugging tips",
+      "reason": "lookup key for the similarity table (code only)"
+    },
+    {
+      "text": "same city, different names",
+      "reason": "preset button label"
+    }
+  ]
+}

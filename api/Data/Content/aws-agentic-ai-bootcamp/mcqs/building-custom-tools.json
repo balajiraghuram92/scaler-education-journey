@@ -1,0 +1,124 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q08",
+      "questionText": "The agent answered \"Do we have PROD-456 available?\" correctly, but the docstring never says \"available\". Why?",
+      "explanation": "That is intent recognition and parameter extraction. The model does it, so you do not write regex or phrase lists.\n\n(A) The function never sees the question. Only the model reads the question, and it matches by meaning, not by keyword.\n\n(C) The docstring is fixed text in your code. Strands does not change it for each question.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The function scans the question for the exact word \"available\"",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model matches the meaning of the question to the docstring, \"Check if a product is in stock\", and pulls out PROD-456",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Strands copies every question into the docstring before the call",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q09",
+      "questionText": "You later replace the `inventory` dictionary with a real database query. What changes for the agent?",
+      "explanation": "The model never sees the body. Only the code inside the function changes, which is why the tool is easy to swap out.\n\n(B) The model only needs the name, the docstring and the parameters, and those stay the same.\n\n(C) Tools can query databases. The agent keeps calling check_inventory as before.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing else: the function body is private, so the model still sees the same name, docstring and parameters",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It needs a new tool name and a new docstring for every question",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The agent stops using the tool, because databases cannot be called from tools",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q10",
+      "questionText": "In the class-based version, when is the single database connection opened?",
+      "explanation": "The constructor runs once, opens the connection and stores it in `self.db`. Every tool method then reuses it.\n\n(A) That is the problem the class removes. The naive tools opened one connection per call.\n\n(C) The tools read and update the inventory table, so they do need a connection.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Every time a tool method is called",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Once, in `__init__`, when you create `InventoryTools()`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Never: the tools use no database",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q11",
+      "questionText": "Why does `InventoryTools` create a `threading.Lock`?",
+      "explanation": "Without the lock, two threads could use one connection at the same time. The lock makes each tool wait its turn.\n\n(A) A lock controls access to a shared resource. It does not encrypt anything.\n\n(B) The lock lives inside the code that runs a tool. It has no effect on how often the model chooses to call a tool.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It encrypts the connection to the database",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It stops the model from calling a tool more than once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Strands may run several tool calls on different threads at once, and the lock makes them take turns on the shared connection",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-giving-agents-tools-q12",
+      "questionText": "In the async tool, what does `await asyncio.sleep(2)` do?",
+      "explanation": "`await` lets the event loop switch to other work during the wait. That is how the three checks overlap.\n\n(B) Sleeping adds waiting time. It is only a stand-in for a slow API.\n\n(C) Sleep has no effect on whether the model calls the tool. It only pauses this one call.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It stands in for a 2 second API call, and while it waits the other tool calls can run",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It makes the tool run twice as fast",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It stops the agent from calling the tool again",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}
