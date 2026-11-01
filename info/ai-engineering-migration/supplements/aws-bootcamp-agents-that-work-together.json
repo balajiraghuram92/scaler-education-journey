@@ -1,0 +1,285 @@
+{
+  "page": "AWS-Bootcamp/agents-that-work-together/index.html",
+  "inserts": [
+    {
+      "section": "4.1 When one agent isn't enough",
+      "after": "Context the busiest agent carries",
+      "md": "> **One agent, six hats.** Everything runs one after another, the context fills with research notes, prices, spec, code and slides, and quality drops as it loses focus. If the security review finds a problem, you're searching one huge transcript for the cause.\n\n> **Specialists in parallel where possible.** Research and pricing run together; the deck is built while the code is written. Dependencies still apply (no spec without research, no review without code), so it isn't 6× faster, but each agent stays focused and a failure points to one agent."
+    },
+    {
+      "section": "4.3 Lab: the supervisor–worker pattern",
+      "after": "on Add a regulatory agent",
+      "md": "> **Raw workers, no supervisor:** “So… should I invest or not?” 3 correct answers, no synthesis, no recommendation.\n\n> **sentiment_agent:** Mixed sentiment. Retail investors bullish; institutions cautious; charging infrastructure is a common worry.\n\n> **Supervisor:** Needs news, financials and sentiment. Calling 3 workers in one turn.\n\n> **Tool calls:** news_agent · financial_agent · sentiment_agent (run concurrently)\n\n> **Supervisor, final answer:** Growth is real, but valuations are high and some newer makers are struggling. Established manufacturers look steadier. High risk tolerance: the sector looks promising. Prefer stability: wait for valuations to settle. (Educational analysis, not financial advice.) With the regulatory agent ticked, the answer also says: “Incentive rules are shifting, which adds uncertainty.”\n\n> **regulatory_agent** (when the regulatory agent is added): EV incentives continue in several markets, but subsidy rules are being revised; check the rules where you invest.\n\n> Adding the regulatory agent changed one line: the supervisor's tool list. The other workers didn't change at all."
+    },
+    {
+      "section": "4.3 Lab: the supervisor–worker pattern",
+      "after": "Notice the three tool calls. Claude usually asks for all three workers in a single turn, and Strands runs tool calls from the same turn **concurrently** by default, so the three workers really do research in parallel. Your run will quote real, current figures from the live searches.",
+      "md": "##### EV investment: a balanced view\n\n**News:** large automakers keep expanding EV and battery capacity; some newer EV makers face production delays.\n\n**Financials:** sector revenue is growing, but valuations of pure-play EV makers are high and several are not yet profitable.\n\n**Sentiment:** retail investors are mostly bullish; institutional investors are cautious about valuations.\n\n**Recommendation:** established manufacturers look steadier than newer entrants. With a high risk tolerance the sector looks promising; if you prefer stability, wait for valuations to normalise.\n\n*This is educational analysis, not financial advice.*"
+    },
+    {
+      "section": "4.4 Lab: make agents reusable with \"agent as tool\"",
+      "after": "Pick a question.",
+      "md": "| Tutor | Description |\n| --- | --- |\n| `math_tutor` | Solves mathematical equations and explains math concepts step by step |\n| `writing_coach` | Helps with writing, grammar, and essay structure |\n| `science_helper` | Explains scientific concepts and principles in simple terms |\n| `history_tutor` | Explains historical events, causes and consequences |\n\n- **Math** (`math_tutor`): “Can you help me solve x² + 5x + 6 = 0?” **Tutor:** Factor it: (x + 2)(x + 3) = 0, so x = −2 or x = −3.\n- **Writing** (`writing_coach`): “How do I write a strong thesis statement for my essay about climate change?” **Tutor:** Make one specific, arguable claim and preview your main reasons in a single sentence.\n- **Science** (`science_helper`): “Why does ice float on water?” **Tutor:** Ice is less dense than liquid water: its molecules lock into an open crystal structure.\n- **History** (`history_tutor`): “Why did the Mughal Empire decline?” **Tutor:** Weak successors after Aurangzeb, costly wars, rising regional powers, and the growing strength of European trading companies.\n\n> **Teacher:** reads the three descriptions; none covers history. Its prompt says *never solve problems yourself*, so it replies: “I don't have a history specialist available right now, but I can help with math, writing or science.”\n> Tick the checkbox to register history_tutor. No routing code changes.\n\n> **Teacher** matches the question to `<tutor>`'s description and calls it: `Tool #1: <tutor>`. **Tutor:** <answer>. **Teacher:** presents it in a friendly way."
+    },
+    {
+      "section": "4.5 How data flows through a team of agents",
+      "after": "Pick step 1.",
+      "md": "- **Step 2:** The **router** decides it needs specs, prices and reviews, and rephrases for each: the specs agent gets “What CPU and GPU are needed for 4K editing?”, the price agent “Find laptops under ₹1,80,000 with these specs”.\n- **Step 3:** All three specialists work **at the same time**. Each keeps its own memory of the conversation.\n- **Step 4:** The price agent found one at ₹1,65,000, but the specs agent says it lacks RAM for 4K. They negotiate: “Can we stretch to ₹1,90,000?”\n- **Step 5:** The **aggregator** collects: 32 GB RAM and a recent dedicated GPU needed; three matches at ₹1,72,000, ₹1,79,000 and ₹1,86,000; the ₹1,79,000 model rated 4.5 stars for rendering.\n- **Step 6:** “I recommend Laptop B at ₹1,79,000: right specs, within budget, praised for rendering speed.” One answer, three specialists behind it."
+    },
+    {
+      "section": "4.6 How agents talk to each other",
+      "after": "Parallel",
+      "md": "> **Sequential: <sum> min. Parallel: <slowest> min** (the slowest agent). Saved <difference> min, <percent>% faster, because nobody waits for anybody.\n\n> **Sequential: <sum> min. Parallel: impossible here.** B needs A's output and C needs B's, so the work is forced into a sequence. Untick the dependency to see parallel speed-up."
+    },
+    {
+      "section": "4.6 How agents talk to each other",
+      "after": "Majority vote is wrong",
+      "md": "> With one agent there's nothing to outvote: the system is exactly as reliable as that agent.\n\n> **No improvement.** Agents with the same model, data and reasoning make the same mistakes at the same time, so they outvote nothing. Diversity is what makes voting work.\n\n> **<ratio>× fewer wrong decisions.** The vote is only wrong when at least <k> of <n> agents are wrong on the same item, which is much rarer than one being wrong. (Careful: if each agent is wrong half the time or more, voting makes things worse.)"
+    },
+    {
+      "section": "4.6 How agents talk to each other",
+      "after": "10. **Security:** Secure now. **Performance:** Meets latency requirements. **Developer:** Code is ready.",
+      "md": "Round complete: secure, fast and memory-safe, because each agent pushed back until its constraint was met."
+    },
+    {
+      "section": "4.7 Common orchestration patterns",
+      "after": "Last 8 turns: unique agents",
+      "md": "**Good run:**\n\n1. **level_designer:** Drafted 3 zones: docking bay (easy), reactor core (medium), command deck (hard). Handoff to `narrative_designer`: \"Add story to these zones\"\n2. **narrative_designer:** Station abandoned after a reactor leak; crew logs scattered as environmental storytelling. Handoff to `difficulty_balancer`: \"Check pacing across zones\"\n3. **difficulty_balancer:** Command deck patrols too sparse for mid-game; added two patrol routes. Handoff to `game_designer`: \"Playtest, please\"\n4. **game_designer:** Players get lost in the reactor core: not enough visual cues. Handoff to `level_designer`: \"Add landmarks in zone 2\"\n5. **level_designer:** Added bright signage and landmarks in zone 2. Handoff to `narrative_designer`: \"Does the new lighting fit the story?\"\n6. **narrative_designer:** Bright signs break the abandoned mood. Use flickering emergency lights instead. Handoff to `level_designer`: \"Swap to dim emergency lights\"\n7. **level_designer:** Replaced with dim emergency lights and floor markings. Handoff to `difficulty_balancer`: \"Re-check difficulty with clearer navigation\"\n8. **difficulty_balancer:** Now too easy; added a roaming drone in zone 2 without blocking the cues. Handoff to `game_designer`: \"Final review\"\n9. **game_designer:** Fun, readable, good difficulty curve. Final summary written. The log then shows: node=`<game_designer>` | no handoff occurred, marking swarm as complete. Status.COMPLETED after 9 turns. Nobody scripted this order.\n\n**Ping-pong run:** two turns alternate until the detector stops them. `level_designer` makes zone 2 brighter (*Made zone 2 brighter so players don't get lost.*) and hands off with \"Check lighting vs story\"; `narrative_designer` replies (*Too bright for an abandoned station. Make it darker.*) and hands off with \"Darken zone 2\". After eight turns the log shows: **Stopped:** Repetitive handoff: 2 unique nodes out of 8 recent iterations. The detection window caught the ping-pong."
+    },
+    {
+      "section": "4.7 Common orchestration patterns",
+      "after": "Set up an order, then process it. The path lights up in the diagram above.",
+      "md": "> `risk_analysis` ends with `RISK_CATEGORY: <category>` (<reason>).\n> `inventory_check` ends with `STOCK_STATUS: <IN_STOCK or OUT_OF_STOCK>`. Limited edition and pre-order items are out of stock in this lab.\n> **Path:** <nodes in order, joined with →>\n> Run it again and you get exactly the same path: the routing is code, not a judgement call.\n\nPossible reasons shown in the output:\n\n- Brand-new account with a large order, or shipping country differs from billing (both marked SUSPICIOUS)\n- Order over $1,000 (HIGH_VALUE)\n- Regular order, no red flags (LOW_RISK)\n- Also over $1,000, but SUSPICIOUS wins (when an order is both suspicious and over $1,000)"
+    },
+    {
+      "section": "4.8 When multi-agent is not the answer",
+      "after": "Answer the questions above.",
+      "md": "**1. Can one agent with good tools already do the job well?** Yes / No / Haven't tried yet\n\n**2. Do parts of the work need genuinely different expertise, prompts or tools?** Yes / No\n\n**3. Must certain steps always happen in a fixed, auditable order?** Yes / No\n\n**4. Can you predict the path the work will take?** Yes / No\n\n**5. Do you need one combined answer from several independent specialists?** Yes / No\n\n- **Suggestion: One agent.** Keep it simple. One agent with good tools is faster, cheaper and easier to debug. (Question 1: Yes)\n- **Suggestion: Try one agent first.** Give one agent the right tools and test it. Add agents only when you hit a real limit. (Question 1: Haven't tried yet)\n- **Suggestion: Still one agent.** If the expertise isn't really different, fix the single agent instead: better tools, a clearer prompt, or context management (Section 3). (Questions 1 and 2: No)\n- **Suggestion: Graph.** Routing lives in code, so every order of steps is guaranteed and auditable. (Question 1: No, question 2: Yes, question 3: Yes)\n- **Suggestion: Swarm.** Agents hand work to each other as issues appear. Set handoff limits and ping-pong detection. (Question 1: No, question 2: Yes, question 3: No, question 4: No)\n- **Suggestion: Supervisor–worker.** Fan out to specialists in parallel, then synthesise one answer. (Question 4: Yes, question 5: Yes)\n- **Suggestion: Agent as tool.** Reusable specialists that an orchestrator calls when needed, while it stays in control. (Question 5: No)"
+    },
+    {
+      "section": "4.9 Recap and self-check",
+      "after": "Ten quick questions. Pick an answer to see why it's right or wrong.",
+      "md": "**1. Which is NOT one of the warning signs that one agent is carrying too much?**\n\n- Context overload\n- Mediocre results across many tasks\n- It answers in under a second\n- Hard to tell which part failed\n\n> **Answer:** It answers in under a second. Speed isn't a warning sign. Context overload, jack-of-all-trades results, no parallelism and hard debugging are.\n\n**2. Three parallel workers each returned a correct answer, but the investor still asked “So, should I invest?” What was missing?**\n\n- More workers\n- A supervisor to synthesise one recommendation\n- A faster model\n- Sequential execution\n\n> **Answer:** A supervisor to synthesise one recommendation. The workers did their jobs; nobody combined their findings. That's the supervisor's job.\n\n**3. In supervisor–worker, how does the sentiment agent share a finding with the financial agent?**\n\n- Through the supervisor\n- It calls the financial agent directly\n- Through a shared database\n- It can't share anything\n\n> **Answer:** Through the supervisor. Workers never talk to each other; all communication goes through the supervisor. That's also one of the pattern's trade-offs.\n\n**4. What do an agent's name and description become when you use it as a tool?**\n\n- Its system prompt\n- Log labels only\n- Nothing; they're ignored\n- The tool name and the tool description the caller reads\n\n> **Answer:** The tool name and the tool description the caller reads. The caller picks tools by reading names and descriptions, so a clear description is how the teacher knows when to call math_tutor.\n\n**5. You want to add a history tutor to the teacher. What do you change?**\n\n- Rewrite the routing if-statements\n- Retrain the model\n- Create a history_tutor agent and add it to the teacher's tools\n- Change every other tutor's prompt\n\n> **Answer:** Create a history_tutor agent and add it to the teacher's tools. No routing code exists. The teacher discovers the new tool from its description.\n\n**6. Agents take 10, 15 and 5 minutes, and none depends on another. How long does parallel execution take?**\n\n- 30 minutes\n- 15 minutes\n- 10 minutes\n- 5 minutes\n\n> **Answer:** 15 minutes. Parallel time is the slowest agent: 15 minutes, instead of the 30-minute sum.\n\n**7. Five moderation agents use the same model, same data and same prompt. Does majority voting cut errors much?**\n\n- Yes, by about 40×\n- Yes, by about 5×\n- Barely: they tend to make the same mistakes together\n- Voting needs at least seven agents\n\n> **Answer:** Barely: they tend to make the same mistakes together. Voting only helps when mistakes are independent. Diversity of models, data and approaches is essential.\n\n**8. How does a Strands swarm know it is finished?**\n\n- When an agent completes its turn without handing off\n- After exactly 20 handoffs\n- When the supervisor says so\n- When every agent has run once\n\n> **Answer:** When an agent completes its turn without handing off. No handoff means completion. max_handoffs and the other limits are safety nets, not the normal ending.\n\n**9. Two swarm agents keep passing the task back and forth. Which settings stop that?**\n\n- max_tokens and temperature\n- entry_point and node_timeout\n- callback_handler=None\n- repetitive_handoff_detection_window and repetitive_handoff_min_unique_agents\n\n> **Answer:** repetitive_handoff_detection_window and repetitive_handoff_min_unique_agents. The swarm looks at the last N turns (8 in the lab) and stops if fewer than M different agents (3) appear.\n\n**10. Your payment processor asks you to prove that high-value orders always get reviewed. Which pattern makes that easiest?**\n\n- Swarm\n- Supervisor–worker\n- Graph\n- A single agent\n\n> **Answer:** Graph. In a graph the routing is explicit in code (conditional edges), so you can point at the exact path every high-value order takes."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "Context rot",
+      "definition": "The drop in accuracy when a model's context is stuffed with too much or irrelevant material: it loses focus, misses details and makes mistakes."
+    },
+    {
+      "term": "Multi-agent pattern",
+      "definition": "A reusable way of organising several AI agents to work towards one goal: who talks to whom, who decides the order, and how results are combined."
+    },
+    {
+      "term": "Supervisor–worker",
+      "definition": "A pattern where one coordinating agent delegates subtasks to specialist worker agents and combines their results. Workers only talk to the supervisor."
+    },
+    {
+      "term": "Concurrently",
+      "definition": "At the same time. Strands runs the tool calls a model requests in one turn concurrently by default, so independent workers don't wait for each other."
+    },
+    {
+      "term": "Bottleneck",
+      "definition": "The narrowest point in a system, where work queues up because everything must pass through it."
+    },
+    {
+      "term": "Single point of failure",
+      "definition": "One component whose failure stops the whole system."
+    },
+    {
+      "term": "Horizontal scaling",
+      "definition": "Handling more load by running more copies of a component side by side, rather than making one copy bigger."
+    },
+    {
+      "term": "Prompt caching",
+      "definition": "Reusing the processed form of a long, repeated prompt prefix (such as a big system prompt) so later calls are faster and cheaper."
+    },
+    {
+      "term": "Failover",
+      "definition": "Automatically switching to a standby copy when the main one fails."
+    },
+    {
+      "term": "Agent as tool",
+      "definition": "Wrapping an agent so other agents can call it like a normal tool. Its name and description tell callers when to use it."
+    },
+    {
+      "term": "Orchestrator",
+      "definition": "The agent (or code) that decides which other agents or tools to call, in what order, and combines the results."
+    },
+    {
+      "term": "Sequential communication",
+      "definition": "Agents work one after another; each passes its output to the next. Total time is the sum of the steps."
+    },
+    {
+      "term": "Parallel communication",
+      "definition": "Several agents work at the same time on independent parts of a problem; results are combined at the end. Total time is the slowest step."
+    },
+    {
+      "term": "Collaborative communication",
+      "definition": "Agents talk back and forth, critique each other and negotiate until a solution satisfies all their constraints."
+    },
+    {
+      "term": "Rate limit",
+      "definition": "A cap on how many requests (or tokens) you may send to an API per minute. Going over it gets your calls throttled."
+    },
+    {
+      "term": "Swarm",
+      "definition": "A pattern with no central coordinator: agents hand control to each other through handoffs, sharing one context, until one finishes without handing off."
+    },
+    {
+      "term": "Handoff",
+      "definition": "One agent explicitly passing control of the task to another agent, with a message about what it needs."
+    },
+    {
+      "term": "Blockout",
+      "definition": "In game design, a rough 3D draft of a level built from simple shapes, used to test layout before any detailed art."
+    },
+    {
+      "term": "Ping-pong (in a swarm)",
+      "definition": "Two agents passing the same task back and forth without making progress. Strands detects it by counting unique agents in recent turns."
+    },
+    {
+      "term": "Graph pattern",
+      "definition": "A pattern where you define, in code, the nodes (steps) and edges (allowed paths with conditions) that work must follow."
+    },
+    {
+      "term": "Directed graph",
+      "definition": "A set of nodes connected by arrows that point one way, from one node to the next."
+    },
+    {
+      "term": "DAG (directed acyclic graph)",
+      "definition": "A directed graph with no loops: arrows only point forward, so every run is guaranteed to reach an end."
+    },
+    {
+      "term": "Edge condition",
+      "definition": "A small function attached to a graph edge that returns True or False. The edge is followed only when it returns True."
+    },
+    {
+      "term": "Regular expression (regex)",
+      "definition": "A compact pattern language for finding text, such as \"the word after RISK_CATEGORY:\"."
+    }
+  ],
+  "skipped": [
+    {
+      "text": ")|(^| |&& |\\| )(aws|python3?|pip|cd|export|source|unzip|jupyter)\\b/g;\n  else re=/(#[^ ]*)/g;\n  let out=\"\",last=0,m;\n  while((m=re.exec(src))){\n    out+=esc(src.slice(last,m.index));\n    if(lang===\"py\"){\n      if(m[1])out+=",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ";}\n    last=re.lastIndex;\n  }\n  return out+esc(src.slice(last));\n}\n$$(\"pre code[class^=",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": "s description and calls it: <span class=",
+      "reason": "fragment of a script string split by code; the full sentence is already in the insert above"
+    },
+    {
+      "text": ");if(!root)return;\n  function draw(){\n    const a=+$(",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ").textContent=c;\n    const seq=a+b+c,par=dep?seq:Math.max(a,b,c),tot=Math.max(seq,10);\n    gantt($(",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ";\n  function draw(){\n    const p=+$(",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ").textContent=fmt(maj);\n    const ratio=maj>0?p/maj:Infinity;\n    let msg;\n    if(n===1)msg=",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": "s nothing to outvote: the system is exactly as reliable as that agent.\";\n    else if(corr)msg=\"<b style=",
+      "reason": "fragment of a script string split by code; the full sentence is already in the insert above"
+    },
+    {
+      "text": "Agents with the same model, data and reasoning make the same mistakes at the same time, so they outvote nothing. Diversity is what makes voting work.\";\n    else msg=\"<b style=",
+      "reason": "fragment of a script string split by code; the full sentence is already in the insert above"
+    },
+    {
+      "text": "re secure and fast.\",{}],\n    [\"Developer\",\"Good idea. Let me refactor.\",{sec:[\"Security: fix in progress\",\"\"],perf:[\"Performance: fix in progress\",\"\"]}],\n    [\"Performance\",\"Wait, you",
+      "reason": "duplicate of the visible conversation in the \"Read the whole conversation\" block"
+    },
+    {
+      "text": ",{}]\n  ];\n  let i=0;const ul=$(",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": "};\n  function setS(id,v){const el=$(",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ");if(!root)return;\n  const GOOD=[\n    [",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ",null,null]\n  ];\n  const PONG=[];for(let k=0;k<10;k++){PONG.push(k%2===0?[",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ";\n    const win=h.slice(-8),u=new Set(win).size;$(",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ");}\n  function next(){\n    if(done)return;const S=mode===",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ">node= '+step[0]+'  | no handoff occurred, marking swarm as complete",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": "Status.COMPLETED after '+n+' turns. Nobody scripted this order.');$(",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ",on));});}\n  function run(){\n    const a=+amt.value,it=item.value,isNew=nw.checked,mm=mis.checked;\n    const susp=mm||(isNew&&a>=500),high=a>1000;\n    const cat=susp?",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": ";\n  }\n  const P={1:[1500,",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": "];\n    else if(A[0]===1&&A[1]===0){\n      if(A[2]===null){o.textContent=",
+      "reason": "page JavaScript code captured by the checker (DOM, regex or simulator logic), not learner text"
+    },
+    {
+      "text": "t a warning sign. Context overload, jack-of-all-trades results, no parallelism and hard debugging are.\"],\n    [\"Three parallel workers each returned a correct answer, but the investor still asked “So, should I invest?” What was missing?\",[\"More workers\",\"A supervisor to synthesise one recommendation\",\"A faster model\",\"Sequential execution\"],1,\"The workers did their jobs; nobody combined their findings. That",
+      "reason": "fragment of a script string split by code; the full sentence is already in the insert above"
+    },
+    {
+      "text": "s job.\"],\n    [\"In supervisor–worker, how does the sentiment agent share a finding with the financial agent?\",[\"Through the supervisor\",\"It calls the financial agent directly\",\"Through a shared database\",\"It can",
+      "reason": "fragment of a script string split by code; the full sentence is already in the insert above"
+    },
+    {
+      "text": "Entry point: level_designer. Press Next turn.",
+      "reason": "UI instruction for the swarm widget"
+    },
+    {
+      "text": "Keep going: answer question 3.",
+      "reason": "UI prompt that appears while the pattern picker is incomplete"
+    },
+    {
+      "text": "Keep going: answer question 4.",
+      "reason": "UI prompt that appears while the pattern picker is incomplete"
+    },
+    {
+      "text": "Keep going: answer question 5.",
+      "reason": "UI prompt that appears while the pattern picker is incomplete"
+    },
+    {
+      "text": "Copied",
+      "reason": "copy-button feedback label"
+    },
+    {
+      "text": "Security: ✓ secure",
+      "reason": "live status-bar label in the code review widget; state is shown by the transcript"
+    },
+    {
+      "text": "Memory use: ✓ streaming",
+      "reason": "live status-bar label in the code review widget; state is shown by the transcript"
+    }
+  ]
+}

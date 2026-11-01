@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q01",
+      "questionText": "An agent's context window holds 10 messages, and the chat grows to 12. What happens to the first two?",
+      "explanation": "A rolling buffer is a fixed amount of space that holds only the most recent messages. The oldest fall out as new ones arrive, which is why long chats can lose early details.\n\n(A) A plain rolling buffer does not compress anything. It has a fixed amount of space, so the oldest messages are pushed out.\n\n(B) Short-term memory does not copy messages into long-term memory on its own. Whatever is pushed out of the window is no longer in short-term memory.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The agent compresses them into one saved record, so nothing is lost",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They move to long-term memory automatically, and the agent can still see them",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "They are pushed out of the window, and unless something else saved them, the agent can no longer see them",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q02",
+      "questionText": "A customer's dietary needs must still be known when they start a new chat next week. Which design fits?",
+      "explanation": "Long-term memory persists across sessions. Keyed to the customer, the stored facts can be looked up when the next chat begins.\n\n(A) The window holds only the current session. Once that chat ends, the content is gone, so next week's chat starts with nothing.\n\n(C) Memory works by storing facts and retrieving them later. It does not change the model's own knowledge for one customer.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Keep the needs in the context window, since the model reads that window on every turn",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Save the needs to long-term memory under the customer's ID, and retrieve them when a new session starts",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Retrain the model on that customer's chats so it learns the needs",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

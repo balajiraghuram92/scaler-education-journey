@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q09",
+      "questionText": "A long coding chat holds a key fact: \"step 4 is done, step 5 is pending, the bug is in the date parser\". The chat keeps growing. Which approach keeps that state safe?",
+      "explanation": "Notes live outside the context window, so the state survives even when old messages slide out.\n\n(A) A sliding window drops the oldest messages first. A fact found an hour ago can be pushed out before the task is done.\n\n(C) Stuffing in more text leads to context rot, where the model becomes less focused and misses details. Keeping state in a file is the approach the page recommends.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A sliding window alone, because the newest messages always hold the state",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Structured note-taking: write the state to a file such as `NOTES.md`, outside the window, and read it back later",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A bigger context window with no trimming, so nothing is ever pushed out",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q10",
+      "questionText": "The page warns that a window stuffed with a whole textbook can hurt the answers. What is that problem called?",
+      "explanation": "Too much text dilutes the model's focus. The page calls this context rot, so curating what goes into the window matters more than its size.\n\n(B) Models do not need a warm-up. The problem is what the window contains, not any delay before it starts.\n\n(C) Tokenisation is not the issue described here. The issue is focus: too much context hides the details that matter.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Context rot: the model becomes less focused, misses details and makes more mistakes",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Cold start: the model needs a warm-up before it can read long text",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Tokenisation drift: the same text is split into different tokens each time",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q11",
+      "questionText": "A team creates an AgentCore Memory resource with no strategies. Later, nothing from earlier sessions is found. What is the cause?",
+      "explanation": "Long-term memory comes only from configured strategies. A resource without one keeps short-term memory only, so its sessions stay separate.\n\n(A) The checkpointer does not switch off. The real gap is that no long-term memory is extracted without a strategy.\n\n(B) Namespaces only file long-term records. Without a strategy, no long-term records are extracted to file in the first place.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The checkpointer switches off whenever a session ends",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Namespaces must be created first, and this team skipped them",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "No strategy is configured, so no long-term memory is extracted and only short-term memory is kept",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q12",
+      "questionText": "A LangGraph agent remembers the first calculations in `session-1`, but not in `session-2`. The `actor_id` is the same in both. What explains this?",
+      "explanation": "Short-term memory is scoped to the session. Same actor, new thread means the checkpointer has nothing to load.\n\n(A) The actor ID is the same in both sessions. The difference is the `thread_id`, which maps to the AgentCore session.\n\n(C) The checkpointer saves state in AgentCore Memory, not in the notebook folder. The session is chosen by `thread_id`.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The actor ID changed, so AgentCore treats the second run as a different user",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`thread_id` maps to the AgentCore session, and `session-2` is a new session with no checkpoints yet",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The checkpointer saves to a file in the notebook folder, so a new session starts empty",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

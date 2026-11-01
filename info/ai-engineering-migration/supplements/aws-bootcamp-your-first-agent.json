@@ -1,0 +1,321 @@
+{
+  "page": "AWS-Bootcamp/your-first-agent/index.html",
+  "inserts": [
+    {
+      "section": "1.1 RAG: an open book for the model",
+      "after": "What the model says",
+      "md": "**If you pick \"Plain LLM\", the model says:** \"I don't have reliable information about the 2024 Nobel Prize in Physics. My training data may end before it was announced.\"\n\nHonest at best. At worst, a confident wrong guess.\n\n**If you pick \"LLM with RAG\", the prompt reads:**\n\n```text\nContext:\nThe Nobel Prize in Physics 2024 was awarded to\nJohn J. Hopfield and Geoffrey Hinton \"for\nfoundational discoveries and inventions that\nenable machine learning with artificial neural\nnetworks.\"\n\nQuestion:\nWho won the 2024 Nobel Prize in Physics?\n```\n\n**If you pick \"LLM with RAG\", the model says:** \"John J. Hopfield and Geoffrey Hinton won the 2024 Nobel Prize in Physics, for foundational discoveries that enable machine learning with artificial neural networks.\"\n\nCorrect, because the fact was in the prompt."
+    },
+    {
+      "section": "1.1 RAG: an open book for the model",
+      "after": "{{diagram:aws-bootcamp-your-first-agent-a-two-dimensional-map-of-sentences-grouped}}",
+      "md": "**If you pick \"Will rain stop the match?\":** Notice this question sits *between* the weather and cricket groups, so it pulls neighbours from both. Meaning isn't one topic."
+    },
+    {
+      "section": "1.1 RAG: an open book for the model",
+      "after": "This playground scores chunks by shared words, a toy stand-in for embeddings. Real embedding models match meaning, so they would also connect \"days off\" with \"paid leave\".",
+      "md": "**The handbook the playground searches:**\n\n- [1] Leave policy: Every full-time employee gets 24 days of paid leave per year. Up to 8 unused days carry forward to the next year.\n- [2] Sick leave: Employees get 12 days of sick leave each year. A doctor's note is needed for more than 2 days in a row.\n- [3] Work from home: Employees can work from home up to 2 days a week with their manager's approval.\n- [4] Travel policy: Book flights at least 14 days before travel. Economy class is required for flights under 6 hours.\n- [5] Travel allowance: On work trips, the daily meal allowance is Rs 1,500 in metro cities and Rs 1,000 elsewhere.\n- [6] Laptops: New joiners receive a laptop on day one. Report a lost or damaged laptop to IT within 24 hours.\n- [7] Parental leave: Birthing parents get 26 weeks of paid leave. Other parents get 4 weeks of paid leave.\n- [8] Holidays: The office is closed on 12 public holidays a year. The list is shared every December.\n\n**When a preset's answer chunk is missed:** \"I couldn't find that in the handbook.\" The chunk that holds the answer wasn't retrieved. Raise k, or turn reranking off and on to see what changes.\n\n**Typed question, nothing relevant:** Nothing in the handbook matches well. A good RAG app answers \"I couldn't find that\" instead of guessing.\n\n**Typed question, chunks retrieved:** In a real system this prompt now goes to the LLM, which would answer mainly from the top-ranked chunk."
+    },
+    {
+      "section": "1.2 What is an AI agent?",
+      "after": "Colour key in the log: plan, act, observe and reason.",
+      "md": "**Watch an agent schedule a meeting, step by step:**\n\n- **Plan:** Goal: \"Set up a 45-minute design review with Priya, Arjun and Meera this week.\" I'll break it into six tasks.\n- **Act:** Calling the calendar API for Priya, Arjun and Meera.\n- **Observe:** All three are free on Thu 3:00 to 4:00 pm and Fri 11:00 am to 12:00 pm.\n- **Plan:** Choosing Thursday 3:00 pm, the earliest common slot.\n- **Act:** Room-booking API: 'Neem' room, Thu 3:00 to 3:45 pm. Booked.\n- **Act:** Sending calendar invites to all three.\n- **Observe:** Meera declined: \"Client call on Thursday afternoon.\"\n- **Plan:** Re-planning. Thursday no longer works, so I'll move to the next common slot and fix the room.\n- **Act:** Cancelled 'Neem' for Thursday. Booked 'Peepal' room, Fri 11:00 to 11:45 am.\n- **Act:** Sent the updated invite for Friday 11:00 am.\n- **Observe:** Priya, Arjun and Meera all accepted.\n- **Done:** Added the agenda link to the meeting. Goal achieved ✓\n\n**The plan as it grows:**\n\n1. Check everyone's calendars\n2. Find a common free slot\n3. Book a meeting room\n4. Send invites\n5. Follow up on replies\n6. Release Thursday's room (new)\n7. Re-book for Fri 11:00 am and re-invite (new)\n8. Update the meeting details"
+    },
+    {
+      "section": "1.3 The AWS agentic stack",
+      "after": "Pick a person above. The matching tier lights up in the diagram.",
+      "md": "**\"I run HR. I want AI to summarise policies today, no coding.\"**\n\n**Agentic applications.** A ready-made app such as Amazon Quick Suite can summarise policies and answer questions with almost no setup. No code needed, but also little control over how it works.\n\n**\"I'm a developer. I want to ship a custom agent fast.\"**\n\n**Managed solutions.** Use Amazon Bedrock for the model and guardrails, a framework like Strands for the agent, and Amazon Bedrock AgentCore to run it in production. This is exactly what this course teaches.\n\n**\"I'm an ML engineer. I must fine-tune a model and control the hosting.\"**\n\n**Do it yourself.** Fine-tune and host the model in Amazon SageMaker AI, on Trainium or Inferentia chips if you need them. You can still bring the result into Bedrock with Custom Model Import and use it as an agent's brain."
+    },
+    {
+      "section": "1.5 From one LLM to a team of agents",
+      "after": "How much can go wrong",
+      "md": "**Stage 1: LLM**\n\n- **What's new at this stage:** Talk to a model directly. One question, one answer, no tools and no outside data.\n- **Example:** Ask Claude on Amazon Bedrock to summarise an article.\n- **Where you meet it in this course:** `setup/check_setup.py` calls the model directly with `converse()`.\n- **How much can go wrong:** Low. The main risk is a wrong or made-up answer.\n\n**Stage 2: LLM + RAG**\n\n- **What's new at this stage:** Retrieval adds your own, up-to-date documents to every prompt.\n- **Example:** An HR chatbot that answers from the policy handbook.\n- **Where you meet it in this course:** The RAG ideas in this section; retrieval-based memory in Section 3.\n- **How much can go wrong:** Wrong chunks give wrong answers, and retrieval can leak documents a user shouldn't see.\n\n**Stage 3: Augmented LLM**\n\n- **What's new at this stage:** The model can call tools and use memory, not only read.\n- **Example:** Look up the live weather, or draft an email and actually send it.\n- **Where you meet it in this course:** `01_hello_agent.ipynb` steps 4 and 5: `current_time` and `calculator`.\n- **How much can go wrong:** Tools change things in the real world, so a bad decision now has side effects.\n\n**Stage 4: Agentic workflow**\n\n- **What's new at this stage:** The model plans several steps, picks a tool for each, and combines the results.\n- **Example:** Check flights, compare prices, ask your preference, book the ticket.\n- **Where you meet it in this course:** Section 2 (tool-heavy agents) and Section 4 (graph pattern).\n- **How much can go wrong:** Mistakes compound across steps; you need tracing to see which step went wrong.\n\n**Stage 5: Autonomous agent**\n\n- **What's new at this stage:** The agent pursues long-term goals with little human input and its own feedback loop.\n- **Example:** A market-watching agent that trades within strict risk limits.\n- **Where you meet it in this course:** Long-running agents on AgentCore Runtime (Section 6), with policy and guardrails (Section 7).\n- **How much can go wrong:** No human approves each action, so hard limits, policies and a kill switch are essential.\n\n**Stage 6: Multi-agent collaboration**\n\n- **What's new at this stage:** Several specialised agents communicate and coordinate towards a shared goal.\n- **Example:** Researcher, writer and editor agents producing one report.\n- **Where you meet it in this course:** Section 4 (supervisor, swarm, graph) and Section 5 (A2A travel agents).\n- **How much can go wrong:** Interactions are hard to predict; evaluation and observability across agents become critical."
+    },
+    {
+      "section": "1.5 From one LLM to a team of agents",
+      "after": "Agentic RAG",
+      "md": "**Question 1: \"What is our leave policy?\"**\n\nTraditional RAG:\n\n- **Act:** Retrieve: top chunks from the HR handbook (leave policy, sick leave).\n- **Act:** Add them to the prompt and call the LLM.\n- **Answer:** \"24 paid leave days a year; up to 8 carry forward.\" ✓\n\nAgentic RAG:\n\n- **Reason:** Reason: this is a policy question, so the handbook has it.\n- **Act:** Call the RAG tool: search the HR handbook for 'leave policy'.\n- **Observe:** Got the leave policy chunk.\n- **Answer:** \"24 paid leave days a year; up to 8 carry forward.\" ✓\n\n**Question 2: \"Should I carry an umbrella to office today?\"**\n\nTraditional RAG:\n\n- **Act:** Retrieve: closest handbook chunk is 'Work from home…' (nothing about weather).\n- **Act:** Add it to the prompt and call the LLM.\n- **Result:** \"The handbook doesn't mention umbrellas.\" ✗ Retrieval can't help with live data.\n\nAgentic RAG:\n\n- **Reason:** Reason: this needs today's weather, not the handbook. Skip RAG.\n- **Act:** Call the weather API for Bangalore.\n- **Observe:** 80% chance of rain after 4 pm.\n- **Answer:** \"Yes, take one. Rain is likely after 4 pm.\" ✓\n\n**Question 3: \"What's 18% GST on Rs 84,999, and can I claim it on a work trip?\"**\n\nTraditional RAG:\n\n- **Act:** Retrieve: 'Travel allowance' chunk (meals only).\n- **Act:** Add it to the prompt; the LLM must also do the maths in its head.\n- **Result:** \"GST is roughly Rs 15,300; claims are unclear.\" ✗ Approximate maths, half an answer.\n\nAgentic RAG:\n\n- **Reason:** Reason: two parts. Maths needs the calculator; the claim needs the handbook.\n- **Act:** Call calculator: 84999 * 0.18\n- **Observe:** 15299.82\n- **Act:** Call the RAG tool: travel expense rules.\n- **Observe:** Travel allowance covers meals only.\n- **Answer:** \"GST is Rs 15,299.82 (total Rs 1,00,298.82). It's not claimable: the travel allowance covers meals only.\" ✓"
+    },
+    {
+      "section": "1.6 Agent protocols: MCP and A2A",
+      "after": "5. 5 The agent answers The AI agents inside the host process all this combined information and fulfil the original request.",
+      "md": "**Each step of the stepper, with the messages on the wire:**\n\n**1. The request arrives.** The user's message goes to the MCP host, the AI app that runs our agents.\n\n```json\n{\n  \"role\": \"user\",\n  \"content\": \"Book a 5-day trip to Europe in January.\\n              We like warm weather.\"\n}\n```\n\n**2. The host works out what it needs.** It asks the LLM, which reasons: *warm in January means southern Europe or the Canary Islands; I need weather, then flights, then hotels.*\n\n```\n// the LLM plans these tool calls\n[\n  \"get_climate(month=\\\"January\\\", region=\\\"Europe\\\")\",\n  \"search_flights(origin=\\\"Bengaluru\\\", ...)\",\n  \"find_hotels(city=..., nights=5)\"\n]\n```\n\n**3. Clients call the servers.** Each MCP client sends a standard `tools/call` request to its server. (When they first connected, each client asked its server which tools it offers, using `tools/list`.)\n\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 7,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"search_flights\",\n    \"arguments\": {\n      \"origin\": \"Bengaluru\",\n      \"destination\": \"Tenerife\",\n      \"date\": \"2027-01-12\"\n    }\n  }\n}\n```\n\n**4. Servers fetch from their sources.** The flights server queries its database, the hotels server reads its files, the weather server calls a web API. Each returns a result in the same MCP shape.\n\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 7,\n  \"result\": {\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"BLR → MAD → TFE, 12 Jan, Rs 68,400\"\n    }]\n  }\n}\n```\n\n**5. The agent answers.** The host hands all results back to the LLM, which writes one complete plan for the user.\n\n```\n\"Go to Tenerife in Spain's Canary Islands:\n around 21 °C in January. Fly on 12 Jan\n via Madrid; 5 nights at a beachfront\n hotel. Shall I book it?\"\n```"
+    },
+    {
+      "section": "1.6 Agent protocols: MCP and A2A",
+      "after": "Pick a task. The client agent will scan each card's skills.",
+      "md": "**Task: \"Find flights from Bengaluru to Lisbon on 12 January\"**\n\nClient agent is reading agent cards…\n\nMatch: the task is about **flights**, and the **Flights Agent** lists a `search_flights` skill. Sending the task over A2A…\n\n**Flights Agent replied:** 2 options found. Cheapest: one stop via Dubai, Rs 71,200.\n\nThe client agent never saw how that agent works inside. It only read its card and spoke A2A.\n\n**Task: \"Find a 4-star hotel in Lisbon for 5 nights\"**\n\nMatch: the task is about **hotels**, and the **Hotel Agent** lists a `find_hotels` skill. Sending the task over A2A…\n\n**Hotel Agent replied:** 3 hotels found. Top pick: a riverside 4-star in Alfama, Rs 9,800 a night.\n\nThe client agent never saw how that agent works inside. It only read its card and spoke A2A.\n\n**Task: \"Is Lisbon warm in January?\"**\n\nMatch: the task is about **weather**, and the **Weather Agent** lists a `get_climate` skill. Sending the task over A2A…\n\n**Weather Agent replied:** Mild rather than warm: about 15 °C by day and 8 °C at night.\n\nThe client agent never saw how that agent works inside. It only read its card and spoke A2A."
+    },
+    {
+      "section": "1.7 Strands Agents and the agent loop",
+      "after": "Tool results are real: the time comes from your browser clock and the maths is actually computed.",
+      "md": "**Walkthrough: \"Explain AgentCore (no tools)\"**\n\n- **Agent:** Receives the prompt and adds it to the conversation.\n- **Agent:** Invokes the model with 1 message and no tools.\n- **Result:** Model replies. stop_reason = end_turn: it answered directly, no tool needed.\n- **Model reply:** \"Amazon Bedrock AgentCore is a set of managed services for deploying and operating AI agents securely at scale. It works with any framework, such as Strands or LangGraph, and any model. Pieces like Runtime, Memory, Gateway, Identity and Observability handle the infrastructure so you can focus on the agent's logic.\"\n- **Done:** Loop ends after one pass. Final response returned to you.\n\n**Walkthrough: \"Time in Bangalore and New York\"**\n\n- **Agent:** Receives the prompt.\n- **Agent:** Invokes the model, offering one tool: current_time.\n- **Result:** Model replies. stop_reason = tool_use: it wants current_time twice, once per city.\n- **Model reply:** \"I'll check both time zones.\"\n- **Agent:** Executes current_time(\"Asia/Kolkata\") and current_time(\"America/New_York\").\n- **Result:** Tools return the current time for each city.\n- **Agent:** Invokes the model again, now with the tool results in the history.\n- **Result:** Model replies. stop_reason = end_turn.\n- **Model reply:** \"Right now it's … in Bangalore, and … in New York.\"\n- **Done:** Loop ends after two passes. Final response returned to you.\n\n**Walkthrough: \"18% GST on Rs 84,999\"**\n\n- **Agent:** Receives the prompt.\n- **Agent:** Invokes the model, offering two tools: calculator and current_time.\n- **Result:** Model replies. stop_reason = tool_use: it wants calculator twice, and ignores current_time.\n- **Agent:** Executes calculator(\"84999 * 0.18\") and calculator(\"84999 * 1.18\").\n- **Result:** Tools return: 15299.82 and 100298.82.\n- **Agent:** Invokes the model again with both results.\n- **Result:** Model replies. stop_reason = end_turn.\n- **Model reply:** 18% GST on Rs 84,999 is Rs 15,299.82, so the final price is Rs 1,00,298.82.\n- **Done:** Loop ends after two passes. Final response returned to you.\n\n**Walkthrough: \"Robot painter story\"**\n\n- **Agent:** Receives the prompt.\n- **Agent:** Invokes the model. The model reasons: a character, a setting, a plot, an ending. No tool needed.\n- **Result:** Model replies. stop_reason = end_turn, with the story text.\n- **Model reply:** \"Unit R-7 swept the gallery floor every night, and every night it stopped in front of the same sunset…\"\n- **Done:** Loop ends after one pass. Had the prompt asked for an illustration, the model would have requested an image tool and the loop would have gone round again."
+    },
+    {
+      "section": "1.8 Lab: your Hello World agent",
+      "after": "on Add a system prompt",
+      "md": "**Default system prompt in the builder:** You are a patient tutor for engineers who are new to AI agents. Keep answers under 120 words."
+    },
+    {
+      "section": "1.9 Recap and self-check",
+      "after": "",
+      "md": "**Self-check: the answer explanations, and the questions the quiz shows:**\n\n**Question 4 explanation:** The agent coordinates, the tools act, memory remembers, but the LLM does the understanding, reasoning and deciding.\n\n**Question 5:** Which tier of the AWS agentic stack does this course mainly use?\n\n- Agentic applications such as Amazon Quick Suite\n- Managed solutions: Amazon Bedrock and Amazon Bedrock AgentCore\n- Do-it-yourself: training models from scratch on Trainium\n- None, everything runs locally\n\n**Explanation:** We build agents in code with Strands, call models on Bedrock, and deploy and govern them with AgentCore.\n\n**Question 6:** Your agent must call a weather API exposed by an MCP server, and also ask another company's booking agent to find flights. Which protocols?\n\n- MCP for both\n- A2A for both\n- MCP for the weather API, A2A for the booking agent\n- HTTP for both, protocols are optional\n\n**Explanation:** MCP connects an agent to tools; A2A connects an agent to other agents. They're complementary, and real systems use both.\n\n**Question 7:** In the Strands loop, the model replies with stop_reason = tool_use. What happens next?\n\n- The agent returns the answer to the user\n- The agent runs the requested tool and sends the result back to the model\n- The agent restarts the conversation\n- The agent asks the user which tool to run\n\n**Explanation:** tool_use means \"run this and come back\". The loop only ends on end_turn.\n\n**Question 8:** In a @tool function, what does the model mainly read to decide whether to call it?\n\n- The function body\n- The docstring and the type hints\n- The file name\n- The return value from last time\n\n**Explanation:** The model never sees your code. It sees the name, the description (from the docstring) and the input schema (from the type hints).\n\n**Question 9:** What's the key difference between an agentic workflow and an autonomous agent?\n\n- Workflows use tools; autonomous agents don't\n- A workflow finishes when its goal is achieved; an autonomous agent keeps looping with long-term objectives and self-correction\n- Autonomous agents can't use memory\n- There is no difference\n\n**Explanation:** A workflow has a finish line. An autonomous agent perceives, acts, learns and self-corrects continuously, which is why it needs the strongest guardrails.\n\n**Question 10:** You get \"ValidationException: on-demand throughput isn't supported\" calling Claude. The likely fix?\n\n- Request a quota increase\n- Use an inference-profile model ID such as global.anthropic.claude-sonnet-4-6\n- Switch Region to ap-south-1\n- Reinstall boto3\n\n**Explanation:** Newer models are called through inference profiles. IDs with the global. or us. prefix route the request for you."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "Large language model (LLM)",
+      "definition": "A model trained on huge amounts of text to predict the next word. That one skill lets it answer, write, summarise and reason. Claude is an LLM."
+    },
+    {
+      "term": "Training",
+      "definition": "The one-time, expensive process in which a model learns from data. After training, its knowledge is frozen until someone trains it again."
+    },
+    {
+      "term": "Fine-tuning",
+      "definition": "Training an existing model a little more on your own examples so it adapts to your domain or style. Powerful, but slower and costlier than RAG or tools, and it goes stale as your data changes."
+    },
+    {
+      "term": "Knowledge base",
+      "definition": "The collection of information a RAG system searches: documents, wiki pages, database rows and so on."
+    },
+    {
+      "term": "Prompt",
+      "definition": "The text you send to a model. In RAG, the prompt carries both the retrieved context and the user's question."
+    },
+    {
+      "term": "Ingestion",
+      "definition": "Loading documents into a system so they can be processed: reading PDFs, crawling pages, pulling database rows."
+    },
+    {
+      "term": "Chunk",
+      "definition": "A small piece of a larger document, often a few hundred words. RAG stores and retrieves chunks rather than whole documents."
+    },
+    {
+      "term": "Context window",
+      "definition": "The most text (counted in tokens) a model can take in one request, including your prompt and its answer."
+    },
+    {
+      "term": "Lost-in-the-middle effect",
+      "definition": "LLMs tend to use information at the start and end of a long input more reliably than information buried in the middle."
+    },
+    {
+      "term": "Embedding",
+      "definition": "A list of numbers that represents what a piece of text means. Texts with similar meanings get similar lists."
+    },
+    {
+      "term": "Vector",
+      "definition": "An ordered list of numbers, like [0.21, -0.11, 0.87]. An embedding is a vector."
+    },
+    {
+      "term": "Vector database",
+      "definition": "A database built to store vectors and quickly find the ones closest to a given vector. Examples: Amazon OpenSearch Service, Pinecone, pgvector."
+    },
+    {
+      "term": "Similarity search",
+      "definition": "Finding the stored vectors closest to a query vector, which means finding the text closest in meaning to the question."
+    },
+    {
+      "term": "Top k",
+      "definition": "The k best matches returned by a search. With k = 3 you get the three most similar chunks."
+    },
+    {
+      "term": "Reranking",
+      "definition": "A second, more careful scoring pass over retrieved results that puts the truly relevant ones first."
+    },
+    {
+      "term": "Grounding",
+      "definition": "Making a model answer from supplied facts, such as retrieved documents, instead of from memory. It reduces made-up answers."
+    },
+    {
+      "term": "AI agent",
+      "definition": "Software that uses an LLM to plan, call tools, look at the results and keep working towards a goal without step-by-step instructions."
+    },
+    {
+      "term": "Foundation model (FM)",
+      "definition": "A large, general-purpose model trained on broad data and usable for many tasks. On Bedrock: Claude, Amazon Nova, Llama and others."
+    },
+    {
+      "term": "Serverless",
+      "definition": "You use a service or run code without managing servers. AWS handles capacity and scaling; you pay for what you use."
+    },
+    {
+      "term": "Endpoint",
+      "definition": "A network address where a deployed model waits for requests. A SageMaker AI endpoint is a model you host and keep running."
+    },
+    {
+      "term": "Token",
+      "definition": "The unit LLMs read and write: roughly three-quarters of an English word. Prices and limits are counted in tokens."
+    },
+    {
+      "term": "Model as a service (MaaS)",
+      "definition": "You call a ready-hosted model through an API and pay per use, with no infrastructure to manage. Amazon Bedrock works this way."
+    },
+    {
+      "term": "Platform as a service (PaaS)",
+      "definition": "The platform gives you tools to host and run models, but you choose the model and its compute. SageMaker AI hosting works this way."
+    },
+    {
+      "term": "IDE",
+      "definition": "Integrated development environment: the app where you write and run code, such as VS Code, SageMaker Studio or Kiro."
+    },
+    {
+      "term": "Framework",
+      "definition": "A library that gives you ready-made structure for a kind of program. Agent frameworks handle the loop, tools, memory and model calls."
+    },
+    {
+      "term": "API",
+      "definition": "Application programming interface: a defined way for one program to ask another to do something, usually over a network."
+    },
+    {
+      "term": "STDIO",
+      "definition": "Standard input and output. Two programs on the same machine exchange messages by writing to and reading from each other's text streams."
+    },
+    {
+      "term": "HTTP(S)",
+      "definition": "The protocol of the web. Programs on different machines send requests and responses over the network; the S means encrypted."
+    },
+    {
+      "term": "Protocol",
+      "definition": "An agreed set of rules for how two systems talk: the message format, the order of messages, and what each one means."
+    },
+    {
+      "term": "Client-server",
+      "definition": "A design in which a client sends requests and a server answers them. Your browser is a client; a website is a server."
+    },
+    {
+      "term": "Orchestrator",
+      "definition": "The component that coordinates the others: decides who does what, in what order, and combines the results."
+    },
+    {
+      "term": "Agent Card",
+      "definition": "A JSON document in which an A2A agent describes itself: its name, address, capabilities and skills."
+    },
+    {
+      "term": "JSON",
+      "definition": "A simple text format for structured data: {curly braces} for objects, [square brackets] for lists. The common language of APIs."
+    },
+    {
+      "term": "SDK",
+      "definition": "Software development kit: a package of libraries and tools for building on a particular platform or service."
+    },
+    {
+      "term": "Agentic loop",
+      "definition": "The repeating cycle inside an agent: ask the model, run any tool it asks for, feed the result back, ask again until it's done."
+    },
+    {
+      "term": "Stop reason",
+      "definition": "A field on every model response saying why it stopped: end_turn (finished), tool_use (wants a tool), max_tokens (hit the length limit)."
+    },
+    {
+      "term": "Inference profile",
+      "definition": "A Bedrock model ID that can route requests across AWS Regions for capacity. IDs starting with global. or us. are inference profiles."
+    },
+    {
+      "term": "IAM",
+      "definition": "AWS Identity and Access Management: decides who can do what in your AWS account."
+    },
+    {
+      "term": "Virtual environment",
+      "definition": "A private folder of Python libraries for one project, so different projects don't clash over versions."
+    },
+    {
+      "term": "STS",
+      "definition": "AWS Security Token Service. Its get_caller_identity call tells you which account and identity your credentials belong to."
+    },
+    {
+      "term": "Kernel",
+      "definition": "The process that actually runs the code in a Jupyter notebook. Restarting it clears memory and reloads libraries."
+    },
+    {
+      "term": "Streaming",
+      "definition": "Sending a response piece by piece as it's generated, instead of all at once at the end."
+    },
+    {
+      "term": "Decorator",
+      "definition": "A line starting with @ placed above a Python function to add behaviour. @tool turns a function into an agent tool."
+    },
+    {
+      "term": "Type hints",
+      "definition": "Annotations like timezone: str that say what type a value should be. Strands turns them into the tool's input schema."
+    },
+    {
+      "term": "Docstring",
+      "definition": "The text in triple quotes at the top of a function describing what it does. For tools, the model reads it to decide when to call the tool."
+    },
+    {
+      "term": "System prompt",
+      "definition": "Standing instructions that apply to every turn: the agent's role, tone and rules."
+    },
+    {
+      "term": "ReAct",
+      "definition": "Reason + Act: a pattern in which the model alternates between thinking, calling a tool and observing the result."
+    }
+  ],
+  "skipped": [
+    {
+      "text": "Correct.",
+      "reason": "quiz feedback text generated by the self-check script, UI only"
+    },
+    {
+      "text": "Not quite.",
+      "reason": "quiz feedback text generated by the self-check script, UI only"
+    },
+    {
+      "text": "The correct answer is",
+      "reason": "quiz feedback template, UI only"
+    },
+    {
+      "text": "Great work, you're ready for Section 2.",
+      "reason": "quiz score message, UI only"
+    },
+    {
+      "text": "Revisit the parts you missed, then try Section 2.",
+      "reason": "quiz score message, UI only"
+    },
+    {
+      "text": "No plan yet. Press \"Next step\".",
+      "reason": "empty-state message in the meeting widget, UI only"
+    },
+    {
+      "text": "In a real system this prompt now goes to the LLM, which would answer mainly from chunk [",
+      "reason": "the chunk number is filled in at runtime from the top retrieved chunk; the sentence is in the insert above with the number left out"
+    },
+    {
+      "text": "];\n  const STOP=new Set(",
+      "reason": "JavaScript source of the RAG playground, not learner text"
+    },
+    {
+      "text": ")|(^| |&& |\\| )(aws|python3?|pip|cd|export|source|unzip|jupyter)\\b/g;\n  else re=/(#[^ ]*)/g;\n  let out=\"\",last=0,m;\n  while((m=re.exec(src))){\n    out+=esc(src.slice(last,m.index));\n    if(lang===\"py\"){\n      if(m[1])out+=",
+      "reason": "JavaScript source of the page script (regex, DOM or agent builder code), picked up by the checker; not learner text"
+    },
+    {
+      "text": ";}\n    last=re.lastIndex;\n  }\n  return out+esc(src.slice(last));\n}\n$$(\"pre code[class^=",
+      "reason": "JavaScript source of the page script (regex, DOM or agent builder code), picked up by the checker; not learner text"
+    },
+    {
+      "text": "};\n  function toks(s){return s.toLowerCase().replace(/[^a-z0-9\\s]/g,",
+      "reason": "JavaScript source of the page script (regex, DOM or agent builder code), picked up by the checker; not learner text"
+    },
+    {
+      "text": "}\n  ];\n  let cur={q:P[0].q,preset:0};\n  const qbox=$(",
+      "reason": "JavaScript source of the page script (regex, DOM or agent builder code), picked up by the checker; not learner text"
+    },
+    {
+      "text": ",run);\n  function run(){\n    const k=+$(",
+      "reason": "JavaScript source of the page script (regex, DOM or agent builder code), picked up by the checker; not learner text"
+    },
+    {
+      "text": ");\n    let L=[];\n    if(tools.has(\"current_time\"))L.push(\"from datetime import datetime\",\"from zoneinfo import ZoneInfo\",\"\");\n    L.push(\"from strands import Agent\"+(tools.has(\"current_time\")?\", tool\":\"\"),\"from strands.models.bedrock import BedrockModel\");\n    if(tools.has(\"calculator\"))L.push(\"from strands_tools import calculator\");\n    L.push(\"\",\"model = BedrockModel(\",",
+      "reason": "JavaScript source of the page script (regex, DOM or agent builder code), picked up by the checker; not learner text"
+    },
+    {
+      "text": "));L.push(\"    ),\");}}\n      L.push(\")\");}\n    let q=\"Explain Amazon Bedrock AgentCore in three sentences.\";\n    if(tools.has(\"current_time\")&&tools.has(\"calculator\"))q=\"What is 18% GST on Rs 84,999, and what time is it in Bangalore?\";\n    else if(tools.has(\"current_time\"))q=\"What time is it right now in Bangalore and in New York?\";\n    else if(tools.has(\"calculator\"))q=\"What is 18% GST on a laptop that costs Rs 84,999? Give me the final price too.\";\n    L.push(\"\",",
+      "reason": "JavaScript source of the page script (regex, DOM or agent builder code), picked up by the checker; not learner text"
+    },
+    {
+      "text": "s note is needed for more than 2 days in a row.\",\n    \"Work from home: Employees can work from home up to 2 days a week with their manager",
+      "reason": "checker run that joins two adjacent handbook strings from the RAG playground; both handbook strings are in the handbook list above"
+    }
+  ]
+}

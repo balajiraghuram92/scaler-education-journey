@@ -64,6 +64,10 @@ public static class DbSeeder
         // 10. Seed the file-driven Python Engineering course (must precede MCQs that reference its lessons)
         PythonCurriculumSeedData.Seed(db);
 
+        // 10b. Seed the file-driven AI Engineering courses (migrated from the AI-Infusion site)
+        ContentCurriculumSeedData.SeedFolder(db, "ai-infusion");
+        ContentCurriculumSeedData.SeedFolder(db, "aws-agentic-ai-bootcamp");
+
         // 11. Seed Dynamic MCQ Practice Questions
         McqMigrationSeedData.Seed(db);
 

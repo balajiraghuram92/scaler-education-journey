@@ -1,0 +1,14 @@
+{
+  "diagrams": [
+    {
+      "title": "Diagram",
+      "caption": "",
+      "svg": "<svg viewBox=\"0 0 360 280\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width:100%;height:auto;display:block\">\n        <!-- background grid -->\n        <defs>\n          <pattern id=\"grid\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\">\n            <path d=\"M 20 0 L 0 0 0 20\" fill=\"none\" stroke=\"#e9ddcf\" stroke-width=\"0.5\"></path>\n          </pattern>\n        </defs>\n        <rect width=\"360\" height=\"280\" fill=\"url(#grid)\"></rect>\n        <!-- clusters will be drawn by JS -->\n        <g id=\"heroDots\"></g>\n      </svg>"
+    },
+    {
+      "title": "Diagram",
+      "caption": "",
+      "svg": "<svg viewBox=\"0 0 600 320\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width:100%;height:auto;width:100%;height:auto;background:#f7eee2;border-radius:12px\"></svg>"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "page": "Learnings/Class-2-AI-infusion/index.html",
+  "inserts": [
+    {
+      "section": "",
+      "after": "Class 1: you talked to a model. Class 2: you give it **hands**. You'll meet LangChain, snap your first chain together, then build an **agent that decides — on its own — when to use a tool.** Watch it happen live on the right. 👉",
+      "md": "**Hero chat (plays on load):**\n\n- **Assistant:** The shoes are ₹799! Anything else? 🙂\n- **Assistant:** I can look up any item's price — I decide when to check the database myself. 😎"
+    },
+    {
+      "section": "10 LangChain: snap it together",
+      "after": "topic",
+      "md": "```\nchain.invoke({\"tone\": \"witty\", \"length\": \"short\", \"topic\": \"AI agents\"})\n→ final prompt sent to the model:\nWrite a witty short post about AI agents.\n```"
+    },
+    {
+      "section": "10 LangChain: snap it together",
+      "after": "your chain assembles here… (hint: what comes first?)",
+      "md": "**Chain builder hints (shown when a piece goes in the wrong slot):**\n\n- The prompt comes first — it shapes the request.\n- The model goes in the middle — it does the thinking.\n- The parser comes last — it cleans the output into plain text.\n\n**Chain builder run output:**\n\n- 📝 prompt fills the blank → \"Summarize this website: anthropic.com…\"\n- 🤖 model thinks… generates the summary\n- 🧹 parser returns clean text → \"Anthropic builds safe AI systems, including Claude…\" ✅"
+    },
+    {
+      "section": "11 Your first (tiny) agent",
+      "after": "Press ▶ to start. We begin with just the user's question.",
+      "md": "**Card 1 · user:** \"How much are the shoes?\" — Step 1 — we start the list with the user's question, plus the tools menu on the side.\n\n- **Card 2 · assistant (tool request):** → wants: get_price(item=\"shoes\") — Step 2 — the model doesn't answer yet! It replies \"please run get_price for shoes\". We append that request to the list. (This is what msg.tool_calls holds.)\n- **Card 3 · tool:** \"₹799\" — Step 3 — OUR Python runs get_price(\"shoes\") and we append the result with the new role: \"tool\". The model never runs code — it asks, we do.\n- **Card 4 · assistant (final):** \"The shoes are ₹799! Anything else? 🙂\" — Step 4 — we send the whole longer list back, and now the model writes a friendly answer using the real price. Done — that's one full agent loop!\n\n✅ That's the entire agent: **a list that grows** — user → tool request → tool result → answer. Re-read the code; it will feel obvious now."
+    },
+    {
+      "section": "11 Your first (tiny) agent",
+      "after": "question 1 of 5",
+      "md": "**Answer buttons:** 🔧 Calls the tool · 💬 Just answers\n\n**Feedback after each answer:**\n\n- **Q1 (Calls the tool):** A price question → the model needs real data → calls get_price(\"bag\").\n- **Q2 (Just answers):** Small talk — no facts needed. The model just answers.\n- **Q3 (Calls the tool):** \"Is the hat cheaper than the shorts?\" — Comparing prices still needs the real numbers — it calls the tool (twice!).\n- **Q4 (Just answers):** \"What's the capital of France?\" — Trick one! The model already knows this — our price tool can't help. No tool call.\n- **Q5 (Calls the tool):** \"I have ₹1500 — can I afford the pants?\" — It must check the real price (₹1699) before answering. Tool call, then \"not quite!\"\n\n**Final score:** 🏆 Perfect 5/5 — you think like an agent! · Final score: *N*/5 — solid! Replay for the streak?"
+    },
+    {
+      "section": "12 Project: Smart Shop Assistant",
+      "after": "Hi! I'm your shop assistant. Ask me the price of anything 🙂",
+      "md": "**Another example prompt:** \"Is the hat cheaper than the bag?\"\n\n**Shop bot replies:**\n\n- **One item found:** The *item* are **₹price**. Anything else? 🙂\n- **Several items:** *item*: **₹price** · *item*: **₹price** — So the **cheapest item** is the cheaper one!\n- **Price question, unknown item:** 🔧 get_price(...) → unknown — Hmm, that item isn't in my shop. I've got shoes, hat, bag, shorts and pants!\n- **No tool needed:** — no tool needed, answering directly — I'm your shop helper! Ask me any item's price and I'll look it up in the database. 🛍️"
+    },
+    {
+      "section": "13 Ship your first agent to LinkedIn",
+      "after": "",
+      "md": "**After clicking 🚀 I posted it!:** 🎉 Agent #1 is live. Welcome to building in public!"
+    }
+  ],
+  "glossary": [],
+  "skipped": [
+    {
+      "text": "Hi! I'm your shop assistant. Ask me the price of anything 🙂",
+      "reason": "already visible as the demo's greeting bubble text in section 6"
+    },
+    {
+      "text": "✓ Shipped!",
+      "reason": "button state label, not learner text"
+    },
+    {
+      "text": "${hits===5?'🏆 Perfect 5/5 — you think like an agent!':",
+      "reason": "JS template-literal code fragment; the words themselves are already in the Final score line"
+    }
+  ]
+}

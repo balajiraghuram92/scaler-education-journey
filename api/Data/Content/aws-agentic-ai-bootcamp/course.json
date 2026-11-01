@@ -1,0 +1,462 @@
+{
+  "slug": "aws-agentic-ai-bootcamp",
+  "title": "Agentic AI on AWS Bootcamp",
+  "description": "Build AI agents on AWS with Strands, Amazon Bedrock and AgentCore, from a first agent to a team running in production, plus live finance and travel projects.",
+  "verticalName": "AI Engineering",
+  "verticalDescription": "Applied AI engineering: LLM apps, RAG, agents on AWS, evaluation and shipping AI systems to production.",
+  "orderIndex": 4,
+  "modules": [
+    {
+      "slug": "bootcamp-overview",
+      "title": "Bootcamp Overview",
+      "description": "Learn to build AI agents on AWS: start with one Strands agent on Amazon Bedrock and end with a team of agents running in production, then use them on real finance problems. Each week has its recordings, lessons and solution code.",
+      "badge": "Overview",
+      "lessons": [
+        {
+          "slug": "bootcamp-overview",
+          "title": "Bootcamp Overview",
+          "description": "Bootcamp Overview: Agents on AWS, end to end · Live projects, end to end",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "week-1-plan-and-recordings",
+          "title": "Week 1 Plan and Recordings",
+          "description": "Bootcamp Overview: Week 1 recordings · Week 1 lessons · Week 1 projects · AI agents in finance",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "week-2-plan-and-recordings",
+          "title": "Week 2 Plan and Recordings",
+          "description": "Bootcamp Overview: Week 2 recordings · Week 2 projects",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w1-part-00-aws-revision",
+      "title": "Week 1 · Part 00 · AWS Revision",
+      "description": "LLM, the brain Tools and actions Prompts, data, results You and your setup The agent itself",
+      "badge": "Week 1 · Part 00",
+      "lessons": [
+        {
+          "slug": "the-revision-at-a-glance",
+          "title": "The revision at a glance",
+          "description": "Week 1 · Part 00 · AWS Revision: The revision at a glance · Keep keys out of your code · Your first chain · Same chain, local model · What comes back: the AIMessage",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "from-chain-to-agent",
+          "title": "From chain to agent",
+          "description": "Week 1 · Part 00 · AWS Revision: From chain to agent · Reading an agent run · Real search: your own Tavily tool · The ready-made TavilySearch tool · Structured output · When things go wrong · Recap and self-check",
+          "minutes": 14,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "glossary",
+          "title": "Glossary",
+          "description": "Week 1 · Part 00 · AWS Revision",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w1-lesson-1-your-first-agent",
+      "title": "Week 1 · Lesson 1 · Your First AI Agent",
+      "description": "LLM, the brain Tools and actions Data, retrieval, memory Protocols (MCP, A2A) Safety and risk The agent itself",
+      "badge": "Week 1 · Lesson 1",
+      "lessons": [
+        {
+          "slug": "why-a-plain-llm-isn-t-enough",
+          "title": "Why a plain LLM isn't enough",
+          "description": "Week 1 · Lesson 1 · Your First AI Agent: Why a plain LLM isn't enough · RAG: an open book for the model",
+          "minutes": 14,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "what-is-an-ai-agent",
+          "title": "What is an AI agent?",
+          "description": "Week 1 · Lesson 1 · Your First AI Agent: What is an AI agent? · The AWS agentic stack",
+          "minutes": 13,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "how-an-agent-is-built-on-aws",
+          "title": "How an agent is built on AWS",
+          "description": "Week 1 · Lesson 1 · Your First AI Agent: How an agent is built on AWS · From one LLM to a team of agents",
+          "minutes": 13,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "agent-protocols-mcp-and-a2a",
+          "title": "Agent protocols: MCP and A2A",
+          "description": "Week 1 · Lesson 1 · Your First AI Agent",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "strands-agents-and-the-agent-loop",
+          "title": "Strands Agents and the agent loop",
+          "description": "Week 1 · Lesson 1 · Your First AI Agent",
+          "minutes": 8,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "lab-your-hello-world-agent",
+          "title": "Lab: your Hello World agent",
+          "description": "Week 1 · Lesson 1 · Your First AI Agent",
+          "minutes": 16,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "recap-and-self-check",
+          "title": "Recap and self-check",
+          "description": "Week 1 · Lesson 1 · Your First AI Agent: Recap and self-check · Glossary",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w1-lesson-2-giving-agents-tools",
+      "title": "Week 1 · Lesson 2 · Giving Agents Tools",
+      "description": "LLM, the brain Tools and actions Data, AWS services, memory MCP and integrations Safety, limits, problems The agent itself",
+      "badge": "Week 1 · Lesson 2",
+      "lessons": [
+        {
+          "slug": "from-talking-to-doing",
+          "title": "From talking to doing",
+          "description": "Week 1 · Lesson 2 · Giving Agents Tools: From talking to doing · Why agents need tools",
+          "minutes": 15,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "your-first-tool-enabled-agent",
+          "title": "Your first tool-enabled agent",
+          "description": "Week 1 · Lesson 2 · Giving Agents Tools: Your first tool-enabled agent · The Strands tool ecosystem",
+          "minutes": 16,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "building-custom-tools",
+          "title": "Building custom tools",
+          "description": "Week 1 · Lesson 2 · Giving Agents Tools: Building custom tools · When simple tools aren't enough",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "quick-start-with-strands-agent-builder",
+          "title": "Quick start with Strands Agent Builder",
+          "description": "Week 1 · Lesson 2 · Giving Agents Tools: Quick start with Strands Agent Builder · Tools in LangChain · Recap and self-check",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "w1-lesson-2-giving-agents-tools-glossary",
+          "title": "Glossary",
+          "description": "Week 1 · Lesson 2 · Giving Agents Tools",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w1-lesson-3-agents-that-remember",
+      "title": "Week 1 · Lesson 3 · Agents That Remember",
+      "description": "LLM, the brain Short-term memory, tools Long-term memory, storage Orchestration, extraction Privacy, limits, problems The agent itself",
+      "badge": "Week 1 · Lesson 3",
+      "lessons": [
+        {
+          "slug": "why-agents-need-memory",
+          "title": "Why agents need memory",
+          "description": "Week 1 · Lesson 3 · Agents That Remember: Why agents need memory · What is agent memory? · Types of agent memory",
+          "minutes": 13,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "why-memory-is-hard",
+          "title": "Why memory is hard",
+          "description": "Week 1 · Lesson 3 · Agents That Remember: Why memory is hard · An agent loop with memory · Memory building blocks on AWS",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "lab-a-personalised-agent-with-mem0",
+          "title": "Lab: a personalised agent with Mem0",
+          "description": "Week 1 · Lesson 3 · Agents That Remember",
+          "minutes": 16,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "context-management-and-memory-optimisation",
+          "title": "Context management and memory optimisation",
+          "description": "Week 1 · Lesson 3 · Agents That Remember: Context management and memory optimisation · Amazon Bedrock AgentCore Memory",
+          "minutes": 22,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "lab-langgraph-agentcore-memory",
+          "title": "Lab: LangGraph + AgentCore Memory",
+          "description": "Week 1 · Lesson 3 · Agents That Remember: Lab: LangGraph + AgentCore Memory · Recap and self-check",
+          "minutes": 16,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "w1-lesson-3-agents-that-remember-glossary",
+          "title": "Glossary",
+          "description": "Week 1 · Lesson 3 · Agents That Remember",
+          "minutes": 6,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w1-lesson-4-agents-that-work-together",
+      "title": "Week 1 · Lesson 4 · Agents That Work Together",
+      "description": "An agent Coordinator, supervisor, router Specialist, worker, tool Data, results, shared context LLM reasoning, decisions Problems, limits, risk",
+      "badge": "Week 1 · Lesson 4",
+      "lessons": [
+        {
+          "slug": "from-one-agent-to-a-team",
+          "title": "From one agent to a team",
+          "description": "Week 1 · Lesson 4 · Agents That Work Together: From one agent to a team · When one agent isn't enough · What are multi-agent patterns? · Lab: the supervisor–worker pattern",
+          "minutes": 17,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "lab-make-agents-reusable-with-agent-as-tool",
+          "title": "Lab: make agents reusable with \"agent as tool\"",
+          "description": "Week 1 · Lesson 4 · Agents That Work Together: Lab: make agents reusable with \"agent as tool\" · How data flows through a team of agents · How agents talk to each other",
+          "minutes": 16,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "common-orchestration-patterns",
+          "title": "Common orchestration patterns",
+          "description": "Week 1 · Lesson 4 · Agents That Work Together",
+          "minutes": 16,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "when-multi-agent-is-not-the-answer",
+          "title": "When multi-agent is not the answer",
+          "description": "Week 1 · Lesson 4 · Agents That Work Together: When multi-agent is not the answer · Recap and self-check",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "w1-lesson-4-agents-that-work-together-glossary",
+          "title": "Glossary",
+          "description": "Week 1 · Lesson 4 · Agents That Work Together",
+          "minutes": 5,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w1-lesson-5-how-agents-talk",
+      "title": "Week 1 · Lesson 5 · How Agents Talk",
+      "description": "An agent or host app MCP client, requests MCP server, tools, responses Protocol layer, A2A LLM, prompts, the user Problems, limits, blocked",
+      "badge": "Week 1 · Lesson 5",
+      "lessons": [
+        {
+          "slug": "why-agents-need-protocols",
+          "title": "Why agents need protocols",
+          "description": "Week 1 · Lesson 5 · How Agents Talk: Why agents need protocols · MCP: why tools need a standard · How MCP works",
+          "minutes": 15,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "mcp-server-features",
+          "title": "MCP server features",
+          "description": "Week 1 · Lesson 5 · How Agents Talk: MCP server features · MCP client features",
+          "minutes": 10,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "using-and-building-mcp-servers",
+          "title": "Using and building MCP servers",
+          "description": "Week 1 · Lesson 5 · How Agents Talk: Using and building MCP servers · Lab: an MCP server and client · Lab: Strands agents with MCP tools",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "a2a-agents-talking-to-agents",
+          "title": "A2A: agents talking to agents",
+          "description": "Week 1 · Lesson 5 · How Agents Talk: A2A: agents talking to agents · How A2A works",
+          "minutes": 13,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "implementing-a2a",
+          "title": "Implementing A2A",
+          "description": "Week 1 · Lesson 5 · How Agents Talk: Implementing A2A · Lab: a travel assistant over A2A",
+          "minutes": 13,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "w1-lesson-5-how-agents-talk-recap-and-self-check",
+          "title": "Recap and self-check",
+          "description": "Week 1 · Lesson 5 · How Agents Talk: Recap and self-check · Glossary",
+          "minutes": 17,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w1-lesson-6-shipping-agents-to-production",
+      "title": "Week 1 · Lesson 6 · Shipping Agents to Production",
+      "description": "An agent or your code Users, requests, clients Tools, healthy, allowed AWS infrastructure, AgentCore The model (Amazon Bedrock) Failures, limits, blocked",
+      "badge": "Week 1 · Lesson 6",
+      "lessons": [
+        {
+          "slug": "from-laptop-to-production",
+          "title": "From laptop to production",
+          "description": "Week 1 · Lesson 6 · Shipping Agents to Production: From laptop to production · What actually changes in production · Choosing a deployment path · AWS Lambda: serverless and event-driven",
+          "minutes": 18,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "amazon-ecs-always-on-and-container-driven",
+          "title": "Amazon ECS: always-on and container-driven",
+          "description": "Week 1 · Lesson 6 · Shipping Agents to Production: Amazon ECS: always-on and container-driven · Amazon Bedrock AgentCore",
+          "minutes": 15,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "agentcore-runtime",
+          "title": "AgentCore Runtime",
+          "description": "Week 1 · Lesson 6 · Shipping Agents to Production: AgentCore Runtime · How Runtime compares to Lambda and ECS",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "agentcore-gateway",
+          "title": "AgentCore Gateway",
+          "description": "Week 1 · Lesson 6 · Shipping Agents to Production: AgentCore Gateway · AgentCore Identity",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "lab-mcp-a2a-on-agentcore",
+          "title": "Lab: MCP + A2A on AgentCore",
+          "description": "Week 1 · Lesson 6 · Shipping Agents to Production: Lab: MCP + A2A on AgentCore · Enterprise integration patterns",
+          "minutes": 13,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "industry-use-cases",
+          "title": "Industry use cases",
+          "description": "Week 1 · Lesson 6 · Shipping Agents to Production: Industry use cases · Recap and self-check",
+          "minutes": 16,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "w1-lesson-6-shipping-agents-to-production-glossary",
+          "title": "Glossary",
+          "description": "Week 1 · Lesson 6 · Shipping Agents to Production",
+          "minutes": 9,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w1-project-1-ai-agents-in-finance",
+      "title": "Week 1 · Project 1 · AI Agents in Finance",
+      "description": "You already know how agents, tools, memory and multi-agent systems work from our AI Agents on AWS module. So this page skips all of that and adds only two new things: the finance knowledge you need to build agents a bank would actually use, and the code, explained line by…",
+      "badge": "Week 1 · Project 1",
+      "lessons": [
+        {
+          "slug": "llms-through-a-finance-lens",
+          "title": "LLMs through a finance lens",
+          "description": "Week 1 · Project 1 · AI Agents in Finance",
+          "minutes": 19,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "agent-design-patterns-finance-edition",
+          "title": "Agent design patterns — finance edition",
+          "description": "Week 1 · Project 1 · AI Agents in Finance",
+          "minutes": 13,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "agent-design-patterns-finance-edition-part-2",
+          "title": "Agent design patterns — finance edition (part 2)",
+          "description": "Week 1 · Project 1 · AI Agents in Finance",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "agent-design-patterns-finance-edition-part-3",
+          "title": "Agent design patterns — finance edition (part 3)",
+          "description": "Week 1 · Project 1 · AI Agents in Finance",
+          "minutes": 12,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "agent-design-patterns-finance-edition-part-4",
+          "title": "Agent design patterns — finance edition (part 4)",
+          "description": "Week 1 · Project 1 · AI Agents in Finance: Agent design patterns — finance edition (part 4) · What to remember",
+          "minutes": 8,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w1-project-2-nps-analyst",
+      "title": "Week 1 · Project 2 · NPS Analyst in a Box",
+      "description": "Future with Shivank · AI Agents in Finance · Project: NPS analyst",
+      "badge": "Week 1 · Project 2",
+      "lessons": [
+        {
+          "slug": "the-problem-explained-with-10-customers",
+          "title": "The problem, explained with 10 customers",
+          "description": "Week 1 · Project 2 · NPS Analyst in a Box: The problem, explained with 10 customers · What we are building, and why a bank cares",
+          "minutes": 13,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "getting-started",
+          "title": "Getting started",
+          "description": "Week 1 · Project 2 · NPS Analyst in a Box: Getting started · Your project · What to remember",
+          "minutes": 6,
+          "difficulty": "Intermediate"
+        }
+      ]
+    },
+    {
+      "slug": "w2-project-1-trip-buddy",
+      "title": "Week 2 · Project 1 · Trip Buddy",
+      "description": "Trip Buddy · Scaler AWS AI Bootcamp · Week 2 · Project 1",
+      "badge": "Week 2 · Project 1",
+      "lessons": [
+        {
+          "slug": "the-problem-explained-with-one-trip",
+          "title": "The problem, explained with one trip",
+          "description": "Week 2 · Project 1 · Trip Buddy: The problem, explained with one trip · What we are building, and what you need",
+          "minutes": 11,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "ten-scripts-and-a-server-bottom-up",
+          "title": "Ten scripts and a server, bottom-up",
+          "description": "Week 2 · Project 1 · Trip Buddy",
+          "minutes": 21,
+          "difficulty": "Intermediate"
+        },
+        {
+          "slug": "take-trip-buddy-to-where-your-friends-already-chat",
+          "title": "Take Trip Buddy to where your friends already chat",
+          "description": "Week 2 · Project 1 · Trip Buddy: Take Trip Buddy to where your friends already chat · Your project · What to remember",
+          "minutes": 9,
+          "difficulty": "Intermediate"
+        }
+      ]
+    }
+  ]
+}

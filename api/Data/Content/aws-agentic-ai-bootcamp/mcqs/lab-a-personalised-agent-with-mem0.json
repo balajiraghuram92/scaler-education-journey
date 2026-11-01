@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q07",
+      "questionText": "Mona's agent is asked, very persuasively, for Bunny's memories. Why can it not read them, even if the model is talked into trying?",
+      "explanation": "The binding happens before the conversation starts. The model chooses an action and its content, but not whose memories are opened.\n\n(A) The prompt is guidance, not a lock. The hard wall in this lab is built in code, not in the prompt's wording.\n\n(C) The users share one store, partitioned by user ID. The protection is the tool binding in code, not separate databases.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The system prompt lists the blocked names, and the model checks that list",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The memory tool was created with user_id mona_mona in code and has no user_id parameter, so the model cannot name Bunny",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Mem0 keeps each user in a separate database that the model cannot connect to",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-agents-that-remember-q08",
+      "questionText": "The admin super-agent's `read_user_memories` tool takes any `user_name`. What makes that acceptable?",
+      "explanation": "Ordinary users get `create_agent` agents, whose memory tool cannot name another user. In a real system, only an authenticated admin should reach this agent.\n\n(A) Model size does not decide access. The model does choose the user in this tool, which is exactly why it sits in a separate agent.\n\n(B) Every read still goes through the Mem0 service client. Nothing bypasses it.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model is trusted with any name because it is a large model",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Admin users can skip the Mem0 service and read storage directly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Cross-user access is the whole purpose of this one tool, so it is explicit, separate and handed only to a trusted agent",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

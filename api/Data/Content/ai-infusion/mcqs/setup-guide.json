@@ -1,0 +1,76 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-help-q01",
+      "questionText": "Why do the lessons ask for WSL2 and Ubuntu, rather than plain Windows PowerShell?",
+      "explanation": "The lessons use Linux commands such as `source .venv/bin/activate`. Inside Ubuntu they run unchanged, with no Windows-specific variants.\n\n(A) Python runs fine on Windows. The issue is that the lessons' commands are written for Linux.\n\n(C) The page's reason is that the commands match the lessons, not speed.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python cannot run on Windows at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "WSL2 runs a real Linux, so the lesson commands work exactly as written",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Ubuntu runs the AI models faster than Windows does",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-help-q02",
+      "questionText": "You ran `source .venv/bin/activate` in one Ubuntu terminal. You open a second terminal, and a script fails with `ModuleNotFoundError` for a package you installed. What is the likeliest cause?",
+      "explanation": "Activation applies to one terminal only. The page says to run the activate command in every new terminal.\n\n(B) The folder is shared, but a terminal uses it only after activation. A new terminal needs the activate command too.\n\n(C) Packages installed in Ubuntu are used by Ubuntu. Windows is not involved in this error.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The second terminal did not activate the venv, so Python is not using the environment that has the package",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The venv folder is shared by every terminal, so the package install must have failed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Packages installed in Ubuntu can only be used from Windows",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-help-q03",
+      "questionText": "Why does the page tell you to keep projects in `~/` rather than under `/mnt/c`?",
+      "explanation": "The page says file access under `/mnt/c` is far slower. Under `~/` it is far faster, and VS Code and Explorer can still open the folder.\n\n(A) Linux can read `/mnt/c`. The problem is speed, not access.\n\n(B) You can write to `/mnt/c`. It is just much slower across the Windows boundary.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Linux cannot read Windows folders at all",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The `/mnt/c` folder is read-only inside Ubuntu",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "File access across the Windows boundary is much slower, which hurts `pip install` and git",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

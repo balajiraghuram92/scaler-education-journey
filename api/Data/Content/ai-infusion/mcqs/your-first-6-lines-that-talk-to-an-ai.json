@@ -1,0 +1,129 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q09",
+      "questionText": "According to the page, where should your secret API key live?",
+      "explanation": "The code reads the key from .env, so the secret never appears in the code you share.\n\n(A) Shared or uploaded code would reveal the key. Secrets do not belong in the code.\n\n(B) The key is a password. Anyone who reads a public README would see it.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Typed straight into the Python file, so it is always found",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "In a public README, so teammates can copy it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In a .env file or environment variable on the server side, never in shared code",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q10",
+      "questionText": "You added `.env` to your `.gitignore`. What problem does that prevent?",
+      "explanation": "Listing .env in .gitignore keeps the file out of GitHub, so the key is not exposed.\n\n(A) A .gitignore rule controls what gets uploaded. It has nothing to do with speed.\n\n(B) Billing depends on how much you use the API. The .gitignore entry is about uploads.\n\n(C) That is the model's lack of memory, which is a separate idea. A .gitignore entry does not affect it.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Your code running more slowly",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Being charged twice for the same API call",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The model forgetting earlier messages in a chat",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Your .env file being uploaded to GitHub, where bots find leaked keys within minutes",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q11",
+      "questionText": "In `first_call.py`, where does `OpenAI()` get the API key from?",
+      "explanation": "`load_dotenv()` copies the values from .env into the environment, and `OpenAI()` reads the key from there.\n\n(A) The code contains no key. That is the point of the .env setup.\n\n(C) `base_url` only sets which server to call. It does not hold a key.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "From a key written into the code as a string",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "From the environment, which `load_dotenv()` fills from your .env file",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "From the `base_url` address in the code",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q12",
+      "questionText": "The URL cannot be fetched. What does `fetch_website_contents()` do?",
+      "explanation": "The except block returns an error message as a string, so the rest of the app keeps running.\n\n(A) The request error is caught inside the function, so the app does not stop.\n\n(C) There is no retry loop. It makes one request, with a 15-second timeout.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It raises an error and stops the whole app",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It returns a text message that begins \"Could not fetch the website\"",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It keeps retrying until the site answers",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-q13",
+      "questionText": "Which change makes the summary sound different, as the page describes?",
+      "explanation": "The system prompt sets the rules and personality for the model, so changing it changes the output style.\n\n(A) The URL decides which page is read, not how the summary sounds.\n\n(B) That breaks the key loading. It does not change the tone of the summary.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Change the URL the scraper visits",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Delete the `load_dotenv()` line",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Edit one line of the `system_prompt`, such as asking for an explanation for a 10-year-old",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

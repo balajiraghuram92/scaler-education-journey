@@ -1,0 +1,148 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q09",
+      "questionText": "The client prints the server's tool names without importing any of the server's code. How does it find them?",
+      "explanation": "`list_tools` sends a `tools/list` request. The server replies with each tool's name, description and input schema.\n\n(A) Reading source text would be fragile. The client asks the server directly, so the answer always matches what the server really offers.\n\n(C) That would break as soon as a server added or renamed a tool. Dynamic discovery means the client keeps no copy of the list.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It reads `server.py` as text and searches for `@mcp.tool()`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It asks the server at run time with `session.list_tools()`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The tool names are typed into `client.py` by hand",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q10",
+      "questionText": "Why is `list_client_roots` written with `async`?",
+      "explanation": "The server sends that request to the client in the middle of a tool call and cannot finish until the reply arrives, so the function awaits it.\n\n(B) `get_weather` is a plain `def` and works fine. Only the tool that waits on the client needs `async`.\n\n(C) Speed is not the reason. `async` lets the function pause while it waits for a reply.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because it must wait for the client to answer a `roots/list` request",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because every MCP tool has to be async, including `get_weather`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because async functions run faster than normal ones",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q11",
+      "questionText": "What happens when the `async with stdio_client(server_params)` block starts?",
+      "explanation": "The session sends JSON-RPC messages into those streams and reads the replies from them.\n\n(A) This lab uses stdio, not HTTP. No web address is involved.\n\n(B) The client starts the server itself, using the settings in `StdioServerParameters`.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It connects to a web address on `localhost:8000`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing happens until you start `server.py` in another terminal",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It starts `server.py` as a subprocess and returns its read and write streams",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q12",
+      "questionText": "In `agent_with_local_mcp.py`, why is the agent created inside the `with mcp_client:` block?",
+      "explanation": "The agent calls the server's tools through the session. Outside the block, the connection is closed.\n\n(A) The imports sit at the top of the file. A `with` block has nothing to do with them.\n\n(C) The server starts when the `with` block opens, and the model is only a setting for the agent.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python only allows imports inside a `with` block",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because its tools are live connections that exist only while the MCP session is open",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because the model must load before the server can start",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q13",
+      "questionText": "Why does `agent_with_aws_docs_mcp.py` set `startup_timeout=120`?",
+      "explanation": "The page notes that a first download can take 30 seconds or more, which can exceed the default 30-second limit.\n\n(A) The timeout applies to starting the server, not to the model's reply.\n\n(B) Nothing in the script stops `uvx` after a fixed time. The setting is about startup only.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because the model takes two minutes to answer",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Because `uvx` stops running after two minutes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because the first run downloads the server package, which can take longer than Strands' default startup limit",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q14",
+      "questionText": "Why does the docs agent answer AWS questions from current documentation instead of only its training data?",
+      "explanation": "Its answers come from what the tools return. The prompt also asks it to cite the URLs it used.\n\n(B) The model still has its training. The point is that the tools give it a more current source to answer from.\n\n(C) The server is a set of tools, not a model. The agent still uses its Bedrock model to reason and answer.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The documentation server gives it tools to search and read official docs, and the system prompt asks it to use them",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Its training data is hidden from it while it runs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The documentation server is a newer model that replaces the agent's model",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

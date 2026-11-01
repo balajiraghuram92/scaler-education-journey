@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q11",
+      "questionText": "Three warehouse lookups take 2 seconds each. Why does the async version finish in about 2 seconds?",
+      "explanation": "Run one after another, the lookups cost about 6 seconds. Async lets them run at the same time.\n\n(A) Async does not speed up each lookup. Each one still waits 2 seconds, but the waits overlap.\n\n(C) The request names east, west and central. Async changes how the calls run, not which ones are made.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Each lookup gets faster on its own.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The waits overlap, so the lookups run in parallel instead of one after another.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The agent skips the warehouses that are not named in the request.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-6-ai-infusion-q12",
+      "questionText": "What does `await asyncio.sleep(2)` stand for in `check_warehouse_inventory`?",
+      "explanation": "The code comment says so: the sleep is a stand-in for a real warehouse API call.\n\n(B) No prompt appears in this code. The sleep is a pause, not a question.\n\n(C) Nothing is cancelled. The lookup returns its data after the wait.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A delay that simulates a slow API call.",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A prompt that asks you to confirm the lookup.",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A timeout that cancels the lookup after 2 seconds.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

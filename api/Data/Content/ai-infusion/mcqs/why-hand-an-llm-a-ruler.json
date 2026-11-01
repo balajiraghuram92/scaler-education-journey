@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q01",
+      "questionText": "A candidate writes: “I summarised the document, and it was likely fine.” What total does `detect_filler_words` return?",
+      "explanation": "The word-boundary check means “um” must be a whole word. “Summarised”, “document” and “likely” contain filler letters, but not as whole words.\n\n(A) That is what a naive `.count()` would find. The tool matches whole words only, so none of those three is counted.\n\n(C) “Like” is on the list. The two “um” matches sit inside longer words, so the word-boundary check rejects them.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "3, because a plain count finds “um” in *summarised* and *document*, and “like” in *likely*",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "0, because none of the words in the sentence is a filler word on its own",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "2, because “um” is found twice and “like” is not on the list",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q02",
+      "questionText": "The expected keyword is `listen`. The candidate says: “I listened to his reasons first.” Is the keyword covered?",
+      "explanation": "`score_relevance` looks for the keyword anywhere in the answer text, on purpose, so a stem credits all of its forms.\n\n(B) Whole-word matching is used for filler words, not for keywords. The bank stores stems so that substring matching does the work.\n\n(C) There is no partial credit. Each keyword is either found in the answer or it goes in the missed list.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Yes, because the check is a plain substring match, so “listen” inside “listened” counts",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "No, because only the exact whole word “listen” can be credited",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only partly, because a word that contains the keyword earns half credit",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

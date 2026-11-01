@@ -1,0 +1,76 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q11",
+      "questionText": "A flights agent (a remote agent) uses MCP to reach its own flights database. What does the client agent see of that?",
+      "explanation": "A remote agent can use MCP for its own tools, and you never see that from outside.\n\n(A) The client only talks A2A to the remote agent. It does not see what the remote agent does behind the scenes.\n\n(C) An agent card lists name, URL and skills. It does not carry data.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Every MCP call, passed along over A2A",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing: it is internal to the remote agent, and the client only sees the results it is sent",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The database contents, copied into the agent card",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q12",
+      "questionText": "What is an Agent Card?",
+      "explanation": "The client agent reads cards to find the best agent for a task, and the card lists the skills it can perform.\n\n(A) Model access is controlled by AWS credentials and IAM permissions, not by an Agent Card.\n\n(B) Memory is a separate part of an agent. An Agent Card is a public description of what the agent offers.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A payment token that lets an agent call a model",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The memory store where an agent keeps past conversations",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A small JSON document that advertises an agent's name, URL and skills so other agents can find it",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q13",
+      "questionText": "How do MCP and A2A relate?",
+      "explanation": "The page calls them partners, not rivals. A system can use both, because they solve different problems.\n\n(B) The page calls them partners, not rivals. They solve different problems.\n\n(C) A2A does not replace the agent-to-tool connection. MCP still covers that job.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "They are complementary: MCP connects an agent to tools, and A2A connects agents to each other",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They compete, so a system should choose one",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A2A replaces MCP, because agents can now call each other as tools",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q08",
+      "questionText": "Why does 0.5 use a placeholder search tool that returns the same report every time?",
+      "explanation": "Live results change, so the placeholder keeps the loop easy to follow. Section 0.7 swaps in real search.\n\n(A) The placeholder is for learning the loop. It is not meant for production.\n\n(C) `create_agent` accepts any tool. The placeholder is just one example.\n\n(D) The model does call it, which is the point. The trail shows that call.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is faster than real search, so it is used in production",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It lets you study the agent loop without depending on live web results",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is the only tool that works with `create_agent`",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It stops the model from calling tools",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q09",
+      "questionText": "When does the agent loop stop?",
+      "explanation": "That is the stop rule. The reply then becomes the final answer.\n\n(A) One tool call is not a stop rule. The model may call tools several times.\n\n(B) An empty result is still sent back to the model, which then decides what to do next.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "After the search tool has run once",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "When the tool returns an empty result",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "When the model's reply has no tool calls, so it is plain text",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q10",
+      "questionText": "Moving from the placeholder in 0.5 to real search, which part of the code changes?",
+      "explanation": "The model still sees the same tool name and description, so the agent code is untouched.\n\n(A) The agent code stays the same. Only the inside of `search` changes.\n\n(C) The results come back through the tool as a `ToolMessage`. The question you type does not change.\n\n(D) The same model keeps working. It only needs a tool to call.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The agent: `create_agent` must be replaced with a new agent class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Only the inside of `search`: it now calls Tavily, and the name and docstring stay the same",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The question: the model must receive the search results inside the prompt",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The model: it must be switched to one that can browse the web",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q11",
+      "questionText": "What happens when you type words after the script name, such as a question in quotes?",
+      "explanation": "The line `\" \".join(sys.argv[1:]) or DEFAULT_QUESTION` uses your words when you give any.\n\n(A) The script reads these words from `sys.argv[1:]` and uses them as the question.\n\n(B) They become the question the model answers. Tavily gets the query the model writes.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The script ignores them and always runs the default question",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "They are sent to Tavily as a separate search key",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "They become the question the agent answers, instead of the default",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q12",
+      "questionText": "In 0.7 you wrapped the Tavily SDK in your own `@tool`. What is the benefit of that, compared with the ready-made `TavilySearch`?",
+      "explanation": "That is the trade-off: here the model sees one `query` argument and nothing else. The ready-made tool offers more.\n\n(B) That is the benefit of the ready-made integration. With your own wrapper, you update it yourself.\n\n(C) That needs the vendor's richer description. Your own tool offers only `query`.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "You control exactly what the model sees, but the tool only offers what you wrote",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The vendor keeps it up to date when their API changes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The model can set extra arguments such as `time_range`",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q13",
+      "questionText": "What name does the model see for the tool in Script 03, and what changes in your code compared with Script 02?",
+      "explanation": "The ready-made tool carries the name `tavily_search`, so you delete the function and docstring and pass `TavilySearch()` to `create_agent`.\n\n(A) That is Script 02. In Script 03 the tool is `TavilySearch` and has its own name.\n\n(C) The agent code is the same `create_agent(model, tools)` call. Only the tool in the list changes.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`search`, and you still write the `@tool` function",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`tavily_search`, and the custom function is replaced by one line",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`tavily_search`, and you must also rewrite the agent loop",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q14",
+      "questionText": "Why read `result[\"structured_response\"]` instead of parsing the last message yourself?",
+      "explanation": "The last message is text, or a tool message, that you would have to parse yourself. The structured key already holds the checked object.\n\n(A) The last message is a reply from the model or a tool, not the question.\n\n(B) The `messages` trail is still there. The structured answer is a separate key next to it.\n\n(D) The messages list is kept. The structured answer is added to the result beside it.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The last message is always the user's question",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The result has no messages list, so this is the only field left",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is already a validated `AgentAnswer` object, so you need no parsing",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "The agent deletes the messages when it finishes",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q15",
+      "questionText": "What does `Field(description=...)` do in the schema?",
+      "explanation": "Like tool docstrings, field descriptions are read by the model when it writes the answer.\n\n(B) `Field` does not open links. The description is text for the model.\n\n(C) A default comes from an argument such as `default_factory`, not from the description.\n\n(D) The description is sent to the model, so it shapes the answer.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is sent to the model as an instruction for filling that field",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It checks that the URL opens in a browser",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It sets the default value of the field",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "It is only a comment for you, and the model never sees it",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

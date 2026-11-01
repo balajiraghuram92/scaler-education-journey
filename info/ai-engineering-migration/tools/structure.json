@@ -1,0 +1,279 @@
+{
+  "verticalName": "AI Engineering",
+  "verticalDescription": "Applied AI engineering: LLM apps, RAG, agents on AWS, evaluation and shipping AI systems to production.",
+  "courses": [
+    {
+      "folder": "ai-infusion",
+      "slug": "ai-infusion",
+      "title": "AI-Infusion: Applied AI from First API Call to Production",
+      "description": "Ten lessons from your first API call to designing, evaluating and building a production-shaped AI system: prompting, LangChain, RAG, Docker, agents on AWS, multi-agent systems and evaluation benches.",
+      "orderIndex": 3,
+      "modules": [
+        {
+          "slug": "ai-infusion-start-here",
+          "title": "Start Here: Course Map and Setup",
+          "badge": "Start",
+          "description": "How the ten lessons fit together, and the one-time laptop setup: WSL, Python, models, API keys and a setup check.",
+          "pages": [
+            {
+              "key": "index",
+              "merge": true,
+              "chapterTitle": "Course Overview"
+            },
+            {
+              "key": "ai-infusion",
+              "merge": true
+            },
+            {
+              "key": "help",
+              "chapterTitle": "Setup Guide"
+            }
+          ]
+        },
+        {
+          "slug": "lesson-01-first-ai-app",
+          "title": "Lesson 1 · Build & Ship Your First AI App",
+          "badge": "Lesson 1",
+          "description": "Tokens, training, the API call and your first AI summarizer, with interactive simulators.",
+          "pages": [
+            {
+              "key": "learnings-class-1-ai-infusion",
+              "zip": "Class-1-AI-infusion.zip"
+            },
+            {
+              "key": "learnings-class-1-ai-infusion-simulators"
+            }
+          ]
+        },
+        {
+          "slug": "lesson-02-langchain-first-agent",
+          "title": "Lesson 2 · LangChain & Your First Agent",
+          "badge": "Lesson 2",
+          "description": "Prompting vs RAG vs fine-tuning, LangChain chains and memory, and a first tiny agent shipped as a shop assistant.",
+          "pages": [
+            {
+              "key": "learnings-class-2-ai-infusion",
+              "zip": "Class-2-AI-infusion.zip"
+            }
+          ]
+        },
+        {
+          "slug": "lessons-03-04-rag",
+          "title": "Lessons 3–4 · RAG: Give Your AI a Library",
+          "badge": "Lessons 3–4",
+          "description": "Embeddings, chunking, vector search, reranking and hybrid search, ending in a chat-with-your-PDFs project.",
+          "pages": [
+            {
+              "key": "learnings-class-3-4-ai-infusion",
+              "zip": "Class-3-4-AI-infusion.zip"
+            }
+          ]
+        },
+        {
+          "slug": "lesson-05-dockerize-everything",
+          "title": "Lesson 5 · Dockerize Everything",
+          "badge": "Lesson 5",
+          "description": "Containers, images, Compose and shipping an AI app as a reproducible stack.",
+          "pages": [
+            {
+              "key": "learnings-class-5-ai-infusion",
+              "zip": "Class-5-AI-infusion.zip"
+            }
+          ]
+        },
+        {
+          "slug": "lesson-06-ai-agents-on-aws",
+          "title": "Lesson 6 · AI Agents on AWS",
+          "badge": "Lesson 6",
+          "description": "Building and deploying agents with AWS services.",
+          "pages": [
+            {
+              "key": "learnings-class-6-ai-infusion",
+              "zip": "Class-6-AI-infusion.zip"
+            }
+          ]
+        },
+        {
+          "slug": "lesson-07-interview-coach",
+          "title": "Lesson 7 · The Interview Coach",
+          "badge": "Lesson 7",
+          "description": "A tool-using interview coach agent with memory, then a multi-agent interviewer.",
+          "pages": [
+            {
+              "key": "learnings-class-7-ai-infusion"
+            }
+          ]
+        },
+        {
+          "slug": "lesson-08-shipment-exception-desk",
+          "title": "Lesson 8 · The Shipment Exception Desk",
+          "badge": "Lesson 8",
+          "description": "An agentic exception-handling desk for logistics, run end to end.",
+          "pages": [
+            {
+              "key": "learnings-class-8-ai-infusion"
+            }
+          ]
+        },
+        {
+          "slug": "lessons-09-10-refund-bench",
+          "title": "Lessons 9–10 · The Refund Bench",
+          "badge": "Lessons 9–10",
+          "description": "Designing, evaluating and building a production-shaped refund decision system.",
+          "pages": [
+            {
+              "key": "learnings-class-9-ai-infusion"
+            },
+            {
+              "key": "learnings-class-10-ai-infusion",
+              "merge": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "folder": "aws-agentic-ai-bootcamp",
+      "slug": "aws-agentic-ai-bootcamp",
+      "title": "Agentic AI on AWS Bootcamp",
+      "description": "Build AI agents on AWS with Strands, Amazon Bedrock and AgentCore, from a first agent to a team running in production, plus live finance and travel projects.",
+      "orderIndex": 4,
+      "modules": [
+        {
+          "slug": "bootcamp-overview",
+          "title": "Bootcamp Overview",
+          "badge": "Overview",
+          "description": "What the bootcamp covers, week by week, with recordings and projects.",
+          "pages": [
+            {
+              "key": "aws-bootcamp",
+              "chapterTitle": "Bootcamp Overview"
+            },
+            {
+              "key": "aws-bootcamp-day-1",
+              "merge": true
+            },
+            {
+              "key": "aws-bootcamp-week-1",
+              "chapterTitle": "Week 1 Plan and Recordings"
+            },
+            {
+              "key": "aws-bootcamp-week-2",
+              "chapterTitle": "Week 2 Plan and Recordings"
+            }
+          ]
+        },
+        {
+          "slug": "w1-part-00-aws-revision",
+          "title": "Week 1 · Part 00 · AWS Revision",
+          "badge": "Week 1 · Part 00",
+          "description": "The AWS, LangChain and agent basics the bootcamp builds on.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-part-00-aws-revision"
+            }
+          ]
+        },
+        {
+          "slug": "w1-lesson-1-your-first-agent",
+          "title": "Week 1 · Lesson 1 · Your First AI Agent",
+          "badge": "Week 1 · Lesson 1",
+          "description": "From a model that only talks to an agent that thinks, uses tools and acts, built on Amazon Bedrock with Strands.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-your-first-agent"
+            }
+          ]
+        },
+        {
+          "slug": "w1-lesson-2-giving-agents-tools",
+          "title": "Week 1 · Lesson 2 · Giving Agents Tools",
+          "badge": "Week 1 · Lesson 2",
+          "description": "Tool calling, built-in and custom tools, and the AWS tool.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-giving-agents-tools"
+            }
+          ]
+        },
+        {
+          "slug": "w1-lesson-3-agents-that-remember",
+          "title": "Week 1 · Lesson 3 · Agents That Remember",
+          "badge": "Week 1 · Lesson 3",
+          "description": "Short- and long-term memory, Mem0, AgentCore Memory and checkpointing.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-agents-that-remember"
+            }
+          ]
+        },
+        {
+          "slug": "w1-lesson-4-agents-that-work-together",
+          "title": "Week 1 · Lesson 4 · Agents That Work Together",
+          "badge": "Week 1 · Lesson 4",
+          "description": "Multi-agent patterns: orchestrators, swarms, graphs and workflows.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-agents-that-work-together"
+            }
+          ]
+        },
+        {
+          "slug": "w1-lesson-5-how-agents-talk",
+          "title": "Week 1 · Lesson 5 · How Agents Talk",
+          "badge": "Week 1 · Lesson 5",
+          "description": "MCP and A2A in depth: the wire protocol, tools, resources, prompts, roots and agent-to-agent tasks.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-how-agents-talk"
+            }
+          ]
+        },
+        {
+          "slug": "w1-lesson-6-shipping-agents-to-production",
+          "title": "Week 1 · Lesson 6 · Shipping Agents to Production",
+          "badge": "Week 1 · Lesson 6",
+          "description": "Deploying agents on Lambda, ECS and AgentCore, with observability, security and resilience.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-shipping-agents-to-production"
+            }
+          ]
+        },
+        {
+          "slug": "w1-project-1-ai-agents-in-finance",
+          "title": "Week 1 · Project 1 · AI Agents in Finance",
+          "badge": "Week 1 · Project 1",
+          "description": "LLMs through a finance lens and agent design patterns, finance edition, with three labs.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-finance-section-1"
+            }
+          ]
+        },
+        {
+          "slug": "w1-project-2-nps-analyst",
+          "title": "Week 1 · Project 2 · NPS Analyst in a Box",
+          "badge": "Week 1 · Project 2",
+          "description": "An agent that turns customer survey responses into an NPS analysis a bank can act on.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-finance-nps-project"
+            }
+          ]
+        },
+        {
+          "slug": "w2-project-1-trip-buddy",
+          "title": "Week 2 · Project 1 · Trip Buddy",
+          "badge": "Week 2 · Project 1",
+          "description": "A travel assistant built step by step: RAG, chains, a tool loop, an MCP server and Slack / WhatsApp delivery.",
+          "pages": [
+            {
+              "key": "aws-bootcamp-trip-buddy"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

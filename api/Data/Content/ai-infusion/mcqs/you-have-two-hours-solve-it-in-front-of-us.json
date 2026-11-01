@@ -1,0 +1,62 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q01",
+      "questionText": "A report says only: `The parcel was damaged in transit.` Which rate does `damage_compensation` use?",
+      "explanation": "No severe or minor keyword matches, so the final else branch applies. The page calls this default an explicit policy choice.\n\n(A) The minor rate applies only when a minor keyword such as “scratch” or “dent” appears. This report has none of them.\n\n(B) The severe rate needs a word such as “shattered” or “crushed”. “Damaged” is not on that list.\n\n(D) The calculator never returns zero for damage. A report with no matching keyword gets the 50% default.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "25%, the minor rate",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "100%, the severe rate",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "50%, the default for unclear severity",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "0%, because no keyword matched",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-8-ai-infusion-q02",
+      "questionText": "Why does `delay_compensation` convert the report to lower case before it searches for urgent words?",
+      "explanation": "Every signal in the list is written in lower case. Without this step, “URGENT” would never match “urgent”.\n\n(A) Python searches upper-case text without trouble. The lower-case step is about matching, not about what Python allows.\n\n(C) The amount depends on the shipment value and the rate. The letter case of the report does not change it.\n\n(D) This calculator does not call the LLM at all. It receives the raw report text.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python cannot search upper-case text",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "So that “URGENT” matches the lower-case entries in `URGENT_SIGNALS`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "So the rounded amount comes out the same",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Because the LLM always returns lower-case words",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

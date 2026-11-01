@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q08",
+      "questionText": "Where should `OPENAI_API_KEY` live so that it stays out of the image?",
+      "explanation": "The key is injected when the container starts. The image itself never contains it.\n\n(A) Anyone can read ENV values back with `docker history`. Secrets never belong in the Dockerfile.\n\n(C) Anything copied into the image can be read later. Keep keys out of code entirely.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "In an `ENV OPENAI_API_KEY=...` line in the Dockerfile",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "In your local `.env` file, which compose passes in at runtime with `env_file`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "In `app.py` as a plain string, since the code is copied into the image anyway",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q09",
+      "questionText": "Why is `.env` listed in `.dockerignore`?",
+      "explanation": "`COPY . .` takes everything in the folder unless it is ignored. The key is passed in at runtime instead.\n\n(A) Build logs are not the reason. What matters is what ends up inside the image.\n\n(B) Docker can read the file. The entry keeps it out of the image instead.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "So the key is not printed in the build logs",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Docker cannot read `.env` files, so it would fail to build",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "So `COPY . .` does not copy the key into the image, where anyone could read it",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q10",
+      "questionText": "The app container and Chroma share a private network. Which `CHROMA_PORT` should the app use?",
+      "explanation": "Containers talk to each other on internal ports. Only your Mac uses the published port.\n\n(A) Chroma does not listen on 80 here. It listens on 8000 inside its own container.\n\n(B) 8001 is the gate on your Mac, meant for you when you poke it from outside. The app should use the internal port.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "80, the usual web port",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "8001, the port published on your Mac",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "8000, the internal port inside Chroma's container",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q11",
+      "questionText": "The compose file has `depends_on: chroma`, yet the app still exited with *Connection refused*. Why?",
+      "explanation": "A started container is not necessarily a ready service, so the app needs its retry loop.\n\n(A) `depends_on` still sets the start order when a build section is present.\n\n(C) The order of the list does not matter. The problem is readiness, not the order in the file.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`depends_on` is ignored when a service also has a build section",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "`depends_on` waits only until chroma's container has started, not until the database inside is ready",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`depends_on` needs the services listed in alphabetical order",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

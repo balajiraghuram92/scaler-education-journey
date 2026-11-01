@@ -1,0 +1,177 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q01",
+      "questionText": "Your `.env` file has `OPENAI_API_KEY=sk-file`, but you already ran `export OPENAI_API_KEY=sk-shell` in the terminal. Which key does the script use?",
+      "explanation": "`load_dotenv()` skips any key that is already set, so the value you exported in the terminal is kept.\n\n(A) By default `load_dotenv()` does not override variables that already exist. It only fills in the missing ones.\n\n(C) Defining a key in two places is allowed. One simply takes priority, and nothing raises an error.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "sk-file, because `load_dotenv()` always overwrites the environment",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "sk-shell, because a variable already in the environment wins over the file",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Neither: the script crashes because the key is defined twice",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q02",
+      "questionText": "Why does `describe_secret` print only `value[:8]`?",
+      "explanation": "Output ends up in screenshots and logs. A short prefix is enough to confirm the key type and is useless to an attacker.\n\n(A) Python prints strings of any length. The slice is a deliberate choice.\n\n(B) Real keys are long, more than 100 characters here. The first 8 are just the prefix, such as `sk-proj-`.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Python cannot print strings longer than 8 characters",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The first 8 characters are the whole key",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The prefix tells you which kind of key is loaded without exposing the secret",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q03",
+      "questionText": "The template has one placeholder, `{information}`. Which call runs the chain correctly?",
+      "explanation": "The dict key matches the placeholder name, so the biography fills the blank.\n\n(B) The key must match the placeholder name exactly. `bio` is not a placeholder in this template.\n\n(C) The chain expects a dict of placeholder values, not a plain string.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "chain.invoke({\"information\": PERSON_INFORMATION})",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "chain.invoke({\"bio\": PERSON_INFORMATION})",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "chain.invoke(PERSON_INFORMATION)",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q04",
+      "questionText": "Why does the template end with a numbered list?",
+      "explanation": "The numbered list tells the model which three parts to return, so every answer has a headline, three bullets and one question.\n\n(A) The list does not change the speed. It sets the shape of the answer.\n\n(B) The model reads the whole prompt. The list works because it names the three parts to return.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It makes the model reply faster, because it skips the explanation",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model only reads numbered lists, so plain sentences would be ignored",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is the output contract: the wording changes every run, but the shape stays the same",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q05",
+      "questionText": "In the sample output, `response.tool_calls` is `[]`. Why is it empty?",
+      "explanation": "Nothing in a plain chain can request a tool. The field is only filled when the model asks for one, which happens with the agents in Part B.\n\n(B) OpenAI models do return tool calls when you give them tools. Here there are none to call.\n\n(C) Tracing only records a run. It has no effect on what the response object holds.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The chain has no tools and the model asked for none, so nothing was requested",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "OpenAI models never return tool calls",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "LangSmith tracing is switched off",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q06",
+      "questionText": "In a LangSmith trace, which step shows the filled-in prompt that was actually sent to the model?",
+      "explanation": "It is a child step that shows the filled-in prompt that was actually sent.\n\n(A) This is the parent step: one run of your whole chain. It does not show the prompt by itself.\n\n(C) This step is the model call, with latency, token count and cost.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "RunnableSequence",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "PromptTemplate",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "ChatOpenAI or ChatOllama",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-part-00-aws-revision-q07",
+      "questionText": "What do you change to start tracing a script with LangSmith?",
+      "explanation": "That is enough. LangChain sends a trace of every call, with no code changes.\n\n(A) Not needed. LangChain notices the `LANGSMITH_*` lines and traces the calls automatically.\n\n(B) The model stays the same. Tracing is switched on from `.env`, not from the model.\n\n(D) The traces come from LangChain in your script. The OpenAI dashboard does not switch them on.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Wrap every chain in a LangSmith decorator in your code",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Replace ChatOpenAI with a LangSmith model class",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Add the `LANGSMITH_*` lines to `.env` and run the script again",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "d",
+          "optionText": "Turn on tracing in the OpenAI dashboard",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

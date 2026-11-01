@@ -1,0 +1,220 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q03",
+      "questionText": "The model's first reply has no tool calls and only text. How many model requests does `run_turn` make for this answer?",
+      "explanation": "With no tool calls, the loop exits on its first round, so `run_turn` makes one request.\n\n(A) The loop returns the text as soon as no tool calls come back, so the second request is never made.\n\n(B) Tools run in Python and do not call the model. The model is asked again only when it needs to see tool results.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Two, one to request tools and one to write the feedback",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Three, one for each tool",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "One. `run_loop` returns the text straight away",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q04",
+      "questionText": "The model keeps asking for tools and reaches the round limit without a plain-text reply. What does `session_log` store for this answer?",
+      "explanation": "`result_out` is filled during each round as a tool runs, and `run_turn` appends the entry with the apology as its feedback.\n\n(A) `run_turn` appends its entry after `run_loop` returns, whatever `run_loop` returned.\n\n(C) Results are captured inside the loop as each tool runs, so they exist even without a final reply.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Nothing, because `run_turn` only saves answers that got a final reply",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The apology as feedback, with the tool results captured in the earlier rounds",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Only the feedback, because results are saved only after a final reply",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q05",
+      "questionText": "Which part decides which tool runs for an answer?",
+      "explanation": "The model reads the `TOOL_SCHEMA` descriptions and asks for tools. `run_loop` looks each name up in `TOOL_FUNCTIONS` and runs it.\n\n(B) Your code runs every tool locally. The server only receives the request and returns the model's reply.\n\n(C) The loop does no text matching. The choice comes from the tool requests the model sends back.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model chooses which tools to request, and your code runs the matching function",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The Groq server, because it runs the Python functions for the model",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A lookup that matches words in the answer to a tool",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q06",
+      "questionText": "Two answers score 100 and 0. What does `generate_final_report` report as average relevance?",
+      "explanation": "Average relevance is the mean of every score in `session_log`, so (100 + 0) / 2 gives 50.\n\n(A) The report takes the mean of all the scores, not the highest one.\n\n(B) The lowest score is reported on its own line, as the lowest-scoring question. It is not used as the average.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "100/100, because the highest score is the strongest signal",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "0/100, because the lowest score is used as the average",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "50/100, the mean of the two scores",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q07",
+      "questionText": "Why does the report count recurring gaps across every answer, not just the last one?",
+      "explanation": "The tally covers all the answers, so one weak last answer does not decide the picture. That is what “based on the complete session” means here.\n\n(B) The report is plain Python over `session_log` and can be requested at any point. The tally is about the whole session, not timing.\n\n(C) `ask_agent()` does read `session_log`. The report is computed in Python because the numbers must not depend on the model.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "So the weakest area reflects the whole session, not only the most recent answer",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "So the report can be written before the interview ends",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because the model cannot read `session_log`, so the report counts gaps itself",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q08",
+      "questionText": "The last value returned by `on_submit` is an empty string. What does it do?",
+      "explanation": "The answer box is the fifth item in `outputs=[…]`, so the empty string replaces whatever the candidate typed.\n\n(A) Skipping is not part of this flow. The next question comes from the index that `on_submit` returns.\n\n(C) Gradio matches each returned value to its output by position, so all five are used.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It marks the question as skipped, so the next one is shown",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It clears the answer box",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is ignored, because Gradio only reads the first four outputs",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q09",
+      "questionText": "You want a terminal-only run where the final report prints automatically after the last question. Which file do you run?",
+      "explanation": "`main.py` asks each question in turn, then prints the final report. It has no meta-question box.\n\n(A) `app.py` shows the report only when the Final report button is clicked, in the browser.\n\n(B) `memory_check.py` feeds fixed answers and prints PASS or FAIL checks. It is not an interview with typed input.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "app.py, because Gradio prints the report once the last question is answered",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "memory_check.py, because it runs every answer for you and prints a report",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "main.py, because its flow is strictly sequential and prints the report after the last question",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q10",
+      "questionText": "`memory_check.py` clears `agent.session_log` before it runs anything. What would go wrong without that line?",
+      "explanation": "The checks assume the planted answers are the first two entries. Any earlier entries would shift them.\n\n(B) The key is read once when `agent.py` is imported. Clearing the log does not touch it.\n\n(C) `generate_final_report` loops over every entry in `session_log`, so old answers would change the average.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The checks could look at the wrong answers, because they read `session_log[0]` and `session_log[1]`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The Groq key would be loaded twice and the run would fail",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing, because the report only reads the newest entry",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q11",
+      "questionText": "The weak answer is written with filler words and vague wording. Why?",
+      "explanation": "It was planted on purpose, so the report should name Q2 as the weakest area. If the report misses it, the memory or the report has a bug.\n\n(A) Each tool runs on any answer. Filler words, STAR parts and relevance are scored separately.\n\n(C) The system prompt asks for all three tools on every answer, whatever the wording. The planted answer does not force any call.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Because the tools only score answers that contain filler words",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "So the test has a known right answer to check the memory against",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "So the model is forced to call `detect_filler_words`",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

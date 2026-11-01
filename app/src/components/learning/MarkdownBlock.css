@@ -135,3 +135,106 @@
 .md-minor-heading {
   font-size: 0.85rem;
 }
+
+/* Copy button on titled and revealable code blocks */
+.md-code__copy {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  z-index: 1;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--chamber-rule-border, #E5E0D8);
+  border-radius: 6px;
+  background: var(--chamber-bg-card, #FFFFFF);
+  color: var(--chamber-ink-secondary, #4A5568);
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.md-code__copy:hover {
+  border-color: var(--chamber-accent-sage, #2C5E55);
+  color: var(--chamber-accent-sage, #2C5E55);
+}
+
+/* Pseudo code: plain-English steps shown before the real code */
+.md-pseudo > pre {
+  border-left: 3px solid var(--chamber-accent-sage, #2C5E55);
+  background: var(--chamber-bg-card-warm, #FAF8F3);
+  white-space: pre-wrap;
+}
+
+.md-pseudo__kw {
+  color: var(--chamber-accent-sage, #2C5E55);
+  font-weight: 700;
+}
+
+.md-pseudo__comment {
+  color: var(--chamber-ink-muted, #64748B);
+  font-style: italic;
+}
+
+/* "View code" toggle that reveals the real code under its pseudo code */
+.md-reveal {
+  margin: -0.6rem 0 1.35rem;
+}
+
+.md-reveal > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--chamber-rule-border, #E5E0D8);
+  border-radius: 999px;
+  background: var(--chamber-bg-card, #FFFFFF);
+  color: var(--chamber-accent-sage, #2C5E55);
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.md-reveal > summary::-webkit-details-marker {
+  display: none;
+}
+
+.md-reveal > summary::before {
+  content: '▸';
+  transition: transform 150ms ease;
+}
+
+.md-reveal[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.md-reveal__hide,
+.md-reveal[open] .md-reveal__show {
+  display: none;
+}
+
+.md-reveal[open] .md-reveal__hide {
+  display: inline;
+}
+
+.md-reveal > .md-code {
+  margin-top: 0.6rem;
+}
+
+/* Inline lesson diagrams */
+.md-diagram {
+  margin: 1rem 0 0.6rem;
+  padding: 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--chamber-rule-border, #E5E0D8);
+  border-radius: 10px;
+  background: var(--chamber-bg-card, #FFFFFF);
+}
+
+.md-diagram__canvas svg {
+  display: block;
+  width: 100%;
+  min-width: 560px;
+  height: auto;
+}

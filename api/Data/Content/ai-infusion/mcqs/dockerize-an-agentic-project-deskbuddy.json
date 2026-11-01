@@ -1,0 +1,76 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q12",
+      "questionText": "Two `curl` requests use the same `session_id`. Why can the second answer use the first one?",
+      "explanation": "Redis keeps each session's history under its own key. The same session_id gives the same key and the same memory.\n\n(B) Redis stores data; it does not push answers. The agent has to read the history and send it to the model.\n\n(C) Chat history is kept in Redis, not in the tools service.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The agent loads earlier messages from Redis under a key built from the session_id",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Redis sends the old answer again without being asked",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The tools service remembers the calculator result from the first request",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q13",
+      "questionText": "Why does the `tools` service have no `ports` section?",
+      "explanation": "No published port means no entrance from your Mac. Services on the same compose network reach each other by name.\n\n(A) Ports do not slow requests down. The section only decides what can be reached from your Mac.\n\n(C) It does have one, from `build: ./tools`. The missing section only changes network access.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Ports slow down calculator requests, so the section is left out for speed",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "So the outside world cannot reach it, while the agent can still call `tools:7000` on the private network",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Because `tools` does not need an image, so it has nothing to publish",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-5-ai-infusion-q14",
+      "questionText": "What does `for _ in range(5):` do in the agent's `chat` function?",
+      "explanation": "Each round is one model call, plus any tool calls it asks for. Five rounds is the safety fuse.\n\n(A) Memory is saved once, after the loop finishes, not at the start.\n\n(B) The loop repeats the same model call. It never switches models.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Stores five messages in Redis before the loop starts",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Sends the same message to five different models",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Caps the think, act, observe loop at five rounds, so a confused model cannot loop forever",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

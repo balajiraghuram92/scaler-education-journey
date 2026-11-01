@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q12",
+      "questionText": "Why does `ask()` put the page number in front of each chunk before it goes into the prompt?",
+      "explanation": "The page number comes from the chunk metadata. Putting it in the prompt is how the model knows what to cite.\n\n(B) Search runs on the chunk text and its vector. The page number is only used in the prompt, for citations.\n\n(C) Gradio only draws the upload box, status line and chat window. Page numbers go into the prompt, not the interface.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "So the model can cite the page each answer came from, as the Sources line asks",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "So the embedding model can search by page number",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "So Gradio can show a progress bar for each page",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q13",
+      "questionText": "The user uploads a second PDF. What happens to the index of the first PDF?",
+      "explanation": "`state[\"db\"]` is overwritten, so the old index is dropped.\n\n(A) `state` holds one database. Each upload replaces it, so only the newest PDF is searched.\n\n(C) `build_index` does not set a persist directory, so the index lives in memory and is not saved to disk.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both indexes are kept, and every question searches both",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "It is replaced, because upload runs `build_index` again and stores the new index in `state`",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It is saved to `./chroma_db` so it can be reopened later",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

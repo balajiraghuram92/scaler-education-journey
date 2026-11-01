@@ -1,0 +1,52 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q12",
+      "questionText": "The last answer scored 40, and technical questions remain. What does the interviewer's prompt tell the model to do next?",
+      "explanation": "A score below 60 with unasked questions left in the same category means stay, so the interviewer can probe further.\n\n(A) That rule applies when the score is 60 or more, or when the category has no unasked questions left.\n\n(C) The prompt never asks for randomness. It says to stay in the category or move to the least-seen one.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Move to the category the candidate has seen least",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Stay in technical, to probe depth",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Pick a random category, so candidates cannot predict the next question",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-7-ai-infusion-q13",
+      "questionText": "What makes the `while` loop in `run_multi_agent.py` end?",
+      "explanation": "The loop stops at `None`. `choose_next_question` returns `None` when every question in the bank is in `asked`.\n\n(B) The loop has no quit check. It only stops when there is no question left to choose.\n\n(C) A score never ends the loop. A low score only changes which category the interviewer picks next.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "`choose_next_question` returns `None`, which happens once every question has been asked",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The candidate types quit, and the loop checks for that word",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The evaluator returns a score of 60 or more",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

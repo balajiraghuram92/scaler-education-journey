@@ -1,0 +1,76 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q06",
+      "questionText": "A server is halfway through a task and needs a detail it does not have, such as the exam date. Which client feature lets it ask the user?",
+      "explanation": "The server sends an elicitation request, the client asks the user, and the answer goes back so the server can continue.\n\n(A) Sampling lets the server use the client's AI model. It does not ask the user anything.\n\n(B) Roots define which folders a server may work in. They do not ask for missing information.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Sampling",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Roots",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Elicitation",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q07",
+      "questionText": "A server's tool would change records in a database. What does MCP expect from the user?",
+      "explanation": "Users should be able to see and approve tool calls. That keeps them in control of what happens.\n\n(B) MCP expects a human in the loop, so users can see what the tools are doing.\n\n(C) Trust in the server does not replace the user's control. The user should be able to see and approve each tool call.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "To be able to see each tool call and approve it, so the user stays in control",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing, because tool calls run silently and the user does not need to see them",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing, because a trusted server never needs approval",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-how-agents-talk-q08",
+      "questionText": "The event planner switches from the 2025 conference to a new project. What keeps the server working in the right folder?",
+      "explanation": "Roots belong to the client. When they change, the client sends a notification, and the server can ask for the new list, so it keeps working only where the user is now.\n\n(A) The server doesn't go looking on its own. Where it may work is the client's call, shared through roots.\n\n(B) No restart is needed. Roots can change while the connection stays open.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The server scans the laptop and picks the most recently changed folder",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Nothing changes until the server is restarted with a new config file",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The client updates its roots list and notifies the server",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

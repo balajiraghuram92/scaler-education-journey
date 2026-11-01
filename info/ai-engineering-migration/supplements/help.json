@@ -1,0 +1,10 @@
+{
+  "page": "help/index.html",
+  "inserts": [],
+  "glossary": [],
+  "skipped": [
+    { "text": "· grouped by lesson", "reason": "file-bar caption for the requirements.txt block; the fence already shows the file and its lesson groups" },
+    { "text": "· one function, four providers", "reason": "file-bar caption for the providers.py block; the fence already shows the code" },
+    { "text": "Copy button behaviour script", "reason": "JavaScript for the COPY button, not page text" }
+  ]
+}

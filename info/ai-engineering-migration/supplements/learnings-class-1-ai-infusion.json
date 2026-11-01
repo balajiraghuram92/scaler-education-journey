@@ -1,0 +1,27 @@
+{
+  "page": "Learnings/Class-1-AI-infusion/index.html",
+  "inserts": [
+    {
+      "section": "2 What is an LLM, really?",
+      "after": "Your text",
+      "md": "**Starting text in the box:** AI Engineering is surprisingly approachable!"
+    },
+    {
+      "section": "3 The trick that made all of this possible",
+      "after": "Pick the word you think fills the blank.",
+      "md": "**If you pick \"coffee\":** ✅ Exactly! And to \"know\" that, the model quietly learned context, grammar & the world. **That's self-supervision.**\n\n**If you pick \"tea\":** ☕ Reasonable! \"tea\" works too — the model learns there are *several* good answers, with different probabilities (remember temperature?).\n\n**If you pick \"bicycle\" or \"sadness\":** 😅 Not quite — but every wrong guess is how the model *learns*. Billions of these and it gets scarily good."
+    },
+    {
+      "section": "6 Your first 6 lines that talk to an AI",
+      "after": "**LLM model**",
+      "md": "**Reply shown after you press send:** \"Sip filter coffee on an MTR rooftop and watch the city wake up — Bangalore's best 10-minute holiday. ☕\""
+    },
+    {
+      "section": "7 Mini-Project: AI Website Summarizer",
+      "after": "⚙️ This demo summarizes *in your browser* (a simple method) so it runs with no API key. Your real `app.py` sends the text to GPT for a smarter summary — but the shape, the flow, and the personality switch are exactly what you see here.",
+      "md": "**Sample \"website\" · 🚀 Startup site:**\n\nNimbusPay — Payments that just work. NimbusPay is a payments platform built for small Indian businesses who are tired of clunky tools and hidden fees. Accept UPI, cards, and wallets with a single integration that takes ten minutes to set up. Our flat 1% fee means no surprises at the end of the month. NimbusPay also gives you a real-time dashboard so you can see every transaction as it happens. Over 12,000 shops already use NimbusPay to get paid faster. We just launched instant settlements, so your money reaches your bank account the same day instead of waiting three days. Sign up today and your first month is completely free.\n\n**Sample \"website\" · 📰 News article:**\n\nGovernments race to regulate AI as adoption surges. Lawmakers around the world are scrambling to write rules for artificial intelligence as the technology spreads into hospitals, banks, and classrooms. Supporters say clear regulation will build public trust and prevent harm. Critics worry that heavy rules could slow innovation and hand an advantage to larger companies who can afford compliance. A new draft framework focuses on transparency, requiring companies to disclose when content is AI-generated. It also demands that high-risk systems, such as those used in hiring or medicine, be tested for bias before launch. Industry groups have asked for more time to adapt. The debate is expected to continue for years as the technology keeps evolving.\n\n**Sample \"website\" · ✍️ Personal blog:**\n\nMy journey from teacher to AI engineer. Three years ago I had never written a line of Python. I was a high-school teacher who felt stuck and curious about the AI everyone kept talking about. I started small: one tiny project every weekend, even when they barely worked. The first thing I built was a tool that summarized news articles for my students. It was ugly, but it worked, and that little win changed everything. I kept shipping projects and sharing them online, and slowly people started noticing. Last month I started my first job as an AI engineer at a startup. The lesson I keep repeating to anyone who will listen: you do not need permission or a perfect plan, you just need to build small things often and share them.\n\n**Personality, and the opening and closing lines each one gives the summary:**\n\n| Personality | Opening line | Bottom-line label |\n|---|---|---|\n| 🙂 Friendly | Here's the gist, in plain English: | In short: |\n| 😏 Snarky | Fine, I read it so you don't have to: | The honest TL;DR: |\n| 🧒 Explain like I'm 5 | Okay, imagine I'm explaining this to a 10-year-old: | So basically: |\n| 💼 Professional | Executive summary: | Bottom line: |\n\n**When the box is empty:** Paste some text or pick a sample first.\n\n**When the text is too short:** Hmm, that text was too short to summarize.\n\n**Footer under every summary:** ↳ in your real app, GPT writes this — richer &amp; in full sentences"
+    }
+  ],
+  "glossary": [],
+  "skipped": []
+}

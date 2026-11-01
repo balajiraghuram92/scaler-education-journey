@@ -1,0 +1,76 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q08",
+      "questionText": "What does the augmented LLM stage add to a plain LLM?",
+      "explanation": "These are the three pillars of the augmented LLM: where to find information, how to act with it, and how to keep track of progress.\n\n(A) Training data is fixed. Augmentation adds retrieval, tools and memory around the model without retraining it.\n\n(B) That describes the autonomous agent, which is a later stage.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A larger training dataset, so it knows more facts",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The freedom to set its own goals with no human input",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Retrieval, tools and memory, which help it find information, act and track progress",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q09",
+      "questionText": "What is the difference between traditional RAG and agentic RAG?",
+      "explanation": "Traditional RAG always runs retrieve, then generate. In agentic RAG, retrieval is one tool the agent chooses to call.\n\n(A) Agentic RAG still retrieves. The difference is that the agent decides when and how to do it.\n\n(C) Both use retrieval. The page's distinction is who decides when retrieval happens.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Agentic RAG skips retrieval and relies on the agent's memory",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Traditional RAG follows one fixed path every time, while in agentic RAG the agent decides when to retrieve",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "They differ only in which embedding model they use",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-aws-bootcamp-your-first-agent-q10",
+      "questionText": "Why does the page say that autonomy needs limits?",
+      "explanation": "The page's example is an agent that trades money: a maximum trade size, allowed instruments, a kill switch and a full log of decisions.\n\n(B) Autonomous agents do use tools. Limits are about what an agent may do and how it can be stopped.\n\n(C) Limits are about safety and control, not speed.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "An agent that acts without anyone checking first can do real damage, so it needs hard limits and a log",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Autonomous agents cannot call tools, so limits are added to compensate",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Limits make the LLM answer faster",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

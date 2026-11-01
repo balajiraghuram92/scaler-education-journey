@@ -1,0 +1,27 @@
+{
+  "page": "Learnings/Class-9-Ai-Infusion/index.html",
+  "inserts": [
+    {
+      "section": "Rule on the case yourself",
+      "after": "> Try “Split every bench”: U, R, E on every grievance means no majority anywhere, so nothing is paid and everything is held. Then fail two of g2's judges as well as g3's: only 2 of 4 grievances resolve, which is below 60%, so the whole dispute goes to an agent.",
+      "md": "**Escalated, refund over the cap:** Refund ₹… exceeds the ₹… cap: a human approves, whatever the bench said.\n\n**Escalated, too few grievances resolved:** Only … of … grievances resolved (…% < 60%): the whole dispute goes to an agent.\n\n**Settled:** … of … resolved (…% ≥ 60%), under the cap: pay ₹… now, or nothing was upheld, so nothing is paid; hold ₹… for an agent when anything is held."
+    }
+  ],
+  "glossary": [],
+  "skipped": [
+    { "text": "· terminal · run from the project folder", "reason": "file-bar caption; the code block already carries the filename setup.sh" },
+    { "text": "· step 2 · F5", "reason": "file-bar caption; the code block already carries the filename pricing.py" },
+    { "text": "· step 2 · F4", "reason": "file-bar caption; the code block already carries the filename bench.py" },
+    { "text": "· step 2 · python check_rules.py", "reason": "file-bar caption; the code block already carries the filename check_rules.py" },
+    { "text": "· step 5 · F2, F3, F8", "reason": "file-bar caption; the code block already carries the filename stages.py" },
+    { "text": "· step 6 · python eval_extract.py", "reason": "file-bar caption; the code block already carries the filename eval_extract.py" },
+    { "text": "· step 6 · python eval_judge.py", "reason": "file-bar caption; the code block already carries the filename eval_judge.py" },
+    { "text": "· step 7 · F9", "reason": "file-bar caption; the code block already carries the filename payments.py" },
+    { "text": "· step 8 · the whole system", "reason": "file-bar caption; the code block already carries the filename pipeline.py" },
+    { "text": "· step 9 · python bench_check.py", "reason": "file-bar caption; the code block already carries the filename bench_check.py" },
+    { "text": "· step 10 · python app.py", "reason": "file-bar caption; the code block already carries the filename app.py" },
+    { "text": "cap: a human approves, whatever the bench said. (and other status sentences)", "reason": "dynamic status sentence of the bench widget; rules restated as a list in the Rule on the case yourself section" },
+    { "text": "Button labels: Reset to case study, Outage on g3, Split every bench", "reason": "button labels, UI chrome" },
+    { "text": "Bench widget grievance texts, vote options and judge selects", "reason": "already present in the visible widget text or the case study section" }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q01",
+      "questionText": "A user asks about a policy the model was never trained on. How does RAG still get the answer right?",
+      "explanation": "That is the querying phase. The retrieved text is what lets the model answer from your data.\n\n(A) RAG never retrains the model. The model stays exactly the same, and only the prompt changes.\n\n(B) Indexing stores the chunks and their vectors in a database. The model's own knowledge does not change.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model is retrained on the policy text overnight",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model reads the whole database and memorises it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The question is embedded, the closest chunks are found, and they go into the prompt",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q02",
+      "questionText": "Why is RAG usually the first thing to try before fine-tuning?",
+      "explanation": "RAG is faster and cheaper to update, and each answer can point to the chunk it came from.\n\n(A) A fine-tuned model still cannot cite its sources on its own.\n\n(C) A fine-tuned model can still hallucinate, which is why RAG grounds answers in real text.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Fine-tuning gives citations automatically, so RAG adds nothing",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Fine-tuning is slow to redo when data changes, and it still cannot cite sources",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Fine-tuning removes hallucinations completely, so RAG only helps speed",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q03",
+      "questionText": "One pair of sentences has a cosine similarity of 0.91, and another pair has 0.12. Which statement is correct?",
+      "explanation": "A score near 1 means the angle between the two vectors is small. That is what similar meaning looks like.\n\n(A) Zero means no relation, not a match. A higher cosine means a smaller angle and a closer meaning.\n\n(C) Cosine similarity ignores length. Only the angle between the two vectors counts.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The 0.12 pair is more similar, because its score is closer to zero",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The 0.91 pair points in almost the same direction, so its meaning is much closer",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The 0.91 pair is only more similar if both sentences are the same length",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q04",
+      "questionText": "In the embedding code, why is the dot product divided by `norm(v1) * norm(v2)`?",
+      "explanation": "Dividing by the lengths cancels out the size of each vector. What is left is the cosine of the angle.\n\n(B) The score is a cosine, which ranges from -1 to +1. It is not converted to a percentage.\n\n(C) The division keeps the score between -1 and +1. A range of 0 to 10 is not what it produces.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "So that only the angle between the vectors counts, not how long they are",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "To turn the score into a percentage from 0 to 100",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "To make the score always fall between 0 and 10 for easy reading",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

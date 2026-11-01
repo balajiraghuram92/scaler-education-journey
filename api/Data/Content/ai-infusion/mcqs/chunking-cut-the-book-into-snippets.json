@@ -1,0 +1,172 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q05",
+      "questionText": "A key sentence sits exactly on the boundary between two chunks, and `chunk_overlap` is 0. What is the likely problem?",
+      "explanation": "With no overlap, the sentence is split and each half lives in a different chunk. Overlap exists to prevent exactly this.\n\n(B) Nothing joins chunks at answer time. The model only sees the chunks that were retrieved.\n\n(C) Each chunk is embedded on its own. The vectors are not merged, so the split stays split.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Neither chunk holds the whole sentence, so retrieval may miss the answer",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model joins the two halves automatically when it writes the answer",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The two chunks' vectors are averaged, so the full sentence is kept",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q06",
+      "questionText": "Raising `chunk_size` from 200 to 1,500 characters usually does what?",
+      "explanation": "Big chunks favour recall and small chunks favour precision. Chunk size is usually the first knob to tune.\n\n(A) Bigger chunks bring more surrounding text along. The answer is then buried in more fluff, which lowers precision.\n\n(B) Chunk size does not remove the need for embeddings. Meaning-based search still works on one vector per chunk.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Improves precision, because each chunk becomes more focused",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Makes embeddings unnecessary, since long chunks can be matched by keyword",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Raises recall, since the answer is more likely to sit inside one chunk, but adds more unrelated text",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q07",
+      "questionText": "Why does `rag_answer` paste the retrieved chunks into the prompt, instead of sending only the question?",
+      "explanation": "The chunks are the evidence. The prompt asks the model to answer from them, and that grounding is the point of RAG.\n\n(A) The model reads plain questions fine. The chunks are added so the answer comes from your text.\n\n(C) The chunks are added on top of the question, so the prompt gets longer, not shorter.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model cannot read a plain question without context around it",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "So the answer is based on your documents, not on guesses from training data",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "To shorten the prompt, since the chunks replace the question",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q08",
+      "questionText": "What happens if none of the 3 retrieved chunks contains the answer?",
+      "explanation": "That one line is the main guard against hallucination in this RAG setup.\n\n(A) `similarity_search` always returns the k nearest chunks, even weak matches. Nothing crashes.\n\n(B) The prompt does give a rule. It says to answer only from the context.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The `similarity_search` call returns nothing, so the code crashes",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The model fills the gap from its training data, because the prompt gives it no rule",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The prompt tells the model to say \"I don't know\", so it should not guess",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q09",
+      "questionText": "Why does `retrieve_with_rerank` run the cross-encoder on only 25 candidates, not on the whole database?",
+      "explanation": "So the fast vector search narrows the field first, and the slow, accurate reranker only sees the shortlist.\n\n(A) There is no such limit. The problem is cost: each pair needs a full model pass.\n\n(B) Vector search can rank the best chunk low, for example at 20. Fixing that order is exactly what the reranker is for.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Cross-encoders cannot score more than 25 pairs in one call",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The 25 vector-search results are always already in the correct order",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "A cross-encoder runs a full model pass per (query, document) pair, which is far too slow for millions of chunks",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q10",
+      "questionText": "A user searches for the product code SKU-4429. Which search is best placed to find that exact code?",
+      "explanation": "Keyword search is strong at codes, IDs and names, where the exact text matters.\n\n(A) Embeddings capture meaning, so a made-up code gets little weight. That is the blind spot of vector search.\n\n(C) Reranking only reorders the candidates it is given. If the chunk with that code was never retrieved, it is never scored.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Vector search, since embeddings capture every exact string in a document",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "BM25 keyword search, since it matches the exact characters of the code",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Cross-encoder reranking alone, since it reads the query and document together",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-3-4-ai-infusion-q11",
+      "questionText": "In hybrid search, document X is #1 in BM25 and #40 in vector search. Document Y is #2 in both lists. Under reciprocal rank fusion, which ends higher?",
+      "explanation": "RRF turns each rank into a score and adds them. Y is strong in both lists, so it beats X's one first place plus one weak rank.\n\n(B) RRF does not let one first place win outright. A weak rank in the other list pulls X's total down.\n\n(C) Hybrid search treats both lists the same. Neither one is trusted more by default.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Document Y, because its ranks in both lists add up to a higher total",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Document X, because first place in one list is worth more than second place in two",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Document X, because vector search is always trusted more than BM25",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

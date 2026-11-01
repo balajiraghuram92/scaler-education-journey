@@ -1,0 +1,100 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q05",
+      "questionText": "A complaint has eight grievances and K is 3. Using the page's formula, how many LLM calls does the dispute take, and where does the growth happen?",
+      "explanation": "1 + (8 × 3) + 1 = 26. Extraction and settlement stay at one call each, so only the judging stage grows.\n\n(A) The formula is 1 + N × K + 1. Extraction and settlement are real LLM calls, and each one counts.\n\n(C) The 14 in the case study comes from its four grievances. Each extra grievance adds K more judging calls.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "24 calls, because the extract and settle calls do not count",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "26 calls, and all the growth is in stage 3, judging",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "14 calls, because the cost does not depend on the complaint",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q06",
+      "questionText": "Why must extraction finish before any judging starts?",
+      "explanation": "Judging fans out to N grievances times K judges. The count is unknown until extraction is done, so judging has to wait.\n\n(B) Settlement is the last stage. It writes the message from the final rulings, so it cannot run first.\n\n(C) The cap is checked after judging and tallying. The judges do not wait for it, and the cap is not an input to them.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Until extraction returns, the system does not know how many grievances there are, so it cannot size the fan-out",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Settlement has to write the customer message before the judges vote",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The judges cannot read the complaint text until the refund cap is checked",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q07",
+      "questionText": "A worker takes a job that needs 30 seconds. The visibility timeout is 10 seconds, and the worker does not acknowledge the message in time. What happens?",
+      "explanation": "Nothing crashed. The deadline was shorter than the job, and the page's example refunds ₹689 three times.\n\n(A) A message is removed only when the worker acknowledges it in time. Receiving it does not delete it; it is hidden until the timeout ends.\n\n(C) A queue here does not wait for an error. Silence past the deadline is enough for the message to be requeued.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The message is deleted, so the job stops halfway through",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The queue makes the message visible again, so a second worker can start the same dispute while the first is still running",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Nothing, because the queue retries only after an error is raised",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-9-ai-infusion-q08",
+      "questionText": "The API writes the dispute row, then enqueues its id. The write succeeds but the enqueue fails. What is the risk?",
+      "explanation": "The row exists, but its id never reaches the queue, so the customer keeps refreshing. A transactional outbox, or CDC on the table, closes that gap.\n\n(A) A 429 is the model provider's \"too many requests\" reply. It is not what happens when the database write succeeds and the queue step fails.\n\n(B) Workers poll the queue, not the table. A row without a queued id is never picked up, so two runs are not the risk here.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "A 429 comes back and the customer has to submit again",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The workers process the dispute twice, once from the row and once from the message",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The dispute stays at RECEIVED forever, because no worker ever sees its id",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}

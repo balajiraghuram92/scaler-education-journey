@@ -1,0 +1,148 @@
+{
+  "questions": [
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-simulators-q01",
+      "questionText": "Why does the page say tokens are used instead of whole words?",
+      "explanation": "The model cannot store every word in the world, but it can build any word from a fixed set of chunks.\n\n(A) Whole words usually make text shorter than tokens do. The real problem is the size of the vocabulary.\n\n(C) Computers store text in many ways. Tokens are a design choice made for the model.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Whole words would make every sentence longer",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "A fixed set of sub-word chunks can build every word, including new ones",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Tokens are the only units a computer can store",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-simulators-q02",
+      "questionText": "You type `cat`, then `unbelievableness`. What will the tokenizer do?",
+      "explanation": "Common words stay whole. Rare or long words are built from smaller chunks, as in the example above.\n\n(A) Common short words usually stay as one token. Only rare or long words get chopped.\n\n(B) The vocabulary is fixed and limited. That is exactly why rare words get split.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Both split into several tokens, since every word gets chopped",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Both stay as one token, since the vocabulary is very large",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "`cat` stays one token, and `unbelievableness` splits into several pieces",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-simulators-q03",
+      "questionText": "You are building a brainstorming tool that should give varied ideas. Which change to the temperature helps most?",
+      "explanation": "A higher temperature flattens the probabilities, so surprising words are picked more often.\n\n(B) Zero gives the most focused, repeatable choice. That is the opposite of varied ideas.\n\n(C) Temperature reshapes the probabilities. It is a real setting, not a cosmetic one.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "Raise it, so less likely words get a bigger share",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "b",
+          "optionText": "Set it to 0, so the model always picks the top word",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Leave it alone, since temperature does not change the choice",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-simulators-q04",
+      "questionText": "At a temperature of 0.1, what does the probability chart look like?",
+      "explanation": "A low temperature lets the top word dominate, which gives focused, repeatable answers.\n\n(A) That is where a very high temperature moves the chart, not a low one.\n\n(C) A low temperature favours the most likely words, not the least likely.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "All words get about the same probability",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The most likely word takes most of the share, so the answer is focused",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "The least likely word gets the biggest share",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-simulators-q05",
+      "questionText": "In \"The barista handed me a hot cup of ___\", why does \"bicycle\" fail, even though it is a noun?",
+      "explanation": "Grammar alone would accept a noun. The context is what rules out \"bicycle\".\n\n(A) A cup of ___ needs a noun, and bicycle is a noun. Grammar is not the problem here.\n\n(B) Length is not the issue. The blank is about what fits in a cup.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "It is the wrong part of speech, since the blank needs a verb",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The sentence is too long for the word to fit",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "c",
+          "optionText": "It does not fit the meaning: a cup holds a drink, not a vehicle",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "legacyKey": "aie-learnings-class-1-ai-infusion-simulators-q06",
+      "questionText": "Why does this training need no human labels?",
+      "explanation": "The internet becomes its own teacher: the original sentence is the answer key.\n\n(A) If the answer were shown first, there would be nothing to learn. The guess comes first, and the real word checks it.\n\n(C) Self-supervision means the labels come from the text itself, not from people.",
+      "sourceType": "FROM_MATERIAL",
+      "category": "Checkpoint",
+      "options": [
+        {
+          "optionKey": "a",
+          "optionText": "The model sees the answer before each guess",
+          "isCorrect": false
+        },
+        {
+          "optionKey": "b",
+          "optionText": "The hidden word is already in the text, so the text checks each guess",
+          "isCorrect": true
+        },
+        {
+          "optionKey": "c",
+          "optionText": "Humans label a few examples, and the model copies them",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}
