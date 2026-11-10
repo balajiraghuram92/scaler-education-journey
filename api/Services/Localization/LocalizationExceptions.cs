@@ -94,3 +94,28 @@ public class InvalidJobStateException : Exception
     {
     }
 }
+
+public class LocalizationLocaleNotFoundException : Exception
+{
+    public LocalizationLocaleNotFoundException(string localeCode)
+        : base($"Localization locale '{localeCode}' was not found.")
+    {
+        LocaleCode = localeCode;
+    }
+
+    public string LocaleCode { get; }
+}
+
+public class VendorLanguageMismatchException : Exception
+{
+    public VendorLanguageMismatchException(int vendorId, string localeCode)
+        : base($"Vendor with ID {vendorId} does not support locale '{localeCode}'.")
+    {
+        VendorId = vendorId;
+        LocaleCode = localeCode;
+    }
+
+    public int VendorId { get; }
+
+    public string LocaleCode { get; }
+}

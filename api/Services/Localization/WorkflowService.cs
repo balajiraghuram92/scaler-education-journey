@@ -9,6 +9,40 @@ using StudyTracker.Api.Models.Localization;
 
 namespace StudyTracker.Api.Services.Localization;
 
+public static class WorkflowActions
+{
+    public const string MarkTranslated = "Mark Translated";
+    public const string SendToReview = "Send to Review";
+    public const string Approve = "Approve";
+    public const string AutoTranslateViaGoogleMt = "Auto-Translate via Google MT";
+    public const string PostToMarketplace = "Post to Marketplace";
+    public const string RunMtOptimize = "Run MT Optimize";
+    public const string ScoreQps = "Score QPS";
+    public const string AutoRoute = "Auto-Route";
+
+    public static readonly IReadOnlySet<string> All = new HashSet<string>
+    {
+        MarkTranslated,
+        SendToReview,
+        Approve,
+        AutoTranslateViaGoogleMt,
+        PostToMarketplace,
+        RunMtOptimize,
+        ScoreQps,
+        AutoRoute
+    };
+}
+
+public static class WorkflowTriggers
+{
+    public const string OnManualClick = "On Manual Click";
+
+    public static readonly IReadOnlySet<string> All = new HashSet<string>
+    {
+        OnManualClick
+    };
+}
+
 public class WorkflowService
 {
     private readonly StudyTrackerContext _db;
@@ -16,19 +50,22 @@ public class WorkflowService
     private readonly MtOptimizeService _mtOptimizeService;
     private readonly IQualityScorer _qualityScorer;
     private readonly AutoRoutingService _autoRoutingService;
+    private readonly MarketplaceService _marketplaceService;
 
     public WorkflowService(
         StudyTrackerContext db,
         ITranslationProvider translationProvider,
         MtOptimizeService mtOptimizeService,
         IQualityScorer qualityScorer,
-        AutoRoutingService autoRoutingService)
+        AutoRoutingService autoRoutingService,
+        MarketplaceService marketplaceService)
     {
         _db = db;
         _translationProvider = translationProvider;
         _mtOptimizeService = mtOptimizeService;
         _qualityScorer = qualityScorer;
         _autoRoutingService = autoRoutingService;
+        _marketplaceService = marketplaceService;
     }
 
     public async Task<IReadOnlyList<WorkflowStepDto>> GetStepsAsync(string projectSlug, CancellationToken ct = default)
@@ -70,6 +107,8 @@ public class WorkflowService
             throw new LocalizationProjectNotFoundException(projectSlug);
         }
 
+        ValidateActionAndTrigger(request.Action, request.Trigger);
+
         var maxOrder = await _db.LocalizationWorkflowSteps
             .Where(w => w.ProjectId == project.Id)
             .Select(w => (int?)w.Order)
@@ -79,7 +118,7 @@ public class WorkflowService
         {
             ProjectId = project.Id,
             Order = maxOrder + 1,
-            Trigger = string.IsNullOrWhiteSpace(request.Trigger) ? "On Manual Click" : request.Trigger,
+            Trigger = string.IsNullOrWhiteSpace(request.Trigger) ? WorkflowTriggers.OnManualClick : request.Trigger,
             Action = request.Action,
             ConditionExpression = request.ConditionExpression,
             LastRunAt = null,
@@ -119,7 +158,9 @@ public class WorkflowService
             throw new WorkflowStepNotFoundException(stepId);
         }
 
-        step.Trigger = string.IsNullOrWhiteSpace(request.Trigger) ? "On Manual Click" : request.Trigger;
+        ValidateActionAndTrigger(request.Action, request.Trigger);
+
+        step.Trigger = string.IsNullOrWhiteSpace(request.Trigger) ? WorkflowTriggers.OnManualClick : request.Trigger;
         step.Action = request.Action;
         step.ConditionExpression = request.ConditionExpression;
 
@@ -233,7 +274,7 @@ public class WorkflowService
 
         switch (step.Action)
         {
-            case "Mark Translated":
+            case WorkflowActions.MarkTranslated:
             {
                 int affected = 0;
                 foreach (var str in project.Strings)
@@ -252,7 +293,7 @@ public class WorkflowService
                 break;
             }
 
-            case "Send to Review":
+            case WorkflowActions.SendToReview:
             {
                 int affected = 0;
                 foreach (var str in project.Strings)
@@ -271,7 +312,7 @@ public class WorkflowService
                 break;
             }
 
-            case "Approve":
+            case WorkflowActions.Approve:
             {
                 int affected = 0;
                 foreach (var str in project.Strings)
@@ -290,7 +331,7 @@ public class WorkflowService
                 break;
             }
 
-            case "Auto-Translate via Google MT":
+            case WorkflowActions.AutoTranslateViaGoogleMt:
             {
                 int translatedCount = 0;
                 foreach (var locale in project.Locales)
@@ -338,60 +379,42 @@ public class WorkflowService
                 break;
             }
 
-            case "Post to Marketplace":
+            case WorkflowActions.PostToMarketplace:
             {
                 int postedCount = 0;
+                int skippedCount = 0;
                 foreach (var locale in project.Locales)
                 {
-                    var existingJob = await _db.LocalizationMarketplaceJobs
-                        .FirstOrDefaultAsync(j => j.ProjectId == project.Id && j.LocaleCode == locale.LocaleCode, ct);
-
-                    if (existingJob == null)
+                    try
                     {
-                        var untranslatedCount = project.Strings.Count(s =>
-                            !s.Translations.Any(t => t.LocaleCode == locale.LocaleCode && !string.IsNullOrWhiteSpace(t.TargetText)));
-                        var wordCount = project.Strings.Sum(s => s.SourceText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
-
-                        var low = Math.Round(wordCount * 0.145m / 5m, MidpointRounding.AwayFromZero) * 5m;
-                        var high = Math.Round(wordCount * 0.19m / 5m, MidpointRounding.AwayFromZero) * 5m;
-                        if (low < 5m) low = 5m;
-                        if (high < low + 15m) high = low + 15m;
-
-                        var job = new MarketplaceJob
-                        {
-                            ProjectId = project.Id,
-                            LocaleCode = locale.LocaleCode,
-                            Status = "Open",
-                            StringCount = untranslatedCount,
-                            WordCount = wordCount,
-                            SuggestedPriceLow = low,
-                            SuggestedPriceHigh = high,
-                            PostedAt = now
-                        };
-                        _db.LocalizationMarketplaceJobs.Add(job);
+                        await _marketplaceService.PostToMarketplaceAsync(project.Slug, locale.LocaleCode, ct);
                         postedCount++;
                     }
+                    catch (InvalidJobStateException)
+                    {
+                        skippedCount++;
+                    }
                 }
-                outcome = $"{postedCount} marketplace jobs posted";
+                outcome = $"{postedCount} marketplace jobs posted, {skippedCount} skipped";
                 break;
             }
 
             // Phase 3 AI Boundary Actions — Hand-written logic required
-            case "Run MT Optimize":
+            case WorkflowActions.RunMtOptimize:
             {
                 await _mtOptimizeService.OptimizeAsync("sample", project.Slug, "de-DE", ct);
                 outcome = "MT Optimize complete";
                 break;
             }
 
-            case "Score QPS":
+            case WorkflowActions.ScoreQps:
             {
                 await _qualityScorer.ScoreAsync("sample", "sample", "de-DE", ct);
                 outcome = "QPS Scored";
                 break;
             }
 
-            case "Auto-Route":
+            case WorkflowActions.AutoRoute:
             {
                 await _autoRoutingService.ShouldRouteToReviewAsync(85, 70, ct);
                 outcome = "Auto-Routed";
@@ -399,8 +422,7 @@ public class WorkflowService
             }
 
             default:
-                outcome = $"Executed action: {step.Action}";
-                break;
+                throw new InvalidOperationException($"Unknown workflow action '{step.Action}'.");
         }
 
         step.LastRunAt = now;
@@ -417,5 +439,19 @@ public class WorkflowService
             step.LastRunAt,
             step.LastRunOutcome
         );
+    }
+
+    private static void ValidateActionAndTrigger(string action, string? trigger)
+    {
+        if (!WorkflowActions.All.Contains(action))
+        {
+            throw new ArgumentException($"Unknown workflow action '{action}'.", nameof(action));
+        }
+
+        var effectiveTrigger = string.IsNullOrWhiteSpace(trigger) ? WorkflowTriggers.OnManualClick : trigger;
+        if (!WorkflowTriggers.All.Contains(effectiveTrigger))
+        {
+            throw new ArgumentException($"Unknown workflow trigger '{effectiveTrigger}'.", nameof(trigger));
+        }
     }
 }

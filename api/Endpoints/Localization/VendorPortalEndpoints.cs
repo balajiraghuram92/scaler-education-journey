@@ -94,6 +94,18 @@ public static class VendorPortalEndpoints
         {
             return Problem(httpContext, StatusCodes.Status404NotFound, "Job not found.", ex.Message);
         }
+        catch (VendorLanguageMismatchException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status403Forbidden, "Language mismatch.", ex.Message);
+        }
+        catch (InvalidJobStateException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status409Conflict, "Invalid job state.", ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status400BadRequest, "Invalid bid.", ex.Message);
+        }
         catch (Exception ex)
         {
             return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error submitting bid.", ex.Message);
@@ -163,6 +175,10 @@ public static class VendorPortalEndpoints
         {
             return Problem(httpContext, StatusCodes.Status404NotFound, "String not found.", ex.Message);
         }
+        catch (InvalidJobStateException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status409Conflict, "Invalid job state.", ex.Message);
+        }
         catch (Exception ex)
         {
             return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error updating job string.", ex.Message);
@@ -186,7 +202,7 @@ public static class VendorPortalEndpoints
         }
         catch (InvalidJobStateException ex)
         {
-            return Problem(httpContext, StatusCodes.Status400BadRequest, "Incomplete job submission.", ex.Message);
+            return Problem(httpContext, StatusCodes.Status409Conflict, "Invalid job state.", ex.Message);
         }
         catch (Exception ex)
         {

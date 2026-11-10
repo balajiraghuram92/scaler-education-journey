@@ -110,6 +110,7 @@ public class MarketplaceService
         CancellationToken ct = default)
     {
         var project = await _db.LocalizationProjects
+            .Include(p => p.Locales)
             .Include(p => p.Strings)
                 .ThenInclude(s => s.Translations)
             .FirstOrDefaultAsync(p => p.Slug == projectSlug, ct);
@@ -119,52 +120,53 @@ public class MarketplaceService
             throw new LocalizationProjectNotFoundException(projectSlug);
         }
 
+        if (!project.Locales.Any(l => l.LocaleCode == localeCode))
+        {
+            throw new LocalizationLocaleNotFoundException(localeCode);
+        }
+
+        var mostRecentJob = await _db.LocalizationMarketplaceJobs
+            .Where(j => j.ProjectId == project.Id && j.LocaleCode == localeCode)
+            .OrderByDescending(j => j.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (mostRecentJob != null && mostRecentJob.Status != "Approved" && mostRecentJob.Status != "Closed")
+        {
+            throw new InvalidJobStateException($"Cannot post a new job for locale '{localeCode}' while job {mostRecentJob.Id} is in status '{mostRecentJob.Status}'.");
+        }
+
         var untranslatedStrings = project.Strings
             .Where(s => !s.Translations.Any(t => t.LocaleCode == localeCode && !string.IsNullOrWhiteSpace(t.TargetText)))
             .ToList();
 
-        var stringCount = untranslatedStrings.Count > 0 ? untranslatedStrings.Count : project.Strings.Count;
-        var wordCount = untranslatedStrings.Count > 0
-            ? untranslatedStrings.Sum(s => s.SourceText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length)
-            : project.Strings.Sum(s => s.SourceText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
+        if (untranslatedStrings.Count == 0)
+        {
+            throw new InvalidJobStateException($"There is nothing left to translate for locale '{localeCode}'.");
+        }
 
-        if (wordCount == 0) wordCount = 50; // Minimal non-zero fallback if every string in this locale is already translated
+        var stringCount = untranslatedStrings.Count;
+        var wordCount = untranslatedStrings.Sum(s => s.SourceText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
 
         var (low, high) = await _creditLedgerService.EstimatePriceBandAsync(wordCount, ct);
 
-        var existingJob = await _db.LocalizationMarketplaceJobs
-            .FirstOrDefaultAsync(j => j.ProjectId == project.Id && j.LocaleCode == localeCode, ct);
-
         var now = DateTime.UtcNow;
 
-        if (existingJob == null)
+        var job = new MarketplaceJob
         {
-            existingJob = new MarketplaceJob
-            {
-                ProjectId = project.Id,
-                LocaleCode = localeCode,
-                Status = "Open",
-                StringCount = stringCount,
-                WordCount = wordCount,
-                SuggestedPriceLow = low,
-                SuggestedPriceHigh = high,
-                PostedAt = now
-            };
-            _db.LocalizationMarketplaceJobs.Add(existingJob);
-        }
-        else
-        {
-            existingJob.Status = "Open";
-            existingJob.StringCount = stringCount;
-            existingJob.WordCount = wordCount;
-            existingJob.SuggestedPriceLow = low;
-            existingJob.SuggestedPriceHigh = high;
-            existingJob.PostedAt = now;
-        }
+            ProjectId = project.Id,
+            LocaleCode = localeCode,
+            Status = "Open",
+            StringCount = stringCount,
+            WordCount = wordCount,
+            SuggestedPriceLow = low,
+            SuggestedPriceHigh = high,
+            PostedAt = now
+        };
+        _db.LocalizationMarketplaceJobs.Add(job);
 
         await _db.SaveChangesAsync(ct);
 
-        return await GetJobDtoAsync(existingJob.Id, ct);
+        return await GetJobDtoAsync(job.Id, ct);
     }
 
     public async Task<IReadOnlyList<MarketplaceBidDto>> GetBidsAsync(int marketplaceJobId, CancellationToken ct = default)
@@ -216,6 +218,16 @@ public class MarketplaceService
             throw new MarketplaceBidNotFoundException(bidId);
         }
 
+        if (job.Status != "Open")
+        {
+            throw new InvalidJobStateException($"Cannot award bid {bidId} because job {marketplaceJobId} is in status '{job.Status}'. Expected 'Open'.");
+        }
+
+        if (selectedBid.Status != "Pending")
+        {
+            throw new InvalidJobStateException($"Cannot award bid {bidId} because it is in status '{selectedBid.Status}'. Expected 'Pending'.");
+        }
+
         var now = DateTime.UtcNow;
 
         selectedBid.Status = "Awarded";
@@ -244,13 +256,23 @@ public class MarketplaceService
             throw new MarketplaceJobNotFoundException(marketplaceJobId);
         }
 
+        if (job.Status != "SubmittedForReview")
+        {
+            throw new InvalidJobStateException($"Cannot approve job {marketplaceJobId} because it is in status '{job.Status}'. Expected 'SubmittedForReview'.");
+        }
+
+        var awardedBid = job.Bids.FirstOrDefault(b => b.Status == "Awarded");
+        if (awardedBid == null)
+        {
+            throw new InvalidJobStateException($"Cannot approve job {marketplaceJobId} because it has no awarded bid.");
+        }
+
         var now = DateTime.UtcNow;
         job.Status = "Approved";
         job.ApprovedAt = now;
 
         // Record credit ledger spend
-        var awardedBid = job.Bids.FirstOrDefault(b => b.Status == "Awarded");
-        var price = awardedBid?.ProposedPrice ?? job.SuggestedPriceLow;
+        var price = awardedBid.ProposedPrice;
 
         var ledgerEntry = new LedgerEntry
         {
@@ -262,13 +284,13 @@ public class MarketplaceService
         };
         _db.LocalizationLedgerEntries.Add(ledgerEntry);
 
-        // Advance all translations in project + locale to "Approved"
+        // Advance translations in project + locale that have target text to "Approved"
         var translations = await _db.LocalizationTranslations
             .Include(t => t.String)
             .Where(t => t.String != null && t.String.ProjectId == job.ProjectId && t.LocaleCode == job.LocaleCode)
             .ToListAsync(ct);
 
-        foreach (var trans in translations)
+        foreach (var trans in translations.Where(t => !string.IsNullOrWhiteSpace(t.TargetText)))
         {
             trans.Stage = "Approved";
             trans.UpdatedAt = now;
@@ -286,6 +308,11 @@ public class MarketplaceService
         if (job == null)
         {
             throw new MarketplaceJobNotFoundException(marketplaceJobId);
+        }
+
+        if (job.Status != "SubmittedForReview")
+        {
+            throw new InvalidJobStateException($"Cannot send back job {marketplaceJobId} because it is in status '{job.Status}'. Expected 'SubmittedForReview'.");
         }
 
         job.Status = "NeedsRevision";

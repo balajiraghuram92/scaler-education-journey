@@ -107,6 +107,33 @@ public class VendorPortalService
             throw new VendorNotFoundException(vendorId);
         }
 
+        if (job.Status != "Open")
+        {
+            throw new InvalidJobStateException($"Cannot bid on job {marketplaceJobId} because it is in status '{job.Status}'. Expected 'Open'.");
+        }
+
+        var vendorLanguages = vendor.Languages
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (!vendorLanguages.Contains(job.LocaleCode))
+        {
+            throw new VendorLanguageMismatchException(vendorId, job.LocaleCode);
+        }
+
+        var hasPendingBid = await _db.LocalizationMarketplaceBids
+            .AnyAsync(b => b.MarketplaceJobId == marketplaceJobId && b.VendorId == vendorId && b.Status == "Pending", ct);
+
+        if (hasPendingBid)
+        {
+            throw new InvalidJobStateException($"Vendor {vendorId} already has a pending bid on job {marketplaceJobId}.");
+        }
+
+        if (proposedPrice <= 0)
+        {
+            throw new ArgumentException("Proposed price must be greater than zero.", nameof(proposedPrice));
+        }
+
         var bid = new MarketplaceBid
         {
             MarketplaceJobId = marketplaceJobId,
@@ -229,6 +256,11 @@ public class VendorPortalService
             throw new MarketplaceJobNotFoundException(marketplaceJobId);
         }
 
+        if (job.Status != "Awarded" && job.Status != "InProgress" && job.Status != "NeedsRevision")
+        {
+            throw new InvalidJobStateException($"Cannot edit strings on job {marketplaceJobId} because it is in status '{job.Status}'.");
+        }
+
         var str = await _db.LocalizationStrings
             .FirstOrDefaultAsync(s => s.Id == stringId && s.ProjectId == job.ProjectId, ct);
 
@@ -264,7 +296,7 @@ public class VendorPortalService
             translation.UpdatedAt = DateTime.UtcNow;
         }
 
-        if (job.Status == "Awarded")
+        if (job.Status == "Awarded" || job.Status == "NeedsRevision")
         {
             job.Status = "InProgress";
         }
@@ -295,6 +327,11 @@ public class VendorPortalService
         if (job == null)
         {
             throw new MarketplaceJobNotFoundException(marketplaceJobId);
+        }
+
+        if (job.Status != "Awarded" && job.Status != "InProgress" && job.Status != "NeedsRevision")
+        {
+            throw new InvalidJobStateException($"Cannot submit job {marketplaceJobId} for review because it is in status '{job.Status}'.");
         }
 
         var strings = await _db.LocalizationStrings

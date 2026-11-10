@@ -176,6 +176,10 @@ public static class LocalizationEndpoints
         {
             return Problem(httpContext, StatusCodes.Status404NotFound, "Project not found.", ex.Message);
         }
+        catch (ArgumentException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status400BadRequest, "Invalid workflow step.", ex.Message);
+        }
         catch (Exception ex)
         {
             return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error adding workflow step.", ex.Message);
@@ -202,6 +206,10 @@ public static class LocalizationEndpoints
         catch (WorkflowStepNotFoundException ex)
         {
             return Problem(httpContext, StatusCodes.Status404NotFound, "Workflow step not found.", ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status400BadRequest, "Invalid workflow step.", ex.Message);
         }
         catch (Exception ex)
         {
@@ -233,6 +241,10 @@ public static class LocalizationEndpoints
         catch (WorkflowStepBoundaryException ex)
         {
             return Problem(httpContext, StatusCodes.Status400BadRequest, "Boundary error.", ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status400BadRequest, "Invalid direction.", ex.Message);
         }
         catch (Exception ex)
         {

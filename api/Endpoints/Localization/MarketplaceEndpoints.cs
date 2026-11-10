@@ -72,6 +72,14 @@ public static class MarketplaceEndpoints
         {
             return Problem(httpContext, StatusCodes.Status404NotFound, "Project not found.", ex.Message);
         }
+        catch (LocalizationLocaleNotFoundException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Locale not found.", ex.Message);
+        }
+        catch (InvalidJobStateException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status409Conflict, "Invalid job state.", ex.Message);
+        }
         catch (Exception ex)
         {
             return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error posting to marketplace.", ex.Message);
@@ -119,6 +127,10 @@ public static class MarketplaceEndpoints
         {
             return Problem(httpContext, StatusCodes.Status404NotFound, "Bid not found.", ex.Message);
         }
+        catch (InvalidJobStateException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status409Conflict, "Invalid job state.", ex.Message);
+        }
         catch (Exception ex)
         {
             return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error awarding bid.", ex.Message);
@@ -140,6 +152,10 @@ public static class MarketplaceEndpoints
         {
             return Problem(httpContext, StatusCodes.Status404NotFound, "Job not found.", ex.Message);
         }
+        catch (InvalidJobStateException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status409Conflict, "Invalid job state.", ex.Message);
+        }
         catch (Exception ex)
         {
             return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error approving submission.", ex.Message);
@@ -160,6 +176,10 @@ public static class MarketplaceEndpoints
         catch (MarketplaceJobNotFoundException ex)
         {
             return Problem(httpContext, StatusCodes.Status404NotFound, "Job not found.", ex.Message);
+        }
+        catch (InvalidJobStateException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status409Conflict, "Invalid job state.", ex.Message);
         }
         catch (Exception ex)
         {
