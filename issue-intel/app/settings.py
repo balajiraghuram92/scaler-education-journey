@@ -39,7 +39,9 @@ class Settings(BaseSettings):
     )
 
     embedding_dim: int = 64
-    fix_allowlist: list[str] = Field(default_factory=lambda: ["VersionControl", "Localization", "UiState"])
+    fix_allowlist: list[str] = Field(
+        default_factory=lambda: ["VersionControl", "Localization", "UiState"]
+    )
     fix_confidence_threshold: float = 0.7
     fix_max_cycles: int = 3
     fix_token_budget: int = 200000

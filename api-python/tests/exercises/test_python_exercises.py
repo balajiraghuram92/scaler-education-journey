@@ -134,17 +134,17 @@ async def test_workspace_builder_copies_provided_files_submission_and_whole_test
         )
 
         assert (
-            Path(workspace.path, "pkg", "models.py").read_text(encoding="utf-8")
+            Path(workspace.path, "pkg", "models.py").read_text(encoding="utf-8")  # noqa: ASYNC240
             == "LIMIT = 10\n"
         )
         assert (
             "return a + b"
-            in Path(workspace.path, "pkg", "impl.py").read_text(encoding="utf-8")
+            in Path(workspace.path, "pkg", "impl.py").read_text(encoding="utf-8")  # noqa: ASYNC240
         )
-        assert Path(workspace.path, "tests", "test_impl.py").is_file()
-        assert Path(workspace.path, "tests", "conftest.py").is_file()
-        assert Path(workspace.path, "tests", "helpers", "data.py").is_file()
-        assert not Path(workspace.path, "pom.xml").exists()
+        assert Path(workspace.path, "tests", "test_impl.py").is_file()  # noqa: ASYNC240
+        assert Path(workspace.path, "tests", "conftest.py").is_file()  # noqa: ASYNC240
+        assert Path(workspace.path, "tests", "helpers", "data.py").is_file()  # noqa: ASYNC240
+        assert not Path(workspace.path, "pom.xml").exists()  # noqa: ASYNC240
     finally:
         delete_root(root)
         delete_root(workspace_root)

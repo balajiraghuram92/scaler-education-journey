@@ -165,3 +165,177 @@ Prompt-vs-code mismatches:
   commits in throwaway worktrees; release branches are never mutated.
 - `git apply --check` pre-flight was dropped: it inherited stdin and could
   hang; `git apply` itself validates, after the allow-list pre-check.
+
+## G4 — Model gateway: routing, budgets, shadow, upgrades
+
+Status: finished (code written; nothing run — shell unavailable).
+
+Most of G4 already existed on disk from earlier phases; this entry
+completes the missing and half-written parts (items 4, 8, 9, 10 below)
+and records the per-item state.
+
+Item by item (G4 prompt in `info/muse-prompts/issue-intel/G0-to-G4-prompts.md`):
+1. Migration — done (already on disk): `alembic/versions/0005_g4_routing.py`
+   (`routing_versions` + one-active partial index, `model_scorecards`,
+   `budgets`, four new `model_calls` columns, seeded v1).
+2. Versioned routing table — done (already on disk):
+   `app/gateway/routing.py` (`get_active`, `create_version`,
+   `switch_version`, `rollback`), used by `ModelGateway.route_for` with
+   canary support. This round adds the CLI (`list|show|create|switch|
+   rollback`) so switching is runnable as one audited command.
+3. Budget guard — done (already on disk): `app/gateway/budgets.py`
+   (run/day/product, `BudgetExceeded`), hooked into `complete`/`embed`.
+4. Result cache + batch mode — done this round: the cache and
+   `enqueue_batch`/`execute_batch_job` existed, but the worker rejected
+   `batch_call` jobs (`ValueError: unknown job kind`). `app/worker.py`
+   now dispatches them and lets `execute_batch_job` own the job status.
+5. Fallback — done (already on disk): `ModelGateway.complete`
+   retries the route's fallback model and logs `fallback_used`.
+6. Shadow mode — done (already on disk): `_maybe_shadow` with
+   `ISSUEINTEL_SHADOW_MODEL`/`ISSUEINTEL_SHADOW_SHARE`, `is_shadow`
+   logging, never returned. This round adds the isolation test.
+7. `quality_verify` step — done (already on disk):
+   `app/agents/final_check.py` screens before `final_check`; filtered
+   packages are `NEED_MORE_INFO` rows with a `filtered by
+   quality_verify: ` reason, counted by the metrics endpoint.
+8. Scorecards — done this round (was missing): `evals/run_g4.py`
+   (`score --model` stores quality, cost per resolved case, p95
+   latency per task type in `model_scorecards`; `report --incumbent
+   --candidate` prints them side by side). `outcome_classify` is
+   real accuracy vs ground truth; other chat tasks are contract
+   conformance; embed is dimension conformance; `--adapter fake` is
+   machinery-only. `p95` added to `evals/metrics.py` (+ unit test).
+9. Upgrade runbook — done this round (was missing): README G4
+   section with offline eval → shadow → canary → switch → rollback
+   and the exact commands for each step.
+10. Metrics endpoint + dashboard page — done this round (was
+    missing): `GET /metrics` (`app/routers/metrics.py`) and the
+    dashboard Metrics page (`web/src/MetricsPage.jsx`).
+
+Done-criteria tests (both new in `tests/test_routing.py`):
+- switch + rollback of the routing version (needs DB, cleans up).
+- shadow output cannot reach a caller (pure, deterministic).
+
+Files created (4): evals/run_g4.py, app/routers/metrics.py,
+web/src/MetricsPage.jsx, tests/test_routing.py.
+Files changed: app/worker.py (batch_call dispatch), app/gateway/routing.py
+(CLI), app/main.py (metrics router), web/src/api.js (getMetrics),
+web/src/App.jsx (Metrics view), evals/metrics.py (p95),
+tests/test_metrics.py (p95 test), README.md (G4 section, runbook).
+
+Commands NOT RUN (from issue-intel/):
+- `alembic upgrade head`
+- `python -m app.gateway.routing list`
+- `python -m evals.run_g4 score --model tessera-small --adapter fake`
+- `python -m evals.run_g4 report --incumbent tessera-small --candidate X`
+- `curl localhost:8010/metrics`
+- `pytest`, `ruff check .`, `ruff format --check .`, `mypy app`
+
+Prompt-vs-code mismatches:
+- Scorecard "quality" is contract conformance except for
+  `outcome_classify` (real accuracy); reusing the full G1/G2/G3
+  suites per task type would need DB-backed runs per model and is
+  left as labelled future work.
+- Fix acceptance = MERGED / all FIX PRs; send-back = final checks
+  with verdict != OK (includes quality_verify-filtered rows).
+- Leakage metric counts `LeakageError` stage failures; per-viewer
+  leakage stays in the G1/G2 eval runners.
+
+## Round 1 corrections
+
+Reviewer log: `info/muse-prompts/corrections/round1/issue-intel.log`.
+Nothing run this round (no shell); no test, lint run or eval is
+described as passing.
+
+1. Install failure — fixed. `pyproject.toml:27-28` adds
+   `[tool.setuptools.packages.find]` with `include = ["app*",
+   "evals*", "synthetic*"]`, so `web/`, `sample_repo/` and
+   `alembic/` are excluded from the build. New
+   `requirements.txt` (runtime set, pins reused from
+   `ai-agent/requirements.txt` and
+   `localization-ai/requirements.txt`) and new
+   `requirements-dev.txt` (`-r requirements.txt` + pytest,
+   pytest-asyncio, ruff, mypy). sqlalchemy, asyncpg, alembic,
+   mcp, aiosqlite and pytest-asyncio are left unpinned with a
+   "reviewer will pin" comment: no version verifiable offline.
+2. Nine test files read against the code — one real bug fixed,
+   two lint-adjacent fixes (see item 3):
+   - `tests/test_tokens.py:20`: arguments were scrambled
+     (`validate_token("run1", "TES-1", "merge_pr", token, ...)`),
+     which only proved that an unknown token fails. Now a
+     correct-order wrong-payload check (`pr_id` 999), which also
+     proves a failed validation does not consume the token.
+   - `tests/test_failure_policy.py:73`: loop-variable closure
+     (`raise error` bound late); now bound as a default arg.
+   - `tests/test_rls.py:13`: dropped unused `Acl` import.
+   - The other six files (`test_allowlist`, `test_gateway_fake`,
+     `test_health`, `test_ingest_idempotent`, `test_rendering`,
+     `test_wrong_module`) match their code: signatures, imports,
+     counts and idempotency expectations verified by reading;
+     no changes.
+3. mypy 56 + ruff 24 — all 24 ruff errors fixed by hand; 24
+   mypy errors fixed at their causes:
+   - One missing import caused ruff F821 + mypy name-defined:
+     `app/pipeline/manager.py:17` now imports `run_stage`.
+   - `app/search/hybrid.py:55-69`: `_rrf` rewritten with
+     separate score/row dicts (removes the mistyped list and
+     the wrong-`ignore` comment); `:87` fixes a real bug
+     (`query_text and query_vector` passed where a vector was
+     required); `:40-42` wrapped (E501).
+   - `app/ingest/run.py:30-45`: one reused loop variable
+     caused all 6 errors; now `raw_case`/`raw_person`/
+     `raw_change`/`raw_thread`.
+   - no-any-return fixed with explicit `... | None`
+     annotations: `app/ingest/normalise.py:16,37,57,76,93`,
+     `app/gateway/routing.py:38-44,65-70`,
+     `app/agents/candidates.py:26`; `app/gateway/cache.py:44`
+     returns `int(job.id)`; `app/db.py:21` gains `-> AsyncEngine`.
+   - ruff I001 fixed by hand (straight imports first, matching
+     the files ruff already passed): `alembic/env.py:11-19`,
+     `alembic/versions/0001:10-11`, `0002:10-11`, `0003:10-12`,
+     `0004:10-12`, `0005:11-13`, `app/mcp_server/server.py:16-20`.
+   - ruff E501 wrapped without behaviour change:
+     `alembic/versions/0002:22-34` (SQL split across lines),
+     `app/agents/sandbox.py:30-34`, `app/settings.py:42-44`,
+     `evals/run_g1.py:185-190`,
+     `sample_repo/setup-history.py:84-85` (same commit string),
+     `synthetic/world.py:248-250`.
+   - ruff F401 removed: `app/adapters/fake_tracker.py:7`,
+     `app/gateway/cache.py:8`, `evals/run_g3.py:33`,
+     `tests/test_rls.py:13`.
+   - `UP041`: `app/agents/sandbox.py:27`
+     (`asyncio.TimeoutError` → `TimeoutError`); `B007`:
+     `app/pipeline/stage_fns.py:163` (`base` → `_base`);
+     `E741`: `synthetic/world.py:87` (`l` → `last`).
+   - NOT fixed (32 mypy errors: 12 `misc` subclass-of-Any, 20
+     `untyped-decorator`): these come from fastapi/pydantic/
+     sqlalchemy/mcp being unimportable in the reviewer's
+     container (install failed, `ignore_missing_imports`
+     turned them into `Any`). They should clear once item 1
+     lets the install succeed; adding ignores would become
+     unused-ignore errors under `strict` in that world.
+   - `ruff format --check` (89 files) left alone: reformatting
+     is out of scope for this round.
+4. G4 entry — written (see G4 section above): disk state
+   compared against the ten G4 items; finished the worker
+   batch dispatch, scorecard commands, runbook, metrics
+   endpoint + dashboard page, and the two done-criteria tests.
+5. setup-history.py — confirmed by reading against
+   `evals/fix_cases/bugs.json`: `git init -b main`, base commit,
+   one commit per bug (bug12 in two per-file commits via
+   `git apply -R --include=...`), `release/2023.3` branched
+   after bug04 and `release/2024.3` after bug08 with two
+   release-note commits each, ends on `main`. Branch contents
+   match the manifest (`release/2023.3`: bug01-04;
+   `release/2024.3`: bug01-08). Reviewer command (from
+   issue-intel/): `python sample_repo/setup-history.py`.
+   Unresolved: whether `git apply -R --include=<file>`
+   applies cleanly per file for bug12's two-file patch can
+   only be shown by running it.
+6. Corpus/ground-truth commands (from issue-intel/, verified
+   against `synthetic/generate.py:19-41`, which writes the
+   corpus to `synthetic/corpus/` and moves ground truth to
+   `evals/ground_truth/`):
+   `python -m synthetic.generate --seed 20240917`
+   (one command produces both; `--seed` defaults to the same
+   value in `synthetic/data.py`).

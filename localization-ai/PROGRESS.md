@@ -192,3 +192,68 @@ Prompt-vs-code mismatches / decisions:
   source-box style with a QPS badge; the filter keeps original row indices so drawer/save still work.
 - Frontend QPS coloring keeps the pre-existing hard-coded 70 (project threshold is not exposed to this
   page); left unchanged.
+
+## Round 1 corrections
+
+No commands were run in this round (not permitted); the reviewer re-runs
+`ruff check`, `mypy app`, `pytest`, `dotnet build` and `dotnet test`.
+
+1. Fixture shadowing the `app` package (6 test errors, one cause).
+   Confirmed as described: `tests/conftest.py` defined a fixture named `app`
+   while also doing `import app.main`, so `app.main.build_app` inside the
+   fixture body resolved to the fixture object, not the package.
+   Changed `tests/conftest.py` lines 49-51: fixture renamed `app` ->
+   `application`; lines 58-61: `client` fixture parameter renamed to match.
+   No test uses the fixture directly (only via `client`/`db_client`), so no
+   other file needed changes. The `db_client` fixture's `app.main.build_app`
+   (line 190) now resolves to the package again; left untouched.
+2. `test_optimize_checks_catch_bad_output`: changed the TEST, not the check.
+   The check is faithful to the LA3 spec ("output not identical to the
+   source"): source `Turn left {count}` vs output `Turn left` differ, so
+   `differs_from_source=True` is correct, and the test's expectation of
+   False is self-contradictory (a dropped placeholder necessarily implies
+   difference). Changed `tests/test_mt_optimize.py` lines 75-82: the
+   `differs_from_source` assertion is now `is True`, with a comment saying
+   why. `app/pipeline/mt_optimize.py` untouched.
+3. mypy 36 errors in 4 files.
+   - Note: every response model already had
+     `model_config = ConfigDict(populate_by_name=True)`, yet mypy still
+     demands the alias names, so per the item's second option the five
+     construction sites were switched to camelCase alias keywords,
+     consistently across both routers: `app/routers/eval.py` lines 68-80
+     (`RunEvalResponse`); `app/routers/pipeline.py` lines 115-126
+     (`TranslateResponse`), 159-168 (`QpsScoreResponse`), 195-201
+     (`CometScoreResponse`), 226-232 (`AutoRouteResponse`). Fields without
+     aliases (`score`, `checks`, `fallback`, `reasons`, `available`) are
+     unchanged. Runtime behavior and response JSON are unchanged (aliases
+     are the primary population names; models serialize by alias).
+   - `app/evals/runner.py` variance errors (5): fixed at the cause in
+     `app/evals/metrics.py` — `mean`/`rate`/`total` now take
+     `collections.abc.Sequence` (covariant) instead of `list` (invariant),
+     per mypy's own note (lines 7-8 import; lines 63, 71, 79 signatures).
+     Bodies untouched; `app/evals/runner.py` untouched.
+   - `app/evals/comet.py` line 36: added
+     `# type: ignore[import-not-found]` to the intentionally optional
+     `from comet import ...` (already guarded by try/except ImportError).
+4. ruff 5 errors, fixed by hand: `app/main.py` lines 13-15 and
+   `app/settings.py` lines 14-15 (psycopg* sorts before pydantic* — swapped
+   the two I001 import pairs); `app/pipeline/structured.py` lines 7-10 and
+   26 (UP047: PEP 695 `def parse_or_raise[M: BaseModel]`, dropped the
+   `TypeVar`); `app/evals/comet.py` lines 56-60 and `app/evals/runner.py`
+   lines 110-112 (E501: wrapped the two long lines). No reformatting.
+5. DB-skip logic untouched. Checked every skipped test file
+   (`test_api.py`, `test_api_pipeline.py`, `test_cache.py`,
+   `test_golden_loader.py`, `test_qps_calibration.py`, `test_report.py`,
+   `test_runner.py`, `test_runner_configs.py`) plus all `conftest.py`
+   fixtures: no other fixture or test parameter shadows an imported
+   module (fixture params used are `client`, `db_client`, `fresh_db`,
+   `seeded_project_id`, `tmp_path`; `test_cache.py`'s `cache` is the
+   module itself, not a fixture). No changes.
+6. `tests/StudyTracker.Api.Tests/Localization/LocalizationAiWorkflowTests.cs`:
+   line 93 and line 108 `Options.Create(options)` -> fully qualified
+   `Microsoft.Extensions.Options.Options.Create(options)`; line 327
+   `Assert.Equal` first argument `new[] { 70, 80 }` -> `new int?[] { 70, 80 }`
+   so both sides have element type `int?`.
+7. No EF migration written, as instructed.
+
+Unresolved: none. All items 1-6 addressed; item 7 is a deliberate no-op.

@@ -33,7 +33,7 @@ class CometKiwiScorer:
     def load(self) -> bool:
         """Download (if needed) and load the checkpoint. Never raises."""
         try:
-            from comet import download_model, load_from_checkpoint
+            from comet import download_model, load_from_checkpoint  # type: ignore[import-not-found]
         except ImportError:
             self._reason = "unbabel-comet is not installed (see requirements-comet.txt)"
             logger.warning("COMET-Kiwi unavailable: %s", self._reason)
@@ -53,7 +53,11 @@ class CometKiwiScorer:
         """Score aligned (source, translation) pairs; Nones when unavailable."""
         if self._model is None or len(sources) != len(translations):
             if len(sources) != len(translations):
-                logger.error("COMET-Kiwi: %d sources vs %d translations; scoring nothing", len(sources), len(translations))
+                logger.error(
+                    "COMET-Kiwi: %d sources vs %d translations; scoring nothing",
+                    len(sources),
+                    len(translations),
+                )
             return [None] * len(sources)
         data = [{"src": s, "mt": t} for s, t in zip(sources, translations, strict=True)]
         try:

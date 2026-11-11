@@ -28,20 +28,20 @@ async def run_ingest(
     threads = read_chat_xml(corpus_dir / "chat_export.xml")
 
     counts = {"cases": 0, "threads": 0, "changes": 0, "people": 0}
-    for raw in legacy + export.cases:
-        await normalise.upsert_case(session, raw)
+    for raw_case in legacy + export.cases:
+        await normalise.upsert_case(session, raw_case)
         counts["cases"] += 1
-    for raw in export.people:
-        await normalise.upsert_person(session, raw)
+    for raw_person in export.people:
+        await normalise.upsert_person(session, raw_person)
         counts["people"] += 1
     se_acl = await normalise.get_or_create_acl(
         session, "VersionControl,Localization,UiState,AssetImport", "SE", "SE"
     )
-    for raw in export.changes:
-        await normalise.upsert_change(session, raw, se_acl.id)
+    for raw_change in export.changes:
+        await normalise.upsert_change(session, raw_change, se_acl.id)
         counts["changes"] += 1
-    for raw in threads:
-        await normalise.upsert_thread(session, raw, se_acl.id)
+    for raw_thread in threads:
+        await normalise.upsert_thread(session, raw_thread, se_acl.id)
         counts["threads"] += 1
     await session.commit()
 

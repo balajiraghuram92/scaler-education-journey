@@ -8,15 +8,14 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from app.db import Base
-from app.settings import get_settings
-
 # Import models so metadata is complete. G1+ models register themselves here.
 import app.models.g1  # noqa: F401
 import app.models.g2  # noqa: F401
 import app.models.g3  # noqa: F401
 import app.models.g4  # noqa: F401
 import app.models.gateway  # noqa: F401
+from app.db import Base
+from app.settings import get_settings
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().database_url)

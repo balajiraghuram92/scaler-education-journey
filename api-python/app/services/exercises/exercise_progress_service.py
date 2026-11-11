@@ -7,6 +7,7 @@ assignment solved on an all-green run.
 
 from __future__ import annotations
 
+import json
 import logging
 
 from ...stjson import dumps as _json_dumps

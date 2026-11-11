@@ -90,7 +90,7 @@ public class LocalizationAiWorkflowTests
     private static LocalizationAiClient AiClient(FakeAiHandler handler, LocalizationAiOptions options)
     {
         var http = new HttpClient(handler);
-        return new LocalizationAiClient(http, Options.Create(options), NullLogger<LocalizationAiClient>.Instance);
+        return new LocalizationAiClient(http, Microsoft.Extensions.Options.Options.Create(options), NullLogger<LocalizationAiClient>.Instance);
     }
 
     private static WorkflowService Workflow(
@@ -105,7 +105,7 @@ public class LocalizationAiWorkflowTests
             new QpsScoringService(client),
             new AutoRoutingService(client),
             LocalizationTestFixture.Marketplace(db),
-            Options.Create(options));
+            Microsoft.Extensions.Options.Options.Create(options));
     }
 
     private static void RespondEchoOptimize(FakeAiHandler handler)
@@ -324,7 +324,7 @@ public class LocalizationAiWorkflowTests
 
         var rows = await db.LocalizationTranslations.AsNoTracking()
             .OrderBy(t => t.QpsScore).ToListAsync();
-        Assert.Equal(new[] { 70, 80 }, rows.Where(t => t.LocaleCode == "de-DE").Select(t => t.QpsScore));
+        Assert.Equal(new int?[] { 70, 80 }, rows.Where(t => t.LocaleCode == "de-DE").Select(t => t.QpsScore));
         Assert.True(rows.Single(t => t.QpsScore == 70).NeedsReview);
         Assert.False(rows.Single(t => t.QpsScore == 80).NeedsReview);
         Assert.False(rows.Single(t => t.LocaleCode == "fr-FR").NeedsReview);

@@ -107,7 +107,9 @@ async def run_eval(
         glossary_flags.append(metrics.glossary_adherence_ok(case.source_text, output.produced_translation, terms))
         placeholder_flags.append(metrics.placeholder_preserved_ok(case.source_text, output.produced_translation))
 
-    comet_scores = comet.score_batch([c.source_text for c in cases], produced) if comet is not None else [None] * len(cases)
+    comet_scores = (
+        comet.score_batch([c.source_text for c in cases], produced) if comet is not None else [None] * len(cases)
+    )
 
     avg_latency = metrics.mean(latencies)
     avg_comet_kiwi = metrics.mean(comet_scores)

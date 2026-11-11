@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 import shutil
 import tempfile
@@ -121,6 +122,10 @@ def _copy_trusted_file(source: str, destination: str) -> None:
 
 
 async def _write_text_async(destination: str, content: str) -> None:
+    await asyncio.to_thread(_write_text, destination, content)
+
+
+def _write_text(destination: str, content: str) -> None:
     # Written without a BOM, like the C# UTF8Encoding(false).
     with open(destination, "w", encoding="utf-8", newline="") as fh:
         fh.write(content)

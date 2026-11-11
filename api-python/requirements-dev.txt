@@ -1,6 +1,5 @@
 -r requirements.txt
-pytest==8.4.2
-pytest-asyncio==0.26.0
-ruff==0.14.4
-mypy==1.18.2
-types-cryptography==44.0.0.20251029
+pytest  # reviewer will pin (version unverified this round)
+pytest-asyncio  # reviewer will pin (version unverified this round)
+ruff  # reviewer will pin (version unverified this round)
+mypy  # reviewer will pin (version unverified this round)

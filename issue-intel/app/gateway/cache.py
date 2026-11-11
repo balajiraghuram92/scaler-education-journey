@@ -5,8 +5,6 @@ import hashlib
 from collections import OrderedDict
 from typing import Any
 
-from sqlalchemy import select
-
 from app.governance.rls import service_session
 from app.models.g2 import Job
 
@@ -41,7 +39,7 @@ async def enqueue_batch(calls: list[dict[str, Any]]) -> int:
         job = Job(kind="batch_call", payload={"calls": calls, "results": []})
         session.add(job)
         await session.commit()
-        return job.id
+        return int(job.id)
 
 
 async def batch_results(job_id: int) -> list[dict[str, Any]] | None:

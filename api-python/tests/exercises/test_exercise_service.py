@@ -90,7 +90,9 @@ async def test_service_returns_normalized_success_and_cleans_workspace() -> None
         assert response.passed is True
         assert response.summary.passed == 2
         assert response.run_id != ""
-        remaining = os.listdir(workspace_root) if os.path.isdir(workspace_root) else []
+        # Tests use synchronous file I/O with noqa (single-threaded loop, so
+        # blocking harms nothing); shipped code goes through asyncio.to_thread.
+        remaining = os.listdir(workspace_root) if os.path.isdir(workspace_root) else []  # noqa: ASYNC240
         assert remaining == []
     finally:
         delete_root(exercise_root)

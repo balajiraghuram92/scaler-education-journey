@@ -10,7 +10,7 @@ from app.db import create_session_factory
 from app.governance.entitlements import Entitlements
 from app.governance.rls import rls_session
 from app.ingest.normalise import get_or_create_acl
-from app.models.g1 import Acl, Case, Change, Chunk, Thread
+from app.models.g1 import Case, Change, Chunk, Thread
 from app.settings import Settings
 from tests.db_helper import ensure_test_db
 

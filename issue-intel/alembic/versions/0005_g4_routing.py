@@ -8,8 +8,8 @@ from __future__ import annotations
 import json
 from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects.postgresql import JSONB
 
 revision: str = "0005_g4_routing"

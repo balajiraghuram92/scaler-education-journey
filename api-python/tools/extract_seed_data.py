@@ -3,7 +3,6 @@
 NOTE: regular-string escapes are decoded manually (never codecs.unicode_escape,
 which mangles non-ASCII source characters). Verbatim strings keep raw bytes,
 including the CRLF line endings the database stores.
-"""
 
 Parses the C# object initializers in api/Data/JavaVerticalSeedData.cs and
 api/Data/FdeCurriculumSeedData.cs and writes app/seed/data/*.json, which the

@@ -23,7 +23,7 @@ async def consider_run(settings: Settings, run_id: str) -> FixCandidate:
         run = (
             await session.execute(select(Run).where(Run.id == run_id))
         ).scalar_one()
-        existing = (
+        existing: FixCandidate | None = (
             await session.execute(
                 select(FixCandidate).where(FixCandidate.run_id == run_id)
             )

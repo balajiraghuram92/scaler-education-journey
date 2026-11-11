@@ -24,10 +24,13 @@ async def run_cmd(cmd: list[str], cwd: Path, timeout_s: float) -> CmdResult:
     )
     try:
         out, err = await asyncio.wait_for(proc.communicate(), timeout_s)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         proc.kill()
         out, err = await proc.communicate()
-        return CmdResult(124, out.decode(errors="replace"), f"timeout: {err.decode(errors='replace')}")
+        return CmdResult(
+            124, out.decode(errors="replace"),
+            f"timeout: {err.decode(errors='replace')}",
+        )
     code = proc.returncode if proc.returncode is not None else 1
     return CmdResult(code, out.decode(errors="replace"), err.decode(errors="replace"))
 

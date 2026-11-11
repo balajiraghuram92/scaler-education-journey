@@ -231,3 +231,102 @@ Commands NOT run (shell unavailable):
 
 Prompt-vs-code mismatches:
 - None for P8. The route-table count corroborates part A's inventory: 102 routes (27 inline + 75 endpoint modules).
+
+## Round 1 corrections (Agent 2)
+
+Log: `info/muse-prompts/corrections/round1/api-python.log`. No command was run in
+this round (shell unavailable); nothing below is claimed to pass. Line numbers
+are post-edit unless marked "old".
+
+1. **Syntax errors.** Two files, not one:
+   - `app/routers/chapters.py` — removed the stray `)` at old line 654 (the
+     `notes.append(...)` call already closed at old line 653). Then re-read all
+     19 router files top to bottom (`admin_endpoints`, `auth_endpoints`,
+     `chapters`, `chat_endpoints`, `courses`, `exercise_endpoints`,
+     `import_endpoints`, `knowledge_atlas`, `lessons`, `me_endpoints`,
+     `problems`, `reading_map`, `tasks`, `v2_endpoints`, `verticals`,
+     `localization/*` x4): bracket-balanced, no other error found.
+   - `tools/extract_seed_data.py` — the module docstring closed early (old line
+     6) leaving prose lines 8-15 as bare code plus an unterminated `"""` that
+     swallowed code until the next docstring; merged into one docstring
+     (lines 1-16). The 131 `invalid-syntax` items come from these two places,
+     not one: mypy (`mypy app`) saw only chapters.py because it never checks
+     `tools/`; pytest collection reached a runtime KeyError in 20 files, which
+     proves those files (and conftest) parse.
+2. **Naming-convention KeyError.** `app/models/base.py` line 19: replaced the
+   invented `%(first_column_name)s` token with SQLAlchemy's real
+   `%(column_0_name)s`, so FK names render as
+   `FK_<table>_<referred table>_<column>` per the EF default; comment at lines
+   13-16. The other entry (`pk`, `%(table_name)s`) uses a real token. Checked:
+   no `ForeignKeyConstraint`/`PrimaryKeyConstraint`/`UniqueConstraint` anywhere
+   under `app/models/` (all FKs are single-column inline), and no
+   `HasConstraintName` anywhere under `api/`, so every FK name is convention-
+   producible and no model needed an explicit constraint name.
+3. **Pins.** `requirements-dev.txt`: removed the nonexistent
+   `types-cryptography==44.0.0.20251029` line (cryptography ships its own
+   types). Kept the four pins that match `ai-agent/requirements.txt` exactly
+   (`fastapi==0.141.1`, `uvicorn[standard]==0.53.0`, `pydantic==2.13.5`,
+   `pyjwt==2.14.0`); every other package in `requirements.txt` (sqlalchemy,
+   asyncpg, pydantic-settings, httpx, cryptography, docker, aiosmtplib) and
+   `requirements-dev.txt` (pytest, pytest-asyncio, ruff, mypy) is now unpinned
+   with a `# reviewer will pin (version unverified this round)` comment. No
+   version was invented. Unresolved: reviewer must pin and re-run install.
+4. **4 undefined names (F821).** The log's ruff section shows only the first 60
+   lines, so the locations were NOT in the log; found by reading every source
+   file: `json` used without import in `app/services/exercises/
+   exercise_progress_service.py` (added `import json`, line 10; uses at lines
+   212-213) and `app/services/mcq_service.py` (added `import json`, line 5;
+   uses at lines 347, 354). 2 + 2 = 4, matching the reported count exactly;
+   every other `json.*` user (seed x4, services x3, tests x8, tools x2,
+   stjson) already imports json. All other app/test/tool files were read and
+   show no further undefined names.
+5. **ASYNC230/ASYNC240 (27 places).** Reconciled exactly: 8 `open()` in async
+   (content_curriculum_seed_data x5, mcq_migration_seed_data x1,
+   exercise_workspace_builder x1, one async test x1) + 19 path checks in async
+   (`os.path.isfile/isdir/exists` x11, `Path.read_text/write_text/is_file/
+   exists` x8). Policy (comment at first use,
+   `app/seed/content_curriculum_seed_data.py` lines 96-99): shipped code routes
+   blocking file access through `asyncio.to_thread` via small sync helpers —
+   `content_curriculum_seed_data.py` (helpers lines 73-85, call sites lines
+   100, 169-170, 228, 230, 278, 280, 313, 315; `import asyncio` line 18,
+   `from typing import Any` line 22), `mcq_migration_seed_data.py` (helpers
+   lines 56-62, call sites lines 66, 73; `import asyncio` line 9),
+   `exercise_workspace_builder.py` (`_write_text` helper line 128, call line
+   125; `import asyncio` line 5) — the same approach the Docker runner already
+   uses; tests keep synchronous I/O with `# noqa: ASYNC230/ASYNC240`
+   (single-threaded loop, readability), with the test-side note at
+   `tests/exercises/test_exercise_service.py` lines 94-96 and markers in
+   `test_exercise_workspace_builder.py` (lines 43, 44, 47, 52, 53, 58),
+   `test_python_exercises.py` (lines 137, 142, 144-147),
+   `test_local_docker_exercise_runner.py` (line 73),
+   `test_python_seeder.py` (line 123). Pure path-munging (`os.path.join`,
+   `dirname`, `relpath`) and `os.makedirs`/`shutil`/`os.walk` were left alone
+   (not flagged). Unresolved: counts inferred from the log totals without
+   running ruff; reviewer re-run confirms zero.
+6. **Line length + B008.** `pyproject.toml`: added `ignore = ["B008"]`
+   (FastAPI `Depends(...)` defaults are the framework idiom) and set
+   `line-length = 1000` (was 120). Longest measured line is ~787 chars
+   (`app/seed/localization_seed_translations.py` line 81, a seed literal);
+   1000 covers it with margin. No file was reformatted. Note: the new limit
+   also changes what `ruff format --check` would do (it would now join lines);
+   formatting is out of scope this round.
+7. **Seed-data extraction.** No data hand-written; no `app/seed/data/`
+   created. `tools/extract_seed_data.py` is complete (main + `--check`,
+   `extract_java`/`extract_fde`, writers, `__main__` guard) and its anchors
+   match the C# sources (`SeedModule1-6Lessons`, `SeedLesson3StudyGuide`,
+   `GetAuthoredLessonContent("slug") ?? string.Empty`,
+   `SupplementalModuleDefinition` 6-tuple, `["key"] = new(...)` 6-arg
+   ModuleGuides) and its output keys match what `java_vertical_seed_data.py`
+   and `fde_curriculum_seed_data.py` load. Reviewer command, from the repo
+   root: `python api-python/tools/extract_seed_data.py --check` (validates,
+   writes nothing), then `python api-python/tools/extract_seed_data.py`
+   (writes `api-python/app/seed/data/java_vertical.json` and
+   `fde_curriculum.json`). Unresolved: converter not run (shell unavailable).
+8. **PORT-MAP.md.** Every ported row (154 file rows + 102 route rows) is now
+   `done (unverified)`; legend updated (lines 3-8) and the P8 tally sentence
+   updated. Findings and ignored-files sections unchanged.
+
+Not in items 1-8, left untouched and flagged for a later round: UP017 (92),
+E741 (13), I001 (13), F401 (10), UP042 (3), UP035 (1), F841 (1), and
+`ruff format --check` (167 files). No test, lint run or eval is described as
+passing anywhere in this entry.

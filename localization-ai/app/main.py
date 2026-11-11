@@ -11,8 +11,8 @@ import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from pydantic import ValidationError
 from psycopg_pool import AsyncConnectionPool
+from pydantic import ValidationError
 
 from app import db as db_module
 from app.evals.comet import CometKiwiScorer

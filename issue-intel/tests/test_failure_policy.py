@@ -70,10 +70,10 @@ def test_fatal_errors_raise_immediately() -> None:
     ):
         calls = 0
 
-        async def fatal() -> dict:
+        async def fatal(_error: FatalError = error) -> dict:
             nonlocal calls
             calls += 1
-            raise error
+            raise _error
 
         with pytest.raises(type(error)):
             asyncio.run(execute_with_retry(fatal))

@@ -66,15 +66,15 @@ async def run_eval_endpoint(body: RunEvalRequest, request: Request):
     except EmptyGoldenSetError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from None
     return RunEvalResponse(
-        eval_run_id=summary.eval_run_id,
-        avg_comet_kiwi=summary.avg_comet_kiwi,
-        avg_qps_score=summary.avg_qps_score,
-        glossary_adherence_rate=summary.glossary_adherence_rate,
-        placeholder_preservation_rate=summary.placeholder_preservation_rate,
-        cache_hit_rate=summary.cache_hit_rate,
-        avg_latency_ms=summary.avg_latency_ms,
-        total_cost_usd=summary.total_cost_usd,
-        tokens_used=summary.tokens_used,
-        fallback_count=summary.fallback_count,
-        prompt_version=summary.prompt_version,
+        evalRunId=summary.eval_run_id,
+        avgCometKiwi=summary.avg_comet_kiwi,
+        avgQpsScore=summary.avg_qps_score,
+        glossaryAdherenceRate=summary.glossary_adherence_rate,
+        placeholderPreservationRate=summary.placeholder_preservation_rate,
+        cacheHitRate=summary.cache_hit_rate,
+        avgLatencyMs=summary.avg_latency_ms,
+        totalCostUsd=summary.total_cost_usd,
+        tokensUsed=summary.tokens_used,
+        fallbackCount=summary.fallback_count,
+        promptVersion=summary.prompt_version,
     )

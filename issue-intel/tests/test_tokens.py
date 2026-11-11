@@ -17,7 +17,7 @@ def test_token_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
 
     async def _run() -> None:
         token = await mint_token("run1", "TES-1", "merge_pr", {"pr_id": 1})
-        assert await validate_token("run1", "TES-1", "merge_pr", token, {"pr_id": 1}) is False
+        assert await validate_token(token, "merge_pr", "run1", "TES-1", {"pr_id": 999}) is False
         assert await validate_token(token, "merge_pr", "run1", "TES-1", {"pr_id": 1})
         assert not await validate_token(token, "merge_pr", "run1", "TES-1", {"pr_id": 1})
 

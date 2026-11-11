@@ -113,15 +113,15 @@ async def translate_and_optimize(body: TranslateRequest, request: Request):
             "differs_from_source": outcome.translation.strip() != body.source_text.strip(),
         }
     return TranslateResponse(
-        optimized_translation=outcome.translation,
-        cache_hit=outcome.cache_hit,
+        optimizedTranslation=outcome.translation,
+        cacheHit=outcome.cache_hit,
         checks=checks,
-        input_tokens=outcome.input_tokens,
-        output_tokens=outcome.output_tokens,
-        embedding_tokens=outcome.embedding_tokens,
-        tokens_used=outcome.input_tokens + outcome.output_tokens + outcome.embedding_tokens,
-        latency_ms=outcome.latency_ms,
-        cost_usd=outcome.cost_usd,
+        inputTokens=outcome.input_tokens,
+        outputTokens=outcome.output_tokens,
+        embeddingTokens=outcome.embedding_tokens,
+        tokensUsed=outcome.input_tokens + outcome.output_tokens + outcome.embedding_tokens,
+        latencyMs=outcome.latency_ms,
+        costUsd=outcome.cost_usd,
         fallback=outcome.fallback,
     )
 
@@ -158,12 +158,12 @@ async def qps_score(body: QpsScoreRequest, request: Request):
     )
     return QpsScoreResponse(
         score=result.score,
-        flagged_issues=result.flagged_issues,
-        input_tokens=result.input_tokens,
-        output_tokens=result.output_tokens,
-        tokens_used=result.input_tokens + result.output_tokens,
-        latency_ms=result.latency_ms,
-        cost_usd=result.cost_usd,
+        flaggedIssues=result.flagged_issues,
+        inputTokens=result.input_tokens,
+        outputTokens=result.output_tokens,
+        tokensUsed=result.input_tokens + result.output_tokens,
+        latencyMs=result.latency_ms,
+        costUsd=result.cost_usd,
         fallback=result.fallback,
     )
 
@@ -195,8 +195,8 @@ async def comet_score(body: CometScoreRequest, request: Request):
     return CometScoreResponse(
         score=scores[0],
         available=scorer is not None and scorer.available,
-        tokens_used=0,
-        latency_ms=int((time.perf_counter() - start) * 1000),
+        tokensUsed=0,
+        latencyMs=int((time.perf_counter() - start) * 1000),
         fallback=False,
     )
 
@@ -224,9 +224,9 @@ async def auto_route_endpoint(body: AutoRouteRequest):
     start = time.perf_counter()
     decision = auto_route.route(qps_score=body.qps_score, qps_threshold=body.project_threshold, checks=body.checks)
     return AutoRouteResponse(
-        needs_review=decision.needs_review,
+        needsReview=decision.needs_review,
         reasons=decision.reasons,
-        tokens_used=0,
-        latency_ms=int((time.perf_counter() - start) * 1000),
+        tokensUsed=0,
+        latencyMs=int((time.perf_counter() - start) * 1000),
         fallback=False,
     )

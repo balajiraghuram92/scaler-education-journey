@@ -87,6 +87,11 @@ async def poll_once() -> bool:
         elif kind == "backport":
             await _execute_backport(int(payload.get("pr_id", 0)),
                                     list(payload.get("branches", [])))
+        elif kind == "batch_call":
+            from app.gateway.cache import execute_batch_job
+
+            await execute_batch_job(job_id, gateway)
+            return True  # execute_batch_job owns the job status
         else:
             raise ValueError(f"unknown job kind {kind}")
     except (StageError, Exception) as exc:

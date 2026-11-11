@@ -15,9 +15,11 @@ survive content updates.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -68,6 +70,20 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _read_json_file(path: str) -> Any:
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _read_text_file(path: str) -> str:
+    with open(path, encoding="utf-8") as fh:
+        return fh.read()
+
+
+def _is_file(path: str) -> bool:
+    return os.path.isfile(path)
+
+
 async def seed_folder(session: AsyncSession, folder: str) -> None:
     root = resolve_content_root(folder)
     if root is None:
@@ -77,8 +93,13 @@ async def seed_folder(session: AsyncSession, folder: str) -> None:
 
 
 async def seed(session: AsyncSession, root: str) -> None:
-    with open(os.path.join(root, "course.json"), encoding="utf-8") as fh:
-        manifest = json.load(fh)
+    # Port-wide policy for file access in async code: blocking reads go through
+    # asyncio.to_thread (as LocalDockerExerciseRunner does for Docker calls) so
+    # the event loop is never stalled; tests use plain synchronous I/O with
+    # noqa instead, since they drive the loop single-threaded.
+    manifest = await asyncio.to_thread(
+        _read_json_file, os.path.join(root, "course.json")
+    )
     if manifest is None:
         raise ValueError(f"{os.path.join(root, 'course.json')} could not be parsed.")
 
@@ -145,9 +166,8 @@ async def seed(session: AsyncSession, root: str) -> None:
             lesson_slug = _get(lesson_def, "slug", "") or ""
             lecture_number += 1
             body_path = os.path.join(root, "lessons", f"{lesson_slug}.md")
-            if os.path.isfile(body_path):
-                with open(body_path, encoding="utf-8") as fh:
-                    body = _norm(fh.read())
+            if await asyncio.to_thread(_is_file, body_path):
+                body = _norm(await asyncio.to_thread(_read_text_file, body_path))
                 body_exists = True
             else:
                 title = _get(lesson_def, "title", "") or ""
@@ -205,10 +225,9 @@ async def seed(session: AsyncSession, root: str) -> None:
 
 async def _seed_assignments(session: AsyncSession, root: str, lesson: Lesson) -> None:
     path = os.path.join(root, "assignments", f"{lesson.slug}.json")
-    if not os.path.isfile(path):
+    if not await asyncio.to_thread(_is_file, path):
         return
-    with open(path, encoding="utf-8") as fh:
-        file = json.load(fh)
+    file = await asyncio.to_thread(_read_json_file, path)
     assignments = _get(file, "assignments") if isinstance(file, dict) else None
     if assignments is None:
         return
@@ -256,10 +275,9 @@ async def _seed_assignments(session: AsyncSession, root: str, lesson: Lesson) ->
 
 async def _seed_diagrams(session: AsyncSession, root: str, lesson: Lesson) -> None:
     path = os.path.join(root, "diagrams", f"{lesson.slug}.json")
-    if not os.path.isfile(path):
+    if not await asyncio.to_thread(_is_file, path):
         return
-    with open(path, encoding="utf-8") as fh:
-        file = json.load(fh)
+    file = await asyncio.to_thread(_read_json_file, path)
     diagrams = _get(file, "diagrams") if isinstance(file, dict) else None
     if diagrams is None:
         return
@@ -292,10 +310,9 @@ async def _seed_diagrams(session: AsyncSession, root: str, lesson: Lesson) -> No
 
 async def _seed_mcqs(session: AsyncSession, root: str, lesson: Lesson) -> None:
     path = os.path.join(root, "mcqs", f"{lesson.slug}.json")
-    if not os.path.isfile(path):
+    if not await asyncio.to_thread(_is_file, path):
         return
-    with open(path, encoding="utf-8") as fh:
-        file = json.load(fh)
+    file = await asyncio.to_thread(_read_json_file, path)
     questions = _get(file, "questions") if isinstance(file, dict) else None
     if questions is None:
         return

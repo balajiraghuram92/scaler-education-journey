@@ -84,7 +84,7 @@ class World:
 
 
 def _people(rng: random.Random) -> list[Person]:
-    handles = [f"{f[0].lower()}{l.lower()}" for f in D.FIRST_NAMES for l in D.LAST_NAMES]
+    handles = [f"{f[0].lower()}{last.lower()}" for f in D.FIRST_NAMES for last in D.LAST_NAMES]
     rng.shuffle(handles)
     people = []
     for i in range(40):
@@ -245,7 +245,8 @@ def build_world(seed: int) -> World:
         thread = Thread(key=f"THREAD-{i + 1:04d}", case_key=case.key)
         thread.messages.append(
             Message(handles[i % len(handles)],
-                    rng.choice(D.CHAT_OPENERS).format(symptom=case.title[:40], version=case.version))
+                    rng.choice(D.CHAT_OPENERS).format(
+                        symptom=case.title[:40], version=case.version))
         )
         if i < 40:  # the real root cause, spread over several messages
             thread.messages.append(Message(handles[(i + 1) % len(handles)], "looking now"))

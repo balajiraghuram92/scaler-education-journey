@@ -14,7 +14,7 @@ from app.governance.rls import service_session
 from app.models.g1 import Case
 from app.models.g2 import Evidence, Job, Review, Run, RunStage, Writeback
 from app.pipeline import stage_fns
-from app.pipeline.stages import RunContext, StageError
+from app.pipeline.stages import RunContext, StageError, run_stage
 
 PIPELINE_VERSION = "g2.1"
 

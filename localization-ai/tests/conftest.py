@@ -47,7 +47,7 @@ def settings() -> Settings:
 
 
 @pytest.fixture
-def app(settings):
+def application(settings):
     return app.main.build_app(
         settings,
         chat_provider=FakeChatProvider(),
@@ -56,9 +56,9 @@ def app(settings):
 
 
 @pytest.fixture
-def client(app):
+def client(application):
     # No `with`: lifespan (pool open, COMET load) is not started in unit tests.
-    return TestClient(app)
+    return TestClient(application)
 
 
 # ---------------------------------------------------------------- docker / pgvector

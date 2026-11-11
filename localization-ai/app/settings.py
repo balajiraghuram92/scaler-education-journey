@@ -11,8 +11,8 @@ Database connection, either shape (same idea as ai-agent/config.py):
 ``DATABASE_URL`` wins when both shapes are present.
 """
 
-from pydantic_settings import BaseSettings
 from psycopg.conninfo import make_conninfo
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):

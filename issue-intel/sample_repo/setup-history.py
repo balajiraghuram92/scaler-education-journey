@@ -81,7 +81,8 @@ def main() -> None:
                 run("apply", "-R", f"--include={rel}", str(patch))
                 run("add", "-A")
                 run("commit", "-m",
-                    f"Introduce defect ({entry['symptom']}) part {i + 1}\n\nSymptom: {entry['symptom']}")
+                    f"Introduce defect ({entry['symptom']}) part {i + 1}\n\n"
+                    f"Symptom: {entry['symptom']}")
         else:
             run("apply", "-R", str(patch))
             run("add", "-A")

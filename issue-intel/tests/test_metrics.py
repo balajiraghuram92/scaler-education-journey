@@ -1,7 +1,14 @@
 """Unit tests for pure metric functions."""
 from __future__ import annotations
 
-from evals.metrics import accuracy, mean, per_class_f1, recall_at_k, reciprocal_rank
+from evals.metrics import (
+    accuracy,
+    mean,
+    p95,
+    per_class_f1,
+    recall_at_k,
+    reciprocal_rank,
+)
 
 
 def test_recall_at_k() -> None:
@@ -30,3 +37,10 @@ def test_per_class_f1() -> None:
     assert scores["a"] == 2 * (0.5 * 1.0) / (0.5 + 1.0)
     assert scores["b"] == 2 * (1.0 * (2 / 3)) / (1.0 + (2 / 3))
     assert per_class_f1(["a"], ["b"], ["c"]) == {"c": 0.0}
+
+
+def test_p95() -> None:
+    assert p95([]) == 0.0
+    assert p95([3.0]) == 3.0
+    assert p95([float(v) for v in range(1, 21)]) == 19.0
+    assert p95([1.0, 100.0]) == 100.0

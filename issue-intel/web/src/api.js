@@ -97,6 +97,12 @@ export async function getFinalCheck(runId) {
   return res.json();
 }
 
+export async function getMetrics() {
+  const res = await fetch(`${BASE}/metrics`);
+  if (!res.ok) throw new Error(`metrics: ${res.status}`);
+  return res.json();
+}
+
 export async function requestBackport(prId, branches) {
   const res = await fetch(`${BASE}/prs/${prId}/request-backport`, {
     method: "POST",

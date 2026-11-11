@@ -30,7 +30,7 @@ from app.gateway.adapters import FakeAdapter
 from app.gateway.gateway import ModelGateway
 from app.governance.rls import service_session
 from app.models.g1 import Ownership
-from app.models.g3 import FixAttempt, FixCandidate, FixPr
+from app.models.g3 import FixCandidate, FixPr
 from app.pipeline.manager import execute_run, handle_event
 from app.settings import Settings
 from evals.run_g2 import MACHINERY_DEFAULTS

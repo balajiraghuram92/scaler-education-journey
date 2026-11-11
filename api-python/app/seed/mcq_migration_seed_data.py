@@ -6,6 +6,7 @@ existing location; the file is never copied into api-python/.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from datetime import datetime, timezone
@@ -52,16 +53,24 @@ def _normalize_category(category: str | None) -> str:
     return "Assignment"
 
 
+def _resolve_data_file() -> str | None:
+    return next((p for p in _candidate_paths() if os.path.isfile(p)), None)
+
+
+def _read_text_file(path: str) -> str:
+    with open(path, encoding="utf-8") as fh:
+        return fh.read()
+
+
 async def seed(session: AsyncSession) -> None:
-    resolved = next((p for p in _candidate_paths() if os.path.isfile(p)), None)
+    resolved = await asyncio.to_thread(_resolve_data_file)
     if resolved is None:
         print("[WARN] mcq-migration-data.json was not found in any candidate path. Skipping MCQ seeding.")
         return
 
     print(f"[INFO] Loading MCQ migration data from {resolved}")
     try:
-        with open(resolved, encoding="utf-8") as fh:
-            json_content = fh.read()
+        json_content = await asyncio.to_thread(_read_text_file, resolved)
     except OSError as exc:
         print(f"[ERROR] Failed to read MCQ migration file at '{resolved}': {exc}")
         return

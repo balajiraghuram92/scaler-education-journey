@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getRun, getTrace, listRuns, runAction, submitReview } from "./api.js";
 import FixPage from "./FixPage.jsx";
+import MetricsPage from "./MetricsPage.jsx";
 
 function RunList({ onOpen }) {
   const [runs, setRuns] = useState([]);
@@ -132,6 +133,7 @@ export default function App() {
           <button onClick={() => setView({ name: "list", runId: null })}>Runs</button>
           <input placeholder="run id" value={fixRunId} onChange={(e) => setFixRunId(e.target.value)} />
           <button onClick={() => fixRunId && setView({ name: "fix", runId: fixRunId })}>Fix</button>
+          <button onClick={() => setView({ name: "metrics", runId: null })}>Metrics</button>
         </nav>
       </header>
       <main>
@@ -141,6 +143,7 @@ export default function App() {
         )}
         {view.name === "trace" && <Trace runId={view.runId} userId={userId} />}
         {view.name === "fix" && <FixPage runId={view.runId} userId={userId} />}
+        {view.name === "metrics" && <MetricsPage />}
       </main>
     </div>
   );

@@ -120,7 +120,7 @@ async def test_python_seeder_marks_draft_and_updates_status_on_file_change(
     assert still_published is not None
     assert still_published.content_status == "Published"
 
-    (root / "lessons" / "py-01.md").write_text("# One\r\n\r\nRevised\r\n", encoding="utf-8")
+    (root / "lessons" / "py-01.md").write_text("# One\r\n\r\nRevised\r\n", encoding="utf-8")  # noqa: ASYNC240
     await seed_python(db, str(root))
     revised = await db.get(Lesson, published_lesson_id)
     assert revised is not None

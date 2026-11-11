@@ -37,7 +37,9 @@ async def _fulltext(session: AsyncSession, query: str) -> list[tuple[int, str, s
     return [(r[0], r[1], r[2], r[3]) for r in rows]
 
 
-async def _vector(session: AsyncSession, query_vector: list[float]) -> list[tuple[int, str, str, str]]:
+async def _vector(
+    session: AsyncSession, query_vector: list[float]
+) -> list[tuple[int, str, str, str]]:
     rows = (
         await session.execute(
             text(
@@ -53,13 +55,18 @@ async def _vector(session: AsyncSession, query_vector: list[float]) -> list[tupl
 def _rrf(
     ranked: list[list[tuple[int, str, str, str]]], limit: int
 ) -> list[tuple[int, str, str, str, float]]:
-    scores: dict[int, list[float | tuple[int, str, str, str]]] = {}
+    scores: dict[int, float] = {}
+    rows: dict[int, tuple[int, str, str, str]] = {}
     for listing in ranked:
         for rank, row in enumerate(listing):
-            entry = scores.setdefault(row[0], [0.0, row])
-            entry[0] = float(entry[0]) + 1.0 / (RRF_K + rank + 1)
-    fused = sorted(scores.values(), key=lambda e: float(e[0]), reverse=True)[:limit]
-    return [(r[0], r[1], r[2], r[3], float(s)) for s, r in fused]  # type: ignore[misc]
+            scores[row[0]] = scores.get(row[0], 0.0) + 1.0 / (RRF_K + rank + 1)
+            rows.setdefault(row[0], row)
+    fused = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)[:limit]
+    out: list[tuple[int, str, str, str, float]] = []
+    for chunk_id, score in fused:
+        r = rows[chunk_id]
+        out.append((r[0], r[1], r[2], r[3], score))
+    return out
 
 
 async def hybrid_search(
@@ -77,7 +84,7 @@ async def hybrid_search(
             for i, r in enumerate(rows[:limit])
         ]
     if mode == "vector":
-        rows = await _vector(session, query_text and query_vector)
+        rows = await _vector(session, query_vector)
         return [
             SearchHit(chunk_id=r[0], owner_type=r[1], owner_key=r[2], text=r[3],
                       score=1.0 / (i + 1), source="vector")

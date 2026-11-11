@@ -40,22 +40,22 @@ async def test_builder_copies_trusted_pom_and_tests_and_only_submitted_source() 
             uuid4(), definition, submission
         )
 
-        assert os.path.isfile(os.path.join(workspace.path, "pom.xml"))
-        assert os.path.isfile(
+        assert os.path.isfile(os.path.join(workspace.path, "pom.xml"))  # noqa: ASYNC240
+        assert os.path.isfile(  # noqa: ASYNC240
             os.path.join(workspace.path, "src", "test", "java", "TrustedTest.java")
         )
-        with open(
+        with open(  # noqa: ASYNC230
             os.path.join(workspace.path, "src", "main", "java", "One.java"),
             encoding="utf-8",
         ) as fh:
             assert fh.read() == "class One {}"
-        assert not os.path.exists(os.path.join(workspace.path, "exercise.json"))
-        assert not os.path.exists(
+        assert not os.path.exists(os.path.join(workspace.path, "exercise.json"))  # noqa: ASYNC240
+        assert not os.path.exists(  # noqa: ASYNC240
             os.path.join(workspace.path, "solution", "src", "main", "java", "One.java")
         )
 
         ExerciseWorkspaceBuilder.delete_workspace(workspace.path)
-        assert not os.path.isdir(workspace.path)
+        assert not os.path.isdir(workspace.path)  # noqa: ASYNC240
     finally:
         delete_root(exercise_root)
         delete_root(workspace_root)

@@ -1,6 +1,16 @@
 """Metric functions. Pure and unit-tested; runners report, never compute."""
 from __future__ import annotations
 
+import math
+
+
+def p95(values: list[float]) -> float:
+    """95th percentile by nearest rank; 0.0 when empty."""
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    return ordered[max(0, math.ceil(0.95 * len(ordered)) - 1)]
+
 
 def recall_at_k(ranked: list[str], relevant: set[str], k: int) -> float:
     if not relevant:

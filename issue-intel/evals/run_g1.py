@@ -182,7 +182,11 @@ async def _main(adapter: str) -> None:
     }
     out = ROOT / "evals" / "reports" / "g1.json"
     out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
-    print(f"adapter: {adapter} (numbers labelled fake)" if adapter == "fake" else f"adapter: {adapter}")
+    print(
+        f"adapter: {adapter} (numbers labelled fake)"
+        if adapter == "fake"
+        else f"adapter: {adapter}"
+    )
     for mode, scores in retrieval.items():
         print(f"[{mode}] " + " ".join(f"{k}={v:.3f}" for k, v in scores.items()))
     print(f"[outcome] accuracy={outcome['accuracy']:.3f} n={outcome['n']}")

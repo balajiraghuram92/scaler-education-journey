@@ -5,6 +5,7 @@ as "HUD" or "Links abbiegen" must appear exactly as approved.
 """
 
 import re
+from collections.abc import Sequence
 
 _PLACEHOLDER_RE = re.compile(r"\{[^{}]*\}")
 
@@ -59,7 +60,7 @@ def normalized_match(output: str | None, gold: str | None) -> bool:
     return _normalize(output) == _normalize(gold)
 
 
-def rate(flags: list[bool | None]) -> float | None:
+def rate(flags: Sequence[bool | None]) -> float | None:
     """Share of True over non-None flags; None when no case decided."""
     decided = [f for f in flags if f is not None]
     if not decided:
@@ -67,7 +68,7 @@ def rate(flags: list[bool | None]) -> float | None:
     return sum(decided) / len(decided)
 
 
-def mean(values: list[int | float | None]) -> float | None:
+def mean(values: Sequence[int | float | None]) -> float | None:
     """Mean over non-None values; None when every value is None."""
     present = [v for v in values if v is not None]
     if not present:
@@ -75,6 +76,6 @@ def mean(values: list[int | float | None]) -> float | None:
     return sum(present) / len(present)
 
 
-def total(values: list[int | float | None]) -> float:
+def total(values: Sequence[int | float | None]) -> float:
     """Sum treating None as zero."""
     return float(sum(v or 0 for v in values))

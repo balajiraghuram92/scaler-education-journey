@@ -11,9 +11,12 @@ from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 
 # EF Core default constraint names: PK_<table>, FK_<dependent>_<principal>_<column>.
+# Tokens below must all be real SQLAlchemy naming-convention tokens; `column_0_name`
+# is the constrained (FK) column on the dependent table. No composite or
+# explicitly named (HasConstraintName) FKs exist, so the convention covers all FKs.
 CONVENTION = {
     "pk": "PK_%(table_name)s",
-    "fk": "FK_%(table_name)s_%(referred_table_name)s_%(first_column_name)s",
+    "fk": "FK_%(table_name)s_%(referred_table_name)s_%(column_0_name)s",
 }
 
 

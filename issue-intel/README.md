@@ -178,8 +178,66 @@ python -m evals.run_g3 --adapter openai
 Prerequisites for either mode: built sample_repo history, `dotnet restore`
 once (NuGet), ingested postgres, generated ground truth.
 
-## G4 — Model gateway (planned)
+## G4 — Model gateway
 
-Versioned routing table, budgets, result cache + batch mode, fallback, shadow
-mode, quality-verification step, scorecards + upgrade runbook, metrics
-endpoint and dashboard page.
+- Migration 0005: `routing_versions` (one active, partial unique index),
+  `model_scorecards`, `budgets`; `model_calls` gains `fallback_used`,
+  `routing_version`, `cached`, `is_shadow`. v1 mirrors the G0 static table.
+- Versioned routing (`app/gateway/routing.py`): per task type a primary
+  model, a fallback, a token limit and a mode (`SYNC | BATCH`), plus
+  optional canary fields. Exactly one version is active; `switch_version`
+  is one audited operation and the previous version stays for rollback.
+- Budget guard (`app/gateway/budgets.py`): per run, per day, per product.
+  A call whose estimate would exceed a budget fails with `BudgetExceeded`.
+- Result cache (in-process LRU) for identical inputs; batch mode queues
+  non-urgent calls (`enqueue_batch`) and the worker runs them together
+  (`batch_call` jobs). Fallback: on a provider error the gateway retries
+  the route's fallback model and records `fallback_used`.
+- Shadow mode: `ISSUEINTEL_SHADOW_MODEL` + `ISSUEINTEL_SHADOW_SHARE`
+  send a share of live calls to a candidate model; the output is logged
+  (`is_shadow`) and never returned to the caller (tested).
+- `quality_verify` screens every fix package before the expensive
+  `final_check`; filtered packages are recorded as `NEED_MORE_INFO` with a
+  `filtered by quality_verify: ` reason, counted on the metrics page.
+- Scorecards (`python -m evals.run_g4`): `score --model NAME` runs every
+  task suite against the named model and stores quality, cost per resolved
+  case and p95 latency per task type; `report --incumbent A --candidate B`
+  prints them side by side. `outcome_classify` is real accuracy against
+  ground truth; other tasks are contract conformance; `--adapter fake` is
+  machinery-only.
+- Metrics: `GET /metrics` (cost per resolved case, expensive-tier share,
+  final-check send-back rate, fix acceptance rate, leakage) and the
+  dashboard Metrics page.
+
+### Upgrade runbook (from issue-intel/)
+
+1. Offline eval, both models against the same probes:
+```powershell
+python -m evals.run_g4 score --model tessera-large --adapter openai --limit 50
+python -m evals.run_g4 score --model tessera-candidate --adapter openai --limit 50
+python -m evals.run_g4 report --incumbent tessera-large --candidate tessera-candidate
+```
+2. Shadow the candidate on live traffic (output stored, never returned):
+```powershell
+$env:ISSUEINTEL_SHADOW_MODEL = "tessera-candidate"
+$env:ISSUEINTEL_SHADOW_SHARE = "0.1"
+docker compose up -d --build api worker
+```
+Compare shadow rows (`is_shadow`) against primary rows in `model_calls`.
+3. Canary on one module: dump the active routes, add `canary_module`,
+   `canary_model`, `canary_share` to one task entry, store and switch:
+```powershell
+python -m app.gateway.routing show --version 1 > routing-v2.json
+# edit routing-v2.json, then:
+python -m app.gateway.routing create --routes routing-v2.json --note "canary candidate on UiState"
+python -m app.gateway.routing switch --version 2 --note "canary 10% UiState"
+```
+4. Full switch: set the candidate as primary in a new version, then
+   `python -m app.gateway.routing switch --version 3 --note "..."`.
+   Watch `GET /metrics` and the dashboard Metrics page.
+5. Rollback path (one audited operation, previous version kept):
+```powershell
+python -m app.gateway.routing rollback --note "candidate regression"
+python -m app.gateway.routing list
+```
+Clear the shadow env vars and restart api/worker when done.

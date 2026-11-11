@@ -1,0 +1,16 @@
+# Runtime dependencies (mirrors pyproject.toml [project] dependencies).
+# Pins are reused from ai-agent/requirements.txt and
+# localization-ai/requirements.txt, which were verified against PyPI.
+# Packages below marked "reviewer will pin" have versions no agent in this
+# repo could verify offline; install unpinned, then pin what resolved.
+fastapi==0.141.1
+uvicorn==0.53.0  # same release as uvicorn[standard]==0.53.0 in ai-agent
+pydantic==2.13.5
+pydantic-settings==2.16.2
+sqlalchemy[asyncio]  # reviewer will pin (version unverified this round)
+asyncpg  # reviewer will pin (version unverified this round)
+alembic  # reviewer will pin (version unverified this round)
+pgvector==0.5.0
+httpx==0.28.1
+mcp  # reviewer will pin (version unverified this round)
+aiosqlite  # reviewer will pin (version unverified this round)

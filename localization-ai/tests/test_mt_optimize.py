@@ -73,10 +73,12 @@ def test_optimize_checks_catch_bad_output():
         )
     )
     # Output kept (valid JSON) but every applicable check recorded honestly.
+    # differs_from_source is True: dropping {count} already makes the output
+    # differ from the source (a placeholder failure implies difference).
     assert result.fallback is False
     assert result.checks["placeholders_preserved"] is False
     assert result.checks["glossary_present"] is False
-    assert result.checks["differs_from_source"] is False
+    assert result.checks["differs_from_source"] is True
     assert result.checks["non_empty"] is True
 
 

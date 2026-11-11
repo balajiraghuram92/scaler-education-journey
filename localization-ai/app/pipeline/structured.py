@@ -5,11 +5,8 @@ so every stage's retry-once rule reads the same way.
 """
 
 import json
-from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
-
-M = TypeVar("M", bound=BaseModel)
 
 
 def strip_fences(text: str) -> str:
@@ -26,7 +23,7 @@ def strip_fences(text: str) -> str:
     return stripped.strip()
 
 
-def parse_or_raise(text: str, model: type[M]) -> M:
+def parse_or_raise[M: BaseModel](text: str, model: type[M]) -> M:
     """Parse model output into ``model``; raises ValueError naming the problem."""
     try:
         data = json.loads(strip_fences(text))

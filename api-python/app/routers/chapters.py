@@ -651,7 +651,6 @@ async def _build_chapter_detail_response(
                 updated_at=lesson.updated_at,
             )
         )
-    )
     return ChapterDetailDto(
         id=lesson.id,
         slug=lesson.slug,

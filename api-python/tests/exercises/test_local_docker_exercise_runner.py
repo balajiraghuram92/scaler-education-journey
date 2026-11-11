@@ -70,7 +70,7 @@ async def test_golden_solution_executes_through_the_phase1_runner() -> None:
         files=[
             ExerciseFileSubmission(
                 path=f.path,
-                content=Path(definition.exercise_root, "solution", f.path).read_text(
+                content=Path(definition.exercise_root, "solution", f.path).read_text(  # noqa: ASYNC240
                     encoding="utf-8"
                 ),
             )

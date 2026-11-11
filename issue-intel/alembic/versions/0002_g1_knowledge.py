@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision: str = "0002_g1_knowledge"
 down_revision: str | None = "0001_g0_base"
@@ -25,8 +25,10 @@ CREATE POLICY {table}_entitlement ON {table} FOR ALL USING (
     SELECT 1 FROM acls a
     WHERE a.id = {table}.acl_id
       AND a.restriction <= current_setting('app.max_restriction', true)::int
-      AND string_to_array(a.modules, ',') && string_to_array(current_setting('app.modules', true), ',')
-      AND string_to_array(a.departments, ',') && string_to_array(current_setting('app.departments', true), ',')
+      AND string_to_array(a.modules, ',')
+          && string_to_array(current_setting('app.modules', true), ',')
+      AND string_to_array(a.departments, ',')
+          && string_to_array(current_setting('app.departments', true), ',')
   )
 );
 """

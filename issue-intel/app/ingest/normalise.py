@@ -13,7 +13,7 @@ async def get_or_create_acl(
     session: AsyncSession, modules: str, departments: str, restriction: str
 ) -> Acl:
     level = RESTRICTION_LEVELS[restriction]
-    existing = (
+    existing: Acl | None = (
         await session.execute(
             select(Acl).where(
                 Acl.modules == modules,
@@ -34,7 +34,7 @@ async def upsert_case(session: AsyncSession, raw: RawCase) -> Case:
     acl = await get_or_create_acl(
         session, raw.true_module, ",".join(raw.departments), raw.restriction
     )
-    existing = (
+    existing: Case | None = (
         await session.execute(
             select(Case).where(Case.source == raw.source, Case.source_key == raw.key)
         )
@@ -54,7 +54,7 @@ async def upsert_case(session: AsyncSession, raw: RawCase) -> Case:
 
 
 async def upsert_thread(session: AsyncSession, raw: RawThread, acl_id: int) -> Thread:
-    existing = (
+    existing: Thread | None = (
         await session.execute(select(Thread).where(Thread.key == raw.key))
     ).scalar_one_or_none()
     if existing is not None:
@@ -73,7 +73,7 @@ async def upsert_thread(session: AsyncSession, raw: RawThread, acl_id: int) -> T
 
 
 async def upsert_change(session: AsyncSession, raw: RawChange, acl_id: int) -> Change:
-    existing = (
+    existing: Change | None = (
         await session.execute(select(Change).where(Change.ref == raw.ref))
     ).scalar_one_or_none()
     if existing is not None:
@@ -90,7 +90,7 @@ async def upsert_change(session: AsyncSession, raw: RawChange, acl_id: int) -> C
 
 
 async def upsert_person(session: AsyncSession, raw: RawPerson) -> Person:
-    existing = (
+    existing: Person | None = (
         await session.execute(select(Person).where(Person.handle == raw.handle))
     ).scalar_one_or_none()
     if existing is not None:

@@ -160,7 +160,7 @@ async def s5_code_lineage(ctx: RunContext) -> dict[str, Any]:
             scored.setdefault(ref, (0.7, "mentions implicated file or token"))
     ordered = sorted(scored.items(), key=lambda kv: kv[1][0], reverse=True)[:5]
     kept: list[dict[str, Any]] = []
-    for ref, (base, reason) in ordered:
+    for ref, (_base, reason) in ordered:
         change = changes[ref]
         result = await ctx.gateway.complete(
             TaskType.RELEVANCE, system=S5_SYSTEM,
