@@ -1,4 +1,4 @@
-"""Row-level-security context: SET LOCAL inside one transaction per request."""
+"""Row-level-security context: set_config inside one transaction per request."""
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -11,21 +11,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import create_session_factory
 from app.governance.entitlements import Entitlements, resolve_entitlements
 
+APP_ROLE = "issueintel_app"
+
 
 @asynccontextmanager
 async def rls_session(ent: Entitlements) -> AsyncIterator[AsyncSession]:
     factory = create_session_factory()
     async with factory() as session:
         async with session.begin():
+            await session.execute(text(f"SET LOCAL ROLE {APP_ROLE}"))
             await session.execute(
-                text("SET LOCAL app.modules = :v"), {"v": ",".join(sorted(ent.modules))}
+                text("SELECT set_config('app.modules', :v, true)"),
+                {"v": ",".join(sorted(ent.modules))},
             )
             await session.execute(
-                text("SET LOCAL app.departments = :v"),
+                text("SELECT set_config('app.departments', :v, true)"),
                 {"v": ",".join(sorted(ent.departments))},
             )
             await session.execute(
-                text("SET LOCAL app.max_restriction = :v"), {"v": str(ent.max_restriction)}
+                text("SELECT set_config('app.max_restriction', :v, true)"),
+                {"v": str(ent.max_restriction)},
             )
             yield session
 
@@ -40,14 +45,18 @@ async def service_session() -> AsyncIterator[AsyncSession]:
     ent = Entitlements.service()
     factory = create_session_factory()
     async with factory() as session:
+        await session.execute(text(f"SET ROLE {APP_ROLE}"))
         await session.execute(
-            text("SET app.modules = :v"), {"v": ",".join(sorted(ent.modules))}
+            text("SELECT set_config('app.modules', :v, false)"),
+            {"v": ",".join(sorted(ent.modules))},
         )
         await session.execute(
-            text("SET app.departments = :v"), {"v": ",".join(sorted(ent.departments))}
+            text("SELECT set_config('app.departments', :v, false)"),
+            {"v": ",".join(sorted(ent.departments))},
         )
         await session.execute(
-            text("SET app.max_restriction = :v"), {"v": str(ent.max_restriction)}
+            text("SELECT set_config('app.max_restriction', :v, false)"),
+            {"v": str(ent.max_restriction)},
         )
         try:
             yield session
@@ -55,6 +64,7 @@ async def service_session() -> AsyncIterator[AsyncSession]:
             await session.execute(text("RESET app.modules"))
             await session.execute(text("RESET app.departments"))
             await session.execute(text("RESET app.max_restriction"))
+            await session.execute(text("RESET ROLE"))
 
 
 async def rls_session_dep(request: Request) -> AsyncIterator[AsyncSession]:

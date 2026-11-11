@@ -72,9 +72,11 @@ class ScriptedEmbeddings:
         pass
 
 
-def _conn_id(conninfo: str) -> int:
+def _conn_id(conninfo: str, slug: str = "c") -> int:
     with psycopg.connect(conninfo) as conn:
-        cur = conn.execute("INSERT INTO localization_projects (slug, name) VALUES ('c', 'C') RETURNING id")
+        cur = conn.execute(
+            "INSERT INTO localization_projects (slug, name) VALUES (%s, 'C') RETURNING id", (slug,)
+        )
         row = cur.fetchone()
         assert row is not None
         conn.commit()
@@ -161,7 +163,7 @@ def test_threshold_is_respected(fresh_db):
 
 def test_cache_is_scoped_to_project_and_locale(fresh_db):
     project_id = _conn_id(fresh_db)
-    other_id = _conn_id(fresh_db)
+    other_id = _conn_id(fresh_db, slug="d")
     embed = ScriptedEmbeddings({"Same": vec_at_cosine(1.0)})
 
     async def go(conn, pid: int, locale: str):

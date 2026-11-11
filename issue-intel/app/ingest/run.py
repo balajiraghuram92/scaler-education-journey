@@ -11,8 +11,8 @@ from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db import create_session_factory
 from app.gateway.gateway import ModelGateway
+from app.governance.rls import service_session
 from app.ingest import chunk_embed, crosswalk, normalise, outcomes, ownership
 from app.ingest.extract import read_chat_xml, read_legacy_csv, read_tracker_json
 
@@ -57,9 +57,8 @@ async def run_ingest(
 
 
 async def _main(args: argparse.Namespace) -> None:
-    factory = create_session_factory()
     gateway = ModelGateway()
-    async with factory() as session:
+    async with service_session() as session:
         counts = await run_ingest(session, gateway, Path(args.corpus))
     print(counts)
 

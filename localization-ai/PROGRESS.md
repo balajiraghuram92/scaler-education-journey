@@ -302,3 +302,60 @@ change under `localization-ai/`.
    written and no HTTP request was made.
 
 Unresolved: none. Items 1-2 both addressed.
+
+## C7 — database test corrections
+
+No commands were run in this round (not permitted); the reviewer re-runs
+`pytest`. Tests-only changes; `localization-ai/app/` untouched.
+
+Task 1 — pool opened in a throwaway event loop (hang). Done.
+- `tests/conftest.py`, `db_client` fixture: pool is now created with
+  `db_module.create_pool(conninfo)` and passed to `build_app` unopened.
+  Removed `asyncio.run(pool.open())`, `asyncio.run(pool.wait())`, the
+  trailing `asyncio.run(pool.close())`, and the in-fixture
+  `import asyncio` (nothing else there used it). `TestClient` is now
+  entered as a context manager (`with TestClient(application) as client:`),
+  so `lifespan` opens the pool on the client's loop and closes it on exit.
+- `tests/test_api_pipeline.py`: `_client_for` is now a
+  `@contextlib.contextmanager` that builds the app with an unopened pool
+  and yields the client from inside `with TestClient(...)`. All three
+  callers (`test_translate_and_optimize_success_and_cache_hit`,
+  `test_translate_and_optimize_falls_back_on_malformed`,
+  `test_translate_and_optimize_unknown_project_is_404`) changed from
+  `client, pool = _client_for(...)` + `try/finally: asyncio.run(pool.close())`
+  to `with _client_for(...) as client:` with the same bodies. `import asyncio`
+  removed (now unused); `import contextlib` added. Searched the file for
+  remaining `_client_for` callers and `pool.open/wait/close` — none left.
+- Lifespan-close check: `FakeChatProvider.close` and
+  `FakeEmbeddingProvider.close` both exist (`app/providers/fake.py`,
+  read only). No test-local provider class is passed to `build_app` in
+  either file (only the two fakes), so no test class needed a `close`
+  added. The plain `client` fixture left untouched (no `with`), as
+  instructed.
+
+Task 2 — `test_cache_is_scoped_to_project_and_locale` slug collision. Done.
+- `tests/test_cache.py`: `_conn_id` takes `slug: str = "c"`, passed as a
+  bound parameter (`VALUES (%s, 'C')`); the test's second call uses
+  `slug="d"`. No other test changes.
+
+Task 3 — latency assertions in `tests/test_runner_configs.py`. Done.
+- Line 58 now `assert summary.avg_latency_ms is not None and
+  summary.avg_latency_ms >= 0`.
+- Line 88 now `assert first.avg_latency_ms is not None and
+  first.avg_latency_ms >= 1`, with the comment saying the 1 is the fake
+  embedding call and the optimize step is measured wall-clock time.
+- Sweep of `tests/` for other exact latency equality assertions (literal
+  search for `latency`; remaining `==` hits below, all left unchanged):
+  - `tests/test_cache.py:115` (`miss.latency_ms == 4`): embed (1) is the
+    scripted provider's own field passed through by `cache.py`, producer
+    (3) is the test's own `_producer` literal — no wall-clock step.
+  - `tests/test_providers.py:25` (`result.latency_ms == 1`): reads the
+    fake chat provider's own field directly.
+  - `tests/test_runner.py:43` (`summary.avg_latency_ms == 0`):
+    `legacy-only` echo path — deterministic 0, no `mt_optimize`/judge
+    call at all (the test also asserts `avg_qps_score is None`).
+  - `tests/test_runner_configs.py:103` (`second.avg_latency_ms == 1`,
+    cache-hit run): embed lookup only, i.e. the fake embedding
+    provider's own field passed through by `cache.py`.
+  - Already `>=` (no change needed): `tests/test_mt_optimize.py:64`,
+    `tests/test_providers.py:93`, `tests/test_api_pipeline.py:121`.

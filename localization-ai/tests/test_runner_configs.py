@@ -55,7 +55,7 @@ def test_legacy_optimize_run(seeded_project_id):
     assert summary.glossary_adherence_rate == 1.0
     assert summary.placeholder_preservation_rate == 1.0
     assert summary.cache_hit_rate == 0.0
-    assert summary.avg_latency_ms == 1
+    assert summary.avg_latency_ms is not None and summary.avg_latency_ms >= 0
     assert summary.total_cost_usd == 0.0
     assert summary.fallback_count == 0
     assert summary.prompt_version == "mt-optimize-v1+qps-judge-v1"
@@ -85,7 +85,8 @@ def test_legacy_optimize_glossary_cache_miss_then_hit(seeded_project_id):
     chat1, embed1 = FakeChatProvider(responses=list(script1)), FakeEmbeddingProvider()
     first = _run_all(conninfo, chat1, embed1, "legacy+optimize+glossary+cache", pricing)
     assert first.cache_hit_rate == 0.0
-    assert first.avg_latency_ms == 2  # embed (1) + optimize (1) per case
+    # The 1 is the fake embedding call; the optimize step is measured wall-clock time.
+    assert first.avg_latency_ms is not None and first.avg_latency_ms >= 1
     assert first.fallback_count == 0
     chat_in, chat_out = _chat_tokens(chat1, script1)
     embed_tokens = sum(count_tokens(t) for t in embed1.calls)

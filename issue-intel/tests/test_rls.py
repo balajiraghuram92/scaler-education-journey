@@ -5,48 +5,42 @@ import asyncio
 
 import pytest
 from sqlalchemy import select, text
+from sqlalchemy.exc import DBAPIError
 
-from app.db import create_session_factory
 from app.governance.entitlements import Entitlements
-from app.governance.rls import rls_session
+from app.governance.rls import rls_session, service_session
 from app.ingest.normalise import get_or_create_acl
 from app.models.g1 import Case, Change, Chunk, Thread
-from app.settings import Settings
 from tests.db_helper import ensure_test_db
 
 
 def _seed(url: str) -> None:
     async def _run() -> None:
-        factory = create_session_factory(Settings(database_url=url))
-        async with factory() as session:
-            async with session.begin():
-                await session.execute(text("SET LOCAL app.modules = :v"), {"v": "UiState"})
-                await session.execute(text("SET LOCAL app.departments = :v"), {"v": "SE"})
-                await session.execute(text("SET LOCAL app.max_restriction = :v"), {"v": "2"})
-                open_acl = await get_or_create_acl(session, "UiState", "Support", "OPEN")
-                se_acl = await get_or_create_acl(session, "VersionControl", "SE", "SE")
-                session.add(
-                    Case(source="TEST", source_key="RLS-OPEN", module="UiState",
-                         filed_module="UiState", title="open", body="b", version="v",
-                         status="Open", acl_id=open_acl.id)
-                )
-                session.add(
-                    Case(source="TEST", source_key="RLS-SE", module="VersionControl",
-                         filed_module="VersionControl", title="se", body="b", version="v",
-                         status="Open", acl_id=se_acl.id)
-                )
+        async with service_session() as session:
+            open_acl = await get_or_create_acl(session, "UiState", "Support", "OPEN")
+            se_acl = await get_or_create_acl(session, "VersionControl", "SE", "SE")
+            session.add(
+                Case(source="TEST", source_key="RLS-OPEN", module="UiState",
+                     filed_module="UiState", title="open", body="b", version="v",
+                     status="Open", acl_id=open_acl.id)
+            )
+            session.add(
+                Case(source="TEST", source_key="RLS-SE", module="VersionControl",
+                     filed_module="VersionControl", title="se", body="b", version="v",
+                     status="Open", acl_id=se_acl.id)
+            )
+            await session.commit()
 
     asyncio.run(_run())
 
 
 def _cleanup(url: str) -> None:
     async def _run() -> None:
-        factory = create_session_factory(Settings(database_url=url))
-        async with factory() as session:
-            async with session.begin():
-                await session.execute(
-                    text("DELETE FROM cases WHERE source = 'TEST'")
-                )
+        async with service_session() as session:
+            await session.execute(
+                text("DELETE FROM cases WHERE source = 'TEST'")
+            )
+            await session.commit()
 
     asyncio.run(_run())
 
@@ -75,5 +69,44 @@ def test_unentitled_user_sees_zero_rows(monkeypatch: pytest.MonkeyPatch) -> None
         open_ent = Entitlements({"UiState"}, {"Support"}, 0)
         n_orm, n_raw, _, _, _ = asyncio.run(_query(open_ent))
         assert n_orm == n_raw == 1
+
+        async def _whoami() -> str:
+            async with rls_session(open_ent) as session:
+                row = await session.execute(text("SELECT current_user"))
+                return str(row.scalar_one())
+
+        assert asyncio.run(_whoami()) == "issueintel_app"
     finally:
         _cleanup(url)
+
+
+def test_insert_outside_entitlement_is_refused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    url = ensure_test_db()
+    if url is None:
+        pytest.skip("no postgres test database reachable")
+    monkeypatch.setenv("ISSUEINTEL_DATABASE_URL", url)
+
+    async def _acl_id() -> int:
+        async with service_session() as session:
+            se_acl = await get_or_create_acl(session, "VersionControl", "SE", "SE")
+            await session.commit()
+            return int(se_acl.id)
+
+    acl_id = asyncio.run(_acl_id())
+
+    async def _attempt() -> None:
+        async with rls_session(
+            Entitlements({"UiState"}, {"Support"}, 0)
+        ) as session:
+            session.add(
+                Case(source="TEST", source_key="RLS-REFUSED",
+                     module="VersionControl", filed_module="VersionControl",
+                     title="x", body="b", version="v", status="Open",
+                     acl_id=acl_id)
+            )
+            await session.flush()
+
+    with pytest.raises(DBAPIError):
+        asyncio.run(_attempt())

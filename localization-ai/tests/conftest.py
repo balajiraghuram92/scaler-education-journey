@@ -180,19 +180,16 @@ def seeded_project_id(fresh_db):
 @pytest.fixture
 def db_client(seeded_project_id):
     """TestClient whose app pool points at the seeded test database (fake providers)."""
-    import asyncio
-
     conninfo, _ = seeded_project_id
     settings = make_settings(database_url=conninfo)
+    # Unopened: entering the TestClient opens the pool on the client's own
+    # loop via lifespan, and leaving it closes the pool.
     pool = db_module.create_pool(conninfo)
-    asyncio.run(pool.open())
-    asyncio.run(pool.wait())
     application = app.main.build_app(
         settings,
         pool=pool,
         chat_provider=FakeChatProvider(),
         embedding_provider=FakeEmbeddingProvider(),
     )
-    client = TestClient(application)
-    yield client
-    asyncio.run(pool.close())
+    with TestClient(application) as client:
+        yield client

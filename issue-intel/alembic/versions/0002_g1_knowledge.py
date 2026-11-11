@@ -16,8 +16,9 @@ down_revision: str | None = "0001_g0_base"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
-# Tables carrying acl_id. FORCE ROW LEVEL SECURITY so the table owner (the app
-# role) is filtered too; an unset context fails closed (current_setting -> NULL).
+# Tables carrying acl_id. FORCE ROW LEVEL SECURITY covers the table owner, but a
+# superuser still bypasses it, so the app switches to issueintel_app (migration
+# 0006); an unset context fails closed (current_setting -> NULL).
 RLS_TABLES = ("cases", "threads", "messages", "changes", "chunks")
 
 POLICY_SQL = """

@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import create_session_factory
 from app.gateway.gateway import ModelGateway
 from app.governance.entitlements import Entitlements
-from app.governance.rls import rls_session
+from app.governance.rls import rls_session, service_session
 from app.models.g1 import Acl, Case, Change, Thread, User
 from app.models.g1 import Entitlement as EntitlementRow
 from app.search.hybrid import SearchMode, hybrid_search
@@ -171,8 +171,7 @@ async def _main(adapter: str) -> None:
     from app.settings import Settings
 
     gateway = ModelGateway(settings=Settings(model_adapter=adapter))  # type: ignore[arg-type]
-    factory = create_session_factory()
-    async with factory() as session:
+    async with service_session() as session:
         retrieval = await retrieval_eval(session, gateway)
         outcome = await outcome_eval(session)
     leakage = await leakage_eval()

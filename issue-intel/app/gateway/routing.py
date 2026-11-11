@@ -80,6 +80,7 @@ async def switch_version(session: AsyncSession, version: int, note: str) -> int:
         await session.execute(select(RoutingVersion).where(RoutingVersion.active.is_(True)))
     ).scalars().all():
         row.active = False
+    await session.flush()
     target.active = True
     target.activated_at = datetime.datetime.now(datetime.UTC)
     from_version = current.version if current else None

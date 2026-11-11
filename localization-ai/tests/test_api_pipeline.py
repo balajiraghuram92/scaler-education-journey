@@ -1,6 +1,6 @@
 """HTTP tests for the four Part F.2 pipeline endpoints (fake providers)."""
 
-import asyncio
+import contextlib
 import json
 
 from fastapi.testclient import TestClient
@@ -11,24 +11,25 @@ from app.providers.fake import FakeChatProvider, FakeEmbeddingProvider
 from tests.conftest import auth_headers, make_settings
 
 
+@contextlib.contextmanager
 def _client_for(conninfo: str, chat: FakeChatProvider):
+    # Unopened: entering the TestClient opens the pool on the client's own
+    # loop via lifespan, and leaving it closes the pool.
     pool = db_module.create_pool(conninfo)
-    asyncio.run(pool.open())
-    asyncio.run(pool.wait())
     application = app.main.build_app(
         make_settings(database_url=conninfo),
         pool=pool,
         chat_provider=chat,
         embedding_provider=FakeEmbeddingProvider(),
     )
-    return TestClient(application), pool
+    with TestClient(application) as client:
+        yield client
 
 
 def test_translate_and_optimize_success_and_cache_hit(seeded_project_id):
     conninfo, _ = seeded_project_id
     chat = FakeChatProvider(responses=[json.dumps({"optimized_translation": "Links abbiegen"})])
-    client, pool = _client_for(conninfo, chat)
-    try:
+    with _client_for(conninfo, chat) as client:
         body = {
             "rawMtText": "Drehe links",
             "sourceText": "Turn left",
@@ -52,15 +53,12 @@ def test_translate_and_optimize_success_and_cache_hit(seeded_project_id):
         assert second.json()["cacheHit"] is True
         assert second.json()["optimizedTranslation"] == "Links abbiegen"
         assert len(chat.calls) == 1
-    finally:
-        asyncio.run(pool.close())
 
 
 def test_translate_and_optimize_falls_back_on_malformed(seeded_project_id):
     conninfo, _ = seeded_project_id
     chat = FakeChatProvider(responses=["nope", "still nope"])
-    client, pool = _client_for(conninfo, chat)
-    try:
+    with _client_for(conninfo, chat) as client:
         response = client.post(
             "/translate-and-optimize",
             json={
@@ -75,14 +73,11 @@ def test_translate_and_optimize_falls_back_on_malformed(seeded_project_id):
         assert response.status_code == 200
         data = response.json()
         assert (data["optimizedTranslation"], data["fallback"]) == ("Rohe MT", True)
-    finally:
-        asyncio.run(pool.close())
 
 
 def test_translate_and_optimize_unknown_project_is_404(seeded_project_id):
     conninfo, _ = seeded_project_id
-    client, pool = _client_for(conninfo, FakeChatProvider())
-    try:
+    with _client_for(conninfo, FakeChatProvider()) as client:
         response = client.post(
             "/translate-and-optimize",
             json={
@@ -95,8 +90,6 @@ def test_translate_and_optimize_unknown_project_is_404(seeded_project_id):
             headers=auth_headers(),
         )
         assert response.status_code == 404
-    finally:
-        asyncio.run(pool.close())
 
 
 def test_qps_score_success_and_fallback(client):

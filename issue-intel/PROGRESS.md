@@ -476,3 +476,57 @@ fake OpenAI deployments, and the three required statements
 truncates; real-model evals cost money and must be labelled
 with model names). Placeholders only; nothing about creating
 Azure resources.
+
+## C8 — database test corrections
+
+Nothing run this round (no shell); no test, lint run or eval is
+described as passing.
+
+Task 1 — `SET ... = :v` cannot take a bind parameter. Fixed in
+`app/governance/rls.py`: `rls_session` now uses
+`SELECT set_config('app.X', :v, true)` for the three settings and
+`service_session` uses `SELECT set_config('app.X', :v, false)`;
+values stay bound parameters, the three `RESET` statements are
+unchanged, and the module docstring no longer says `SET LOCAL`.
+
+Task 2a — new migration `alembic/versions/0006_app_role.py`
+(`down_revision` 0005_g4_routing): creates role `issueintel_app`
+(NOLOGIN NOSUPERUSER NOBYPASSRLS) guarded by `IF NOT EXISTS`,
+grants membership to `CURRENT_USER`, schema/table/sequence
+privileges and default privileges, each statement through
+`op.execute`; `downgrade()` revokes the schema/table/sequence
+and default privileges and leaves the role in place. Corrected
+only the comment at `0002_g1_knowledge.py:19-20`: `FORCE`
+covers the table owner, a superuser still bypasses it, the app
+switches to `issueintel_app` (migration 0006).
+
+Task 2b — `app/governance/rls.py`: added `APP_ROLE =
+"issueintel_app"`; `rls_session` runs `SET LOCAL ROLE
+issueintel_app` first inside `session.begin()`; `service_session`
+runs `SET ROLE issueintel_app` first and `RESET ROLE` after the
+three `RESET` statements. Full entitlements unchanged.
+
+Task 2c — sessions that do not go through the helpers (one line per call site):
+- `app/db.py:31 get_session()`: reads/writes no tables itself and has no callers in the repo; stays as is.
+- `app/ingest/run.py:60 _main()`: writes all five RLS tables (`cases`, `threads`, `messages`, `changes`, `chunks`) plus `acls`, `people`, `links`, `ownership`; moved to `service_session()` (service work; multi-commit ingest matches its session-level context).
+- `evals/run_g1.py:143 leakage_eval()`: reads only `acls` (plus `rls_session` reads elsewhere); stays as is.
+- `evals/run_g1.py:174 _main()`: reads RLS tables (`cases`, `threads`, `changes`, `chunks` via `retrieval_eval`/`outcome_eval`); moved to `service_session()` (service work; read-only, no transaction conflict).
+- `evals/run_g4.py:193 cmd_score()`: writes only `model_scorecards`; stays as is.
+- `app/governance/rls.py:66-68 rls_session_dep()`: reads only `entitlements` via `resolve_entitlements`; stays as is.
+
+Task 2d — `tests/test_rls.py`: `_seed` and `_cleanup` now run
+inside `service_session()` with a commit at the end; the `url`
+argument is unused (settings come from the monkeypatched env)
+but both signatures are kept because the caller passes `url`.
+`test_unentitled_user_sees_zero_rows` gains a `SELECT
+current_user` check for `issueintel_app`. New
+`test_insert_outside_entitlement_is_refused` (same skip when no
+database) creates the `VersionControl`/`SE`/`SE` ACL through
+`service_session()`, then expects `DBAPIError` on flush of an
+outside-entitlement `Case` inside narrow `rls_session`.
+
+Task 3 — `test_switch_and_rollback`: in `switch_version`
+(`app/gateway/routing.py`) added `await session.flush()` after
+the deactivate loop and before `target.active = True`, so the
+two `UPDATE`s stay ordered in one transaction. Nothing else in
+the function changed; index and migration untouched.
