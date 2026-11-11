@@ -1,0 +1,20 @@
+diff --git a/src/Localization/CultureCode.cs b/src/Localization/CultureCode.cs
+--- a/src/Localization/CultureCode.cs
++++ b/src/Localization/CultureCode.cs
+@@ -5,5 +5,5 @@ public static class CultureCode
+     public static string Normalize(string code)
+     {
+-        return code.ToLower();
++        return code.ToLowerInvariant();
+     }
+ }
+diff --git a/src/Localization/ResourceLoader.cs b/src/Localization/ResourceLoader.cs
+--- a/src/Localization/ResourceLoader.cs
++++ b/src/Localization/ResourceLoader.cs
+@@ -5,5 +5,5 @@ public static class ResourceLoader
+     public static string BuildKey(string name)
+     {
+-        return name.ToUpper();
++        return name.ToUpperInvariant();
+     }
+ 

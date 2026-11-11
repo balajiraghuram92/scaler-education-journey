@@ -1,0 +1,10 @@
+diff --git a/src/UiState/LayoutSerializer.cs b/src/UiState/LayoutSerializer.cs
+--- a/src/UiState/LayoutSerializer.cs
++++ b/src/UiState/LayoutSerializer.cs
+@@ -7,5 +7,5 @@ public static class LayoutSerializer
+     public static string Serialize(PanelLayout layout)
+     {
+-        return $"{layout.Name}|{layout.Height}|{layout.Height}";
++        return $"{layout.Name}|{layout.Width}|{layout.Height}";
+     }
+ 

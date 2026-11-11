@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using StudyTracker.Api.Data;
 using StudyTracker.Api.Models.Localization;
+using StudyTracker.Api.Options;
 
 namespace StudyTracker.Api.Services.Localization;
 
@@ -51,6 +53,7 @@ public class WorkflowService
     private readonly IQualityScorer _qualityScorer;
     private readonly AutoRoutingService _autoRoutingService;
     private readonly MarketplaceService _marketplaceService;
+    private readonly LocalizationAiOptions? _aiOptions;
 
     public WorkflowService(
         StudyTrackerContext db,
@@ -58,7 +61,8 @@ public class WorkflowService
         MtOptimizeService mtOptimizeService,
         IQualityScorer qualityScorer,
         AutoRoutingService autoRoutingService,
-        MarketplaceService marketplaceService)
+        MarketplaceService marketplaceService,
+        IOptions<LocalizationAiOptions>? aiOptions = null)
     {
         _db = db;
         _translationProvider = translationProvider;
@@ -66,6 +70,7 @@ public class WorkflowService
         _qualityScorer = qualityScorer;
         _autoRoutingService = autoRoutingService;
         _marketplaceService = marketplaceService;
+        _aiOptions = aiOptions?.Value;
     }
 
     public async Task<IReadOnlyList<WorkflowStepDto>> GetStepsAsync(string projectSlug, CancellationToken ct = default)
@@ -334,6 +339,7 @@ public class WorkflowService
             case WorkflowActions.AutoTranslateViaGoogleMt:
             {
                 int translatedCount = 0;
+                int characterCount = 0;
                 foreach (var locale in project.Locales)
                 {
                     foreach (var str in project.Strings)
@@ -352,12 +358,14 @@ public class WorkflowService
                                 StringId = str.Id,
                                 LocaleCode = locale.LocaleCode,
                                 TargetText = translatedText,
+                                RawMtText = translatedText,
                                 Stage = "Translated",
                                 TranslationSource = "AI",
                                 UpdatedAt = now
                             };
                             _db.LocalizationTranslations.Add(newTrans);
                             translatedCount++;
+                            characterCount += translatedText?.Length ?? 0;
                         }
                         else if (string.IsNullOrWhiteSpace(trans.TargetText))
                         {
@@ -368,12 +376,28 @@ public class WorkflowService
                                 ct
                             );
                             trans.TargetText = translatedText;
+                            trans.RawMtText = translatedText;
                             trans.Stage = "Translated";
                             trans.TranslationSource = "AI";
                             trans.UpdatedAt = now;
                             translatedCount++;
+                            characterCount += translatedText?.Length ?? 0;
                         }
                     }
+                }
+                if (translatedCount > 0)
+                {
+                    var charRate = _aiOptions?.LegacyMtPricePerCharUsd ?? 0m;
+                    _db.LocalizationLedgerEntries.Add(new LedgerEntry
+                    {
+                        ProjectId = project.Id,
+                        Source = "AI",
+                        Amount = 0m,
+                        UnitsConsumed = characterCount,
+                        UnitType = "characters",
+                        RealCostUsd = decimal.Round(characterCount * charRate, 6),
+                        CreatedAt = now
+                    });
                 }
                 outcome = $"{translatedCount} strings translated via Google MT";
                 break;
@@ -399,25 +423,167 @@ public class WorkflowService
                 break;
             }
 
-            // Phase 3 AI Boundary Actions — Hand-written logic required
+            // Phase 3 AI actions — thin orchestration over the localization-ai service.
+            // A per-string AI failure is counted and the run continues; only
+            // NotImplementedException (service not configured) aborts into HTTP 501.
             case WorkflowActions.RunMtOptimize:
             {
-                await _mtOptimizeService.OptimizeAsync("sample", project.Slug, "de-DE", ct);
-                outcome = "MT Optimize complete";
+                var glossary = await _db.LocalizationGlossaryTerms
+                    .AsNoTracking()
+                    .Where(g => g.ProjectId == project.Id)
+                    .ToListAsync(ct);
+                int optimizedCount = 0;
+                int failedCount = 0;
+                long inputTokens = 0;
+                long outputTokens = 0;
+                foreach (var str in project.Strings)
+                {
+                    foreach (var trans in str.Translations)
+                    {
+                        var rawMt = trans.RawMtText;
+                        if (string.IsNullOrWhiteSpace(rawMt))
+                        {
+                            continue;
+                        }
+
+                        var terms = glossary
+                            .Where(g => g.LocaleCode == trans.LocaleCode)
+                            .Select(g => new AiGlossaryTermDto(g.SourceTerm, g.TargetTerm))
+                            .ToList();
+                        try
+                        {
+                            var result = await _mtOptimizeService.OptimizeDetailedAsync(
+                                str.SourceText,
+                                rawMt,
+                                project.Slug,
+                                trans.LocaleCode,
+                                terms,
+                                ct);
+                            trans.TargetText = result.OptimizedTranslation;
+                            trans.UpdatedAt = now;
+                            optimizedCount++;
+                            inputTokens += result.InputTokens;
+                            outputTokens += result.OutputTokens;
+                        }
+                        catch (LocalizationAiException)
+                        {
+                            failedCount++;
+                        }
+                    }
+                }
+                if (optimizedCount > 0)
+                {
+                    var inRate = _aiOptions?.ChatPricePer1kInputTokensUsd ?? 0m;
+                    var outRate = _aiOptions?.ChatPricePer1kOutputTokensUsd ?? 0m;
+                    _db.LocalizationLedgerEntries.Add(new LedgerEntry
+                    {
+                        ProjectId = project.Id,
+                        Source = "AI",
+                        Amount = 0m,
+                        UnitsConsumed = (int)(inputTokens + outputTokens),
+                        UnitType = "tokens",
+                        RealCostUsd = decimal.Round(inputTokens / 1000m * inRate + outputTokens / 1000m * outRate, 6),
+                        CreatedAt = now
+                    });
+                }
+                outcome = failedCount == 0
+                    ? $"{optimizedCount} strings optimized"
+                    : $"{optimizedCount} strings optimized, {failedCount} failed";
                 break;
             }
 
             case WorkflowActions.ScoreQps:
             {
-                await _qualityScorer.ScoreAsync("sample", "sample", "de-DE", ct);
-                outcome = "QPS Scored";
+                int scoredCount = 0;
+                int failedCount = 0;
+                foreach (var str in project.Strings)
+                {
+                    foreach (var trans in str.Translations)
+                    {
+                        if (trans.TranslationSource != "AI")
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            var result = await _qualityScorer.ScoreAsync(
+                                str.SourceText,
+                                trans.TargetText ?? string.Empty,
+                                trans.LocaleCode,
+                                ct);
+                            trans.QpsScore = result.Score;
+                            trans.UpdatedAt = now;
+                            scoredCount++;
+                        }
+                        catch (LocalizationAiException)
+                        {
+                            failedCount++;
+                            continue;
+                        }
+
+                        var rawMt = trans.RawMtText;
+                        if (!string.IsNullOrWhiteSpace(rawMt) && trans.RawMtQpsScore is null)
+                        {
+                            try
+                            {
+                                var rawResult = await _qualityScorer.ScoreAsync(
+                                    str.SourceText,
+                                    rawMt,
+                                    trans.LocaleCode,
+                                    ct);
+                                trans.RawMtQpsScore = rawResult.Score;
+                            }
+                            catch (LocalizationAiException)
+                            {
+                                failedCount++;
+                            }
+                        }
+                    }
+                }
+                outcome = failedCount == 0
+                    ? $"{scoredCount} strings scored"
+                    : $"{scoredCount} strings scored, {failedCount} failed";
                 break;
             }
 
             case WorkflowActions.AutoRoute:
             {
-                await _autoRoutingService.ShouldRouteToReviewAsync(85, 70, ct);
-                outcome = "Auto-Routed";
+                int processedCount = 0;
+                int flaggedCount = 0;
+                int failedCount = 0;
+                foreach (var str in project.Strings)
+                {
+                    foreach (var trans in str.Translations)
+                    {
+                        if (trans.TranslationSource != "AI" || trans.QpsScore is null)
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            var needsReview = await _autoRoutingService.ShouldRouteToReviewAsync(
+                                trans.QpsScore.Value,
+                                project.QpsThreshold,
+                                ct);
+                            trans.NeedsReview = needsReview;
+                            trans.UpdatedAt = now;
+                            processedCount++;
+                            if (needsReview)
+                            {
+                                flaggedCount++;
+                            }
+                        }
+                        catch (LocalizationAiException)
+                        {
+                            failedCount++;
+                        }
+                    }
+                }
+                outcome = failedCount == 0
+                    ? $"{processedCount} strings processed, {flaggedCount} flagged for review"
+                    : $"{processedCount} strings processed, {flaggedCount} flagged for review, {failedCount} failed";
                 break;
             }
 

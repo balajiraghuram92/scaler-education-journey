@@ -1,0 +1,8 @@
+{"locale_code": "de-DE", "category": "short-label", "source_text": "Turn left ahead", "gold_translation": "Voraus links abbiegen", "notes": "Uses glossary term Turn left.", "verified": false}
+{"locale_code": "de-DE", "category": "short-label", "source_text": "HUD brightness {count}", "gold_translation": "HUD-Helligkeit {count}", "notes": "Uses glossary term HUD; placeholder case.", "verified": false}
+{"locale_code": "de-DE", "category": "short-label", "source_text": "Cabin temperature", "gold_translation": "Innentemperatur", "notes": "", "verified": false}
+{"locale_code": "de-DE", "category": "warning-message", "source_text": "Low fuel warning", "gold_translation": "Kraftstoffwarnung", "notes": "Uses glossary term Low fuel warning.", "verified": false}
+{"locale_code": "de-DE", "category": "warning-message", "source_text": "Obstacle {count} feet ahead", "gold_translation": "Hindernis {count} Fuß voraus", "notes": "Placeholder case.", "verified": false}
+{"locale_code": "de-DE", "category": "idiomatic", "source_text": "The ABS kicked in on the icy patch", "gold_translation": "Das ABS griff auf der vereisten Stelle ein", "notes": "Uses glossary term ABS; idiomatic phrasal verb.", "verified": false}
+{"locale_code": "de-DE", "category": "idiomatic", "source_text": "We're going in circles", "gold_translation": "Wir fahren im Kreis", "notes": "Idiom; navigation-flavoured.", "verified": false}
+{"locale_code": "de-DE", "category": "legal-disclaimer", "source_text": "Driver assistance systems are supplemental conveniences and do not replace an attentive driver.", "gold_translation": "Fahrerassistenzsysteme sind ergänzende Komfortfunktionen und ersetzen keinen aufmerksamen Fahrer.", "notes": "", "verified": false}

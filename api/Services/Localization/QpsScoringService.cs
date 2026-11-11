@@ -5,15 +5,33 @@ using System.Threading.Tasks;
 namespace StudyTracker.Api.Services.Localization;
 
 /// <summary>
-/// HAND-WRITTEN BOUNDARY: the QPS/Auto-LQA scoring rubric is hand-written.
-/// Implement this method by hand — do not have an LLM generate this logic.
+/// Thin client over the localization-ai /qps-score endpoint.
+/// Contains no scoring rubric; that stays in the Python service.
+/// Throws LocalizationAiException when the judge falls back without a score.
 /// </summary>
 public class QpsScoringService : IQualityScorer
 {
-    public Task<QualityScoreResult> ScoreAsync(string sourceText, string targetText, string targetLocale, CancellationToken ct)
+    private readonly LocalizationAiClient? _client;
+
+    public QpsScoringService(LocalizationAiClient? client = null)
     {
-        throw new NotImplementedException(
-            "The QPS/Auto-LQA scoring rubric is hand-written per the project's locked AI boundary. " +
-            "Implement this method by hand — do not have an LLM generate this logic.");
+        _client = client;
+    }
+
+    public async Task<QualityScoreResult> ScoreAsync(string sourceText, string targetText, string targetLocale, CancellationToken ct)
+    {
+        if (_client is null)
+        {
+            throw new NotImplementedException(LocalizationAiClient.NotConfiguredMessage);
+        }
+
+        var response = await _client.ScoreQpsAsync(sourceText, targetText, targetLocale, ct);
+
+        if (response.Score is null)
+        {
+            throw new LocalizationAiException("The QPS judge fell back without producing a score.");
+        }
+
+        return new QualityScoreResult(response.Score.Value, response.FlaggedIssues);
     }
 }

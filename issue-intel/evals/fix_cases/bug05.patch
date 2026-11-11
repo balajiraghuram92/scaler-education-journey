@@ -1,0 +1,9 @@
+diff --git a/src/UiState/RecentFiles.cs b/src/UiState/RecentFiles.cs
+--- a/src/UiState/RecentFiles.cs
++++ b/src/UiState/RecentFiles.cs
+@@ -13,4 +13,5 @@ public sealed class RecentFiles
+     public void Add(string path)
+     {
++        _files.Remove(path);
+         _files.Insert(0, path);
+         while (_files.Count > _capacity)

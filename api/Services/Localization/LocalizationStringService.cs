@@ -53,7 +53,9 @@ public class LocalizationStringService
                 translation?.TranslationSource ?? "Manual",
                 translation?.QpsScore,
                 translation?.NeedsReview ?? false,
-                translation?.UpdatedAt
+                translation?.UpdatedAt,
+                translation?.RawMtText,
+                translation?.RawMtQpsScore
             ));
         }
 
@@ -123,7 +125,9 @@ public class LocalizationStringService
             translation.TranslationSource,
             translation.QpsScore,
             translation.NeedsReview,
-            translation.UpdatedAt
+            translation.UpdatedAt,
+            translation.RawMtText,
+            translation.RawMtQpsScore
         );
     }
 }

@@ -42,6 +42,15 @@ public class LocalizationTranslation
     [Column("qps_score")]
     public int? QpsScore { get; set; }
 
+    [Column("raw_mt_text")]
+    public string? RawMtText { get; set; }
+
+    [Column("raw_mt_qps_score")]
+    public int? RawMtQpsScore { get; set; }
+
+    [Column("comet_kiwi_score", TypeName = "numeric(5,4)")]
+    public decimal? CometKiwiScore { get; set; }
+
     [Column("needs_review")]
     public bool NeedsReview { get; set; } = false;
 

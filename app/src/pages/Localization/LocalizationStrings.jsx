@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Edit2, Lock, Check, ArrowRight, X, RefreshCw, ThumbsUp, RotateCcw } from 'lucide-react';
+import { Edit2, Lock, Check, ArrowRight, X, RefreshCw, ThumbsUp, RotateCcw, Flag } from 'lucide-react';
 import LocalizationShell from './LocalizationShell';
 import StageIndicator from '../../components/Localization/StageIndicator';
 import useLocalizationProject from './useLocalizationProject';
@@ -195,6 +195,16 @@ export default function LocalizationStrings() {
   const hasQpsColumn = strings.some((s) => s.qpsScore !== null && s.qpsScore !== undefined);
   const activeString = activeStringIndex !== null ? strings[activeStringIndex] : null;
 
+  // "Needs Review only" quick filter: keep the original row index so the
+  // drawer and save flow (which address `strings` directly) keep working.
+  const [showNeedsReviewOnly, setShowNeedsReviewOnly] = useState(false);
+  const visibleRows = useMemo(
+    () => strings
+      .map((row, index) => ({ row, index }))
+      .filter(({ row }) => !showNeedsReviewOnly || row.needsReview),
+    [strings, showNeedsReviewOnly]
+  );
+
   return (
     <LocalizationShell activeTab="strings">
       {/* Locale Selector Bar & Review Toolbar */}
@@ -234,6 +244,31 @@ export default function LocalizationStrings() {
               </option>
             ))}
           </select>
+          <button
+            type="button"
+            onClick={() => setShowNeedsReviewOnly((v) => !v)}
+            title="Show only strings flagged for review"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.4rem 0.85rem',
+              borderRadius: '999px',
+              border: showNeedsReviewOnly
+                ? '1px solid var(--color-sage, #2C5E55)'
+                : '1px solid var(--color-border-subtle, #E2DDD5)',
+              backgroundColor: showNeedsReviewOnly
+                ? 'rgba(44, 94, 85, 0.08)'
+                : 'var(--color-parchment-card, #FFFFFF)',
+              color: showNeedsReviewOnly ? 'var(--color-sage, #2C5E55)' : 'var(--color-ink-muted, #6B7280)',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            <Flag size={12} />
+            Needs Review only
+          </button>
         </div>
 
         {/* Review Actions if navigated from Marketplace */}
@@ -331,6 +366,8 @@ export default function LocalizationStrings() {
         <LoadingState message="Loading localized string records..." />
       ) : strings.length === 0 ? (
         <EmptyState message="No strings found for this locale." icon="🌐" />
+      ) : visibleRows.length === 0 ? (
+        <EmptyState message="No strings flagged for review." icon="🚩" />
       ) : (
         <div
           style={{
@@ -367,7 +404,7 @@ export default function LocalizationStrings() {
               </tr>
             </thead>
             <tbody>
-              {strings.map((str, idx) => {
+              {visibleRows.map(({ row: str, index: idx }, visIdx) => {
                 return (
                   <tr
                     key={str.stringId}
@@ -381,7 +418,7 @@ export default function LocalizationStrings() {
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <td style={{ padding: '0.85rem 1rem', color: 'var(--color-ink-muted, #6B7280)', fontSize: '0.8rem' }}>
-                      {idx + 1}
+                      {visIdx + 1}
                     </td>
                     <td style={{ padding: '0.85rem 1rem', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--color-ink, #1F2937)' }}>
                       {str.key}
@@ -567,6 +604,41 @@ export default function LocalizationStrings() {
 
               {/* Thin Sage Divider */}
               <div style={{ height: '1px', backgroundColor: 'var(--color-sage, #2C5E55)', opacity: 0.3, margin: '0.25rem 0' }} />
+
+              {/* Legacy MT before/after comparison (read-only) */}
+              {activeString.rawMtText && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--color-ink-muted, #6B7280)', textTransform: 'uppercase' }}>
+                      Legacy MT
+                    </span>
+                    {activeString.rawMtQpsScore !== null && activeString.rawMtQpsScore !== undefined && (
+                      <span
+                        style={{
+                          fontWeight: '700',
+                          fontSize: '0.8rem',
+                          color: activeString.rawMtQpsScore >= 70 ? 'var(--color-sage, #2C5E55)' : '#A6772C'
+                        }}
+                      >
+                        QPS {activeString.rawMtQpsScore}
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      padding: '0.85rem 1rem',
+                      backgroundColor: 'var(--color-parchment-card, #F8F6F0)',
+                      border: '1px solid var(--color-border-subtle, #E2DDD5)',
+                      borderRadius: '6px',
+                      fontSize: '0.95rem',
+                      color: 'var(--color-ink, #1F2937)',
+                      lineHeight: '1.5'
+                    }}
+                  >
+                    {activeString.rawMtText}
+                  </div>
+                </div>
+              )}
 
               {/* Editable Target Text Box */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

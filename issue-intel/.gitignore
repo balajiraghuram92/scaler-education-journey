@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+synthetic/corpus/*
+!synthetic/corpus/.gitkeep
+evals/ground_truth/*
+!evals/ground_truth/.gitkeep
+evals/reports/*
+!evals/reports/.gitkeep
+web/node_modules/
+web/dist/
+sample_repo/.history.json

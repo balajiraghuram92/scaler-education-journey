@@ -1,0 +1,8 @@
+{"locale_code": "zh-CN", "category": "short-label", "source_text": "Turn left ahead", "gold_translation": "前方左转", "notes": "Uses glossary term Turn left.", "verified": false}
+{"locale_code": "zh-CN", "category": "short-label", "source_text": "HUD brightness {count}", "gold_translation": "HUD亮度{count}", "notes": "Uses glossary term HUD; placeholder case.", "verified": false}
+{"locale_code": "zh-CN", "category": "short-label", "source_text": "Cabin temperature", "gold_translation": "座舱温度", "notes": "", "verified": false}
+{"locale_code": "zh-CN", "category": "warning-message", "source_text": "Door ajar", "gold_translation": "车门未关", "notes": "Uses glossary term Door ajar.", "verified": false}
+{"locale_code": "zh-CN", "category": "warning-message", "source_text": "Speed limit {speed} ahead", "gold_translation": "前方限速{speed}", "notes": "Placeholder case.", "verified": false}
+{"locale_code": "zh-CN", "category": "idiomatic", "source_text": "The ABS kicked in on the icy patch", "gold_translation": "在结冰路面，ABS启动了", "notes": "Uses glossary term ABS; idiomatic phrasal verb.", "verified": false}
+{"locale_code": "zh-CN", "category": "idiomatic", "source_text": "We're going in circles", "gold_translation": "我们一直在兜圈子", "notes": "Idiom; navigation-flavoured.", "verified": false}
+{"locale_code": "zh-CN", "category": "legal-disclaimer", "source_text": "Driver assistance systems are supplemental conveniences and do not replace an attentive driver.", "gold_translation": "驾驶辅助系统仅为辅助性舒适功能，不能取代注意力集中的驾驶员。", "notes": "", "verified": false}

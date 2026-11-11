@@ -1,0 +1,8 @@
+{"locale_code": "ja-JP", "category": "short-label", "source_text": "Turn left ahead", "gold_translation": "この先左折", "notes": "Uses glossary term Turn left.", "verified": false}
+{"locale_code": "ja-JP", "category": "short-label", "source_text": "HUD brightness {count}", "gold_translation": "HUD輝度 {count}", "notes": "Uses glossary term HUD; placeholder case.", "verified": false}
+{"locale_code": "ja-JP", "category": "short-label", "source_text": "Cabin temperature", "gold_translation": "車内温度", "notes": "", "verified": false}
+{"locale_code": "ja-JP", "category": "warning-message", "source_text": "Door ajar", "gold_translation": "ドアが開いています", "notes": "Uses glossary term Door ajar.", "verified": false}
+{"locale_code": "ja-JP", "category": "warning-message", "source_text": "Speed limit {speed} ahead", "gold_translation": "この先制限速度{speed}", "notes": "Placeholder case.", "verified": false}
+{"locale_code": "ja-JP", "category": "idiomatic", "source_text": "The ABS kicked in on the icy patch", "gold_translation": "凍結した場所でABSが作動した", "notes": "Uses glossary term ABS; idiomatic phrasal verb.", "verified": false}
+{"locale_code": "ja-JP", "category": "idiomatic", "source_text": "We're going in circles", "gold_translation": "同じところをぐるぐる回っている", "notes": "Idiom; navigation-flavoured.", "verified": false}
+{"locale_code": "ja-JP", "category": "legal-disclaimer", "source_text": "Driver assistance systems are supplemental conveniences and do not replace an attentive driver.", "gold_translation": "運転支援システムは補助的な快適機能であり、注意深い運転者の代わりにはなりません。", "notes": "", "verified": false}

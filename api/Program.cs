@@ -137,6 +137,8 @@ builder.Services.AddHttpClient<LlamaApiClient>();
 // Localization Lab Options & Services DI
 builder.Services.Configure<GoogleTranslateOptions>(builder.Configuration.GetSection(GoogleTranslateOptions.SectionName));
 builder.Services.AddHttpClient<GoogleTranslateProviderService>();
+builder.Services.Configure<LocalizationAiOptions>(builder.Configuration.GetSection(LocalizationAiOptions.SectionName));
+builder.Services.AddHttpClient<LocalizationAiClient>();
 builder.Services.AddScoped<ITranslationProvider>(sp => sp.GetRequiredService<GoogleTranslateProviderService>());
 builder.Services.AddScoped<IQualityScorer, QpsScoringService>();
 builder.Services.AddScoped<MtOptimizeService>();

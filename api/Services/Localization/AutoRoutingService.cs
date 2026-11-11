@@ -4,15 +4,28 @@ using System.Threading.Tasks;
 
 namespace StudyTracker.Api.Services.Localization;
 
+/// <summary>
+/// Thin client over the localization-ai /auto-route endpoint.
+/// Contains no threshold or routing logic; that stays in the Python service.
+/// </summary>
 public class AutoRoutingService
 {
-    /// <summary>
-    /// HAND-WRITTEN BOUNDARY: comparing the QPS score against the project's
-    /// threshold to decide Approved vs Needs Review is hand-written routing
-    /// logic. Do not implement the comparison/decision here.
-    /// </summary>
-    public Task<bool> ShouldRouteToReviewAsync(int qpsScore, int projectThreshold, CancellationToken ct)
+    private readonly LocalizationAiClient? _client;
+
+    public AutoRoutingService(LocalizationAiClient? client = null)
     {
-        throw new NotImplementedException("Auto-Routing decision logic is hand-written per the project's locked AI boundary.");
+        _client = client;
+    }
+
+    public async Task<bool> ShouldRouteToReviewAsync(int qpsScore, int projectThreshold, CancellationToken ct)
+    {
+        if (_client is null)
+        {
+            throw new NotImplementedException(LocalizationAiClient.NotConfiguredMessage);
+        }
+
+        var response = await _client.AutoRouteAsync(qpsScore, projectThreshold, null, ct);
+
+        return response.NeedsReview;
     }
 }

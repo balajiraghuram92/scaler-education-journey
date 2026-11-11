@@ -28,7 +28,9 @@ public sealed record LocalizationStringRowDto(
     string TranslationSource,
     int? QpsScore,
     bool NeedsReview,
-    DateTime? UpdatedAt
+    DateTime? UpdatedAt,
+    string? RawMtText = null,
+    int? RawMtQpsScore = null
 );
 
 public sealed record UpdateTranslationRequest(

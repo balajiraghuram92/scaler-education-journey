@@ -28,6 +28,9 @@ public class LocalizationProject
     [Column("source_locale")]
     public string SourceLocale { get; set; } = "en-US";
 
+    [Column("qps_threshold")]
+    public int QpsThreshold { get; set; } = 70;
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -48,4 +51,16 @@ public class LocalizationProject
 
     [JsonIgnore]
     public ICollection<LedgerEntry> LedgerEntries { get; set; } = new List<LedgerEntry>();
+
+    [JsonIgnore]
+    public ICollection<GlossaryTerm> GlossaryTerms { get; set; } = new List<GlossaryTerm>();
+
+    [JsonIgnore]
+    public ICollection<TranslationCacheEntry> TranslationCacheEntries { get; set; } = new List<TranslationCacheEntry>();
+
+    [JsonIgnore]
+    public ICollection<EvalGoldenCase> EvalGoldenCases { get; set; } = new List<EvalGoldenCase>();
+
+    [JsonIgnore]
+    public ICollection<EvalRun> EvalRuns { get; set; } = new List<EvalRun>();
 }

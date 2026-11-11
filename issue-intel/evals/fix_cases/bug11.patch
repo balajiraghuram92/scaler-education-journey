@@ -1,0 +1,20 @@
+diff --git a/src/UiState/ThemeManager.cs b/src/UiState/ThemeManager.cs
+--- a/src/UiState/ThemeManager.cs
++++ b/src/UiState/ThemeManager.cs
+@@ -17,5 +17,5 @@ public sealed class ThemeManager
+     public string? LoadTheme()
+     {
+-        return _store.Get("theme");
++        return _store.Get(SettingsStore.WellKnown.Theme);
+     }
+ }
+diff --git a/src/UiState/SettingsStore.cs b/src/UiState/SettingsStore.cs
+--- a/src/UiState/SettingsStore.cs
++++ b/src/UiState/SettingsStore.cs
+@@ -17,5 +17,5 @@ public sealed class SettingsStore
+     public string? Get(string key)
+     {
+-        return _values.TryGetValue(key.ToLowerInvariant(), out var value) ? value : null;
++        return _values.TryGetValue(key, out var value) ? value : null;
+     }
+ }

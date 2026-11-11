@@ -1,0 +1,11 @@
+diff --git a/src/AssetImport/AudioNormalizer.cs b/src/AssetImport/AudioNormalizer.cs
+--- a/src/AssetImport/AudioNormalizer.cs
++++ b/src/AssetImport/AudioNormalizer.cs
+@@ -14,6 +14,6 @@ public static class AudioNormalizer
+             return (float[])samples.Clone();
+         }
+-        var gain = 1.0f / peak;
++        var gain = 0.99f / peak;
+         return samples.Select(s => s * gain).ToArray();
+     }
+ }

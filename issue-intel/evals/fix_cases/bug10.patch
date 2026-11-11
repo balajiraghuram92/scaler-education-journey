@@ -1,0 +1,24 @@
+diff --git a/src/VersionControl/MergeBase.cs b/src/VersionControl/MergeBase.cs
+--- a/src/VersionControl/MergeBase.cs
++++ b/src/VersionControl/MergeBase.cs
+@@ -6,6 +6,6 @@ public static class MergeBase
+     {
+         var seen = new HashSet<string>(second);
+-        foreach (var commit in first.Skip(1))
++        foreach (var commit in first)
+         {
+             if (seen.Contains(commit))
+             {
+diff --git a/src/VersionControl/HistoryWalker.cs b/src/VersionControl/HistoryWalker.cs
+--- a/src/VersionControl/HistoryWalker.cs
++++ b/src/VersionControl/HistoryWalker.cs
+@@ -12,8 +12,8 @@ public static class HistoryWalker
+     {
+         HistoryNode? current = start;
+-        while (current?.Parent is not null)
++        while (current is not null)
+         {
+             yield return current.Id;
+             current = current.Parent;
+         }
+     }

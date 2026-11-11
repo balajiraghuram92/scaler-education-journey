@@ -1,0 +1,44 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: issueintel-postgres
+    environment:
+      POSTGRES_USER: issueintel
+      POSTGRES_PASSWORD: issueintel
+      POSTGRES_DB: issueintel
+    ports:
+      - "5433:5432"
+    volumes:
+      - issueintel-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U issueintel -d issueintel"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    container_name: issueintel-api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8010:8000"
+    environment:
+      ISSUEINTEL_DATABASE_URL: postgresql+asyncpg://issueintel:issueintel@db:5432/issueintel
+      ISSUEINTEL_MODEL_ADAPTER: fake
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    build: .
+    container_name: issueintel-worker
+    command: python -m app.worker
+    environment:
+      ISSUEINTEL_DATABASE_URL: postgresql+asyncpg://issueintel:issueintel@db:5432/issueintel
+      ISSUEINTEL_MODEL_ADAPTER: fake
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  issueintel-pgdata:

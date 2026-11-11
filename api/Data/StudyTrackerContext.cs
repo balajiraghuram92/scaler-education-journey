@@ -63,6 +63,11 @@ public class StudyTrackerContext : DbContext
     public DbSet<MarketplaceBid> LocalizationMarketplaceBids { get; set; } = null!;
     public DbSet<LedgerEntry> LocalizationLedgerEntries { get; set; } = null!;
     public DbSet<ProviderHealthSnapshot> LocalizationProviderHealth { get; set; } = null!;
+    public DbSet<GlossaryTerm> LocalizationGlossaryTerms { get; set; } = null!;
+    public DbSet<TranslationCacheEntry> LocalizationTranslationCacheEntries { get; set; } = null!;
+    public DbSet<EvalGoldenCase> LocalizationEvalGoldenCases { get; set; } = null!;
+    public DbSet<EvalRun> LocalizationEvalRuns { get; set; } = null!;
+    public DbSet<EvalCaseResult> LocalizationEvalCaseResults { get; set; } = null!;
 
     // MCQ Dynamic Architecture DbSets
     public DbSet<McqQuestion> McqQuestions { get; set; } = null!;
@@ -610,6 +615,8 @@ public class StudyTrackerContext : DbContext
             entity.HasIndex(p => p.Slug)
                 .IsUnique()
                 .HasDatabaseName("ix_localization_projects_slug");
+            entity.Property(p => p.QpsThreshold)
+                .HasDefaultValue(70);
         });
 
         modelBuilder.Entity<LocalizationLocale>(entity =>
@@ -643,6 +650,8 @@ public class StudyTrackerContext : DbContext
             entity.HasIndex(t => new { t.StringId, t.LocaleCode })
                 .IsUnique()
                 .HasDatabaseName("ix_localization_translations_string_id_locale_code");
+            entity.Property(t => t.CometKiwiScore)
+                .HasPrecision(5, 4);
             entity.HasOne(t => t.String)
                 .WithMany(s => s.Translations)
                 .HasForeignKey(t => t.StringId)
@@ -745,6 +754,8 @@ public class StudyTrackerContext : DbContext
                 .HasDatabaseName("ix_localization_ledger_entries_job_id");
             entity.Property(l => l.Amount)
                 .HasPrecision(10, 2);
+            entity.Property(l => l.RealCostUsd)
+                .HasPrecision(12, 6);
             entity.HasOne(l => l.Project)
                 .WithMany(p => p.LedgerEntries)
                 .HasForeignKey(l => l.ProjectId)
@@ -761,6 +772,95 @@ public class StudyTrackerContext : DbContext
             entity.HasKey(p => p.Id);
             entity.Property(p => p.ErrorRatePercent)
                 .HasPrecision(5, 2);
+        });
+
+        modelBuilder.Entity<GlossaryTerm>(entity =>
+        {
+            entity.ToTable("localization_glossary_terms");
+            entity.HasKey(g => g.Id);
+            entity.HasIndex(g => g.ProjectId)
+                .HasDatabaseName("ix_localization_glossary_terms_project_id");
+            entity.HasIndex(g => new { g.ProjectId, g.LocaleCode })
+                .HasDatabaseName("ix_localization_glossary_terms_project_locale");
+            entity.HasOne(g => g.Project)
+                .WithMany(p => p.GlossaryTerms)
+                .HasForeignKey(g => g.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TranslationCacheEntry>(entity =>
+        {
+            entity.ToTable("localization_translation_cache_entries");
+            entity.HasKey(c => c.Id);
+            entity.HasIndex(c => c.ProjectId)
+                .HasDatabaseName("ix_localization_translation_cache_project_id");
+            entity.HasIndex(c => new { c.ProjectId, c.LocaleCode })
+                .HasDatabaseName("ix_localization_translation_cache_project_locale");
+            entity.Ignore(c => c.SourceEmbedding);
+            entity.HasOne(c => c.Project)
+                .WithMany(p => p.TranslationCacheEntries)
+                .HasForeignKey(c => c.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EvalGoldenCase>(entity =>
+        {
+            entity.ToTable("localization_eval_golden_cases");
+            entity.HasKey(g => g.Id);
+            entity.HasIndex(g => g.ProjectId)
+                .HasDatabaseName("ix_localization_eval_golden_cases_project_id");
+            entity.HasIndex(g => new { g.ProjectId, g.LocaleCode })
+                .HasDatabaseName("ix_localization_eval_golden_cases_project_locale");
+            entity.HasOne(g => g.Project)
+                .WithMany(p => p.EvalGoldenCases)
+                .HasForeignKey(g => g.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EvalRun>(entity =>
+        {
+            entity.ToTable("localization_eval_runs");
+            entity.HasKey(r => r.Id);
+            entity.HasIndex(r => r.ProjectId)
+                .HasDatabaseName("ix_localization_eval_runs_project_id");
+            entity.Property(r => r.AvgCometKiwi)
+                .HasPrecision(5, 4);
+            entity.Property(r => r.AvgQpsScore)
+                .HasPrecision(5, 2);
+            entity.Property(r => r.GlossaryAdherenceRate)
+                .HasPrecision(5, 4);
+            entity.Property(r => r.PlaceholderPreservationRate)
+                .HasPrecision(5, 4);
+            entity.Property(r => r.CacheHitRate)
+                .HasPrecision(5, 4);
+            entity.Property(r => r.TotalCostUsd)
+                .HasPrecision(12, 6);
+            entity.HasOne(r => r.Project)
+                .WithMany(p => p.EvalRuns)
+                .HasForeignKey(r => r.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EvalCaseResult>(entity =>
+        {
+            entity.ToTable("localization_eval_case_results");
+            entity.HasKey(r => r.Id);
+            entity.HasIndex(r => r.EvalRunId)
+                .HasDatabaseName("ix_localization_eval_case_results_run_id");
+            entity.HasIndex(r => r.EvalGoldenCaseId)
+                .HasDatabaseName("ix_localization_eval_case_results_case_id");
+            entity.Property(r => r.CometKiwiScore)
+                .HasPrecision(5, 4);
+            entity.Property(r => r.CostUsd)
+                .HasPrecision(12, 6);
+            entity.HasOne(r => r.EvalRun)
+                .WithMany(e => e.CaseResults)
+                .HasForeignKey(r => r.EvalRunId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(r => r.EvalGoldenCase)
+                .WithMany(g => g.CaseResults)
+                .HasForeignKey(r => r.EvalGoldenCaseId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // 25. MCQ Dynamic Architecture

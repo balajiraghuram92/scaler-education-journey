@@ -1,0 +1,11 @@
+diff --git a/src/Localization/PluralRules.cs b/src/Localization/PluralRules.cs
+--- a/src/Localization/PluralRules.cs
++++ b/src/Localization/PluralRules.cs
+@@ -6,6 +6,6 @@ public static class PluralRules
+     public static string FrenchCategory(int count)
+     {
+-        return count == 1 ? "one" : "other";
++        return count is 0 or 1 ? "one" : "other";
+     }
+ 
+     public static string EnglishCategory(int count)

@@ -1,0 +1,54 @@
+# Adds the localization-ai Python service (eval harness, MT Optimize, QPS,
+# Auto-Routing). Internal port only: reachable as http://localization-ai:8000
+# from the other compose services. Compose file for local runs:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml \
+#     -f docker-compose.localization-ai.yml up -d --build
+services:
+  localization-ai:
+    build:
+      context: ./localization-ai
+      dockerfile: Dockerfile
+    image: scaler-journey-localization-ai:dev
+    container_name: neuralascent-localization-ai
+    restart: unless-stopped
+
+    expose:
+      - "8000"
+
+    environment:
+      DATABASE_HOST: database
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: ${POSTGRES_DB:-studytracker}
+      DATABASE_USER: ${POSTGRES_USER:-studyuser}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      API_SHARED_SECRET: ${LOCALIZATION_AI_SHARED_SECRET:?LOCALIZATION_AI_SHARED_SECRET must be set}
+      CHAT_PROVIDER: ${LOCALIZATION_AI_CHAT_PROVIDER:-fake}
+      CHAT_BASE_URL: ${LOCALIZATION_AI_CHAT_BASE_URL:-http://localhost:8001/v1}
+      CHAT_API_KEY: ${LOCALIZATION_AI_CHAT_API_KEY:-}
+      CHAT_MODEL: ${LOCALIZATION_AI_CHAT_MODEL:-qwen2.5-7b-instruct}
+      EMBEDDING_PROVIDER: ${LOCALIZATION_AI_EMBEDDING_PROVIDER:-fake}
+      EMBEDDING_BASE_URL: ${LOCALIZATION_AI_EMBEDDING_BASE_URL:-http://localhost:8001/v1}
+      EMBEDDING_API_KEY: ${LOCALIZATION_AI_EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${LOCALIZATION_AI_EMBEDDING_MODEL:-bge-small-en-v1.5}
+      EMBEDDING_DIMENSIONS: ${LOCALIZATION_AI_EMBEDDING_DIMENSIONS:-384}
+      COMET_ENABLED: ${LOCALIZATION_AI_COMET_ENABLED:-false}
+
+    depends_on:
+      database:
+        condition: service_healthy
+
+    networks:
+      backend-net:
+        aliases:
+          - localization-ai
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost:8000/health || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s

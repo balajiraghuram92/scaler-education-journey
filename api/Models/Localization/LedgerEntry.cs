@@ -27,6 +27,16 @@ public class LedgerEntry
     [Column("amount", TypeName = "numeric(10,2)")]
     public decimal Amount { get; set; }
 
+    [Column("units_consumed")]
+    public int? UnitsConsumed { get; set; }
+
+    [MaxLength(20)]
+    [Column("unit_type")]
+    public string? UnitType { get; set; }
+
+    [Column("real_cost_usd", TypeName = "numeric(12,6)")]
+    public decimal? RealCostUsd { get; set; }
+
     [Column("related_marketplace_job_id")]
     public int? RelatedMarketplaceJobId { get; set; }
 

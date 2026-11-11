@@ -1,0 +1,21 @@
+diff --git a/src/VersionControl/HashUtil.cs b/src/VersionControl/HashUtil.cs
+--- a/src/VersionControl/HashUtil.cs
++++ b/src/VersionControl/HashUtil.cs
+@@ -5,5 +5,5 @@ public static class HashUtil
+     public static string ToHex(byte[] bytes)
+     {
+-        return Convert.ToHexString(bytes);
++        return Convert.ToHexString(bytes).ToLowerInvariant();
+     }
+ }
+diff --git a/src/VersionControl/CommitCache.cs b/src/VersionControl/CommitCache.cs
+--- a/src/VersionControl/CommitCache.cs
++++ b/src/VersionControl/CommitCache.cs
+@@ -11,6 +11,6 @@ public sealed class CommitCache
+ 
+     public bool TryGet(string id, out string? payload)
+     {
+-        return _entries.TryGetValue(id, out payload);
++        return _entries.TryGetValue(Normalize(id), out payload);
+     }
+ 

@@ -1,0 +1,194 @@
+# Localization AI — Progress
+
+## LA1 — Schema for the AI layer (.NET migration)
+
+Files created:
+- api/Models/Localization/GlossaryTerm.cs
+- api/Models/Localization/TranslationCacheEntry.cs
+- api/Models/Localization/EvalGoldenCase.cs
+- api/Models/Localization/EvalRun.cs
+- api/Models/Localization/EvalCaseResult.cs
+
+Files changed:
+- api/Models/Localization/LocalizationTranslation.cs (added RawMtText, RawMtQpsScore, CometKiwiScore)
+- api/Models/Localization/LedgerEntry.cs (added UnitsConsumed, UnitType, RealCostUsd)
+- api/Models/Localization/LocalizationProject.cs (added QpsThreshold default 70; navigation collections for the new entities)
+- api/Data/StudyTrackerContext.cs (5 new DbSets; Fluent config for new entities; precision/defaults for new columns)
+- api/Data/LocalizationSeedData.cs (restructured early-return into if-block; new separately guarded SeedGlossaryTerms with 25 terms for auroraline-hud-v3)
+
+Migration NOT generated (per track instructions): the reviewer will run `dotnet ef migrations add AddLocalizationAiLayer --project api`.
+The generated migration must additionally: run `CREATE EXTENSION IF NOT EXISTS vector` first, declare
+`localization_translation_cache_entries.source_embedding` as `vector(384)` with an HNSW cosine index via raw SQL
+(no pgvector EF package is referenced; the column is `[NotMapped]`/ignored on the entity).
+
+Real table/column names for the Python service (from the entities/Fluent config above):
+- localization_glossary_terms(id, project_id, locale_code, source_term, target_term, notes)
+- localization_translation_cache_entries(id, project_id, locale_code, source_text, source_embedding vector(384) [SQL only], cached_translation, hit_count, created_at, last_hit_at)
+- localization_eval_golden_cases(id, project_id, locale_code, source_text, gold_translation, category, notes)
+- localization_eval_runs(id, project_id, pipeline_config, run_at, avg_comet_kiwi, avg_qps_score, glossary_adherence_rate, placeholder_preservation_rate, cache_hit_rate, avg_latency_ms, total_cost_usd)
+- localization_eval_case_results(id, eval_run_id, eval_golden_case_id, produced_translation, comet_kiwi_score, qps_score, glossary_adherence_ok, placeholder_preserved_ok, latency_ms, cache_hit, cost_usd)
+- localization_translations + raw_mt_text, raw_mt_qps_score, comet_kiwi_score
+- localization_ledger_entries + units_consumed, unit_type, real_cost_usd
+- localization_projects + qps_threshold (default 70)
+
+Commands NOT run:
+- `dotnet ef migrations add AddLocalizationAiLayer --project api`
+- `dotnet build api`
+- `dotnet test tests/StudyTracker.Api.Tests`
+- Apply-migration `--migrate` flow (repo-documented local DB migrate step)
+
+Prompt-vs-code mismatches / decisions:
+- csproj has no pgvector EF package, so the no-package path was taken (unmapped SourceEmbedding + raw-SQL note above).
+- Seed(): the existing early-return (`if projects exist, return`) would have made a trailing glossary block unreachable on existing DBs; restructured into `if (!Any) { core seed }` + separately guarded `SeedGlossaryTerms` (`if glossary terms exist, return`; no-op when the project row is absent).
+- B.2 gives no decimal precisions; chose numeric(5,4) for COMET-Kiwi/scores-as-rate, numeric(5,2) for AvgQpsScore, numeric(5,4) for rates, numeric(12,6) for USD costs (follows numeric TypeName + HasPrecision convention).
+- Added Project navigation collections for the four project-scoped entities (convention-following; not explicitly named in the block).
+- Forward-looking gaps (LA1 kept exactly as written; NOT added): no `verified` column on EvalGoldenCase (LA2 golden cases need `"verified": false`), no prompt-version column on EvalRun (LA3 needs it). LA2/LA3 handle these as noted in their sections.
+
+## LA2 — Service scaffold, model provider, eval harness first
+
+Files created (all under `localization-ai/` except the compose override):
+- docker-compose.localization-ai.yml (repo root; internal-only service on backend-net)
+- requirements.txt, requirements-dev.txt, requirements-comet.txt, pyproject.toml, Dockerfile, README.md
+- app/__init__.py, app/main.py, app/settings.py, app/db.py, app/auth.py
+- app/providers/__init__.py, app/providers/base.py, app/providers/openai_compat.py, app/providers/fake.py
+- app/pipeline/__init__.py, app/pipeline/registry.py (only `legacy-only` registered)
+- app/evals/__init__.py, app/evals/metrics.py, app/evals/comet.py, app/evals/golden_loader.py, app/evals/runner.py
+- app/routers/__init__.py, app/routers/health.py, app/routers/eval.py
+- evals/golden/de-DE.jsonl, ja-JP.jsonl, zh-CN.jsonl, fr-FR.jsonl, es-ES.jsonl (40 cases)
+- tests/conftest.py, tests/schema.sql, tests/test_metrics.py, tests/test_providers.py,
+  tests/test_golden_loader.py, tests/test_runner.py, tests/test_api.py
+
+Golden-set counts: 40 cases (8/locale); categories 15 short-label / 10 warning-message / 10 idiomatic /
+5 legal-disclaimer; 10 cases with `{count}`/`{speed}` placeholders; 20 using a seeded glossary term
+(HUD/ABS/Turn left/Low fuel/Door ajar); all `"verified": false`.
+
+Commands NOT run (from the LA2 Finish step; record only):
+- `ruff check`
+- `ruff format --check`
+- `mypy app`
+- `pytest`
+- Sample eval-run row: NOT AVAILABLE — no command was run, and no output is fabricated.
+
+Prompt-vs-code mismatches / decisions:
+- Pins: ai-agent versions reused for fastapi/uvicorn/pydantic/psycopg/psycopg_pool/pgvector; new pins
+  verified to exist on PyPI: pydantic-settings==2.16.2, httpx==0.28.1, pytest==9.2.0, ruff==0.17.4,
+  mypy==2.4.1, unbabel-comet==2.2.7.
+- Dev tools live in requirements-dev.txt (runtime image installs requirements.txt only); COMET behind
+  requirements-comet.txt as specified.
+- No [tool.mypy] section (mypy runs with defaults, as in ai-agent which has none).
+- Table/column names come from the LA1 entity/Fluent definitions; the LA1 migration itself is still
+  not generated (reviewer step), so names are pending final confirmation against it.
+- `legacy-only` echoes the source text when no raw MT is supplied (golden cases carry no raw MT);
+  tokens/cost stay zero. Documented in code + README.
+- Runner records null QPS (no judge until LA3) and null COMET unless a loaded scorer is passed.
+- `verified` flag is JSONL-only (no table column); loader reports verified/unverified counts.
+- Prompt version is not threaded through LA2 (no prompts yet); LA3 returns it but cannot persist it
+  (no EvalRun column) — see LA3 section.
+- Test DB schema (tests/schema.sql) is a minimal name-matching mirror, not the EF migration; DB tests
+  use a throwaway pgvector container and skip without Docker.
+
+## LA3 — The pipeline: cache, MT Optimize, QPS, Auto-Route
+
+Files created:
+- app/pipeline/cache.py, app/pipeline/mt_optimize.py, app/pipeline/qps.py, app/pipeline/auto_route.py
+- app/pipeline/cost.py, app/pipeline/structured.py
+- app/pipeline/prompts/__init__.py, app/pipeline/prompts/mt_optimize_v1.txt, app/pipeline/prompts/qps_judge_v1.txt
+- app/evals/report.py
+- app/routers/pipeline.py
+- tests/test_cost.py, tests/test_auto_route.py, tests/test_mt_optimize.py, tests/test_qps.py,
+  tests/test_qps_calibration.py, tests/test_cache.py, tests/test_report.py, tests/test_api_pipeline.py,
+  tests/test_runner_configs.py
+
+Files changed:
+- app/settings.py (cache threshold + four price settings)
+- app/pipeline/registry.py (extended PipelineContext; `legacy+optimize`, `legacy+optimize+glossary`,
+  `legacy+optimize+glossary+cache`; prompt-version map)
+- app/evals/runner.py (judge scores every produced translation; tokens/fallbacks/prompt version in summary)
+- app/routers/eval.py (run-eval response: +tokensUsed, +fallbackCount, +promptVersion; pricing in ctx)
+- app/main.py (pipeline router included)
+- pyproject.toml (tests added to ruff known-first-party)
+- tests/test_api.py (run-eval expectations for the extended contract + judge fallback with default fake)
+- README.md (LA3 endpoints, prices, prompts, report CLI, real-model flags)
+
+Commands NOT run (from the LA3 Finish step; record only):
+- `ruff check`
+- `ruff format --check`
+- `mypy app`
+- `pytest`
+- Four eval configs with fake providers + comparison table paste: NOT RUN — nothing is pasted and no
+  numbers are claimed. The README states fake-provider numbers mean nothing until a real model is used.
+- Cache separation with a real model: NOT RUN. Scripted vectors separate at the 0.95 default by
+  construction (0.97 near-dup hits / 0.42 confusable misses); the real-model threshold report is the
+  skipped test `pytest tests/test_cache.py -k separation` with LOCAI_REAL_EMBEDDINGS=1 (command only).
+- QPS calibration bands: NOT RUN (skipped test, LOCAI_REAL_CHAT=1; command only).
+
+Prompt-vs-code mismatches / decisions:
+- F.2 contract extensions (all required by the LA3 block's own clauses): every response carries token
+  counts, latencyMs and fallback; translate-and-optimize returns deterministic `checks`; auto-route
+  accepts optional `checks` and returns `reasons`; comet-score returns `available`; run-eval returns
+  `tokensUsed`, `fallbackCount`, `promptVersion`. Documented in router docstrings + README.
+- Prompt version is RETURNED, not persisted (EvalRun has no prompt-version column; LA1 kept exactly
+  as written). The report therefore cannot show prompt versions; noted in README.
+- Eval-harness limitation (documented in registry + README): golden cases carry no raw MT and the
+  service has no MT provider, so `legacy*` eval configs feed the source text to MT Optimize as raw MT.
+- The runner now judges EVERY config including `legacy-only` (LA2's null-QPS behavior is superseded);
+  per-case latency excludes judge overhead, judge tokens/cost are included in run totals.
+- Cache failure policy (docstring): embedding failures bypass the cache (translate, store nothing);
+  lookup/store SQL errors propagate to the transaction owner.
+- Transport exceptions fall back immediately (no retry); the retry-once rule covers malformed output
+  only, as written.
+- `docker-compose.localization-ai.yml` was NOT edited in LA3: the block allows only files under
+  `localization-ai/`. New settings use their defaults in compose; README notes the reviewer step.
+
+## LA4 — Wire the .NET API and the Strings page to the service
+
+Files created:
+- api/Options/LocalizationAiOptions.cs
+- api/Services/Localization/LocalizationAiClient.cs (typed client + LocalizationAiException + DTOs)
+- tests/StudyTracker.Api.Tests/Localization/LocalizationAiWorkflowTests.cs (7 tests)
+
+Files changed:
+- api/Program.cs (LocalizationAi options + HttpClient next to the other Localization registrations)
+- api/Services/Localization/MtOptimizeService.cs (delegates to client; added OptimizeDetailedAsync)
+- api/Services/Localization/QpsScoringService.cs (delegates to client; null score throws)
+- api/Services/Localization/AutoRoutingService.cs (delegates to client)
+- api/Services/Localization/WorkflowService.cs (RunStepAsync: RawMtText + per-run AI ledger entries +
+  real Phase 3 orchestration; optional AI-options ctor param)
+- api/Services/Localization/LocalizationDtos.cs (RawMtText/RawMtQpsScore appended, defaults null)
+- api/Services/Localization/LocalizationStringService.cs (populate the two new DTO fields)
+- app/src/pages/Localization/LocalizationStrings.jsx (Legacy MT drawer box; Needs Review only filter)
+
+Commands NOT run (from the LA4 Finish step; record only):
+- `dotnet build api`
+- `dotnet test tests/StudyTracker.Api.Tests`
+- `npm run lint` (in app/)
+- `npm run build` (in app/)
+- Start-the-stack + run-four-actions + report-Strings-page: NOT RUN — no workflow output is described.
+
+Prompt-vs-code mismatches / decisions:
+- Not-configured surfaces as 501 via the EXISTING endpoint mapping (NotImplementedException -> 501);
+  endpoint files untouched. Services throw NotImplementedException with a "not configured" message when
+  the client is missing or the base URL is empty; the client guards the same way.
+- Services take `LocalizationAiClient? client = null` and WorkflowService takes optional AI options, so
+  the existing fixture and `RunStep_Phase3Actions_StillSurfaceNotImplemented` compile and pass unchanged.
+- MtOptimizeService keeps `OptimizeAsync` but could not satisfy item 3 through it (no source/glossary/
+  token path), so it delegates to a new `OptimizeDetailedAsync` the workflow uses. QPS/AutoRoute
+  signatures were sufficient as-is; IQualityScorer untouched.
+- Null QPS (judge fallback) throws LocalizationAiException from QpsScoringService: the workflow counts
+  the string failed and keeps the old score. Per-string catch is LocalizationAiException ONLY, so
+  NotImplemented still aborts into 501 while HTTP/fallback failures are counted per string.
+- AI ledger entries use Amount=0 (fictional credits untouched) and are written only when a run processed
+  >0 units (no $0 noise rows). Score/Auto-Route write no entries (item 3 specifies none): judge tokens
+  are not ledgered on the .NET side.
+- LocalizationStringService.cs edited (2 construction sites) although Read-first-only: items 4+6 are
+  impossible otherwise — the new DTO fields would stay null forever. Minimal additive change.
+- LocalizationAiException lives in LocalizationAiClient.cs (the shared exceptions file is not editable).
+- Test file created under tests/StudyTracker.Api.Tests/Localization/ (item 5 mandates xUnit tests;
+  conventional location; covers all three actions, the 501 path, partial failure, both ledger types).
+- Client sends x-api-key per request; requests serialize camelCase (matches the Python contract);
+  responses parse case-insensitively. RunEval/Comet methods included; /health* omitted (probes hit it
+  directly).
+- No new frontend component file (both additions fit inline). The drawer's Legacy MT box mirrors the
+  source-box style with a QPS badge; the filter keeps original row indices so drawer/save still work.
+- Frontend QPS coloring keeps the pre-existing hard-coded 70 (project threshold is not exposed to this
+  page); left unchanged.

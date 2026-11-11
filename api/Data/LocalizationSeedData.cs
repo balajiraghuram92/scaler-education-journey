@@ -9,11 +9,8 @@ public static class LocalizationSeedData
 {
     public static void Seed(StudyTrackerContext context)
     {
-        if (context.LocalizationProjects.Any())
+        if (!context.LocalizationProjects.Any())
         {
-            return;
-        }
-
         var now = DateTime.UtcNow;
 
         // 1. Seed Project: auroraline-hud-v3
@@ -393,6 +390,59 @@ public static class LocalizationSeedData
         };
         context.LocalizationProviderHealth.AddRange(healthGoogle, healthAzure);
 
+        context.SaveChanges();
+        }
+
+        SeedGlossaryTerms(context);
+    }
+
+    private static void SeedGlossaryTerms(StudyTrackerContext context)
+    {
+        if (context.LocalizationGlossaryTerms.Any())
+        {
+            return;
+        }
+
+        var project = context.LocalizationProjects.FirstOrDefault(p => p.Slug == "auroraline-hud-v3");
+        if (project is null)
+        {
+            return;
+        }
+
+        var terms = new List<GlossaryTerm>
+        {
+            // de-DE
+            new() { ProjectId = project.Id, LocaleCode = "de-DE", SourceTerm = "HUD", TargetTerm = "HUD", Notes = "Keep untranslated; system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "de-DE", SourceTerm = "ABS", TargetTerm = "ABS", Notes = "Keep untranslated; safety-system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "de-DE", SourceTerm = "Turn left", TargetTerm = "Links abbiegen", Notes = "Navigation instruction; approved HUD rendering." },
+            new() { ProjectId = project.Id, LocaleCode = "de-DE", SourceTerm = "Low fuel warning", TargetTerm = "Kraftstoffwarnung", Notes = "Warning label; prefer the single-noun form." },
+            new() { ProjectId = project.Id, LocaleCode = "de-DE", SourceTerm = "Door ajar", TargetTerm = "Tür offen", Notes = "Alert label; short form for the HUD." },
+            // ja-JP
+            new() { ProjectId = project.Id, LocaleCode = "ja-JP", SourceTerm = "HUD", TargetTerm = "HUD", Notes = "Keep untranslated; system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "ja-JP", SourceTerm = "ABS", TargetTerm = "ABS", Notes = "Keep untranslated; safety-system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "ja-JP", SourceTerm = "Turn left", TargetTerm = "左折", Notes = "Navigation instruction; approved HUD rendering." },
+            new() { ProjectId = project.Id, LocaleCode = "ja-JP", SourceTerm = "Low fuel warning", TargetTerm = "燃料残量警告", Notes = "Warning label; approved HUD rendering." },
+            new() { ProjectId = project.Id, LocaleCode = "ja-JP", SourceTerm = "Door ajar", TargetTerm = "ドアが開いています", Notes = "Alert label; approved HUD rendering." },
+            // zh-CN
+            new() { ProjectId = project.Id, LocaleCode = "zh-CN", SourceTerm = "HUD", TargetTerm = "HUD", Notes = "Keep untranslated; system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "zh-CN", SourceTerm = "ABS", TargetTerm = "ABS", Notes = "Keep untranslated; safety-system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "zh-CN", SourceTerm = "Turn left", TargetTerm = "左转", Notes = "Navigation instruction; approved HUD rendering." },
+            new() { ProjectId = project.Id, LocaleCode = "zh-CN", SourceTerm = "Low fuel warning", TargetTerm = "燃油不足警告", Notes = "Warning label; approved HUD rendering." },
+            new() { ProjectId = project.Id, LocaleCode = "zh-CN", SourceTerm = "Door ajar", TargetTerm = "车门未关", Notes = "Alert label; approved HUD rendering." },
+            // fr-FR
+            new() { ProjectId = project.Id, LocaleCode = "fr-FR", SourceTerm = "HUD", TargetTerm = "HUD", Notes = "Keep untranslated; system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "fr-FR", SourceTerm = "ABS", TargetTerm = "ABS", Notes = "Keep untranslated; safety-system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "fr-FR", SourceTerm = "Turn left", TargetTerm = "Tournez à gauche", Notes = "Navigation instruction; approved HUD rendering." },
+            new() { ProjectId = project.Id, LocaleCode = "fr-FR", SourceTerm = "Low fuel warning", TargetTerm = "Avertissement de carburant bas", Notes = "Warning label; approved HUD rendering." },
+            new() { ProjectId = project.Id, LocaleCode = "fr-FR", SourceTerm = "Door ajar", TargetTerm = "Porte entrouverte", Notes = "Alert label; approved HUD rendering." },
+            // es-ES
+            new() { ProjectId = project.Id, LocaleCode = "es-ES", SourceTerm = "HUD", TargetTerm = "HUD", Notes = "Keep untranslated; system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "es-ES", SourceTerm = "ABS", TargetTerm = "ABS", Notes = "Keep untranslated; safety-system acronym." },
+            new() { ProjectId = project.Id, LocaleCode = "es-ES", SourceTerm = "Turn left", TargetTerm = "Gire a la izquierda", Notes = "Navigation instruction; approved HUD rendering." },
+            new() { ProjectId = project.Id, LocaleCode = "es-ES", SourceTerm = "Low fuel warning", TargetTerm = "Advertencia de combustible bajo", Notes = "Warning label; approved HUD rendering." },
+            new() { ProjectId = project.Id, LocaleCode = "es-ES", SourceTerm = "Door ajar", TargetTerm = "Puerta entreabierta", Notes = "Alert label; approved HUD rendering." },
+        };
+        context.LocalizationGlossaryTerms.AddRange(terms);
         context.SaveChanges();
     }
 }

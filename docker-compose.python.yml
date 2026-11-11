@@ -1,0 +1,44 @@
+services:
+  api-python:
+    build:
+      context: .
+      dockerfile: api-python/Dockerfile
+    image: scaler-journey-api-python:dev
+    container_name: studytracker-api-python
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >-
+        Host=database;
+        Port=5432;
+        Database=${POSTGRES_DB:-studytracker};
+        Username=${POSTGRES_USER:-studyuser};
+        Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      API_KEY: ${API_KEY:?API_KEY must be set}
+      Auth__JwtSigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set}
+      Auth__TotpEncryptionKey: "${TOTP_ENCRYPTION_KEY:?TOTP_ENCRYPTION_KEY must be set}"
+      Smtp__Host: ${SMTP_HOST:?SMTP_HOST must be set}
+      Smtp__User: ${SMTP_USER:?SMTP_USER must be set}
+      Smtp__Pass: ${SMTP_PASS:?SMTP_PASS must be set}
+      LlamaApi__ApiKey: ${LLAMA_API_KEY:-}
+      ExerciseExecution__ExercisesRoot: /app/exercises
+      ExerciseExecution__WorkspaceRoot: /tmp/studytracker-exercises
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - backend-net
+    volumes:
+      - ${EXERCISE_DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8081/health')\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  backend-net:
+    name: scaler_backend_net

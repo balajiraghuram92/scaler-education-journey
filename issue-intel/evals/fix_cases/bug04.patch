@@ -1,0 +1,13 @@
+diff --git a/src/Localization/ResourceFallback.cs b/src/Localization/ResourceFallback.cs
+--- a/src/Localization/ResourceFallback.cs
++++ b/src/Localization/ResourceFallback.cs
+@@ -9,4 +9,9 @@ public static class ResourceFallback
+             return exact;
+         }
++        var dash = culture.IndexOf('-');
++        if (dash > 0 && table.TryGetValue(culture[..dash], out var parent))
++        {
++            return parent;
++        }
+         return invariant;
+     }

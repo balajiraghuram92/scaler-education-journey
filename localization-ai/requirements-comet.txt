@@ -1,0 +1,5 @@
+# Optional COMET-Kiwi scorer (see README: model download needs a Hugging Face
+# licence acceptance for Unbabel/wmt22-cometkiwi-da). Without this installed
+# the service runs normally and records null for the COMET metric.
+-r requirements.txt
+unbabel-comet==2.2.7

@@ -1,0 +1,12 @@
+diff --git a/src/VersionControl/BranchNameValidator.cs b/src/VersionControl/BranchNameValidator.cs
+--- a/src/VersionControl/BranchNameValidator.cs
++++ b/src/VersionControl/BranchNameValidator.cs
+@@ -9,7 +9,7 @@ public static class BranchNameValidator
+             return false;
+         }
+-        if (name.StartsWith(".."))
++        if (name.Contains(".."))
+         {
+             return false;
+         }
+         return name.All(c => char.IsLetterOrDigit(c) || c is '/' or '-' or '_' or '.');

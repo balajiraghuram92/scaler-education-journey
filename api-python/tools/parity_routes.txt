@@ -1,0 +1,133 @@
+# Full parity route list (P8): every route in PORT-MAP.md, in table order.
+# 102 lines: P0 x4, P2 x26, P3 x34, P4 x6, P5 x4, P6 x28.
+#
+# How to run (reviewer):
+#   1. Seed BOTH databases identically (dotnet ef database update + seeders on
+#      the .NET side; the Python side reads the same schema).
+#   2. Start both APIs, then from api-python/:
+#      python tools/parity.py --routes tools/parity_routes.txt \
+#        --ignore timestamp,traceId,traceid,appliedMigrationsCount,createdAt,updatedAt,postedAt,awardedAt,submittedAt,approvedAt,lastRunAt,lastLoginAt
+#      (Timestamps differ between the two calls; extend --ignore as needed.)
+#   3. Run ONCE per fresh seed: write routes (signup, post, award, ...) mutate
+#      both databases, so a second run compares different states.
+#   4. Cookie/JWT routes (/api/auth/me, /api/me/*, /api/admin/*, chat, exercise
+#      workspace/draft, lesson/problem progress, v2 progress) 401 on both sides
+#      here because parity.py sends only x-api-key; that still compares the
+#      401 shape. IDs/slugs below come from the stock seed data; adjust them
+#      if your local seed differs.
+#
+# --- P0: health ---
+GET /health/live
+GET /health/ready
+GET /health
+GET /
+# --- P2: auth ---
+POST /api/auth/signup {"email":"parity@example.com","password":"ParityTestPassword123!","displayName":"Parity"}
+POST /api/auth/login {"email":"parity@example.com","password":"ParityTestPassword123!"}
+POST /api/auth/totp/enroll/start {"challengeId":"00000000-0000-0000-0000-000000000000"}
+POST /api/auth/totp/enroll/confirm {"challengeId":"00000000-0000-0000-0000-000000000000","code":"000000"}
+POST /api/auth/totp/verify {"challengeId":"00000000-0000-0000-0000-000000000000","code":"000000"}
+POST /api/auth/logout
+GET /api/auth/me
+POST /api/auth/refresh
+GET /api/auth/sessions
+DELETE /api/auth/sessions/1
+POST /api/auth/logout-all
+# --- P2: me ---
+GET /api/me/summary
+GET /api/me/resume
+GET /api/me/lessons/progress
+POST /api/me/lessons/1/visit
+PUT /api/me/lessons/1/position {"scrollPercent":50}
+PUT /api/me/lessons/1/completion {"isCompleted":true}
+PUT /api/me/problems/1/status {"status":"Solved"}
+GET /api/me/mcq-performance
+GET /api/me/activity
+# --- P2: admin ---
+GET /api/admin/users
+POST /api/admin/users/1/approve
+POST /api/admin/users/1/reject {"reason":"parity"}
+POST /api/admin/users/1/reset-totp
+GET /api/admin/usage/today
+GET /api/admin/usage/by-user
+# --- P3: verticals / tasks / courses / lessons / problems ---
+GET /api/verticals
+GET /api/verticals/1
+POST /api/verticals {"name":"Parity Vertical"}
+POST /api/verticals/ingest {"name":"Parity Ingest","markdownContent":"# Parity"}
+PUT /api/tasks/1/toggle
+GET /api/courses
+GET /api/courses/ai-infusion
+GET /api/lessons/1
+POST /api/lessons {"moduleId":1,"slug":"parity-lesson","title":"Parity Lesson"}
+PUT /api/lessons/1 {"title":"Parity Lesson Renamed"}
+PATCH /api/lessons/1/progress
+GET /api/problems/1
+POST /api/problems {"lessonId":1,"slug":"parity-problem","title":"Parity Problem"}
+PATCH /api/problems/1/progress
+# --- P3: atlas / reading map / chapters ---
+GET /api/knowledge-atlas
+GET /api/reading-map
+PATCH /api/reading-map/items/1/toggle
+POST /api/reading-map/items {"category":"articles","title":"Parity Item"}
+GET /api/chapters
+GET /api/chapters/course-overview
+GET /api/chapters/ai-infusion/ai-infusion-start-here/course-overview
+POST /api/chapters/1/notes {"noteType":"note","title":"Parity","contentBody":"body"}
+POST /api/chapters/map {"domain":"d","moduleName":"m","title":"Parity Map","slug":"parity-map"}
+# --- P3: v2 ---
+GET /api/v2/learning-paths
+GET /api/v2/learning-paths/ai-infusion
+GET /api/v2/knowledge-atlas
+GET /api/v2/reading-map
+GET /api/v2/chapters/ai-infusion/ai-infusion-start-here/course-overview
+POST /api/v2/progress/lesson {"lessonId":1,"isCompleted":true}
+POST /api/v2/progress/problem {"problemId":1,"isCompleted":true}
+POST /api/v2/progress/task {"taskId":1,"isCompleted":true}
+GET /api/v2/practice-questions/ai-infusion/ai-infusion-start-here/course-overview
+POST /api/v2/practice-questions/1/attempts {"selectedOptionKey":"A"}
+POST /api/v2/practice-questions/1/retry
+# --- P4: exercises (run/check use an empty submission: both sides validate it identically) ---
+GET /api/exercises/java-add-hotel-rooms
+GET /api/exercises/java-add-hotel-rooms/solution
+POST /api/exercises/java-add-hotel-rooms/run {"files":[]}
+POST /api/exercises/java-add-hotel-rooms/check {"files":[]}
+GET /api/exercises/java-add-hotel-rooms/workspace
+PUT /api/exercises/java-add-hotel-rooms/draft {"files":[{"path":"Main.java","content":"class Main{}"}]}
+# --- P5: chat / import (chat needs LLAMA_API_KEY or compares mock mode) ---
+POST /api/chat/conversations {"title":"Parity chat"}
+POST /api/chat/conversations/00000000-0000-0000-0000-000000000000/messages {"content":"hi"}
+GET /api/chat/conversations/00000000-0000-0000-0000-000000000000/messages
+POST /api/v2/curriculum/import {"courseSlug":"ai-infusion","moduleSlug":"ai-infusion-start-here","lessonSlug":"parity-import","title":"Parity Import"}
+# --- P6: localization projects / strings / workflow / snapshots ---
+GET /api/localization/projects
+GET /api/localization/projects/auroraline-hud-v3
+GET /api/localization/projects/auroraline-hud-v3/strings?locale=de-DE
+PUT /api/localization/projects/auroraline-hud-v3/strings/1/translations/de-DE {"targetText":"Parity Text"}
+GET /api/localization/projects/auroraline-hud-v3/workflow
+POST /api/localization/projects/auroraline-hud-v3/workflow/steps {"action":"Mark Translated"}
+PUT /api/localization/projects/auroraline-hud-v3/workflow/steps/1 {"action":"Send to Review"}
+POST /api/localization/projects/auroraline-hud-v3/workflow/steps/1/reorder {"direction":"down"}
+POST /api/localization/projects/auroraline-hud-v3/workflow/steps/1/run
+DELETE /api/localization/projects/auroraline-hud-v3/workflow/steps/1
+GET /api/localization/projects/auroraline-hud-v3/snapshots
+POST /api/localization/projects/auroraline-hud-v3/snapshots
+# --- P6: marketplace ---
+GET /api/localization/projects/auroraline-hud-v3/marketplace
+POST /api/localization/projects/auroraline-hud-v3/marketplace/zh-CN/post
+GET /api/localization/marketplace/jobs/1/bids
+POST /api/localization/marketplace/jobs/1/bids/1/award
+POST /api/localization/marketplace/jobs/1/approve
+POST /api/localization/marketplace/jobs/1/send-back
+# --- P6: provider health ---
+GET /api/localization/provider-health
+POST /api/localization/provider-health/GoogleMT/simulate-outage
+POST /api/localization/provider-health/GoogleMT/resolve
+# --- P6: vendor portal ---
+GET /api/localization/vendor/roster
+GET /api/localization/vendor/1/open-jobs
+POST /api/localization/vendor/1/jobs/1/bids {"proposedPrice":210,"note":"Parity bid"}
+GET /api/localization/vendor/1/awarded-jobs
+GET /api/localization/vendor/jobs/1/strings
+PUT /api/localization/vendor/jobs/1/strings/1 {"targetText":"Parity vendor text"}
+POST /api/localization/vendor/jobs/1/submit
