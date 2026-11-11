@@ -1,15 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, Clock, CheckCircle, ArrowRight, ExternalLink } from 'lucide-react';
+import { Briefcase, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import VendorPortalShell from './VendorPortalShell';
 import BidSubmissionModal from './BidSubmissionModal';
+import useSelectedVendor from './useSelectedVendor';
 import { api } from '../../../api/client';
 import { LoadingState, ErrorState, EmptyState } from '../../../components/common/StateViews';
 
+const SUBMITTED_BIDS_KEY = 'localization-submitted-bids';
+
+function readSubmittedBids() {
+  try {
+    const raw = sessionStorage.getItem(SUBMITTED_BIDS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export default function VendorOpenJobs() {
   const navigate = useNavigate();
-  const [selectedVendorId, setSelectedVendorId] = useState(null); // VendorPortalShell defaults this to the first roster vendor once loaded
-  const [vendorDetails, setVendorDetails] = useState(null);
+  const { vendor, loading: vendorLoading, error: vendorError } = useSelectedVendor();
+  const vendorId = vendor?.id;
   const [openJobs, setOpenJobs] = useState([]);
   const [awardedJobs, setAwardedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,18 +31,35 @@ export default function VendorOpenJobs() {
   // Bid modal state
   const [activeJobForBid, setActiveJobForBid] = useState(null);
 
+  // Jobs bid on this session, so the user cannot re-bid by accident
+  const [submittedBidJobIds, setSubmittedBidJobIds] = useState(readSubmittedBids);
+
+  const markBidSubmitted = (jobId) => {
+    setSubmittedBidJobIds((prev) => {
+      const next = new Set(prev);
+      next.add(jobId);
+      try {
+        sessionStorage.setItem(SUBMITTED_BIDS_KEY, JSON.stringify([...next]));
+      } catch {
+        // sessionStorage unavailable; in-memory set still guards this page
+      }
+      return next;
+    });
+  };
+
+  const handleBidSuccess = (jobId) => {
+    markBidSubmitted(jobId);
+    fetchJobs();
+  };
+
   const fetchJobs = useCallback(async () => {
-    if (!selectedVendorId) return;
+    if (!vendorId) return;
     setLoading(true);
     setError(null);
     try {
-      const roster = await api.vendorPortal.getRoster();
-      const current = roster.find((v) => v.id === selectedVendorId);
-      setVendorDetails(current || null);
-
       const [open, awarded] = await Promise.all([
-        api.vendorPortal.getOpenJobs(selectedVendorId),
-        api.vendorPortal.getAwardedJobs(selectedVendorId)
+        api.vendorPortal.getOpenJobs(vendorId),
+        api.vendorPortal.getAwardedJobs(vendorId)
       ]);
 
       setOpenJobs(open || []);
@@ -39,7 +69,7 @@ export default function VendorOpenJobs() {
     } finally {
       setLoading(false);
     }
-  }, [selectedVendorId]);
+  }, [vendorId]);
 
   useEffect(() => {
     fetchJobs();
@@ -66,7 +96,7 @@ export default function VendorOpenJobs() {
   };
 
   return (
-    <VendorPortalShell selectedVendorId={selectedVendorId} onSelectVendor={setSelectedVendorId}>
+    <VendorPortalShell>
       {/* 8.1 Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h1
@@ -80,13 +110,15 @@ export default function VendorOpenJobs() {
           Open Jobs
         </h1>
         <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-ink-muted, #6B7280)' }}>
-          Showing jobs matching language pairs for: <strong>{vendorDetails?.name || 'Selected Vendor'}</strong> ({vendorDetails?.languages || '...'})
+          Showing jobs matching language pairs for: <strong>{vendor?.name || 'Selected Vendor'}</strong> ({vendor?.languages || '...'})
         </p>
       </div>
 
-      {error ? (
+      {vendorError ? (
+        <ErrorState error={{ message: vendorError }} title="Unable to Load Vendor Roster" />
+      ) : error ? (
         <ErrorState error={error} onRetry={fetchJobs} title="Unable to Load Jobs" />
-      ) : loading ? (
+      ) : (vendorLoading || !vendorId || loading) ? (
         <LoadingState message="Checking open opportunities..." />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
@@ -175,7 +207,7 @@ export default function VendorOpenJobs() {
 
             {openJobs.length === 0 ? (
               <EmptyState
-                message={`No open jobs currently match the languages for ${vendorDetails?.name || 'this vendor'}.`}
+                message={`No open jobs currently match the languages for ${vendor?.name || 'this vendor'}.`}
                 icon="🔍"
               />
             ) : (
@@ -188,6 +220,7 @@ export default function VendorOpenJobs() {
               >
                 {openJobs.map((job) => {
                   const daysOpen = computeDaysOpen(job.postedAt);
+                  const bidSubmitted = submittedBidJobIds.has(job.id);
 
                   return (
                     <div
@@ -242,28 +275,37 @@ export default function VendorOpenJobs() {
                         </div>
                       </div>
 
+                      {bidSubmitted && (
+                        <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--color-sage, #2C5E55)' }}>
+                          Bid submitted
+                        </div>
+                      )}
+
                       {/* Rectangular Sage-Bordered Text-Label Button: Submit a Bid */}
                       <button
                         type="button"
+                        disabled={bidSubmitted}
                         onClick={() => setActiveJobForBid(job)}
                         style={{
                           width: '100%',
                           padding: '0.65rem 1rem',
                           borderRadius: '0px', // sharp corners
                           backgroundColor: '#FFFFFF',
-                          border: '1px solid var(--color-sage, #2C5E55)',
-                          color: 'var(--color-sage, #2C5E55)',
+                          border: bidSubmitted ? '1px solid var(--color-border-subtle, #E2DDD5)' : '1px solid var(--color-sage, #2C5E55)',
+                          color: bidSubmitted ? 'var(--color-ink-muted, #6B7280)' : 'var(--color-sage, #2C5E55)',
                           fontSize: '0.85rem',
                           fontWeight: '700',
-                          cursor: 'pointer',
+                          cursor: bidSubmitted ? 'not-allowed' : 'pointer',
                           textAlign: 'center',
                           transition: 'all 0.15s ease'
                         }}
                         onMouseEnter={(e) => {
+                          if (bidSubmitted) return;
                           e.currentTarget.style.backgroundColor = 'var(--color-sage, #2C5E55)';
                           e.currentTarget.style.color = '#FFFFFF';
                         }}
                         onMouseLeave={(e) => {
+                          if (bidSubmitted) return;
                           e.currentTarget.style.backgroundColor = '#FFFFFF';
                           e.currentTarget.style.color = 'var(--color-sage, #2C5E55)';
                         }}
@@ -284,8 +326,8 @@ export default function VendorOpenJobs() {
         isOpen={!!activeJobForBid}
         onClose={() => setActiveJobForBid(null)}
         job={activeJobForBid}
-        vendorId={selectedVendorId}
-        onSuccess={fetchJobs}
+        vendorId={vendorId}
+        onSuccess={handleBidSuccess}
       />
     </VendorPortalShell>
   );

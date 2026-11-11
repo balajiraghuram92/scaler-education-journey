@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Edit2, Check, X, RefreshCw, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import VendorPortalShell from './VendorPortalShell';
+import useSelectedVendor from './useSelectedVendor';
 import { api } from '../../../api/client';
 import { LoadingState, ErrorState, EmptyState } from '../../../components/common/StateViews';
 
+const READ_ONLY_STATUSES = ['SubmittedForReview', 'Approved', 'Closed'];
+
 export default function VendorMyJob() {
   const { jobId } = useParams();
-  const navigate = useNavigate();
   const parsedJobId = parseInt(jobId, 10);
+  const { vendor, loading: vendorLoading, error: vendorError } = useSelectedVendor();
+  const vendorId = vendor?.id;
 
-  const [selectedVendorId, setSelectedVendorId] = useState(null); // VendorPortalShell defaults this to the first roster vendor once loaded
+  const [assignedJob, setAssignedJob] = useState(null);
   const [strings, setStrings] = useState([]);
-  const [localeCode, setLocaleCode] = useState('de-DE');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,28 +23,37 @@ export default function VendorMyJob() {
   const [editingStringId, setEditingStringId] = useState(null);
   const [editingText, setEditingText] = useState('');
   const [savingId, setSavingId] = useState(null);
+  const [saveError, setSaveError] = useState(null);
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
   const [submitNotice, setSubmitNotice] = useState(null);
 
+  const localeCode = assignedJob?.localeCode || '';
+  const isReadOnly = assignedJob ? READ_ONLY_STATUSES.includes(assignedJob.status) : false;
+
   const fetchJobStrings = useCallback(async () => {
+    if (!vendorId) return;
     setLoading(true);
     setError(null);
     try {
+      const awarded = await api.vendorPortal.getAwardedJobs(vendorId);
+      const found = (awarded || []).find((j) => j.id === parsedJobId);
+      setAssignedJob(found || null);
+      if (!found) {
+        setStrings([]);
+        return;
+      }
       const data = await api.vendorPortal.getJobStrings(parsedJobId);
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setStrings(data);
-        if (data[0].localeCode) {
-          setLocaleCode(data[0].localeCode);
-        }
       }
     } catch (err) {
       setError(err.message || 'Failed to load job strings.');
     } finally {
       setLoading(false);
     }
-  }, [parsedJobId]);
+  }, [vendorId, parsedJobId]);
 
   useEffect(() => {
     fetchJobStrings();
@@ -50,6 +62,7 @@ export default function VendorMyJob() {
   const startInlineEdit = (str) => {
     setEditingStringId(str.stringId);
     setEditingText(str.targetText || '');
+    setSaveError(null);
   };
 
   const cancelInlineEdit = () => {
@@ -59,14 +72,28 @@ export default function VendorMyJob() {
 
   const saveInlineEdit = async (stringId) => {
     setSavingId(stringId);
+    setSaveError(null);
     try {
       const updated = await api.vendorPortal.updateJobString(parsedJobId, stringId, editingText);
       setStrings((prev) => prev.map((s) => (s.stringId === stringId ? updated : s)));
       setEditingStringId(null);
     } catch (err) {
-      alert(`Failed to save translation: ${err.message}`);
+      setSaveError(err.message || 'Failed to save translation.');
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'SubmittedForReview':
+        return 'Submitted for Review';
+      case 'InProgress':
+        return 'In Progress';
+      case 'NeedsRevision':
+        return 'Needs Revision';
+      default:
+        return status;
     }
   };
 
@@ -81,6 +108,8 @@ export default function VendorMyJob() {
         type: 'success',
         message: 'Job submitted for review! The project owner will review your translations shortly.'
       });
+      // Reload the job so its new status switches the page to read-only.
+      await fetchJobStrings();
     } catch (err) {
       setSubmitNotice({
         type: 'error',
@@ -92,7 +121,7 @@ export default function VendorMyJob() {
   };
 
   return (
-    <VendorPortalShell selectedVendorId={selectedVendorId} onSelectVendor={setSelectedVendorId}>
+    <VendorPortalShell>
       {/* Back Link */}
       <div style={{ marginBottom: '1.5rem' }}>
         <Link
@@ -121,7 +150,7 @@ export default function VendorMyJob() {
             color: 'var(--color-ink, #1F2937)'
           }}
         >
-          My Jobs — Auroraline Automotive ({localeCode})
+          My Jobs — Auroraline Automotive ({localeCode || '…'})
         </h1>
         <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-ink-muted, #6B7280)' }}>
           Awarded job • {strings.length} strings • Deadline not set
@@ -148,11 +177,41 @@ export default function VendorMyJob() {
         </div>
       )}
 
+      {saveError && (
+        <div
+          style={{
+            padding: '0.85rem 1.25rem',
+            borderRadius: '0px',
+            fontSize: '0.9rem',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#FEF2F2',
+            color: '#991B1B',
+            border: '1px solid #FCA5A5'
+          }}
+        >
+          <AlertCircle size={18} />
+          <span>{saveError}</span>
+        </div>
+      )}
+
+      {assignedJob?.status === 'NeedsRevision' && (
+        <p style={{ fontSize: '0.9rem', color: 'var(--color-ink, #1F2937)', margin: '0 0 1.5rem 0' }}>
+          The owner sent this job back for revision — please update the translations below and resubmit.
+        </p>
+      )}
+
       {/* Strings Table (NO STAGE COLUMN per §8.3) */}
-      {error ? (
+      {vendorError ? (
+        <ErrorState error={{ message: vendorError }} title="Unable to Load Vendor Roster" />
+      ) : error ? (
         <ErrorState error={error} onRetry={fetchJobStrings} title="Unable to Load Workspace" />
-      ) : loading ? (
+      ) : (vendorLoading || !vendorId || loading) ? (
         <LoadingState message="Loading awarded translation string table..." />
+      ) : !assignedJob ? (
+        <EmptyState message={`Job ${parsedJobId} is not assigned to ${vendor?.name || 'the selected vendor'}.`} icon="🔒" />
       ) : strings.length === 0 ? (
         <EmptyState message="No strings assigned to this job." icon="📄" />
       ) : (
@@ -250,7 +309,9 @@ export default function VendorMyJob() {
 
                     {/* Action Column: Inline edit buttons */}
                     <td style={{ padding: '0.85rem 1.25rem', textAlign: 'center' }}>
-                      {isEditing ? (
+                      {isReadOnly ? (
+                        <span style={{ color: 'var(--color-ink-muted, #6B7280)' }}>—</span>
+                      ) : isEditing ? (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                           <button
                             type="button"
@@ -308,38 +369,48 @@ export default function VendorMyJob() {
       )}
 
       {/* Bottom Action: Solid Sage Rectangular Text-Label "Submit for Review" Button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem' }}>
-        {hasEmptyTargets && (
-          <span style={{ fontSize: '0.85rem', color: 'var(--color-ink-muted, #6B7280)', fontStyle: 'italic' }}>
-            All strings must have non-empty translations before submitting.
-          </span>
-        )}
+      {assignedJob && (
+        <div style={{ display: 'flex', justifyContent: isReadOnly ? 'flex-start' : 'flex-end', alignItems: 'center', gap: '1rem' }}>
+          {isReadOnly ? (
+            <span style={{ fontSize: '0.9rem', color: 'var(--color-ink, #1F2937)' }}>
+              Job status: {getStatusLabel(assignedJob.status)}.
+            </span>
+          ) : (
+            <>
+              {hasEmptyTargets && (
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-ink-muted, #6B7280)', fontStyle: 'italic' }}>
+                  All strings must have non-empty translations before submitting.
+                </span>
+              )}
 
-        <button
-          type="button"
-          disabled={hasEmptyTargets || submitting}
-          onClick={handleSubmitForReview}
-          style={{
-            padding: '0.75rem 1.75rem',
-            borderRadius: '0px', // sharp corners
-            border: 'none',
-            backgroundColor: hasEmptyTargets ? 'rgba(44, 94, 85, 0.4)' : 'var(--color-sage, #2C5E55)',
-            color: '#FFFFFF',
-            fontSize: '0.9rem',
-            fontWeight: '700',
-            letterSpacing: '0.02em',
-            cursor: hasEmptyTargets ? 'not-allowed' : submitting ? 'wait' : 'pointer',
-            pointerEvents: hasEmptyTargets ? 'none' : 'auto',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'background-color 0.15s ease'
-          }}
-        >
-          {submitting ? <RefreshCw size={16} className="spin" /> : <Send size={16} />}
-          <span>Submit for Review</span>
-        </button>
-      </div>
+              <button
+                type="button"
+                disabled={hasEmptyTargets || submitting}
+                onClick={handleSubmitForReview}
+                style={{
+                  padding: '0.75rem 1.75rem',
+                  borderRadius: '0px', // sharp corners
+                  border: 'none',
+                  backgroundColor: hasEmptyTargets ? 'rgba(44, 94, 85, 0.4)' : 'var(--color-sage, #2C5E55)',
+                  color: '#FFFFFF',
+                  fontSize: '0.9rem',
+                  fontWeight: '700',
+                  letterSpacing: '0.02em',
+                  cursor: hasEmptyTargets ? 'not-allowed' : submitting ? 'wait' : 'pointer',
+                  pointerEvents: hasEmptyTargets ? 'none' : 'auto',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'background-color 0.15s ease'
+                }}
+              >
+                {submitting ? <RefreshCw size={16} className="spin" /> : <Send size={16} />}
+                <span>Submit for Review</span>
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </VendorPortalShell>
   );
 }

@@ -28,12 +28,17 @@ export default function BidSubmissionModal({ isOpen, onClose, job, vendorId, onS
       setError('No active vendor selected.');
       return;
     }
+    const price = parseFloat(proposedPrice);
+    if (!Number.isFinite(price) || price <= 0) {
+      setError('Price must be greater than zero.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
-      await api.vendorPortal.submitBid(vendorId, job.id, parseFloat(proposedPrice), note);
+      await api.vendorPortal.submitBid(vendorId, job.id, price, note);
       if (onSuccess) {
-        onSuccess();
+        onSuccess(job.id);
       }
       onClose();
     } catch (err) {

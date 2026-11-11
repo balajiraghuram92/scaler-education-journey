@@ -1,29 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, ArrowLeft } from 'lucide-react';
-import { api } from '../../../api/client';
+import { ArrowLeft } from 'lucide-react';
+import useSelectedVendor from './useSelectedVendor';
 
-export default function VendorPortalShell({ selectedVendorId, onSelectVendor, children }) {
-  const [roster, setRoster] = useState([]);
-
-  useEffect(() => {
-    async function loadRoster() {
-      try {
-        const data = await api.vendorPortal.getRoster();
-        if (Array.isArray(data) && data.length > 0) {
-          setRoster(data);
-          if (!selectedVendorId && onSelectVendor) {
-            onSelectVendor(data[0].id);
-          }
-        }
-      } catch {
-        // Fallback
-      }
-    }
-    loadRoster();
-  }, [selectedVendorId, onSelectVendor]);
-
-  const currentVendor = roster.find((v) => v.id === selectedVendorId);
+export default function VendorPortalShell({ children }) {
+  const { roster, vendor, selectVendor, loading } = useSelectedVendor();
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-parchment, #F8F6F0)', display: 'flex', flexDirection: 'column' }}>
@@ -86,8 +67,11 @@ export default function VendorPortalShell({ selectedVendorId, onSelectVendor, ch
             </label>
             <select
               id="vendor-roster-select"
-              value={selectedVendorId || ''}
-              onChange={(e) => onSelectVendor && onSelectVendor(parseInt(e.target.value, 10))}
+              value={vendor?.id || ''}
+              onChange={(e) => {
+                const id = parseInt(e.target.value, 10);
+                if (!Number.isNaN(id)) selectVendor(id);
+              }}
               style={{
                 padding: '0.35rem 0.65rem',
                 borderRadius: '0px',
@@ -105,6 +89,9 @@ export default function VendorPortalShell({ selectedVendorId, onSelectVendor, ch
                   {v.name} ({v.languages}) ★{v.rating}
                 </option>
               ))}
+              {roster.length === 0 && (
+                <option value="" disabled>{loading ? 'Loading…' : 'No vendors'}</option>
+              )}
             </select>
           </div>
 
