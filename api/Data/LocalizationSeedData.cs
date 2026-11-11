@@ -113,6 +113,36 @@ public static class LocalizationSeedData
         };
         context.LocalizationTranslations.AddRange(translations);
 
+        // fr-FR and es-ES translations delivered through the marketplace. A job can only be
+        // "Submitted for Review" or "Approved" once every string has target text, so these two
+        // locales are fully translated: fr-FR awaiting owner review, es-ES already approved.
+        var seededStrings = new List<LocalizationString> { strSpeed, strFuel, strNav, strTemp, strDoor, strGear };
+        seededStrings.AddRange(additionalStrings);
+        foreach (var str in seededStrings)
+        {
+            var (french, spanish) = LocalizationSeedTranslations.ByKey[str.Key];
+            context.LocalizationTranslations.Add(new LocalizationTranslation
+            {
+                StringId = str.Id,
+                LocaleCode = "fr-FR",
+                TargetText = french,
+                Stage = "Translated",
+                TranslationSource = "Marketplace",
+                NeedsReview = false,
+                UpdatedAt = now.AddDays(-1)
+            });
+            context.LocalizationTranslations.Add(new LocalizationTranslation
+            {
+                StringId = str.Id,
+                LocaleCode = "es-ES",
+                TargetText = spanish,
+                Stage = "Approved",
+                TranslationSource = "Marketplace",
+                NeedsReview = false,
+                UpdatedAt = now.AddDays(-1)
+            });
+        }
+
         // 5. Seed 3 Workflow Steps
         var steps = new List<WorkflowStep>
         {
