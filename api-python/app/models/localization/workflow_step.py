@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Identity, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -20,13 +20,13 @@ class WorkflowStep(Base):
         Index("ix_localization_workflow_steps_project_id", "project_id"),
     )
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
     project_id: Mapped[int] = mapped_column(
         ForeignKey("localization_projects.id", ondelete="CASCADE")
     )
     order: Mapped[int] = mapped_column("order", Integer)
-    trigger: Mapped[str] = mapped_column(String(50))
-    action: Mapped[str] = mapped_column(String(50))
+    trigger: Mapped[str] = mapped_column(String(50), default="On Manual Click")
+    action: Mapped[str] = mapped_column(String(50), default="")
     condition_expression: Mapped[str | None] = mapped_column(String(200))
     last_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_run_outcome: Mapped[str | None] = mapped_column(String(200))

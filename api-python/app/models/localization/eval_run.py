@@ -7,7 +7,7 @@ known exception.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -31,8 +31,10 @@ class EvalRun(Base):
     project_id: Mapped[int] = mapped_column(
         ForeignKey("localization_projects.id", ondelete="CASCADE")
     )
-    pipeline_config: Mapped[str] = mapped_column(String(50))
-    run_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    pipeline_config: Mapped[str] = mapped_column(String(50), default="")
+    run_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
     avg_comet_kiwi: Mapped[Decimal | None] = mapped_column(Numeric(5, 4))
     avg_qps_score: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     glossary_adherence_rate: Mapped[Decimal | None] = mapped_column(Numeric(5, 4))

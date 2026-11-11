@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -10,6 +10,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Identity,
     Index,
     String,
 )
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
 class UserProblemProgress(Base):
     __tablename__ = "user_problem_progress"
     __table_args__ = (
-        Index("IX_user_problem_progress_ProblemId", "problem_id"),
+        Index("IX_user_problem_progress_problem_id", "problem_id"),
         Index(
             "ux_user_problem_progress_user_problem",
             "user_id",
@@ -33,21 +34,25 @@ class UserProblemProgress(Base):
             unique=True,
         ),
         CheckConstraint(
-            "status IN ('NotStarted', 'Attempted', 'Solved')",
+            "status::text = ANY (ARRAY['NotStarted'::character varying, 'Attempted'::character varying, 'Solved'::character varying]::text[])",
             name="ck_user_problem_progress_status",
         ),
     )
 
-    id: Mapped[int] = mapped_column("id", BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column("id", BigInteger, Identity(), primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("app_users.id", ondelete="CASCADE"))
     problem_id: Mapped[int] = mapped_column(
         ForeignKey("problems.id", ondelete="CASCADE")
     )
-    status: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(20), default="Attempted")
     solution_revealed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     solved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
     user: Mapped[AppUser | None] = relationship("AppUser", lazy="raise")
     problem: Mapped[Problem | None] = relationship("Problem", lazy="raise")

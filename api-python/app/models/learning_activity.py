@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
@@ -11,9 +11,11 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Identity,
     Index,
     String,
     Uuid,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -41,21 +43,29 @@ class LearningActivity(Base):
             "event_type",
             unique=True,
         ),
-        Index("ix_learning_activity_lesson", "lesson_id", "occurred_at"),
+        Index("ix_learning_activity_lesson", "lesson_id"),
         Index("ix_learning_activity_user", "user_id", "occurred_at"),
         CheckConstraint(
-            "event_type IN ('LessonCompleted', 'LessonReopened', 'ProblemCompleted', "
-            "'ProblemReopened', 'TaskCompleted', 'TaskReopened', 'ReadingScheduled', "
-            "'ReadingDeferred', 'ReadingRevisited', 'NoteCreated', 'ChapterImported', "
-            "'LessonOpened', 'McqAnswered', 'ProblemAttempted', 'SolutionRevealed', "
-            "'ExerciseRun')",
+            "event_type::text = ANY (ARRAY['LessonCompleted'::character varying,"
+            " 'LessonReopened'::character varying, 'ProblemCompleted'::character varying,"
+            " 'ProblemReopened'::character varying, 'TaskCompleted'::character varying,"
+            " 'TaskReopened'::character varying, 'ReadingScheduled'::character varying,"
+            " 'ReadingDeferred'::character varying, 'ReadingRevisited'::character varying,"
+            " 'NoteCreated'::character varying, 'ChapterImported'::character varying,"
+            " 'LessonOpened'::character varying, 'McqAnswered'::character varying,"
+            " 'ProblemAttempted'::character varying, 'SolutionRevealed'::character varying,"
+            " 'ExerciseRun'::character varying]::text[])",
             name="ck_learning_activity_event_type",
         ),
     )
 
-    id: Mapped[int] = mapped_column("id", BigInteger, primary_key=True)
-    event_type: Mapped[str] = mapped_column(String(40))
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    id: Mapped[int] = mapped_column("id", BigInteger, Identity(), primary_key=True)
+    event_type: Mapped[str] = mapped_column(String(40), default="")
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=text("now()"),
+        default=lambda: datetime.now(UTC),
+    )
     user_id: Mapped[int | None] = mapped_column(
         ForeignKey("app_users.id", ondelete="CASCADE")
     )
@@ -72,7 +82,9 @@ class LearningActivity(Base):
         ForeignKey("reading_map_items.Id", ondelete="SET NULL")
     )
     correlation_id: Mapped[UUID] = mapped_column(Uuid, default=uuid4)
-    metadata_json: Mapped[str] = mapped_column("metadata", JsonbText)
+    metadata_json: Mapped[str] = mapped_column(
+        "metadata", JsonbText, server_default=text("'{}'::jsonb"), default="{}"
+    )
 
     user: Mapped[AppUser | None] = relationship("AppUser", lazy="raise")
     lesson: Mapped[Lesson | None] = relationship("Lesson", lazy="raise")

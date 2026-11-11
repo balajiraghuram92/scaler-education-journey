@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
@@ -25,12 +25,16 @@ class UserSession(Base):
 
     id: Mapped[UUID] = mapped_column("id", Uuid, primary_key=True, default=uuid4)
     user_id: Mapped[int] = mapped_column(ForeignKey("app_users.id", ondelete="CASCADE"))
-    refresh_token_hash: Mapped[str] = mapped_column(String(64))
+    refresh_token_hash: Mapped[str] = mapped_column(String(64), default="")
     previous_refresh_token_hash: Mapped[str | None] = mapped_column(String(64))
     rotated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     remember_me: Mapped[bool] = mapped_column(Boolean)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     revoked_reason: Mapped[str | None] = mapped_column(String(40))

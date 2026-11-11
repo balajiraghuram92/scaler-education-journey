@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -13,6 +13,7 @@ from sqlalchemy import (
     Index,
     Numeric,
     String,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,15 +35,16 @@ class StudyTaskContentLink(Base):
             name="ck_task_content_exactly_one_target",
         ),
         CheckConstraint(
-            "mapping_type IN ('Exact', 'TitleAndModule', 'Manual', 'DuplicateAlias')",
+            "mapping_type::text = ANY (ARRAY['Exact'::character varying, 'TitleAndModule'::character varying, 'Manual'::character varying, 'DuplicateAlias'::character varying]::text[])",
             name="ck_task_content_mapping_type",
         ),
         CheckConstraint(
-            "mapping_status IN ('Proposed', 'Verified', 'Rejected')",
+            "mapping_status::text = ANY (ARRAY['Proposed'::character varying, 'Verified'::character varying, 'Rejected'::character varying]::text[])",
             name="ck_task_content_mapping_status",
         ),
         CheckConstraint(
-            "confidence >= 0 AND confidence <= 1", name="ck_task_content_confidence"
+            "confidence >= 0::numeric AND confidence <= 1::numeric",
+            name="ck_task_content_confidence",
         ),
     )
 
@@ -55,13 +57,27 @@ class StudyTaskContentLink(Base):
     problem_id: Mapped[int | None] = mapped_column(
         ForeignKey("problems.id", ondelete="RESTRICT")
     )
-    mapping_type: Mapped[str] = mapped_column(String(32))
-    mapping_status: Mapped[str] = mapped_column(String(32))
-    confidence: Mapped[Decimal] = mapped_column(Numeric(5, 4))
-    source_checksum: Mapped[str] = mapped_column(String(64))
+    mapping_type: Mapped[str] = mapped_column(
+        String(32), server_default=text("'TitleAndModule'"), default="TitleAndModule"
+    )
+    mapping_status: Mapped[str] = mapped_column(
+        String(32), server_default=text("'Proposed'"), default="Proposed"
+    )
+    confidence: Mapped[Decimal] = mapped_column(
+        Numeric(5, 4), server_default=text("1.0000"), default=Decimal("1.0000")
+    )
+    source_checksum: Mapped[str] = mapped_column(String(64), default="")
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=text("now()"),
+        default=lambda: datetime.now(UTC),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=text("now()"),
+        default=lambda: datetime.now(UTC),
+    )
 
     task: Mapped[StudyTask | None] = relationship(
         "StudyTask", back_populates="content_link", lazy="raise"

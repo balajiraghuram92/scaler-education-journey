@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Identity, Index, Integer, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -23,16 +23,20 @@ class McqQuestion(Base):
         Index("ix_mcq_questions_lesson_id", "lesson_id"),
     )
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
     lesson_id: Mapped[int] = mapped_column(ForeignKey("lessons.id", ondelete="CASCADE"))
     legacy_key: Mapped[str | None] = mapped_column(String(120))
-    question_text: Mapped[str] = mapped_column(Text)
-    source_type: Mapped[str] = mapped_column(String(50))
-    explanation: Mapped[str] = mapped_column(Text)
-    category: Mapped[str] = mapped_column(String(30), server_default=text("'Assignment'"))
-    is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    question_text: Mapped[str] = mapped_column(Text, default="")
+    source_type: Mapped[str] = mapped_column(String(50), default="")
+    explanation: Mapped[str] = mapped_column(Text, default="")
+    category: Mapped[str] = mapped_column(String(30), server_default=text("'Assignment'"), default="Assignment")
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("true"), default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
     lesson: Mapped[Lesson | None] = relationship("Lesson", lazy="raise")
     options: Mapped[list[McqOption]] = relationship(

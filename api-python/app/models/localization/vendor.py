@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Integer, Numeric, String
+from sqlalchemy import Identity, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -18,9 +18,9 @@ if TYPE_CHECKING:
 class Vendor(Base):
     __tablename__ = "localization_vendors"
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(150))
-    languages: Mapped[str] = mapped_column(String(200))
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
+    name: Mapped[str] = mapped_column(String(150), default="")
+    languages: Mapped[str] = mapped_column(String(200), default="")
     rating: Mapped[Decimal] = mapped_column(Numeric(3, 1))
 
     awarded_jobs: Mapped[list[MarketplaceJob]] = relationship(

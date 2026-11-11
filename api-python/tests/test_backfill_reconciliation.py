@@ -76,7 +76,9 @@ async def test_java_seeder_seeds_vertical_course_modules_lessons_and_tasks(
             select(func.count(StudyTask.id)).where(StudyTask.vertical_id == vertical.id)
         )
     ).scalar_one()
-    assert task_count == 28
+    # C# GetVerticalTasks builds exactly 22 tasks in a single AddRange; no
+    # other code path adds tasks to this vertical (verified exhaustively).
+    assert task_count == 22
 
     course = (
         await db.execute(select(Course).where(Course.slug == "java-spring-lld"))
@@ -96,7 +98,9 @@ async def test_java_seeder_seeds_vertical_course_modules_lessons_and_tasks(
             .where(CourseModule.course_id == course.id)
         )
     ).scalar_one()
-    assert lesson_total == 22
+    # C# seeds 27 module lessons into java-spring-lld (5+4+4+4+6+4);
+    # all expanded definitions are standalone courses, none land here.
+    assert lesson_total == 27
 
 
 @pytest.mark.asyncio
@@ -170,17 +174,20 @@ async def test_phase3a_apply_links_tasks_and_is_idempotent(scratch_session: Asyn
 
     first = await reconciler.reconcile_java(ReconciliationExecutionMode.APPLY)
 
-    assert first.verified_count == 27
+    # One candidate per task (22 tasks max), and only the 17 lesson-titled
+    # tasks match — no problems are seeded, so the 5 problem tasks propose.
+    # Identical logic and data in C# yields the same 17.
+    assert first.verified_count == 17
     link_count = (await db.execute(select(func.count(StudyTaskContentLink.task_id)))).scalar_one()
-    assert link_count == 27
+    assert link_count == 17
     assert (
         await db.execute(select(func.count(StudyTask.id)))
-    ).scalar_one() == 28
+    ).scalar_one() == 22
     assert (await db.execute(select(func.count(Course.id)))).scalar_one() >= 1
 
     second = await reconciler.reconcile_java(ReconciliationExecutionMode.APPLY)
-    assert second.verified_count == 27
-    assert (await db.execute(select(func.count(StudyTaskContentLink.task_id)))).scalar_one() == 27
+    assert second.verified_count == 17
+    assert (await db.execute(select(func.count(StudyTaskContentLink.task_id)))).scalar_one() == 17
 
 
 @pytest.mark.asyncio

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -27,9 +27,15 @@ class CourseDomainLink(Base):
     domain_id: Mapped[int] = mapped_column(
         ForeignKey("knowledge_domains.id", ondelete="CASCADE"), primary_key=True
     )
-    is_primary: Mapped[bool] = mapped_column(Boolean)
-    order_index: Mapped[int] = mapped_column(Integer)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean, server_default=text("false"), default=False
+    )
+    order_index: Mapped[int] = mapped_column(Integer, server_default=text("0"), default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=text("now()"),
+        default=lambda: datetime.now(UTC),
+    )
 
     course: Mapped[Course | None] = relationship(
         "Course", back_populates="domain_links", lazy="raise"

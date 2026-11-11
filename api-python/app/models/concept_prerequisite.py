@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Index, Integer, String
+from sqlalchemy import ForeignKey, Identity, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -16,23 +16,23 @@ if TYPE_CHECKING:
 class ConceptPrerequisite(Base):
     __tablename__ = "concept_prerequisites"
     __table_args__ = (
-        Index("IX_concept_prerequisites_PrerequisiteConceptId", "prerequisite_concept_id"),
+        Index("IX_concept_prerequisites_prerequisite_concept_id", "prerequisite_concept_id"),
         Index(
-            "IX_concept_prerequisites_ConceptId_PrerequisiteConceptId",
+            "IX_concept_prerequisites_concept_id_prerequisite_concept_id",
             "concept_id",
             "prerequisite_concept_id",
             unique=True,
         ),
     )
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
     concept_id: Mapped[int] = mapped_column(
         ForeignKey("knowledge_concepts.id", ondelete="CASCADE")
     )
     prerequisite_concept_id: Mapped[int] = mapped_column(
         ForeignKey("knowledge_concepts.id", ondelete="RESTRICT")
     )
-    status: Mapped[str] = mapped_column(String(50))
+    status: Mapped[str] = mapped_column(String(50), default="included")
 
     concept: Mapped[KnowledgeConcept | None] = relationship(
         "KnowledgeConcept",

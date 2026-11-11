@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -126,6 +125,9 @@ class CurriculumImportService:
                     module_id=module.id,
                     slug=lesson_slug,
                     title=request.title,
+                    # C# leaves LectureNumber unset (implicit CLR default 0);
+                    # SQLAlchemy has no implicit default, so pass it explicitly.
+                    lecture_number=0,
                     description=request.description
                     if request.description is not None
                     else "",

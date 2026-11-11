@@ -102,7 +102,14 @@ class LlamaApiClient:
             )
         try:
             try:
-                response = await client.post("chat/completions", json=payload)
+                # C# sets DefaultRequestHeaders.Authorization at construction so
+                # every request carries it, including on an injected client.
+                # Attach per request for the same effect either way.
+                response = await client.post(
+                    "chat/completions",
+                    json=payload,
+                    headers={"Authorization": f"Bearer {self._options.api_key}"},
+                )
                 latency_ms = int((time.perf_counter() - started) * 1000)
                 response_json = response.text
                 if response.status_code >= 400:
@@ -163,7 +170,9 @@ class LlamaApiClient:
                 )
                 if has_prompt and has_comp:
                     # Guards above prove non-negative ints, as C# TryGetInt32 does.
-                    return (int(prompt_value), int(comp_value), False)
+                    prompt_tokens: int = int(prompt_value or 0)
+                    completion_tokens: int = int(comp_value or 0)
+                    return (prompt_tokens, completion_tokens, False)
         except Exception as exc:
             logger.warning(
                 "Failed parsing token usage from Llama API response; using character-based fallback estimation: %s",

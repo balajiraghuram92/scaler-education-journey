@@ -8,7 +8,6 @@ id, so anonymous readers simply see no progress.
 from __future__ import annotations
 
 import logging
-
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4

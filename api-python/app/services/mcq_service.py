@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import random
-
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 

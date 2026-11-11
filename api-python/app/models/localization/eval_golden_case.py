@@ -34,10 +34,10 @@ class EvalGoldenCase(Base):
     project_id: Mapped[int] = mapped_column(
         ForeignKey("localization_projects.id", ondelete="CASCADE")
     )
-    locale_code: Mapped[str] = mapped_column(String(20))
-    source_text: Mapped[str] = mapped_column(Text)
-    gold_translation: Mapped[str] = mapped_column(Text)
-    category: Mapped[str] = mapped_column(String(30))
+    locale_code: Mapped[str] = mapped_column(String(20), default="")
+    source_text: Mapped[str] = mapped_column(Text, default="")
+    gold_translation: Mapped[str] = mapped_column(Text, default="")
+    category: Mapped[str] = mapped_column(String(30), default="")
     notes: Mapped[str | None] = mapped_column(String(500))
 
     project: Mapped[LocalizationProject | None] = relationship(

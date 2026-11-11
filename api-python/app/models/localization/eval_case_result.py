@@ -34,7 +34,7 @@ class EvalCaseResult(Base):
     eval_golden_case_id: Mapped[int] = mapped_column(
         ForeignKey("localization_eval_golden_cases.id", ondelete="CASCADE")
     )
-    produced_translation: Mapped[str] = mapped_column(Text)
+    produced_translation: Mapped[str] = mapped_column(Text, default="")
     comet_kiwi_score: Mapped[Decimal | None] = mapped_column(Numeric(5, 4))
     qps_score: Mapped[int | None] = mapped_column(Integer)
     glossary_adherence_ok: Mapped[bool | None] = mapped_column(Boolean)

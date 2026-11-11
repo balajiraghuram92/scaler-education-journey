@@ -31,9 +31,9 @@ class GlossaryTerm(Base):
     project_id: Mapped[int] = mapped_column(
         ForeignKey("localization_projects.id", ondelete="CASCADE")
     )
-    locale_code: Mapped[str] = mapped_column(String(20))
-    source_term: Mapped[str] = mapped_column(String(200))
-    target_term: Mapped[str] = mapped_column(String(200))
+    locale_code: Mapped[str] = mapped_column(String(20), default="")
+    source_term: Mapped[str] = mapped_column(String(200), default="")
+    target_term: Mapped[str] = mapped_column(String(200), default="")
     notes: Mapped[str | None] = mapped_column(String(500))
 
     project: Mapped[LocalizationProject | None] = relationship(

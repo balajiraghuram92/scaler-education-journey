@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import logging
-
 from datetime import UTC, datetime
 
 from sqlalchemy import desc, select

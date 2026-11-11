@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -20,8 +20,10 @@ class KnowledgeThreadStep(Base):
     __tablename__ = "knowledge_thread_steps"
     __table_args__ = (
         Index("ix_knowledge_thread_steps_concept", "concept_id"),
-        Index("IX_knowledge_thread_steps_LessonId", "lesson_id"),
-        CheckConstraint("length(trim(label)) > 0", name="ck_knowledge_thread_step_label"),
+        Index("IX_knowledge_thread_steps_lesson_id", "lesson_id"),
+        CheckConstraint(
+            "length(TRIM(BOTH FROM label)) > 0", name="ck_knowledge_thread_step_label"
+        ),
     )
 
     thread_id: Mapped[int] = mapped_column(
@@ -34,8 +36,12 @@ class KnowledgeThreadStep(Base):
     lesson_id: Mapped[int | None] = mapped_column(
         ForeignKey("lessons.id", ondelete="SET NULL")
     )
-    label: Mapped[str] = mapped_column(String(250))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    label: Mapped[str] = mapped_column(String(250), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=text("now()"),
+        default=lambda: datetime.now(UTC),
+    )
 
     thread: Mapped[KnowledgeThread | None] = relationship(
         "KnowledgeThread", back_populates="steps", lazy="raise"

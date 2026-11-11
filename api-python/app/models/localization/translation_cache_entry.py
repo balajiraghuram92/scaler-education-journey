@@ -7,7 +7,7 @@ known exception. SourceEmbedding is [NotMapped] in C# and ignored here too.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text
@@ -34,11 +34,13 @@ class TranslationCacheEntry(Base):
     project_id: Mapped[int] = mapped_column(
         ForeignKey("localization_projects.id", ondelete="CASCADE")
     )
-    locale_code: Mapped[str] = mapped_column(String(20))
-    source_text: Mapped[str] = mapped_column(Text)
-    cached_translation: Mapped[str] = mapped_column(Text)
+    locale_code: Mapped[str] = mapped_column(String(20), default="")
+    source_text: Mapped[str] = mapped_column(Text, default="")
+    cached_translation: Mapped[str] = mapped_column(Text, default="")
     hit_count: Mapped[int] = mapped_column(Integer)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
     last_hit_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     project: Mapped[LocalizationProject | None] = relationship(

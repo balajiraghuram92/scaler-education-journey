@@ -179,9 +179,13 @@ def python_compiler_output(combined: str | None) -> str | None:
     i = 0
     while i < len(lines):
         line = lines[i]
-        if line.startswith("E "):
-            kept.append(line[4:] if len(line) > 4 else "")
-        elif _LEARNER_FRAME.match(line):
+        # Match on the lstripped line: triple-quoted test input carries
+        # indentation, and real runner output may too. For unindented input
+        # this is identical to the C# version.
+        stripped = line.lstrip()
+        if stripped.startswith("E "):
+            kept.append(stripped[4:] if len(stripped) > 4 else "")
+        elif _LEARNER_FRAME.match(stripped):
             kept.append(line)
             if i + 1 < len(lines) and lines[i + 1].startswith("    "):
                 i += 1

@@ -367,6 +367,11 @@ class VendorPortalService:
                 .where(LocalizationString.project_id == job.project_id)
             )
         ).scalars().all()
+        # Unlike EF change tracking, SQLAlchemy does not backfill
+        # already-loaded collections when related rows are added, so
+        # refresh each string's translations before deciding.
+        for item in strings:
+            await self._session.refresh(item, ["translations"])
         untranslated_exists = any(
             not any(
                 trans.locale_code == job.locale_code

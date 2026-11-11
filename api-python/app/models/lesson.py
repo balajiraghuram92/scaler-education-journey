@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -10,6 +10,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Identity,
     Index,
     Integer,
     String,
@@ -36,29 +37,37 @@ if TYPE_CHECKING:
 class Lesson(Base):
     __tablename__ = "lessons"
     __table_args__ = (
-        Index("IX_lessons_ModuleId_Slug", "module_id", "slug", unique=True),
+        Index("IX_lessons_module_id_slug", "module_id", "slug", unique=True),
         CheckConstraint(
-            "content_status IN ('Outline', 'Draft', 'Published', 'Archived')",
+            "content_status::text = ANY (ARRAY['Outline'::character varying, 'Draft'::character varying, 'Published'::character varying, 'Archived'::character varying]::text[])",
             name="ck_lessons_content_status",
         ),
     )
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
     module_id: Mapped[int] = mapped_column(ForeignKey("course_modules.id", ondelete="CASCADE"))
-    slug: Mapped[str] = mapped_column(String(150))
-    title: Mapped[str] = mapped_column(String(250))
-    description: Mapped[str] = mapped_column(Text)
+    slug: Mapped[str] = mapped_column(String(150), default="")
+    title: Mapped[str] = mapped_column(String(250), default="")
+    description: Mapped[str] = mapped_column(Text, default="")
     lecture_number: Mapped[int] = mapped_column(Integer)
-    class_date: Mapped[str] = mapped_column(String(50))
-    content_body: Mapped[str] = mapped_column(Text)
-    horstmann_ref: Mapped[str] = mapped_column(Text)
-    estimated_minutes: Mapped[int] = mapped_column(Integer)
-    is_completed: Mapped[bool] = mapped_column(Boolean)
-    order_index: Mapped[int] = mapped_column(Integer)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    difficulty: Mapped[str] = mapped_column(String(50))
-    content_status: Mapped[str] = mapped_column(String(32), server_default=text("'Published'"))
+    class_date: Mapped[str] = mapped_column(String(50), default="")
+    content_body: Mapped[str] = mapped_column(Text, default="")
+    horstmann_ref: Mapped[str] = mapped_column(Text, default="")
+    estimated_minutes: Mapped[int] = mapped_column(Integer, default=45)
+    is_completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    order_index: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+    difficulty: Mapped[str | None] = mapped_column(
+        String(50), server_default=text("'Intermediate'"), default="Intermediate"
+    )
+    content_status: Mapped[str] = mapped_column(
+        String(32), server_default=text("'Published'"), default="Published"
+    )
 
     module: Mapped[CourseModule | None] = relationship(
         "CourseModule", back_populates="lessons", lazy="raise"

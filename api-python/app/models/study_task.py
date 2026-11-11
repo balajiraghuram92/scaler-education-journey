@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, Text, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Identity, Index, Integer, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -19,15 +19,18 @@ class StudyTask(Base):
     __tablename__ = "Tasks"
     __table_args__ = (Index("IX_Tasks_VerticalId", "VerticalId"),)
 
-    id: Mapped[int] = mapped_column("Id", Integer, primary_key=True)
+    id: Mapped[int] = mapped_column("Id", Integer, Identity(), primary_key=True)
     vertical_id: Mapped[int] = mapped_column(
         "VerticalId", ForeignKey("Verticals.Id", ondelete="CASCADE")
     )
-    title: Mapped[str] = mapped_column("Title", Text)
+    title: Mapped[str] = mapped_column("Title", Text, default="")
     is_completed: Mapped[bool] = mapped_column("IsCompleted", Boolean)
-    module: Mapped[str] = mapped_column("Module", Text)
+    module: Mapped[str] = mapped_column("Module", Text, default="")
     updated_at: Mapped[datetime] = mapped_column(
-        "updated_at", DateTime(timezone=True), server_default=text("now()")
+        "updated_at",
+        DateTime(timezone=True),
+        server_default=text("now()"),
+        default=lambda: datetime.now(UTC),
     )
 
     vertical: Mapped[StudyVertical | None] = relationship(

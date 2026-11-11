@@ -189,6 +189,12 @@ class MarketplaceService:
                 f"Cannot post a new job for locale '{locale_code}' while job "
                 f"{most_recent_job.id} is in status '{most_recent_job.status}'."
             )
+        # Unlike EF change tracking, SQLAlchemy does not backfill
+        # already-loaded collections when rows are added later in the
+        # session, so refresh before counting.
+        await self._session.refresh(project, ["strings"])
+        for item in project.strings:
+            await self._session.refresh(item, ["translations"])
         untranslated_strings = [
             item
             for item in project.strings

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Index, Integer, String
+from sqlalchemy import ForeignKey, Identity, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -22,11 +22,11 @@ class BuildSnapshotLocaleCount(Base):
         ),
     )
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
     build_snapshot_id: Mapped[int] = mapped_column(
         ForeignKey("localization_build_snapshots.id", ondelete="CASCADE")
     )
-    locale_code: Mapped[str] = mapped_column(String(20))
+    locale_code: Mapped[str] = mapped_column(String(20), default="")
     approved_count: Mapped[int] = mapped_column(Integer)
 
     build_snapshot: Mapped[BuildSnapshot | None] = relationship(

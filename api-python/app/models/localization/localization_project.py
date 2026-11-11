@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Index, Integer, String, text
+from sqlalchemy import DateTime, Identity, Index, Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -29,12 +29,14 @@ class LocalizationProject(Base):
         Index("ix_localization_projects_slug", "slug", unique=True),
     )
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
-    slug: Mapped[str] = mapped_column(String(150))
-    name: Mapped[str] = mapped_column(String(250))
-    source_locale: Mapped[str] = mapped_column(String(20))
-    qps_threshold: Mapped[int] = mapped_column(Integer, server_default=text("70"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
+    slug: Mapped[str] = mapped_column(String(150), default="")
+    name: Mapped[str] = mapped_column(String(250), default="")
+    source_locale: Mapped[str] = mapped_column(String(20), default="en-US")
+    qps_threshold: Mapped[int] = mapped_column(Integer, server_default=text("70"), default=70)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
     locales: Mapped[list[LocalizationLocale]] = relationship(
         "LocalizationLocale", back_populates="project", lazy="raise"

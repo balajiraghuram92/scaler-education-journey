@@ -511,3 +511,28 @@ async def test_phase3_actions_not_configured_throw_not_implemented() -> None:
     # A missing client is the same 501 path.
     with pytest.raises(NotImplementedError, match="not configured"):
         await MtOptimizeService().optimize_async("r", "s", "de-DE")
+
+
+@pytest.mark.asyncio
+async def test_phase3_actions_empty_base_url_throw_not_implemented_and_write_no_ledger(
+    scratch_session: AsyncSession,
+) -> None:
+    db = scratch_session
+    seed = await seed_project(db)
+    # No translations seeded: nothing is eligible for any Phase 3 action.
+
+    fake = FakeAiTransport()
+    options = _ai_options()
+    options.base_url = ""
+    flow = _workflow(db, _ai_client(fake, options), options)
+
+    for action in ("Run MT Optimize", "Score QPS", "Auto-Route"):
+        step = await flow.add_step_async(
+            seed.project.slug, AddWorkflowStepRequest(action=action)
+        )
+        with pytest.raises(NotImplementedError, match="not configured"):
+            await flow.run_step_async(seed.project.slug, step.id)
+
+    entries = (await db.execute(select(LedgerEntry))).scalars().all()
+    assert entries == []
+    assert fake.requests == []

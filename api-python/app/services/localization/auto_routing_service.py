@@ -13,6 +13,10 @@ class AutoRoutingService:
     def __init__(self, client: LocalizationAiClient | None = None) -> None:
         self._client = client
 
+    @property
+    def is_configured(self) -> bool:
+        return self._client is not None and self._client.is_configured
+
     async def should_route_to_review_async(
         self, qps_score: int, project_threshold: int
     ) -> bool:

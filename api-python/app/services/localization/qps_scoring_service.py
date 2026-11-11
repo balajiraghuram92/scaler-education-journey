@@ -19,6 +19,10 @@ class QpsScoringService:
     def __init__(self, client: LocalizationAiClient | None = None) -> None:
         self._client = client
 
+    @property
+    def is_configured(self) -> bool:
+        return self._client is not None and self._client.is_configured
+
     async def score_async(
         self, source_text: str, target_text: str, target_locale: str
     ) -> QualityScoreResult:

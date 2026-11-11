@@ -48,7 +48,6 @@ from .routers.localization import (
 from .services.auth.current_user import ChallengeException, challenge_exception_handler
 from .settings import get_api_key, get_environment, get_frontend_url
 
-
 # (P2) Real authentication replaced the P0 placeholder: routers depend on
 # app.services.auth.current_user directly; rate limiting lives in
 # app/rate_limit.py. This module only registers the 401/403 challenge handler.

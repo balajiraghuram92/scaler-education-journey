@@ -113,8 +113,8 @@ async def seed(session: AsyncSession) -> None:
         questions = _get_case_insensitive(group, "questions", []) or []
         effective_slug = _SLUG_ALIASES.get(lesson_slug.lower(), lesson_slug)
         lookup_key = f"{course_slug}/{module_slug}/{effective_slug}".lower()
-        lesson: Lesson | None = lesson_lookup.get(lookup_key)
-        if lesson is None:
+        matched_lesson: Lesson | None = lesson_lookup.get(lookup_key)
+        if matched_lesson is None:
             slug_matches = (
                 await session.execute(
                     select(Lesson)
@@ -124,7 +124,7 @@ async def seed(session: AsyncSession) -> None:
                     .where(Lesson.slug == effective_slug)
                 )
             ).scalars().all()
-            lesson = next(
+            matched_lesson = next(
                 (
                     candidate
                     for candidate in slug_matches
@@ -135,10 +135,10 @@ async def seed(session: AsyncSession) -> None:
                 ),
                 None,
             )
-            if lesson is not None:
-                lesson_lookup[lookup_key] = lesson
+            if matched_lesson is not None:
+                lesson_lookup[lookup_key] = matched_lesson
 
-        if lesson is None:
+        if matched_lesson is None:
             print(
                 f"[WARN] Lesson not found for key '{course_slug}/{module_slug}/{effective_slug}'. "
                 f"Skipping {len(questions)} question(s)."
@@ -160,7 +160,7 @@ async def seed(session: AsyncSession) -> None:
 
             now = datetime.now(UTC)
             question_entity = McqQuestion(
-                lesson_id=lesson.id,
+                lesson_id=matched_lesson.id,
                 legacy_key=legacy_key.strip() if legacy_key.strip() else None,
                 question_text=_get_case_insensitive(q, "questionText") or "",
                 source_type=(

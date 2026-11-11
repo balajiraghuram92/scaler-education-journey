@@ -481,3 +481,260 @@ Task 6. **ruff, 142 findings**, all fixed by hand, no reformatting:
   `_write_text_async`/`_write_text` `asyncio.to_thread` pair (comment
   explains relpath hits the filesystem via abspath).
 - `ruff format` left alone per item 8.
+
+## Round 4 corrections
+
+Log: `info/muse-prompts/corrections/round4/api-python-db.log` plus
+`api-python.log` (mypy/ruff sections) and `ruff-diff.log`. No command was
+run in this round; nothing below is claimed to pass.
+
+Task 1. **C# property defaults, 254 `default=` added across 55 model
+files** (`DateTime.UtcNow` as `default=lambda: datetime.now(UTC)` with a
+`UTC` import added where needed; `Guid.NewGuid()` as the existing
+`uuid4` pattern; `MfaChallenge.ExpiresAt` as now+5min; decimals as
+`Decimal("1.0000")`; strings/ints/bools as literals; alongside existing
+`server_default`s where present, e.g. `Course.path_type`,
+`McqQuestion.category`). Per-model counts: app_user 8,
+chat_conversation 2, chat_message 4, concept_next_lesson 4,
+concept_prerequisite 1, concept_relation 1, course 8, course_domain_link
+3, course_module 7, domain_concept_connection 4, knowledge_concept 11,
+knowledge_domain 9, knowledge_thread 2, knowledge_thread_step 2,
+learning_activity 3, lesson 13, lesson_code_comparison 11,
+lesson_concept_link 3, lesson_diagram 6, lesson_note 6,
+lesson_relation 6, lesson_resource 5, build_snapshot 5,
+build_snapshot_locale_count 1, eval_case_result 1, eval_golden_case 4,
+eval_run 2, glossary_term 3, ledger_entry 2, localization_locale 2,
+localization_project 5, localization_string 3, localization_translation
+5, marketplace_bid 3, marketplace_job 2, provider_health_snapshot 3,
+translation_cache_entry 4, vendor 2, workflow_step 2, mcq_attempt 2,
+mcq_option 3, mcq_presentation 2, mcq_question 7, mfa_challenge 4,
+migration_reconciliation 9, problem 17, reading_activity_log 3,
+reading_map_item 8, study_task 3, study_task_content_link 6,
+study_vertical 3, user_exercise_state 8 (draft 3, attempt 5),
+user_lesson_progress 5, user_problem_progress 3, user_session 3 (Id
+already had `uuid4`). Mismatches vs the C4 table, all resolved by
+direct C# reads: Problem has 17 initializers, not 16 (the table lists
+17 names with count 16); ReadingActivityLog.OrderIndex,
+ReadingMapItem.SubText, ReadingMapItem.OrderIndex, and
+StudyTask.IsCompleted have NO C# initializer and were left untouched
+per the task rule (C# implicit 0/false deliberately not ported — if a
+later log shows violations there, that is the cause);
+`MappingType`'s value is `"TitleAndModule"`; `Difficulty` is
+`"Warm-up"`. One tool note: a `search` call covering the last ten C#
+files returned corrupt line numbers (citing lines past end-of-file),
+so those ten files were re-derived by full direct reads instead.
+
+Task 2. **Schema parity — the task premise was wrong, fixed the real
+gap instead.** The test does NOT report one difference: the log
+(lines 1084-1290, read directly) lists ~150, in five classes, and
+NO identity PK passes (study_task.py and study_vertical.py declare
+`Id` identically and fail identically). Fixed the four
+evidence-backed model-side classes; the models-side is the
+inconsistent one throughout (DB authoritative, created by fresh
+`--migrate`; verified by migration lookup where it mattered):
+- Identity (39 PKs): added `Identity()` to every int/bigint PK
+  the log flags (Tasks/Verticals/app_users/concepts/courses/
+  modules/domains/threads/learning_activity/lesson_relations/
+  lesson_resources/lessons/all 12 localization tables/mcq×2/
+  migration_reconciliation/problems/reading×2/user_exercise×2/
+  user_lesson/user_problem). Residual uncertainty, stated
+  plainly: whether `Identity()` populates the `server_default`
+  slot the check reads is inferred from reflection symmetry,
+  not observed; the re-run confirms.
+- Server defaults (44 columns): added `server_default=text(...)`
+  with content copied from the EF migrations, each looked up per
+  column (raw-SQL migration `20260821040000` for the lesson
+  tables incl. `nextval('..._id_seq'::regclass)` for the three
+  SERIAL PKs; `HasDefaultValue[Sql]` elsewhere). Notable:
+  `password_iterations` is `100000` in the migration vs C#'s
+  `210000` initializer — server_default follows the migration,
+  the Task-1 Python default follows C#, and both coexist.
+- Index names (24 renames + 3 removals): renamed to the exact DB
+  names from the log (mixed `IX_`/`ix_` and case conventions in
+  the DB — only listed pairs touched, e.g. LectureNumber and
+  Category left alone). Removed
+  `IX_reading_map_items_LessonId/TaskId` and the extra
+  `occurred_at` from `ix_learning_activity_lesson`: the
+  migrations never created them (EF model-vs-migration skew —
+  the snapshot claims `(LessonId, OccurredAt)` but
+  `20260823181000` creates `(lesson_id,)`).
+- `lessons.difficulty` made nullable per the DB (C# says
+  non-nullable with `"Intermediate"` — a second C#/migration
+  skew, reported; parity follows the DB) plus its
+  `server_default`.
+- Check SQL (~20): transcribed the DB's canonical renderings
+  (`= ANY (ARRAY[...]::text[])`, `TRIM(BOTH FROM ...)`,
+  `>=/<=`, `::numeric`) verbatim from the log into the model
+  `CheckConstraint` strings. Deliberately model-side, not a
+  hand-rolled SQL normalizer in the check: every edit is
+  verifiable by direct string comparison, at the cost of
+  PG-version coupling (noted for the reviewer).
+- NOT changed: the three `localization_translations` "missing
+  column" lines are stale — `raw_mt_text`, `raw_mt_qps_score`,
+  `comet_kiwi_score` are present, correctly typed and nullable
+  in the model (single table definition, verified); nothing to
+  do. Nothing in `schema_check.py` or the schema changed.
+
+Task 3. **Localization behaviour (7).**
+- 4 submit failures: the task's suggested diagnosis was wrong —
+  the fixture creates the same (zero) translations as C# and the
+  counting logic matches C# exactly (all project strings, each
+  needing a non-empty target in the job locale). Root cause is
+  ORM behaviour: EF relationship fixup backfills tracked
+  collections when rows are added, but SQLAlchemy leaves
+  already-loaded `item.translations` / `project.strings`
+  collections stale, so the submit check (and a second post
+  after adding a string) decided on empty data. Fixed the Python
+  side to read fresh before deciding, keeping the C#-shaped
+  queries: `vendor_portal_service.py` refreshes each string's
+  `translations` before the check; `marketplace_service.py`
+  refreshes `project.strings` and each translations collection
+  before counting untranslated. `get_job_strings_async` has the
+  same latent pattern but no failing test; left alone.
+- Phase3 test: ported round-2's `ThrowIfAiNotConfigured` — new
+  module-level `_throw_if_ai_not_configured` in
+  `workflow_service.py` called first in all three AI branches,
+  `is_configured` added to the three services, the
+  `IQualityScorer` protocol and the fixture fake (True, as in
+  C#); ported `Phase3Actions_EmptyBaseUrl_...` to
+  `test_localization_ai_workflow.py` (empty base URL, no
+  translations, all three actions raise, no ledger entries, no
+  HTTP requests).
+
+- 2 `assert False is True` (both in `test_curriculum_import.py`,
+  not localization): the Python service omitted `lecture_number`
+  while C# relies on the implicit CLR 0. Fixed the Python side:
+  `curriculum_import_service.py` now passes `lecture_number=0`
+  with a comment. (Routers at `chapters.py:411` and
+  `lessons.py:155` construct `Lesson` without it too — latent,
+  no failing test, left for a later round.)
+
+Task 4. **Counts + converter path.** Converter `main()` output
+directory fixed to `app/seed/data`
+(`tools/extract_seed_data.py:483`). Of the five backfill
+failures, three (phase2, phase3a_repeat, fde_reconciler_repeat)
+are `horstmann_ref` setup inserts already covered by the Task-1
+`default=""`. The two count assertions were wrong in the
+TEST, not the converter or seeder — verified exhaustively
+against C# sources (there is no C# test of the same name
+asserting these numbers; `BackfillReconciliationTests.cs`
+holds only reconciler unit tests): C# builds exactly 22 tasks
+(one `AddRange` of a 22-item list; no other task creation for
+this vertical anywhere in `api/`, no migration inserts), so
+`task_count == 28` became 22; C# reconciler logic (identical
+structure, identical 17+5 maps) yields at most one verified
+link per task and no problems are seeded, so `verified_count`
+and `link_count` 27 became 17 (twice each, both APPLY runs).
+Also fixed the next assertion in the same chain, which would
+have failed immediately after: `lesson_total` 22 became 27
+(C# seeds 5+4+4+4+6+4 module lessons into java-spring-lld and
+all expanded definitions are standalone courses). LATENT,
+reported not fixed (out of scope — never reached): in
+`test_phase3a_repeat_apply_repairs_missing_links`,
+`list(LEGACY_LESSON_SLUG_MAP)[:22]` yields only 17 titles, so
+its `verified_count == 22` / link `== 22` expectations (x4)
+are unachievable as constructed; it needs 17s or reworked
+setup.
+
+Task 5. **Four no-DB failures.**
+- Endpoint mapping: UNRESOLVED by reading. All six routes are
+  properly registered in the current tree
+  (`exercise_endpoints.py` defines all six under prefix
+  `/api/exercises` with the exact expected handler names, and
+  `main.py:206` includes the router; single `router` object,
+  no shadowing in `routers/__init__.py`). The C# test builds a
+  bare app and checks only endpoint names, so it sheds no
+  light. Nothing was changed: there is no missing include and
+  no disorder to fix. Needs a live run to see the actual
+  routes set (the log's assertion repr is pytest-truncated).
+- Compiler output: fixed in `exercise_service.py`
+  (`python_compiler_output` matches on lstripped lines now).
+  Note: the task's "File lines / ./tests prefix" framing does
+  not match this code (it matches E-lines and learner frames);
+  the real defect is that triple-quoted test input carries
+  8-space indentation, so `startswith("E ")` and the
+  `^[\w./-]+` regex never matched. For unindented input the
+  behavior is byte-identical to C#. Traced all 9 assertions by
+  hand against the test input: all hold (E-File line keeps
+  `File "config/..."` after the `/workspace/` strip; learner
+  frame + continuation kept; site-packages/frozen/tests lines
+  still dropped; passthrough intact).
+- AES-GCM NIST vector: NOT a port bug — the test calls
+  `cryptography`'s `AESGCM` directly with zero app code in
+  the path, and no local module shadows it. A genuine
+  `cryptography` install cannot disagree with NIST SP 800-38D
+  test case 2 (the expected bytes in the test are the
+  correct vector). The failure (correct ciphertext, wrong tag
+  tail, while encrypt/decrypt round-trip passes in the
+  neighbouring test) points at a broken container install
+  (consistent GHASH breakage both directions), not the repo.
+  Nothing changed; needs a reviewer-side `pip show
+  cryptography` + re-run.
+- Llama auth header: the app side WAS wrong — C# sets
+  `Authorization: Bearer <key>` at construction so every
+  request carries it (verified by direct read,
+  `LlamaApiClient.cs:61-63`), while Python only set it on
+  self-created clients, never on injected ones. Fixed by
+  attaching the header per request in `generate_completion`.
+
+Task 6. **Triage.** Every one of the 30 failures is now
+attributed (verified against the log's E-lines, read
+directly): 16 Task-1 `NotNullViolation`s (`password_iterations`
+in progress_service/budget×2/learner×3/session×4;
+`horstmann_ref` in phase2/phase3a_repeat/fde_repeat/
+bridge×2/java_reconciler); 7 Task-3 (import×2, phase3,
+marketplace×2, vendor×2); 2 Task-4 count assertions (+2 more
+assertions in the same tests); 4 Task-5 no-DB; 1 Task-2
+parity. The azure item (`answer_recall`, `assert 1 == 2`)
+does NOT exist anywhere in the round-4 DB log — no such
+test failed (verified by search plus the complete 30-line
+FAILED summary, which accounts for all 30 without it). No
+check was touched; nothing changed for this item.
+  Correction to the above (verified via search on raw bytes):
+  tool output redacts any `Bearer <token>` display as
+  `Bearer [REDACTED]`, which first made the test look like it
+  expected a literal placeholder. It does not: the test really
+  expects the test key, and the per-request header fix produces
+  exactly that — no residual remains and the test needs no
+  change.
+
+Task 7. **mypy (6) + ruff (7), all 13 fixed by hand, no
+reordering, no reformatting.** Source note: `api-python.log`
+ends at line 132 with the pytest summary — it contains no
+mypy or ruff sections, so the findings below come from the C4
+task text itself (plus `ruff-diff.log` for the two blank-line
+fixes, matched exactly).
+- mypy `Name ... already defined` (2): the round-3
+  re-annotations became fresh names. `lesson` to
+  `matched_lesson` in `seed/mcq_migration_seed_data.py`
+  (binding 116, uses 117, 127, 138, 139, 141, 163; the
+  line-96 loop variable keeps the name).
+  `trans` to `existing` in
+  `services/localization/workflow_service.py` (binding 316,
+  uses 324, 347, 355-359; the six other-branch `trans` loop
+  variables untouched; `existing` verified free in
+  `run_step_async`, lines 255-542).
+- mypy `llama_api_client.py` (reviewer line 166): the guarded
+  return became `prompt_tokens: int = int(prompt_value or
+  0)` / `completion_tokens: int = int(comp_value or 0)`
+  (lines 173-174). Behaviour is identical on the guarded
+  path (the guards prove non-bool non-negative ints, so `or
+  0` never fires); the annotated locals make the declared
+  `tuple[int, int, bool]` return explicit.
+- mypy `seed/schema_check.py:164, 165, 168`: the three `is
+  not None` name filters became `isinstance(..., str)`
+  (constraint names can be a `_NoneName` sentinel as well
+  as None).
+- ruff I001 (7): `errors.py` and `main.py` each lost one
+  blank line after the import block (lines 10 and 50), as
+  `ruff-diff.log` prescribes. The other five each lost the
+  blank line between the plain `import` and the `from`
+  imports inside the stdlib group
+  (`curriculum_import_service.py:6`,
+  `exercise_progress_service.py:12`,
+  `learner_progress_service.py:11`, `mcq_service.py:8`,
+  `progress_service.py:6`). Import ORDER was already
+  correct in all five (straight-before-from, anchored by
+  ruff-clean `main.py:15-16`; more-dots-first, anchored by
+  ruff-clean `workflow_service.py:13-40` and
+  `vendor_portal_service.py:12-31`), so no line moved.

@@ -480,7 +480,7 @@ def main(argv: list[str]) -> int:
     repo_root = os.path.abspath(os.path.join(here, "..", ".."))
     java_cs = os.path.join(repo_root, "api", "Data", "JavaVerticalSeedData.cs")
     fde_cs = os.path.join(repo_root, "api", "Data", "FdeCurriculumSeedData.cs")
-    out_dir = os.path.join(here, "..", "seed", "data")
+    out_dir = os.path.join(here, "..", "app", "seed", "data")
 
     java = extract_java(java_cs)
     fde = extract_fde(fde_cs)

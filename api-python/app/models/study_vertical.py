@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, Text, text
+from sqlalchemy import DateTime, ForeignKey, Identity, Index, Integer, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -21,15 +21,17 @@ class StudyVertical(Base):
         Index("ix_verticals_canonical_vertical_id", "canonical_vertical_id"),
     )
 
-    id: Mapped[int] = mapped_column("Id", Integer, primary_key=True)
-    name: Mapped[str] = mapped_column("Name", Text)
-    description: Mapped[str] = mapped_column("Description", Text)
+    id: Mapped[int] = mapped_column("Id", Integer, Identity(), primary_key=True)
+    name: Mapped[str] = mapped_column("Name", Text, default="")
+    description: Mapped[str] = mapped_column("Description", Text, default="")
     canonical_vertical_id: Mapped[int | None] = mapped_column(
         ForeignKey("Verticals.Id", ondelete="RESTRICT")
     )
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=text("now()")
+        DateTime(timezone=True),
+        server_default=text("now()"),
+        default=lambda: datetime.now(UTC),
     )
 
     canonical_vertical: Mapped[StudyVertical | None] = relationship(

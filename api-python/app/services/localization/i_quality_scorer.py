@@ -13,6 +13,9 @@ class QualityScoreResult:
 
 
 class IQualityScorer(Protocol):
+    @property
+    def is_configured(self) -> bool: ...
+
     async def score_async(
         self, source_text: str, target_text: str, target_locale: str
     ) -> QualityScoreResult: ...

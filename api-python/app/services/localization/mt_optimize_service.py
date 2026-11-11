@@ -18,6 +18,10 @@ class MtOptimizeService:
     def __init__(self, client: LocalizationAiClient | None = None) -> None:
         self._client = client
 
+    @property
+    def is_configured(self) -> bool:
+        return self._client is not None and self._client.is_configured
+
     async def optimize_async(
         self, raw_translation: str, project_slug: str, target_locale: str
     ) -> str:

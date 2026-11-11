@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, Numeric, String
+from sqlalchemy import DateTime, ForeignKey, Identity, Index, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -24,12 +24,12 @@ class MarketplaceJob(Base):
         Index("ix_localization_marketplace_jobs_vendor_id", "awarded_vendor_id"),
     )
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
     project_id: Mapped[int] = mapped_column(
         ForeignKey("localization_projects.id", ondelete="CASCADE")
     )
-    locale_code: Mapped[str] = mapped_column(String(20))
-    status: Mapped[str] = mapped_column(String(20))
+    locale_code: Mapped[str] = mapped_column(String(20), default="")
+    status: Mapped[str] = mapped_column(String(20), default="Draft")
     string_count: Mapped[int] = mapped_column(Integer)
     word_count: Mapped[int] = mapped_column(Integer)
     suggested_price_low: Mapped[Decimal] = mapped_column(Numeric(10, 2))

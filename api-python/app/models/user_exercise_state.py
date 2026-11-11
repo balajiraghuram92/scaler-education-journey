@@ -5,7 +5,7 @@ Holds both classes from the C# file: UserExerciseDraft and UserExerciseAttempt.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -13,6 +13,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Identity,
     Index,
     Integer,
     String,
@@ -37,11 +38,13 @@ class UserExerciseDraft(Base):
         ),
     )
 
-    id: Mapped[int] = mapped_column("id", BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column("id", BigInteger, Identity(), primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("app_users.id", ondelete="CASCADE"))
-    exercise_id: Mapped[str] = mapped_column(String(120))
-    files_json: Mapped[str] = mapped_column("files", JsonbText)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    exercise_id: Mapped[str] = mapped_column(String(120), default="")
+    files_json: Mapped[str] = mapped_column("files", JsonbText, default="[]")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
     user: Mapped[AppUser | None] = relationship("AppUser", lazy="raise")
 
@@ -56,20 +59,22 @@ class UserExerciseAttempt(Base):
             "submitted_at",
         ),
         CheckConstraint(
-            "status IN ('success', 'testFailure', 'compilationFailure', 'timeout')",
+            "status::text = ANY (ARRAY['success'::character varying, 'testFailure'::character varying, 'compilationFailure'::character varying, 'timeout'::character varying]::text[])",
             name="ck_user_exercise_attempts_status",
         ),
     )
 
-    id: Mapped[int] = mapped_column("id", BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column("id", BigInteger, Identity(), primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("app_users.id", ondelete="CASCADE"))
-    exercise_id: Mapped[str] = mapped_column(String(120))
-    status: Mapped[str] = mapped_column(String(30))
+    exercise_id: Mapped[str] = mapped_column(String(120), default="")
+    status: Mapped[str] = mapped_column(String(30), default="")
     tests_total: Mapped[int] = mapped_column(Integer)
     tests_passed: Mapped[int] = mapped_column(Integer)
     duration_milliseconds: Mapped[int] = mapped_column("duration_ms", BigInteger)
-    files_json: Mapped[str] = mapped_column("files", JsonbText)
-    summary_json: Mapped[str] = mapped_column("summary", JsonbText)
-    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    files_json: Mapped[str] = mapped_column("files", JsonbText, default="[]")
+    summary_json: Mapped[str] = mapped_column("summary", JsonbText, default="{}")
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
     user: Mapped[AppUser | None] = relationship("AppUser", lazy="raise")

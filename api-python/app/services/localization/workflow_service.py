@@ -25,7 +25,11 @@ from ...settings import LocalizationAiSettings
 from .auto_routing_service import AutoRoutingService
 from .i_quality_scorer import IQualityScorer
 from .i_translation_provider import ITranslationProvider
-from .localization_ai_client import AiGlossaryTermDto, LocalizationAiException
+from .localization_ai_client import (
+    NOT_CONFIGURED_MESSAGE,
+    AiGlossaryTermDto,
+    LocalizationAiException,
+)
 from .localization_exceptions import (
     InvalidJobStateException,
     LocalizationProjectNotFoundException,
@@ -309,7 +313,7 @@ class WorkflowService:
             character_count = 0
             for locale in project.locales:
                 for item in project.strings:
-                    trans: LocalizationTranslation | None = next(
+                    existing: LocalizationTranslation | None = next(
                         (
                             t
                             for t in item.translations
@@ -317,7 +321,7 @@ class WorkflowService:
                         ),
                         None,
                     )
-                    if trans is None:
+                    if existing is None:
                         translated_text = (
                             await self._translation_provider.translate_async(
                                 item.source_text,
@@ -340,7 +344,7 @@ class WorkflowService:
                         character_count += (
                             len(translated_text) if translated_text is not None else 0
                         )
-                    elif _is_blank(trans.target_text):
+                    elif _is_blank(existing.target_text):
                         translated_text = (
                             await self._translation_provider.translate_async(
                                 item.source_text,
@@ -348,11 +352,11 @@ class WorkflowService:
                                 locale.locale_code,
                             )
                         )
-                        trans.target_text = translated_text
-                        trans.raw_mt_text = translated_text
-                        trans.stage = "Translated"
-                        trans.translation_source = "AI"
-                        trans.updated_at = now
+                        existing.target_text = translated_text
+                        existing.raw_mt_text = translated_text
+                        existing.stage = "Translated"
+                        existing.translation_source = "AI"
+                        existing.updated_at = now
                         translated_count += 1
                         character_count += (
                             len(translated_text) if translated_text is not None else 0
@@ -395,6 +399,7 @@ class WorkflowService:
         # A per-string AI failure is counted and the run continues; only
         # NotImplementedError (service not configured) aborts into HTTP 501.
         elif step.action == WorkflowActions.RUN_MT_OPTIMIZE:
+            _throw_if_ai_not_configured(self._mt_optimize_service.is_configured)
             glossary = (
                 await self._session.execute(
                     select(GlossaryTerm).where(
@@ -464,6 +469,7 @@ class WorkflowService:
                 else f"{optimized_count} strings optimized, {failed_count} failed"
             )
         elif step.action == WorkflowActions.SCORE_QPS:
+            _throw_if_ai_not_configured(self._quality_scorer.is_configured)
             scored_count = 0
             failed_count = 0
             for item in project.strings:
@@ -499,6 +505,7 @@ class WorkflowService:
                 else f"{scored_count} strings scored, {failed_count} failed"
             )
         elif step.action == WorkflowActions.AUTO_ROUTE:
+            _throw_if_ai_not_configured(self._auto_routing_service.is_configured)
             processed_count = 0
             flagged_count = 0
             failed_count = 0
@@ -566,3 +573,10 @@ def _validate_action_and_trigger(
         raise ValueError(
             f"Unknown workflow trigger '{effective_trigger}'. (Parameter 'trigger')"
         )
+
+
+def _throw_if_ai_not_configured(configured: bool) -> None:
+    """Port of WorkflowService.ThrowIfAiNotConfigured: call before any loop
+    and before any database write."""
+    if not configured:
+        raise NotImplementedError(NOT_CONFIGURED_MESSAGE)

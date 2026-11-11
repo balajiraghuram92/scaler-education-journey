@@ -34,6 +34,10 @@ class FakeTranslationProvider:
 
 
 class FakeQualityScorer:
+    @property
+    def is_configured(self) -> bool:
+        return True
+
     async def score_async(
         self, source_text: str, target_text: str, target_locale: str
     ) -> QualityScoreResult:

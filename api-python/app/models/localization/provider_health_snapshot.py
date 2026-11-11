@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Integer, Numeric, String
+from sqlalchemy import DateTime, Identity, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..base import Base
@@ -14,10 +14,12 @@ from ..base import Base
 class ProviderHealthSnapshot(Base):
     __tablename__ = "localization_provider_health"
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
-    provider: Mapped[str] = mapped_column(String(30))
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
+    provider: Mapped[str] = mapped_column(String(30), default="")
     p50_latency_ms: Mapped[int] = mapped_column(Integer)
     p99_latency_ms: Mapped[int] = mapped_column(Integer)
     error_rate_percent: Mapped[Decimal] = mapped_column(Numeric(5, 2))
-    circuit_state: Mapped[str] = mapped_column(String(20))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    circuit_state: Mapped[str] = mapped_column(String(20), default="Closed")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )

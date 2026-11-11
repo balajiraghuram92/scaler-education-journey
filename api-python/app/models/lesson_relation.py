@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -10,9 +10,11 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Identity,
     Index,
     Integer,
     String,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,33 +36,43 @@ class LessonRelation(Base):
             unique=True,
         ),
         CheckConstraint(
-            "relationship_type IN ('Prerequisite', 'Related', 'Next')",
+            "relationship_type::text = ANY (ARRAY['Prerequisite'::character varying, 'Related'::character varying, 'Next'::character varying]::text[])",
             name="ck_lesson_relation_type",
         ),
         CheckConstraint(
-            "resolution_status IN ('Unresolved', 'Resolved', 'External')",
+            "resolution_status::text = ANY (ARRAY['Unresolved'::character varying, 'Resolved'::character varying, 'External'::character varying]::text[])",
             name="ck_lesson_relation_resolution",
         ),
         CheckConstraint(
-            "target_lesson_id IS NOT NULL OR length(trim(target_title)) > 0",
+            "target_lesson_id IS NOT NULL OR length(TRIM(BOTH FROM target_title)) > 0",
             name="ck_lesson_relation_target",
         ),
     )
 
-    id: Mapped[int] = mapped_column("id", BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column("id", BigInteger, Identity(), primary_key=True)
     source_lesson_id: Mapped[int] = mapped_column(
         ForeignKey("lessons.id", ondelete="CASCADE")
     )
     target_lesson_id: Mapped[int | None] = mapped_column(
         ForeignKey("lessons.id", ondelete="SET NULL")
     )
-    target_title: Mapped[str] = mapped_column(String(300))
+    target_title: Mapped[str] = mapped_column(String(300), default="")
     target_slug: Mapped[str | None] = mapped_column(String(150))
-    relationship_type: Mapped[str] = mapped_column(String(32))
-    resolution_status: Mapped[str] = mapped_column(String(32))
-    order_index: Mapped[int] = mapped_column(Integer)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    relationship_type: Mapped[str] = mapped_column(String(32), default="Related")
+    resolution_status: Mapped[str] = mapped_column(
+        String(32), server_default=text("'Unresolved'"), default="Unresolved"
+    )
+    order_index: Mapped[int] = mapped_column(Integer, server_default=text("0"), default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=text("now()"),
+        default=lambda: datetime.now(UTC),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=text("now()"),
+        default=lambda: datetime.now(UTC),
+    )
 
     source_lesson: Mapped[Lesson | None] = relationship(
         "Lesson",
