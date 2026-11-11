@@ -93,8 +93,14 @@ Date checks from the timeline that apply here:
 
 ## 7. Things to verify on Microsoft Learn before building
 
-- The exact base URL and authentication header for the OpenAI-compatible endpoint of a Foundry resource, and whether an `api-version` is still required.
-- The endpoint and request shape for Claude models deployed in Foundry.
+Checked on 11 Nov 2026 (details and sources in `A1-azure-models.md`):
+
+- Azure OpenAI v1 endpoint: `https://<resource>.openai.azure.com/openai/v1`, no `api-version`, API key in the `api-key` header (so row 1 needs a one-line header option, not settings alone), `model` is the deployment name.
+- Claude in Foundry: `https://<resource>.services.ai.azure.com/anthropic/v1/messages`, headers `x-api-key` and `anthropic-version: 2023-06-01`. The Learn page (dated Sep 2026) uses `claude-sonnet-4-6` in its examples and names Opus 4.6, so 4.6-era models on Foundry are now confirmed by a Microsoft page; the date they arrived is still not established. Claude needs a pay-as-you-go subscription.
+
+Still to verify:
+
+- Whether `/embeddings` is served on the v1 endpoint.
 - Whether dynamic sessions custom containers can run with egress fully disabled, and their limits on run time and disk (a `dotnet build` needs both).
 - The Prompt Shields request format for documents and its size limit per call.
 - Which API Management tiers support the AI gateway policies you want.
