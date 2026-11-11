@@ -197,7 +197,7 @@ async def test_phase3a_repeat_apply_repairs_missing_links(scratch_session: Async
     db = scratch_session
     now = _now()
     vertical = await _add_vertical(db, "Java & Spring Architecture")
-    titles = list(LEGACY_LESSON_SLUG_MAP)[:22]
+    titles = list(LEGACY_LESSON_SLUG_MAP)[:17]
     for title in titles:
         db.add(StudyTask(vertical_id=vertical.id, title=title, is_completed=False, module="M", updated_at=now))
     await db.flush()
@@ -224,18 +224,18 @@ async def test_phase3a_repeat_apply_repairs_missing_links(scratch_session: Async
 
     reconciler = JavaReconciler(db)
     first = await reconciler.reconcile_java(ReconciliationExecutionMode.APPLY)
-    assert first.verified_count == 22
+    assert first.verified_count == 17
 
-    # Simulate drift: drop 5 links, then re-apply must restore all 22.
+    # Simulate drift: drop 5 links, then re-apply must restore all 17.
     links = (await db.execute(select(StudyTaskContentLink))).scalars().all()
-    assert len(links) == 22
+    assert len(links) == 17
     for link in links[:5]:
         await db.delete(link)
     await db.flush()
 
     second = await reconciler.reconcile_java(ReconciliationExecutionMode.APPLY)
-    assert second.verified_count == 22
-    assert (await db.execute(select(func.count(StudyTaskContentLink.task_id)))).scalar_one() == 22
+    assert second.verified_count == 17
+    assert (await db.execute(select(func.count(StudyTaskContentLink.task_id)))).scalar_one() == 17
 
 
 @pytest.mark.asyncio

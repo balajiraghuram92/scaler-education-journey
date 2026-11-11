@@ -738,3 +738,148 @@ fixes, matched exactly).
   ruff-clean `main.py:15-16`; more-dots-first, anchored by
   ruff-clean `workflow_service.py:13-40` and
   `vendor_portal_service.py:12-31`), so no line moved.
+
+## Round 5 corrections
+
+Log: `info/muse-prompts/corrections/round5/api-python-db.log`
+(171 passed, 5 failed, 1 skipped) and `api-python.log`
+(ruff clean, mypy clean, 2 failed without DB). No command
+was run in this round; nothing below is claimed to pass.
+
+Task 1. **Schema parity, 7 differences.**
+- Three stale column exceptions removed from
+  `KNOWN_MISSING_COLUMNS` in `app/seed/schema_check.py`
+  (now an empty annotated set with an updated comment);
+  the docstring paragraph in
+  `models/localization/localization_translation.py`
+  removed (single-line docstring, matching the other
+  models); Finding 3 deleted from `PORT-MAP.md` (numbering
+  now 1, 2, 4, ... — not renumbered, so no other
+  reference breaks).
+- Migration `20261111140209_AddLocalizationAiLayer.cs`
+  checked column by column against the models: all seven
+  new columns match (translations trio nullable
+  Text/Integer/Numeric(5,4); `qps_threshold` non-nullable
+  with `server_default` 70; ledger trio nullable) and all
+  five new tables match in names, types, nullability, FK
+  targets and delete behaviour, including indexes.
+  `source_embedding` (raw-SQL vector column, `[NotMapped]`
+  in C#) is correctly absent from the Python model, as is
+  the HNSW index. One gap found and fixed under the
+  task's "same defaults" check: the five new-table PKs
+  lacked `Identity()` while the migration declares
+  `IdentityByDefaultColumn` — added (plus imports) in
+  `glossary_term.py`, `translation_cache_entry.py`,
+  `eval_golden_case.py`, `eval_run.py`,
+  `eval_case_result.py`. Behaviour-neutral (integer PKs
+  already omit the column on insert; the tables are still
+  excluded from comparison via `KNOWN_MISSING_TABLES`).
+- Four phantom indexes deleted, nothing added: the log
+  shows no database-side-missing index for either table,
+  and both models already declare every real index from
+  the reviewer's `pg_indexes` table
+  (`ix_knowledge_thread_steps_concept`,
+  `ix_learning_activity_lesson/occurred_at/user`,
+  `ux_learning_activity_correlation_event`).
+  (`ix_learning_activity_user` covers `(user_id,
+  occurred_at)` in the model and drew no diff.)
+- Left stale, out of scope: the five table models keep
+  their "no EF migration creates this table yet"
+  docstrings (still true that the parity test excepts
+  them); Finding 2 still says "no EF migration" and
+  Finding 23 still calls the migration pending and cites
+  "Findings 2-3" — all three need a follow-up once the
+  tables leave `KNOWN_MISSING_TABLES` (which will also
+  require handling the vector column and HNSW index in
+  the check).
+
+Task 2. **AES-GCM tag.** Replaced the wrong expected tag in
+`tests/test_interchange.py:123` with the published NIST
+value `ab6e47d42cec13bdf53a67b21257bddf`, nothing else.
+Round 4's "broken container install" diagnosis was wrong:
+the library output matches the published vector, and the
+test's constant did not. The log's diff confirms the
+first 16 bytes were already right.
+
+Task 3. **Endpoint mapping.** `tests/exercises/
+test_exercise_endpoint_mapping.py` now collects routes
+through a recursive `_flatten_routes` helper that
+descends into entries with their own `routes` list,
+joining the parent `path` (or `prefix`) with the child
+path; the `routes` set and `methods` dict are built from
+the flattened list and every assertion is unchanged.
+Searched `app/` and `tools/` for other route iteration
+(literal `.routes` and `"routes"` over both trees):
+the only hit is `tools/parity.py:68` `args.routes`,
+the CLI's routes-FILE argument, not route iteration —
+verified by reading the file (it diffs HTTP responses
+from a text file). Also read `app/main.py`,
+`app/cli.py`, and both `__init__.py` files directly:
+no route iteration. So the helper stays in the test;
+no shared module was needed and no other place was
+changed. (Tool note: the search tool's regex mode
+returns false negatives this session; literal mode
+verified working against known content, so the quoted
+search above is trustworthy.)
+
+Task 4. **Java reconciler case-insensitive map lookup —
+implemented per the task direction.** C# looks up the
+reviewed tables with `StringComparer.Ordinal` on BOTH
+dictionaries (`JavaReconciler.cs:21` lesson map, `:42`
+problem map) via raw `TryGetValue(task.Title, ...)`; the
+C# test uses an EXACT-case title
+(`BackfillReconciliationTests.cs:417`) and nothing in
+the C# suite pins case-insensitive map behaviour. Per
+the task's explicit direction ("fix the service, not
+the test"), the Python port now resolves legacy titles
+without regard to case: module-level lowered views
+`_LEGACY_LESSON_SLUG_MAP_LOWER` /
+`_LEGACY_PROBLEM_SLUG_MAP_LOWER` plus a per-task
+`title_key = (task.title or "").lower()` used by both
+lookups (`java_reconciler.py:57-75, 159-160, 188`;
+comment records the Ordinal difference). This is a
+deliberate DIVERGENCE from C#: a differently-cased
+legacy title now Verifies in Python where C# would
+Propose it; exact-case titles resolve to the same slugs
+in both. Blast radius checked by reading: all 22 real
+seed titles (`GetVerticalTasks`) are exact map keys,
+no two keys collide under `lower()`, no key crosses
+between the lesson and problem maps, and the fallback
+paths are untouched — so the full-seed 17-count test,
+the repeat-apply 17-count test, and every other
+`JavaReconciler` consumer (engine included) behave
+exactly as before. Hand-trace of the target test:
+lowered task title hits the lesson map, slug
+`14-spring-boot-core` matches the one lesson,
+verified_count 1 with the original-case title kept on
+the candidate. Side judged wrong: the service (per the
+task direction; the C# comparison is recorded above).
+
+Task 5. **phase3a count — the TEST was wrong; service
+exonerated.** There is NO C# test for the Java
+repeat-apply scenario and NO `22` anywhere in
+`BackfillReconciliationTests.cs` (verified by
+literal search), so neither fixed-count branch
+occurs literally. The C# pattern is verified ==
+seeded-task-count: `JavaReconciler_ExactMatch_
+ResolvesVertical` seeds 1 task and asserts
+`Assert.Equal(1, report.VerifiedCount);` (lines
+602-642); `JavaReconciler_ReviewedLegacyTitle_
+MapsToCanonicalLessonSlug` seeds 1 exact-map-title
+task and asserts `Assert.Equal(1,
+report.VerifiedCount);` plus the target lesson id
+(lines 389-427); `FdeReconciler_RepeatApplyRun_
+IsIdempotent` asserts `Assert.Equal(1, linksCount1);`
+then run2 == run1 (lines 293-337). Applied the
+second branch by analogy: the Python test seeds 17
+tasks (`LEGACY_LESSON_SLUG_MAP` has 17 lesson keys;
+the author's 22 conflated them with the 5 PROBLEM
+keys in the other map), all exact-case map hits
+against 17 slug-built lessons, so the C#-consistent
+expectation is 17 — corrected the four assertions
+(`test_backfill_reconciliation.py:227, 231, 237,
+238`), the `[:22]` slice (`:200`), and the drift
+comment (`:229`) to 17. Task 4's fix accounts for
+none of the five: every title is an exact map key,
+which resolves identically before and after the
+Task-4 change. Side judged wrong: the Python test.

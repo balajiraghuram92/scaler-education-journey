@@ -53,12 +53,23 @@ LEGACY_LESSON_SLUG_MAP = {
     "Contest Capstone: Java, OOP & Concurrency Machine Coding": "17-machine-coding-capstone",
 }
 
+# Lower-cased views of the reviewed tables (C5 Task 4): legacy titles
+# resolve without regard to case. (The C# dictionaries use
+# StringComparer.Ordinal; exact-case titles resolve to the same slugs.)
+_LEGACY_LESSON_SLUG_MAP_LOWER = {
+    key.lower(): slug for key, slug in LEGACY_LESSON_SLUG_MAP.items()
+}
+
 LEGACY_PROBLEM_SLUG_MAP = {
     "OOP-2 Problem 1: Immutable Fare (Warm-up)": "prb1-immutable-fare",
     "OOP-2 Problem 2: Driver Onboarding (Easy-Mid)": "prb2-driver-onboarding",
     "OOP-2 Problem 3: Vehicle Hierarchy (Mid)": "prb3-vehicle-hierarchy",
     "OOP-2 Problem 4: Trip Copy Semantics (Mid-Hard)": "prb4-trip-copy-semantics",
     "OOP-2 Problem 5: The equals/hashCode Contract (Hard)": "prb5-equals-hashcode-contract",
+}
+
+_LEGACY_PROBLEM_SLUG_MAP_LOWER = {
+    key.lower(): slug for key, slug in LEGACY_PROBLEM_SLUG_MAP.items()
 }
 
 
@@ -145,9 +156,11 @@ class JavaReconciler:
 
             # Prefer the explicit reviewed mapping because the legacy tracker and
             # canonical course intentionally use different editorial titles.
-            if task.title in LEGACY_PROBLEM_SLUG_MAP:
+            title_key = (task.title or "").lower()
+            problem_slug = _LEGACY_PROBLEM_SLUG_MAP_LOWER.get(title_key)
+            if problem_slug is not None:
                 matching_problems = [
-                    p for p in all_problems if p.slug == LEGACY_PROBLEM_SLUG_MAP[task.title]
+                    p for p in all_problems if p.slug == problem_slug
                 ]
             else:
                 matching_problems = [
@@ -172,11 +185,12 @@ class JavaReconciler:
                 candidate.note = f"Ambiguous problem match ({len(matching_problems)} matches)"
                 report.conflict_count += 1
             else:
-                if task.title in LEGACY_LESSON_SLUG_MAP:
+                lesson_slug = _LEGACY_LESSON_SLUG_MAP_LOWER.get(title_key)
+                if lesson_slug is not None:
                     matching_lessons = [
                         les
                         for les in all_lessons
-                        if les.slug == LEGACY_LESSON_SLUG_MAP[task.title]
+                        if les.slug == lesson_slug
                     ]
                 else:
                     matching_lessons = [

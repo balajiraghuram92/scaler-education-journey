@@ -26,13 +26,10 @@ KNOWN_MISSING_TABLES = {
     "localization_eval_case_results",
 }
 
-# C# properties with no EF migration yet (verified against the snapshot block
-# for localization_translations).
-KNOWN_MISSING_COLUMNS = {
-    ("localization_translations", "raw_mt_text"),
-    ("localization_translations", "raw_mt_qps_score"),
-    ("localization_translations", "comet_kiwi_score"),
-}
+# C# properties with no EF migration yet. None at the moment: migration
+# 20261111140209_AddLocalizationAiLayer created the last of them (the three
+# localization_translations AI columns).
+KNOWN_MISSING_COLUMNS: set[tuple[str, str]] = set()
 
 
 def _norm_type(type_: sa.types.TypeEngine) -> str:

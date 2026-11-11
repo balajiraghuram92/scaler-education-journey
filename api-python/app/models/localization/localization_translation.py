@@ -1,10 +1,4 @@
-"""Ported from api/Models/Localization/LocalizationTranslation.cs.
-
-Note: the C# class declares raw_mt_text, raw_mt_qps_score and
-comet_kiwi_score, but the latest EF migration does not create those columns
-(see Findings in PORT-MAP.md). They are ported as-is for behavioural
-fidelity; the schema-parity test lists them as known exceptions.
-"""
+"""Ported from api/Models/Localization/LocalizationTranslation.cs."""
 
 from __future__ import annotations
 

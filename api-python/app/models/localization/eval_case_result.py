@@ -10,7 +10,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, ForeignKey, Index, Integer, Numeric, Text
+from sqlalchemy import Boolean, ForeignKey, Identity, Index, Integer, Numeric, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
@@ -27,7 +27,7 @@ class EvalCaseResult(Base):
         Index("ix_localization_eval_case_results_case_id", "eval_golden_case_id"),
     )
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
+    id: Mapped[int] = mapped_column("id", Integer, Identity(), primary_key=True)
     eval_run_id: Mapped[int] = mapped_column(
         ForeignKey("localization_eval_runs.id", ondelete="CASCADE")
     )

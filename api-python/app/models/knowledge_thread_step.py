@@ -20,7 +20,6 @@ class KnowledgeThreadStep(Base):
     __tablename__ = "knowledge_thread_steps"
     __table_args__ = (
         Index("ix_knowledge_thread_steps_concept", "concept_id"),
-        Index("IX_knowledge_thread_steps_lesson_id", "lesson_id"),
         CheckConstraint(
             "length(TRIM(BOTH FROM label)) > 0", name="ck_knowledge_thread_step_label"
         ),

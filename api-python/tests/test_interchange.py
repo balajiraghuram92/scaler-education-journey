@@ -120,7 +120,7 @@ def test_aesgcm_primitive_matches_nist_vector() -> None:
     primitive = AESGCM(bytes(16))
     ciphertext_and_tag = primitive.encrypt(bytes(12), bytes(16), None)
     assert ciphertext_and_tag.hex() == (
-        "0388dace60b6a392f328c2b971b2fe78" "ab6e47c2b514f2c2458c5f558a5a9551"
+        "0388dace60b6a392f328c2b971b2fe78" "ab6e47d42cec13bdf53a67b21257bddf"
     )
 
 

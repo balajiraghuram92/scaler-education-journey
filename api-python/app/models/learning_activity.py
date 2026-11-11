@@ -34,9 +34,6 @@ class LearningActivity(Base):
     __tablename__ = "learning_activity"
     __table_args__ = (
         Index("ix_learning_activity_occurred_at", "occurred_at"),
-        Index("IX_learning_activity_ProblemId", "problem_id"),
-        Index("IX_learning_activity_ReadingMapItemId", "reading_map_item_id"),
-        Index("IX_learning_activity_TaskId", "task_id"),
         Index(
             "ux_learning_activity_correlation_event",
             "correlation_id",
