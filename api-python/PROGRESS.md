@@ -883,3 +883,47 @@ comment (`:229`) to 17. Task 4's fix accounts for
 none of the five: every title is an exact map key,
 which resolves identically before and after the
 Task-4 change. Side judged wrong: the Python test.
+
+## Round 6 corrections
+
+Log: `info/muse-prompts/corrections/round6/api-python-db.log`
+(175 passed, 1 failed, 1 skipped) and `api-python.log`
+(ruff clean, mypy clean, 112 passed, 1 failed). No command
+was run in this round; nothing below is claimed to pass.
+
+Task 1. **Endpoint mapping, `_IncludedRouter`.** Replaced
+the body of `_flatten_routes` in `tests/exercises/
+test_exercise_endpoint_mapping.py` with the reviewer's
+container-verified logic: entries carrying
+`original_router` descend into `orig.routes` with
+`prefix + route.include_context.prefix`; plain entries
+with a `routes` list descend with their own `path`;
+leaves yield `(prefix + path, route)`. Docstring now
+describes the `_IncludedRouter` shape instead of
+"mount-like entries". No assertion, `app/main.py`, or
+router changed.
+
+Task 2. **Round 5 Task 4 divergence WITHDRAWN — the
+lookup is ordinal again, as in C#.** Reverted
+`app/services/reconciliation/java_reconciler.py` to
+the exact-case lookups: removed
+`_LEGACY_LESSON_SLUG_MAP_LOWER`,
+`_LEGACY_PROBLEM_SLUG_MAP_LOWER`, their comment, and
+`title_key`; restored `if task.title in
+LEGACY_PROBLEM_SLUG_MAP:` /
+`LEGACY_LESSON_SLUG_MAP:` with direct dict indexing
+at both call sites. Nothing else in the file
+changed. Fixed the test that was the wrong side:
+`tests/test_java_reconciliation.py` renamed to
+`test_java_reconciler_reviewed_legacy_title_maps_to_
+canonical_lesson_slug`, task title and
+`legacy_title` assertion now the exact map key
+`Spring Boot 3 Core: Inversion of Control &
+Dependency Injection`, kept a `lesson` reference at
+creation, and added `assert
+report.mappings[0].target_lesson_id == lesson.id`
+(field name read from `MappingCandidate` in
+`reconciliation_models.py:31`), matching the C#
+test's second assert. Nothing else in the file
+changed. Verified by search: no `LOWER`,
+`title_key`, or old-cased title remains.

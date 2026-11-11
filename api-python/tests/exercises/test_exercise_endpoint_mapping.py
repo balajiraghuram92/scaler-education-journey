@@ -8,16 +8,23 @@ from app.main import create_app
 def _flatten_routes(routes, prefix=""):
     """Yield (full path, route) for every leaf route.
 
-    With fastapi==0.141.1, routes added through include_router sit
-    behind mount-like entries in app.routes, so the flat list holds
-    only the top-level entries; entries with their own routes list
-    are descended into with the parent prefix joined on.
+    With fastapi==0.141.1, include_router adds _IncludedRouter
+    entries to app.routes: the child routes live at
+    entry.original_router.routes and the include-time prefix at
+    entry.include_context.prefix (the router's own prefix is
+    already part of each child path). Plain entries with their
+    own routes list are descended into with their path joined on.
     """
     for route in routes:
-        sub_routes = getattr(route, "routes", None)
-        if sub_routes:
-            parent = getattr(route, "path", "") or getattr(route, "prefix", "")
-            yield from _flatten_routes(sub_routes, prefix + parent)
+        orig = getattr(route, "original_router", None)
+        if orig is not None:
+            yield from _flatten_routes(
+                orig.routes, prefix + route.include_context.prefix
+            )
+        elif getattr(route, "routes", None):
+            yield from _flatten_routes(
+                route.routes, prefix + getattr(route, "path", "")
+            )
         else:
             yield prefix + getattr(route, "path", ""), route
 
