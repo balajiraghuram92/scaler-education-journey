@@ -16,8 +16,16 @@ PRICES: dict[str, tuple[float, float]] = {
 }
 
 
-def price_of(model: str, tokens_in: int, tokens_out: int) -> float:
-    rate_in, rate_out = PRICES.get(model, (0.001, 0.003))
+def price_of(
+    model: str,
+    tokens_in: int,
+    tokens_out: int,
+    overrides: dict[str, tuple[float, float]] | None = None,
+) -> float:
+    if overrides and model in overrides:
+        rate_in, rate_out = overrides[model]
+    else:
+        rate_in, rate_out = PRICES.get(model, (0.001, 0.003))
     return (tokens_in * rate_in + tokens_out * rate_out) / 1000.0
 
 
@@ -49,17 +57,30 @@ class ModelAdapter(Protocol):
 class OpenAICompatAdapter:
     """Chat + embeddings against any OpenAI-compatible base URL."""
 
-    def __init__(self, base_url: str, api_key: str, timeout_s: float = 120.0) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        timeout_s: float = 120.0,
+        key_header: str = "bearer",
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         self._base_url = base_url.rstrip("/")
         self._api_key = api_key
         self._timeout_s = timeout_s
+        self._key_header = key_header
+        self._transport = transport
 
     def _headers(self) -> dict[str, str]:
+        if self._key_header == "api-key":
+            return {"api-key": self._api_key}
         return {"Authorization": f"Bearer {self._api_key}"}
 
     async def complete(self, model: str, system: str, user: str) -> AdapterResult:
         started = time.perf_counter()
-        async with httpx.AsyncClient(timeout=self._timeout_s) as client:
+        async with httpx.AsyncClient(
+            timeout=self._timeout_s, transport=self._transport
+        ) as client:
             response = await client.post(
                 f"{self._base_url}/chat/completions",
                 headers=self._headers(),
@@ -84,7 +105,9 @@ class OpenAICompatAdapter:
         )
 
     async def embed(self, model: str, texts: list[str], dim: int) -> list[list[float]]:
-        async with httpx.AsyncClient(timeout=self._timeout_s) as client:
+        async with httpx.AsyncClient(
+            timeout=self._timeout_s, transport=self._transport
+        ) as client:
             response = await client.post(
                 f"{self._base_url}/embeddings",
                 headers=self._headers(),
@@ -93,6 +116,89 @@ class OpenAICompatAdapter:
             response.raise_for_status()
             payload = response.json()
         return [[float(v) for v in row["embedding"][:dim]] for row in payload["data"]]
+
+
+class AnthropicMessagesAdapter:
+    """Chat against Claude in Microsoft Foundry (Anthropic Messages API shape)."""
+
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        version: str,
+        max_tokens: int,
+        timeout_s: float = 120.0,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self._base_url = base_url.rstrip("/")
+        self._api_key = api_key
+        self._version = version
+        self._max_tokens = max_tokens
+        self._timeout_s = timeout_s
+        self._transport = transport
+
+    async def complete(self, model: str, system: str, user: str) -> AdapterResult:
+        started = time.perf_counter()
+        async with httpx.AsyncClient(
+            timeout=self._timeout_s, transport=self._transport
+        ) as client:
+            response = await client.post(
+                f"{self._base_url}/v1/messages",
+                headers={
+                    "x-api-key": self._api_key,
+                    "anthropic-version": self._version,
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": model,
+                    "max_tokens": self._max_tokens,
+                    "system": system,
+                    "messages": [{"role": "user", "content": user}],
+                },
+            )
+            response.raise_for_status()
+            payload = response.json()
+        text = "".join(
+            block["text"]
+            for block in payload.get("content", [])
+            if block.get("type") == "text"
+        )
+        usage = payload.get("usage", {})
+        return AdapterResult(
+            text=text,
+            model=model,
+            tokens_in=int(usage.get("input_tokens", 0)),
+            tokens_out=int(usage.get("output_tokens", 0)),
+            latency_ms=int((time.perf_counter() - started) * 1000),
+        )
+
+    async def embed(self, model: str, texts: list[str], dim: int) -> list[list[float]]:
+        raise NotImplementedError(
+            "Claude has no embeddings endpoint; "
+            "route the embed task to an OpenAI-compatible model"
+        )
+
+
+class RoutedAdapter:
+    """Dispatches to the first adapter whose prefix matches the model name."""
+
+    def __init__(
+        self, default: ModelAdapter, by_prefix: list[tuple[str, ModelAdapter]]
+    ) -> None:
+        self._default = default
+        self._by_prefix = by_prefix
+
+    def _select(self, model: str) -> ModelAdapter:
+        for prefix, adapter in self._by_prefix:
+            if model.startswith(prefix):
+                return adapter
+        return self._default
+
+    async def complete(self, model: str, system: str, user: str) -> AdapterResult:
+        return await self._select(model).complete(model, system, user)
+
+    async def embed(self, model: str, texts: list[str], dim: int) -> list[list[float]]:
+        return await self._select(model).embed(model, texts, dim)
 
 
 @dataclass

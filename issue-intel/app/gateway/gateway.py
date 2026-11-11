@@ -5,7 +5,14 @@ import random
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from app.gateway.adapters import FakeAdapter, ModelAdapter, OpenAICompatAdapter, price_of
+from app.gateway.adapters import (
+    AnthropicMessagesAdapter,
+    FakeAdapter,
+    ModelAdapter,
+    OpenAICompatAdapter,
+    RoutedAdapter,
+    price_of,
+)
 from app.gateway.budgets import check_budget, record_spend
 from app.gateway.cache import ResultCache, cache_key
 from app.gateway.routing import Route, get_active, route_from_dict
@@ -61,9 +68,25 @@ class ModelGateway:
 
     def _build_adapter(self) -> ModelAdapter:
         if self._settings.model_adapter == "openai":
-            return OpenAICompatAdapter(
+            openai = OpenAICompatAdapter(
                 base_url=self._settings.openai_base_url,
                 api_key=self._settings.openai_api_key,
+                key_header=self._settings.openai_api_key_header,
+            )
+            if not self._settings.anthropic_base_url:
+                return openai
+            anthropic = AnthropicMessagesAdapter(
+                base_url=self._settings.anthropic_base_url,
+                api_key=self._settings.anthropic_api_key,
+                version=self._settings.anthropic_version,
+                max_tokens=self._settings.anthropic_max_tokens,
+            )
+            return RoutedAdapter(
+                default=openai,
+                by_prefix=[
+                    (prefix, anthropic)
+                    for prefix in self._settings.anthropic_model_prefixes
+                ],
             )
         return FakeAdapter(dim=self._settings.embedding_dim)
 
@@ -121,7 +144,10 @@ class ModelGateway:
             )
             return GatewayResult(text=text, model=model, tokens_in=tin,
                                  tokens_out=tout, cost_usd=0.0, latency_ms=0)
-        estimate = price_of(model, max(1, len(user.split())), route.token_limit)
+        estimate = price_of(
+            model, max(1, len(user.split())), route.token_limit,
+            self._settings.model_prices,
+        )
         await self._check_budget(run_id, estimate)
         try:
             raw = await self._adapter.complete(model, system, user)
@@ -132,7 +158,9 @@ class ModelGateway:
             raw = await self._adapter.complete(route.fallback, system, user)
             model = route.fallback
             fallback_used = True
-        cost = price_of(model, raw.tokens_in, raw.tokens_out)
+        cost = price_of(
+            model, raw.tokens_in, raw.tokens_out, self._settings.model_prices
+        )
         await self._record_spend(run_id, cost)
         await self._log(
             LoggedCall(
@@ -177,9 +205,11 @@ class ModelGateway:
             )
             return vectors
         tokens = sum(max(1, len(t.split())) for t in texts)
-        await self._check_budget(run_id, price_of(model, tokens, 0))
+        await self._check_budget(
+            run_id, price_of(model, tokens, 0, self._settings.model_prices)
+        )
         vectors = await self._adapter.embed(model, texts, self._settings.embedding_dim)
-        cost = price_of(model, tokens, 0)
+        cost = price_of(model, tokens, 0, self._settings.model_prices)
         await self._record_spend(run_id, cost)
         await self._log(
             LoggedCall(
@@ -233,7 +263,9 @@ class ModelGateway:
             raw = await self._adapter.complete(candidate, system, user)
         except Exception:
             return
-        cost = price_of(candidate, raw.tokens_in, raw.tokens_out)
+        cost = price_of(
+            candidate, raw.tokens_in, raw.tokens_out, self._settings.model_prices
+        )
         await self._record_spend(run_id, cost)
         await self._log(
             LoggedCall(

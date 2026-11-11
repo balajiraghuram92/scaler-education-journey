@@ -16,10 +16,22 @@ class Settings(BaseSettings):
     # OpenAI-compatible endpoint (only used when model_adapter == "openai").
     openai_base_url: str = "http://localhost:4000/v1"
     openai_api_key: str = "not-a-real-key"
+    openai_api_key_header: Literal["bearer", "api-key"] = "bearer"
     openai_chat_model_small: str = "tessera-small"
     openai_chat_model_large: str = "tessera-large"
     openai_embed_model: str = "tessera-embed"
     openai_embed_dim: int = 64
+
+    # Claude in Microsoft Foundry (only used when model_adapter == "openai"
+    # and anthropic_base_url is non-empty).
+    anthropic_base_url: str = ""  # e.g. https://<resource>.services.ai.azure.com/anthropic
+    anthropic_api_key: str = ""
+    anthropic_version: str = "2023-06-01"
+    anthropic_max_tokens: int = 4096
+    anthropic_model_prefixes: list[str] = Field(default_factory=lambda: ["claude-"])
+
+    # USD per 1,000 tokens (input, output) by model or deployment name.
+    model_prices: dict[str, tuple[float, float]] = Field(default_factory=dict)
 
     # Static task-type -> model table (G0-G3; G4 replaces it with versioned routing).
     task_models: dict[str, str] = Field(

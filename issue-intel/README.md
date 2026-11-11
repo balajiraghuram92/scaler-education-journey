@@ -241,3 +241,49 @@ python -m app.gateway.routing rollback --note "candidate regression"
 python -m app.gateway.routing list
 ```
 Clear the shadow env vars and restart api/worker when done.
+
+## Running against Azure (optional)
+
+With default settings everything runs offline on the fake adapter. To
+point the gateway at Azure OpenAI and Claude in Microsoft Foundry
+instead, set these environment variables (all prefixed `ISSUEINTEL_`):
+
+| Variable | Example value |
+|---|---|
+| `MODEL_ADAPTER` | `openai` |
+| `OPENAI_BASE_URL` | `https://<resource>.openai.azure.com/openai/v1` |
+| `OPENAI_API_KEY` | `<key>` |
+| `OPENAI_API_KEY_HEADER` | `api-key` |
+| `ANTHROPIC_BASE_URL` | `https://<resource>.services.ai.azure.com/anthropic` |
+| `ANTHROPIC_API_KEY` | `<key>` |
+| `TASK_MODELS` | JSON mapping each task type to a deployment name (see below) |
+| `MODEL_PRICES` | JSON mapping deployment name to `[input, output]` USD per 1k tokens |
+
+Example `TASK_MODELS` that sends the fix pipeline to a Claude
+deployment and everything else to OpenAI deployments (all names
+fake):
+
+```json
+{
+  "ticket_parse": "example-gpt-small",
+  "module_check": "example-gpt-small",
+  "relevance": "example-gpt-small",
+  "synthesis": "example-gpt-large",
+  "outcome_classify": "example-gpt-small",
+  "fix_plan": "claude-example-sonnet",
+  "fix_patch": "claude-example-sonnet",
+  "conflict_resolve": "example-gpt-large",
+  "quality_verify": "example-gpt-small",
+  "final_check": "claude-example-sonnet",
+  "embed": "example-embed"
+}
+```
+
+Three things to know:
+
+- Model names are **deployment names**: whatever string the task
+  table or route holds is sent verbatim as the `model` field.
+- Embeddings stay at 64 dimensions for now because the adapter
+  keeps the first 64 values of whatever the model returns.
+- Evals run with real models cost money and their numbers must be
+  labelled with the model names used.

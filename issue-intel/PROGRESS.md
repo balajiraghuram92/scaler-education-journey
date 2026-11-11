@@ -405,3 +405,74 @@ Unresolved: the exact mcp 1.x version is unpinned (`mcp<2` /
 reviewer's install resolves it. Whether the 1.x API then type-
 checks clean against `server.py` can only be shown by running
 mypy with that install.
+
+## A1 — Azure models
+
+Step 1 of `AZURE-MAPPING.md`. No commands run; nothing here is
+claimed to pass.
+
+Task 1. **Settings** (`app/settings.py:20,52-60`): added
+`openai_api_key_header` (`Literal["bearer", "api-key"]`, default
+`"bearer"`) after `openai_api_key`, and a commented Anthropic block
+(`anthropic_base_url` default `""`, `anthropic_api_key`,
+`anthropic_version` `"2023-06-01"`, `anthropic_max_tokens` 4096,
+`anthropic_model_prefixes` default `["claude-"]`) plus `model_prices`
+(default empty dict, USD per 1k tokens (input, output)). Every
+existing field and default untouched.
+
+Task 2. **Adapters** (`app/gateway/adapters.py`):
+`OpenAICompatAdapter.__init__` gained `key_header` (default
+`"bearer"`) and `transport` (default `None`); `_headers` returns the
+`api-key` header in api-key mode, Bearer otherwise; both
+`AsyncClient` calls pass `transport`. New
+`AnthropicMessagesAdapter` (POST `{base}/v1/messages`, `x-api-key`
++ `anthropic-version` headers, `{model, max_tokens, system,
+messages}` body, concatenated text blocks, `usage` token counts
+defaulting to 0, OpenAI-style latency; `embed` raises
+`NotImplementedError`) and new `RoutedAdapter` (first prefix match
+wins, else default; both methods; no logging). `price_of` gained
+`overrides` (looked up first, then `PRICES`, then the default
+rate). `ModelAdapter` and `AdapterResult` untouched.
+
+Task 3. **Wiring** (`app/gateway/gateway.py`): `_build_adapter`
+passes `key_header` to the OpenAI adapter and, when
+`anthropic_base_url` is non-empty, returns a `RoutedAdapter`
+wrapping it with one `(prefix, anthropic)` entry per
+`anthropic_model_prefixes` entry; empty base URL returns the
+OpenAI adapter alone, `"fake"` unchanged. All five
+`price_of(...)` calls (estimate, chat cost, embed estimate,
+embed cost, shadow cost) now pass
+`self._settings.model_prices` as `overrides`. `complete`,
+`embed`, `route_for` and logging otherwise untouched; no
+provider logic added to the gateway.
+
+Task 4. **Tests** (new `tests/test_gateway_providers.py`, 8
+tests, `asyncio.run` style like `test_gateway_fake.py`, all
+HTTP via `httpx.MockTransport`): bearer default (auth
+header, no api-key, `/chat/completions` URL, text + token
+counts); api-key mode (api-key present, no Authorization);
+Anthropic URL/headers/body shape plus two-text-blocks-
+concatenated and usage counts; Anthropic `embed` raises;
+`RoutedAdapter` prefix selection via two `FakeAdapter`
+`calls` lists; cross-provider fallback through a
+`_StaticRouteGateway` subclass carrying a fixed
+primary-gpt/fallback-Muse `Route`; `price_of` override vs
+table; default `Settings()` stays offline (`fake` /
+`bearer` / empty base URL). Not covered, as the prompt
+allows: the DB-backed versioned-routing path
+(`get_active`/`route_from_dict` in `test_routing.py` needs
+Postgres), so test 6 drives adapter + gateway objects
+directly with a fixed route instead of a routed version.
+
+Task 5. **README** (`README.md`): new section "Running against
+Azure (optional)" with the `ISSUEINTEL_`-prefixed variable
+table (`MODEL_ADAPTER`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`,
+`OPENAI_API_KEY_HEADER`, `ANTHROPIC_BASE_URL`,
+`ANTHROPIC_API_KEY`, `TASK_MODELS`, `MODEL_PRICES`), an
+example `TASK_MODELS` sending `fix_plan`/`fix_patch`/
+`final_check` to a fake `claude-` deployment and the rest to
+fake OpenAI deployments, and the three required statements
+(deployment names; embeddings stay 64 because the adapter
+truncates; real-model evals cost money and must be labelled
+with model names). Placeholders only; nothing about creating
+Azure resources.
