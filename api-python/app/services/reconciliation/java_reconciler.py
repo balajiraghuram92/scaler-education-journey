@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -67,7 +67,7 @@ class JavaReconciler:
         self._session = session
 
     def _utcnow(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     async def reconcile_java(self, mode: ReconciliationExecutionMode) -> ReconciliationReport:
         report = ReconciliationReport(scope="java", mode=mode, executed_at=self._utcnow())
@@ -125,8 +125,8 @@ class JavaReconciler:
             return report
 
         java_course = course_candidates[0]
-        all_lessons = [l for m in java_course.modules for l in m.lessons]
-        all_problems = [p for l in all_lessons for p in l.problems]
+        all_lessons = [lesson for m in java_course.modules for lesson in m.lessons]
+        all_problems = [p for lesson in all_lessons for p in lesson.problems]
 
         # 3. Classify and map legacy tasks
         for task in sorted(java_vertical.tasks, key=lambda t: t.id):

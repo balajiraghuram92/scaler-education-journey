@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pydantic import computed_field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -11,8 +12,6 @@ from ..models.course_domain_link import CourseDomainLink
 from ..models.course_module import CourseModule
 from ..models.lesson import Lesson
 from ..models.lesson_concept_link import LessonConceptLink
-from pydantic import computed_field
-
 from ..schemas.base import CamelModel
 from .learner_progress_service import LearnerProgressService
 
@@ -163,7 +162,7 @@ def _map_to_path_dto(
                             else []
                         ),
                     )
-                    for lesson in sorted(module.lessons, key=lambda l: l.order_index)
+                    for lesson in sorted(module.lessons, key=lambda row: row.order_index)
                 ],
             )
             for module in sorted(course.modules, key=lambda m: m.order_index)

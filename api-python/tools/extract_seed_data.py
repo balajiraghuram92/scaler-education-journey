@@ -174,13 +174,22 @@ def split_top_level(text: str, separator: str = ",") -> list[str]:
 
 
 def _decode_string_in_span(src: str, masked: str, span_start: int, span_text: str) -> str:
-    """Decode the single string literal inside a masked span."""
+    """Decode the single string literal inside a masked span.
+
+    span_text is the text that starts at span_start; for `Name = value`
+    parts the literal is found after the first `=`.
+    """
+    haystack = span_text
+    base = 0
+    if "=" in span_text:
+        haystack = span_text.split("=", 1)[1]
+        base = len(span_text) - len(haystack)
     offset = next(
         i
-        for i, ch in enumerate(span_text)
-        if ch == '"' or (ch == "@" and span_text[i + 1 : i + 2] == '"')
+        for i, ch in enumerate(haystack)
+        if ch == '"' or (ch == "@" and haystack[i + 1 : i + 2] == '"')
     )
-    value, _ = decode_at(src, span_start + offset)
+    value, _ = decode_at(src, span_start + base + offset)
     return value
 
 
@@ -202,14 +211,15 @@ def parse_initializer(
             raise ValueError(f"cannot parse initializer part: {part!r}")
         part_offset = masked.index(part, cursor)
         cursor = part_offset + len(part)
-        result[name] = parse_value(src, masked, part_offset, value)
+        result[name] = parse_value(src, masked, part_offset, value, part)
     return result
 
 
-def parse_value(src: str, masked: str, part_offset: int, value: str):  # type: ignore[no-untyped-def]
+def parse_value(src: str, masked: str, part_offset: int, value: str, part: str | None = None):  # type: ignore[no-untyped-def]
     stripped = value.strip()
     if stripped.startswith('"') or stripped.startswith("@\""):
-        return _decode_string_in_span(src, masked, part_offset, stripped)
+        span_text = part if part is not None else stripped
+        return _decode_string_in_span(src, masked, part_offset, span_text)
     if re.fullmatch(r"-?\d+", stripped):
         return int(stripped)
     if stripped in ("true", "false"):
@@ -235,7 +245,7 @@ def parse_call_args(src: str, masked: str, call_start: int, call_text: str) -> l
             continue
         part_offset = masked.index(part, cursor)
         cursor = part_offset + len(part)
-        args.append(parse_value(src, masked, part_offset, part))
+        args.append(parse_value(src, masked, part_offset, part, part))
     return args
 
 
@@ -333,12 +343,14 @@ def extract_java(path: str) -> dict:
         top = split_top_level(inner)
         if len(top) != 6:
             raise ValueError(f"unexpected expanded-module shape: {paren[:80]!r}")
-        base = masked.index(top[0], match.start())
-        slug = parse_value(src, masked, base, top[0].strip())
-        title = parse_value(src, masked, base, top[1].strip())
-        description = parse_value(src, masked, base, top[2].strip())
-        badge = parse_value(src, masked, base, top[3].strip())
-        order_index = parse_value(src, masked, base, top[4].strip())
+        arg_values = []
+        arg_cursor = match.start()
+        for text in top[:5]:
+            text = text.strip()
+            arg_off = masked.index(text, arg_cursor)
+            arg_cursor = arg_off + len(text)
+            arg_values.append(parse_value(src, masked, arg_off, text, text))
+        slug, title, description, badge, order_index = arg_values
         array_text = top[5]
         array_off = masked.index(array_text, match.start())
         chapters = []
@@ -397,12 +409,14 @@ def extract_fde(path: str) -> dict:
         top = split_top_level(inner)
         if len(top) != 6:
             raise ValueError(f"unexpected supplemental-module shape: {call_text[:80]!r}")
-        base = match.start()
-        slug = parse_value(src, masked, base, top[0].strip())
-        title = parse_value(src, masked, base, top[1].strip())
-        description = parse_value(src, masked, base, top[2].strip())
-        reference_url = parse_value(src, masked, base, top[3].strip())
-        delivery_context = parse_value(src, masked, base, top[4].strip())
+        arg_values = []
+        arg_cursor = match.start()
+        for text in top[:5]:
+            text = text.strip()
+            arg_off = masked.index(text, arg_cursor)
+            arg_cursor = arg_off + len(text)
+            arg_values.append(parse_value(src, masked, arg_off, text, text))
+        slug, title, description, reference_url, delivery_context = arg_values
         array_off = masked.index(top[5], match.start())
         lessons = []
         for lesson_match in re.finditer(r"\bLesson\s*\(", top[5]):

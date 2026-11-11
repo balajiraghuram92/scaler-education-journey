@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -113,9 +113,9 @@ async def seed(session: AsyncSession) -> None:
         questions = _get_case_insensitive(group, "questions", []) or []
         effective_slug = _SLUG_ALIASES.get(lesson_slug.lower(), lesson_slug)
         lookup_key = f"{course_slug}/{module_slug}/{effective_slug}".lower()
-        lesson = lesson_lookup.get(lookup_key)
+        lesson: Lesson | None = lesson_lookup.get(lookup_key)
         if lesson is None:
-            lesson = (
+            slug_matches = (
                 await session.execute(
                     select(Lesson)
                     .options(
@@ -126,12 +126,12 @@ async def seed(session: AsyncSession) -> None:
             ).scalars().all()
             lesson = next(
                 (
-                    l
-                    for l in lesson
-                    if l.module is not None
-                    and l.module.slug == module_slug
-                    and l.module.course is not None
-                    and l.module.course.slug == course_slug
+                    candidate
+                    for candidate in slug_matches
+                    if candidate.module is not None
+                    and candidate.module.slug == module_slug
+                    and candidate.module.course is not None
+                    and candidate.module.course.slug == course_slug
                 ),
                 None,
             )
@@ -158,7 +158,7 @@ async def seed(session: AsyncSession) -> None:
                 skipped_count += 1
                 continue
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             question_entity = McqQuestion(
                 lesson_id=lesson.id,
                 legacy_key=legacy_key.strip() if legacy_key.strip() else None,
@@ -269,5 +269,5 @@ async def _sync_existing_question(session: AsyncSession, q: dict) -> bool:
         )
 
     if changed:
-        existing.updated_at = datetime.now(timezone.utc)
+        existing.updated_at = datetime.now(UTC)
     return changed

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from decimal import Decimal, ROUND_HALF_EVEN
+from datetime import UTC, datetime
+from decimal import ROUND_HALF_EVEN, Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +24,7 @@ class BudgetGuardService:
         self._options = options or get_settings().budget
 
     async def get_today_usage(self) -> UsageSummaryDto:
-        start_of_day_utc = datetime.now(timezone.utc).replace(
+        start_of_day_utc = datetime.now(UTC).replace(
             hour=0, minute=0, second=0, microsecond=0
         )
         total_cost_today = (
@@ -44,7 +44,7 @@ class BudgetGuardService:
             )
         ).scalar_one()
 
-        total_cost_today = Decimal(total_cost_today)
+        total_cost_today = Decimal(total_cost_today if total_cost_today is not None else 0)
         daily_cap = (
             self._options.daily_cap_usd
             if self._options.daily_cap_usd > 0

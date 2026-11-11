@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import func, select
@@ -37,7 +37,7 @@ class ProviderHealthService:
             raise ProviderNotFoundException(provider)
         record.circuit_state = "Open"
         record.error_rate_percent = Decimal("87.5")
-        record.updated_at = datetime.now(timezone.utc)
+        record.updated_at = datetime.now(UTC)
         await self._session.flush()
         return _dto(record)
 
@@ -55,7 +55,7 @@ class ProviderHealthService:
         record.error_rate_percent = (
             Decimal("0.4") if record.provider.lower() == "googlemt" else Decimal("1.1")
         )
-        record.updated_at = datetime.now(timezone.utc)
+        record.updated_at = datetime.now(UTC)
         await self._session.flush()
         return _dto(record)
 

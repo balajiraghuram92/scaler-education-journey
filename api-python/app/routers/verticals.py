@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
@@ -123,7 +123,7 @@ async def create_vertical(
     vertical = StudyVertical(
         name=body.name,
         description=body.description if body.description is not None else "",
-        updated_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(UTC),
     )
     session.add(vertical)
     await session.commit()
@@ -165,7 +165,7 @@ async def ingest_vertical_markdown(
             await session.delete(task)
         for task in parsed_tasks:
             task.vertical_id = vertical.id
-            task.updated_at = datetime.now(timezone.utc)
+            task.updated_at = datetime.now(UTC)
             session.add(task)
         await session.commit()
         await session.refresh(vertical, ["tasks"])
@@ -173,13 +173,13 @@ async def ingest_vertical_markdown(
     vertical = StudyVertical(
         name=body.name if body.name and body.name.strip() else "New Vertical",
         description=body.description if body.description is not None else "",
-        updated_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(UTC),
     )
     session.add(vertical)
     await session.flush()
     for task in parsed_tasks:
         task.vertical_id = vertical.id
-        task.updated_at = datetime.now(timezone.utc)
+        task.updated_at = datetime.now(UTC)
         session.add(task)
     await session.commit()
     await session.refresh(vertical, ["tasks"])

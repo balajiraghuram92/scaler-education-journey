@@ -7,7 +7,7 @@ rolls back after every test.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -35,7 +35,7 @@ async def _add_user(db: AsyncSession) -> AppUser:
         password_salt="s",
         role="User",
         status="Approved",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
         totp_enabled=False,
     )
     db.add(user)
@@ -45,7 +45,7 @@ async def _add_user(db: AsyncSession) -> AppUser:
 
 
 async def _add_course(db: AsyncSession) -> tuple[Course, Lesson, Lesson, Problem]:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     course = Course(
         slug="python-engineering",
         title="Python",
@@ -214,7 +214,7 @@ async def test_mcq_restores_previous_attempt_enforces_ownership_and_supports_ret
     alice = await _add_user(db)
     bob = await _add_user(db)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     question = McqQuestion(
         lesson_id=first.id,
         legacy_key="python-engineering/py-01/checkpoint/g01",

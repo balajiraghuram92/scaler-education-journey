@@ -10,9 +10,9 @@ import argparse
 import asyncio
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import func, select, text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from .db import dotnet_connstr_to_asyncpg_url
@@ -116,7 +116,7 @@ async def _run_seed_admin() -> int:
             existing = (
                 await session.execute(select(AppUser).where(AppUser.email == email))
             ).scalar_one_or_none()
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if existing is None:
                 password_hash, salt, iterations = hash_password(password)
                 session.add(

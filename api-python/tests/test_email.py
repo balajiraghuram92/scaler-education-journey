@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from email.message import EmailMessage
 
 import pytest
@@ -23,7 +23,7 @@ def _user() -> AppUser:
         role="User",
         status="PendingApproval",
         display_name="Learner",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
 
 

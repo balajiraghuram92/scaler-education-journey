@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -168,7 +168,7 @@ _OOP2_SVG = _OOP2_SVG.replace("\n", "\r\n")
 
 
 async def seed(session: AsyncSession) -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     # 1. Ensure Concurrency module has 'structured-concurrency'
     concurrency_module = (
         await session.execute(

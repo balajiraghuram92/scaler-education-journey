@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from decimal import Decimal, ROUND_HALF_UP
+from datetime import UTC, datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +29,7 @@ async def seed(session: AsyncSession) -> None:
         await session.execute(select(LocalizationProject.id).limit(1))
     ).first()
     if exists is None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # 1. Seed Project: auroraline-hud-v3
         project = LocalizationProject(
@@ -188,7 +188,7 @@ async def seed(session: AsyncSession) -> None:
             source_revision="r18234",
             localization_revision="l09981",
             config="Production-Default",
-            created_at=datetime(2026, 9, 1, 14, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2026, 9, 1, 14, 0, 0, tzinfo=UTC),
         )
         snap2 = BuildSnapshot(
             project_id=project.id,
@@ -196,7 +196,7 @@ async def seed(session: AsyncSession) -> None:
             source_revision="r17910",
             localization_revision="l09750",
             config="Production-Default",
-            created_at=datetime(2026, 8, 22, 11, 30, 0, tzinfo=timezone.utc),
+            created_at=datetime(2026, 8, 22, 11, 30, 0, tzinfo=UTC),
         )
         snap3 = BuildSnapshot(
             project_id=project.id,
@@ -204,7 +204,7 @@ async def seed(session: AsyncSession) -> None:
             source_revision="r17402",
             localization_revision="l09520",
             config="Production-Default",
-            created_at=datetime(2026, 8, 10, 16, 45, 0, tzinfo=timezone.utc),
+            created_at=datetime(2026, 8, 10, 16, 45, 0, tzinfo=UTC),
         )
         session.add_all([snap1, snap2, snap3])
         await session.flush()

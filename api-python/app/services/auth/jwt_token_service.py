@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 from uuid import UUID
 
@@ -20,7 +20,7 @@ class JwtTokenService:
     def generate_token(self, user: AppUser, session_id: UUID | None = None) -> str:
         if not self._options.jwt_signing_key or not self._options.jwt_signing_key.strip():
             raise RuntimeError("Auth:JwtSigningKey must be configured.")
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         # Claim names are what JwtSecurityTokenHandler's outbound map writes for
         # ClaimTypes.NameIdentifier/Email/Role/Name ("nameid" corroborated by
         # ai-agent/auth.py, which reads .NET-issued tokens).
@@ -49,10 +49,10 @@ class JwtTokenService:
         minutes = self._options.jwt_expiry_minutes
         if minutes <= 0:
             minutes = 720
-        return datetime.now(timezone.utc) + timedelta(minutes=minutes)
+        return datetime.now(UTC) + timedelta(minutes=minutes)
 
     def get_access_token_expiration(self) -> datetime:
         minutes = self._options.access_token_minutes
         if minutes <= 0:
             minutes = 30
-        return datetime.now(timezone.utc) + timedelta(minutes=minutes)
+        return datetime.now(UTC) + timedelta(minutes=minutes)

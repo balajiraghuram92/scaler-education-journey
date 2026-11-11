@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import func, select
@@ -171,7 +171,7 @@ class VendorPortalService:
             proposed_price=proposed_price,
             note=note or "",
             status="Pending",
-            submitted_at=datetime.now(timezone.utc),
+            submitted_at=datetime.now(UTC),
         )
         self._session.add(bid)
         await self._session.flush()
@@ -315,14 +315,14 @@ class VendorPortalService:
                 stage="Translated" if has_target else "New",
                 translation_source="Marketplace",
                 needs_review=False,
-                updated_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(UTC),
             )
             self._session.add(translation)
         else:
             translation.target_text = target_text
             translation.translation_source = "Marketplace"
             translation.stage = "Translated" if has_target else "New"
-            translation.updated_at = datetime.now(timezone.utc)
+            translation.updated_at = datetime.now(UTC)
         if job.status == "Awarded" or job.status == "NeedsRevision":
             job.status = "InProgress"
         await self._session.flush()
@@ -382,6 +382,6 @@ class VendorPortalService:
                 "the job for review."
             )
         job.status = "SubmittedForReview"
-        job.submitted_at = datetime.now(timezone.utc)
+        job.submitted_at = datetime.now(UTC)
         await self._session.flush()
         return await self._marketplace_service.get_job_dto_async(job.id)

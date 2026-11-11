@@ -1344,6 +1344,232 @@ namespace StudyTracker.Api.Migrations
                     b.ToTable("localization_build_snapshot_locale_counts", (string)null);
                 });
 
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.EvalCaseResult", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool?>("CacheHit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("cache_hit");
+
+                    b.Property<decimal?>("CometKiwiScore")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)")
+                        .HasColumnName("comet_kiwi_score");
+
+                    b.Property<decimal?>("CostUsd")
+                        .HasPrecision(12, 6)
+                        .HasColumnType("numeric(12,6)")
+                        .HasColumnName("cost_usd");
+
+                    b.Property<int>("EvalGoldenCaseId")
+                        .HasColumnType("integer")
+                        .HasColumnName("eval_golden_case_id");
+
+                    b.Property<int>("EvalRunId")
+                        .HasColumnType("integer")
+                        .HasColumnName("eval_run_id");
+
+                    b.Property<bool?>("GlossaryAdherenceOk")
+                        .HasColumnType("boolean")
+                        .HasColumnName("glossary_adherence_ok");
+
+                    b.Property<int?>("LatencyMs")
+                        .HasColumnType("integer")
+                        .HasColumnName("latency_ms");
+
+                    b.Property<bool?>("PlaceholderPreservedOk")
+                        .HasColumnType("boolean")
+                        .HasColumnName("placeholder_preserved_ok");
+
+                    b.Property<string>("ProducedTranslation")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("produced_translation");
+
+                    b.Property<int?>("QpsScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("qps_score");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EvalGoldenCaseId")
+                        .HasDatabaseName("ix_localization_eval_case_results_case_id");
+
+                    b.HasIndex("EvalRunId")
+                        .HasDatabaseName("ix_localization_eval_case_results_run_id");
+
+                    b.ToTable("localization_eval_case_results", (string)null);
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.EvalGoldenCase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("category");
+
+                    b.Property<string>("GoldTranslation")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("gold_translation");
+
+                    b.Property<string>("LocaleCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("locale_code");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("SourceText")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source_text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_eval_golden_cases_project_id");
+
+                    b.HasIndex("ProjectId", "LocaleCode")
+                        .HasDatabaseName("ix_localization_eval_golden_cases_project_locale");
+
+                    b.ToTable("localization_eval_golden_cases", (string)null);
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.EvalRun", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AvgCometKiwi")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)")
+                        .HasColumnName("avg_comet_kiwi");
+
+                    b.Property<int?>("AvgLatencyMs")
+                        .HasColumnType("integer")
+                        .HasColumnName("avg_latency_ms");
+
+                    b.Property<decimal?>("AvgQpsScore")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("avg_qps_score");
+
+                    b.Property<decimal?>("CacheHitRate")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)")
+                        .HasColumnName("cache_hit_rate");
+
+                    b.Property<decimal?>("GlossaryAdherenceRate")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)")
+                        .HasColumnName("glossary_adherence_rate");
+
+                    b.Property<string>("PipelineConfig")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("pipeline_config");
+
+                    b.Property<decimal?>("PlaceholderPreservationRate")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)")
+                        .HasColumnName("placeholder_preservation_rate");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTime>("RunAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("run_at");
+
+                    b.Property<decimal?>("TotalCostUsd")
+                        .HasPrecision(12, 6)
+                        .HasColumnType("numeric(12,6)")
+                        .HasColumnName("total_cost_usd");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_eval_runs_project_id");
+
+                    b.ToTable("localization_eval_runs", (string)null);
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.GlossaryTerm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("LocaleCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("locale_code");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("SourceTerm")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source_term");
+
+                    b.Property<string>("TargetTerm")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("target_term");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_glossary_terms_project_id");
+
+                    b.HasIndex("ProjectId", "LocaleCode")
+                        .HasDatabaseName("ix_localization_glossary_terms_project_locale");
+
+                    b.ToTable("localization_glossary_terms", (string)null);
+                });
+
             modelBuilder.Entity("StudyTracker.Api.Models.Localization.LedgerEntry", b =>
                 {
                     b.Property<int>("Id")
@@ -1366,6 +1592,11 @@ namespace StudyTracker.Api.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("project_id");
 
+                    b.Property<decimal?>("RealCostUsd")
+                        .HasPrecision(12, 6)
+                        .HasColumnType("numeric(12,6)")
+                        .HasColumnName("real_cost_usd");
+
                     b.Property<int?>("RelatedMarketplaceJobId")
                         .HasColumnType("integer")
                         .HasColumnName("related_marketplace_job_id");
@@ -1375,6 +1606,15 @@ namespace StudyTracker.Api.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("source");
+
+                    b.Property<string>("UnitType")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("unit_type");
+
+                    b.Property<int?>("UnitsConsumed")
+                        .HasColumnType("integer")
+                        .HasColumnName("units_consumed");
 
                     b.HasKey("Id");
 
@@ -1438,6 +1678,12 @@ namespace StudyTracker.Api.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)")
                         .HasColumnName("name");
+
+                    b.Property<int>("QpsThreshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(70)
+                        .HasColumnName("qps_threshold");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -1505,6 +1751,11 @@ namespace StudyTracker.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal?>("CometKiwiScore")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)")
+                        .HasColumnName("comet_kiwi_score");
+
                     b.Property<string>("LocaleCode")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1518,6 +1769,14 @@ namespace StudyTracker.Api.Migrations
                     b.Property<int?>("QpsScore")
                         .HasColumnType("integer")
                         .HasColumnName("qps_score");
+
+                    b.Property<int?>("RawMtQpsScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("raw_mt_qps_score");
+
+                    b.Property<string>("RawMtText")
+                        .HasColumnType("text")
+                        .HasColumnName("raw_mt_text");
 
                     b.Property<string>("Stage")
                         .IsRequired()
@@ -1716,6 +1975,58 @@ namespace StudyTracker.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("localization_provider_health", (string)null);
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.TranslationCacheEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CachedTranslation")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("cached_translation");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("HitCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("hit_count");
+
+                    b.Property<DateTime?>("LastHitAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_hit_at");
+
+                    b.Property<string>("LocaleCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("locale_code");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("SourceText")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source_text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_localization_translation_cache_project_id");
+
+                    b.HasIndex("ProjectId", "LocaleCode")
+                        .HasDatabaseName("ix_localization_translation_cache_project_locale");
+
+                    b.ToTable("localization_translation_cache_entries", (string)null);
                 });
 
             modelBuilder.Entity("StudyTracker.Api.Models.Localization.Vendor", b =>
@@ -3129,6 +3440,58 @@ namespace StudyTracker.Api.Migrations
                     b.Navigation("BuildSnapshot");
                 });
 
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.EvalCaseResult", b =>
+                {
+                    b.HasOne("StudyTracker.Api.Models.Localization.EvalGoldenCase", "EvalGoldenCase")
+                        .WithMany("CaseResults")
+                        .HasForeignKey("EvalGoldenCaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.EvalRun", "EvalRun")
+                        .WithMany("CaseResults")
+                        .HasForeignKey("EvalRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EvalGoldenCase");
+
+                    b.Navigation("EvalRun");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.EvalGoldenCase", b =>
+                {
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("EvalGoldenCases")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.EvalRun", b =>
+                {
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("EvalRuns")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.GlossaryTerm", b =>
+                {
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("GlossaryTerms")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("StudyTracker.Api.Models.Localization.LedgerEntry", b =>
                 {
                     b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
@@ -3213,6 +3576,17 @@ namespace StudyTracker.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("AwardedVendor");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.TranslationCacheEntry", b =>
+                {
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany("TranslationCacheEntries")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Project");
                 });
@@ -3511,9 +3885,25 @@ namespace StudyTracker.Api.Migrations
                     b.Navigation("LocaleCounts");
                 });
 
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.EvalGoldenCase", b =>
+                {
+                    b.Navigation("CaseResults");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.EvalRun", b =>
+                {
+                    b.Navigation("CaseResults");
+                });
+
             modelBuilder.Entity("StudyTracker.Api.Models.Localization.LocalizationProject", b =>
                 {
                     b.Navigation("BuildSnapshots");
+
+                    b.Navigation("EvalGoldenCases");
+
+                    b.Navigation("EvalRuns");
+
+                    b.Navigation("GlossaryTerms");
 
                     b.Navigation("LedgerEntries");
 
@@ -3522,6 +3912,8 @@ namespace StudyTracker.Api.Migrations
                     b.Navigation("MarketplaceJobs");
 
                     b.Navigation("Strings");
+
+                    b.Navigation("TranslationCacheEntries");
 
                     b.Navigation("WorkflowSteps");
                 });

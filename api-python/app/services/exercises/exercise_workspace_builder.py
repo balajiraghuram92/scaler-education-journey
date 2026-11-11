@@ -104,7 +104,7 @@ async def _build_python_workspace_async(
     for dirpath, _dirnames, filenames in os.walk(tests_source):
         for name in filenames:
             test_file = os.path.join(dirpath, name)
-            relative = os.path.relpath(test_file, tests_source).replace(os.sep, "/")
+            relative = await _relative_posix_async(test_file, tests_source)
             if "__pycache__" in relative:
                 continue
             _copy_trusted_file(
@@ -129,6 +129,16 @@ def _write_text(destination: str, content: str) -> None:
     # Written without a BOM, like the C# UTF8Encoding(false).
     with open(destination, "w", encoding="utf-8", newline="") as fh:
         fh.write(content)
+
+
+async def _relative_posix_async(test_file: str, tests_source: str) -> str:
+    return await asyncio.to_thread(_relative_posix, test_file, tests_source)
+
+
+def _relative_posix(test_file: str, tests_source: str) -> str:
+    # os.path.relpath touches the filesystem (abspath → getcwd), so like the
+    # writes above it runs in a thread rather than on the event loop.
+    return os.path.relpath(test_file, tests_source).replace(os.sep, "/")
 
 
 def _resolve_test_workspace_path(manifest: ExerciseManifest) -> str:

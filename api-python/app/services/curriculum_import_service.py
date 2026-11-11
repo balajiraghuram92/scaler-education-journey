@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from ..stjson import dumps as _json_dumps
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from pydantic import Field
@@ -20,6 +19,7 @@ from ..models.lesson import Lesson
 from ..models.lesson_concept_link import LessonConceptLink
 from ..models.lesson_relation import LessonRelation
 from ..schemas.base import CamelModel
+from ..stjson import dumps as _json_dumps
 from .reconciliation.normalization_helper import generate_slug
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class CurriculumImportService:
         self._session = session
 
     def _utcnow(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     async def import_chapter(
         self, request: CurriculumImportRequest

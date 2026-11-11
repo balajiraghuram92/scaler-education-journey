@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -210,7 +210,7 @@ class MarketplaceService:
         low, high = await self._credit_ledger_service.estimate_price_band_async(
             word_count
         )
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         job = MarketplaceJob(
             project_id=project.id,
             locale_code=locale_code,
@@ -274,7 +274,7 @@ class MarketplaceService:
                 f"Cannot award bid {bid_id} because it is in status "
                 f"'{selected_bid.status}'. Expected 'Pending'."
             )
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         selected_bid.status = "Awarded"
         for sibling in job.bids:
             if sibling.id != bid_id:
@@ -312,7 +312,7 @@ class MarketplaceService:
             raise InvalidJobStateException(
                 f"Cannot approve job {marketplace_job_id} because it has no awarded bid."
             )
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         job.status = "Approved"
         job.approved_at = now
         # Record credit ledger spend

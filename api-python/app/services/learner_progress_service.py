@@ -9,9 +9,8 @@ from __future__ import annotations
 
 import logging
 
-from ..stjson import dumps as _json_dumps
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from sqlalchemy import desc, func, select
@@ -30,6 +29,7 @@ from ..models.problem import Problem
 from ..models.user_lesson_progress import UserLessonProgress
 from ..models.user_problem_progress import UserProblemProgress
 from ..schemas.base import CamelModel, DotNetDateTime
+from ..stjson import dumps as _json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +151,7 @@ class LearnerProgressService:
         self._session = session
 
     def _utcnow(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     async def get_completed_lesson_ids(self, user_id: int | None) -> set[int]:
         if user_id is None:
@@ -339,7 +339,7 @@ class LearnerProgressService:
         lesson = last.lesson if last is not None else None
         module = lesson.module if lesson is not None else None
         course = module.course if module is not None else None
-        if lesson is None or module is None or course is None:
+        if last is None or lesson is None or module is None or course is None:
             return ResumeDto(last_lesson=None, next_lesson=None)
         last_dto = _to_resume_dto(lesson, module, course, last)
 
@@ -655,6 +655,6 @@ def _to_resume_dto(
         last_section_id=row.last_section_id if row is not None else None,
         scroll_percent=row.scroll_percent if row is not None else 0,
         last_opened_at=(
-            row.last_opened_at if row is not None else datetime(1, 1, 1, tzinfo=timezone.utc)
+            row.last_opened_at if row is not None else datetime(1, 1, 1, tzinfo=UTC)
         ),
     )

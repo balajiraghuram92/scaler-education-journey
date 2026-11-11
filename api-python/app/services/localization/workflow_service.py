@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from decimal import Decimal, ROUND_HALF_EVEN
+from datetime import UTC, datetime
+from decimal import ROUND_HALF_EVEN, Decimal
 from typing import cast
 
 from sqlalchemy import func, select
@@ -275,7 +275,7 @@ class WorkflowService:
         ).scalar_one_or_none()
         if step is None:
             raise WorkflowStepNotFoundException(step_id)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if step.action == WorkflowActions.MARK_TRANSLATED:
             affected = 0
@@ -309,7 +309,7 @@ class WorkflowService:
             character_count = 0
             for locale in project.locales:
                 for item in project.strings:
-                    trans = next(
+                    trans: LocalizationTranslation | None = next(
                         (
                             t
                             for t in item.translations
@@ -471,12 +471,12 @@ class WorkflowService:
                     if trans.translation_source != "AI":
                         continue
                     try:
-                        result = await self._quality_scorer.score_async(
+                        score_result = await self._quality_scorer.score_async(
                             item.source_text,
                             trans.target_text if trans.target_text is not None else "",
                             trans.locale_code,
                         )
-                        trans.qps_score = result.score
+                        trans.qps_score = score_result.score
                         trans.updated_at = now
                         scored_count += 1
                     except LocalizationAiException:

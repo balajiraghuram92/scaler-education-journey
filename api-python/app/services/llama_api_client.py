@@ -7,7 +7,7 @@ import logging
 import math
 import time
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_HALF_EVEN
+from decimal import ROUND_HALF_EVEN, Decimal
 
 import httpx
 
@@ -162,7 +162,8 @@ class LlamaApiClient:
                     and comp_value >= 0
                 )
                 if has_prompt and has_comp:
-                    return (prompt_value, comp_value, False)
+                    # Guards above prove non-negative ints, as C# TryGetInt32 does.
+                    return (int(prompt_value), int(comp_value), False)
         except Exception as exc:
             logger.warning(
                 "Failed parsing token usage from Llama API response; using character-based fallback estimation: %s",

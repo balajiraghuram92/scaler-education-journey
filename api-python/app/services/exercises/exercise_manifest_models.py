@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -157,12 +158,12 @@ def is_link(path: str) -> bool:
 
 def _is_windows_reparse_point(path: str) -> bool:
     # C# also flags ReparsePoint (junctions); on Windows check the attribute.
-    if os.name != "nt":
+    if sys.platform != "win32":
         return False
     try:
         import ctypes
 
-        attrs = ctypes.windll.kernel32.GetFileAttributesW(path)
+        attrs = ctypes.windll.kernel32.GetFileAttributesW(path)  # type: ignore[attr-defined]
         return attrs != 0xFFFFFFFF and bool(attrs & 0x400)
     except OSError:
         return False

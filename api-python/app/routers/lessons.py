@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
@@ -151,7 +151,7 @@ async def create_lesson(
     ).first()
     if module_exists is None:
         return JSONResponse(status_code=400, content={"message": "Invalid ModuleId."})
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     lesson = Lesson(
         module_id=body.module_id,
         slug=body.slug.strip().lower(),
@@ -201,7 +201,7 @@ async def update_lesson(
         lesson.estimated_minutes = body.estimated_minutes
     if body.is_completed is not None:
         lesson.is_completed = body.is_completed
-    lesson.updated_at = datetime.now(timezone.utc)
+    lesson.updated_at = datetime.now(UTC)
     await session.commit()
     await session.refresh(lesson)
     return lesson_to_dict(lesson)

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import timedelta
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from .exercise_manifest_models import ExerciseDefinition
 
 
-class ExerciseExecutionStatus(str, Enum):
+class ExerciseExecutionStatus(StrEnum):
     SUCCESS = "Success"
     TEST_FAILURE = "TestFailure"
     COMPILATION_FAILURE = "CompilationFailure"

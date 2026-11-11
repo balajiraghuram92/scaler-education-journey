@@ -10,8 +10,7 @@ from __future__ import annotations
 import json
 import logging
 
-from ...stjson import dumps as _json_dumps
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
@@ -21,6 +20,7 @@ from ...models.problem import Problem
 from ...models.user_exercise_state import UserExerciseAttempt, UserExerciseDraft
 from ...schemas.base import CamelModel, DotNetDateTime
 from ...schemas.exercise_dtos import ExerciseExecutionResponse, ExerciseSubmissionRequest
+from ...stjson import dumps as _json_dumps
 from ..learner_progress_service import LearnerProgressService, ProblemStatusRequest
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ class ExerciseProgressService:
         self._progress = progress or LearnerProgressService(session)
 
     def _utcnow(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     async def save_draft(
         self, user_id: int, exercise_id: str, files: list[ExerciseDraftFileDto]

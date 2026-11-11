@@ -165,6 +165,8 @@ class ChallengeException(Exception):
         self.status = status
 
 
-async def challenge_exception_handler(request: Request, exc: ChallengeException) -> Response:
+async def challenge_exception_handler(request: Request, exc: Exception) -> Response:
+    if not isinstance(exc, ChallengeException):
+        raise exc
     headers = {"WWW-Authenticate": "Bearer"} if exc.status == 401 else {}
     return Response(status_code=exc.status, headers=headers)

@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 from ...stjson import dumps as _json_dumps
 
 
-class ReconciliationExecutionMode(str, Enum):
+class ReconciliationExecutionMode(StrEnum):
     DRY_RUN = "DryRun"
     APPLY = "Apply"
     VERIFY = "Verify"
@@ -65,7 +65,7 @@ class MappingCandidate:
 class ReconciliationReport:
     scope: str = ""
     mode: ReconciliationExecutionMode = ReconciliationExecutionMode.DRY_RUN
-    executed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    executed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     discovered_count: int = 0
     exact_mapped_count: int = 0
     proposed_count: int = 0

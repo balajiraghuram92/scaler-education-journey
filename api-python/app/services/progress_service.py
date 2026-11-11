@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from ..stjson import dumps as _json_dumps
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import select
@@ -18,6 +17,7 @@ from ..models.problem import Problem
 from ..models.study_task import StudyTask
 from ..models.study_task_content_link import StudyTaskContentLink
 from ..schemas.base import CamelModel
+from ..stjson import dumps as _json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class ProgressService:
         self._session = session
 
     def _utcnow(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     async def set_lesson_completion(
         self, lesson_id: int, is_completed: bool, correlation_id: UUID | None = None

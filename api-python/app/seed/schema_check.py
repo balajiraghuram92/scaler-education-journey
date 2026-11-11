@@ -161,10 +161,13 @@ async def check_schema(engine: AsyncEngine) -> list[str]:
         r_checks = {c.name: str(c.sqltext) for c in r_table.constraints if isinstance(c, sa.CheckConstraint)}
         if set(m_checks) != set(r_checks):
             errors.append(
-                f"table {name}: check names metadata={sorted(m_checks)} "
-                f"database={sorted(r_checks)}"
+                f"table {name}: check names metadata={sorted(n for n in m_checks if n is not None)} "
+                f"database={sorted(n for n in r_checks if n is not None)}"
             )
-        for check_name in sorted(set(m_checks) & set(r_checks)):
+        common_checks = sorted(
+            name for name in set(m_checks) & set(r_checks) if name is not None
+        )
+        for check_name in common_checks:
             if _norm_sql(m_checks[check_name]) != _norm_sql(r_checks[check_name]):
                 errors.append(
                     f"table {name}: check {check_name} SQL differs:\n"

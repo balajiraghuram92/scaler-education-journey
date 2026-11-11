@@ -6,7 +6,7 @@ scratch Postgres database, so the check constraints are enforced for real.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
@@ -25,7 +25,7 @@ from app.models.study_vertical import StudyVertical
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @pytest.mark.asyncio

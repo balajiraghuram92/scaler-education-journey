@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
@@ -80,7 +80,7 @@ async def test_post_to_marketplace_when_nothing_left_to_translate_throws(
                 stage="Translated",
                 translation_source="Manual",
                 needs_review=False,
-                updated_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(UTC),
             )
         )
     await db.flush()
@@ -114,7 +114,7 @@ async def test_post_to_marketplace_after_approved_creates_second_row_and_leaves_
         project_id=seed.project.id,
         key="k.three",
         source_text="Brand new string",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
     db.add(s3)
     await db.flush()

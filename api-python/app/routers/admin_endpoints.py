@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
@@ -101,7 +101,7 @@ async def approve_user(
             request, 404, "User not found.", f"No user found with ID {user_id}."
         )
     user.status = "Approved"
-    user.decided_at = datetime.now(timezone.utc)
+    user.decided_at = datetime.now(UTC)
     user.decided_by_user_id = admin.id
     await session.commit()
     background.add_task(_email_service().send_user_approved_notice, user)
@@ -130,7 +130,7 @@ async def reject_user(
             request, 404, "User not found.", f"No user found with ID {user_id}."
         )
     user.status = "Rejected"
-    user.decided_at = datetime.now(timezone.utc)
+    user.decided_at = datetime.now(UTC)
     user.decided_by_user_id = admin.id
     await session.commit()
     reason = body.reason if body else None
@@ -160,7 +160,7 @@ async def reset_totp(
         return endpoint_problem(
             request, 404, "User not found.", f"No user found with ID {user_id}."
         )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     user.totp_enabled = False
     user.totp_secret_encrypted = None
     user.last_accepted_totp_counter = None
@@ -234,7 +234,9 @@ async def get_usage_by_user(
             email=row[1],
             display_name=row[2],
             total_requests=row[3],
-            total_cost_usd=Decimal(row[4]).quantize(Decimal("0.000001")),
+            total_cost_usd=Decimal(row[4] if row[4] is not None else 0).quantize(
+                Decimal("0.000001")
+            ),
             total_prompt_tokens=row[5],
             total_completion_tokens=row[6],
             last_request_at=row[7],

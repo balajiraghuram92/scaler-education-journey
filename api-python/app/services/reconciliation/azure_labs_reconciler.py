@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -36,7 +36,7 @@ class AzureLabsReconciler:
         self._session = session
 
     def _utcnow(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     async def reconcile_azure_and_labs(
         self, mode: ReconciliationExecutionMode
@@ -114,11 +114,11 @@ class AzureLabsReconciler:
             )
         ).scalars().all()
         all_azure_lessons = (
-            [l for m in azure_course_candidates[0].modules for l in m.lessons]
+            [lesson for m in azure_course_candidates[0].modules for lesson in m.lessons]
             if len(azure_course_candidates) == 1
             else []
         )
-        all_azure_problems = [p for l in all_azure_lessons for p in l.problems]
+        all_azure_problems = [p for lesson in all_azure_lessons for p in lesson.problems]
 
         labs_course_candidates = (
             await self._session.execute(
@@ -132,11 +132,11 @@ class AzureLabsReconciler:
             )
         ).scalars().all()
         all_labs_lessons = (
-            [l for m in labs_course_candidates[0].modules for l in m.lessons]
+            [lesson for m in labs_course_candidates[0].modules for lesson in m.lessons]
             if len(labs_course_candidates) == 1
             else []
         )
-        all_labs_problems = [p for l in all_labs_lessons for p in l.problems]
+        all_labs_problems = [p for lesson in all_labs_lessons for p in lesson.problems]
 
         report.discovered_count = len(azure_vertical.tasks) + len(labs_vertical.tasks)
 

@@ -11,7 +11,6 @@ import argparse
 import difflib
 import json
 import os
-import sys
 import urllib.request
 
 DOTNET_BASE = os.environ.get("PARITY_DOTNET_BASE", "http://127.0.0.1:5000")

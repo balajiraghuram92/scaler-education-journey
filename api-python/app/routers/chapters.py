@@ -5,7 +5,7 @@ plus the BuildChapterDetailResponse helper (lines 1650-1883) and CountWords.
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
@@ -118,7 +118,7 @@ async def get_chapters_list(
             modules = [m for m in modules if m.slug == module]
         module_dtos = []
         for m in modules:
-            lessons = sorted(m.lessons, key=lambda l: l.order_index)
+            lessons = sorted(m.lessons, key=lambda lesson: lesson.order_index)
             m_chapters = [
                 ChapterSummaryDto(
                     id=lesson.id,
@@ -242,7 +242,7 @@ async def create_chapter_note(
             )
         )
     ).scalar_one()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     note_type = (
         "PersonalNote"
         if is_personal
@@ -326,8 +326,8 @@ async def map_curriculum_chapter(
             order_index=1,
             path_type="Course",
             is_published=True,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         session.add(course)
         await session.commit()
@@ -365,8 +365,8 @@ async def map_curriculum_chapter(
             description=f"Module for {module_title}",
             badge="Module",
             order_index=max_module_order + 1,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         session.add(module_row)
         await session.commit()
@@ -398,7 +398,7 @@ async def map_curriculum_chapter(
         existing.estimated_minutes = (
             body.estimated_minutes if body.estimated_minutes is not None else 45
         )
-        existing.updated_at = datetime.now(timezone.utc)
+        existing.updated_at = datetime.now(UTC)
     else:
         max_lesson_order = (
             await session.execute(
@@ -407,7 +407,7 @@ async def map_curriculum_chapter(
                 )
             )
         ).scalar_one() or 0
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         existing = Lesson(
             module_id=module_row.id,
             slug=slug,

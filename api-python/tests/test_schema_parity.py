@@ -14,6 +14,7 @@ import pytest
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.seed.schema_check import check_schema
+from tests.conftest import require_postgres
 
 
 def _scratch_url() -> str:
@@ -25,6 +26,7 @@ def _scratch_url() -> str:
 
 @pytest.mark.asyncio
 async def test_schema_parity() -> None:
+    await require_postgres()
     engine = create_async_engine(_scratch_url())
     try:
         errors = await check_schema(engine)

@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..db import get_session
-from ..models.course import Course
 from ..models.course_module import CourseModule
 from ..models.lesson import Lesson
 from ..models.lesson_code_comparison import LessonCodeComparison
@@ -180,12 +179,12 @@ async def get_chapter_detail(
     ).scalars().all()
     lesson = next(
         (
-            l
-            for l in lessons
-            if l.module is not None
-            and l.module.slug == module_slug
-            and l.module.course is not None
-            and l.module.course.slug == course_slug
+            candidate
+            for candidate in lessons
+            if candidate.module is not None
+            and candidate.module.slug == module_slug
+            and candidate.module.course is not None
+            and candidate.module.course.slug == course_slug
         ),
         None,
     )

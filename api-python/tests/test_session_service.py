@@ -7,7 +7,7 @@ the seeder test in P7, next to the code they exercise.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import jwt
@@ -46,7 +46,7 @@ async def _add_user(db: AsyncSession, status: str = "Approved") -> AppUser:
         password_salt="s",
         role="User",
         status=status,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
         totp_enabled=False,
     )
     db.add(user)
@@ -109,8 +109,8 @@ async def test_start_session_writes_short_lived_access_token_with_session_claim_
     )
     assert claims["na_sid"] == str(session.id)
     assert (
-        datetime.fromtimestamp(claims["exp"], timezone.utc)
-        <= datetime.now(timezone.utc) + timedelta(minutes=31)
+        datetime.fromtimestamp(claims["exp"], UTC)
+        <= datetime.now(UTC) + timedelta(minutes=31)
     )
 
     # Only the hash is stored, never the raw token.
@@ -118,7 +118,7 @@ async def test_start_session_writes_short_lived_access_token_with_session_claim_
 
     assert hash_token(cookies["na_refresh"]) == session.refresh_token_hash
     assert cookies["na_refresh"] != session.refresh_token_hash
-    assert session.expires_at > datetime.now(timezone.utc) + timedelta(days=29)
+    assert session.expires_at > datetime.now(UTC) + timedelta(days=29)
 
 
 @pytest.mark.asyncio
@@ -146,7 +146,7 @@ async def test_refresh_rotates_token_and_old_token_after_grace_revokes_session(
     stored = (
         await db.execute(select(UserSession).where(UserSession.id == session.id))
     ).scalar_one()
-    stored.rotated_at = datetime.now(timezone.utc) - timedelta(minutes=5)
+    stored.rotated_at = datetime.now(UTC) - timedelta(minutes=5)
     await db.flush()
 
     reuse = await sessions.refresh(_request(first_token), _response())
@@ -173,7 +173,7 @@ async def test_refresh_fails_for_idle_sessions_and_disabled_users(
     idle_row = (
         await db.execute(select(UserSession).where(UserSession.id == idle.id))
     ).scalar_one()
-    idle_row.last_seen_at = datetime.now(timezone.utc) - timedelta(days=20)
+    idle_row.last_seen_at = datetime.now(UTC) - timedelta(days=20)
     await db.flush()
     idle_token = _set_cookies(idle_response)["na_refresh"]
     idle_result = await sessions.refresh(_request(idle_token), _response())

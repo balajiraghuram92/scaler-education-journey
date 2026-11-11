@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -32,7 +32,7 @@ def test_curriculum_import_request_validation() -> None:
 
 
 async def _seed_course(db: AsyncSession) -> tuple[int, int]:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     course = Course(
         slug="java-spring-lld",
         title="Java",

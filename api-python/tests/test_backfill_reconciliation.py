@@ -8,7 +8,7 @@ is covered with hand-built fixtures on the scratch database.
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import func, select
@@ -42,7 +42,7 @@ needs_seed_data = pytest.mark.skipif(
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 async def _add_vertical(db: AsyncSession, name: str, vertical_id: int | None = None) -> StudyVertical:
@@ -236,7 +236,6 @@ async def test_fde_reconciler_resolves_vertical_candidates_deterministically(
     scratch_session: AsyncSession,
 ) -> None:
     db = scratch_session
-    now = _now()
     await _add_vertical(db, "FDE Curriculum")
     await _add_vertical(db, "FDE Self-Study")
     reconciler = FdeReconciler(db)

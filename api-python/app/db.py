@@ -7,7 +7,7 @@ function converting a .NET-style connection string to an asyncpg URL.
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -32,9 +32,10 @@ def dotnet_connstr_to_asyncpg_url(connstr: str) -> str:
     database = parts.get("database", parts.get("initial catalog", "studytracker"))
     username = parts.get("username", parts.get("user id", parts.get("user", "studyuser")))
     password = parts.get("password", "")
-    auth = quote_plus(username)
+    # quote, not quote_plus: userinfo percent-encodes space as %20, never +.
+    auth = quote(username, safe="")
     if password:
-        auth += f":{quote_plus(password)}"
+        auth += f":{quote(password, safe="")}"
     return f"postgresql+asyncpg://{auth}@{host}:{port}/{database}"
 
 

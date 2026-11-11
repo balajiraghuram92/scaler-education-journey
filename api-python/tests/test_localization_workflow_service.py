@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import select
@@ -79,7 +79,7 @@ async def test_post_to_marketplace_action_skips_locales_with_nothing_left_to_tra
                     stage="Translated",
                     translation_source="Manual",
                     needs_review=False,
-                    updated_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(UTC),
                 )
             )
     await db.flush()
@@ -205,7 +205,7 @@ async def test_run_step_mark_translated_send_to_review_approve_chain(
                     stage="New",
                     translation_source="Manual",
                     needs_review=False,
-                    updated_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(UTC),
                 )
             )
     await db.flush()

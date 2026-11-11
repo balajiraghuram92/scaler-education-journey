@@ -330,3 +330,154 @@ Not in items 1-8, left untouched and flagged for a later round: UP017 (92),
 E741 (13), I001 (13), F401 (10), UP042 (3), UP035 (1), F841 (1), and
 `ruff format --check` (167 files). No test, lint run or eval is described as
 passing anywhere in this entry.
+
+## Round 3 corrections
+
+Log: `info/muse-prompts/corrections/round3/api-python.log` and
+`seed-extract.log`. No command was run in this round; nothing below is claimed
+to pass. Line numbers are post-edit.
+
+Task 1. **Mapper error.** `app/models/study_vertical.py` line 27: added
+`ForeignKey("Verticals.Id", ondelete="RESTRICT")` to
+`canonical_vertical_id` (import at line 8), matching
+`api/Data/StudyTrackerContext.cs` lines 104-107
+(`HasOne(CanonicalVertical).WithMany(Aliases).HasForeignKey
+(CanonicalVerticalId).OnDelete(Restrict)`). Column name, index and
+`remote_side` untouched; the FK name comes from the round-1 convention as
+`FK_Verticals_Verticals_canonical_vertical_id`. Then audited every
+`relationship(...)` in all 52 model files under `app/models/`: every
+`back_populates` names an existing attribute on the target class whose own
+`back_populates` points back (incl. `aliases`/`canonical_vertical`,
+`outgoing/incoming_relations`, prerequisites, `content_link`, `attempt`);
+self-referencing pairs carry `remote_side`; multi-FK pairs carry
+`foreign_keys` on both sides; one-sided relationships (many `user`/`lesson`
+links, `related_marketplace_job`, `decided_by_user`) need none. Swept every
+`*_id` column: all carry a `ForeignKey` now (the UUID
+`mcq_attempt.presentation_id` included). No pair needed correction beyond the
+study_vertical fix.
+
+Task 2. **DB tests skip cleanly.** `tests/conftest.py`: added module-level
+`_postgres_probe_cache` plus `require_postgres()` (lines 24-52), which tries
+one connection per URL per session and otherwise raises
+`pytest.skip("no PostgreSQL at <url>")`, mirroring the Docker-backed skip
+pattern; the `scratch_session` fixture calls it first (line 57), so every
+test using that fixture skips with that reason. URL still comes from the
+existing `PY_SCRATCH_DATABASE_URL` with the current default. "Do not change
+any test body" read as "do not alter test logic": the mandated shared check
+requires one guard line, so `tests/test_schema_parity.py` gained the
+`require_postgres` import (line 17) and one `await require_postgres()` guard
+(line 29); assertions untouched. `from tests.conftest import` matches the
+existing `tests.*` import style (the Docker test imports
+`tests.exercises.exercise_test_factory`).
+
+Task 3. **Connstr aliases.** The function was wrong, the test right.
+`app/db.py` used `quote_plus`, which encodes space as `+` (valid only in
+query strings); userinfo requires `%20`. Now uses `quote(..., safe="")`
+(import line 10, use lines 36-38 with a comment). Aliases (`Server`,
+`User Id` with space, case-insensitive), default port 5432, and database
+default were already correct (lines 30-34); no C# counterpart builds a URL
+(Program.cs passes the string to Npgsql), so the test expectation is the
+spec. Test file untouched.
+
+Task 4. **Seed converter.** `_decode_string_in_span` now receives the whole
+part text starting at `part_offset` and searches for the opening `"`/`@"`
+after the first `=` (lines 176-192); `parse_value` takes an optional `part`
+(lines 218-224), passed by `parse_initializer` (line 214) and
+`parse_call_args` (line 248). The same offset mix-up existed latently at the
+expanded-module and supplemental-module arg sites (one shared offset for all
+five args): both now locate each arg with an advancing cursor (lines 346-352,
+412-418). Verified the crash case by reading: part
+`Module = "1. OOP..."` at P now decodes at the quote, not at `M`.
+Initializer shapes found in the extracted regions of both C# files, each
+traced to its `parse_value` branch: regular string and verbatim `@"..."`
+(string branch: Lesson/StudyTask props, study-guide tuples, Chapter/Lesson/
+module/guide call args); int incl. 0 (int branch: minutes, orders);
+true/false (bool branch); `null` (null branch — only in non-extracted
+`new Course` blocks, kept for safety); bare identifier `verticalId`/
+`moduleId` ($var branch); dotted identifier `topic.Content`,
+`lessonDefinition.ContentBody` ($var branch);
+`GetAuthoredLessonContent("...") ?? string.Empty` ($content_ref branch);
+`new[]` arrays and `Chapter(`/`Lesson(` calls (structural handling in
+`extract_java`/`extract_fde`, not `parse_value`). No branch added: no
+concatenation, interpolation, nested `new X {...}`, other method call,
+enum member, or decimal appears in any extracted value position
+(`$"..."`, `" +`, decimals, and `ClassDate = string.Empty` all occur only
+inside string bodies, throw statements, helpers, or the deliberately
+excluded `EnsureExpandedModules` region).
+
+Task 5. **mypy, 20 errors in 12 files**, each fixed at the cause, no new
+`# type: ignore` except the one noted:
+- `services/localization/workflow_service.py:474, 479`: QPS result went to
+  a separate `score_result` variable (was reusing the optimize-typed
+  `result`); `:312`: annotated the lookup `trans:
+  LocalizationTranslation | None`, matching the C# null branch.
+- `services/auth/session_service.py:156, 202`: `_is_user_active` now
+  returns `TypeGuard[AppUser]`, porting the C# `IsUserActive` check plus
+  `User!` assertion (import at line 16, guard at line 430).
+- `services/learner_progress_service.py:358, 365`: the early return now
+  includes `last is None`, porting the C# `last?.Lesson?.Module?.Course
+  == null` narrowing (line 342).
+- `seed/fde_curriculum_seed_data.py:189`: `existing_lessons` annotated
+  `list[Lesson]` (lines 139-151); `:244, 245`: `(max_order if ... else
+  0) + 1` via `next_order` (line 241), porting C#
+  `DefaultIfEmpty(0).Max()`.
+- `seed/mcq_migration_seed_data.py:116`: annotated `lesson: Lesson |
+  None` and renamed the fallback-query intermediate to `slug_matches`
+  (lines 116, 118); the warn-and-continue on missing lesson already
+  matched the C#.
+- `services/budget_guard_service.py:47`,
+  `routers/admin_endpoints.py:237`: `Decimal(x if x is not None else 0)`,
+  porting C# `?? 0m`.
+- `services/llama_api_client.py:165`: `int(prompt_value)`,
+  `int(comp_value)` after the guards, as C# `TryGetInt32` yields ints
+  (comment at line 164).
+- `seed/schema_check.py:164, 165, 167`: `None` names filtered before
+  `sorted` (lines 164-169).
+- `main.py:143` via `services/auth/current_user.py:168`: handler
+  parameter annotated `Exception`, narrowed with `isinstance` + re-raise.
+- `schemas/base.py:38`: bogus `ser_json_by_alias` replaced with
+  `serialize_by_alias=True` (line 41).
+- `services/exercises/exercise_manifest_models.py:165`: guarded with
+  `sys.platform == "win32"` (import line 6, guard line 161) plus the
+  allowed `# type: ignore[attr-defined]`.
+
+Task 6. **ruff, 142 findings**, all fixed by hand, no reformatting:
+- UP017 (99): every `timezone.utc` became `UTC` in 43 files
+  (app, routers, schemas/base, seed x9, services incl. all 7
+  localization services, 14 test files); each import became
+  `from datetime import UTC, ...` with `timezone` dropped. Verified
+  afterward: no `timezone.utc` and no `timezone` member import remain;
+  `DateTime(timezone=True)` kwargs untouched.
+- E741 (14): `l` renamed per site — sort-key lambdas to `lesson`
+  (`row` in learning_path_query_service.py:166 where `lesson` was taken);
+  `next(...)` selectors to `candidate`; flatten comprehensions to
+  `lesson` (8 reconciler/seed/router sites).
+- I001 (13): 11 fixed — first-party `stjson` imports moved out of the
+  stdlib block into the first-party block (curriculum_import,
+  exercise_progress, learner_progress, mcq_service, progress_service);
+  third-party `pydantic` moved out of the first-party block
+  (learning_path_query_service); `from decimal import Decimal,
+  ROUND_HALF_*` reordered to constant-first in 5 files (budget_guard,
+  llama_api_client, credit_ledger_service, workflow_service,
+  localization_seed_data). NOT fixed: `app/errors.py:7` and
+  `app/main.py:13` — both import blocks are already sorted under every
+  isort rule checked (sections, straight-before-from, member order,
+  relative levels); the finding is not explainable by reading, so the
+  files were left untouched rather than risk introducing real disorder.
+  Reviewer: please send `ruff check --diff` for these two.
+- F401 (10): removed after verifying each name unused —
+  `sqlalchemy.func` (cli.py:15), `typing.TYPE_CHECKING`
+  (app_user.py:6, whole line), `Integer` from six model sqlalchemy
+  imports, `Course` (v2_endpoints.py:14), `sys` (parity.py:14).
+- UP042 (3): `(str, Enum)` to `StrEnum` + import swap in
+  session_service.py, exercise_execution_models.py,
+  reconciliation_models.py (`Enum` unused elsewhere in each).
+- UP035 (1): `Callable` now from `collections.abc` (types.py:5).
+- F841 (1): removed unused `now = _now()` at
+  test_backfill_reconciliation.py:239 (no use before line 257's own).
+- ASYNC240 (1): `os.path.relpath` at
+  exercise_workspace_builder.py:107 now goes through new
+  `_relative_posix_async`/`_relative_posix`, mirroring the file's
+  `_write_text_async`/`_write_text` `asyncio.to_thread` pair (comment
+  explains relpath hits the filesystem via abspath).
+- `ruff format` left alone per item 8.

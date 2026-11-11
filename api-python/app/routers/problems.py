@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
@@ -101,7 +101,7 @@ async def create_problem(
     ).first()
     if lesson_exists is None:
         return JSONResponse(status_code=400, content={"message": "Invalid LessonId."})
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     problem = Problem(
         lesson_id=body.lesson_id,
         slug=body.slug.strip().lower(),

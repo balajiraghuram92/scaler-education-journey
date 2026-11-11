@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from collections import deque
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import httpx
@@ -126,7 +126,7 @@ async def test_run_mt_optimize_updates_targets_and_writes_token_ledger(
 ) -> None:
     db = scratch_session
     seed = await seed_project(db)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     db.add_all(
         [
             LocalizationTranslation(
@@ -201,7 +201,7 @@ async def test_run_mt_optimize_partial_failure_continues_and_counts(
 ) -> None:
     db = scratch_session
     seed = await seed_project(db)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     db.add_all(
         [
             LocalizationTranslation(
@@ -264,7 +264,7 @@ async def test_score_qps_stores_score_and_raw_score_once(
 ) -> None:
     db = scratch_session
     seed = await seed_project(db)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     db.add_all(
         [
             LocalizationTranslation(
@@ -350,7 +350,7 @@ async def test_score_qps_does_not_rescore_raw_when_already_set(
             stage="Translated",
             translation_source="AI",
             needs_review=False,
-            updated_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(UTC),
         )
     )
     await db.flush()
@@ -384,7 +384,7 @@ async def test_auto_route_sets_needs_review_from_project_threshold(
     db = scratch_session
     seed = await seed_project(db)
     seed.project.qps_threshold = 75
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     db.add_all(
         [
             LocalizationTranslation(

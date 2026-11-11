@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -34,7 +34,7 @@ class FdeReconciler:
         self._session = session
 
     def _utcnow(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     async def reconcile_fde(self, mode: ReconciliationExecutionMode) -> ReconciliationReport:
         report = ReconciliationReport(scope="fde", mode=mode, executed_at=self._utcnow())
@@ -125,11 +125,11 @@ class FdeReconciler:
             )
         ).scalars().all()
         all_canonical_lessons = (
-            [l for m in fde_course_candidates[0].modules for l in m.lessons]
+            [lesson for m in fde_course_candidates[0].modules for lesson in m.lessons]
             if len(fde_course_candidates) == 1
             else []
         )
-        all_canonical_problems = [p for l in all_canonical_lessons for p in l.problems]
+        all_canonical_problems = [p for lesson in all_canonical_lessons for p in lesson.problems]
 
         # 3. Classify each legacy task against canonical targets and identify duplicate/completion conflicts
         grouped: dict[str, list] = {}

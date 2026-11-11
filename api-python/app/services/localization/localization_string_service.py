@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -122,14 +122,14 @@ class LocalizationStringService:
                 stage="Translated" if has_target else "New",
                 translation_source="Manual",
                 needs_review=False,
-                updated_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(UTC),
             )
             self._session.add(translation)
         else:
             translation.target_text = request.target_text
             translation.translation_source = "Manual"
             translation.stage = "Translated" if has_target else "New"
-            translation.updated_at = datetime.now(timezone.utc)
+            translation.updated_at = datetime.now(UTC)
         await self._session.flush()
         return LocalizationStringRowDto(
             string_id=item.id,

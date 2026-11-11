@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +16,7 @@ async def seed(session: AsyncSession) -> None:
     # 1. Seed Reading Map Items
     exists = (await session.execute(select(ReadingMapItem.id).limit(1))).first()
     if exists is None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         session.add_all(
             [
                 # Read this week
@@ -40,7 +40,7 @@ async def seed(session: AsyncSession) -> None:
     # 2. Seed Reading Activity Logs (7-day timeline sparkline matching Study-tracker.png)
     exists = (await session.execute(select(ReadingActivityLog.id).limit(1))).first()
     if exists is None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         session.add_all(
             [
                 _log("Mon", 1, 1, now - timedelta(days=7)),

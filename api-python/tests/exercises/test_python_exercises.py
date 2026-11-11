@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -298,7 +298,7 @@ async def test_progress_service_records_runs_restores_draft_and_auto_solves_on_s
     scratch_session: AsyncSession,
 ) -> None:
     db = scratch_session
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     user = AppUser(
         email=f"{uuid4().hex}@example.com",
         password_hash="h",

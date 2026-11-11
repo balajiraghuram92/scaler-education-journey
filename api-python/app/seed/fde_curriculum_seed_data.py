@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import os
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,7 +30,7 @@ DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "fd
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _load_data() -> dict:
@@ -136,11 +136,15 @@ async def seed(session: AsyncSession) -> None:
         module_tasks = sorted(
             [t for t in tasks if t.module == legacy_module], key=lambda t: t.id
         )
-        existing_lessons = (
-            await session.execute(
-                select(Lesson).where(Lesson.module_id == db_module.id)
+        existing_lessons: list[Lesson] = list(
+            (
+                await session.execute(
+                    select(Lesson).where(Lesson.module_id == db_module.id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
 
         for task in module_tasks:
             lecture_number += 1
@@ -156,7 +160,10 @@ async def seed(session: AsyncSession) -> None:
                 .replace("/", "-")
             )
             lesson_slug = re.sub(r"-+", "-", lesson_slug).strip("-")
-            lesson = next((l for l in existing_lessons if l.slug == lesson_slug), None)
+            lesson = next(
+                (candidate for candidate in existing_lessons if candidate.slug == lesson_slug),
+                None,
+            )
             # C# TextInfo.ToTitleCase(task.Title.ToLower()): lowercase first, then
             # uppercase every letter following a non-letter (including after apostrophes).
             lesson_title = re.sub(
@@ -236,13 +243,15 @@ async def _ensure_supplemental_modules(
                     .order_by(CourseModule.order_index.desc())
                 )
             ).scalars().first()
+            # C# DefaultIfEmpty(0).Max(): no rows means order 1.
+            next_order = (max_order if max_order is not None else 0) + 1
             db_module = CourseModule(
                 course_id=course.id,
                 slug=module_def["slug"],
                 title=module_def["title"],
                 description=module_def["description"],
-                badge=f"Module {max_order + 1}",
-                order_index=max_order + 1,
+                badge=f"Module {next_order}",
+                order_index=next_order,
                 created_at=_utcnow(),
                 updated_at=_utcnow(),
             )

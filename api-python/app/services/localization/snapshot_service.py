@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -78,7 +78,7 @@ class SnapshotService:
         ).scalar_one_or_none()
         if project is None:
             raise LocalizationProjectNotFoundException(project_slug)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         date_prefix = f"snap-{now.strftime('%Y-%m-%d')}-"
         todays_snapshots = (
             await self._session.execute(

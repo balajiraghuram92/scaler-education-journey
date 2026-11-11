@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, PlainSerializer
@@ -16,9 +16,9 @@ def _to_camel(name: str) -> str:
 def format_dotnet_datetime(value: datetime) -> str:
     """Format like System.Text.Json writes a UTC DateTime: `...Z`, 7-digit fraction when nonzero."""
     if value.tzinfo is None:
-        value = value.replace(tzinfo=timezone.utc)
+        value = value.replace(tzinfo=UTC)
     else:
-        value = value.astimezone(timezone.utc)
+        value = value.astimezone(UTC)
     # Manual formatting: strftime breaks for years < 1000 (DateTime.MinValue).
     base = (
         f"{value.year:04d}-{value.month:02d}-{value.day:02d}"
@@ -38,5 +38,5 @@ class CamelModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
         alias_generator=_to_camel,
-        ser_json_by_alias=True,
+        serialize_by_alias=True,
     )

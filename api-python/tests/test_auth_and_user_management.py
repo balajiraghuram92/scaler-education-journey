@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import jwt
@@ -102,7 +102,7 @@ def test_auth_dtos_sealed_records_verify_properties() -> None:
     assert verify_req.challenge_id == challenge_id
     assert verify_req.code == "654321"
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     user_dto = UserDto(
         id=42,
         email="user@example.com",
@@ -118,7 +118,7 @@ def test_auth_dtos_sealed_records_verify_properties() -> None:
 
 
 def test_mfa_challenge_default_values_verify_initialization() -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     challenge = MfaChallenge(user_id=10, purpose="Login", created_at=now, expires_at=now)
 
     # The uuid default fires on INSERT (C# assigns Guid.NewGuid() at construction).

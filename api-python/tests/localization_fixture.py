@@ -8,7 +8,7 @@ conftest.py (rolled back after every test).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,7 +52,7 @@ async def seed_project(
     slug: str = "test-proj",
     vendor_languages: str = "de-DE,fr-FR",
 ) -> SeededProject:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     project = LocalizationProject(
         slug=slug,
         name="Test Project",

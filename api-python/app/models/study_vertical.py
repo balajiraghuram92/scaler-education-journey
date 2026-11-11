@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Index, Integer, Text, text
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -24,7 +24,9 @@ class StudyVertical(Base):
     id: Mapped[int] = mapped_column("Id", Integer, primary_key=True)
     name: Mapped[str] = mapped_column("Name", Text)
     description: Mapped[str] = mapped_column("Description", Text)
-    canonical_vertical_id: Mapped[int | None] = mapped_column(Integer)
+    canonical_vertical_id: Mapped[int | None] = mapped_column(
+        ForeignKey("Verticals.Id", ondelete="RESTRICT")
+    )
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()")

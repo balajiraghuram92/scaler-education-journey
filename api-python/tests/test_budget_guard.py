@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -19,7 +19,7 @@ from app.settings import BudgetSettings
 async def _seed_assistant_message(
     db: AsyncSession, cost: Decimal, created_at: datetime | None = None
 ) -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     user = AppUser(
         email=f"{uuid4().hex}@example.com",
         password_hash="h",

@@ -11,8 +11,9 @@ import base64
 import hashlib
 import secrets
 import time
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
+from typing import TypeGuard
 from uuid import UUID
 
 from fastapi import Request, Response
@@ -26,7 +27,7 @@ from ...settings import AuthSettings, get_settings
 from .jwt_token_service import JwtTokenService
 
 
-class RefreshOutcome(str, Enum):
+class RefreshOutcome(StrEnum):
     REFRESHED = "Refreshed"
     MISSING = "Missing"
     INVALID = "Invalid"
@@ -102,7 +103,7 @@ class SessionService:
         return self._options.refresh_cookie_name or "na_refresh"
 
     def _utcnow(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     async def start_session(
         self, user: AppUser, remember_me: bool, request: Request, response: Response
@@ -426,7 +427,8 @@ def _new_refresh_token() -> str:
     )
 
 
-def _is_user_active(user: AppUser | None) -> bool:
+def _is_user_active(user: AppUser | None) -> TypeGuard[AppUser]:
+    """Port of C# IsUserActive; True guarantees non-null like the C# `User!` assertion."""
     return user is not None and user.status.lower() == "approved"
 
 

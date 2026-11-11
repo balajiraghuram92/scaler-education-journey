@@ -6,8 +6,7 @@ import json
 import logging
 import random
 
-from ..stjson import dumps as _json_dumps
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import func, select
@@ -23,6 +22,7 @@ from ..models.mcq_option import McqOption
 from ..models.mcq_presentation import McqPresentation
 from ..models.mcq_question import McqQuestion
 from ..schemas.base import CamelModel, DotNetDateTime
+from ..stjson import dumps as _json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ class McqService:
         self._session = session
 
     def _utcnow(self) -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     async def get_practice_questions(
         self, course_slug: str, module_slug: str, lesson_slug: str, user_id: int | None
@@ -337,7 +337,7 @@ def _new_presentation(
         user_id=user_id,
         displayed_option_order=_json_dumps([o.option_key for o in ordered_options]),
         question_text_shown=None,
-        presented_at=datetime.now(timezone.utc),
+        presented_at=datetime.now(UTC),
     )
 
 

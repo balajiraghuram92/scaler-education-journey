@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,7 +31,7 @@ async def _get_or_create_vertical(
     ).scalar_one_or_none()
     if vertical is None:
         vertical = StudyVertical(
-            name=name, description=description, updated_at=datetime.now(timezone.utc)
+            name=name, description=description, updated_at=datetime.now(UTC)
         )
         session.add(vertical)
         await session.flush()
@@ -51,7 +51,7 @@ async def initialize(session: AsyncSession) -> None:
     if has_tasks is None:
         for task in fde_seed_data.get_tasks():
             task.vertical_id = fde_vertical.id
-            task.updated_at = datetime.now(timezone.utc)
+            task.updated_at = datetime.now(UTC)
             session.add(task)
         await session.flush()
 

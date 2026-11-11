@@ -36,7 +36,7 @@ def _course_to_dto(
     )
     module_dtos = []
     for module in sorted(course.modules, key=lambda m: m.order_index):
-        m_lessons = sorted(module.lessons, key=lambda l: l.order_index)
+        m_lessons = sorted(module.lessons, key=lambda lesson: lesson.order_index)
         m_total = len(m_lessons)
         m_completed = sum(1 for lesson in m_lessons if lesson.id in completed_ids)
         module_dtos.append(

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
@@ -94,7 +94,7 @@ async def toggle_reading_map_item(
     if item is None:
         return Response(status_code=404)
     item.is_completed = not item.is_completed
-    item.updated_at = datetime.now(timezone.utc)
+    item.updated_at = datetime.now(UTC)
     await session.commit()
     await session.refresh(item)
     return _item_to_dto(item)
@@ -115,7 +115,7 @@ async def create_reading_map_item(
             )
         )
     ).scalar_one()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     item = ReadingMapItem(
         category=body.category.strip(),
         title=body.title.strip(),
