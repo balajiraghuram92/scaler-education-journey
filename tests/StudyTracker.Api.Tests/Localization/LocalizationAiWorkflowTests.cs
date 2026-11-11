@@ -379,4 +379,27 @@ public class LocalizationAiWorkflowTests
         await Assert.ThrowsAsync<NotImplementedException>(
             () => new MtOptimizeService().OptimizeAsync("r", "s", "de-DE", CancellationToken.None));
     }
+
+    [Fact]
+    public async Task Phase3Actions_EmptyBaseUrl_ThrowNotImplementedAndWriteNoLedger()
+    {
+        using var db = LocalizationTestFixture.CreateDb();
+        var seed = await LocalizationTestFixture.SeedProjectAsync(db);
+        // No translations seeded: nothing is eligible for any Phase 3 action.
+
+        var handler = new FakeAiHandler();
+        var options = AiOptions();
+        options.BaseUrl = string.Empty;
+        var workflow = Workflow(db, AiClient(handler, options), options);
+
+        foreach (var action in new[] { "Run MT Optimize", "Score QPS", "Auto-Route" })
+        {
+            var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, action, null));
+            await Assert.ThrowsAsync<NotImplementedException>(
+                () => workflow.RunStepAsync(seed.Project.Slug, step.Id));
+        }
+
+        Assert.Empty(db.LocalizationLedgerEntries);
+        Assert.Empty(handler.Requests);
+    }
 }

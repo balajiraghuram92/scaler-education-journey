@@ -20,11 +20,20 @@ class ToolError(Exception):
 PATCH_FILE_RE = re.compile(r"^\+\+\+ b/(.+)$")
 
 
+def patch_files(patch_text: str) -> list[str]:
+    """Files touched by a unified diff (its `+++ b/...` lines)."""
+    return [
+        m.group(1)
+        for line in patch_text.splitlines()
+        if (m := PATCH_FILE_RE.match(line))
+    ]
+
+
 @dataclass
 class Tools:
     worktree: Path
     allowlist: frozenset[str]
-    evidence_pack: str = ""
+    _evidence_pack: str = ""
 
     def _resolve(self, rel: str, for_write: bool = False) -> Path:
         candidate = Path(rel)
@@ -81,16 +90,8 @@ class Tools:
                         break
         return hits
 
-    @staticmethod
-    def patch_files(patch_text: str) -> list[str]:
-        return [
-            m.group(1)
-            for line in patch_text.splitlines()
-            if (m := PATCH_FILE_RE.match(line))
-        ]
-
     async def apply_patch(self, patch_text: str) -> str:
-        touched = self.patch_files(patch_text)
+        touched = patch_files(patch_text)
         if not touched:
             raise ToolError("patch touches no files")
         for rel in touched:
@@ -116,4 +117,4 @@ class Tools:
         return await dotnet_test(self.worktree)
 
     def read_evidence(self) -> str:
-        return self.evidence_pack
+        return self._evidence_pack

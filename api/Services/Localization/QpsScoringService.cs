@@ -18,6 +18,12 @@ public class QpsScoringService : IQualityScorer
         _client = client;
     }
 
+    /// <summary>
+    /// True when a client is present and the AI service base URL is configured.
+    /// Lets callers fail up front instead of discovering it per string.
+    /// </summary>
+    public bool IsConfigured => _client?.IsConfigured == true;
+
     public async Task<QualityScoreResult> ScoreAsync(string sourceText, string targetText, string targetLocale, CancellationToken ct)
     {
         if (_client is null)

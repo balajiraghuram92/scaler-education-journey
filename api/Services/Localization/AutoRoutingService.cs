@@ -17,6 +17,12 @@ public class AutoRoutingService
         _client = client;
     }
 
+    /// <summary>
+    /// True when a client is present and the AI service base URL is configured.
+    /// Lets callers fail up front instead of discovering it per string.
+    /// </summary>
+    public bool IsConfigured => _client?.IsConfigured == true;
+
     public async Task<bool> ShouldRouteToReviewAsync(int qpsScore, int projectThreshold, CancellationToken ct)
     {
         if (_client is null)

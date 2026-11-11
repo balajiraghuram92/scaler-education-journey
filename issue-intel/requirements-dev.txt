@@ -1,7 +1,9 @@
 # Dev dependencies (mirrors pyproject.toml test + lint extras).
-# Pins reused from localization-ai/requirements-dev.txt (verified on PyPI).
+# Pins reused from localization-ai/requirements-dev.txt (verified on PyPI);
+# pytest-asyncio is the exact version from the round-2 reviewer's pip freeze.
 -r requirements.txt
 pytest==9.2.0
-pytest-asyncio  # reviewer will pin (version unverified this round)
+pytest-asyncio==1.4.1.post1
 ruff==0.17.4
 mypy==2.4.1
+mcp<2  # mirrors requirements.txt: server.py targets the MCP 1.x interface

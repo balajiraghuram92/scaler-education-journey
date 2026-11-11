@@ -339,3 +339,69 @@ described as passing.
    `python -m synthetic.generate --seed 20240917`
    (one command produces both; `--seed` defaults to the same
    value in `synthetic/data.py`).
+
+## Round 2 corrections
+
+Reviewer log: `info/muse-prompts/corrections/round2/issue-intel.log`.
+Nothing run this round (no shell); no test, lint run or eval is
+described as passing.
+
+1. Pins — fixed, except mcp (see item 4). `requirements.txt:10-12,16`
+   (`sqlalchemy[asyncio]==2.1.8`, `asyncpg==0.32.0`,
+   `alembic==1.20.1`, `aiosqlite==0.22.1`),
+   `requirements-dev.txt:6` (`pytest-asyncio==1.4.1.post1`), all
+   copied exactly from the log's `pip freeze` section.
+   `pyproject.toml:5-21` now carries the same `==` pins in
+   `dependencies` and in the `test`/`lint` extras. Header comments
+   refreshed; the stale "reviewer will pin" comments are gone.
+2. Gate parser — fixed in the parser, tests untouched.
+   `app/agents/gate.py:10`: `SUMMARY_RE` now expects the real
+   order, `Failed: N ... Passed: M`; `:31-32` assign group 1 to
+   `failed` and group 2 to `passed`. Note: the item says padding
+   is the cause, but `\s*` already tolerated padding — the actual
+   cause was the reversed order (the old pattern wanted
+   Passed-before-Failed, while the tests and `dotnet.log:9` show
+   Failed-then-Passed). Traced by reading: GREEN yields
+   failed=0/passed=12 with no `FAILED_RE` hit; RED yields
+   failed=1/passed=11 plus the one `Failed <name>` line.
+3. Seven tools — the spec (`BUILD-SPEC.md:101`) lists seven: list
+   files, read file, search text, apply patch, run build, run
+   tests, read the evidence pack. `test_no_merge.py` untouched.
+   - `evidence_pack`: folded in. It was a data field, not a tool,
+     but its default made it visible to `dir(Tools)`. Renamed to
+     the private field `_evidence_pack` (`app/agents/tools.py:36,
+     :120`); `read_evidence` still serves it. Only caller data
+     flow is positional (`fix_loop.py:101`), and no code reads
+     `.evidence_pack`, so the rename is contained.
+   - `patch_files`: removed from `Tools`, now a module-level
+     function (`app/agents/tools.py:23-29`); `apply_patch` calls
+     it (`:94`). `tests/test_tool_validation.py:10,76-77` now
+     imports and calls the module function instead of the
+     `Tools.patch_files` static method.
+   `dir(Tools)` non-underscore names are now exactly the seven
+   the test expects.
+4. mypy — `app/mcp_server/server.py` NOT ported: I do not know the
+   MCP 2.x Python SDK server interface for certain, so per the
+   item I did not guess. Constrained instead, with a comment in
+   each file: `requirements.txt:15`, `requirements-dev.txt:9`
+   (`mcp<2`, mirroring the runtime file), `pyproject.toml:15`
+   (`mcp>=1.4,<2`). `app/pipeline/manager.py:95-98`: the line-94
+   lambda is now a typed nested `async def _call` with the stage
+   function bound as a default arg (same pattern as the round-1
+   `test_failure_policy` closure fix); signature matches
+   `run_stage`'s `Callable[[], Awaitable[dict[str, Any]]]`.
+5. ruff I001 — fixed by hand in all six files. Cause:
+   `pyproject.toml` lists `alembic` in `known-first-party`, so
+   `from alembic import ...` must stand in its own first-party
+   block, not grouped with third-party sqlalchemy; straight
+   imports stay first within each block. `alembic/env.py:4-18`
+   (alembic moved below the `app.models` straight imports),
+   `0001:10-12`, `0002:10-12`, `0003:10-13`, `0004:10-13`,
+   `0005:11-14` (alembic split into its own block).
+6. `ruff format` left alone: no reformatting changes.
+
+Unresolved: the exact mcp 1.x version is unpinned (`mcp<2` /
+`mcp>=1.4,<2`) — no 1.x version was verifiable offline, so the
+reviewer's install resolves it. Whether the 1.x API then type-
+checks clean against `server.py` can only be shown by running
+mypy with that install.

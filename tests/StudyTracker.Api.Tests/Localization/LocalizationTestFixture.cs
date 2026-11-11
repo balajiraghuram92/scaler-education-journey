@@ -15,6 +15,8 @@ public sealed class FakeTranslationProvider : ITranslationProvider
 
 public sealed class FakeQualityScorer : IQualityScorer
 {
+    public bool IsConfigured => true;
+
     public Task<QualityScoreResult> ScoreAsync(string sourceText, string targetText, string targetLocale, CancellationToken ct)
     {
         return Task.FromResult(new QualityScoreResult(90, Array.Empty<string>()));

@@ -18,6 +18,12 @@ public class MtOptimizeService
         _client = client;
     }
 
+    /// <summary>
+    /// True when a client is present and the AI service base URL is configured.
+    /// Lets callers fail up front instead of discovering it per string.
+    /// </summary>
+    public bool IsConfigured => _client?.IsConfigured == true;
+
     public async Task<string> OptimizeAsync(string rawTranslation, string projectSlug, string targetLocale, CancellationToken ct)
     {
         var result = await OptimizeDetailedAsync(

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -14,6 +13,7 @@ import app.models.g2  # noqa: F401
 import app.models.g3  # noqa: F401
 import app.models.g4  # noqa: F401
 import app.models.gateway  # noqa: F401
+from alembic import context
 from app.db import Base
 from app.settings import get_settings
 

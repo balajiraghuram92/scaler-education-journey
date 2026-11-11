@@ -1,5 +1,5 @@
 -r requirements.txt
-pytest  # reviewer will pin (version unverified this round)
-pytest-asyncio  # reviewer will pin (version unverified this round)
-ruff  # reviewer will pin (version unverified this round)
-mypy  # reviewer will pin (version unverified this round)
+pytest==9.2.0
+pytest-asyncio==1.4.1.post1
+ruff==0.17.4
+mypy==2.4.1

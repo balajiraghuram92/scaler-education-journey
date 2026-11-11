@@ -426,8 +426,10 @@ public class WorkflowService
             // Phase 3 AI actions — thin orchestration over the localization-ai service.
             // A per-string AI failure is counted and the run continues; only
             // NotImplementedException (service not configured) aborts into HTTP 501.
+            // Each branch checks its service up front so the 501 surfaces even with no eligible strings.
             case WorkflowActions.RunMtOptimize:
             {
+                ThrowIfAiNotConfigured(_mtOptimizeService.IsConfigured);
                 var glossary = await _db.LocalizationGlossaryTerms
                     .AsNoTracking()
                     .Where(g => g.ProjectId == project.Id)
@@ -494,6 +496,7 @@ public class WorkflowService
 
             case WorkflowActions.ScoreQps:
             {
+                ThrowIfAiNotConfigured(_qualityScorer.IsConfigured);
                 int scoredCount = 0;
                 int failedCount = 0;
                 foreach (var str in project.Strings)
@@ -549,6 +552,7 @@ public class WorkflowService
 
             case WorkflowActions.AutoRoute:
             {
+                ThrowIfAiNotConfigured(_autoRoutingService.IsConfigured);
                 int processedCount = 0;
                 int flaggedCount = 0;
                 int failedCount = 0;
@@ -605,6 +609,19 @@ public class WorkflowService
             step.LastRunAt,
             step.LastRunOutcome
         );
+    }
+
+    /// <summary>
+    /// Fails a Phase 3 AI action up front when the AI service it needs is not
+    /// configured, so the step surfaces HTTP 501 regardless of the data.
+    /// Call before any loop and before any database write.
+    /// </summary>
+    private static void ThrowIfAiNotConfigured(bool configured)
+    {
+        if (!configured)
+        {
+            throw new NotImplementedException(LocalizationAiClient.NotConfiguredMessage);
+        }
     }
 
     private static void ValidateActionAndTrigger(string action, string? trigger)

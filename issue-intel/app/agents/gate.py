@@ -7,7 +7,7 @@ from pathlib import Path
 
 from app.agents.sandbox import run_cmd
 
-SUMMARY_RE = re.compile(r"Passed:\s*(\d+).*?Failed:\s*(\d+)", re.IGNORECASE)
+SUMMARY_RE = re.compile(r"Failed:\s*(\d+).*?Passed:\s*(\d+)", re.IGNORECASE)
 FAILED_RE = re.compile(r"^Failed (\S+)", re.MULTILINE)
 
 
@@ -28,8 +28,8 @@ class GateResult:
 
 def parse_dotnet_test(output: str) -> GateResult:
     match = SUMMARY_RE.search(output)
-    passed = int(match.group(1)) if match else 0
-    failed = int(match.group(2)) if match else 0
+    failed = int(match.group(1)) if match else 0
+    passed = int(match.group(2)) if match else 0
     failing: list[FailingTest] = []
     for name in FAILED_RE.findall(output):
         message = ""

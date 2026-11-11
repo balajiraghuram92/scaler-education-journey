@@ -91,7 +91,11 @@ async def execute_run(gateway: ModelGateway, run_id: str) -> None:
         try:
             for name, fn in stage_fns.STAGES:
                 payload = {"ticket_key": ticket.source_key, "prior": sorted(ctx.outputs)}
-                ctx.outputs[name] = await run_stage(ctx, name, payload, lambda f=fn: f(ctx))
+
+                async def _call(bound: stage_fns.StageFn = fn) -> dict[str, Any]:
+                    return await bound(ctx)
+
+                ctx.outputs[name] = await run_stage(ctx, name, payload, _call)
         except StageError:
             run.status = "FAILED_AWAITING_HUMAN"
             run.finished_at = datetime.datetime.now(datetime.UTC)

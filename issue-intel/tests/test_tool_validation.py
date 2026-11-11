@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from app.agents.tools import ToolError, Tools
+from app.agents.tools import ToolError, Tools, patch_files
 
 PATCH_OK = """diff --git a/src/VersionControl/ok.cs b/src/VersionControl/ok.cs
 --- a/src/VersionControl/ok.cs
@@ -73,8 +73,8 @@ def test_symlink_escape_rejected(tmp_path: Path) -> None:
 
 
 def test_patch_files_parsed() -> None:
-    assert Tools.patch_files(PATCH_OK) == ["src/VersionControl/ok.cs"]
-    assert Tools.patch_files("no diff here") == []
+    assert patch_files(PATCH_OK) == ["src/VersionControl/ok.cs"]
+    assert patch_files("no diff here") == []
 
 
 def test_apply_patch_outside_allowlist_rejected_without_git(tmp_path: Path) -> None:

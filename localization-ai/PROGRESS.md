@@ -257,3 +257,48 @@ No commands were run in this round (not permitted); the reviewer re-runs
 7. No EF migration written, as instructed.
 
 Unresolved: none. All items 1-6 addressed; item 7 is a deliberate no-op.
+
+## Round 2 corrections
+
+No commands were run in this round (not permitted); the reviewer re-runs
+`dotnet build` and `dotnet test`. Agent 1 scope only: the .NET side of LA4.
+`localization-ai/` code untouched (clean this round); this section is the only
+change under `localization-ai/`.
+
+1. `RunStep_Phase3Actions_StillSurfaceNotImplemented` failing ("No exception
+   was thrown"). Confirmed as described: the three Phase 3 branches only
+   reached the AI services inside the per-translation loop, so with no
+   eligible translation the step "succeeded" without calling anything. The
+   test is right; fixed the code, test untouched.
+   - `api/Services/Localization/WorkflowService.cs`: one shared private
+     check `ThrowIfAiNotConfigured(bool)` (lines 614-625) throwing
+     `NotImplementedException` with the existing `NotConfiguredMessage`
+     (501 via the existing endpoint mapping). Called as the first statement
+     of each branch — line 432 (Run MT Optimize, before the glossary read,
+     loop and ledger write), line 499 (Score QPS), line 555 (Auto-Route) —
+     so the throw precedes the end-of-method `SaveChangesAsync` and no
+     step outcome, translation change or ledger entry is persisted. Added
+     one comment line 429 noting the up-front behavior.
+   - Each branch checks the service it actually calls, so Score QPS still
+     works with a configured/fake scorer: `IsConfigured` added to
+     `MtOptimizeService.cs` (lines 21-25), `QpsScoringService.cs`
+     (lines 21-25) and `AutoRoutingService.cs` (lines 20-24), each
+     `_client?.IsConfigured == true` (covers both a missing client and a
+     client with an empty base URL).
+   - `IQualityScorer.cs` (lines 11-12): added `bool IsConfigured { get; }`
+     (WorkflowService holds the scorer behind the interface; the only
+     implementations are `QpsScoringService` and the test fake).
+   - `tests/StudyTracker.Api.Tests/Localization/LocalizationTestFixture.cs`
+     line 18: `FakeQualityScorer` implements `IsConfigured => true`.
+   - Checked by reading: every other `RunStepAsync` caller runs the Phase 3
+     actions only with a configured client (behavior unchanged) or runs
+     non-Phase-3 actions (branches untouched).
+2. New test for the configured-client path with an empty base URL:
+   `tests/StudyTracker.Api.Tests/Localization/LocalizationAiWorkflowTests.cs`
+   lines 383-404 (`Phase3Actions_EmptyBaseUrl_ThrowNotImplementedAndWriteNoLedger`):
+   client present, `BaseUrl = string.Empty`, seed project with no
+   translations (nothing eligible for any action), each of the three actions
+   expects `NotImplementedException`, then asserts no ledger entry was
+   written and no HTTP request was made.
+
+Unresolved: none. Items 1-2 both addressed.
