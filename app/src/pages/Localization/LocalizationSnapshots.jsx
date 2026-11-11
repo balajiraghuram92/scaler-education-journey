@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Camera, X, BadgeCheck, RefreshCw, FileText } from 'lucide-react';
+import { Camera, X, RefreshCw } from 'lucide-react';
 import LocalizationShell from './LocalizationShell';
+import useLocalizationProject from './useLocalizationProject';
 import { api } from '../../api/client';
 import { LoadingState, ErrorState, EmptyState } from '../../components/common/StateViews';
 
 export default function LocalizationSnapshots() {
-  const [projectSlug] = useState('auroraline-hud-v3');
+  const { slug: projectSlug, loading: projectLoading, error: projectError } = useLocalizationProject();
   const [snapshots, setSnapshots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,6 +14,7 @@ export default function LocalizationSnapshots() {
   const [activeSnapshot, setActiveSnapshot] = useState(null);
 
   const fetchSnapshots = useCallback(async () => {
+    if (!projectSlug) return;
     setLoading(true);
     setError(null);
     try {
@@ -80,9 +82,11 @@ export default function LocalizationSnapshots() {
         </button>
       </div>
 
-      {error ? (
+      {projectError ? (
+        <ErrorState error={{ message: projectError }} title="Unable to Load Project" />
+      ) : error ? (
         <ErrorState error={error} onRetry={fetchSnapshots} title="Unable to Load Snapshots" />
-      ) : loading ? (
+      ) : (projectLoading || !projectSlug || loading) ? (
         <LoadingState message="Loading build snapshot manifests..." />
       ) : snapshots.length === 0 ? (
         <EmptyState message="No build snapshots found. Cut a snapshot to begin." icon="📦" />
@@ -91,7 +95,6 @@ export default function LocalizationSnapshots() {
           style={{
             backgroundColor: 'var(--color-parchment-card, #FFFFFF)',
             border: '1px solid var(--color-border-subtle, #E2DDD5)',
-            borderRadius: '8px',
             overflow: 'hidden'
           }}
         >
@@ -107,7 +110,6 @@ export default function LocalizationSnapshots() {
               <tr
                 style={{
                   borderBottom: '1px solid var(--color-border-subtle, #E2DDD5)',
-                  backgroundColor: 'rgba(0,0,0,0.02)',
                   fontSize: '0.75rem',
                   letterSpacing: '0.04em',
                   color: 'var(--color-ink-muted, #6B7280)',
@@ -124,7 +126,7 @@ export default function LocalizationSnapshots() {
             <tbody>
               {snapshots.map((snap) => {
                 const totalApproved = snap.localeCounts?.reduce((sum, c) => sum + c.approvedCount, 0) || 0;
-                const localeCount = snap.localeCounts?.length || 5;
+                const localeCount = snap.localeCounts?.length || 0;
 
                 return (
                   <tr
@@ -151,7 +153,7 @@ export default function LocalizationSnapshots() {
                       {localeCount} locales
                     </td>
                     <td style={{ padding: '0.85rem 1.25rem', fontWeight: '600', color: 'var(--color-sage, #2C5E55)' }}>
-                      {totalApproved > 0 ? totalApproved : '612'}
+                      {totalApproved}
                     </td>
                   </tr>
                 );

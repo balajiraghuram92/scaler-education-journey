@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowUp, ArrowDown, Trash2, Play, Plus, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import LocalizationShell from './LocalizationShell';
+import useLocalizationProject from './useLocalizationProject';
 import { api } from '../../api/client';
+import { timeAgo } from '../../utils/timeAgo';
 import { LoadingState, ErrorState, EmptyState } from '../../components/common/StateViews';
 
 const ALL_ACTIONS = [
@@ -16,7 +18,7 @@ const ALL_ACTIONS = [
 ];
 
 export default function LocalizationWorkflow() {
-  const [projectSlug] = useState('auroraline-hud-v3');
+  const { slug: projectSlug, loading: projectLoading, error: projectError } = useLocalizationProject();
   const [steps, setSteps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,6 +26,7 @@ export default function LocalizationWorkflow() {
   const [stepNotice, setStepNotice] = useState(null); // { stepId, type: 'info'|'error'|'success', message }
 
   const fetchSteps = useCallback(async () => {
+    if (!projectSlug) return;
     setLoading(true);
     setError(null);
     try {
@@ -114,6 +117,45 @@ export default function LocalizationWorkflow() {
     }
   };
 
+  const renderNotice = (notice) => (
+    <div
+      style={{
+        padding: '0.6rem 0.85rem',
+        borderRadius: '4px',
+        fontSize: '0.8rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        backgroundColor:
+          notice.type === 'boundary'
+            ? '#FEF3C7'
+            : notice.type === 'error'
+            ? '#FEE2E2'
+            : '#ECFDF5',
+        color:
+          notice.type === 'boundary'
+            ? '#92400E'
+            : notice.type === 'error'
+            ? '#991B1B'
+            : '#065F46',
+        border: `1px solid ${
+          notice.type === 'boundary'
+            ? '#FCD34D'
+            : notice.type === 'error'
+            ? '#FCA5A5'
+            : '#A7F3D0'
+        }`
+      }}
+    >
+      {notice.type === 'success' ? (
+        <CheckCircle2 size={14} />
+      ) : (
+        <AlertCircle size={14} />
+      )}
+      <span>{notice.message}</span>
+    </div>
+  );
+
   return (
     <LocalizationShell activeTab="workflow">
       <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -127,9 +169,17 @@ export default function LocalizationWorkflow() {
         </div>
       </div>
 
-      {error ? (
+      {stepNotice && stepNotice.stepId === null && (
+        <div style={{ marginBottom: '1rem' }}>
+          {renderNotice(stepNotice)}
+        </div>
+      )}
+
+      {projectError ? (
+        <ErrorState error={{ message: projectError }} title="Unable to Load Project" />
+      ) : error ? (
         <ErrorState error={error} onRetry={fetchSteps} title="Unable to Load Workflow" />
-      ) : loading ? (
+      ) : (projectLoading || !projectSlug || loading) ? (
         <LoadingState message="Loading workflow configuration..." />
       ) : steps.length === 0 ? (
         <EmptyState message="No workflow steps defined." icon="⚙️" />
@@ -294,14 +344,11 @@ export default function LocalizationWorkflow() {
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        padding: '6px 12px',
+                        padding: '6px',
                         borderRadius: '4px',
                         border: 'none',
                         backgroundColor: 'var(--color-sage, #2C5E55)',
                         color: '#FFFFFF',
-                        fontSize: '0.8rem',
-                        fontWeight: '600',
                         cursor: runningStepId === step.id ? 'wait' : 'pointer'
                       }}
                     >
@@ -310,7 +357,6 @@ export default function LocalizationWorkflow() {
                       ) : (
                         <Play size={13} fill="currentColor" />
                       )}
-                      <span>Run</span>
                     </button>
                   </div>
                 </div>
@@ -319,7 +365,7 @@ export default function LocalizationWorkflow() {
                 <div style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted, #6B7280)' }}>
                   {step.lastRunAt ? (
                     <span>
-                      Last ran {new Date(step.lastRunAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {step.lastRunOutcome || 'Completed'}
+                      Last ran {timeAgo(step.lastRunAt)} — {step.lastRunOutcome || 'Completed'}
                     </span>
                   ) : (
                     <em style={{ fontStyle: 'italic' }}>Never run yet</em>
@@ -327,44 +373,7 @@ export default function LocalizationWorkflow() {
                 </div>
 
                 {/* Inline execution notice */}
-                {noticeForThis && (
-                  <div
-                    style={{
-                      padding: '0.6rem 0.85rem',
-                      borderRadius: '4px',
-                      fontSize: '0.8rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      backgroundColor:
-                        noticeForThis.type === 'boundary'
-                          ? '#FEF3C7'
-                          : noticeForThis.type === 'error'
-                          ? '#FEE2E2'
-                          : '#ECFDF5',
-                      color:
-                        noticeForThis.type === 'boundary'
-                          ? '#92400E'
-                          : noticeForThis.type === 'error'
-                          ? '#991B1B'
-                          : '#065F46',
-                      border: `1px solid ${
-                        noticeForThis.type === 'boundary'
-                          ? '#FCD34D'
-                          : noticeForThis.type === 'error'
-                          ? '#FCA5A5'
-                          : '#A7F3D0'
-                      }`
-                    }}
-                  >
-                    {noticeForThis.type === 'success' ? (
-                      <CheckCircle2 size={14} />
-                    ) : (
-                      <AlertCircle size={14} />
-                    )}
-                    <span>{noticeForThis.message}</span>
-                  </div>
-                )}
+                {noticeForThis && renderNotice(noticeForThis)}
               </div>
             );
           })}
@@ -380,19 +389,15 @@ export default function LocalizationWorkflow() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
             backgroundColor: '#FFFFFF',
             border: '1px dashed var(--color-sage, #2C5E55)',
             color: 'var(--color-sage, #2C5E55)',
             borderRadius: '6px',
-            padding: '0.6rem 1.25rem',
-            fontSize: '0.85rem',
-            fontWeight: '600',
+            padding: '0.6rem',
             cursor: 'pointer'
           }}
         >
           <Plus size={16} />
-          <span>Add Step</span>
         </button>
       </div>
     </LocalizationShell>

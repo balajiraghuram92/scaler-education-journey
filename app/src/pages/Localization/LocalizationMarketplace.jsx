@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Megaphone, Users, Search, X, Check, ArrowRight, RefreshCw } from 'lucide-react';
+import { Megaphone, Users, Search, X, RefreshCw } from 'lucide-react';
 import LocalizationShell from './LocalizationShell';
+import useLocalizationProject from './useLocalizationProject';
 import { api } from '../../api/client';
 import { LoadingState, ErrorState, EmptyState } from '../../components/common/StateViews';
 
 export default function LocalizationMarketplace() {
   const navigate = useNavigate();
-  const [projectSlug] = useState('auroraline-hud-v3');
+  const { slug: projectSlug, loading: projectLoading, error: projectError } = useLocalizationProject();
   const [overview, setOverview] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,8 +16,10 @@ export default function LocalizationMarketplace() {
   // Post to Marketplace confirmation drawer state
   const [confirmLocaleRow, setConfirmLocaleRow] = useState(null);
   const [isPosting, setIsPosting] = useState(false);
+  const [postError, setPostError] = useState(null);
 
   const fetchOverview = useCallback(async () => {
+    if (!projectSlug) return;
     setLoading(true);
     setError(null);
     try {
@@ -35,15 +38,26 @@ export default function LocalizationMarketplace() {
     fetchOverview();
   }, [fetchOverview]);
 
+  const openConfirmDrawer = (row) => {
+    setPostError(null);
+    setConfirmLocaleRow(row);
+  };
+
+  const closeConfirmDrawer = () => {
+    setPostError(null);
+    setConfirmLocaleRow(null);
+  };
+
   const handleConfirmPost = async () => {
     if (!confirmLocaleRow) return;
     setIsPosting(true);
+    setPostError(null);
     try {
       await api.localization.postToMarketplace(projectSlug, confirmLocaleRow.localeCode);
       setConfirmLocaleRow(null);
       await fetchOverview();
     } catch (err) {
-      alert(`Error posting to marketplace: ${err.message}`);
+      setPostError(err.message || 'Failed to post to marketplace.');
     } finally {
       setIsPosting(false);
     }
@@ -56,11 +70,6 @@ export default function LocalizationMarketplace() {
         return 'var(--color-sage, #2C5E55)';
       case 'Not Posted':
         return 'var(--color-ink-muted, #6B7280)';
-      case 'SubmittedForReview':
-        return '#B45309'; // Amber
-      case 'Awarded':
-      case 'InProgress':
-        return 'var(--color-ink, #1F2937)';
       default:
         return 'var(--color-ink, #1F2937)';
     }
@@ -92,9 +101,11 @@ export default function LocalizationMarketplace() {
         </div>
       </div>
 
-      {error ? (
+      {projectError ? (
+        <ErrorState error={{ message: projectError }} title="Unable to Load Project" />
+      ) : error ? (
         <ErrorState error={error} onRetry={fetchOverview} title="Unable to Load Marketplace" />
-      ) : loading ? (
+      ) : (projectLoading || !projectSlug || loading) ? (
         <LoadingState message="Fetching marketplace statuses across target locales..." />
       ) : overview.length === 0 ? (
         <EmptyState message="No locales found for this project." icon="🏪" />
@@ -103,7 +114,6 @@ export default function LocalizationMarketplace() {
           style={{
             backgroundColor: 'var(--color-parchment-card, #FFFFFF)',
             border: '1px solid var(--color-border-subtle, #E2DDD5)',
-            borderRadius: '8px',
             overflow: 'hidden'
           }}
         >
@@ -119,7 +129,6 @@ export default function LocalizationMarketplace() {
               <tr
                 style={{
                   borderBottom: '1px solid var(--color-border-subtle, #E2DDD5)',
-                  backgroundColor: 'rgba(0,0,0,0.02)',
                   fontSize: '0.75rem',
                   letterSpacing: '0.04em',
                   color: 'var(--color-ink-muted, #6B7280)',
@@ -168,7 +177,7 @@ export default function LocalizationMarketplace() {
                       {row.status === 'Not Posted' && (
                         <button
                           type="button"
-                          onClick={() => setConfirmLocaleRow(row)}
+                          onClick={() => openConfirmDrawer(row)}
                           title="Post to Marketplace"
                           style={{
                             background: 'none',
@@ -185,7 +194,7 @@ export default function LocalizationMarketplace() {
                       {row.status === 'Open' && row.id && (
                         <button
                           type="button"
-                          onClick={() => navigate(`/lab-projects/localization/marketplace/${row.id}/bids`)}
+                          onClick={() => navigate(`/lab-projects/localization/marketplace/${row.id}/bids?project=${encodeURIComponent(projectSlug)}`)}
                           title={`Review Bids (${row.bidCount})`}
                           style={{
                             background: 'none',
@@ -202,7 +211,7 @@ export default function LocalizationMarketplace() {
                       {row.status === 'SubmittedForReview' && (
                         <button
                           type="button"
-                          onClick={() => navigate(`/lab-projects/localization?locale=${row.localeCode}&jobId=${row.id}`)}
+                          onClick={() => navigate(`/lab-projects/localization?locale=${row.localeCode}&jobId=${row.id}&project=${encodeURIComponent(projectSlug)}`)}
                           title="Review Strings in Strings Tab"
                           style={{
                             background: 'none',
@@ -235,7 +244,7 @@ export default function LocalizationMarketplace() {
             display: 'flex',
             justifyContent: 'flex-end'
           }}
-          onClick={() => setConfirmLocaleRow(null)}
+          onClick={closeConfirmDrawer}
         >
           <div
             style={{
@@ -271,7 +280,7 @@ export default function LocalizationMarketplace() {
               </div>
               <button
                 type="button"
-                onClick={() => setConfirmLocaleRow(null)}
+                onClick={closeConfirmDrawer}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -286,6 +295,11 @@ export default function LocalizationMarketplace() {
 
             {/* Drawer Body */}
             <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {postError && (
+                <div style={{ padding: '0.6rem 0.85rem', backgroundColor: '#FEF2F2', border: '1px solid #F87171', borderRadius: '6px', color: '#991B1B', fontSize: '0.85rem' }}>
+                  {postError}
+                </div>
+              )}
               <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-ink, #1F2937)', lineHeight: '1.5' }}>
                 You are about to publish an open translation job for the <strong>{confirmLocaleRow.localeCode}</strong> target locale.
                 Vetted translators proficient in this language pair will be invited to submit bids.

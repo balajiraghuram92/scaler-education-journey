@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Check, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { api } from '../../api/client';
+import useLocalizationProject from './useLocalizationProject';
 import { LoadingState, ErrorState, EmptyState } from '../../components/common/StateViews';
 
 export default function LocalizationBidReview() {
   const { jobId } = useParams();
-  const navigate = useNavigate();
   const parsedJobId = parseInt(jobId, 10);
+  const { slug: projectSlug, project, loading: projectLoading, error: projectError } = useLocalizationProject();
 
   const [bids, setBids] = useState([]);
   const [jobOverview, setJobOverview] = useState(null);
@@ -17,6 +18,7 @@ export default function LocalizationBidReview() {
   const [awardedMessage, setAwardedMessage] = useState(null);
 
   const fetchJobAndBids = useCallback(async () => {
+    if (!projectSlug) return;
     setLoading(true);
     setError(null);
     try {
@@ -24,19 +26,17 @@ export default function LocalizationBidReview() {
       setBids(bidsData || []);
 
       // Get job details from overview
-      const overview = await api.localization.getMarketplaceOverview('auroraline-hud-v3');
+      const overview = await api.localization.getMarketplaceOverview(projectSlug);
       if (Array.isArray(overview)) {
         const found = overview.find((j) => j.id === parsedJobId);
-        if (found) {
-          setJobOverview(found);
-        }
+        setJobOverview(found || null);
       }
     } catch (err) {
       setError(err.message || 'Failed to load bids for this job.');
     } finally {
       setLoading(false);
     }
-  }, [parsedJobId]);
+  }, [parsedJobId, projectSlug]);
 
   useEffect(() => {
     fetchJobAndBids();
@@ -76,7 +76,7 @@ export default function LocalizationBidReview() {
         {/* Back Link */}
         <div style={{ marginBottom: '1.5rem' }}>
           <Link
-            to="/lab-projects/localization/marketplace"
+            to={projectSlug ? `/lab-projects/localization/marketplace?project=${encodeURIComponent(projectSlug)}` : '/lab-projects/localization/marketplace'}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -91,60 +91,65 @@ export default function LocalizationBidReview() {
           </Link>
         </div>
 
-        {/* Header */}
-        <div style={{ marginBottom: '1.75rem' }}>
-          <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-sage, #2C5E55)', fontWeight: '700' }}>
-            Bid Evaluation
-          </span>
-          <h1
-            style={{
-              margin: '0.25rem 0 0 0',
-              fontSize: '1.75rem',
-              fontFamily: 'var(--font-serif, "Newsreader", serif)',
-              color: 'var(--color-ink, #1F2937)'
-            }}
-          >
-            Bids for {jobOverview?.localeCode || 'Target Locale'}
-          </h1>
-          <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.9rem', color: 'var(--color-ink-muted, #6B7280)' }}>
-            Project: Auroraline Automotive • {jobOverview?.stringCount || 6} strings ({jobOverview?.wordCount || 1240} words) • Suggested Band: {jobOverview?.suggestedPriceLow || 180} – {jobOverview?.suggestedPriceHigh || 240} Credits
-          </p>
-        </div>
-
-        {awardedMessage && (
-          <div
-            style={{
-              padding: '0.85rem 1.25rem',
-              backgroundColor: '#ECFDF5',
-              border: '1px solid #A7F3D0',
-              borderRadius: '6px',
-              color: '#065F46',
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              marginBottom: '1.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <CheckCircle2 size={18} />
-            <span>{awardedMessage}</span>
-          </div>
-        )}
-
-        {/* Bids Table */}
-        {error ? (
+        {projectError ? (
+          <ErrorState error={{ message: projectError }} title="Unable to Load Project" />
+        ) : error ? (
           <ErrorState error={error} onRetry={fetchJobAndBids} title="Unable to Load Bids" />
-        ) : loading ? (
+        ) : (projectLoading || !projectSlug || loading) ? (
           <LoadingState message="Fetching submitted bids..." />
-        ) : bids.length === 0 ? (
-          <EmptyState message="No bids submitted yet for this job." icon="📝" />
+        ) : !jobOverview ? (
+          <ErrorState error={{ message: `Marketplace job ${parsedJobId} was not found.` }} onRetry={fetchJobAndBids} title="Job Not Found" />
         ) : (
+          <>
+            {/* Header */}
+            <div style={{ marginBottom: '1.75rem' }}>
+              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-sage, #2C5E55)', fontWeight: '700' }}>
+                Bid Evaluation
+              </span>
+              <h1
+                style={{
+                  margin: '0.25rem 0 0 0',
+                  fontSize: '1.75rem',
+                  fontFamily: 'var(--font-serif, "Newsreader", serif)',
+                  color: 'var(--color-ink, #1F2937)'
+                }}
+              >
+                Bids for {jobOverview.localeCode}
+              </h1>
+              <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.9rem', color: 'var(--color-ink-muted, #6B7280)' }}>
+                Project: {project ? project.name : '…'} • {jobOverview.stringCount} strings ({jobOverview.wordCount} words) • Suggested Band: {jobOverview.suggestedPriceLow} – {jobOverview.suggestedPriceHigh} Credits
+              </p>
+            </div>
+
+            {awardedMessage && (
+              <div
+                style={{
+                  padding: '0.85rem 1.25rem',
+                  backgroundColor: '#ECFDF5',
+                  border: '1px solid #A7F3D0',
+                  borderRadius: '6px',
+                  color: '#065F46',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  marginBottom: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <CheckCircle2 size={18} />
+                <span>{awardedMessage}</span>
+              </div>
+            )}
+
+            {/* Bids Table */}
+            {bids.length === 0 ? (
+              <EmptyState message="No bids submitted yet for this job." icon="📝" />
+            ) : (
           <div
             style={{
               backgroundColor: 'var(--color-parchment-card, #FFFFFF)',
               border: '1px solid var(--color-border-subtle, #E2DDD5)',
-              borderRadius: '8px',
               overflow: 'hidden'
             }}
           >
@@ -160,7 +165,6 @@ export default function LocalizationBidReview() {
                 <tr
                   style={{
                     borderBottom: '1px solid var(--color-border-subtle, #E2DDD5)',
-                    backgroundColor: 'rgba(0,0,0,0.02)',
                     fontSize: '0.75rem',
                     letterSpacing: '0.04em',
                     color: 'var(--color-ink-muted, #6B7280)',
@@ -223,7 +227,7 @@ export default function LocalizationBidReview() {
                           >
                             Awarded
                           </span>
-                        ) : (
+                        ) : jobOverview.status === 'Open' ? (
                           <button
                             type="button"
                             disabled={awardingBidId === bid.id}
@@ -248,6 +252,8 @@ export default function LocalizationBidReview() {
                               <Check size={14} />
                             )}
                           </button>
+                        ) : (
+                          <span style={{ color: 'var(--color-ink-muted, #6B7280)' }}>—</span>
                         )}
                       </td>
                     </tr>
@@ -256,6 +262,8 @@ export default function LocalizationBidReview() {
               </tbody>
             </table>
           </div>
+            )}
+          </>
         )}
       </div>
     </div>

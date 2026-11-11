@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { api } from '../../api/client';
 import ProviderHealthPanel from '../../components/Localization/ProviderHealthPanel';
+import useLocalizationProject from './useLocalizationProject';
 
 export default function LocalizationShell({ activeTab = 'strings', children }) {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState([]);
-  const [selectedProjectSlug, setSelectedProjectSlug] = useState('auroraline-hud-v3');
+  const { slug: selectedProjectSlug, project, projects, loading: projectsLoading, selectProject } = useLocalizationProject();
   const [healthData, setHealthData] = useState([]);
   const [isHealthPanelOpen, setIsHealthPanelOpen] = useState(false);
 
@@ -22,26 +22,11 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
     }
   }, []);
 
-  const fetchProjects = useCallback(async () => {
-    try {
-      const data = await api.localization.getProjects();
-      if (Array.isArray(data) && data.length > 0) {
-        setProjects(data);
-        if (!data.some(p => p.slug === selectedProjectSlug)) {
-          setSelectedProjectSlug(data[0].slug);
-        }
-      }
-    } catch {
-      // Fallback to default
-    }
-  }, [selectedProjectSlug]);
-
   useEffect(() => {
-    fetchProjects();
     fetchHealth();
     const interval = setInterval(fetchHealth, 30000);
     return () => clearInterval(interval);
-  }, [fetchProjects, fetchHealth]);
+  }, [fetchHealth]);
 
   // Determine aggregate health dot color
   const hasOpenCircuit = healthData.some(p => p.circuitState?.toLowerCase() === 'open');
@@ -91,18 +76,16 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
             onClick={() => setIsHealthPanelOpen(true)}
             title={healthTooltip}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
               backgroundColor: '#FFFFFF',
               border: '1px solid var(--color-border-subtle, #E2DDD5)',
-              borderRadius: '20px',
-              padding: '0.35rem 0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               cursor: 'pointer',
-              fontSize: '0.8rem',
-              fontWeight: '600',
-              color: 'var(--color-ink, #1F2937)',
-              transition: 'border-color 0.15s ease'
+              padding: 0
             }}
           >
             <span
@@ -114,8 +97,6 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
                 display: 'inline-block'
               }}
             />
-            <Activity size={13} color="var(--color-ink-muted, #6B7280)" />
-            <span>Provider Health</span>
           </button>
 
           {/* (b) Project select dropdown */}
@@ -125,8 +106,8 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
             </label>
             <select
               id="project-select"
-              value={selectedProjectSlug}
-              onChange={(e) => setSelectedProjectSlug(e.target.value)}
+              value={selectedProjectSlug || ''}
+              onChange={(e) => selectProject(e.target.value)}
               style={{
                 padding: '0.35rem 0.65rem',
                 borderRadius: '6px',
@@ -146,7 +127,7 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
                   </option>
                 ))
               ) : (
-                <option value="auroraline-hud-v3">Auroraline Automotive — HUD Strings</option>
+                <option value="" disabled>{projectsLoading ? 'Loading projects…' : 'No projects'}</option>
               )}
             </select>
           </div>
@@ -215,7 +196,7 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.25rem' }}>
           <div>
             <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-sage, #2C5E55)', fontWeight: '700' }}>
-              Production Project: {selectedProjectSlug}
+              Production Project: {selectedProjectSlug || '…'}
             </div>
             <h1
               style={{
@@ -226,10 +207,10 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
                 letterSpacing: '-0.02em'
               }}
             >
-              Auroraline Automotive — HUD Strings
+              {project ? project.name : '…'}
             </h1>
             <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: 'var(--color-ink-muted, #6B7280)' }}>
-              Source: English (en-US) • 5 Locales • Build-Locked Delivery Pipeline
+              Source: {project ? project.sourceLocale : '…'} • {project ? `${project.locales.length} Locale${project.locales.length === 1 ? '' : 's'}` : '…'} • Build-Locked Delivery Pipeline
             </p>
           </div>
         </div>
@@ -249,7 +230,7 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => navigate(tab.path)}
+                onClick={() => navigate(selectedProjectSlug ? `${tab.path}?project=${encodeURIComponent(selectedProjectSlug)}` : tab.path)}
                 style={{
                   background: 'none',
                   border: 'none',

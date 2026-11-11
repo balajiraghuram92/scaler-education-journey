@@ -1,26 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Edit2, Lock, Check, ArrowRight, X, AlertTriangle, CheckCircle, RefreshCw, Flag, ThumbsUp, RotateCcw } from 'lucide-react';
+import { Edit2, Lock, Check, ArrowRight, X, RefreshCw, ThumbsUp, RotateCcw } from 'lucide-react';
 import LocalizationShell from './LocalizationShell';
+import StageIndicator from '../../components/Localization/StageIndicator';
+import useLocalizationProject from './useLocalizationProject';
 import { api } from '../../api/client';
 import { LoadingState, ErrorState, EmptyState } from '../../components/common/StateViews';
 
-const STAGES = ['New', 'Translated', 'Reviewed', 'Approved'];
-
 export default function LocalizationStrings() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialLocale = searchParams.get('locale') || 'de-DE';
+  const { slug: projectSlug, project, loading: projectLoading, error: projectError } = useLocalizationProject();
+  const locales = useMemo(() => project?.locales || [], [project]);
   const jobIdParam = searchParams.get('jobId');
 
-  const [projectSlug] = useState('auroraline-hud-v3');
-  const [selectedLocale, setSelectedLocale] = useState(initialLocale);
-  const [locales, setLocales] = useState([
-    { localeCode: 'de-DE', displayName: 'German (Germany)' },
-    { localeCode: 'ja-JP', displayName: 'Japanese (Japan)' },
-    { localeCode: 'zh-CN', displayName: 'Chinese Simplified (China)' },
-    { localeCode: 'fr-FR', displayName: 'French (France)' },
-    { localeCode: 'es-ES', displayName: 'Spanish (Spain)' }
-  ]);
+  const [selectedLocale, setSelectedLocale] = useState(() => searchParams.get('locale') || '');
   const [strings, setStrings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,9 +26,12 @@ export default function LocalizationStrings() {
 
   // Review submission mode banner
   const [reviewJobId, setReviewJobId] = useState(jobIdParam ? parseInt(jobIdParam, 10) : null);
+  const [reviewJobStatus, setReviewJobStatus] = useState(null);
   const [reviewActionStatus, setReviewActionStatus] = useState(null);
+  const [reviewActionError, setReviewActionError] = useState(null);
 
   const fetchStrings = useCallback(async () => {
+    if (!projectSlug || !selectedLocale) return;
     setLoading(true);
     setError(null);
     try {
@@ -56,19 +52,53 @@ export default function LocalizationStrings() {
 
   useEffect(() => {
     const loc = searchParams.get('locale');
-    if (loc && loc !== selectedLocale) {
-      setSelectedLocale(loc);
+    if (loc && locales.some((l) => l.localeCode === loc)) {
+      if (loc !== selectedLocale) {
+        setSelectedLocale(loc);
+      }
+    } else if (locales.length > 0 && !locales.some((l) => l.localeCode === selectedLocale)) {
+      setSelectedLocale(locales[0].localeCode);
     }
     const jId = searchParams.get('jobId');
-    if (jId) {
-      setReviewJobId(parseInt(jId, 10));
+    setReviewJobId(jId ? parseInt(jId, 10) : null);
+  }, [searchParams, locales, selectedLocale]);
+
+  useEffect(() => {
+    if (!projectSlug || !reviewJobId) {
+      setReviewJobStatus(null);
+      return;
     }
-  }, [searchParams, selectedLocale]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.localization.getMarketplaceOverview(projectSlug);
+        if (!cancelled && Array.isArray(data)) {
+          const found = data.find((j) => j.id === reviewJobId);
+          setReviewJobStatus(found ? found.status : null);
+        }
+      } catch {
+        if (!cancelled) setReviewJobStatus(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectSlug, reviewJobId]);
 
   const handleLocaleChange = (e) => {
     const newLocale = e.target.value;
     setSelectedLocale(newLocale);
-    setSearchParams({ locale: newLocale, ...(reviewJobId ? { jobId: reviewJobId } : {}) });
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('locale', newLocale);
+      return next;
+    });
+  };
+
+  const clearReviewJobIdParam = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('jobId');
+      return next;
+    });
   };
 
   const openDrawer = (index) => {
@@ -140,9 +170,12 @@ export default function LocalizationStrings() {
     try {
       await api.localization.approveSubmission(reviewJobId);
       setReviewActionStatus('Submission Approved! Translation stages updated to Approved and credits recorded.');
+      setReviewActionError(null);
+      setReviewJobId(null);
+      clearReviewJobIdParam();
       fetchStrings();
     } catch (err) {
-      setReviewActionStatus(`Error: ${err.message}`);
+      setReviewActionError(err.message || 'Failed to approve submission.');
     }
   };
 
@@ -151,8 +184,11 @@ export default function LocalizationStrings() {
     try {
       await api.localization.sendBackForRevision(reviewJobId);
       setReviewActionStatus('Job sent back for vendor revision.');
+      setReviewActionError(null);
+      setReviewJobId(null);
+      clearReviewJobIdParam();
     } catch (err) {
-      setReviewActionStatus(`Error: ${err.message}`);
+      setReviewActionError(err.message || 'Failed to send back for revision.');
     }
   };
 
@@ -201,7 +237,7 @@ export default function LocalizationStrings() {
         </div>
 
         {/* Review Actions if navigated from Marketplace */}
-        {reviewJobId && (
+        {reviewJobId && reviewJobStatus === 'SubmittedForReview' && (
           <div
             style={{
               display: 'flex',
@@ -223,18 +259,15 @@ export default function LocalizationStrings() {
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
-                padding: '0.3rem 0.65rem',
+                padding: '0.3rem',
                 backgroundColor: 'var(--color-sage, #2C5E55)',
                 color: '#FFF',
                 border: 'none',
                 borderRadius: '4px',
-                fontSize: '0.75rem',
-                fontWeight: '600',
                 cursor: 'pointer'
               }}
             >
-              <ThumbsUp size={12} /> Approve
+              <ThumbsUp size={12} />
             </button>
             <button
               type="button"
@@ -243,18 +276,15 @@ export default function LocalizationStrings() {
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
-                padding: '0.3rem 0.65rem',
+                padding: '0.3rem',
                 backgroundColor: '#FFF',
                 color: '#991B1B',
                 border: '1px solid #F87171',
                 borderRadius: '4px',
-                fontSize: '0.75rem',
-                fontWeight: '600',
                 cursor: 'pointer'
               }}
             >
-              <RotateCcw size={12} /> Send Back
+              <RotateCcw size={12} />
             </button>
           </div>
         )}
@@ -276,10 +306,28 @@ export default function LocalizationStrings() {
         </div>
       )}
 
+      {reviewActionError && (
+        <div
+          style={{
+            padding: '0.75rem 1rem',
+            backgroundColor: '#FEF2F2',
+            border: '1px solid #F87171',
+            borderRadius: '6px',
+            color: '#991B1B',
+            fontSize: '0.85rem',
+            marginBottom: '1rem'
+          }}
+        >
+          {reviewActionError}
+        </div>
+      )}
+
       {/* Main Ruled Table */}
-      {error ? (
+      {projectError ? (
+        <ErrorState error={{ message: projectError }} title="Unable to Load Project" />
+      ) : error ? (
         <ErrorState error={error} onRetry={fetchStrings} title="Unable to Load Strings" />
-      ) : loading ? (
+      ) : (projectLoading || !projectSlug || !selectedLocale || loading) ? (
         <LoadingState message="Loading localized string records..." />
       ) : strings.length === 0 ? (
         <EmptyState message="No strings found for this locale." icon="🌐" />
@@ -288,7 +336,6 @@ export default function LocalizationStrings() {
           style={{
             backgroundColor: 'var(--color-parchment-card, #FFFFFF)',
             border: '1px solid var(--color-border-subtle, #E2DDD5)',
-            borderRadius: '8px',
             overflow: 'hidden'
           }}
         >
@@ -304,7 +351,6 @@ export default function LocalizationStrings() {
               <tr
                 style={{
                   borderBottom: '1px solid var(--color-border-subtle, #E2DDD5)',
-                  backgroundColor: 'rgba(0,0,0,0.02)',
                   fontSize: '0.75rem',
                   letterSpacing: '0.04em',
                   color: 'var(--color-ink-muted, #6B7280)',
@@ -322,9 +368,6 @@ export default function LocalizationStrings() {
             </thead>
             <tbody>
               {strings.map((str, idx) => {
-                const stageIndex = STAGES.indexOf(str.stage);
-                const isNeedsReview = str.needsReview;
-
                 return (
                   <tr
                     key={str.stringId}
@@ -371,37 +414,7 @@ export default function LocalizationStrings() {
 
                     {/* STAGE Column: Needs Review Flag or Dot Track */}
                     <td style={{ padding: '0.85rem 1rem' }}>
-                      {isNeedsReview ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#A6772C', fontWeight: '600', fontSize: '0.8rem' }}>
-                          <Flag size={14} />
-                          <span>Needs Review</span>
-                        </div>
-                      ) : (
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            {STAGES.map((s, sIdx) => {
-                              const isFilled = stageIndex >= sIdx && stageIndex !== -1;
-                              return (
-                                <span
-                                  key={s}
-                                  title={s}
-                                  style={{
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    backgroundColor: isFilled ? 'var(--color-sage, #2C5E55)' : '#FFFFFF',
-                                    border: isFilled ? 'none' : '1.5px solid var(--color-ink-muted, #6B7280)',
-                                    display: 'inline-block'
-                                  }}
-                                />
-                              );
-                            })}
-                          </div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--color-ink-muted, #6B7280)', marginTop: '2px' }}>
-                            {str.stage}
-                          </div>
-                        </div>
-                      )}
+                      <StageIndicator stage={str.stage} needsReview={str.needsReview} />
                     </td>
 
                     {/* Pencil Action Icon */}
@@ -513,9 +526,20 @@ export default function LocalizationStrings() {
                 <span style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted, #6B7280)', fontWeight: '600' }}>
                   Current Stage:
                 </span>
-                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--color-sage, #2C5E55)' }}>
-                  {activeString.stage}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  {activeString.qpsScore !== null && activeString.qpsScore !== undefined && (
+                    <span
+                      style={{
+                        fontWeight: '700',
+                        fontSize: '0.85rem',
+                        color: activeString.qpsScore >= 70 ? 'var(--color-sage, #2C5E55)' : '#A6772C'
+                      }}
+                    >
+                      QPS {activeString.qpsScore}
+                    </span>
+                  )}
+                  <StageIndicator stage={activeString.stage} needsReview={activeString.needsReview} />
+                </div>
               </div>
 
               {/* Read-Only Source Text Box */}
