@@ -98,11 +98,18 @@ export default function LocalizationWorkflow() {
     try {
       const updated = await api.localization.runWorkflowStep(projectSlug, stepId);
       setSteps((prev) => prev.map((s) => (s.id === stepId ? updated : s)));
-      setStepNotice({
-        stepId,
-        type: 'success',
-        message: `Run successful: ${updated.lastRunOutcome}`
-      });
+      // The API reports per-string failures only inside the outcome text
+      // ("0 strings optimized, 136 failed"), so read the counts from it.
+      const outcome = updated.lastRunOutcome || 'Completed';
+      const failed = Number((/(\d+) failed/.exec(outcome) || [])[1] || 0);
+      const done = Number((/^(\d+)/.exec(outcome) || [])[1] || 0);
+      if (failed > 0 && done === 0) {
+        setStepNotice({ stepId, type: 'error', message: `Run failed: ${outcome}` });
+      } else if (failed > 0) {
+        setStepNotice({ stepId, type: 'warning', message: `Run finished with failures: ${outcome}` });
+      } else {
+        setStepNotice({ stepId, type: 'success', message: `Run successful: ${outcome}` });
+      }
     } catch (err) {
       const is501 = err.status === 501;
       setStepNotice({
@@ -127,19 +134,19 @@ export default function LocalizationWorkflow() {
         alignItems: 'center',
         gap: '8px',
         backgroundColor:
-          notice.type === 'boundary'
+          notice.type === 'boundary' || notice.type === 'warning'
             ? '#FEF3C7'
             : notice.type === 'error'
             ? '#FEE2E2'
             : '#ECFDF5',
         color:
-          notice.type === 'boundary'
+          notice.type === 'boundary' || notice.type === 'warning'
             ? '#92400E'
             : notice.type === 'error'
             ? '#991B1B'
             : '#065F46',
         border: `1px solid ${
-          notice.type === 'boundary'
+          notice.type === 'boundary' || notice.type === 'warning'
             ? '#FCD34D'
             : notice.type === 'error'
             ? '#FCA5A5'
