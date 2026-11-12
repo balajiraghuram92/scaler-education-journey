@@ -530,3 +530,50 @@ Task 3 — `test_switch_and_rollback`: in `switch_version`
 the deactivate loop and before `target.active = True`, so the
 two `UPDATE`s stay ordered in one transaction. Nothing else in
 the function changed; index and migration untouched.
+
+## C9 — database test corrections, second run
+
+Reviewer log: `info/muse-prompts/corrections/round8/issue-intel-db.log`
+(68 passed, 3 failed). Nothing run this round (no shell); no
+test, lint run or eval is described as passing.
+
+Task 1 — `service_session` hid the original error. In
+`app/governance/rls.py`, `await session.rollback()` is now
+the first statement of the `finally` block, before the
+three `RESET app.*` statements and `RESET ROLE`, so the
+resets run on a usable transaction and the real error
+surfaces. Nothing else in the function changed;
+`rls_session` untouched (its `session.begin()` already
+rolls back, and its settings are transaction-local).
+
+Task 2 — token tests mint tokens for runs that do not
+exist. In `tests/test_tokens.py`: new `_make_runs`
+helper inserts `Run` rows through `service_session()`
+with a commit, filling the non-nullable columns read
+from the model (`id`, `ticket_source`, `ticket_key`,
+`trigger`, `pipeline_version`, `content_hash`;
+`status`/`cost_usd`/`created_at` have Python-side
+defaults, `finished_at` is nullable). Both tests use
+unique ids (`f"tok-{uuid.uuid4().hex[:12]}"`) in place
+of the `"run1"`/`"run2"`/`"run3"` literals everywhere,
+including `validate_token` arguments; `"other"` and
+`"r"` stay literal as specified. Each test wraps its
+body in `try`/`finally` calling new
+`_delete_runs_and_tokens`, which deletes tokens then
+runs for those ids through `service_session()`. No
+assertion changed; `tokens.py` and the foreign key
+untouched. Verified by search: no `"run1/2/3"`
+literals remain.
+
+Task 3 — RLS test counted other tests' rows. In
+`tests/test_rls.py` `_query`: `n_orm` selects
+`select(Case).where(Case.source == "TEST")` and
+`n_raw` runs `SELECT id FROM cases WHERE source =
+'TEST'` (both wrapped to stay within the 100-char
+limit). Added after `assert n_orm == n_raw == 1`:
+with `Entitlements.service()` (the same full
+entitlements `service_session` uses),
+`full_orm == full_raw == 2`, proving both seeded
+rows exist and the policy hides the second one.
+Thread/change/chunk counts and everything else in
+the file unchanged.

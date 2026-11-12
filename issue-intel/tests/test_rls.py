@@ -55,9 +55,21 @@ def test_unentitled_user_sees_zero_rows(monkeypatch: pytest.MonkeyPatch) -> None
 
         async def _query(ent: Entitlements) -> tuple[int, int, int, int, int]:
             async with rls_session(ent) as session:
-                n_orm = len((await session.execute(select(Case))).scalars().all())
+                n_orm = len(
+                    (
+                        await session.execute(
+                            select(Case).where(Case.source == "TEST")
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
                 n_raw = len(
-                    (await session.execute(text("SELECT id FROM cases"))).all()
+                    (
+                        await session.execute(
+                            text("SELECT id FROM cases WHERE source = 'TEST'")
+                        )
+                    ).all()
                 )
                 n_threads = len((await session.execute(select(Thread))).scalars().all())
                 n_changes = len((await session.execute(select(Change))).scalars().all())
@@ -69,6 +81,8 @@ def test_unentitled_user_sees_zero_rows(monkeypatch: pytest.MonkeyPatch) -> None
         open_ent = Entitlements({"UiState"}, {"Support"}, 0)
         n_orm, n_raw, _, _, _ = asyncio.run(_query(open_ent))
         assert n_orm == n_raw == 1
+        full_orm, full_raw, _, _, _ = asyncio.run(_query(Entitlements.service()))
+        assert full_orm == full_raw == 2
 
         async def _whoami() -> str:
             async with rls_session(open_ent) as session:

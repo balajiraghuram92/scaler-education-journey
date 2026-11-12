@@ -61,6 +61,7 @@ async def service_session() -> AsyncIterator[AsyncSession]:
         try:
             yield session
         finally:
+            await session.rollback()
             await session.execute(text("RESET app.modules"))
             await session.execute(text("RESET app.departments"))
             await session.execute(text("RESET app.max_restriction"))
