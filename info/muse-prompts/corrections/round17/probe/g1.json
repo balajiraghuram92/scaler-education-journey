@@ -1,0 +1,42 @@
+{
+  "adapter": "fake",
+  "leakage_rate": {
+    "no_entitlement_rows": 0.0,
+    "open_support": 0.0,
+    "partner": 0.0,
+    "se_engineer": 0.0
+  },
+  "outcome": {
+    "accuracy": 0.12833333333333333,
+    "n": 600,
+    "per_class_f1": {
+      "BY_DESIGN": 0.0,
+      "DUPLICATE": 0.0,
+      "FIXED": 0.0,
+      "HW_LIMITATION": 0.0,
+      "REGRESSION": 0.0,
+      "UNKNOWN": 0.22747415066469717,
+      "WONT_FIX": 0.0
+    }
+  },
+  "retrieval": {
+    "fulltext": {
+      "mrr": 0.05526748971193416,
+      "recall@10": 0.11475869809203143,
+      "recall@5": 0.051066217732884396,
+      "regression_change_hit@5": 0.3
+    },
+    "fused": {
+      "mrr": 0.03933862433862434,
+      "recall@10": 0.05493827160493828,
+      "recall@5": 0.019360269360269362,
+      "regression_change_hit@5": 0.15
+    },
+    "vector": {
+      "mrr": 0.011748971193415638,
+      "recall@10": 0.011840628507295173,
+      "recall@5": 0.00931537598204265,
+      "regression_change_hit@5": 0.0
+    }
+  }
+}

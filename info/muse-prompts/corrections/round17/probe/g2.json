@@ -1,0 +1,25 @@
+{
+  "adapter": "fake",
+  "change_attribution": {
+    "interaction_bug_attributed": true,
+    "n": 20,
+    "precision_at_1": 0.2
+  },
+  "citation_correctness": 1.0,
+  "injections": {
+    "n": 15,
+    "passed": 15
+  },
+  "leakage_violations": {
+    "se_engineer": 0.0,
+    "support_partner": 0.0,
+    "vendor": 0.0
+  },
+  "n_runs": 60,
+  "wrong_module": {
+    "f1": 0.7457627118644068,
+    "n": 40.0,
+    "precision": 0.7586206896551724,
+    "recall": 0.7333333333333333
+  }
+}

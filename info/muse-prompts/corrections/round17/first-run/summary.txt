@@ -1,0 +1,22 @@
+01-alembic     exit 0  ##### alembic upgrade head
+02-generate    exit 0  ground truth written to /w/evals/ground_truth
+03-history     exit 0  history built; HEAD: ccaabe9
+04-dotnet      exit 1  /w/sample_repo/tests/TesseraEditorTools.Tests/ToolTests.cs(97,6): error CS0246: The type or namespace name 'Fact' could not be found (are you missing 
+05-fixcases    exit 1  /w/evals/fix_cases/HiddenTests.cs(152,6): error CS0246: The type or namespace name 'Fact' could not be found (are you missing a using directive or an 
+06-ingest      exit 0  {'cases': 1050, 'threads': 250, 'changes': 20, 'people': 40, 'links': 839, 'outcomes': 600, 'chunks': 1320}
+07-ingest2     exit 0  {'cases': 1050, 'threads': 250, 'changes': 20, 'people': 40, 'links': 0, 'outcomes': 600, 'chunks': 0}
+08-g1          exit 1  TypeError: 'async_generator' object is not iterable
+09-g2          exit 1  sqlalchemy.orm.exc.DetachedInstanceError: Instance <RunStage at 0x72a351732d80> is not bound to a Session; attribute refresh operation cannot proceed 
+10-g3          exit 1  FileNotFoundError: [Errno 2] No such file or directory: 'sandboxes/fix-TES-0001-1'
+11-g4-inc      exit 0  report: /w/evals/reports/g4-score-tessera-large.json
+12-g4-cand     exit 0  report: /w/evals/reports/g4-score-tessera-candidate.json
+13-g4-report   exit 1  sqlalchemy.orm.exc.DetachedInstanceError: Instance <ModelScorecard at 0x7ff3dcfcdc10> is not bound to a Session; attribute refresh operation cannot pr
+ cases    |  1050
+ threads  |   250
+ messages |   839
+ changes  |    20
+ chunks   |  1320
+ runs     |    57
+
+
+[exited with code 0]

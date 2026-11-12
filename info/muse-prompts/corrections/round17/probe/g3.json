@@ -1,0 +1,193 @@
+{
+  "adapter": "fake",
+  "backports": [
+    {
+      "branch": "release/2023.3",
+      "bug": "bug01",
+      "hidden_passing": true,
+      "status": "OPEN"
+    },
+    {
+      "branch": "release/2024.3",
+      "bug": "bug01",
+      "hidden_passing": true,
+      "status": "OPEN"
+    },
+    {
+      "branch": "release/2023.3",
+      "bug": "bug02",
+      "hidden_passing": true,
+      "status": "OPEN"
+    },
+    {
+      "branch": "release/2024.3",
+      "bug": "bug02",
+      "hidden_passing": true,
+      "status": "OPEN"
+    },
+    {
+      "branch": "release/2023.3",
+      "bug": "bug03",
+      "hidden_passing": true,
+      "status": "OPEN"
+    },
+    {
+      "branch": "release/2024.3",
+      "bug": "bug03",
+      "hidden_passing": true,
+      "status": "OPEN"
+    },
+    {
+      "branch": "release/2023.3",
+      "bug": "bug04",
+      "hidden_passing": true,
+      "status": "OPEN"
+    },
+    {
+      "branch": "release/2024.3",
+      "bug": "bug04",
+      "hidden_passing": true,
+      "status": "OPEN"
+    },
+    {
+      "branch": "release/2024.3",
+      "bug": "bug05",
+      "hidden_passing": true,
+      "status": "OPEN"
+    },
+    {
+      "branch": "release/2024.3",
+      "bug": "bug06",
+      "hidden_passing": true,
+      "status": "OPEN"
+    }
+  ],
+  "bugs": [
+    {
+      "attempt_no": 1,
+      "bug": "bug01",
+      "cost_usd": 0.002592,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0001",
+      "tokens": 651
+    },
+    {
+      "attempt_no": 1,
+      "bug": "bug02",
+      "cost_usd": 0.002577,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0024",
+      "tokens": 709
+    },
+    {
+      "attempt_no": 1,
+      "bug": "bug03",
+      "cost_usd": 0.00258,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0047",
+      "tokens": 692
+    },
+    {
+      "attempt_no": 1,
+      "bug": "bug04",
+      "cost_usd": 0.002361,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0070",
+      "tokens": 643
+    },
+    {
+      "attempt_no": 1,
+      "bug": "bug05",
+      "cost_usd": 0.002388,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0093",
+      "tokens": 685
+    },
+    {
+      "attempt_no": 1,
+      "bug": "bug06",
+      "cost_usd": 0.002421,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0116",
+      "tokens": 696
+    },
+    {
+      "attempt_no": 1,
+      "bug": "bug09",
+      "cost_usd": 0.002547,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0185",
+      "tokens": 660
+    },
+    {
+      "attempt_no": 1,
+      "bug": "bug10",
+      "cost_usd": 0.002808,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0208",
+      "tokens": 687
+    },
+    {
+      "attempt_no": 1,
+      "bug": "bug11",
+      "cost_usd": 0.002991,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0231",
+      "tokens": 775
+    },
+    {
+      "attempt_no": 1,
+      "bug": "bug12",
+      "cost_usd": 0.002475,
+      "hidden_before": false,
+      "hidden_flipped": true,
+      "hidden_on_branch": true,
+      "ship_green": true,
+      "status": "OFFERED",
+      "ticket": "TES-0254",
+      "tokens": 615
+    }
+  ],
+  "totals": {
+    "cost_usd": 0.02574,
+    "hidden_flipped": 10,
+    "n": 10,
+    "offered": 10
+  }
+}

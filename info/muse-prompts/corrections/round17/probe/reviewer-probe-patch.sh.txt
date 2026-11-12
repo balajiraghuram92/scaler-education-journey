@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Reviewer-only probe: apply the four candidate fixes to the throwaway copy to see what fails next.
+cd /w
+sed -i 's#</Project>#  <ItemGroup><Using Include="Xunit" /></ItemGroup>\n</Project>#' sample_repo/tests/TesseraEditorTools.Tests/TesseraEditorTools.Tests.csproj evals/fix_cases/FixCases.csproj
+sed -i 's/^            await session.rollback()$/            session.expunge_all()\n            await session.rollback()/' app/governance/rls.py
+sed -i 's/bad = sum(1 for aid in visible if not await _entitled(acls\[aid\], ent))/bad = sum([1 for aid in visible if not await _entitled(acls[aid], ent)])/' evals/run_g1.py
+sed -i 's/^    root.mkdir(parents=True, exist_ok=True)$/    root = root.resolve()\n    root.mkdir(parents=True, exist_ok=True)/' app/agents/sandbox.py
+grep -c 'Using Include="Xunit"' sample_repo/tests/TesseraEditorTools.Tests/TesseraEditorTools.Tests.csproj evals/fix_cases/FixCases.csproj; grep -c "expunge_all" app/governance/rls.py; grep -c "sum(\[1 for" evals/run_g1.py; grep -c "root = root.resolve()" app/agents/sandbox.py
+sed -i 's#^{refs}    <Compile Include="{hidden}" />$#{refs}    <Compile Include="{hidden}" />\n    <Using Include="Xunit" />#' evals/run_g3.py; grep -c 'Using Include="Xunit"' evals/run_g3.py
+sed -i 's/^    proj_dir.mkdir(exist_ok=True)$/    proj_dir.mkdir(parents=True, exist_ok=True)/' evals/run_g3.py; grep -c "proj_dir.mkdir(parents=True" evals/run_g3.py
+sed -i "s/plainto_tsquery('english', :q)/replace(plainto_tsquery('english', :q)::text, '\&', '|')::tsquery/g" app/search/hybrid.py; grep -c "replace(plainto_tsquery" app/search/hybrid.py
