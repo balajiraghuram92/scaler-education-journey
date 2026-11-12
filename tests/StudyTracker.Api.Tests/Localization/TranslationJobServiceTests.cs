@@ -102,6 +102,61 @@ public class TranslationJobServiceTests
     }
 
     [Fact]
+    public async Task CreateJobAsync_MachineTranslatedLocale_CreatesJobOverAllStrings()
+    {
+        using var db = LocalizationTestFixture.CreateDb();
+        var seed = await LocalizationTestFixture.SeedProjectAsync(db);
+        var vendor = await SeedVendorAsync(db);
+        await SeedAgreementAsync(db, seed.Project.Id, vendor.Id, "de-DE");
+        foreach (var str in seed.Strings)
+        {
+            db.LocalizationTranslations.Add(new LocalizationTranslation
+            {
+                StringId = str.Id,
+                LocaleCode = "de-DE",
+                TargetText = "maschinell",
+                Stage = "Translated",
+                TranslationSource = "AI",
+                UpdatedAt = DateTime.UtcNow
+            });
+        }
+        await db.SaveChangesAsync();
+        var jobs = LocalizationTestFixture.Jobs(db);
+
+        var row = await jobs.CreateJobAsync(seed.Project.Slug, "de-DE");
+
+        Assert.Equal("Assigned", row.Status);
+        Assert.Equal(2, row.StringCount);
+    }
+
+    [Fact]
+    public async Task CreateJobAsync_FullyApprovedLocale_ThrowsNothingLeft()
+    {
+        using var db = LocalizationTestFixture.CreateDb();
+        var seed = await LocalizationTestFixture.SeedProjectAsync(db);
+        var vendor = await SeedVendorAsync(db);
+        await SeedAgreementAsync(db, seed.Project.Id, vendor.Id, "de-DE");
+        foreach (var str in seed.Strings)
+        {
+            db.LocalizationTranslations.Add(new LocalizationTranslation
+            {
+                StringId = str.Id,
+                LocaleCode = "de-DE",
+                TargetText = "genehmigt",
+                Stage = "Approved",
+                TranslationSource = "Marketplace",
+                UpdatedAt = DateTime.UtcNow
+            });
+        }
+        await db.SaveChangesAsync();
+        var jobs = LocalizationTestFixture.Jobs(db);
+
+        var ex = await Assert.ThrowsAsync<InvalidJobStateException>(
+            () => jobs.CreateJobAsync(seed.Project.Slug, "de-DE"));
+        Assert.Contains("nothing left to translate", ex.Message);
+    }
+
+    [Fact]
     public async Task JobLifecycle_AssignedToApproved()
     {
         using var db = LocalizationTestFixture.CreateDb();
@@ -183,7 +238,7 @@ public class TranslationJobServiceTests
     }
 
     [Fact]
-    public async Task CompletedPercent_CountsFinishedStagesOverJobTotal()
+    public async Task CompletedPercent_CountsVendorReviewedNonApprovedOverJobTotal()
     {
         using var db = LocalizationTestFixture.CreateDb();
         var project = new LocalizationProject
@@ -196,8 +251,14 @@ public class TranslationJobServiceTests
         {
             ProjectId = project.Id, LocaleCode = "de-DE", DisplayName = "German"
         });
-        var stages = new[] { "Translated", "InReview", "Approved", "New" };
-        for (var i = 0; i < stages.Length; i++)
+        var cases = new (string Stage, string Source)[]
+        {
+            ("Translated", "Marketplace"), // counts: vendor-reviewed and open
+            ("InReview", "Marketplace"),   // counts: vendor-reviewed and open
+            ("Approved", "Marketplace"),   // excluded: approved
+            ("Translated", "AI"),          // excluded: machine output
+        };
+        for (var i = 0; i < cases.Length; i++)
         {
             var str = new LocalizationString
             {
@@ -207,8 +268,8 @@ public class TranslationJobServiceTests
             await db.SaveChangesAsync();
             db.LocalizationTranslations.Add(new LocalizationTranslation
             {
-                StringId = str.Id, LocaleCode = "de-DE", TargetText = stages[i] == "New" ? null : "t",
-                Stage = stages[i], TranslationSource = "Manual", UpdatedAt = DateTime.UtcNow
+                StringId = str.Id, LocaleCode = "de-DE", TargetText = "t",
+                Stage = cases[i].Stage, TranslationSource = cases[i].Source, UpdatedAt = DateTime.UtcNow
             });
         }
         db.LocalizationTranslationJobs.Add(new TranslationJob
@@ -222,7 +283,7 @@ public class TranslationJobServiceTests
         var rows = await jobs.GetJobsForProjectAsync("pct");
 
         var row = Assert.Single(rows);
-        Assert.Equal(75, row.CompletedPercent);
+        Assert.Equal(50, row.CompletedPercent);
     }
 
     [Fact]
@@ -248,6 +309,88 @@ public class TranslationJobServiceTests
         Assert.Equal("NotCreated", row.Status);
         Assert.Equal(0, row.StringCount);
         Assert.Equal(0, row.CompletedPercent);
+    }
+
+    [Fact]
+    public async Task NotCreatedRow_CountsOpenStrings()
+    {
+        using var db = LocalizationTestFixture.CreateDb();
+        var seed = await LocalizationTestFixture.SeedProjectAsync(db);
+        db.LocalizationTranslations.AddRange(
+            new LocalizationTranslation
+            {
+                StringId = seed.Strings[0].Id, LocaleCode = "de-DE", TargetText = "genehmigt",
+                Stage = "Approved", TranslationSource = "Marketplace", UpdatedAt = DateTime.UtcNow
+            },
+            new LocalizationTranslation
+            {
+                StringId = seed.Strings[1].Id, LocaleCode = "de-DE", TargetText = "maschinell",
+                Stage = "Translated", TranslationSource = "AI", UpdatedAt = DateTime.UtcNow
+            });
+        await db.SaveChangesAsync();
+        var jobs = LocalizationTestFixture.Jobs(db);
+
+        var rows = await jobs.GetJobsForProjectAsync(seed.Project.Slug);
+
+        var row = rows.Single(r => r.LocaleCode == "de-DE");
+        Assert.Equal("NotCreated", row.Status);
+        Assert.Equal(1, row.StringCount);
+        Assert.Equal(0, row.CompletedPercent);
+    }
+
+    [Fact]
+    public async Task CompletedPercent_OneAcceptedOfFourIs25_ApprovedIs100()
+    {
+        using var db = LocalizationTestFixture.CreateDb();
+        var project = new LocalizationProject
+        {
+            Slug = "pct-accept", Name = "PctAccept", SourceLocale = "en-US", ClientAlias = "Client Team Test"
+        };
+        db.LocalizationProjects.Add(project);
+        await db.SaveChangesAsync();
+        db.LocalizationLocales.Add(new LocalizationLocale
+        {
+            ProjectId = project.Id, LocaleCode = "de-DE", DisplayName = "German"
+        });
+        var strings = new List<LocalizationString>();
+        for (var i = 0; i < 4; i++)
+        {
+            var str = new LocalizationString
+            {
+                ProjectId = project.Id, Key = $"k{i}", SourceText = $"text {i}"
+            };
+            db.LocalizationStrings.Add(str);
+            strings.Add(str);
+        }
+        await db.SaveChangesAsync();
+        foreach (var str in strings)
+        {
+            db.LocalizationTranslations.Add(new LocalizationTranslation
+            {
+                StringId = str.Id, LocaleCode = "de-DE", TargetText = "maschinell",
+                Stage = "Translated", TranslationSource = "AI", UpdatedAt = DateTime.UtcNow
+            });
+        }
+        var vendor = await SeedVendorAsync(db);
+        await SeedAgreementAsync(db, project.Id, vendor.Id, "de-DE");
+        await db.SaveChangesAsync();
+        var jobs = LocalizationTestFixture.Jobs(db);
+        var portal = LocalizationTestFixture.VendorPortal(db);
+
+        var created = await jobs.CreateJobAsync(project.Slug, "de-DE");
+        Assert.Equal(4, created.StringCount);
+
+        await portal.UpdateJobStringAsync(created.Id!.Value, strings[0].Id, "maschinell");
+        var rows = await jobs.GetJobsForProjectAsync(project.Slug);
+        Assert.Equal(25, Assert.Single(rows).CompletedPercent);
+
+        foreach (var str in strings.Skip(1))
+        {
+            await portal.UpdateJobStringAsync(created.Id!.Value, str.Id, "maschinell");
+        }
+        await portal.SubmitJobForReviewAsync(created.Id!.Value);
+        var approved = await jobs.ApproveAsync(created.Id!.Value);
+        Assert.Equal(100, approved.CompletedPercent);
     }
 
     [Fact]
@@ -360,8 +503,10 @@ public class TranslationJobServiceTests
 
         var vendorJson = JsonSerializer.Serialize(new VendorStringRowDto(
             1, "k", "source", "de-DE", "target", "Translated", "Manual", DateTime.UtcNow,
-            4, false, "raw", 3), options);
+            4, false, "raw", 3, true, false), options);
         Assert.Contains("\"score\"", vendorJson);
+        Assert.Contains("\"inJob\"", vendorJson);
+        Assert.Contains("\"vendorReviewed\"", vendorJson);
         Assert.DoesNotContain("project", vendorJson);
         Assert.DoesNotContain("Project", vendorJson);
 

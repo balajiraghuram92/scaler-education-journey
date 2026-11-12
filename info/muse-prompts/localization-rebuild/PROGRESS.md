@@ -520,3 +520,118 @@ Results:
 - api-python: 7 failed / 209 passed, 2 ruff and 3 mypy errors, seeder imports deleted modules -> `info/muse-prompts/corrections/C17-api-python-track-r.md`. Parity run after C17.
 
 Design point for the owner: a translation job covers only strings with no translation yet (as the marketplace did). After "Auto-Translate via Azure Translator" fills a locale, "Create Translation Jobs" skips it, so vendors never see machine output to post-edit.
+
+## R7 — jobs include machine output for vendor post-editing (.NET + React)
+
+Task 1 — one definition of "open" and "vendor-reviewed". New
+`api/Services/Localization/JobScope.cs`: `VendorSource`
+("Marketplace") and `MachineSource` ("AI") constants;
+`IsOpen` (no translation, blank text, or stage not
+"Approved"); `IsVendorReviewed` (source "Marketplace",
+non-blank text); `CompletedPercent` per CONTRACT 2.5
+(100 when "Approved", 0 when `stringCount` is 0, else
+vendor-reviewed non-Approved count * 100 / stringCount,
+capped at 100). Deleted the private `CompletedPercent`
+in `TranslationJobService` and `VendorPortalService`;
+the three client call sites and the vendor call site
+now call `JobScope.CompletedPercent` with the job
+status. `VendorPortalService` writes
+`JobScope.VendorSource` instead of the "Marketplace"
+literal (two spots in `UpdateJobStringAsync`).
+
+Task 2 — job creation and the jobs list. In
+`TranslationJobService`: `NotCreated` rows count
+`stringCount`/`wordCount` over `JobScope.IsOpen`
+strings with `completedPercent` 0 (per the contract,
+not computed); existing-job rows and `JobRowAsync`
+use `JobScope.CompletedPercent` with the job status
+(wired in task 1); `CreateJobAsync` freezes
+`StringCount`/`WordCount` over the open strings and
+throws the unchanged "nothing left to translate" 409
+only when no string is open. Team, existing-job and
+`CountWords` rules untouched.
+
+Task 3 — the vendor portal. `VendorStringRowDto`
+gains `InJob` and `VendorReviewed` as the last two
+fields (JSON `inJob`, `vendorReviewed` via the
+camelCase default); the single `VendorStringRow`
+builder sets them from `JobScope.IsOpen` and
+`JobScope.IsVendorReviewed`. PUT on a string whose
+translation stage is "Approved" throws 409 ("String
+{stringId} is already approved for {localeCode}.");
+otherwise unchanged, so re-sending the same text
+accepts a machine draft (source becomes
+"Marketplace", `RawMtText`/scores untouched).
+Submit keeps the non-blank rule and adds the
+machine-review rule ("{n} machine-translated strings
+still need review before the job can be submitted.").
+Vendor job rows use `JobScope.CompletedPercent`
+(wired in task 1).
+
+Task 4 — machine steps never overwrite vendor work.
+`RunMtOptimize` now skips translations whose source
+is not "AI" or whose stage is "Approved" before the
+`RawMtText`/cap checks, so they count as neither
+optimized, failed nor skipped. `ScoreQuality` and
+`AutoRoute` gained the same `Stage != "Approved"`
+condition alongside their existing `"AI"` source
+check. Outcome text formats unchanged.
+
+Task 5 — React: vendor workspace and jobs page.
+`VendorMyJob.jsx`: unreviewed in-job rows with text
+get an "Accept draft" button (borderless sage, like
+the row edit button) that PUTs the row's own text
+and refreshes from the response, disabled via
+`savingId` while running; reviewed rows show a
+"Reviewed" label; approved rows show nothing extra;
+the header shows "{reviewed} of {inJob} strings
+reviewed"; submit 409s now surface
+`err.problemDetails?.Detail` (the
+`LocalizationWorkflow.jsx` pattern). Score grouping
+and filters untouched. `LocalizationJobs.jsx`
+unchanged: its explainer ("One job per locale,
+handled by the vendor team ...") never claimed
+untranslated-only scope, so the conditional text
+swap did not apply. `VendorMyJob.test.jsx` gains a
+"draft review" block: accept button renders and
+PUTs the row text, reviewed rows show the label
+without the button, approved rows show neither,
+the header count renders, and a submit 409 shows
+the server detail.
+
+Task 6 — .NET tests. New in
+`TranslationJobServiceTests.cs`: all-AI locale
+creates a job over all strings; all-Approved locale
+throws "nothing left to translate"; `NotCreated`
+row counts open strings (Approved + AI/Translated
+gives 1); 4 open strings with 1 vendor accept gives
+25 and approval gives 100. New in
+`VendorPortalServiceTests.cs`: PUT-with-same-text
+accepts a draft (source "Marketplace", `RawMtText`
+kept, `VendorReviewed` true, Assigned -> InProgress);
+PUT on an Approved string is 409; submit with one
+unreviewed AI string is 409 and succeeds after the
+accept; `RunMtOptimize` skips a Marketplace
+translation with `RawMtText` (1 call, vendor text
+untouched) via a new `CountingOptimizeHandler` —
+no reusable fake optimizer existed (`FakeAiHandler`
+is private to `LocalizationAiWorkflowTests`), so
+this test carries its own counting handler and
+writes `Microsoft.Extensions.Options.Options.Create`
+in full per the brief. Existing-test fixes: the old
+finished-stages percent test is rewritten to the
+new rule (renamed
+`CompletedPercent_CountsVendorReviewedNonApprovedOverJobTotal`,
+now expects 50); `AudienceSeparation` passes the
+two new DTO fields and asserts the `inJob` /
+`vendorReviewed` JSON names; `WorkflowServiceTests`
+skip test seeds Approved stages (Translated is now
+open, so jobs would be created); `UsageMeteringTests`
+`WorkflowWithoutMetering` expects "0 strings scored"
+(the translations are Approved by then, so Score
+Quality skips them instead of failing on the fake
+score of 90).
+
+## R7 — reviewer check (2026-11-12)
+
+No reviewer edits needed. .NET 210 passed / 1 skipped; React 86/86. Real stack: after Auto-Translate, Create Translation Jobs made ja-JP and zh-CN jobs (47 strings each; before R7 it skipped them); submit refused with "47 machine-translated strings still need review…"; accept-by-resend kept text and raw draft and set the vendor source; completedPercent 4 after 2 of 47, 100 after all; MT Optimize skipped the vendor-reviewed strings (134 of 136) and left "VENDOR EDIT 1" alone, also after approval; edits after approval 409; a new job with nothing open 409. C17/R8 (api-python): 3 failed / 221 passed, ruff and mypy clean -> C18.

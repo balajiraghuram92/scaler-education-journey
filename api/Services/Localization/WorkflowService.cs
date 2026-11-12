@@ -456,6 +456,10 @@ public class WorkflowService
                 {
                     foreach (var trans in str.Translations)
                     {
+                        if (trans.TranslationSource != "AI" || trans.Stage == "Approved")
+                        {
+                            continue;
+                        }
                         var rawMt = trans.RawMtText;
                         if (string.IsNullOrWhiteSpace(rawMt))
                         {
@@ -517,7 +521,7 @@ public class WorkflowService
                 {
                     foreach (var trans in str.Translations)
                     {
-                        if (trans.TranslationSource != "AI")
+                        if (trans.TranslationSource != "AI" || trans.Stage == "Approved")
                         {
                             continue;
                         }
@@ -631,7 +635,7 @@ public class WorkflowService
                 {
                     foreach (var trans in str.Translations)
                     {
-                        if (trans.TranslationSource != "AI" || trans.QpsScore is null)
+                        if (trans.TranslationSource != "AI" || trans.Stage == "Approved" || trans.QpsScore is null)
                         {
                             continue;
                         }

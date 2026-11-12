@@ -122,6 +122,19 @@ export default function VendorMyJob() {
     }
   };
 
+  const acceptDraft = async (str) => {
+    setSavingId(str.stringId);
+    setSaveError(null);
+    try {
+      const updated = await api.vendorPortal.updateJobString(parsedJobId, str.stringId, str.targetText);
+      setStrings((prev) => prev.map((s) => (s.stringId === str.stringId ? updated : s)));
+    } catch (err) {
+      setSaveError(err.message || 'Failed to accept draft.');
+    } finally {
+      setSavingId(null);
+    }
+  };
+
   const getStatusLabel = (status) => {
     switch (status) {
       case 'SubmittedForReview':
@@ -136,6 +149,9 @@ export default function VendorMyJob() {
   };
 
   const hasEmptyTargets = strings.some((s) => !s.targetText || s.targetText.trim() === '');
+
+  const inJobCount = strings.filter((s) => s.inJob === true).length;
+  const reviewedCount = strings.filter((s) => s.vendorReviewed === true).length;
 
   const groups = SCORE_GROUPS.map((group) => ({
     ...group,
@@ -160,7 +176,7 @@ export default function VendorMyJob() {
     } catch (err) {
       setSubmitNotice({
         type: 'error',
-        message: err.message || 'Failed to submit job for review.'
+        message: err.problemDetails?.Detail || err.message || 'Failed to submit job for review.'
       });
     } finally {
       setSubmitting(false);
@@ -200,7 +216,7 @@ export default function VendorMyJob() {
           My Jobs — {assignedJob ? `${assignedJob.clientAlias} (${localeCode})` : '…'}
         </h1>
         <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-ink-muted, #6B7280)' }}>
-          Assigned job • {strings.length} strings • Deadline not set
+          Assigned job • {strings.length} strings • {reviewedCount} of {inJobCount} strings reviewed • Deadline not set
         </p>
       </div>
 
@@ -449,20 +465,47 @@ export default function VendorMyJob() {
                           </button>
                         </div>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => startInlineEdit(str)}
-                          title="Edit Translation"
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: 'var(--color-ink-muted, #6B7280)',
-                            padding: '4px'
-                          }}
-                        >
-                          <Edit2 size={14} />
-                        </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                          {str.vendorReviewed === true && (
+                            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--color-sage, #2C5E55)' }}>
+                              Reviewed
+                            </span>
+                          )}
+                          {str.inJob === true && str.vendorReviewed === false && str.targetText && str.targetText.trim() !== '' && (
+                            <button
+                              type="button"
+                              disabled={savingId === str.stringId}
+                              onClick={() => acceptDraft(str)}
+                              title="Accept machine draft"
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: savingId === str.stringId ? 'wait' : 'pointer',
+                                color: 'var(--color-sage, #2C5E55)',
+                                fontSize: '0.8rem',
+                                fontWeight: '700',
+                                padding: '4px',
+                                opacity: savingId === str.stringId ? 0.5 : 1
+                              }}
+                            >
+                              Accept draft
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => startInlineEdit(str)}
+                            title="Edit Translation"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: 'var(--color-ink-muted, #6B7280)',
+                              padding: '4px'
+                            }}
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

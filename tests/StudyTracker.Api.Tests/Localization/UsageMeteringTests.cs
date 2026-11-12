@@ -405,7 +405,7 @@ public class UsageMeteringTests
         await Assert.ThrowsAsync<NotImplementedException>(
             () => workflow.RunStepAsync(seed.Project.Slug, optimizeStep.Id));
 
-        Assert.Equal("0 strings scored, 4 failed", await Run("Score Quality"));
+        Assert.Equal("0 strings scored", await Run("Score Quality"));
 
         var routeStep = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Auto-Route", null));
         await Assert.ThrowsAsync<NotImplementedException>(

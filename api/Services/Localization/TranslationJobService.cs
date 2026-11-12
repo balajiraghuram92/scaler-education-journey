@@ -53,17 +53,17 @@ public class TranslationJobService
 
             if (job == null)
             {
-                var untranslated = project.Strings
-                    .Where(s => !s.Translations.Any(t => t.LocaleCode == locale.LocaleCode && !string.IsNullOrWhiteSpace(t.TargetText)))
+                var open = project.Strings
+                    .Where(s => JobScope.IsOpen(s, locale.LocaleCode))
                     .ToList();
                 rows.Add(new TranslationJobRowDto(
                     null,
                     project.Id,
                     locale.LocaleCode,
                     "NotCreated",
-                    untranslated.Count,
-                    CountWords(untranslated),
-                    CompletedPercent(project.Strings, locale.LocaleCode, untranslated.Count),
+                    open.Count,
+                    CountWords(open),
+                    0,
                     team?.Alias,
                     team?.MemberCount,
                     null,
@@ -79,7 +79,7 @@ public class TranslationJobService
                     job.Status,
                     job.StringCount,
                     job.WordCount,
-                    CompletedPercent(project.Strings, job.LocaleCode, job.StringCount),
+                    JobScope.CompletedPercent(project.Strings, job.LocaleCode, job.StringCount, job.Status),
                     job.Vendor?.Alias,
                     team?.MemberCount,
                     job.CreatedAt,
@@ -128,11 +128,11 @@ public class TranslationJobService
             throw new InvalidJobStateException($"Cannot create a new job for locale '{localeCode}' while job {mostRecentJob.Id} is in status '{mostRecentJob.Status}'.");
         }
 
-        var untranslatedStrings = project.Strings
-            .Where(s => !s.Translations.Any(t => t.LocaleCode == localeCode && !string.IsNullOrWhiteSpace(t.TargetText)))
+        var openStrings = project.Strings
+            .Where(s => JobScope.IsOpen(s, localeCode))
             .ToList();
 
-        if (untranslatedStrings.Count == 0)
+        if (openStrings.Count == 0)
         {
             throw new InvalidJobStateException($"There is nothing left to translate for locale '{localeCode}'.");
         }
@@ -142,8 +142,8 @@ public class TranslationJobService
             ProjectId = project.Id,
             LocaleCode = localeCode,
             Status = "Assigned",
-            StringCount = untranslatedStrings.Count,
-            WordCount = CountWords(untranslatedStrings),
+            StringCount = openStrings.Count,
+            WordCount = CountWords(openStrings),
             VendorId = team.VendorId,
             CreatedAt = DateTime.UtcNow
         };
@@ -391,7 +391,7 @@ public class TranslationJobService
             job.Status,
             job.StringCount,
             job.WordCount,
-            CompletedPercent(strings, job.LocaleCode, job.StringCount),
+            JobScope.CompletedPercent(strings, job.LocaleCode, job.StringCount, job.Status),
             job.Vendor?.Alias,
             team?.MemberCount,
             job.CreatedAt,
@@ -420,18 +420,6 @@ public class TranslationJobService
             .ToDictionary(
                 t => t.LocaleCode,
                 t => new AssignedTeam(t.VendorId, t.Vendor!.Alias, t.MemberCount));
-    }
-
-    private static int CompletedPercent(IEnumerable<LocalizationString> strings, string localeCode, int stringCount)
-    {
-        if (stringCount == 0)
-        {
-            return 0;
-        }
-
-        var done = strings.Count(s => s.Translations.Any(t =>
-            t.LocaleCode == localeCode && (t.Stage == "Translated" || t.Stage == "InReview" || t.Stage == "Approved")));
-        return (done * 100) / stringCount;
     }
 
     private static int CountWords(IEnumerable<LocalizationString> strings)

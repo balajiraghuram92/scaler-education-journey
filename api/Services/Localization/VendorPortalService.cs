@@ -121,6 +121,11 @@ public class VendorPortalService
         var translation = await _db.LocalizationTranslations
             .FirstOrDefaultAsync(t => t.StringId == stringId && t.LocaleCode == job.LocaleCode, ct);
 
+        if (translation != null && translation.Stage == "Approved")
+        {
+            throw new InvalidJobStateException($"String {stringId} is already approved for {job.LocaleCode}.");
+        }
+
         var hasTarget = !string.IsNullOrWhiteSpace(targetText);
 
         if (translation == null)
@@ -131,7 +136,7 @@ public class VendorPortalService
                 LocaleCode = job.LocaleCode,
                 TargetText = targetText,
                 Stage = hasTarget ? "Translated" : "New",
-                TranslationSource = "Marketplace",
+                TranslationSource = JobScope.VendorSource,
                 NeedsReview = false,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -140,7 +145,7 @@ public class VendorPortalService
         else
         {
             translation.TargetText = targetText;
-            translation.TranslationSource = "Marketplace";
+            translation.TranslationSource = JobScope.VendorSource;
             translation.Stage = hasTarget ? "Translated" : "New";
             translation.UpdatedAt = DateTime.UtcNow;
         }
@@ -185,6 +190,19 @@ public class VendorPortalService
             throw new InvalidJobStateException("All strings must have non-empty translations before submitting the job for review.");
         }
 
+        var unreviewedMachineCount = strings.Count(s =>
+        {
+            var translation = s.Translations.FirstOrDefault(t => t.LocaleCode == job.LocaleCode);
+            return translation != null
+                && translation.TranslationSource == JobScope.MachineSource
+                && JobScope.IsOpen(s, job.LocaleCode);
+        });
+
+        if (unreviewedMachineCount > 0)
+        {
+            throw new InvalidJobStateException($"{unreviewedMachineCount} machine-translated strings still need review before the job can be submitted.");
+        }
+
         job.Status = "SubmittedForReview";
         job.SubmittedAt = DateTime.UtcNow;
 
@@ -225,7 +243,7 @@ public class VendorPortalService
             job.Status,
             job.StringCount,
             job.WordCount,
-            CompletedPercent(strings, job.LocaleCode, job.StringCount),
+            JobScope.CompletedPercent(strings, job.LocaleCode, job.StringCount, job.Status),
             job.CreatedAt,
             job.SubmittedAt,
             job.ApprovedAt);
@@ -248,18 +266,8 @@ public class VendorPortalService
             translation?.QpsScore,
             translation?.NeedsReview ?? false,
             translation?.RawMtText,
-            translation?.RawMtQpsScore);
-    }
-
-    private static int CompletedPercent(IEnumerable<LocalizationString> strings, string localeCode, int stringCount)
-    {
-        if (stringCount == 0)
-        {
-            return 0;
-        }
-
-        var done = strings.Count(s => s.Translations.Any(t =>
-            t.LocaleCode == localeCode && (t.Stage == "Translated" || t.Stage == "InReview" || t.Stage == "Approved")));
-        return (done * 100) / stringCount;
+            translation?.RawMtQpsScore,
+            JobScope.IsOpen(str, localeCode),
+            JobScope.IsVendorReviewed(translation));
     }
 }

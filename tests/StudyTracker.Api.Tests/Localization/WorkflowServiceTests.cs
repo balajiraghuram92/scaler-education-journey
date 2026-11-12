@@ -73,7 +73,7 @@ public class WorkflowServiceTests
                     StringId = str.Id,
                     LocaleCode = locale,
                     TargetText = "done",
-                    Stage = "Translated",
+                    Stage = "Approved",
                     TranslationSource = "Manual",
                     UpdatedAt = DateTime.UtcNow
                 });

@@ -44,7 +44,9 @@ public sealed record VendorStringRowDto(
     int? Score,
     bool NeedsReview,
     string? RawMtText,
-    int? RawMtScore
+    int? RawMtScore,
+    bool InJob,
+    bool VendorReviewed
 );
 
 public sealed record UpdateTranslationRequest(

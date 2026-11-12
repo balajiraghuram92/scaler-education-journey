@@ -116,3 +116,71 @@ describe('VendorMyJob score groups', () => {
     expect(await screen.findByText(/Client Team Kestrel/)).toBeInTheDocument();
   });
 });
+
+describe('VendorMyJob draft review', () => {
+  it('shows "Accept draft" on an unreviewed in-job row and accepts on click', async () => {
+    getJobStrings.mockResolvedValue([
+      stringRow({ stringId: 1, key: 'key.draft', targetText: 'Entwurf', inJob: true, vendorReviewed: false })
+    ]);
+    updateJobString.mockResolvedValue(
+      stringRow({ stringId: 1, key: 'key.draft', targetText: 'Entwurf', translationSource: 'Marketplace', inJob: true, vendorReviewed: true })
+    );
+    renderJob();
+
+    const button = await screen.findByRole('button', { name: 'Accept draft' });
+    fireEvent.click(button);
+
+    expect(updateJobString).toHaveBeenCalledWith(12, 1, 'Entwurf');
+    expect(await screen.findByText('Reviewed')).toBeInTheDocument();
+  });
+
+  it('shows "Reviewed" and no button on a reviewed row', async () => {
+    getJobStrings.mockResolvedValue([
+      stringRow({ stringId: 1, key: 'key.done', inJob: true, vendorReviewed: true })
+    ]);
+    renderJob();
+
+    await screen.findByRole('table');
+
+    expect(screen.getByText('Reviewed')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Accept draft' })).toBeNull();
+  });
+
+  it('shows nothing extra for an approved row', async () => {
+    getJobStrings.mockResolvedValue([
+      stringRow({ stringId: 1, key: 'key.approved', stage: 'Approved', inJob: false, vendorReviewed: false })
+    ]);
+    renderJob();
+
+    await screen.findByRole('table');
+
+    expect(screen.queryByText('Reviewed')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Accept draft' })).toBeNull();
+  });
+
+  it('shows the reviewed count in the header', async () => {
+    getJobStrings.mockResolvedValue([
+      stringRow({ stringId: 1, key: 'key.one', inJob: true, vendorReviewed: true }),
+      stringRow({ stringId: 2, key: 'key.two', inJob: true, vendorReviewed: false })
+    ]);
+    renderJob();
+
+    expect(await screen.findByText(/1 of 2 strings reviewed/)).toBeInTheDocument();
+  });
+
+  it('shows the server detail when submit returns 409', async () => {
+    getJobStrings.mockResolvedValue([
+      stringRow({ stringId: 1, key: 'key.one', targetText: 'Eins', inJob: true, vendorReviewed: false })
+    ]);
+    submitJob.mockRejectedValue({
+      status: 409,
+      problemDetails: { Detail: '1 machine-translated strings still need review before the job can be submitted.' },
+      message: 'HTTP Error 409: Conflict'
+    });
+    renderJob();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Submit for Review' }));
+
+    expect(await screen.findByText('1 machine-translated strings still need review before the job can be submitted.')).toBeInTheDocument();
+  });
+});
