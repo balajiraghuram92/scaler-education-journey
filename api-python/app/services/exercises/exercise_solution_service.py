@@ -65,7 +65,8 @@ class ExerciseSolutionService:
                 or _contains_link(solution_root, file.path)
             ):
                 raise ExerciseSolutionNotFoundException(definition.manifest.id)
-            with open(solution_path, encoding="utf-8") as fh:
+            # newline="" keeps CRLF byte-for-byte; utf-8-sig strips a BOM like File.ReadAllText.
+            with open(solution_path, encoding="utf-8-sig", newline="") as fh:
                 content = fh.read()
             if len(content.encode("utf-8")) > self._options.max_file_bytes:
                 raise ExerciseInfrastructureException(

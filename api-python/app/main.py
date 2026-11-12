@@ -16,9 +16,11 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request, Response
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .db import get_engine
 from .errors import ApiProblem, problem_response
@@ -141,6 +143,15 @@ def create_app() -> FastAPI:
         )
 
     app.add_exception_handler(ChallengeException, challenge_exception_handler)
+
+    @app.exception_handler(StarletteHTTPException)
+    async def starlette_exception_handler(
+        request: Request, exc: StarletteHTTPException
+    ) -> Response:
+        # ASP.NET answers "no route matched" with an empty 404 body.
+        if exc.status_code == 404 and exc.detail == "Not Found":
+            return Response(status_code=404)
+        return await http_exception_handler(request, exc)
 
     @app.get("/health/live", name="HealthLiveCheck")
     async def health_live() -> dict[str, object]:

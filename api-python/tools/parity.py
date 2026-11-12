@@ -44,6 +44,8 @@ def _normalize(value: object, ignore: set[str]) -> object:
         return {k: _normalize(v, ignore) for k, v in value.items() if k not in ignore}
     if isinstance(value, list):
         return [_normalize(v, ignore) for v in value]
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
     return value
 
 

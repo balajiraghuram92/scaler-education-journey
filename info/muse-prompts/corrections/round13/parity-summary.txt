@@ -1,0 +1,4 @@
+DIFF GET /api/courses
+DIFF GET /api/chapters
+DIFF GET /api/v2/learning-paths
+99/102 routes match.

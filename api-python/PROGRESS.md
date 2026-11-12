@@ -1037,3 +1037,52 @@ lines now use `java-lld-bounded-generics-find-max`
 (id confirmed in its `exercise.json`); the three
 wrong-type-id lines kept with a "deliberate 404
 check" comment above each group.
+
+## C12 — parity corrections, second run
+
+Second live parity run (93 of 102 match). No command
+was run in this round; nothing below is claimed to pass.
+
+Task 1. **Empty-body 404 for unmatched routes.**
+`app/main.py` registers a `starlette.exceptions.
+HTTPException` handler: 404 with Starlette's default
+`"Not Found"` detail returns bare
+`Response(status_code=404)`; everything else
+delegates to FastAPI's stock handler. Places in
+`app/` raising `HTTPException` with 404: NONE
+(full literal search — every endpoint 404 goes
+through `ApiProblem`/`endpoint_problem`, which the
+new handler cannot intercept). 405 finding: the C#
+code says nothing about wrong-method responses (no
+`405`/`MethodNotAllowed` in `api/` source, only
+content-data hits), so per the task's condition the
+405 shape is UNCHANGED — left for the reviewer to
+settle from framework behaviour. New no-DB
+`tests/test_not_found_empty_body.py`: unknown
+`/api/` path and non-numeric typed id both assert
+404 with `b""`, using a monkeypatched API key.
+
+Task 2. **Exercise files keep on-disk line endings.**
+`_read_starter_content` and `_read_solution_content`
+now open with `encoding="utf-8-sig", newline=""`
+(`newline=""` preserves CRLF; `utf-8-sig` strips a
+leading BOM exactly like `File.ReadAllText` — plain
+`utf-8` would keep it). `exercise_repository.py`
+and `exercise_workspace_builder.py` untouched as
+instructed. Draft/workspace finding: NO DIFFERENCE
+— both stacks store file content JSON-escaped
+(`JsonSerializer` / `_json_dumps`) and return it
+via JSON parse, so `\r\n` round-trips byte-identical
+on both sides; nothing changed there. New no-DB
+`tests/exercises/test_exercise_file_line_endings.py`
+writes CRLF files with `write_bytes` and asserts
+both services return them byte-for-byte.
+
+Task 3. **`185` vs `185.0` in the parity tool.**
+`_normalize` in `tools/parity.py` now converts an
+integral `float` to `int`. `bool` passes through
+untouched by construction (`bool` is not a `float`
+subclass, so the branch never matches it); NaN and
+infinities also pass through (`is_integer()` is
+`False` for them). Nothing else in the tool
+changed.

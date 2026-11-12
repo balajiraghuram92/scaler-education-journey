@@ -76,7 +76,8 @@ class ExerciseMetadataService:
             starter_path = resolve_inside(starter_root, file.path)
             if not os.path.isfile(starter_path) or is_link(starter_path):
                 raise ExerciseInfrastructureException("Trusted starter source is unavailable.")
-            with open(starter_path, encoding="utf-8") as fh:
+            # newline="" keeps CRLF byte-for-byte; utf-8-sig strips a BOM like File.ReadAllText.
+            with open(starter_path, encoding="utf-8-sig", newline="") as fh:
                 content = fh.read()
             if len(content.encode("utf-8")) > self._options.max_file_bytes:
                 raise ExerciseInfrastructureException(
