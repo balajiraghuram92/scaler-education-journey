@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import uuid
 
 import pytest
@@ -25,7 +26,7 @@ def _make_runs(run_ids: list[str]) -> None:
                         ticket_key="TOK",
                         trigger="test",
                         pipeline_version="v0",
-                        content_hash="0" * 64,
+                        content_hash=hashlib.sha256(run_id.encode()).hexdigest(),
                     )
                 )
             await session.commit()

@@ -577,3 +577,19 @@ entitlements `service_session` uses),
 rows exist and the policy hides the second one.
 Thread/change/chunk counts and everything else in
 the file unchanged.
+
+## C10
+
+Reviewer log: `info/muse-prompts/corrections/round9/issue-intel-db.log`
+(70 passed, 1 failed). Nothing run this round (no shell);
+nothing here is claimed to pass.
+
+The one task — `_make_runs` gave every run the same
+`(ticket_key, content_hash, pipeline_version)`, violating
+`uq_runs_ticket_hash_version` on the second insert. In
+`tests/test_tokens.py` only:
+`content_hash=hashlib.sha256(run_id.encode()).hexdigest()`
+(unique per run since the run ids are unique), plus
+`import hashlib` in alphabetical stdlib order.
+`ticket_key`, `pipeline_version`, and everything else
+unchanged.
