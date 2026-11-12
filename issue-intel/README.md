@@ -29,7 +29,7 @@ alembic upgrade head
 python -m synthetic.generate --seed 20240917
 python sample_repo/setup-history.py
 dotnet test sample_repo/TesseraEditorTools.sln
-dotnet test evals/fix_cases/FixCases.csproj   # hidden tests: fail before fixes
+dotnet test evals/fix_cases/FixCases.csproj   # hidden tests: expect 16 failed, 5 passed on main (bugs still planted); not a broken build
 pytest
 ruff check . ; ruff format --check . ; mypy app
 ```

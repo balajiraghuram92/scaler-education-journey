@@ -593,3 +593,126 @@ The one task — `_make_runs` gave every run the same
 `import hashlib` in alphabetical stdlib order.
 `ticket_key`, `pipeline_version`, and everything else
 unchanged.
+
+## C14 — end-to-end run corrections
+
+Reviewer logs: `info/muse-prompts/corrections/round17/`
+(first-run failures plus a probe patch confirming the
+fixes work together). Nothing run this round (no
+shell); nothing here is claimed to pass.
+
+Task 1 — xUnit test projects now import `Xunit`.
+Added the `<Using Include="Xunit" />` `ItemGroup` to
+`sample_repo/tests/TesseraEditorTools.Tests/
+TesseraEditorTools.Tests.csproj` and
+`evals/fix_cases/FixCases.csproj`, and the same
+`Using` line to `HIDDEN_CSPROJ` in `evals/run_g3.py`
+next to the `Compile` item. No `using Xunit;` added
+to any `.cs` file. README quickstart now records the
+expected `FixCases` result on `main` (16 failed, 5
+passed — the bugs are still planted).
+
+Task 2 — `service_session` detaches before rollback.
+`finally` is now `session.expunge_all()`, then
+`await session.rollback()`, then the RESETs;
+docstring says why both lines exist (detached rows
+keep loaded values; rollback keeps RESETs usable
+after a failed flush). Call sites checked
+(`service_session` unless noted; "inside" means the
+block result is plain data or fully consumed
+before exit):
+- ESCAPED before, fixed by expunge: `candidates.
+consider_run` (:22, returns the row),
+`render_for_viewer` (`render.py:43`),
+`_approve_backport` (`mcp_server:206`,
+`candidate.*` after), `_execute_fix`
+(`worker.py:33`, `attempt.*` after),
+`leakage_per_viewer` (`run_g2:140`),
+`_seed_candidate` (`run_g3:94`, returns the row),
+`_run_bug` (`run_g3:143`, `attempt.*` after),
+`_backport_benchmark` (`run_g3:197`, `made` rows
+after), `cmd_report` (`run_g4:229`).
+- Inside/safe: `candidates:73`, `cache.py`
+(38,46,57,77,84), gateway `routing.py`
+(111,127,144,151,158), `audience.py` (19,36),
+`tokens.py` (33,51), `ingest/run.py:61`,
+`mcp_server` (35,101,149,161,178,189,232),
+`manager.py` (42,81), `approvals.py`
+(48,79,118,132), `fixes.py` (27,35,45,61,81,
+112,130 — the `consider_run` row at 27/33 is
+covered by the candidates fix), `metrics.py:29`,
+`reviews.py` (34,71,94), `runs.py` (32,52,82),
+`worker.py` (38,61,66,98,105), `run_g1.py:174`,
+`run_g2.py` (62,112,171,188,214,233 —
+188 only tests list emptiness), `run_g3.py`
+(187,221).
+- `rls_session`: `rls.py:84` yields the session by
+design; `mcp_server` (119,129) JSON inside;
+`run_g1.py:161` counts inside; `run_g1.py:146`
+reads loaded `acl_id` after exit but the block
+commits via `session.begin()` with
+`expire_on_commit=False` (confirmed
+`app/db.py:27`), so nothing expires — safe.
+New DB `tests/test_service_session.py`: a row
+loaded inside the block stays readable after it,
+and a duplicate-key flush still raises the
+original `IntegrityError` (no C9 test file
+existed for that behaviour, so this file pins
+it too).
+
+Task 3 — `await` inside `sum()` generator. In
+`evals/run_g1.py`, `_entitled` is now a plain
+`def` (it does no I/O) and line 158 drops the
+`await`; it has no other caller. Sweep of `app/`
+and `evals/`: all `sum(` (19 sites), `any(` (2),
+`sorted(` (13), `max(` (9) call sites iterate
+plain sync data with no `await`; no builtin
+`min(` or `all(` call exists (the `all(` hits are
+`.all()`, `.findall()` and `*Call(`). Nothing
+else to fix.
+
+Task 4 — sandbox root is absolute. `create_sandbox`
+starts with `root = root.resolve()`; nothing else
+in the function changed. The `issue-intel/` prefix
+workarounds in `fix_loop.py:97-99` and
+`backport.py:35-37` are left as is. Sandbox
+directory in both cases is `<repo>/issue-intel/
+sandboxes/`: from `issue-intel/` the relative root
+`sandboxes` resolves against the process CWD;
+from the repo root the workaround prefixes
+`issue-intel/` first and the same absolute path
+results. Added `sandboxes/` to `.gitignore` (was
+not ignored). New `tests/test_sandbox.py` (skips
+without git on `PATH`): relative root yields an
+absolute existing path, `remove_sandbox` removes
+it.
+
+Task 5 — verification directory gains its parents.
+`hidden_passing` in `evals/run_g3.py:72` now uses
+`proj_dir.mkdir(parents=True, exist_ok=True)`, so
+the `hidden_dir / "verify"` and backport `tmp /
+f"bp-{row.id}"` calls work when `tmp` does not
+exist yet.
+
+Task 6 — full-text matches any term. `_fulltext`
+in `app/search/hybrid.py` uses the reviewer's
+probe form verbatim in both places
+(`replace(plainto_tsquery(...)::text, '&',
+'|')::tsquery`, still ordered by `ts_rank`):
+plainto output contains only `&` operators, so
+the rewrite is exact for these queries, and an
+empty or all-stop-word query yields an empty
+tsquery that matches no rows without raising.
+Recall-limit notes for the reviewer: (a) chunks
+are whole-message/section pieces, so one shared
+word retrieves a long chunk and `ts_rank` (default
+normalisation) dilutes single-term matches
+against longer texts; (b) the query is a whole
+ticket title plus body, whose rare discriminating
+terms drown among common words once OR-ed; (c)
+lexeme mismatch (stemmer splits compounds and
+identifiers the writers kept whole) still drops
+true duplicates. No tuning done. New DB
+`tests/test_hybrid_search.py`: a chunk sharing
+most query words is returned, one sharing none
+is not (seeded rows removed afterwards).

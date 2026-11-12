@@ -40,7 +40,10 @@ async def service_session() -> AsyncIterator[AsyncSession]:
     """Full-SE session for compute-once runs and ingestion.
 
     Uses session-level SET (not SET LOCAL) so the context survives the
-    per-stage commits; RESET on exit.
+    per-stage commits; RESET on exit. The exit first detaches loaded
+    objects (`expunge_all`, so callers keep the values they read) and
+    then rolls back (so the RESETs run on a usable transaction even
+    after a failed flush, without hiding the original error).
     """
     ent = Entitlements.service()
     factory = create_session_factory()
@@ -61,6 +64,7 @@ async def service_session() -> AsyncIterator[AsyncSession]:
         try:
             yield session
         finally:
+            session.expunge_all()
             await session.rollback()
             await session.execute(text("RESET app.modules"))
             await session.execute(text("RESET app.departments"))

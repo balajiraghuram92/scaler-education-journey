@@ -52,7 +52,8 @@ HIDDEN_CSPROJ = """<Project Sdk="Microsoft.NET.Sdk">
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
   <ItemGroup>
-{refs}    <Compile Include="{hidden}" />
+{refs}    <Using Include="Xunit" />
+    <Compile Include="{hidden}" />
   </ItemGroup>
 </Project>
 """
@@ -68,7 +69,7 @@ async def hidden_passing(worktree: Path, test_class: str, tmp: Path) -> bool:
         for m in ("VersionControl", "Localization", "UiState", "AssetImport")
     )
     proj_dir = tmp / "hidden"
-    proj_dir.mkdir(exist_ok=True)
+    proj_dir.mkdir(parents=True, exist_ok=True)
     proj = proj_dir / "Hidden.csproj"
     proj.write_text(
         HIDDEN_CSPROJ.format(refs=refs, hidden=f"{FIX_CASES}/HiddenTests.cs"),

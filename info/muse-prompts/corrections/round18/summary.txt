@@ -1,0 +1,27 @@
+== issue-intel
+75 passed, 2 warnings in 16.31s
+app/mcp_server/server.py:39: error: Untyped decorator makes function "list_tools" untyped  [untyped-decorator]
+app/mcp_server/server.py:242: error: Untyped decorator makes function "call_tool" untyped  [untyped-decorator]
+Found 3 errors in 1 file (checked 68 source files)
+01-alembic     exit 0  ##### alembic upgrade head
+02-generate    exit 0  ground truth written to /w/evals/ground_truth
+03-history     exit 0  history built; HEAD: 12eabf5
+04-dotnet      exit 0  Passed!  - Failed:     0, Passed:    12, Skipped:     0, Total:    12, Duration: 47 ms - TesseraEditorTools.Tests.dll (net8.0)
+05-fixcases    exit 1  Failed!  - Failed:    16, Passed:     5, Skipped:     0, Total:    21, Duration: 45 ms - FixCases.dll (net8.0)
+06-ingest      exit 0  {'cases': 1050, 'threads': 250, 'changes': 20, 'people': 40, 'links': 839, 'outcomes': 600, 'chunks': 1320}
+07-ingest2     exit 0  {'cases': 1050, 'threads': 250, 'changes': 20, 'people': 40, 'links': 0, 'outcomes': 600, 'chunks': 0}
+08-g1          exit 0  report: /w/evals/reports/g1.json
+09-g2          exit 0  report: /w/evals/reports/g2.json
+10-g3          exit 0  report: /w/evals/reports/g3.json
+11-g4-inc      exit 0  report: /w/evals/reports/g4-score-tessera-large.json
+12-g4-cand     exit 0  report: /w/evals/reports/g4-score-tessera-candidate.json
+13-g4-report   exit 0  ticket_parse    q=1.00 $0.0002 p95=0ms    q=1.00 $0.0001 p95=0ms    
+ cases    |  1050
+ threads  |   250
+ messages |   839
+ changes  |    20
+ chunks   |  1320
+ runs     |    69
+
+
+[exited with code 0]

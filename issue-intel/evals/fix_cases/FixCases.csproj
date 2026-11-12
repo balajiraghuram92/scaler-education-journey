@@ -16,4 +16,7 @@
     <ProjectReference Include="..\..\sample_repo\src\UiState\UiState.csproj" />
     <ProjectReference Include="..\..\sample_repo\src\AssetImport\AssetImport.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
 </Project>

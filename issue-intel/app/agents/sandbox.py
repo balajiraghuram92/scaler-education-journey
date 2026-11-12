@@ -42,6 +42,7 @@ class Sandbox:
 
 
 async def create_sandbox(repo: Path, root: Path, branch: str, base: str = "main") -> Sandbox:
+    root = root.resolve()
     root.mkdir(parents=True, exist_ok=True)
     path = root / branch.replace("/", "-")
     result = await run_cmd(

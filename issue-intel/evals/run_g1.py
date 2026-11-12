@@ -126,7 +126,7 @@ async def outcome_eval(session: AsyncSession) -> dict[str, object]:
     }
 
 
-async def _entitled(acl: Acl, ent: Entitlements) -> bool:
+def _entitled(acl: Acl, ent: Entitlements) -> bool:
     if acl.restriction > ent.max_restriction:
         return False
     if not (set(acl.modules.split(",")) & ent.modules):
@@ -155,7 +155,7 @@ async def leakage_eval() -> dict[str, float]:
             }
         visible = [c.acl_id for c in case_rows]
         visible += [r[1] for r in raw_rows] + [r[1] for r in chunk_rows]
-        bad = sum(1 for aid in visible if not await _entitled(acls[aid], ent))
+        bad = sum(1 for aid in visible if not _entitled(acls[aid], ent))
         report[name] = bad / len(visible) if visible else 0.0
     void = Entitlements()
     async with rls_session(void) as session:

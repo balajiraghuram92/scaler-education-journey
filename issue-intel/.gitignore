@@ -14,3 +14,4 @@ evals/reports/*
 web/node_modules/
 web/dist/
 sample_repo/.history.json
+sandboxes/
