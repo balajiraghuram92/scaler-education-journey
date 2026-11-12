@@ -82,3 +82,18 @@ Real provider calls (Azure Translator, the Azure-hosted model) need the owner's 
 ## Environment variables the owner must set after R2
 
 `AzureTranslator__Key`, `AzureTranslator__Region`, and optionally `AzureTranslator__Endpoint`, in the compose and `.env` files that Claude and Muse do not edit. The Google Translate key can be removed.
+
+## Follow-up after the R2-R6 review (12 Nov 2026)
+
+Owner decision: jobs include machine output for vendor post-editing (CONTRACT 2.5 and 3 amended).
+
+| Order | Prompt | Scope | Depends on |
+|---|---|---|---|
+| a | `../corrections/C17-api-python-track-r.md` | api-python fixes found in review | — |
+| b | `R7-jobs-include-mt-output.md` | .NET + React | — (can run beside C17) |
+| c | `R8-port-jobs-include-mt-output.md` | api-python port of R7 | C17 and R7 |
+
+Paste lines:
+- `Read info/muse-prompts/corrections/C17-api-python-track-r.md and do everything below its paste line.`
+- `Read info/muse-prompts/localization-rebuild/R7-jobs-include-mt-output.md and do everything below its paste line.`
+- `Read info/muse-prompts/localization-rebuild/R8-port-jobs-include-mt-output.md and do everything below its paste line.`

@@ -113,7 +113,11 @@ Outcome texts for the provider actions keep their current form with the new name
 
 For a locale with no job: `id` null, `status` "NotCreated", counts computed live from the strings, `vendorTeamAlias` and `memberCount` from the agreement (null when no team is assigned).
 
-`completedPercent` = strings of the job's locale whose stage is `Translated`, `InReview` or `Approved`, over `stringCount`, rounded down; 0 when `stringCount` is 0.
+**Job scope (amended 12 Nov 2026, owner decision: machine output goes to the vendor team for post-editing).** A string is *open* for a locale when it has no translation for that locale, its translation text is blank, or its translation's stage is anything other than `Approved`. A job covers the open strings of its locale. `stringCount` and `wordCount` count the open strings: live for a `NotCreated` row, frozen when the job is created. Creating a job when the locale has no open strings is a 409 ("nothing left to translate"); this is also a skip for "Create Translation Jobs".
+
+A string is *vendor-reviewed* when its translation's `translationSource` is `"Marketplace"` (the stored value for vendor-team work; it is not renamed) and its text is not blank.
+
+`completedPercent` = vendor-reviewed strings of the job's locale whose stage is not `Approved`, over `stringCount`, rounded down, capped at 100; exactly 100 when the job is `Approved`; 0 when `stringCount` is 0. For a `NotCreated` row it is 0.
 
 | Method | Path | Result |
 |---|---|---|
@@ -130,8 +134,8 @@ Removed: every `/api/localization/projects/{slug}/marketplace…` and `/api/loca
 | GET | `/api/localization/vendor/roster` | `[ { "id": 1, "alias": "Vendor Team Larch", "languages": "de-DE,fr-FR" } ]` |
 | GET | `/api/localization/vendor/{vendorId}/jobs` | jobs assigned to that team, newest first |
 | GET | `/api/localization/vendor/jobs/{jobId}/strings` | vendor string rows |
-| PUT | `/api/localization/vendor/jobs/{jobId}/strings/{stringId}` | body `{ "targetText": "…" }`; vendor string row; rules as today |
-| POST | `/api/localization/vendor/jobs/{jobId}/submit` | vendor job row; rules as today |
+| PUT | `/api/localization/vendor/jobs/{jobId}/strings/{stringId}` | body `{ "targetText": "…" }`; vendor string row; rules as today. Sending the existing text unchanged is how a vendor accepts a machine draft: it still sets `translationSource` to `"Marketplace"`. 409 when the string's translation is `Approved` |
+| POST | `/api/localization/vendor/jobs/{jobId}/submit` | vendor job row. 409 unless every string of the locale has non-blank text **and** no open string is still machine output (`translationSource` `"AI"`) |
 
 Vendor job row (no project name, no slug):
 
@@ -146,10 +150,13 @@ Vendor string row (scores and the raw draft are visible here and nowhere else):
 ```json
 { "stringId": 1, "key": "hud.speed", "sourceText": "…", "localeCode": "de-DE",
   "targetText": "…", "stage": "Translated", "translationSource": "AI", "updatedAt": "…",
-  "score": 4, "needsReview": false, "rawMtText": "…", "rawMtScore": 3 }
+  "score": 4, "needsReview": false, "rawMtText": "…", "rawMtScore": 3,
+  "inJob": true, "vendorReviewed": false }
 ```
 
-`score` and `rawMtScore` are integers 1 to 5, or null when not scored.
+`score` and `rawMtScore` are integers 1 to 5, or null when not scored. `inJob` is true for an open string (section 2.5) and `vendorReviewed` follows the definition there. The list still holds every string of the locale; `Approved` strings come back with `inJob` false.
+
+Machine steps never overwrite vendor work: "Run MT Optimize", "Score Quality" and "Auto-Route" act only on translations whose `translationSource` is `"AI"` and whose stage is not `Approved`.
 
 Removed: `GET /vendor/{vendorId}/open-jobs`, `POST /vendor/{vendorId}/jobs/{jobId}/bids`, `GET /vendor/{vendorId}/awarded-jobs`.
 
