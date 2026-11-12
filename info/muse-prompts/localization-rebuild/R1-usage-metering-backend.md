@@ -134,7 +134,7 @@ In the `catch (LocalizationAiException)` (the call failed outright), record noth
 
 1. `LocalizationAiClient.cs`, `AiQpsScoreResult` (lines 40-45): add `int InputTokens` and `int OutputTokens`. The service already returns `inputTokens` and `outputTokens`; deserialisation is case-insensitive.
 2. `IQualityScorer.cs`, `QualityScoreResult`: add `int InputTokens = 0, int OutputTokens = 0` as trailing optional parameters, so other implementations and tests keep compiling.
-3. `LocalizationExceptions.cs`, `LocalizationAiException`: add two settable `int` properties, `InputTokens` and `OutputTokens`, default 0. `QpsScoringService.ScoreAsync` fills them when it throws because the judge fell back (line 36-39), and returns the counts in `QualityScoreResult` on success.
+3. `LocalizationAiClient.cs`, `LocalizationAiException` (lines 15-26): add two settable `int` properties, `InputTokens` and `OutputTokens`, default 0. `QpsScoringService.ScoreAsync` fills them when it throws because the judge fell back (line 36-39), and returns the counts in `QualityScoreResult` on success.
 
 Then in the workflow, for **both** `ScoreAsync` calls (lines 513 and 533):
 
