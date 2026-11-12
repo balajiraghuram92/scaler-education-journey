@@ -1,0 +1,183 @@
+=== DIFF DELETE /api/auth/sessions/1
+=== DIFF GET /api/courses
+< "description": "Distributed-system fundamentals, scalable infrastructure, data platforms, and AI-aware system design.",
+< "id": 3,
+< "modules": [
+< {
+< "badge": "Module 15",
+< "completedLessons": 0,
+< "courseId": 3,
+< "description": "Distributed-system fundamentals, scalable infrastructure, data platforms, and AI-aware system design.",
+< "id": 8,
+< "lessons": [
+< {
+< "classDate": "",
+< "description": "Requirements, capacity, boundaries, and architecture trade-offs.",
+< "estimatedMinutes": 90,
+< "horstmannRef": "AWS Well-Architected Framework",
+< "id": 41,
+< "isCompleted": false,
+< "lectureNumber": 1,
+< "moduleId": 8,
+< "orderIndex": 1,
+=== DIFF GET /api/chapters
+< "description": "Distributed-system fundamentals, scalable infrastructure, data platforms, and AI-aware system design.",
+< "id": 3,
+< "modules": [
+< {
+< "badge": "Module 15",
+< "chapters": [
+< {
+< "courseSlug": "high-level-design",
+< "courseTitle": "High-Level Design",
+< "description": "Requirements, capacity, boundaries, and architecture trade-offs.",
+< "difficulty": "Intermediate",
+< "fullSlug": "high-level-design/high-level-design/hld-01-foundations",
+< "hasCodeComparisons": false,
+< "hasDiagrams": false,
+< "id": 41,
+< "isCompleted": false,
+< "lectureNumber": 1,
+< "moduleBadge": "Module 15",
+< "moduleSlug": "high-level-design",
+< "moduleTitle": "High-Level Design",
+=== DIFF GET /api/v2/learning-paths
+< "description": "Distributed-system fundamentals, scalable infrastructure, data platforms, and AI-aware system design.",
+< "domains": [],
+< "id": 3,
+< "isPublished": true,
+< "modules": [
+< {
+< "badge": "Module 15",
+< "description": "Distributed-system fundamentals, scalable infrastructure, data platforms, and AI-aware system design.",
+< "id": 8,
+< "lessons": [
+< {
+< "conceptSlugs": [],
+< "contentStatus": "Draft",
+< "difficulty": "Intermediate",
+< "estimatedMinutes": 90,
+< "id": 41,
+< "isCompleted": false,
+< "orderIndex": 1,
+< "problemCount": 0,
+< "slug": "hld-01-foundations",
+=== DIFF GET /api/v2/reading-map
+< "occurredAt": "2026-11-12T00:17:29.395843Z"
+> "occurredAt": "2026-11-12T00:17:29.5057670Z"
+=== DIFF POST /api/v2/practice-questions/1/attempts
+< null
+> {
+> "detail": [
+> {
+> "ctx": {
+> "error": "invalid length: expected length 32 for simple format, found 1"
+> },
+> "input": "1",
+> "loc": [
+> "path",
+> "presentation_id"
+> ],
+> "msg": "Input should be a valid UUID, invalid length: expected length 32 for simple format, found 1",
+> "type": "uuid_parsing"
+> }
+> ]
+> }
+=== DIFF POST /api/v2/practice-questions/1/retry
+< null
+> {
+> "detail": [
+> {
+> "ctx": {
+> "error": "invalid length: expected length 32 for simple format, found 1"
+> },
+> "input": "1",
+> "loc": [
+> "path",
+> "presentation_id"
+> ],
+> "msg": "Input should be a valid UUID, invalid length: expected length 32 for simple format, found 1",
+> "type": "uuid_parsing"
+> }
+> ]
+> }
+=== DIFF POST /api/exercises/java-add-hotel-rooms/run
+< "detail": "The requested exercise does not exist.",
+> "detail": "Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))",
+< "status": 404,
+< "title": "Exercise not found.",
+< "type": "https://tools.ietf.org/html/rfc7231"
+> "status": 500,
+> "title": "An internal error occurred processing your request.",
+> "type": "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+=== DIFF POST /api/exercises/java-add-hotel-rooms/check
+< "detail": "The requested exercise does not exist.",
+> "detail": "Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))",
+< "status": 404,
+< "title": "Exercise not found.",
+< "type": "https://tools.ietf.org/html/rfc7231"
+> "status": 500,
+> "title": "An internal error occurred processing your request.",
+> "type": "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+=== DIFF GET /api/localization/projects/auroraline-hud-v3/marketplace
+< "suggestedPriceHigh": 185.0,
+< "suggestedPriceLow": 140.0,
+> "suggestedPriceHigh": "185.00",
+> "suggestedPriceLow": "140.00",
+< "suggestedPriceHigh": 185.0,
+< "suggestedPriceLow": 140.0,
+> "suggestedPriceHigh": "185.00",
+> "suggestedPriceLow": "140.00",
+< "suggestedPriceHigh": 185,
+< "suggestedPriceLow": 140,
+> "suggestedPriceHigh": "185",
+> "suggestedPriceLow": "140",
+< "suggestedPriceHigh": 185.0,
+< "suggestedPriceLow": 140.0,
+> "suggestedPriceHigh": "185.00",
+> "suggestedPriceLow": "140.00",
+< "suggestedPriceHigh": 185.0,
+< "suggestedPriceLow": 140.0,
+> "suggestedPriceHigh": "185.00",
+> "suggestedPriceLow": "140.00",
+=== DIFF POST /api/localization/projects/auroraline-hud-v3/marketplace/zh-CN/post
+< "suggestedPriceHigh": 185.0,
+< "suggestedPriceLow": 140.0,
+> "suggestedPriceHigh": "185",
+> "suggestedPriceLow": "140",
+=== DIFF GET /api/localization/marketplace/jobs/1/bids
+< "proposedPrice": 210.0,
+> "proposedPrice": "210.00",
+< "vendorRating": 4.9
+> "vendorRating": "4.9"
+=== DIFF GET /api/localization/provider-health
+< "errorRatePercent": 0.4,
+> "errorRatePercent": "0.40",
+< "errorRatePercent": 1.1,
+> "errorRatePercent": "1.10",
+=== DIFF POST /api/localization/provider-health/GoogleMT/simulate-outage
+< "errorRatePercent": 87.5,
+> "errorRatePercent": "87.5",
+=== DIFF POST /api/localization/provider-health/GoogleMT/resolve
+< "errorRatePercent": 0.4,
+> "errorRatePercent": "0.4",
+=== DIFF GET /api/localization/vendor/roster
+< "rating": 4.9
+> "rating": "4.9"
+< "rating": 5.0
+> "rating": "5.0"
+< "rating": 4.7
+> "rating": "4.7"
+< "rating": 4.2
+> "rating": "4.2"
+< "rating": 4.8
+> "rating": "4.8"
+=== DIFF GET /api/localization/vendor/1/awarded-jobs
+< "suggestedPriceHigh": 185.0,
+< "suggestedPriceLow": 140.0,
+> "suggestedPriceHigh": "185.00",
+> "suggestedPriceLow": "140.00",
+< "suggestedPriceHigh": 185.0,
+< "suggestedPriceLow": 140.0,
+> "suggestedPriceHigh": "185.00",
+> "suggestedPriceLow": "140.00",
