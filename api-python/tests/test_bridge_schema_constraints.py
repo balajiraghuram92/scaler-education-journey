@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -133,3 +134,24 @@ async def test_learning_activity_accepts_known_event_types(scratch_session: Asyn
     with pytest.raises(IntegrityError):
         await db.flush()
     await db.rollback()
+
+
+@pytest.mark.asyncio
+async def test_jsonb_text_reads_postgres_text_rendering(
+    scratch_session: AsyncSession,
+) -> None:
+    db = scratch_session
+    activity = LearningActivity(
+        event_type="LessonCompleted", occurred_at=_now(),
+        metadata_json='{"VisitCount":1}',
+    )
+    db.add(activity)
+    await db.flush()
+    raw = (
+        await db.execute(
+            text("SELECT metadata::text FROM learning_activity WHERE id = :id"),
+            {"id": activity.id},
+        )
+    ).scalar_one()
+    await db.refresh(activity)
+    assert activity.metadata_json == raw

@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from fastapi import FastAPI, Request, Response
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -198,7 +198,7 @@ def create_app() -> FastAPI:
                 content={"status": "Unhealthy", "error": "Database connection error"},
             )
 
-    @app.get("/")
+    @app.get("/", response_class=PlainTextResponse)
     async def root() -> str:
         return "StudyTracker API is running. Use /health for service health."
 

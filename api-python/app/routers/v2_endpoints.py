@@ -431,7 +431,7 @@ async def record_practice_attempt(
             presentation_id, body.selected_option_key, current.user_id
         )
     except KeyError as exc:
-        return JSONResponse(status_code=404, content={"error": str(exc)})
+        return JSONResponse(status_code=404, content={"error": exc.args[0]})
     except McqAccessDeniedException as exc:
         return JSONResponse(status_code=403, content={"error": str(exc)})
     except ValueError as exc:
@@ -449,7 +449,7 @@ async def retry_practice_question(
     try:
         result = await McqService(session).retry(presentation_id, current.user_id)
     except KeyError as exc:
-        return JSONResponse(status_code=404, content={"error": str(exc)})
+        return JSONResponse(status_code=404, content={"error": exc.args[0]})
     except McqAccessDeniedException as exc:
         return JSONResponse(status_code=403, content={"error": str(exc)})
     await session.commit()

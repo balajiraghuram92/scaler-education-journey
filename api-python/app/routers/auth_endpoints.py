@@ -450,7 +450,12 @@ async def refresh(
             RefreshOutcome.USER_INACTIVE: "Your account is no longer active.",
         }.get(result.outcome, "Your session is no longer valid. Please sign in again.")
         await session.commit()
-        return endpoint_problem(request, 401, "Session ended.", detail)
+        problem = endpoint_problem(request, 401, "Session ended.", detail)
+        # Headers set on the injected Response are dropped when the endpoint
+        # returns its own Response object; carry the cookie deletions over.
+        for cookie in response.headers.getlist("set-cookie"):
+            problem.headers.append("set-cookie", cookie)
+        return problem
     await session.commit()
     return _user_dto(result.user)
 
@@ -487,7 +492,12 @@ async def revoke_session(
     if session_id == current.session_id:
         service.clear_cookies(request, response)
     await session.commit()
-    return Response(status_code=204)
+    result = Response(status_code=204)
+    # Headers set on the injected Response are dropped when the endpoint
+    # returns its own Response object; carry the cookie deletions over.
+    for cookie in response.headers.getlist("set-cookie"):
+        result.headers.append("set-cookie", cookie)
+    return result
 
 
 @router.post("/logout-all", dependencies=[Depends(require_user)])

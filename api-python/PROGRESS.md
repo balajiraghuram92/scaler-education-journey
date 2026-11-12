@@ -1062,6 +1062,109 @@ settle from framework behaviour. New no-DB
 `/api/` path and non-numeric typed id both assert
 404 with `b""`, using a monkeypatched API key.
 
+## C13 — signed-in parity corrections
+
+First signed-in parity run (128 steps). No command
+was run in this round; nothing below is claimed to pass.
+
+Task 1. **JsonbText reads PostgreSQL's text.**
+`app/models/types.py`: `column_expression` returns
+`cast(col, Text)` so SELECTs get PG's rendering;
+result processor still passes `None`/`str` and
+dumps a stray `dict`/`list`; docstring rewritten
+(the old "received as stored" claim was false —
+asyncpg decodes jsonb to `dict`). Bind side: NO
+`bind_expression` needed — the column cast only
+affects SELECT rendering, INSERT/UPDATE SQL is
+byte-identical to before, and writes demonstrably
+work today; no query filters on these columns, so
+no WHERE behaviour changes either. All six columns
+are C# `string` on `jsonb` (snapshot-verified, so
+the same change is right for each):
+`learning_activity.metadata` <- `LearningActivity.
+MetadataJson`; `mcq_presentation.displayed_option_
+order` <- `McqPresentation.DisplayedOptionOrder`;
+`migration_reconciliation.details` <-
+`MigrationReconciliation.DetailsJson`;
+`user_exercise_drafts.files` and
+`user_exercise_attempts.files` <- `FilesJson`;
+`user_exercise_attempts.summary` <- `SummaryJson`.
+Services parse check: `mcq_service._order_options`
+and `exercise_progress_service.get_state` use
+`json.loads` (whitespace-insensitive, fine on the
+text form); `learner_progress_service` passes
+`metadata_json` straight into its DTO (this fix is
+what makes that text right); `details_json` and
+`summary_json` are write-only in services. New DB
+test in `test_bridge_schema_constraints.py`:
+insert `{"VisitCount":1}`, ORM read-back after
+refresh equals `SELECT metadata::text`.
+
+Task 2. **Naive datetimes lose the `Z`.**
+`format_dotnet_datetime` writes naive values with no
+suffix (the port's `Kind = Unspecified`) and aware
+values as UTC with `Z`; docstring updated.
+`learner_progress_service.py:657` uses naive
+`datetime(1, 1, 1)`. Naive-source audit (all
+searched before the change): `datetime.utcnow()`
+— none in `app/`; naive `datetime(...)` — none
+(all constructions carry `tzinfo=UTC`);
+timezone-naive columns — none (every `DateTime`
+is `DateTime(timezone=True)`); parsed datetimes
+(`fromisoformat`/`strptime`/`fromtimestamp`) —
+none. So nothing else can lose a `Z` and nothing
+needed making aware. C# `DateTime.MinValue` has
+exactly one use (the resume fallback) and
+`default(DateTime)` none, so no other port site
+needs a naive value. `test_dotnet_datetime.py`
+gains the naive `0001-01-01T00:00:00` case; aware
+cases kept.
+
+Task 3. **Refresh failures now carry cookie deletions.**
+`auth_endpoints.refresh` copies the injected
+response's `set-cookie` headers onto the problem
+response (headers already set, so per-outcome
+behaviour is unchanged: the five clearing paths
+match C# `ClearCookies` sites 1:1, MISSING clears
+nowhere on either side). Cookie attributes already
+matched C# (`SessionService.cs:293-298`). Sweep of
+every injected-`Response` endpoint (all six in
+`auth_endpoints.py`; none elsewhere): totp
+confirm/verify write cookies only on success and
+return DTOs (merged, C# same) — untouched; logout
+and logout-all clear then return dicts (merged, C#
+same) — untouched; `revoke_session` cleared then
+returned a bare 204, dropping the deletions while
+C# sends them (`AuthEndpoints.cs:462-467`) — FIXED
+with the same header copy. Success paths byte-
+identical (no new writes, only copies). New no-DB
+`tests/test_auth_refresh_cookies.py` stubs the two
+session lookups and asserts 401 plus both
+`Max-Age=0` deletions.
+
+Task 4. **Unknown-presentation error without quotes.**
+Both `except KeyError` handlers in
+`v2_endpoints.py` send `exc.args[0]`. Sweep: the
+only `except KeyError` sites and the only `raise
+KeyError` sites (`mcq_service.py:193, 240`, both
+single-arg) in `app/` — nothing else to fix. New
+no-DB `tests/test_mcq_unknown_presentation.py`
+stubs `McqService` to raise and asserts the exact
+error string on both endpoints.
+
+Task 5. **`GET /` is plain text.** `/` now uses
+`response_class=PlainTextResponse` (body unquoted,
+`text/plain; charset=utf-8`). Bare-string sweep:
+`root()` is the only route handler returning
+`str` in `app/` (every other `-> str` is a helper,
+service or seed function), and C# `Program.cs:675`
+is the only bare-string handler there (the other
+`=> "` hits are switch-arm detail strings) — a
+single one-to-one fix. New no-DB
+`tests/test_root_plain_text.py` asserts status,
+`text/plain` content type, no quotes, and the exact
+body (monkeypatched API key, like the 404 test).
+
 Task 2. **Exercise files keep on-disk line endings.**
 `_read_starter_content` and `_read_solution_content`
 now open with `encoding="utf-8-sig", newline=""`

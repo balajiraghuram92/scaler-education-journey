@@ -15,9 +15,10 @@ def _to_camel(name: str) -> str:
 
 
 def format_dotnet_datetime(value: datetime) -> str:
-    """Format like System.Text.Json writes a UTC DateTime: `...Z`, fraction with trailing zeros stripped."""
+    """Format like System.Text.Json writes a DateTime: aware values convert to UTC with `Z`; naive values (the port's `Kind = Unspecified`) are written as-is with no suffix. Fractions strip trailing zeros."""
+    suffix = "Z"
     if value.tzinfo is None:
-        value = value.replace(tzinfo=UTC)
+        suffix = ""
     else:
         value = value.astimezone(UTC)
     # Manual formatting: strftime breaks for years < 1000 (DateTime.MinValue).
@@ -27,8 +28,8 @@ def format_dotnet_datetime(value: datetime) -> str:
     )
     if value.microsecond:
         fraction = f"{value.microsecond:06d}".rstrip("0")
-        return f"{base}.{fraction}Z"
-    return f"{base}Z"
+        return f"{base}.{fraction}{suffix}"
+    return f"{base}{suffix}"
 
 
 DotNetDateTime = Annotated[

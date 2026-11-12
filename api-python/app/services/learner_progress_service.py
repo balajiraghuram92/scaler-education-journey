@@ -654,6 +654,6 @@ def _to_resume_dto(
         last_section_id=row.last_section_id if row is not None else None,
         scroll_percent=row.scroll_percent if row is not None else 0,
         last_opened_at=(
-            row.last_opened_at if row is not None else datetime(1, 1, 1, tzinfo=UTC)
+            row.last_opened_at if row is not None else datetime(1, 1, 1)
         ),
     )
