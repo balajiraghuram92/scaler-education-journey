@@ -152,7 +152,9 @@ Every event carries `ProjectId = project.Id`, `WorkflowStepId = step.Id` and the
 
 ## Task 5 — operations endpoints
 
-New file `api/Endpoints/Localization/UsageEndpoints.cs`, mapped from wherever `MapProviderHealthEndpoints` is called, group `/api/localization/ops`:
+The response shapes are fixed by `info/muse-prompts/localization-rebuild/CONTRACT.md`, sections 4.1 and 4.2. Read it and match the field names exactly; the frontend is being built against it at the same time. Leave the `caps` array out of the usage summary in this step (R2 adds it). `POST /rates` answers 201. Do not edit the contract.
+
+New file `api/Endpoints/Localization/UsageEndpoints.cs`, mapped from wherever `MapProviderHealthEndpoints` is called (`api/Program.cs:1642`), group `/api/localization/ops`:
 
 | Method | Path | Returns |
 |---|---|---|
