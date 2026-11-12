@@ -85,7 +85,7 @@ The bot reads a bug report, finds the code, proposes a fix, and checks it. All d
 | Quickstart | Runs end to end (every step exits 0) |
 | Sample repository | Its 12 C# tests pass |
 | Evaluation G1, G2, G4 | Reports written with zero leakage |
-| Fix benchmark G3 | `offered=10/10 flipped=10`. All 10 backports are `OPEN hidden=True`: the backport pull-request record was opened and the bug's hidden test passes on the release branch. Every fix branch was also verified independently (hidden test and ship tests green). Log: `correctionsound18-g3.log`. |
+| Fix benchmark G3 | `offered=10/10 flipped=10`. All 10 backports are `OPEN hidden=True`: the backport pull-request record was opened and the bug's hidden test passes on the release branch. Every fix branch was also verified independently (hidden test and ship tests green). Log: `corrections/round18/10-g3.log`. |
 | Retrieval | Full-text recall at 10 is about 0.115 on the synthetic corpus after the any-word query fix (up from 0.003). It is still low. C14 asks for notes on the causes; those notes are in `issue-intel\PROGRESS.md`. |
 | Not judged | Vector retrieval cannot be judged yet, because the test runs use fake embeddings. |
 | Known leftovers | Three mypy notes in `app\mcp_server\server.py`. They are tied to a pending upgrade of the MCP library, and that upgrade has not been done. |
@@ -97,7 +97,7 @@ The .NET API calls this FastAPI service for three jobs: machine translation with
 | Item | State |
 |---|---|
 | Tests | 81 passed, 7 skipped. The 7 skipped tests need a real model. |
-| Real-stack run of "Run MT Optimize" | Optimised 136 strings. The correction C15 records 136 cache rows and one AI usage entry of 75,102 tokens, from a run with the Task 1 fix applied. After Muse's fix, a second run was served entirely from the cache: 136 cache hits and 0 tokens (`correctionsound19eal-stack-summary.txt`). |
+| Real-stack run of "Run MT Optimize" | Optimised 136 strings. The correction C15 records 136 cache rows and one AI usage entry of 75,102 tokens, from a run with the Task 1 fix applied. After Muse's fix, a second run was served entirely from the cache: 136 cache hits and 0 tokens (`corrections/round19/real-stack-summary.txt`). |
 | Not testable on the fake path | Quality scoring and Auto-Route. The fake judge returns no score, so every string fails the scoring step. |
 
 Fix history: C15 corrected a cache insert that failed on the real database schema. The insert did not name two columns (`hit_count` and `created_at`) that the real table requires without defaults. The test schema had defaults, so the tests passed and the real database failed.
@@ -247,7 +247,7 @@ Confirmed from files: the 35 local commits (the count and list in section 11); t
 
 Points the note-writing agent could not confirm from files, resolved afterwards by the session that ran the checks:
 
-- The second "Run MT Optimize" run served from the cache is recorded in `correctionsound19eal-stack-summary.txt` (136 hits, 0 tokens).
+- The second "Run MT Optimize" run served from the cache is recorded in `corrections/round19/real-stack-summary.txt` (136 hits, 0 tokens).
 - `OPEN hidden=True` for a backport means the backport record is open and the hidden test passes on that release branch.
 - .NET checks were run in the SDK container; the SDK on Windows also exists.
 - `CLAUDE.md` has two sections that disagree about whether Claude may edit `api\` and `app\`. The override at the top (dated 2026-10-20) allows it and says it takes precedence.
