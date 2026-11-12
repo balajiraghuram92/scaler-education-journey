@@ -8,6 +8,7 @@ deterministic check results, and auto-route accepts them (F.2 shows neither).
 """
 
 import time
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
@@ -55,6 +56,9 @@ class TranslateResponse(BaseModel):
     latency_ms: int = Field(alias="latencyMs")
     cost_usd: float = Field(alias="costUsd")
     fallback: bool
+    operation: Literal["mt-optimize"] = "mt-optimize"
+    model: str
+    prompt_version: str = Field(alias="promptVersion")
 
 
 @router.post("/translate-and-optimize", response_model=TranslateResponse)
@@ -123,6 +127,9 @@ async def translate_and_optimize(body: TranslateRequest, request: Request):
         latencyMs=outcome.latency_ms,
         costUsd=outcome.cost_usd,
         fallback=outcome.fallback,
+        operation="mt-optimize",
+        model=request.app.state.chat_provider.name,
+        promptVersion=mt_optimize.PROMPT_VERSION,
     )
 
 
@@ -137,14 +144,18 @@ class QpsScoreRequest(BaseModel):
 class QpsScoreResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
 
-    score: int | None
+    score: int | None = Field(ge=1, le=5)
     flagged_issues: list[str] = Field(alias="flaggedIssues")
+    vetoed: bool
     input_tokens: int = Field(alias="inputTokens")
     output_tokens: int = Field(alias="outputTokens")
     tokens_used: int = Field(alias="tokensUsed")
     latency_ms: int = Field(alias="latencyMs")
     cost_usd: float = Field(alias="costUsd")
     fallback: bool
+    operation: Literal["qps-score"] = "qps-score"
+    model: str
+    prompt_version: str = Field(alias="promptVersion")
 
 
 @router.post("/qps-score", response_model=QpsScoreResponse)
@@ -159,12 +170,16 @@ async def qps_score(body: QpsScoreRequest, request: Request):
     return QpsScoreResponse(
         score=result.score,
         flaggedIssues=result.flagged_issues,
+        vetoed=result.vetoed,
         inputTokens=result.input_tokens,
         outputTokens=result.output_tokens,
         tokensUsed=result.input_tokens + result.output_tokens,
         latencyMs=result.latency_ms,
         costUsd=result.cost_usd,
         fallback=result.fallback,
+        operation="qps-score",
+        model=result.model,
+        promptVersion=result.prompt_version,
     )
 
 
@@ -204,8 +219,8 @@ async def comet_score(body: CometScoreRequest, request: Request):
 class AutoRouteRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    qps_score: int | None = Field(alias="qpsScore")
-    project_threshold: int = Field(alias="projectThreshold")
+    qps_score: int | None = Field(alias="qpsScore", ge=1, le=5)
+    project_threshold: int = Field(alias="projectThreshold", ge=1, le=5)
     checks: dict[str, bool] | None = None
 
 

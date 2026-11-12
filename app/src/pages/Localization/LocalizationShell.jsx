@@ -4,9 +4,13 @@ import { ExternalLink } from 'lucide-react';
 import { api } from '../../api/client';
 import ProviderHealthPanel from '../../components/Localization/ProviderHealthPanel';
 import useLocalizationProject from './useLocalizationProject';
+import { useOptionalAuth } from '../../context/AuthContext';
 
 export default function LocalizationShell({ activeTab = 'strings', children }) {
   const navigate = useNavigate();
+  // Same role source ProtectedRoute uses (AuthContext isAdmin, i.e. user.role === 'Admin'),
+  // via the optional hook since these pages also render for signed-out API-key users.
+  const { isAdmin } = useOptionalAuth();
   const { slug: selectedProjectSlug, project, projects, loading: projectsLoading, selectProject } = useLocalizationProject();
   const [healthData, setHealthData] = useState([]);
   const [isHealthPanelOpen, setIsHealthPanelOpen] = useState(false);
@@ -42,7 +46,7 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
     { id: 'strings', label: 'Strings', path: '/lab-projects/localization' },
     { id: 'workflow', label: 'Workflow', path: '/lab-projects/localization/workflow' },
     { id: 'snapshots', label: 'Snapshots', path: '/lab-projects/localization/snapshots' },
-    { id: 'marketplace', label: 'Marketplace', path: '/lab-projects/localization/marketplace' },
+    { id: 'jobs', label: 'Jobs', path: '/lab-projects/localization/jobs' },
   ];
 
   return (
@@ -180,6 +184,29 @@ export default function LocalizationShell({ activeTab = 'strings', children }) {
             <span>Vendor Portal</span>
             <ExternalLink size={12} />
           </Link>
+
+          {/* Operations shortcut, visible to admins only */}
+          {isAdmin && (
+            <Link
+              to="/lab-projects/localization/ops"
+              title="Open Localization Operations (Admin)"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.8rem',
+                color: 'var(--color-sage, #2C5E55)',
+                textDecoration: 'none',
+                fontWeight: '600',
+                padding: '0.35rem 0.65rem',
+                border: '1px dashed var(--color-sage, #2C5E55)',
+                borderRadius: '6px'
+              }}
+            >
+              <span>Operations</span>
+              <ExternalLink size={12} />
+            </Link>
+          )}
         </div>
       </nav>
 

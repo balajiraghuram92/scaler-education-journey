@@ -19,6 +19,7 @@ public static class LocalizationSeedData
             Slug = "auroraline-hud-v3",
             Name = "Auroraline Automotive — HUD Strings",
             SourceLocale = "en-US",
+            ClientAlias = "Client Team Kestrel",
             CreatedAt = now.AddDays(-30)
         };
         context.LocalizationProjects.Add(project);
@@ -101,12 +102,12 @@ public static class LocalizationSeedData
         // 4. Seed de-DE Translations
         var translations = new List<LocalizationTranslation>
         {
-            new() { StringId = strSpeed.Id, LocaleCode = "de-DE", TargetText = "Aktuelle Geschwindigkeit", Stage = "Approved", TranslationSource = "Manual", QpsScore = 95, NeedsReview = false, UpdatedAt = now.AddDays(-2) },
-            new() { StringId = strFuel.Id, LocaleCode = "de-DE", TargetText = "Kraftstoff niedrig", Stage = "Reviewed", TranslationSource = "Manual", QpsScore = 88, NeedsReview = false, UpdatedAt = now.AddDays(-3) },
-            new() { StringId = strNav.Id, LocaleCode = "de-DE", TargetText = "Links abbiegen", Stage = "Translated", TranslationSource = "Manual", QpsScore = 82, NeedsReview = false, UpdatedAt = now.AddHours(-12) },
+            new() { StringId = strSpeed.Id, LocaleCode = "de-DE", TargetText = "Aktuelle Geschwindigkeit", Stage = "Approved", TranslationSource = "Manual", NeedsReview = false, UpdatedAt = now.AddDays(-2) },
+            new() { StringId = strFuel.Id, LocaleCode = "de-DE", TargetText = "Kraftstoff niedrig", Stage = "Reviewed", TranslationSource = "Manual", NeedsReview = false, UpdatedAt = now.AddDays(-3) },
+            new() { StringId = strNav.Id, LocaleCode = "de-DE", TargetText = "Links abbiegen", Stage = "Translated", TranslationSource = "Manual", NeedsReview = false, UpdatedAt = now.AddHours(-12) },
             // hud.climate.temp has no translation row seeded -> New
-            new() { StringId = strDoor.Id, LocaleCode = "de-DE", TargetText = "Tür offen", Stage = "Approved", TranslationSource = "Manual", QpsScore = 92, NeedsReview = false, UpdatedAt = now.AddDays(-5) },
-            new() { StringId = strGear.Id, LocaleCode = "de-DE", TargetText = "Rückwärtsgang eingelegt", Stage = "Reviewed", TranslationSource = "Manual", QpsScore = 89, NeedsReview = false, UpdatedAt = now.AddDays(-1) }
+            new() { StringId = strDoor.Id, LocaleCode = "de-DE", TargetText = "Tür offen", Stage = "Approved", TranslationSource = "Manual", NeedsReview = false, UpdatedAt = now.AddDays(-5) },
+            new() { StringId = strGear.Id, LocaleCode = "de-DE", TargetText = "Rückwärtsgang eingelegt", Stage = "Reviewed", TranslationSource = "Manual", NeedsReview = false, UpdatedAt = now.AddDays(-1) }
         };
         context.LocalizationTranslations.AddRange(translations);
 
@@ -208,156 +209,67 @@ public static class LocalizationSeedData
         context.LocalizationBuildSnapshotLocaleCounts.AddRange(snap2Counts);
         context.LocalizationBuildSnapshotLocaleCounts.AddRange(snap3Counts);
 
-        // 7. Seed 5 Vendors
-        var vendorMaria = new Vendor { Name = "Maria Fischer", Languages = "de-DE,fr-FR", Rating = 4.9m };
-        var vendorKenji = new Vendor { Name = "Kenji Sato", Languages = "ja-JP,ko-KR", Rating = 5.0m };
-        var vendorAiko = new Vendor { Name = "Aiko Tanaka", Languages = "ja-JP", Rating = 4.7m };
-        var vendorMarcus = new Vendor { Name = "Marcus Webb", Languages = "ja-JP,zh-CN,ko-KR", Rating = 4.2m };
-        var vendorElena = new Vendor { Name = "Elena Rostova", Languages = "de-DE,es-ES", Rating = 4.8m };
+        // 7. Seed 5 vendor teams (real names stay; aliases face the client). Every
+        // project locale below is covered by at least one team's Languages, so no
+        // Languages extension was needed.
+        var vendorMaria = new Vendor { Name = "Maria Fischer", Alias = "Vendor Team Larch", Languages = "de-DE,fr-FR" };
+        var vendorKenji = new Vendor { Name = "Kenji Sato", Alias = "Vendor Team Osprey", Languages = "ja-JP,ko-KR" };
+        var vendorAiko = new Vendor { Name = "Aiko Tanaka", Alias = "Vendor Team Juniper", Languages = "ja-JP" };
+        var vendorMarcus = new Vendor { Name = "Marcus Webb", Alias = "Vendor Team Heron", Languages = "ja-JP,zh-CN,ko-KR" };
+        var vendorElena = new Vendor { Name = "Elena Rostova", Alias = "Vendor Team Cedar", Languages = "de-DE,es-ES" };
 
         context.LocalizationVendors.AddRange(vendorMaria, vendorKenji, vendorAiko, vendorMarcus, vendorElena);
         context.SaveChanges();
 
-        // 8. Seed Marketplace Jobs & Bids
-        // Keep formula in sync with CreditLedgerService.EstimatePriceBandAsync
+        // 8. Seed Translation Jobs (assigned teams only; the open-for-bidding job is gone)
         var allStrings = context.LocalizationStrings.Where(s => s.ProjectId == project.Id).ToList();
         var totalStringCount = allStrings.Count;
         var totalWordCount = allStrings.Sum(s => s.SourceText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length);
-        var seedPriceLow = Math.Round(totalWordCount * 0.145m / 5m, MidpointRounding.AwayFromZero) * 5m;
-        var seedPriceHigh = Math.Round(totalWordCount * 0.19m / 5m, MidpointRounding.AwayFromZero) * 5m;
-        if (seedPriceLow < 5m) seedPriceLow = 5m;
-        if (seedPriceHigh < seedPriceLow + 15m) seedPriceHigh = seedPriceLow + 15m;
 
-        // de-DE: Awarded to Maria Fischer
-        var jobDe = new MarketplaceJob
+        // de-DE: Assigned to Maria Fischer's team
+        var jobDe = new TranslationJob
         {
             ProjectId = project.Id,
             LocaleCode = "de-DE",
-            Status = "Awarded",
+            Status = "Assigned",
             StringCount = totalStringCount,
             WordCount = totalWordCount,
-            SuggestedPriceLow = seedPriceLow,
-            SuggestedPriceHigh = seedPriceHigh,
-            AwardedVendorId = vendorMaria.Id,
-            PostedAt = now.AddDays(-5),
-            AwardedAt = now.AddDays(-2)
-        };
-        context.LocalizationMarketplaceJobs.Add(jobDe);
-        context.SaveChanges();
-
-        var bidDe = new MarketplaceBid
-        {
-            MarketplaceJobId = jobDe.Id,
             VendorId = vendorMaria.Id,
-            ProposedPrice = 210m,
-            Note = "Experienced automotive HUD terminology specialist.",
-            Status = "Awarded",
-            SubmittedAt = now.AddDays(-3)
+            CreatedAt = now.AddDays(-5)
         };
-        context.LocalizationMarketplaceBids.Add(bidDe);
-
-        // ja-JP: Open with 3 bids
-        var jobJa = new MarketplaceJob
-        {
-            ProjectId = project.Id,
-            LocaleCode = "ja-JP",
-            Status = "Open",
-            StringCount = totalStringCount,
-            WordCount = totalWordCount,
-            SuggestedPriceLow = seedPriceLow,
-            SuggestedPriceHigh = seedPriceHigh,
-            PostedAt = now.AddDays(-3)
-        };
-        context.LocalizationMarketplaceJobs.Add(jobJa);
+        context.LocalizationTranslationJobs.Add(jobDe);
         context.SaveChanges();
-
-        var bidJaKenji = new MarketplaceBid
-        {
-            MarketplaceJobId = jobJa.Id,
-            VendorId = vendorKenji.Id,
-            ProposedPrice = 345m,
-            Note = "Native Japanese automotive localization expert.",
-            Status = "Pending",
-            SubmittedAt = now.AddDays(-2)
-        };
-        var bidJaAiko = new MarketplaceBid
-        {
-            MarketplaceJobId = jobJa.Id,
-            VendorId = vendorAiko.Id,
-            ProposedPrice = 298m,
-            Note = "Automotive cluster & infotainment UI specialist.",
-            Status = "Pending",
-            SubmittedAt = now.AddDays(-2).AddHours(4)
-        };
-        var bidJaMarcus = new MarketplaceBid
-        {
-            MarketplaceJobId = jobJa.Id,
-            VendorId = vendorMarcus.Id,
-            ProposedPrice = 420m,
-            Note = "Senior technical translator with HUD experience.",
-            Status = "Pending",
-            SubmittedAt = now.AddDays(-1)
-        };
-        context.LocalizationMarketplaceBids.AddRange(bidJaKenji, bidJaAiko, bidJaMarcus);
 
         // fr-FR: Submitted for Review
-        var jobFr = new MarketplaceJob
+        var jobFr = new TranslationJob
         {
             ProjectId = project.Id,
             LocaleCode = "fr-FR",
             Status = "SubmittedForReview",
             StringCount = totalStringCount,
             WordCount = totalWordCount,
-            SuggestedPriceLow = seedPriceLow,
-            SuggestedPriceHigh = seedPriceHigh,
-            AwardedVendorId = vendorMaria.Id,
-            PostedAt = now.AddDays(-7),
-            AwardedAt = now.AddDays(-4),
+            VendorId = vendorMaria.Id,
+            CreatedAt = now.AddDays(-7),
             SubmittedAt = now.AddDays(-1)
         };
-        context.LocalizationMarketplaceJobs.Add(jobFr);
+        context.LocalizationTranslationJobs.Add(jobFr);
         context.SaveChanges();
 
-        var bidFr = new MarketplaceBid
-        {
-            MarketplaceJobId = jobFr.Id,
-            VendorId = vendorMaria.Id,
-            ProposedPrice = 215m,
-            Note = "Automotive translation completed per DIN standards.",
-            Status = "Awarded",
-            SubmittedAt = now.AddDays(-5)
-        };
-        context.LocalizationMarketplaceBids.Add(bidFr);
-
         // es-ES: Approved
-        var jobEs = new MarketplaceJob
+        var jobEs = new TranslationJob
         {
             ProjectId = project.Id,
             LocaleCode = "es-ES",
             Status = "Approved",
             StringCount = totalStringCount,
             WordCount = totalWordCount,
-            SuggestedPriceLow = seedPriceLow,
-            SuggestedPriceHigh = seedPriceHigh,
-            AwardedVendorId = vendorElena.Id,
-            PostedAt = now.AddDays(-10),
-            AwardedAt = now.AddDays(-6),
+            VendorId = vendorElena.Id,
+            CreatedAt = now.AddDays(-10),
             SubmittedAt = now.AddDays(-3),
             ApprovedAt = now.AddDays(-1)
         };
-        context.LocalizationMarketplaceJobs.Add(jobEs);
+        context.LocalizationTranslationJobs.Add(jobEs);
         context.SaveChanges();
-
-        var bidEs = new MarketplaceBid
-        {
-            MarketplaceJobId = jobEs.Id,
-            VendorId = vendorElena.Id,
-            ProposedPrice = 195m,
-            Note = "Certified Spanish automotive translator.",
-            Status = "Awarded",
-            SubmittedAt = now.AddDays(-7)
-        };
-        context.LocalizationMarketplaceBids.Add(bidEs);
 
         // Ledger entry for approved job
         context.LocalizationLedgerEntries.Add(new LedgerEntry
@@ -369,10 +281,28 @@ public static class LocalizationSeedData
             CreatedAt = now.AddDays(-1)
         });
 
-        // 9. Seed 2 Provider Health Rows
-        var healthGoogle = new ProviderHealthSnapshot
+        // 8b. Seed the demo project's Gold service agreement (every locale covered)
+        var agreement = new ServiceAgreement
         {
-            Provider = "GoogleMT",
+            ProjectId = project.Id,
+            Tier = ServiceTiers.Gold,
+            ValidFrom = now.AddDays(-30),
+            CreatedAt = now
+        };
+        context.LocalizationServiceAgreements.Add(agreement);
+        context.SaveChanges();
+        context.LocalizationTeamAssignments.AddRange(
+            new TeamAssignment { AgreementId = agreement.Id, VendorId = vendorMaria.Id, LocaleCode = "de-DE", MemberCount = ServiceTiers.MembersFor(ServiceTiers.Gold) },
+            new TeamAssignment { AgreementId = agreement.Id, VendorId = vendorKenji.Id, LocaleCode = "ja-JP", MemberCount = ServiceTiers.MembersFor(ServiceTiers.Gold) },
+            new TeamAssignment { AgreementId = agreement.Id, VendorId = vendorMarcus.Id, LocaleCode = "zh-CN", MemberCount = ServiceTiers.MembersFor(ServiceTiers.Gold) },
+            new TeamAssignment { AgreementId = agreement.Id, VendorId = vendorMaria.Id, LocaleCode = "fr-FR", MemberCount = ServiceTiers.MembersFor(ServiceTiers.Gold) },
+            new TeamAssignment { AgreementId = agreement.Id, VendorId = vendorElena.Id, LocaleCode = "es-ES", MemberCount = ServiceTiers.MembersFor(ServiceTiers.Gold) });
+        context.SaveChanges();
+
+        // 9. Seed 2 Provider Health Rows
+        var healthAzureTranslator = new ProviderHealthSnapshot
+        {
+            Provider = "AzureTranslator",
             P50LatencyMs = 210,
             P99LatencyMs = 640,
             ErrorRatePercent = 0.4m,
@@ -388,12 +318,133 @@ public static class LocalizationSeedData
             CircuitState = "Closed",
             UpdatedAt = now
         };
-        context.LocalizationProviderHealth.AddRange(healthGoogle, healthAzure);
+        context.LocalizationProviderHealth.AddRange(healthAzureTranslator, healthAzure);
+
+        // 10. Seed usage caps for the demo project
+        context.LocalizationUsageCaps.AddRange(
+            new LocalizationUsageCap { ProjectId = project.Id, Kind = UsageCapKinds.MachineTranslation, MonthlyLimit = 2000000, UpdatedAt = now },
+            new LocalizationUsageCap { ProjectId = project.Id, Kind = UsageCapKinds.Llm, MonthlyLimit = 5000000, UpdatedAt = now });
 
         context.SaveChanges();
         }
 
         SeedGlossaryTerms(context);
+    }
+
+    public static void EnsureUsageCaps(StudyTrackerContext context)
+    {
+        var project = context.LocalizationProjects.FirstOrDefault(p => p.Slug == "auroraline-hud-v3");
+        if (project is null)
+        {
+            return;
+        }
+
+        var wanted = new[]
+        {
+            (UsageCapKinds.MachineTranslation, 2000000L),
+            (UsageCapKinds.Llm, 5000000L)
+        };
+        var existing = context.LocalizationUsageCaps
+            .Where(c => c.ProjectId == project.Id)
+            .Select(c => c.Kind)
+            .ToList();
+        var added = false;
+        foreach (var (kind, limit) in wanted)
+        {
+            if (existing.Contains(kind))
+            {
+                continue;
+            }
+
+            context.LocalizationUsageCaps.Add(new LocalizationUsageCap
+            {
+                ProjectId = project.Id,
+                Kind = kind,
+                MonthlyLimit = limit,
+                UpdatedAt = DateTime.UtcNow
+            });
+            added = true;
+        }
+
+        if (added)
+        {
+            context.SaveChanges();
+        }
+
+        EnsureServiceAgreement(context, project);
+    }
+
+    private static void EnsureServiceAgreement(StudyTrackerContext context, LocalizationProject project)
+    {
+        var realAliases = new Dictionary<string, string>
+        {
+            ["Maria Fischer"] = "Vendor Team Larch",
+            ["Kenji Sato"] = "Vendor Team Osprey",
+            ["Aiko Tanaka"] = "Vendor Team Juniper",
+            ["Marcus Webb"] = "Vendor Team Heron",
+            ["Elena Rostova"] = "Vendor Team Cedar"
+        };
+        var vendors = context.LocalizationVendors
+            .Where(v => realAliases.Keys.Contains(v.Name))
+            .ToList();
+        foreach (var vendor in vendors)
+        {
+            if (vendor.Alias == $"Vendor Team {vendor.Id}")
+            {
+                vendor.Alias = realAliases[vendor.Name];
+            }
+        }
+
+        if (project.ClientAlias == $"Client Team {project.Id}")
+        {
+            project.ClientAlias = "Client Team Kestrel";
+        }
+
+        var agreement = context.LocalizationServiceAgreements
+            .FirstOrDefault(a => a.ProjectId == project.Id);
+        if (agreement is null)
+        {
+            agreement = new ServiceAgreement
+            {
+                ProjectId = project.Id,
+                Tier = ServiceTiers.Gold,
+                ValidFrom = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
+            context.LocalizationServiceAgreements.Add(agreement);
+            context.SaveChanges();
+        }
+
+        var byName = vendors.ToDictionary(v => v.Name, v => v.Id);
+        var wanted = new[]
+        {
+            ("de-DE", "Maria Fischer"),
+            ("ja-JP", "Kenji Sato"),
+            ("zh-CN", "Marcus Webb"),
+            ("fr-FR", "Maria Fischer"),
+            ("es-ES", "Elena Rostova")
+        };
+        var assigned = context.LocalizationTeamAssignments
+            .Where(t => t.AgreementId == agreement.Id)
+            .Select(t => t.LocaleCode)
+            .ToList();
+        foreach (var (localeCode, vendorName) in wanted)
+        {
+            if (assigned.Contains(localeCode) || !byName.TryGetValue(vendorName, out var vendorId))
+            {
+                continue;
+            }
+
+            context.LocalizationTeamAssignments.Add(new TeamAssignment
+            {
+                AgreementId = agreement.Id,
+                VendorId = vendorId,
+                LocaleCode = localeCode,
+                MemberCount = ServiceTiers.MembersFor(ServiceTiers.Gold)
+            });
+        }
+
+        context.SaveChanges();
     }
 
     private static void SeedGlossaryTerms(StudyTrackerContext context)

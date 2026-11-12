@@ -151,6 +151,22 @@ public class UsageMeteringService
             }
         }
 
+        IReadOnlyList<UsageCapDto>? caps = null;
+        if (projectId is not null)
+        {
+            var capRows = await _db.LocalizationUsageCaps
+                .AsNoTracking()
+                .Where(c => c.ProjectId == projectId.Value)
+                .ToListAsync(ct);
+            var used = await UsedTotalsAsync(projectId.Value, start, end, ct);
+            caps = new[] { UsageCapKinds.MachineTranslation, UsageCapKinds.Llm }
+                .Select(kind => new UsageCapDto(
+                    kind,
+                    capRows.FirstOrDefault(c => c.Kind == kind)?.MonthlyLimit,
+                    used.TryGetValue(kind, out var total) ? total : 0L))
+                .ToList();
+        }
+
         return new UsageSummaryDto(
             $"{year:D4}-{month:D2}",
             projectSlug,
@@ -162,13 +178,67 @@ public class UsageMeteringService
                 r.Meter, r.LocaleCode, r.Calls, r.Units, OutputUnits(r.Meter, r.UnitsOut), r.CostUsd)).ToList(),
             byDay.Select(r => new UsageDayTotalDto(
                 r.Date.ToString("yyyy-MM-dd"), r.Meter, r.Units, OutputUnits(r.Meter, r.UnitsOut), r.CostUsd)).ToList(),
-            missing);
+            missing,
+            caps);
     }
 
     // SUM over a column that is always null comes back as 0 from SQL (EF adds COALESCE);
     // the character meter has no output units, so report null rather than 0 (CONTRACT 4.1).
     private static int? OutputUnits(string meter, int? summed) =>
         meter == UsageMeters.MachineTranslation ? null : summed;
+
+    /// <summary>
+    /// Loads the project's caps and this UTC month's used totals for a run.
+    /// At most two queries; the returned budget tracks in-run spending in memory.
+    /// </summary>
+    public async Task<UsageBudget> BeginRunAsync(int projectId, DateTime nowUtc, CancellationToken ct)
+    {
+        var monthStart = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var monthEnd = monthStart.AddMonths(1);
+
+        var caps = await _db.LocalizationUsageCaps
+            .AsNoTracking()
+            .Where(c => c.ProjectId == projectId)
+            .ToListAsync(ct);
+
+        var used = await UsedTotalsAsync(projectId, monthStart, monthEnd, ct);
+        return new UsageBudget(caps.ToDictionary(c => c.Kind, c => c.MonthlyLimit), used);
+    }
+
+    private async Task<Dictionary<string, long>> UsedTotalsAsync(int projectId, DateTime start, DateTime end, CancellationToken ct)
+    {
+        var usage = await _db.LocalizationUsageEvents
+            .AsNoTracking()
+            .Where(e => e.ProjectId == projectId && !e.CacheHit && e.OccurredAt >= start && e.OccurredAt < end)
+            .GroupBy(e => e.Meter)
+            .Select(g => new
+            {
+                Meter = g.Key,
+                Units = g.Sum(e => e.Units),
+                UnitsOut = g.Sum(e => e.UnitsOut)
+            })
+            .ToListAsync(ct);
+
+        long MeterUnits(string meter)
+        {
+            var row = usage.FirstOrDefault(u => u.Meter == meter);
+            return row is null ? 0L : row.Units;
+        }
+
+        long MeterUnitsOut(string meter)
+        {
+            var row = usage.FirstOrDefault(u => u.Meter == meter);
+            return row is null ? 0L : row.UnitsOut ?? 0L;
+        }
+
+        return new Dictionary<string, long>
+        {
+            [UsageCapKinds.MachineTranslation] = MeterUnits(UsageMeters.MachineTranslation),
+            [UsageCapKinds.Llm] =
+                MeterUnits(UsageMeters.LlmOptimize) + MeterUnitsOut(UsageMeters.LlmOptimize) +
+                MeterUnits(UsageMeters.LlmScore) + MeterUnitsOut(UsageMeters.LlmScore)
+        };
+    }
 
     public async Task<IReadOnlyList<UsageEventDto>> GetRecentEventsAsync(string? projectSlug, int limit = 100, CancellationToken ct = default)
     {
@@ -280,5 +350,51 @@ public class UsageMeteringService
         {
             yield return UsageUnitKinds.OutputToken;
         }
+    }
+}
+
+/// <summary>
+/// In-memory cap budget for one workflow run. A kind without a cap row is uncapped.
+/// </summary>
+public sealed class UsageBudget
+{
+    private readonly Dictionary<string, long> _limits;
+    private readonly Dictionary<string, long> _used;
+
+    public UsageBudget(IReadOnlyDictionary<string, long> limits, IReadOnlyDictionary<string, long> used)
+    {
+        _limits = new Dictionary<string, long>(limits);
+        _used = new Dictionary<string, long>(used);
+    }
+
+    public bool CanSpend(string capKind, int knownUnits)
+    {
+        if (!_limits.TryGetValue(capKind, out var limit))
+        {
+            return true;
+        }
+
+        var used = Used(capKind);
+        if (capKind == UsageCapKinds.MachineTranslation)
+        {
+            return used + knownUnits <= limit;
+        }
+
+        return used < limit;
+    }
+
+    public void Spent(string capKind, int units)
+    {
+        _used[capKind] = Used(capKind) + units;
+    }
+
+    public long Used(string capKind)
+    {
+        return _used.TryGetValue(capKind, out var used) ? used : 0L;
+    }
+
+    public long? Limit(string capKind)
+    {
+        return _limits.TryGetValue(capKind, out var limit) ? limit : null;
     }
 }

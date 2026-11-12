@@ -42,7 +42,7 @@ public class LedgerEntry
 
     [JsonIgnore]
     [ForeignKey(nameof(RelatedMarketplaceJobId))]
-    public MarketplaceJob? RelatedMarketplaceJob { get; set; }
+    public TranslationJob? RelatedMarketplaceJob { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

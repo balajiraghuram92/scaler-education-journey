@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using StudyTracker.Api.Data;
 using StudyTracker.Api.Models.Localization;
 using StudyTracker.Api.Services.Localization;
@@ -56,21 +56,21 @@ public static class LocalizationTestFixture
         var s2 = new LocalizationString { ProjectId = project.Id, Key = "k.two", SourceText = "Goodbye moon" };
         db.LocalizationStrings.AddRange(s1, s2);
 
-        var vendor = new Vendor { Name = "Test Vendor", Languages = vendorLanguages, Rating = 4.5m };
+        var vendor = new Vendor { Name = "Test Vendor", Languages = vendorLanguages, Alias = "Test Team" };
         db.LocalizationVendors.Add(vendor);
 
         await db.SaveChangesAsync();
         return new SeededProject(project, new[] { s1, s2 }, vendor);
     }
 
-    public static MarketplaceService Marketplace(StudyTrackerContext db)
+    public static TranslationJobService Jobs(StudyTrackerContext db)
     {
-        return new MarketplaceService(db, new CreditLedgerService(db));
+        return new TranslationJobService(db);
     }
 
     public static VendorPortalService VendorPortal(StudyTrackerContext db)
     {
-        return new VendorPortalService(db, Marketplace(db));
+        return new VendorPortalService(db);
     }
 
     public static WorkflowService Workflow(StudyTrackerContext db)
@@ -81,6 +81,8 @@ public static class LocalizationTestFixture
             new MtOptimizeService(),
             new FakeQualityScorer(),
             new AutoRoutingService(),
-            Marketplace(db));
+            Jobs(db),
+            null,
+            null);
     }
 }

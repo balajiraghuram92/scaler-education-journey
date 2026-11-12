@@ -60,6 +60,7 @@ public static class DbSeeder
 
         // 9. Seed Localization Lab (Phase 1, 2, 2.5, 3 Demo Data)
         LocalizationSeedData.Seed(db);
+        LocalizationSeedData.EnsureUsageCaps(db);
 
         // 10. Seed the file-driven Python Engineering course (must precede MCQs that reference its lessons)
         PythonCurriculumSeedData.Seed(db);

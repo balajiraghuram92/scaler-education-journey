@@ -86,7 +86,7 @@ export default function VendorPortalShell({ children }) {
             >
               {roster.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.name} ({v.languages}) ★{v.rating}
+                  {v.alias} ({v.languages})
                 </option>
               ))}
               {roster.length === 0 && (

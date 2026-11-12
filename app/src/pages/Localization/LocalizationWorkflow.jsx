@@ -10,15 +10,15 @@ const ALL_ACTIONS = [
   'Mark Translated',
   'Send to Review',
   'Approve',
-  'Auto-Translate via Google MT',
-  'Post to Marketplace',
+  'Auto-Translate via Azure Translator',
+  'Create Translation Jobs',
   'Run MT Optimize',
-  'Score QPS',
+  'Score Quality',
   'Auto-Route'
 ];
 
 export default function LocalizationWorkflow() {
-  const { slug: projectSlug, loading: projectLoading, error: projectError } = useLocalizationProject();
+  const { slug: projectSlug, project, loading: projectLoading, error: projectError } = useLocalizationProject();
   const [steps, setSteps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -107,16 +107,22 @@ export default function LocalizationWorkflow() {
         setStepNotice({ stepId, type: 'error', message: `Run failed: ${outcome}` });
       } else if (failed > 0) {
         setStepNotice({ stepId, type: 'warning', message: `Run finished with failures: ${outcome}` });
+      } else if (outcome.includes('skipped:')) {
+        setStepNotice({ stepId, type: 'warning', message: `Run finished with skips: ${outcome}` });
       } else {
         setStepNotice({ stepId, type: 'success', message: `Run successful: ${outcome}` });
       }
     } catch (err) {
       const is501 = err.status === 501;
+      const is409 = err.status === 409;
+      const serverDetail = err.problemDetails?.detail || err.message;
       setStepNotice({
         stepId,
-        type: is501 ? 'boundary' : 'error',
+        type: is501 ? 'boundary' : is409 ? 'warning' : 'error',
         message: is501
           ? `501 Not Implemented (Hand-Written AI Boundary): ${err.message}`
+          : is409
+          ? serverDetail || 'Request conflicts with the current state.'
           : err.message || 'Execution failed.'
       });
     } finally {
@@ -167,8 +173,44 @@ export default function LocalizationWorkflow() {
     <LocalizationShell activeTab="workflow">
       <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.25rem', fontFamily: 'var(--font-serif, "Newsreader", serif)', color: 'var(--color-ink, #1F2937)' }}>
+          <h2 style={{ margin: 0, fontSize: '1.25rem', fontFamily: 'var(--font-serif, "Newsreader", serif)', color: 'var(--color-ink, #1F2937)', display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
             Localization Workflow Orchestrator
+            {project?.tier && (
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  fontWeight: '700',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  fontFamily: 'var(--font-sans, "Plus Jakarta Sans", sans-serif)',
+                  color: 'var(--color-sage, #2C5E55)',
+                  backgroundColor: 'rgba(44, 94, 85, 0.08)',
+                  border: '1px solid var(--color-sage, #2C5E55)',
+                  borderRadius: '999px',
+                  padding: '0.15rem 0.6rem'
+                }}
+              >
+                {project.tier}
+              </span>
+            )}
+            {project?.aiEnabled === false && (
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  fontWeight: '700',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  fontFamily: 'var(--font-sans, "Plus Jakarta Sans", sans-serif)',
+                  color: '#92400E',
+                  backgroundColor: '#FEF3C7',
+                  border: '1px solid #FCD34D',
+                  borderRadius: '999px',
+                  padding: '0.15rem 0.6rem'
+                }}
+              >
+                AI off
+              </span>
+            )}
           </h2>
           <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--color-ink-muted, #6B7280)' }}>
             Define, reorder, and execute sequential translation lifecycle rules.

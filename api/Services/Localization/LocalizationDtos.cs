@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace StudyTracker.Api.Services.Localization;
 
@@ -15,7 +16,9 @@ public sealed record LocalizationProjectDto(
     string Name,
     string SourceLocale,
     DateTime CreatedAt,
-    IReadOnlyList<LocalizationLocaleDto> Locales
+    IReadOnlyList<LocalizationLocaleDto> Locales,
+    bool AiEnabled,
+    string? Tier
 );
 
 public sealed record LocalizationStringRowDto(
@@ -26,11 +29,22 @@ public sealed record LocalizationStringRowDto(
     string? TargetText,
     string Stage,
     string TranslationSource,
-    int? QpsScore,
-    bool NeedsReview,
+    DateTime? UpdatedAt
+);
+
+public sealed record VendorStringRowDto(
+    int StringId,
+    string Key,
+    string SourceText,
+    string LocaleCode,
+    string? TargetText,
+    string Stage,
+    string TranslationSource,
     DateTime? UpdatedAt,
-    string? RawMtText = null,
-    int? RawMtQpsScore = null
+    int? Score,
+    bool NeedsReview,
+    string? RawMtText,
+    int? RawMtScore
 );
 
 public sealed record UpdateTranslationRequest(
@@ -79,65 +93,88 @@ public sealed record BuildSnapshotDto(
     IReadOnlyList<BuildSnapshotLocaleCountDto> LocaleCounts
 );
 
-public sealed record MarketplaceBidDto(
-    int Id,
-    int MarketplaceJobId,
-    int VendorId,
-    string VendorName,
-    string VendorLanguages,
-    decimal VendorRating,
-    decimal ProposedPrice,
-    string Note,
-    string Status,
-    DateTime SubmittedAt
-);
-
-public sealed record MarketplaceJobSummaryDto(
+public sealed record TranslationJobRowDto(
     int? Id,
     int ProjectId,
     string LocaleCode,
     string Status,
     int StringCount,
     int WordCount,
-    decimal SuggestedPriceLow,
-    decimal SuggestedPriceHigh,
-    int? AwardedVendorId,
-    string? AwardedVendorName,
-    DateTime? PostedAt,
-    DateTime? AwardedAt,
+    int CompletedPercent,
+    string? VendorTeamAlias,
+    int? MemberCount,
+    DateTime? CreatedAt,
     DateTime? SubmittedAt,
-    DateTime? ApprovedAt,
-    int BidCount
+    DateTime? ApprovedAt
 );
 
-public sealed record MarketplaceJobDto(
+public sealed record VendorJobRowDto(
     int Id,
-    int ProjectId,
+    string ClientAlias,
     string LocaleCode,
     string Status,
     int StringCount,
     int WordCount,
-    decimal SuggestedPriceLow,
-    decimal SuggestedPriceHigh,
-    int? AwardedVendorId,
-    string? AwardedVendorName,
-    DateTime? PostedAt,
-    DateTime? AwardedAt,
+    int CompletedPercent,
+    DateTime? CreatedAt,
     DateTime? SubmittedAt,
-    DateTime? ApprovedAt,
-    IReadOnlyList<MarketplaceBidDto> Bids
+    DateTime? ApprovedAt
 );
 
-public sealed record SubmitBidRequest(
-    decimal ProposedPrice,
-    string Note
-);
-
-public sealed record VendorDto(
+public sealed record VendorTeamDto(
     int Id,
-    string Name,
-    string Languages,
-    decimal Rating
+    string Alias,
+    string Languages
+);
+
+public sealed record OpsVendorTeamDto(
+    int Id,
+    string Alias,
+    string RealName,
+    string Languages
+);
+
+public sealed record AgreementTeamDto(
+    string LocaleCode,
+    string VendorTeamAlias,
+    int MemberCount
+);
+
+public sealed record ServiceAgreementDto(
+    string Tier,
+    int MembersPerTeam,
+    DateTime ValidFrom,
+    DateTime? ValidTo,
+    IReadOnlyList<AgreementTeamDto> Teams
+);
+
+public sealed record OpsAgreementTeamDto(
+    string LocaleCode,
+    string VendorTeamAlias,
+    int MemberCount,
+    int VendorTeamId,
+    string VendorTeamRealName
+);
+
+public sealed record OpsServiceAgreementDto(
+    string Tier,
+    int MembersPerTeam,
+    DateTime ValidFrom,
+    DateTime? ValidTo,
+    string ClientAlias,
+    IReadOnlyList<OpsAgreementTeamDto> Teams
+);
+
+public sealed record AgreementTeamRequest(
+    string? LocaleCode,
+    int? VendorTeamId
+);
+
+public sealed record SaveAgreementRequest(
+    string? Tier,
+    DateTime? ValidFrom,
+    DateTime? ValidTo,
+    IReadOnlyList<AgreementTeamRequest>? Teams
 );
 
 public sealed record ProviderHealthSnapshotDto(
@@ -200,7 +237,20 @@ public sealed record UsageSummaryDto(
     IReadOnlyList<UsageOperationTotalDto> ByOperation,
     IReadOnlyList<UsageLocaleTotalDto> ByLocale,
     IReadOnlyList<UsageDayTotalDto> ByDay,
-    IReadOnlyList<UsageMissingRateDto> RatesMissing
+    IReadOnlyList<UsageMissingRateDto> RatesMissing,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<UsageCapDto>? Caps
+);
+
+public sealed record UsageCapDto(
+    string Kind,
+    long? MonthlyLimit,
+    long Used
+);
+
+public sealed record ProjectControlsDto(
+    string ProjectSlug,
+    bool AiEnabled,
+    IReadOnlyList<UsageCapDto> Caps
 );
 
 public sealed record UsageEventDto(

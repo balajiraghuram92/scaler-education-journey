@@ -8,6 +8,41 @@ import { LoadingState, ErrorState, EmptyState } from '../../../components/common
 
 const READ_ONLY_STATUSES = ['SubmittedForReview', 'Approved', 'Closed'];
 
+const SCORE_GROUPS = [
+  { id: 'not-scored', label: 'Not scored', matches: (score) => score === null || score === undefined },
+  { id: '1-2', label: '1–2', matches: (score) => score === 1 || score === 2 },
+  { id: '3', label: '3', matches: (score) => score === 3 },
+  { id: '4', label: '4', matches: (score) => score === 4 },
+  { id: '5', label: '5', matches: (score) => score === 5 }
+];
+
+function scoreBadgeColors(score) {
+  if (score === 1 || score === 2) return { backgroundColor: '#FEE2E2', color: '#991B1B' };
+  if (score === 3) return { backgroundColor: '#FEF3C7', color: '#92400E' };
+  if (score === 4 || score === 5) return { backgroundColor: '#ECFDF5', color: '#065F46' };
+  return { backgroundColor: '#F3F4F6', color: '#6B7280' };
+}
+
+function ScoreBadge({ score }) {
+  const colors = scoreBadgeColors(score);
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        minWidth: '28px',
+        textAlign: 'center',
+        padding: '0.15rem 0.5rem',
+        borderRadius: '999px',
+        fontSize: '0.8rem',
+        fontWeight: '700',
+        ...colors
+      }}
+    >
+      {score === null || score === undefined ? '–' : score}
+    </span>
+  );
+}
+
 export default function VendorMyJob() {
   const { jobId } = useParams();
   const parsedJobId = parseInt(jobId, 10);
@@ -29,6 +64,9 @@ export default function VendorMyJob() {
   const [submitting, setSubmitting] = useState(false);
   const [submitNotice, setSubmitNotice] = useState(null);
 
+  // Score-group filter: 'all' or one SCORE_GROUPS id
+  const [scoreFilter, setScoreFilter] = useState('all');
+
   const localeCode = assignedJob?.localeCode || '';
   const isReadOnly = assignedJob ? READ_ONLY_STATUSES.includes(assignedJob.status) : false;
 
@@ -37,8 +75,8 @@ export default function VendorMyJob() {
     setLoading(true);
     setError(null);
     try {
-      const awarded = await api.vendorPortal.getAwardedJobs(vendorId);
-      const found = (awarded || []).find((j) => j.id === parsedJobId);
+      const assigned = await api.vendorPortal.getJobs(vendorId);
+      const found = (assigned || []).find((j) => j.id === parsedJobId);
       setAssignedJob(found || null);
       if (!found) {
         setStrings([]);
@@ -99,6 +137,15 @@ export default function VendorMyJob() {
 
   const hasEmptyTargets = strings.some((s) => !s.targetText || s.targetText.trim() === '');
 
+  const groups = SCORE_GROUPS.map((group) => ({
+    ...group,
+    rows: strings
+      .map((row, index) => ({ row, index }))
+      .filter(({ row }) => group.matches(row.score))
+  }));
+  const visibleGroups = scoreFilter === 'all' ? groups : groups.filter((g) => g.id === scoreFilter);
+  const visibleCount = visibleGroups.reduce((total, g) => total + g.rows.length, 0);
+
   const handleSubmitForReview = async () => {
     setSubmitting(true);
     setSubmitNotice(null);
@@ -136,7 +183,7 @@ export default function VendorMyJob() {
             fontWeight: '600'
           }}
         >
-          <ArrowLeft size={16} /> Back to Open Jobs
+          <ArrowLeft size={16} /> Back to My Jobs
         </Link>
       </div>
 
@@ -150,10 +197,10 @@ export default function VendorMyJob() {
             color: 'var(--color-ink, #1F2937)'
           }}
         >
-          My Jobs — Auroraline Automotive ({localeCode || '…'})
+          My Jobs — {assignedJob ? `${assignedJob.clientAlias} (${localeCode})` : '…'}
         </h1>
         <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-ink-muted, #6B7280)' }}>
-          Awarded job • {strings.length} strings • Deadline not set
+          Assigned job • {strings.length} strings • Deadline not set
         </p>
       </div>
 
@@ -203,18 +250,46 @@ export default function VendorMyJob() {
         </p>
       )}
 
-      {/* Strings Table (NO STAGE COLUMN per §8.3) */}
+      {/* Strings Table grouped by score (NO STAGE COLUMN per §8.3) */}
       {vendorError ? (
         <ErrorState error={{ message: vendorError }} title="Unable to Load Vendor Roster" />
       ) : error ? (
         <ErrorState error={error} onRetry={fetchJobStrings} title="Unable to Load Workspace" />
       ) : (vendorLoading || !vendorId || loading) ? (
-        <LoadingState message="Loading awarded translation string table..." />
+        <LoadingState message="Loading assigned translation string table..." />
       ) : !assignedJob ? (
-        <EmptyState message={`Job ${parsedJobId} is not assigned to ${vendor?.name || 'the selected vendor'}.`} icon="🔒" />
+        <EmptyState message={`Job ${parsedJobId} is not assigned to ${vendor?.alias || 'the selected team'}.`} icon="🔒" />
       ) : strings.length === 0 ? (
         <EmptyState message="No strings assigned to this job." icon="📄" />
       ) : (
+        <>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            {[{ id: 'all', label: 'All', count: strings.length }, ...groups.map((g) => ({ id: g.id, label: g.label, count: g.rows.length }))].map((option) => {
+              const isActive = scoreFilter === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setScoreFilter(option.id)}
+                  style={{
+                    padding: '0.35rem 0.75rem',
+                    borderRadius: '0px',
+                    border: isActive ? '1px solid var(--color-sage, #2C5E55)' : '1px solid var(--color-border-subtle, #E2DDD5)',
+                    backgroundColor: isActive ? 'rgba(44, 94, 85, 0.08)' : '#FFFFFF',
+                    color: isActive ? 'var(--color-sage, #2C5E55)' : 'var(--color-ink-muted, #6B7280)',
+                    fontSize: '0.8rem',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {option.label} ({option.count})
+                </button>
+              );
+            })}
+          </div>
+          {visibleCount === 0 ? (
+            <EmptyState message="No strings in this score group." icon="📄" />
+          ) : (
         <div
           style={{
             backgroundColor: '#FFFFFF',
@@ -247,14 +322,25 @@ export default function VendorMyJob() {
                 <th style={{ padding: '0.85rem 1.25rem', width: '220px' }}>KEY</th>
                 <th style={{ padding: '0.85rem 1.25rem' }}>SOURCE (EN)</th>
                 <th style={{ padding: '0.85rem 1.25rem' }}>TARGET ({localeCode.split('-')[0].toUpperCase()})</th>
+                <th style={{ padding: '0.85rem 1.25rem', width: '70px', textAlign: 'center' }}>SCORE</th>
+                <th style={{ padding: '0.85rem 1.25rem' }}>RAW DRAFT</th>
                 <th style={{ padding: '0.85rem 1.25rem', width: '80px', textAlign: 'center' }}>ACTION</th>
               </tr>
             </thead>
             <tbody>
-              {strings.map((str, idx) => {
-                const isEditing = editingStringId === str.stringId;
+              {visibleGroups.map((group) => (
+                <React.Fragment key={group.id}>
+                  {group.rows.length > 0 && (
+                    <tr style={{ backgroundColor: 'rgba(0,0,0,0.02)' }}>
+                      <td colSpan={7} style={{ padding: '0.6rem 1.25rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--color-ink, #1F2937)' }}>
+                        {group.label} ({group.rows.length})
+                      </td>
+                    </tr>
+                  )}
+                  {group.rows.map(({ row: str, index: idx }) => {
+                    const isEditing = editingStringId === str.stringId;
 
-                return (
+                    return (
                   <tr
                     key={str.stringId}
                     style={{
@@ -304,6 +390,25 @@ export default function VendorMyJob() {
                         >
                           {str.targetText || 'Not translated'}
                         </span>
+                      )}
+                    </td>
+
+                    {/* SCORE badge */}
+                    <td style={{ padding: '0.85rem 1.25rem', textAlign: 'center' }}>
+                      <ScoreBadge score={str.score} />
+                    </td>
+
+                    {/* RAW DRAFT with the raw MT score beside it */}
+                    <td style={{ padding: '0.85rem 1.25rem' }}>
+                      {str.rawMtText ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ color: 'var(--color-ink, #1F2937)' }}>{str.rawMtText}</span>
+                          {str.rawMtScore !== null && str.rawMtScore !== undefined && (
+                            <ScoreBadge score={str.rawMtScore} />
+                          )}
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--color-ink-muted, #6B7280)' }}>—</span>
                       )}
                     </td>
 
@@ -361,11 +466,15 @@ export default function VendorMyJob() {
                       )}
                     </td>
                   </tr>
-                );
-              })}
+                    );
+                  })}
+                </React.Fragment>
+              ))}
             </tbody>
           </table>
         </div>
+          )}
+        </>
       )}
 
       {/* Bottom Action: Solid Sage Rectangular Text-Label "Submit for Review" Button */}

@@ -33,13 +33,21 @@ public class LocalizationProjectService
             .Select(l => new LocalizationLocaleDto(l.Id, l.LocaleCode, l.DisplayName))
             .ToList();
 
+        var tier = await _db.LocalizationServiceAgreements
+            .AsNoTracking()
+            .Where(a => a.ProjectId == project.Id)
+            .Select(a => a.Tier)
+            .FirstOrDefaultAsync(ct);
+
         return new LocalizationProjectDto(
             project.Id,
             project.Slug,
             project.Name,
             project.SourceLocale,
             project.CreatedAt,
-            locales
+            locales,
+            project.AiEnabled,
+            tier
         );
     }
 
@@ -51,6 +59,12 @@ public class LocalizationProjectService
             .OrderBy(p => p.Id)
             .ToListAsync(ct);
 
+        var projectIds = projects.Select(p => p.Id).ToList();
+        var tiers = await _db.LocalizationServiceAgreements
+            .AsNoTracking()
+            .Where(a => projectIds.Contains(a.ProjectId))
+            .ToDictionaryAsync(a => a.ProjectId, a => a.Tier, ct);
+
         return projects.Select(project => new LocalizationProjectDto(
             project.Id,
             project.Slug,
@@ -60,7 +74,9 @@ public class LocalizationProjectService
             project.Locales
                 .OrderBy(l => l.Id)
                 .Select(l => new LocalizationLocaleDto(l.Id, l.LocaleCode, l.DisplayName))
-                .ToList()
+                .ToList(),
+            project.AiEnabled,
+            tiers.TryGetValue(project.Id, out var tier) ? tier : null
         )).ToList();
     }
 }

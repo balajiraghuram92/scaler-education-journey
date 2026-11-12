@@ -74,7 +74,7 @@ public class ProviderHealthService
         }
 
         record.CircuitState = "Closed";
-        record.ErrorRatePercent = record.Provider.Equals("GoogleMT", StringComparison.OrdinalIgnoreCase) ? 0.4m : 1.1m;
+        record.ErrorRatePercent = record.Provider.Equals("AzureTranslator", StringComparison.OrdinalIgnoreCase) ? 0.4m : 1.1m;
         record.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);

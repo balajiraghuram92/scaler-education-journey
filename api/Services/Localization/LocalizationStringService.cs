@@ -51,11 +51,7 @@ public class LocalizationStringService
                 translation?.TargetText,
                 translation?.Stage ?? "New",
                 translation?.TranslationSource ?? "Manual",
-                translation?.QpsScore,
-                translation?.NeedsReview ?? false,
-                translation?.UpdatedAt,
-                translation?.RawMtText,
-                translation?.RawMtQpsScore
+                translation?.UpdatedAt
             ));
         }
 
@@ -123,11 +119,7 @@ public class LocalizationStringService
             translation.TargetText,
             translation.Stage,
             translation.TranslationSource,
-            translation.QpsScore,
-            translation.NeedsReview,
-            translation.UpdatedAt,
-            translation.RawMtText,
-            translation.RawMtQpsScore
+            translation.UpdatedAt
         );
     }
 }

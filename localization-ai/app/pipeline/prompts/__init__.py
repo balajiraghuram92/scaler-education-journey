@@ -10,7 +10,10 @@ from pathlib import Path
 from string import Template
 
 MT_OPTIMIZE_PROMPT_VERSION = "mt-optimize-v1"
-QPS_PROMPT_VERSION = "qps-judge-v1"
+QPS_PROMPT_VERSION = "qps_judge_v2"
+# qps_judge_v1.txt stays on disk and loadable by filename (render takes the
+# template filename, not a version), so the eval harness can still run a v1
+# configuration by rendering it directly.
 
 PROMPTS_DIR = Path(__file__).resolve().parent
 

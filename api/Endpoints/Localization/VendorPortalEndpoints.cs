@@ -14,17 +14,11 @@ public static class VendorPortalEndpoints
     {
         var group = app.MapGroup("/api/localization/vendor");
 
-        group.MapGet("/roster", GetRoster)
+        group.MapGet("/roster", GetVendorRoster)
             .WithName("GetVendorRoster");
 
-        group.MapGet("/{vendorId:int}/open-jobs", GetOpenJobs)
-            .WithName("GetVendorOpenJobs");
-
-        group.MapPost("/{vendorId:int}/jobs/{jobId:int}/bids", SubmitBid)
-            .WithName("SubmitVendorBid");
-
-        group.MapGet("/{vendorId:int}/awarded-jobs", GetAwardedJobs)
-            .WithName("GetVendorAwardedJobs");
+        group.MapGet("/{vendorId:int}/jobs", GetJobs)
+            .WithName("GetVendorJobs");
 
         group.MapGet("/jobs/{jobId:int}/strings", GetJobStrings)
             .WithName("GetVendorJobStrings");
@@ -36,15 +30,15 @@ public static class VendorPortalEndpoints
             .WithName("SubmitVendorJobForReview");
     }
 
-    private static async Task<IResult> GetRoster(
-        VendorPortalService vendorService,
+    private static async Task<IResult> GetVendorRoster(
+        VendorPortalService vendorPortalService,
         HttpContext httpContext,
         CancellationToken ct)
     {
         try
         {
-            var roster = await vendorService.GetVendorRosterAsync(ct);
-            return Results.Ok(roster);
+            var vendors = await vendorPortalService.GetVendorRosterAsync(ct);
+            return Results.Ok(vendors);
         }
         catch (Exception ex)
         {
@@ -52,16 +46,16 @@ public static class VendorPortalEndpoints
         }
     }
 
-    private static async Task<IResult> GetOpenJobs(
+    private static async Task<IResult> GetJobs(
         int vendorId,
-        VendorPortalService vendorService,
+        VendorPortalService vendorPortalService,
         HttpContext httpContext,
         CancellationToken ct)
     {
         try
         {
-            var openJobs = await vendorService.GetOpenJobsForVendorAsync(vendorId, ct);
-            return Results.Ok(openJobs);
+            var jobs = await vendorPortalService.GetJobsForVendorAsync(vendorId, ct);
+            return Results.Ok(jobs);
         }
         catch (VendorNotFoundException ex)
         {
@@ -69,79 +63,19 @@ public static class VendorPortalEndpoints
         }
         catch (Exception ex)
         {
-            return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error retrieving open jobs.", ex.Message);
-        }
-    }
-
-    private static async Task<IResult> SubmitBid(
-        int vendorId,
-        int jobId,
-        SubmitBidRequest request,
-        VendorPortalService vendorService,
-        HttpContext httpContext,
-        CancellationToken ct)
-    {
-        try
-        {
-            var bid = await vendorService.SubmitBidAsync(jobId, vendorId, request.ProposedPrice, request.Note, ct);
-            return Results.Ok(bid);
-        }
-        catch (VendorNotFoundException ex)
-        {
-            return Problem(httpContext, StatusCodes.Status404NotFound, "Vendor not found.", ex.Message);
-        }
-        catch (MarketplaceJobNotFoundException ex)
-        {
-            return Problem(httpContext, StatusCodes.Status404NotFound, "Job not found.", ex.Message);
-        }
-        catch (VendorLanguageMismatchException ex)
-        {
-            return Problem(httpContext, StatusCodes.Status403Forbidden, "Language mismatch.", ex.Message);
-        }
-        catch (InvalidJobStateException ex)
-        {
-            return Problem(httpContext, StatusCodes.Status409Conflict, "Invalid job state.", ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return Problem(httpContext, StatusCodes.Status400BadRequest, "Invalid bid.", ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error submitting bid.", ex.Message);
-        }
-    }
-
-    private static async Task<IResult> GetAwardedJobs(
-        int vendorId,
-        VendorPortalService vendorService,
-        HttpContext httpContext,
-        CancellationToken ct)
-    {
-        try
-        {
-            var awardedJobs = await vendorService.GetAwardedJobsForVendorAsync(vendorId, ct);
-            return Results.Ok(awardedJobs);
-        }
-        catch (VendorNotFoundException ex)
-        {
-            return Problem(httpContext, StatusCodes.Status404NotFound, "Vendor not found.", ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error retrieving awarded jobs.", ex.Message);
+            return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error retrieving jobs.", ex.Message);
         }
     }
 
     private static async Task<IResult> GetJobStrings(
         int jobId,
-        VendorPortalService vendorService,
+        VendorPortalService vendorPortalService,
         HttpContext httpContext,
         CancellationToken ct)
     {
         try
         {
-            var strings = await vendorService.GetJobStringsAsync(jobId, ct);
+            var strings = await vendorPortalService.GetJobStringsAsync(jobId, ct);
             return Results.Ok(strings);
         }
         catch (MarketplaceJobNotFoundException ex)
@@ -157,15 +91,15 @@ public static class VendorPortalEndpoints
     private static async Task<IResult> UpdateJobString(
         int jobId,
         int stringId,
-        UpdateTranslationRequest request,
-        VendorPortalService vendorService,
+        VendorStringRowDto body,
+        VendorPortalService vendorPortalService,
         HttpContext httpContext,
         CancellationToken ct)
     {
         try
         {
-            var updated = await vendorService.UpdateJobStringAsync(jobId, stringId, request.TargetText, ct);
-            return Results.Ok(updated);
+            var row = await vendorPortalService.UpdateJobStringAsync(jobId, stringId, body.TargetText, ct);
+            return Results.Ok(row);
         }
         catch (MarketplaceJobNotFoundException ex)
         {
@@ -187,13 +121,13 @@ public static class VendorPortalEndpoints
 
     private static async Task<IResult> SubmitJob(
         int jobId,
-        VendorPortalService vendorService,
+        VendorPortalService vendorPortalService,
         HttpContext httpContext,
         CancellationToken ct)
     {
         try
         {
-            var job = await vendorService.SubmitJobForReviewAsync(jobId, ct);
+            var job = await vendorPortalService.SubmitJobForReviewAsync(jobId, ct);
             return Results.Ok(job);
         }
         catch (MarketplaceJobNotFoundException ex)

@@ -15,55 +15,55 @@ from app.providers.openai_compat import OpenAICompatChatProvider
 
 REAL_CHAT = os.environ.get("LOCAI_REAL_CHAT") == "1"
 
-# (source, target, locale, low, high, note)
+# (source, target, locale, low, high, note) on the 1-5 judge scale.
 CALIBRATION_CASES = [
     (
         "Turn left ahead",
         "Voraus links abbiegen",
         "de-DE",
-        80,
-        100,
+        4,
+        5,
         "good: accurate, fluent, correct term",
     ),
     (
         "Low fuel warning",
         "Kraftstoffwarnung",
         "de-DE",
-        80,
-        100,
+        4,
+        5,
         "good: approved single-noun warning form",
     ),
     (
         "HUD brightness {count}",
         "HUD-Helligkeit {count}",
         "de-DE",
-        80,
-        100,
+        4,
+        5,
         "good: acronym kept, placeholder preserved",
     ),
     (
         "Turn left ahead",
         "Turn left ahead",
         "de-DE",
-        0,
-        40,
+        1,
+        2,
         "bad: untranslated source echo",
     ),
     (
         "Low fuel warning",
         "Hoher Kraftstoffstand, alles in Ordnung",
         "de-DE",
-        0,
-        40,
+        1,
+        2,
         "bad: inverted meaning (says fuel is fine)",
     ),
     (
         "Speed limit {speed} ahead",
         "Limitation de vitesse devant",
         "fr-FR",
-        0,
-        60,
-        "bad: dropped the {speed} placeholder",
+        1,
+        2,
+        "bad: dropped the {speed} placeholder (veto caps this at 2)",
     ),
 ]
 

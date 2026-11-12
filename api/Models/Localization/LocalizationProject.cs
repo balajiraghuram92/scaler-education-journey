@@ -29,7 +29,15 @@ public class LocalizationProject
     public string SourceLocale { get; set; } = "en-US";
 
     [Column("qps_threshold")]
-    public int QpsThreshold { get; set; } = 70;
+    public int QpsThreshold { get; set; } = 4;
+
+    [Required]
+    [MaxLength(100)]
+    [Column("client_alias")]
+    public string ClientAlias { get; set; } = string.Empty;
+
+    [Column("ai_enabled")]
+    public bool AiEnabled { get; set; } = true;
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -47,10 +55,7 @@ public class LocalizationProject
     public ICollection<BuildSnapshot> BuildSnapshots { get; set; } = new List<BuildSnapshot>();
 
     [JsonIgnore]
-    public ICollection<MarketplaceJob> MarketplaceJobs { get; set; } = new List<MarketplaceJob>();
-
-    [JsonIgnore]
-    public ICollection<LedgerEntry> LedgerEntries { get; set; } = new List<LedgerEntry>();
+    public ICollection<TranslationJob> TranslationJobs { get; set; } = new List<TranslationJob>();
 
     [JsonIgnore]
     public ICollection<GlossaryTerm> GlossaryTerms { get; set; } = new List<GlossaryTerm>();

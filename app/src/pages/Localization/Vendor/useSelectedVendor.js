@@ -46,7 +46,8 @@ function setSharedSelectedId(id) {
 
 /**
  * Single source of truth for the selected vendor. Loads the roster with
- * api.vendorPortal.getRoster(), keeps the selected id in sessionStorage, and
+ * api.vendorPortal.getRoster() (entries are `{ id, alias, languages }` —
+ * no real name, no rating), keeps the selected id in sessionStorage, and
  * defaults to the first roster vendor only when nothing valid is stored.
  */
 export default function useSelectedVendor() {

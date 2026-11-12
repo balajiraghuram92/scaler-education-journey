@@ -59,8 +59,9 @@ public class StudyTrackerContext : DbContext
     public DbSet<BuildSnapshot> LocalizationBuildSnapshots { get; set; } = null!;
     public DbSet<BuildSnapshotLocaleCount> LocalizationBuildSnapshotLocaleCounts { get; set; } = null!;
     public DbSet<Vendor> LocalizationVendors { get; set; } = null!;
-    public DbSet<MarketplaceJob> LocalizationMarketplaceJobs { get; set; } = null!;
-    public DbSet<MarketplaceBid> LocalizationMarketplaceBids { get; set; } = null!;
+    public DbSet<TranslationJob> LocalizationTranslationJobs { get; set; } = null!;
+    public DbSet<ServiceAgreement> LocalizationServiceAgreements { get; set; } = null!;
+    public DbSet<TeamAssignment> LocalizationTeamAssignments { get; set; } = null!;
     public DbSet<LedgerEntry> LocalizationLedgerEntries { get; set; } = null!;
     public DbSet<ProviderHealthSnapshot> LocalizationProviderHealth { get; set; } = null!;
     public DbSet<GlossaryTerm> LocalizationGlossaryTerms { get; set; } = null!;
@@ -70,6 +71,7 @@ public class StudyTrackerContext : DbContext
     public DbSet<EvalCaseResult> LocalizationEvalCaseResults { get; set; } = null!;
     public DbSet<LocalizationUsageEvent> LocalizationUsageEvents { get; set; } = null!;
     public DbSet<LocalizationProviderRate> LocalizationProviderRates { get; set; } = null!;
+    public DbSet<LocalizationUsageCap> LocalizationUsageCaps { get; set; } = null!;
 
     // MCQ Dynamic Architecture DbSets
     public DbSet<McqQuestion> McqQuestions { get; set; } = null!;
@@ -618,7 +620,7 @@ public class StudyTrackerContext : DbContext
                 .IsUnique()
                 .HasDatabaseName("ix_localization_projects_slug");
             entity.Property(p => p.QpsThreshold)
-                .HasDefaultValue(70);
+                .HasDefaultValue(4);
         });
 
         modelBuilder.Entity<LocalizationLocale>(entity =>
@@ -647,7 +649,11 @@ public class StudyTrackerContext : DbContext
 
         modelBuilder.Entity<LocalizationTranslation>(entity =>
         {
-            entity.ToTable("localization_translations");
+            entity.ToTable("localization_translations", t =>
+            {
+                t.HasCheckConstraint("ck_localization_translations_qps_score_range", "qps_score IS NULL OR (qps_score BETWEEN 1 AND 5)");
+                t.HasCheckConstraint("ck_localization_translations_raw_mt_qps_score_range", "raw_mt_qps_score IS NULL OR (raw_mt_qps_score BETWEEN 1 AND 5)");
+            });
             entity.HasKey(t => t.Id);
             entity.HasIndex(t => new { t.StringId, t.LocaleCode })
                 .IsUnique()
@@ -700,50 +706,59 @@ public class StudyTrackerContext : DbContext
         {
             entity.ToTable("localization_vendors");
             entity.HasKey(v => v.Id);
-            entity.Property(v => v.Rating)
-                .HasPrecision(3, 1);
+            entity.HasIndex(v => v.Alias)
+                .IsUnique()
+                .HasDatabaseName("ux_localization_vendors_alias");
         });
 
-        modelBuilder.Entity<MarketplaceJob>(entity =>
+        modelBuilder.Entity<TranslationJob>(entity =>
         {
             entity.ToTable("localization_marketplace_jobs");
             entity.HasKey(j => j.Id);
             entity.HasIndex(j => j.ProjectId)
                 .HasDatabaseName("ix_localization_marketplace_jobs_project_id");
-            entity.HasIndex(j => j.AwardedVendorId)
+            entity.HasIndex(j => j.VendorId)
                 .HasDatabaseName("ix_localization_marketplace_jobs_vendor_id");
-            entity.Property(j => j.SuggestedPriceLow)
-                .HasPrecision(10, 2);
-            entity.Property(j => j.SuggestedPriceHigh)
-                .HasPrecision(10, 2);
             entity.HasOne(j => j.Project)
-                .WithMany(p => p.MarketplaceJobs)
+                .WithMany(p => p.TranslationJobs)
                 .HasForeignKey(j => j.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(j => j.AwardedVendor)
-                .WithMany(v => v.AwardedJobs)
-                .HasForeignKey(j => j.AwardedVendorId)
+            entity.HasOne(j => j.Vendor)
+                .WithMany(v => v.Jobs)
+                .HasForeignKey(j => j.VendorId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        modelBuilder.Entity<MarketplaceBid>(entity =>
+        modelBuilder.Entity<ServiceAgreement>(entity =>
         {
-            entity.ToTable("localization_marketplace_bids");
-            entity.HasKey(b => b.Id);
-            entity.HasIndex(b => b.MarketplaceJobId)
-                .HasDatabaseName("ix_localization_marketplace_bids_job_id");
-            entity.HasIndex(b => b.VendorId)
-                .HasDatabaseName("ix_localization_marketplace_bids_vendor_id");
-            entity.Property(b => b.ProposedPrice)
-                .HasPrecision(10, 2);
-            entity.HasOne(b => b.MarketplaceJob)
-                .WithMany(j => j.Bids)
-                .HasForeignKey(b => b.MarketplaceJobId)
+            entity.ToTable("localization_service_agreements");
+            entity.HasKey(a => a.Id);
+            entity.HasIndex(a => a.ProjectId)
+                .IsUnique()
+                .HasDatabaseName("ux_localization_service_agreements_project_id");
+            entity.HasOne(a => a.Project)
+                .WithMany()
+                .HasForeignKey(a => a.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(b => b.Vendor)
-                .WithMany(v => v.Bids)
-                .HasForeignKey(b => b.VendorId)
+        });
+
+        modelBuilder.Entity<TeamAssignment>(entity =>
+        {
+            entity.ToTable("localization_team_assignments");
+            entity.HasKey(t => t.Id);
+            entity.HasIndex(t => new { t.AgreementId, t.LocaleCode })
+                .IsUnique()
+                .HasDatabaseName("ux_localization_team_assignments_agreement_locale");
+            entity.HasIndex(t => t.VendorId)
+                .HasDatabaseName("ix_localization_team_assignments_vendor_id");
+            entity.HasOne(t => t.Agreement)
+                .WithMany()
+                .HasForeignKey(t => t.AgreementId)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(t => t.Vendor)
+                .WithMany()
+                .HasForeignKey(t => t.VendorId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<LedgerEntry>(entity =>
@@ -759,7 +774,7 @@ public class StudyTrackerContext : DbContext
             entity.Property(l => l.RealCostUsd)
                 .HasPrecision(12, 6);
             entity.HasOne(l => l.Project)
-                .WithMany(p => p.LedgerEntries)
+                .WithMany()
                 .HasForeignKey(l => l.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(l => l.RelatedMarketplaceJob)
@@ -799,6 +814,19 @@ public class StudyTrackerContext : DbContext
                 .HasDatabaseName("ux_localization_provider_rates_meter_kind_from");
             entity.Property(r => r.UsdPerMillion)
                 .HasPrecision(12, 6);
+        });
+
+        modelBuilder.Entity<LocalizationUsageCap>(entity =>
+        {
+            entity.ToTable("localization_usage_caps");
+            entity.HasKey(c => c.Id);
+            entity.HasIndex(c => new { c.ProjectId, c.Kind })
+                .IsUnique()
+                .HasDatabaseName("ux_localization_usage_caps_project_kind");
+            entity.HasOne(c => c.Project)
+                .WithMany()
+                .HasForeignKey(c => c.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<ProviderHealthSnapshot>(entity =>

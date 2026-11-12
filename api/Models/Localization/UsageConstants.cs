@@ -20,3 +20,9 @@ public static class UsageUnitKinds
     public const string InputToken = "input-token";
     public const string OutputToken = "output-token";
 }
+
+public static class UsageCapKinds
+{
+    public const string MachineTranslation = "machine-translation";
+    public const string Llm = "llm";
+}

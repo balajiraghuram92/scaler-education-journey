@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Edit2, Lock, Check, ArrowRight, X, RefreshCw, ThumbsUp, RotateCcw, Flag } from 'lucide-react';
+import { Edit2, Lock, Check, ArrowRight, X, RefreshCw, ThumbsUp, RotateCcw } from 'lucide-react';
 import LocalizationShell from './LocalizationShell';
 import StageIndicator from '../../components/Localization/StageIndicator';
 import useLocalizationProject from './useLocalizationProject';
@@ -71,7 +71,7 @@ export default function LocalizationStrings() {
     let cancelled = false;
     (async () => {
       try {
-        const data = await api.localization.getMarketplaceOverview(projectSlug);
+        const data = await api.localization.getJobs(projectSlug);
         if (!cancelled && Array.isArray(data)) {
           const found = data.find((j) => j.id === reviewJobId);
           setReviewJobStatus(found ? found.status : null);
@@ -168,8 +168,8 @@ export default function LocalizationStrings() {
   const handleApproveSubmission = async () => {
     if (!reviewJobId) return;
     try {
-      await api.localization.approveSubmission(reviewJobId);
-      setReviewActionStatus('Submission Approved! Translation stages updated to Approved and credits recorded.');
+      await api.localization.approveJob(reviewJobId);
+      setReviewActionStatus('Submission Approved! Translation stages updated to Approved.');
       setReviewActionError(null);
       setReviewJobId(null);
       clearReviewJobIdParam();
@@ -182,7 +182,7 @@ export default function LocalizationStrings() {
   const handleSendBack = async () => {
     if (!reviewJobId) return;
     try {
-      await api.localization.sendBackForRevision(reviewJobId);
+      await api.localization.sendBackJob(reviewJobId);
       setReviewActionStatus('Job sent back for vendor revision.');
       setReviewActionError(null);
       setReviewJobId(null);
@@ -192,18 +192,7 @@ export default function LocalizationStrings() {
     }
   };
 
-  const hasQpsColumn = strings.some((s) => s.qpsScore !== null && s.qpsScore !== undefined);
   const activeString = activeStringIndex !== null ? strings[activeStringIndex] : null;
-
-  // "Needs Review only" quick filter: keep the original row index so the
-  // drawer and save flow (which address `strings` directly) keep working.
-  const [showNeedsReviewOnly, setShowNeedsReviewOnly] = useState(false);
-  const visibleRows = useMemo(
-    () => strings
-      .map((row, index) => ({ row, index }))
-      .filter(({ row }) => !showNeedsReviewOnly || row.needsReview),
-    [strings, showNeedsReviewOnly]
-  );
 
   return (
     <LocalizationShell activeTab="strings">
@@ -244,34 +233,9 @@ export default function LocalizationStrings() {
               </option>
             ))}
           </select>
-          <button
-            type="button"
-            onClick={() => setShowNeedsReviewOnly((v) => !v)}
-            title="Show only strings flagged for review"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.4rem 0.85rem',
-              borderRadius: '999px',
-              border: showNeedsReviewOnly
-                ? '1px solid var(--color-sage, #2C5E55)'
-                : '1px solid var(--color-border-subtle, #E2DDD5)',
-              backgroundColor: showNeedsReviewOnly
-                ? 'rgba(44, 94, 85, 0.08)'
-                : 'var(--color-parchment-card, #FFFFFF)',
-              color: showNeedsReviewOnly ? 'var(--color-sage, #2C5E55)' : 'var(--color-ink-muted, #6B7280)',
-              fontSize: '0.8rem',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            <Flag size={12} />
-            Needs Review only
-          </button>
         </div>
 
-        {/* Review Actions if navigated from Marketplace */}
+        {/* Review Actions if navigated from Jobs */}
         {reviewJobId && reviewJobStatus === 'SubmittedForReview' && (
           <div
             style={{
@@ -366,8 +330,6 @@ export default function LocalizationStrings() {
         <LoadingState message="Loading localized string records..." />
       ) : strings.length === 0 ? (
         <EmptyState message="No strings found for this locale." icon="🌐" />
-      ) : visibleRows.length === 0 ? (
-        <EmptyState message="No strings flagged for review." icon="🚩" />
       ) : (
         <div
           style={{
@@ -398,13 +360,12 @@ export default function LocalizationStrings() {
                 <th style={{ padding: '0.85rem 1rem', width: '220px' }}>KEY</th>
                 <th style={{ padding: '0.85rem 1rem' }}>SOURCE (EN)</th>
                 <th style={{ padding: '0.85rem 1rem' }}>TARGET ({selectedLocale.split('-')[0].toUpperCase()})</th>
-                {hasQpsColumn && <th style={{ padding: '0.85rem 1rem', width: '80px' }}>QPS</th>}
                 <th style={{ padding: '0.85rem 1rem', width: '160px' }}>STAGE</th>
                 <th style={{ padding: '0.85rem 1rem', width: '50px', textAlign: 'center' }}></th>
               </tr>
             </thead>
             <tbody>
-              {visibleRows.map(({ row: str, index: idx }, visIdx) => {
+              {strings.map((str, idx) => {
                 return (
                   <tr
                     key={str.stringId}
@@ -418,7 +379,7 @@ export default function LocalizationStrings() {
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <td style={{ padding: '0.85rem 1rem', color: 'var(--color-ink-muted, #6B7280)', fontSize: '0.8rem' }}>
-                      {visIdx + 1}
+                      {idx + 1}
                     </td>
                     <td style={{ padding: '0.85rem 1rem', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--color-ink, #1F2937)' }}>
                       {str.key}
@@ -430,28 +391,9 @@ export default function LocalizationStrings() {
                       {str.targetText || '—'}
                     </td>
 
-                    {/* QPS Column */}
-                    {hasQpsColumn && (
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        {str.qpsScore !== null && str.qpsScore !== undefined ? (
-                          <span
-                            style={{
-                              fontWeight: '700',
-                              fontSize: '0.85rem',
-                              color: str.qpsScore >= 70 ? 'var(--color-sage, #2C5E55)' : '#A6772C'
-                            }}
-                          >
-                            {str.qpsScore}
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--color-ink-muted, #6B7280)' }}>—</span>
-                        )}
-                      </td>
-                    )}
-
-                    {/* STAGE Column: Needs Review Flag or Dot Track */}
+                    {/* STAGE Column */}
                     <td style={{ padding: '0.85rem 1rem' }}>
-                      <StageIndicator stage={str.stage} needsReview={str.needsReview} />
+                      <StageIndicator stage={str.stage} />
                     </td>
 
                     {/* Pencil Action Icon */}
@@ -563,20 +505,7 @@ export default function LocalizationStrings() {
                 <span style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted, #6B7280)', fontWeight: '600' }}>
                   Current Stage:
                 </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  {activeString.qpsScore !== null && activeString.qpsScore !== undefined && (
-                    <span
-                      style={{
-                        fontWeight: '700',
-                        fontSize: '0.85rem',
-                        color: activeString.qpsScore >= 70 ? 'var(--color-sage, #2C5E55)' : '#A6772C'
-                      }}
-                    >
-                      QPS {activeString.qpsScore}
-                    </span>
-                  )}
-                  <StageIndicator stage={activeString.stage} needsReview={activeString.needsReview} />
-                </div>
+                <StageIndicator stage={activeString.stage} />
               </div>
 
               {/* Read-Only Source Text Box */}
@@ -604,41 +533,6 @@ export default function LocalizationStrings() {
 
               {/* Thin Sage Divider */}
               <div style={{ height: '1px', backgroundColor: 'var(--color-sage, #2C5E55)', opacity: 0.3, margin: '0.25rem 0' }} />
-
-              {/* Legacy MT before/after comparison (read-only) */}
-              {activeString.rawMtText && (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--color-ink-muted, #6B7280)', textTransform: 'uppercase' }}>
-                      Legacy MT
-                    </span>
-                    {activeString.rawMtQpsScore !== null && activeString.rawMtQpsScore !== undefined && (
-                      <span
-                        style={{
-                          fontWeight: '700',
-                          fontSize: '0.8rem',
-                          color: activeString.rawMtQpsScore >= 70 ? 'var(--color-sage, #2C5E55)' : '#A6772C'
-                        }}
-                      >
-                        QPS {activeString.rawMtQpsScore}
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      padding: '0.85rem 1rem',
-                      backgroundColor: 'var(--color-parchment-card, #F8F6F0)',
-                      border: '1px solid var(--color-border-subtle, #E2DDD5)',
-                      borderRadius: '6px',
-                      fontSize: '0.95rem',
-                      color: 'var(--color-ink, #1F2937)',
-                      lineHeight: '1.5'
-                    }}
-                  >
-                    {activeString.rawMtText}
-                  </div>
-                </div>
-              )}
 
               {/* Editable Target Text Box */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

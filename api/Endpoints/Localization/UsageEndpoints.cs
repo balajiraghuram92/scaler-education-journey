@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -30,6 +31,21 @@ public static class UsageEndpoints
 
         group.MapPost("/rates", AddRate)
             .WithName("AddLocalizationProviderRate");
+
+        group.MapGet("/projects/{slug}/controls", GetControls)
+            .WithName("GetLocalizationProjectControls");
+
+        group.MapPut("/projects/{slug}/controls", UpdateControls)
+            .WithName("UpdateLocalizationProjectControls");
+
+        group.MapGet("/teams", GetTeams)
+            .WithName("GetLocalizationTeams");
+
+        group.MapGet("/projects/{slug}/agreement", GetAgreement)
+            .WithName("GetLocalizationAgreement");
+
+        group.MapPut("/projects/{slug}/agreement", SaveAgreement)
+            .WithName("SaveLocalizationAgreement");
     }
 
     private static async Task<IResult> GetUsageSummary(
@@ -166,6 +182,221 @@ public static class UsageEndpoints
         return Results.Json(
             new ProviderRateDto(rate.Id, rate.Meter, rate.UnitKind, rate.UsdPerMillion, rate.ValidFrom),
             statusCode: StatusCodes.Status201Created);
+    }
+
+    private static async Task<IResult> GetControls(
+        string slug,
+        UsageMeteringService metering,
+        StudyTrackerContext db,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        var admin = await AdminAuthorization.LoadApprovedAdminAsync(httpContext, db, ct);
+        if (admin == null)
+        {
+            return Problem(httpContext, StatusCodes.Status403Forbidden, "Forbidden", "Administrative privileges required.");
+        }
+
+        var project = await db.LocalizationProjects
+            .FirstOrDefaultAsync(p => p.Slug == slug, ct);
+        if (project == null)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Project not found.", $"Localization project '{slug}' was not found.");
+        }
+
+        return Results.Ok(await ControlsDtoAsync(db, metering, project, ct));
+    }
+
+    private static async Task<IResult> UpdateControls(
+        string slug,
+        JsonElement body,
+        UsageMeteringService metering,
+        StudyTrackerContext db,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        var admin = await AdminAuthorization.LoadApprovedAdminAsync(httpContext, db, ct);
+        if (admin == null)
+        {
+            return Problem(httpContext, StatusCodes.Status403Forbidden, "Forbidden", "Administrative privileges required.");
+        }
+
+        var project = await db.LocalizationProjects
+            .FirstOrDefaultAsync(p => p.Slug == slug, ct);
+        if (project == null)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Project not found.", $"Localization project '{slug}' was not found.");
+        }
+
+        // Every field is optional: absent leaves the value unchanged, explicit
+        // null on a limit removes the cap. A nullable record property cannot
+        // tell those apart, so the body is read as JSON here.
+        if (TryGetProperty(body, "aiEnabled", out var aiEnabled) && aiEnabled.ValueKind != JsonValueKind.Null)
+        {
+            if (aiEnabled.ValueKind != JsonValueKind.True && aiEnabled.ValueKind != JsonValueKind.False)
+            {
+                return Problem(httpContext, StatusCodes.Status400BadRequest, "Invalid controls.", "Property 'aiEnabled' must be a boolean.");
+            }
+
+            project.AiEnabled = aiEnabled.GetBoolean();
+        }
+
+        var limits = new[]
+        {
+            ("machineTranslationMonthlyLimit", UsageCapKinds.MachineTranslation),
+            ("llmMonthlyLimit", UsageCapKinds.Llm)
+        };
+        foreach (var (property, kind) in limits)
+        {
+            if (!TryGetProperty(body, property, out var value))
+            {
+                continue;
+            }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                var doomed = await db.LocalizationUsageCaps
+                    .FirstOrDefaultAsync(c => c.ProjectId == project.Id && c.Kind == kind, ct);
+                if (doomed is not null)
+                {
+                    db.LocalizationUsageCaps.Remove(doomed);
+                }
+
+                continue;
+            }
+
+            if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt64(out var monthlyLimit) || monthlyLimit < 0)
+            {
+                return Problem(httpContext, StatusCodes.Status400BadRequest, "Invalid controls.", $"Property '{property}' must be a non-negative integer or null.");
+            }
+
+            var existing = await db.LocalizationUsageCaps
+                .FirstOrDefaultAsync(c => c.ProjectId == project.Id && c.Kind == kind, ct);
+            if (existing is null)
+            {
+                db.LocalizationUsageCaps.Add(new LocalizationUsageCap
+                {
+                    ProjectId = project.Id,
+                    Kind = kind,
+                    MonthlyLimit = monthlyLimit,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                existing.MonthlyLimit = monthlyLimit;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        await db.SaveChangesAsync(ct);
+        return Results.Ok(await ControlsDtoAsync(db, metering, project, ct));
+    }
+
+    private static async Task<ProjectControlsDto> ControlsDtoAsync(
+        StudyTrackerContext db,
+        UsageMeteringService metering,
+        LocalizationProject project,
+        CancellationToken ct)
+    {
+        var budget = await metering.BeginRunAsync(project.Id, DateTime.UtcNow, ct);
+        return new ProjectControlsDto(
+            project.Slug,
+            project.AiEnabled,
+            new[] { UsageCapKinds.MachineTranslation, UsageCapKinds.Llm }
+                .Select(kind => new UsageCapDto(kind, budget.Limit(kind), budget.Used(kind)))
+                .ToList());
+    }
+
+    private static bool TryGetProperty(JsonElement body, string name, out JsonElement value)
+    {
+        value = default;
+        return body.ValueKind == JsonValueKind.Object && body.TryGetProperty(name, out value);
+    }
+
+    private static async Task<IResult> GetTeams(
+        StudyTrackerContext db,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        var admin = await AdminAuthorization.LoadApprovedAdminAsync(httpContext, db, ct);
+        if (admin == null)
+        {
+            return Problem(httpContext, StatusCodes.Status403Forbidden, "Forbidden", "Administrative privileges required.");
+        }
+
+        var teams = await db.LocalizationVendors
+            .AsNoTracking()
+            .OrderBy(v => v.Id)
+            .Select(v => new OpsVendorTeamDto(v.Id, v.Alias, v.Name, v.Languages))
+            .ToListAsync(ct);
+        return Results.Ok(teams);
+    }
+
+    private static async Task<IResult> GetAgreement(
+        string slug,
+        TranslationJobService jobService,
+        StudyTrackerContext db,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        var admin = await AdminAuthorization.LoadApprovedAdminAsync(httpContext, db, ct);
+        if (admin == null)
+        {
+            return Problem(httpContext, StatusCodes.Status403Forbidden, "Forbidden", "Administrative privileges required.");
+        }
+
+        try
+        {
+            var agreement = await jobService.GetAgreementAsync(slug, true, ct);
+            if (agreement == null)
+            {
+                return Problem(httpContext, StatusCodes.Status404NotFound, "Agreement not found.", $"Localization project '{slug}' has no service agreement.");
+            }
+
+            return Results.Ok(agreement);
+        }
+        catch (LocalizationProjectNotFoundException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Project not found.", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error retrieving agreement.", ex.Message);
+        }
+    }
+
+    private static async Task<IResult> SaveAgreement(
+        string slug,
+        SaveAgreementRequest request,
+        TranslationJobService jobService,
+        StudyTrackerContext db,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        var admin = await AdminAuthorization.LoadApprovedAdminAsync(httpContext, db, ct);
+        if (admin == null)
+        {
+            return Problem(httpContext, StatusCodes.Status403Forbidden, "Forbidden", "Administrative privileges required.");
+        }
+
+        try
+        {
+            var agreement = await jobService.SaveAgreementAsync(slug, request, ct);
+            return Results.Ok(agreement);
+        }
+        catch (LocalizationProjectNotFoundException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status404NotFound, "Project not found.", ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status400BadRequest, "Invalid agreement.", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error saving agreement.", ex.Message);
+        }
     }
 
     private static IResult Problem(HttpContext context, int statusCode, string title, string detail)

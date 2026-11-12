@@ -22,12 +22,11 @@ public class Vendor
     [Column("languages")]
     public string Languages { get; set; } = string.Empty;
 
-    [Column("rating", TypeName = "numeric(3,1)")]
-    public decimal Rating { get; set; }
+    [Required]
+    [MaxLength(100)]
+    [Column("alias")]
+    public string Alias { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public ICollection<MarketplaceJob> AwardedJobs { get; set; } = new List<MarketplaceJob>();
-
-    [JsonIgnore]
-    public ICollection<MarketplaceBid> Bids { get; set; } = new List<MarketplaceBid>();
+    public ICollection<TranslationJob> Jobs { get; set; } = new List<TranslationJob>();
 }

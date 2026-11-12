@@ -44,6 +44,9 @@ def test_translate_and_optimize_success_and_cache_hit(seeded_project_id):
         assert data["cacheHit"] is False
         assert data["checks"]["glossary_present"] is True
         assert data["fallback"] is False
+        assert data["operation"] == "mt-optimize"
+        assert data["model"] == "fake-chat"
+        assert data["promptVersion"] == "mt-optimize-v1"
         assert data["tokensUsed"] == data["inputTokens"] + data["outputTokens"] + data["embeddingTokens"]
         assert data["embeddingTokens"] > 0
 
@@ -92,6 +95,28 @@ def test_translate_and_optimize_unknown_project_is_404(seeded_project_id):
         assert response.status_code == 404
 
 
+def test_qps_score_success_returns_new_fields(seeded_project_id):
+    conninfo, _ = seeded_project_id
+    chat = FakeChatProvider(
+        responses=[json.dumps({"score": 4, "reason": "scripted", "flagged_issues": []})]
+    )
+    with _client_for(conninfo, chat) as client:
+        response = client.post(
+            "/qps-score",
+            json={"sourceText": "Turn left", "targetText": "Links abbiegen", "targetLocale": "de-DE"},
+            headers=auth_headers(),
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["score"] == 4
+        assert data["vetoed"] is False
+        assert data["fallback"] is False
+        assert data["operation"] == "qps-score"
+        assert data["model"] == "fake-chat"
+        assert data["promptVersion"] == "qps_judge_v2"
+        assert data["tokensUsed"] == data["inputTokens"] + data["outputTokens"]
+
+
 def test_qps_score_success_and_fallback(client):
     # The shared `client` fixture has an unscripted fake: "{}" is malformed
     # twice, so this exercises the fallback path through HTTP.
@@ -104,6 +129,10 @@ def test_qps_score_success_and_fallback(client):
     data = response.json()
     assert (data["score"], data["fallback"]) == (None, True)
     assert data["flaggedIssues"] == []
+    assert data["vetoed"] is False
+    assert data["operation"] == "qps-score"
+    assert data["model"] == "fake-chat"
+    assert data["promptVersion"] == "qps_judge_v2"
     assert data["tokensUsed"] == data["inputTokens"] + data["outputTokens"]
 
 
@@ -124,13 +153,25 @@ def test_comet_score_unavailable_without_scorer(client):
 def test_auto_route_through_http(client):
     response = client.post(
         "/auto-route",
-        json={"qpsScore": 60, "projectThreshold": 70, "checks": {"glossary_present": True}},
+        json={"qpsScore": 3, "projectThreshold": 4, "checks": {"glossary_present": True}},
         headers=auth_headers(),
     )
     assert response.status_code == 200
     data = response.json()
     assert (data["needsReview"], data["reasons"]) == (True, ["qps_below_threshold"])
     assert (data["tokensUsed"], data["fallback"]) == (0, False)
+
+
+def test_auto_route_at_threshold_passes_and_out_of_range_is_422(client):
+    at_threshold = client.post(
+        "/auto-route", json={"qpsScore": 4, "projectThreshold": 4}, headers=auth_headers()
+    )
+    assert at_threshold.status_code == 200
+    assert (at_threshold.json()["needsReview"], at_threshold.json()["reasons"]) == (False, [])
+
+    for body in ({"qpsScore": 87, "projectThreshold": 4}, {"qpsScore": 4, "projectThreshold": 87}):
+        response = client.post("/auto-route", json=body, headers=auth_headers())
+        assert response.status_code == 422
 
 
 def test_pipeline_endpoints_require_api_key(client):

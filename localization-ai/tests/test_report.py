@@ -10,7 +10,7 @@ def _row(config: str, **overrides) -> RunRow:
         run_at="2026-01-01",
         case_count=40,
         avg_comet_kiwi=0.6123,
-        avg_qps_score=58.5,
+        avg_qps_score=3.5,
         glossary_adherence_rate=0.5,
         placeholder_preservation_rate=None,
         cache_hit_rate=0.0,
@@ -22,13 +22,13 @@ def _row(config: str, **overrides) -> RunRow:
 
 
 def test_format_table_renders_rows_and_n_a():
-    table = format_table([_row("legacy-only"), _row("legacy+optimize", avg_qps_score=89.0)])
+    table = format_table([_row("legacy-only"), _row("legacy+optimize", avg_qps_score=4.0)])
     lines = table.splitlines()
     assert len(lines) == 3
     assert lines[0].startswith("config")
-    assert "legacy-only" in lines[1] and "58.5" in lines[1]
+    assert "legacy-only" in lines[1] and "3.5" in lines[1]
     assert "0.6123" in lines[1] and "50.0%" in lines[1] and "n/a" in lines[1]
-    assert "legacy+optimize" in lines[2] and "89.0" in lines[2]
+    assert "legacy+optimize" in lines[2] and "4.0" in lines[2]
 
 
 def test_fetch_runs_keeps_latest_per_config(fresh_db):
@@ -42,8 +42,8 @@ def test_fetch_runs_keeps_latest_per_config(fresh_db):
         pid = row[0]
         conn.execute(
             "INSERT INTO localization_eval_runs (project_id, pipeline_config, run_at, avg_qps_score)"
-            " VALUES (%s, 'legacy-only', now(), 10), (%s, 'legacy+optimize', now(), 50),"
-            " (%s, 'legacy-only', now(), 20)",
+            " VALUES (%s, 'legacy-only', now(), 2), (%s, 'legacy+optimize', now(), 4),"
+            " (%s, 'legacy-only', now(), 5)",
             (pid, pid, pid),
         )
         conn.commit()
@@ -59,8 +59,8 @@ def test_fetch_runs_keeps_latest_per_config(fresh_db):
 
     rows = asyncio.run(go())
     assert [(r.pipeline_config, r.avg_qps_score, r.case_count) for r in rows] == [
-        ("legacy-only", 20.0, 0),  # latest of the two legacy-only runs
-        ("legacy+optimize", 50.0, 0),
+        ("legacy-only", 5.0, 0),  # latest of the two legacy-only runs
+        ("legacy+optimize", 4.0, 0),
     ]
 
 

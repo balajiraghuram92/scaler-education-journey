@@ -53,7 +53,7 @@ public class UsageMeteringTests
 
         public Task<QualityScoreResult> ScoreAsync(string sourceText, string targetText, string targetLocale, CancellationToken ct)
         {
-            return Task.FromResult(new QualityScoreResult(80, Array.Empty<string>(), 20, 8));
+            return Task.FromResult(new QualityScoreResult(4, Array.Empty<string>(), 20, 8));
         }
     }
 
@@ -101,7 +101,7 @@ public class UsageMeteringTests
             optimize ?? new MtOptimizeService(),
             scorer ?? new FakeQualityScorer(),
             new AutoRoutingService(),
-            LocalizationTestFixture.Marketplace(db),
+            LocalizationTestFixture.Jobs(db),
             null,
             new UsageMeteringService(db));
     }
@@ -119,10 +119,10 @@ public class UsageMeteringTests
         await db.SaveChangesAsync();
         var workflow = WorkflowWithMetering(db);
 
-        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Auto-Translate via Google MT", null));
+        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Auto-Translate via Azure Translator", null));
         var ran = await workflow.RunStepAsync(seed.Project.Slug, step.Id);
 
-        Assert.Equal("3 strings translated via Google MT", ran.LastRunOutcome);
+        Assert.Equal("3 strings translated via Azure Translator", ran.LastRunOutcome);
 
         var events = await db.LocalizationUsageEvents.AsNoTracking().ToListAsync();
         Assert.Equal(3, events.Count);
@@ -211,7 +211,7 @@ public class UsageMeteringTests
         await db.SaveChangesAsync();
         var workflow = WorkflowWithMetering(db, scorer: new TokenScorer());
 
-        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score QPS", null));
+        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score Quality", null));
         var ran = await workflow.RunStepAsync(seed.Project.Slug, step.Id);
 
         Assert.Equal("1 strings scored", ran.LastRunOutcome);
@@ -238,7 +238,7 @@ public class UsageMeteringTests
         await db.SaveChangesAsync();
         var workflow = WorkflowWithMetering(db, scorer: new ThrowingScorer(5, 2));
 
-        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score QPS", null));
+        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score Quality", null));
         var ran = await workflow.RunStepAsync(seed.Project.Slug, step.Id);
 
         Assert.Equal("0 strings scored, 1 failed", ran.LastRunOutcome);
@@ -263,7 +263,7 @@ public class UsageMeteringTests
         await db.SaveChangesAsync();
         var workflow = WorkflowWithMetering(db, scorer: new ThrowingScorer(0, 0));
 
-        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score QPS", null));
+        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score Quality", null));
         var ran = await workflow.RunStepAsync(seed.Project.Slug, step.Id);
 
         Assert.Equal("0 strings scored, 1 failed", ran.LastRunOutcome);
@@ -395,8 +395,8 @@ public class UsageMeteringTests
             return (await workflow.RunStepAsync(seed.Project.Slug, step.Id)).LastRunOutcome!;
         }
 
-        Assert.Contains("marketplace jobs posted", await Run("Post to Marketplace"));
-        Assert.Equal("4 strings translated via Google MT", await Run("Auto-Translate via Google MT"));
+        Assert.Equal("0 jobs created, 2 skipped", await Run("Create Translation Jobs"));
+        Assert.Equal("4 strings translated via Azure Translator", await Run("Auto-Translate via Azure Translator"));
         Assert.Equal("0 strings affected", await Run("Mark Translated"));
         Assert.Equal("4 strings affected", await Run("Send to Review"));
         Assert.Equal("4 strings affected", await Run("Approve"));
@@ -405,7 +405,7 @@ public class UsageMeteringTests
         await Assert.ThrowsAsync<NotImplementedException>(
             () => workflow.RunStepAsync(seed.Project.Slug, optimizeStep.Id));
 
-        Assert.Equal("4 strings scored", await Run("Score QPS"));
+        Assert.Equal("0 strings scored, 4 failed", await Run("Score Quality"));
 
         var routeStep = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Auto-Route", null));
         await Assert.ThrowsAsync<NotImplementedException>(

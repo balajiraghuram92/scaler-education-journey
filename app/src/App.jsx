@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import Profile from './pages/Profile';
 import VerticalDetail from './pages/VerticalDetail';
@@ -18,10 +18,15 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import LocalizationStrings from './pages/Localization/LocalizationStrings';
 import LocalizationWorkflow from './pages/Localization/LocalizationWorkflow';
 import LocalizationSnapshots from './pages/Localization/LocalizationSnapshots';
-import LocalizationMarketplace from './pages/Localization/LocalizationMarketplace';
-import LocalizationBidReview from './pages/Localization/LocalizationBidReview';
-import VendorOpenJobs from './pages/Localization/Vendor/VendorOpenJobs';
+import LocalizationJobs from './pages/Localization/LocalizationJobs';
+import LocalizationOps from './pages/Localization/LocalizationOps';
+import VendorJobs from './pages/Localization/Vendor/VendorJobs';
 import VendorMyJob from './pages/Localization/Vendor/VendorMyJob';
+
+function MarketplaceRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/lab-projects/localization/jobs${location.search}`} replace />;
+}
 
 function App() {
   return (
@@ -161,18 +166,27 @@ function App() {
             }
           />
           <Route
-            path="/lab-projects/localization/marketplace"
+            path="/lab-projects/localization/jobs"
             element={
               <Layout>
-                <LocalizationMarketplace />
+                <LocalizationJobs />
               </Layout>
             }
           />
+          {/* Old marketplace links keep working (query string, e.g. ?project=, is preserved) */}
           <Route
-            path="/lab-projects/localization/marketplace/:jobId/bids"
+            path="/lab-projects/localization/marketplace"
+            element={<MarketplaceRedirect />}
+          />
+
+          {/* Localization Lab — Operations (Admin Only) */}
+          <Route
+            path="/lab-projects/localization/ops"
             element={
               <Layout>
-                <LocalizationBidReview />
+                <ProtectedRoute requireAdmin>
+                  <LocalizationOps />
+                </ProtectedRoute>
               </Layout>
             }
           />
@@ -180,7 +194,7 @@ function App() {
           {/* Localization Lab — Vendor Portal Routes (Unwrapped, No Main Layout) */}
           <Route
             path="/lab-projects/localization/vendor"
-            element={<VendorOpenJobs />}
+            element={<VendorJobs />}
           />
           <Route
             path="/lab-projects/localization/vendor/jobs/:jobId"

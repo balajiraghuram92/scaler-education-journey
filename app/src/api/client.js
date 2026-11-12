@@ -367,12 +367,11 @@ export const api = {
     deleteWorkflowStep: (slug, stepId) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/workflow/steps/${stepId}`, { method: 'DELETE' }),
     getSnapshots: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/snapshots`),
     cutSnapshot: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/snapshots`, { method: 'POST' }),
-    getMarketplaceOverview: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/marketplace`),
-    postToMarketplace: (slug, locale) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/marketplace/${encodeURIComponent(locale)}/post`, { method: 'POST' }),
-    getBids: (jobId) => apiClient(`/api/localization/marketplace/jobs/${jobId}/bids`),
-    awardBid: (jobId, bidId) => apiClient(`/api/localization/marketplace/jobs/${jobId}/bids/${bidId}/award`, { method: 'POST' }),
-    approveSubmission: (jobId) => apiClient(`/api/localization/marketplace/jobs/${jobId}/approve`, { method: 'POST' }),
-    sendBackForRevision: (jobId) => apiClient(`/api/localization/marketplace/jobs/${jobId}/send-back`, { method: 'POST' }),
+    getJobs: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/jobs`),
+    createJob: (slug, locale) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/jobs/${encodeURIComponent(locale)}`, { method: 'POST' }),
+    approveJob: (jobId) => apiClient(`/api/localization/jobs/${jobId}/approve`, { method: 'POST' }),
+    sendBackJob: (jobId) => apiClient(`/api/localization/jobs/${jobId}/send-back`, { method: 'POST' }),
+    getAgreement: (slug) => apiClient(`/api/localization/projects/${encodeURIComponent(slug)}/agreement`),
     getProviderHealth: () => apiClient('/api/localization/provider-health'),
     simulateOutage: (provider) => apiClient(`/api/localization/provider-health/${provider}/simulate-outage`, { method: 'POST' }),
     resolveOutage: (provider) => apiClient(`/api/localization/provider-health/${provider}/resolve`, { method: 'POST' }),
@@ -381,14 +380,36 @@ export const api = {
   // Vendor Portal Endpoints (Vendor Side)
   vendorPortal: {
     getRoster: () => apiClient('/api/localization/vendor/roster'),
-    getOpenJobs: (vendorId) => apiClient(`/api/localization/vendor/${vendorId}/open-jobs`),
-    submitBid: (vendorId, jobId, proposedPrice, note) =>
-      apiClient(`/api/localization/vendor/${vendorId}/jobs/${jobId}/bids`, { method: 'POST', body: { proposedPrice, note } }),
-    getAwardedJobs: (vendorId) => apiClient(`/api/localization/vendor/${vendorId}/awarded-jobs`),
+    getJobs: (vendorId) => apiClient(`/api/localization/vendor/${vendorId}/jobs`),
     getJobStrings: (jobId) => apiClient(`/api/localization/vendor/jobs/${jobId}/strings`),
     updateJobString: (jobId, stringId, targetText) =>
       apiClient(`/api/localization/vendor/jobs/${jobId}/strings/${stringId}`, { method: 'PUT', body: { targetText } }),
     submitJob: (jobId) => apiClient(`/api/localization/vendor/jobs/${jobId}/submit`, { method: 'POST' }),
+  },
+
+  // Localization Operations Endpoints (Admin Only)
+  localizationOps: {
+    getUsage: ({ project, month } = {}) => {
+      const params = new URLSearchParams();
+      if (project) params.set('project', project);
+      if (month) params.set('month', month);
+      const query = params.toString();
+      return apiClient(`/api/localization/ops/usage${query ? `?${query}` : ''}`);
+    },
+    getUsageEvents: ({ project, limit } = {}) => {
+      const params = new URLSearchParams();
+      if (project) params.set('project', project);
+      if (limit !== undefined && limit !== null && limit !== '') params.set('limit', String(limit));
+      const query = params.toString();
+      return apiClient(`/api/localization/ops/usage/events${query ? `?${query}` : ''}`);
+    },
+    getRates: () => apiClient('/api/localization/ops/rates'),
+    addRate: (body) => apiClient('/api/localization/ops/rates', { method: 'POST', body }),
+    getControls: (slug) => apiClient(`/api/localization/ops/projects/${encodeURIComponent(slug)}/controls`),
+    updateControls: (slug, body) => apiClient(`/api/localization/ops/projects/${encodeURIComponent(slug)}/controls`, { method: 'PUT', body }),
+    getTeams: () => apiClient('/api/localization/ops/teams'),
+    getAgreement: (slug) => apiClient(`/api/localization/ops/projects/${encodeURIComponent(slug)}/agreement`),
+    saveAgreement: (slug, body) => apiClient(`/api/localization/ops/projects/${encodeURIComponent(slug)}/agreement`, { method: 'PUT', body }),
   }
 };
 

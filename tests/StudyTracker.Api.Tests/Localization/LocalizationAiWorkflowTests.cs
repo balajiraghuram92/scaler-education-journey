@@ -104,8 +104,9 @@ public class LocalizationAiWorkflowTests
             new MtOptimizeService(client),
             new QpsScoringService(client),
             new AutoRoutingService(client),
-            LocalizationTestFixture.Marketplace(db),
-            Microsoft.Extensions.Options.Options.Create(options));
+            LocalizationTestFixture.Jobs(db),
+            Microsoft.Extensions.Options.Options.Create(options),
+            null);
     }
 
     private static void RespondEchoOptimize(FakeAiHandler handler)
@@ -156,11 +157,7 @@ public class LocalizationAiWorkflowTests
             .OrderBy(t => t.TargetText).Select(t => t.TargetText).ToListAsync();
         Assert.Equal(new[] { "opt:roh1", "opt:roh2" }, targets);
 
-        var entry = await db.LocalizationLedgerEntries.AsNoTracking().SingleAsync();
-        Assert.Equal("AI", entry.Source);
-        Assert.Equal("tokens", entry.UnitType);
-        Assert.Equal(30, entry.UnitsConsumed);
-        Assert.Equal(40m, entry.RealCostUsd);
+        Assert.Empty(db.LocalizationLedgerEntries);
 
         Assert.Equal(2, handler.Requests.Count);
         Assert.All(handler.Requests, r => Assert.Equal("test-secret", r.Headers.GetValues("x-api-key").Single()));
@@ -202,8 +199,7 @@ public class LocalizationAiWorkflowTests
             .OrderBy(t => t.TargetText).Select(t => t.TargetText).ToListAsync();
         Assert.Contains("opt-ok", targets);
 
-        var entry = await db.LocalizationLedgerEntries.AsNoTracking().SingleAsync();
-        Assert.Equal(15, entry.UnitsConsumed);
+        Assert.Empty(db.LocalizationLedgerEntries);
     }
 
     [Fact]
@@ -226,13 +222,13 @@ public class LocalizationAiWorkflowTests
 
         var handler = new FakeAiHandler();
         handler.QueueJson("qps-score",
-            "{\"score\":85,\"flaggedIssues\":[\"tone\"],\"inputTokens\":20,\"outputTokens\":8,\"tokensUsed\":28,\"latencyMs\":4,\"costUsd\":0.002,\"fallback\":false}");
+            "{\"score\":4,\"flaggedIssues\":[\"tone\"],\"inputTokens\":20,\"outputTokens\":8,\"tokensUsed\":28,\"latencyMs\":4,\"costUsd\":0.002,\"fallback\":false}");
         handler.QueueJson("qps-score",
-            "{\"score\":60,\"flaggedIssues\":[],\"inputTokens\":20,\"outputTokens\":8,\"tokensUsed\":28,\"latencyMs\":4,\"costUsd\":0.002,\"fallback\":false}");
+            "{\"score\":3,\"flaggedIssues\":[],\"inputTokens\":20,\"outputTokens\":8,\"tokensUsed\":28,\"latencyMs\":4,\"costUsd\":0.002,\"fallback\":false}");
         var options = AiOptions();
         var workflow = Workflow(db, AiClient(handler, options), options);
 
-        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score QPS", null));
+        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score Quality", null));
         var ran = await workflow.RunStepAsync(seed.Project.Slug, step.Id);
 
         Assert.Equal("1 strings scored", ran.LastRunOutcome);
@@ -240,8 +236,8 @@ public class LocalizationAiWorkflowTests
 
         var ai = await db.LocalizationTranslations.AsNoTracking()
             .SingleAsync(t => t.StringId == seed.Strings[0].Id);
-        Assert.Equal(85, ai.QpsScore);
-        Assert.Equal(60, ai.RawMtQpsScore);
+        Assert.Equal(4, ai.QpsScore);
+        Assert.Equal(3, ai.RawMtQpsScore);
 
         var manual = await db.LocalizationTranslations.AsNoTracking()
             .SingleAsync(t => t.StringId == seed.Strings[1].Id);
@@ -256,26 +252,26 @@ public class LocalizationAiWorkflowTests
         var seed = await LocalizationTestFixture.SeedProjectAsync(db);
         db.LocalizationTranslations.Add(new LocalizationTranslation
         {
-            StringId = seed.Strings[0].Id, LocaleCode = "de-DE", TargetText = "t1", RawMtText = "r1", RawMtQpsScore = 55,
+            StringId = seed.Strings[0].Id, LocaleCode = "de-DE", TargetText = "t1", RawMtText = "r1", RawMtQpsScore = 2,
             Stage = "Translated", TranslationSource = "AI", UpdatedAt = DateTime.UtcNow
         });
         await db.SaveChangesAsync();
 
         var handler = new FakeAiHandler();
         handler.QueueJson("qps-score",
-            "{\"score\":90,\"flaggedIssues\":[],\"inputTokens\":1,\"outputTokens\":1,\"tokensUsed\":2,\"latencyMs\":1,\"costUsd\":0,\"fallback\":false}");
+            "{\"score\":4,\"flaggedIssues\":[],\"inputTokens\":1,\"outputTokens\":1,\"tokensUsed\":2,\"latencyMs\":1,\"costUsd\":0,\"fallback\":false}");
         var options = AiOptions();
         var workflow = Workflow(db, AiClient(handler, options), options);
 
-        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score QPS", null));
+        var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, "Score Quality", null));
         var ran = await workflow.RunStepAsync(seed.Project.Slug, step.Id);
 
         Assert.Equal("1 strings scored", ran.LastRunOutcome);
         Assert.Single(handler.Requests);
 
         var row = await db.LocalizationTranslations.AsNoTracking().SingleAsync();
-        Assert.Equal(90, row.QpsScore);
-        Assert.Equal(55, row.RawMtQpsScore);
+        Assert.Equal(4, row.QpsScore);
+        Assert.Equal(2, row.RawMtQpsScore);
     }
 
     [Fact]
@@ -283,17 +279,17 @@ public class LocalizationAiWorkflowTests
     {
         using var db = LocalizationTestFixture.CreateDb();
         var seed = await LocalizationTestFixture.SeedProjectAsync(db);
-        seed.Project.QpsThreshold = 75;
+        seed.Project.QpsThreshold = 4;
         db.LocalizationTranslations.AddRange(
             new LocalizationTranslation
             {
                 StringId = seed.Strings[0].Id, LocaleCode = "de-DE", TargetText = "t1",
-                Stage = "Translated", TranslationSource = "AI", QpsScore = 80, UpdatedAt = DateTime.UtcNow
+                Stage = "Translated", TranslationSource = "AI", QpsScore = 5, UpdatedAt = DateTime.UtcNow
             },
             new LocalizationTranslation
             {
                 StringId = seed.Strings[1].Id, LocaleCode = "de-DE", TargetText = "t2",
-                Stage = "Translated", TranslationSource = "AI", QpsScore = 70, UpdatedAt = DateTime.UtcNow
+                Stage = "Translated", TranslationSource = "AI", QpsScore = 3, UpdatedAt = DateTime.UtcNow
             },
             new LocalizationTranslation
             {
@@ -320,18 +316,18 @@ public class LocalizationAiWorkflowTests
 
         Assert.Equal("2 strings processed, 1 flagged for review", ran.LastRunOutcome);
         Assert.Equal(2, handler.Requests.Count);
-        Assert.All(handler.Bodies, b => Assert.Contains("\"projectThreshold\":75", b));
+        Assert.All(handler.Bodies, b => Assert.Contains("\"projectThreshold\":4", b));
 
         var rows = await db.LocalizationTranslations.AsNoTracking()
             .OrderBy(t => t.QpsScore).ToListAsync();
-        Assert.Equal(new int?[] { 70, 80 }, rows.Where(t => t.LocaleCode == "de-DE").Select(t => t.QpsScore));
-        Assert.True(rows.Single(t => t.QpsScore == 70).NeedsReview);
-        Assert.False(rows.Single(t => t.QpsScore == 80).NeedsReview);
+        Assert.Equal(new int?[] { 3, 5 }, rows.Where(t => t.LocaleCode == "de-DE").Select(t => t.QpsScore));
+        Assert.True(rows.Single(t => t.QpsScore == 3).NeedsReview);
+        Assert.False(rows.Single(t => t.QpsScore == 5).NeedsReview);
         Assert.False(rows.Single(t => t.LocaleCode == "fr-FR").NeedsReview);
     }
 
     [Fact]
-    public async Task AutoTranslate_WritesCharactersLedgerEntry()
+    public async Task AutoTranslate_WritesNoLedgerEntry()
     {
         using var db = LocalizationTestFixture.CreateDb();
         var seed = await LocalizationTestFixture.SeedProjectAsync(db);
@@ -340,20 +336,16 @@ public class LocalizationAiWorkflowTests
         var workflow = Workflow(db, AiClient(new FakeAiHandler(), options), options);
 
         var step = await workflow.AddStepAsync(
-            seed.Project.Slug, new AddWorkflowStepRequest(null, "Auto-Translate via Google MT", null));
+            seed.Project.Slug, new AddWorkflowStepRequest(null, "Auto-Translate via Azure Translator", null));
         var ran = await workflow.RunStepAsync(seed.Project.Slug, step.Id);
 
-        Assert.Equal("4 strings translated via Google MT", ran.LastRunOutcome);
+        Assert.Equal("4 strings translated via Azure Translator", ran.LastRunOutcome);
 
         var rows = await db.LocalizationTranslations.AsNoTracking().ToListAsync();
         Assert.Equal(4, rows.Count);
         Assert.All(rows, t => Assert.Equal(t.TargetText, t.RawMtText));
 
-        var entry = await db.LocalizationLedgerEntries.AsNoTracking().SingleAsync();
-        Assert.Equal("AI", entry.Source);
-        Assert.Equal("characters", entry.UnitType);
-        Assert.Equal(74, entry.UnitsConsumed);
-        Assert.Equal(0.00148m, entry.RealCostUsd);
+        Assert.Empty(db.LocalizationLedgerEntries);
     }
 
     [Fact]
@@ -392,7 +384,7 @@ public class LocalizationAiWorkflowTests
         options.BaseUrl = string.Empty;
         var workflow = Workflow(db, AiClient(handler, options), options);
 
-        foreach (var action in new[] { "Run MT Optimize", "Score QPS", "Auto-Route" })
+        foreach (var action in new[] { "Run MT Optimize", "Score Quality", "Auto-Route" })
         {
             var step = await workflow.AddStepAsync(seed.Project.Slug, new AddWorkflowStepRequest(null, action, null));
             await Assert.ThrowsAsync<NotImplementedException>(

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using StudyTracker.Api.Data;
 using StudyTracker.Api.Models.Localization;
 using StudyTracker.Api.Services.Localization;
 using Xunit;
@@ -7,38 +8,60 @@ namespace StudyTracker.Api.Tests.Localization;
 
 public class WorkflowServiceTests
 {
+    private static async Task SeedAgreementAsync(StudyTrackerContext db, int projectId)
+    {
+        var vendor = new Vendor { Name = "Team", Alias = "Vendor Team Test", Languages = "de-DE,fr-FR" };
+        db.LocalizationVendors.Add(vendor);
+        await db.SaveChangesAsync();
+
+        var agreement = new ServiceAgreement
+        {
+            ProjectId = projectId,
+            Tier = ServiceTiers.Gold,
+            ValidFrom = DateTime.UtcNow.AddDays(-1),
+            CreatedAt = DateTime.UtcNow
+        };
+        db.LocalizationServiceAgreements.Add(agreement);
+        await db.SaveChangesAsync();
+
+        db.LocalizationTeamAssignments.AddRange(
+            new TeamAssignment { AgreementId = agreement.Id, VendorId = vendor.Id, LocaleCode = "de-DE", MemberCount = 6 },
+            new TeamAssignment { AgreementId = agreement.Id, VendorId = vendor.Id, LocaleCode = "fr-FR", MemberCount = 6 });
+        await db.SaveChangesAsync();
+    }
+
     [Fact]
-    public async Task PostToMarketplaceAction_MatchesDirectCall()
+    public async Task CreateTranslationJobsAction_MatchesDirectCall()
     {
         using var db = LocalizationTestFixture.CreateDb();
         var seed = await LocalizationTestFixture.SeedProjectAsync(db);
-        var marketplace = LocalizationTestFixture.Marketplace(db);
+        await SeedAgreementAsync(db, seed.Project.Id);
+        var jobs = LocalizationTestFixture.Jobs(db);
         var workflow = LocalizationTestFixture.Workflow(db);
 
-        var direct = await marketplace.PostToMarketplaceAsync(seed.Project.Slug, "fr-FR");
+        var direct = await jobs.CreateJobAsync(seed.Project.Slug, "fr-FR");
         Assert.Equal(2, direct.StringCount);
         Assert.Equal(4, direct.WordCount);
 
         var step = await workflow.AddStepAsync(
-            seed.Project.Slug, new AddWorkflowStepRequest(null, "Post to Marketplace", null));
+            seed.Project.Slug, new AddWorkflowStepRequest(null, "Create Translation Jobs", null));
         var ran = await workflow.RunStepAsync(seed.Project.Slug, step.Id);
 
-        Assert.Equal("1 marketplace jobs posted, 1 skipped", ran.LastRunOutcome);
+        Assert.Equal("1 jobs created, 1 skipped", ran.LastRunOutcome);
 
-        var viaWorkflow = await db.LocalizationMarketplaceJobs.AsNoTracking()
+        var viaWorkflow = await db.LocalizationTranslationJobs.AsNoTracking()
             .SingleAsync(j => j.LocaleCode == "de-DE");
-        Assert.Equal("Open", viaWorkflow.Status);
+        Assert.Equal("Assigned", viaWorkflow.Status);
         Assert.Equal(direct.StringCount, viaWorkflow.StringCount);
         Assert.Equal(direct.WordCount, viaWorkflow.WordCount);
-        Assert.Equal(direct.SuggestedPriceLow, viaWorkflow.SuggestedPriceLow);
-        Assert.Equal(direct.SuggestedPriceHigh, viaWorkflow.SuggestedPriceHigh);
     }
 
     [Fact]
-    public async Task PostToMarketplaceAction_SkipsLocalesWithNothingLeftToTranslate()
+    public async Task CreateTranslationJobsAction_SkipsLocalesWithNothingLeftToTranslate()
     {
         using var db = LocalizationTestFixture.CreateDb();
         var seed = await LocalizationTestFixture.SeedProjectAsync(db);
+        await SeedAgreementAsync(db, seed.Project.Id);
         var workflow = LocalizationTestFixture.Workflow(db);
 
         foreach (var locale in new[] { "de-DE", "fr-FR" })
@@ -59,11 +82,11 @@ public class WorkflowServiceTests
         await db.SaveChangesAsync();
 
         var step = await workflow.AddStepAsync(
-            seed.Project.Slug, new AddWorkflowStepRequest(null, "Post to Marketplace", null));
+            seed.Project.Slug, new AddWorkflowStepRequest(null, "Create Translation Jobs", null));
         var ran = await workflow.RunStepAsync(seed.Project.Slug, step.Id);
 
-        Assert.Equal("0 marketplace jobs posted, 2 skipped", ran.LastRunOutcome);
-        Assert.Empty(db.LocalizationMarketplaceJobs);
+        Assert.Equal("0 jobs created, 2 skipped", ran.LastRunOutcome);
+        Assert.Empty(db.LocalizationTranslationJobs);
     }
 
     [Fact]
@@ -128,9 +151,11 @@ public class WorkflowServiceTests
             new MtOptimizeService(),
             new QpsScoringService(),
             new AutoRoutingService(),
-            LocalizationTestFixture.Marketplace(db));
+            LocalizationTestFixture.Jobs(db),
+            null,
+            null);
 
-        foreach (var action in new[] { "Run MT Optimize", "Score QPS", "Auto-Route" })
+        foreach (var action in new[] { "Run MT Optimize", "Score Quality", "Auto-Route" })
         {
             var step = await workflow.AddStepAsync(
                 seed.Project.Slug, new AddWorkflowStepRequest(null, action, null));

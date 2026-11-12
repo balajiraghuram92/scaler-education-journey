@@ -276,6 +276,14 @@ public static class LocalizationEndpoints
         {
             return Problem(httpContext, StatusCodes.Status404NotFound, "Workflow step not found.", ex.Message);
         }
+        catch (LocalizationAiDisabledException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status409Conflict, "AI assistance is switched off", ex.Message);
+        }
+        catch (LocalizationUsageCapReachedException ex)
+        {
+            return Problem(httpContext, StatusCodes.Status409Conflict, "Monthly usage cap reached", ex.Message);
+        }
         catch (Exception ex)
         {
             return Problem(httpContext, StatusCodes.Status500InternalServerError, "Error running workflow step.", ex.Message);

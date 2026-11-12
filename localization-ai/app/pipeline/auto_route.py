@@ -1,5 +1,8 @@
 """Auto-Route decision: pure function, no I/O, no model calls.
 
+Scores are on the 1-5 judge scale; the default project threshold is 4
+(a score below it needs review).
+
 Inputs: the QPS score (None when the judge fell back), the project's QPS
 threshold, and the deterministic check results from MT Optimize (if any).
 

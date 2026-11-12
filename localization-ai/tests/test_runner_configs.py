@@ -18,9 +18,8 @@ OPT_2 = json.dumps({"optimized_translation": "HUD {count}"})
 
 
 def _judge(score: int) -> str:
-    assert score % 4 == 0
-    dim = {"score": score // 4, "justification": "scripted"}
-    return json.dumps({"accuracy": dim, "fluency": dim, "terminology": dim, "tone": dim, "flagged_issues": []})
+    assert 1 <= score <= 5
+    return json.dumps({"score": score, "reason": "scripted", "flagged_issues": []})
 
 
 def _run_all(conninfo: str, chat: FakeChatProvider, embed: FakeEmbeddingProvider, config: str, pricing: Pricing):
@@ -46,19 +45,19 @@ def _chat_tokens(chat: FakeChatProvider, script: list[str]) -> tuple[int, int]:
 
 def test_legacy_optimize_run(seeded_project_id):
     conninfo, _ = seeded_project_id
-    script = [OPT_1, _judge(80), OPT_2, _judge(100)]
+    script = [OPT_1, _judge(4), OPT_2, _judge(5)]
     chat, embed = FakeChatProvider(responses=list(script)), FakeEmbeddingProvider()
     summary = _run_all(conninfo, chat, embed, "legacy+optimize", Pricing())
 
     assert summary.case_count == 2
-    assert summary.avg_qps_score == 90.0
+    assert summary.avg_qps_score == 4.5
     assert summary.glossary_adherence_rate == 1.0
     assert summary.placeholder_preservation_rate == 1.0
     assert summary.cache_hit_rate == 0.0
     assert summary.avg_latency_ms is not None and summary.avg_latency_ms >= 0
     assert summary.total_cost_usd == 0.0
     assert summary.fallback_count == 0
-    assert summary.prompt_version == "mt-optimize-v1+qps-judge-v1"
+    assert summary.prompt_version == "mt-optimize-v1+qps_judge_v2"
     chat_in, chat_out = _chat_tokens(chat, script)
     assert summary.tokens_used == chat_in + chat_out
     # Ungrounded: the optimize prompt carries no glossary block entries.
@@ -67,11 +66,11 @@ def test_legacy_optimize_run(seeded_project_id):
 
 def test_legacy_optimize_glossary_run_is_grounded(seeded_project_id):
     conninfo, _ = seeded_project_id
-    script = [OPT_1, _judge(80), OPT_2, _judge(100)]
+    script = [OPT_1, _judge(4), OPT_2, _judge(5)]
     chat, embed = FakeChatProvider(responses=list(script)), FakeEmbeddingProvider()
     summary = _run_all(conninfo, chat, embed, "legacy+optimize+glossary", Pricing())
 
-    assert summary.avg_qps_score == 90.0
+    assert summary.avg_qps_score == 4.5
     assert summary.fallback_count == 0
     assert '"Turn left" must be rendered as "Links abbiegen"' in chat.calls[0][0].content
     assert '"HUD" must be rendered as "HUD"' in chat.calls[2][0].content
@@ -81,7 +80,7 @@ def test_legacy_optimize_glossary_cache_miss_then_hit(seeded_project_id):
     conninfo, _ = seeded_project_id
     pricing = Pricing(chat_in_per_1k_usd=1000.0, chat_out_per_1k_usd=2000.0, embedding_per_1k_usd=500.0)
 
-    script1 = [OPT_1, _judge(80), OPT_2, _judge(100)]
+    script1 = [OPT_1, _judge(4), OPT_2, _judge(5)]
     chat1, embed1 = FakeChatProvider(responses=list(script1)), FakeEmbeddingProvider()
     first = _run_all(conninfo, chat1, embed1, "legacy+optimize+glossary+cache", pricing)
     assert first.cache_hit_rate == 0.0
@@ -96,22 +95,22 @@ def test_legacy_optimize_glossary_cache_miss_then_hit(seeded_project_id):
 
     # Second run: both cases hit the cache, so no optimize calls happen —
     # only the two judge calls remain in the script.
-    script2 = [_judge(80), _judge(100)]
+    script2 = [_judge(4), _judge(5)]
     chat2, embed2 = FakeChatProvider(responses=list(script2)), FakeEmbeddingProvider()
     second = _run_all(conninfo, chat2, embed2, "legacy+optimize+glossary+cache", Pricing())
     assert second.cache_hit_rate == 1.0
     assert second.avg_latency_ms == 1  # embed lookup only
     assert len(chat2.calls) == 2  # judges only; optimize never ran
-    assert second.avg_qps_score == 90.0
+    assert second.avg_qps_score == 4.5
 
 
 def test_legacy_only_now_carries_judge_scores(seeded_project_id):
     conninfo, _ = seeded_project_id
-    script = [_judge(20), _judge(40)]
+    script = [_judge(2), _judge(4)]
     chat, embed = FakeChatProvider(responses=list(script)), FakeEmbeddingProvider()
     summary = _run_all(conninfo, chat, embed, "legacy-only", Pricing())
 
-    assert summary.avg_qps_score == 30.0
+    assert summary.avg_qps_score == 3.0
     assert summary.prompt_version == "none"
     assert summary.fallback_count == 0
     assert len(chat.calls) == 2  # pipeline made no calls; judges only
@@ -121,4 +120,4 @@ def test_legacy_only_now_carries_judge_scores(seeded_project_id):
             "SELECT produced_translation, qps_score FROM localization_eval_case_results"
             " ORDER BY eval_golden_case_id"
         ).fetchall()
-    assert rows == [("Turn left", 20), ("HUD {count}", 40)]
+    assert rows == [("Turn left", 2), ("HUD {count}", 4)]

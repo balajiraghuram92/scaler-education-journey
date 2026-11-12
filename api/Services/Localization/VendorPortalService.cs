@@ -12,30 +12,27 @@ namespace StudyTracker.Api.Services.Localization;
 public class VendorPortalService
 {
     private readonly StudyTrackerContext _db;
-    private readonly MarketplaceService _marketplaceService;
 
-    public VendorPortalService(StudyTrackerContext db, MarketplaceService marketplaceService)
+    public VendorPortalService(StudyTrackerContext db)
     {
         _db = db;
-        _marketplaceService = marketplaceService;
     }
 
-    public async Task<IReadOnlyList<VendorDto>> GetVendorRosterAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<VendorTeamDto>> GetVendorRosterAsync(CancellationToken ct = default)
     {
         var vendors = await _db.LocalizationVendors
             .AsNoTracking()
             .OrderBy(v => v.Id)
             .ToListAsync(ct);
 
-        return vendors.Select(v => new VendorDto(
+        return vendors.Select(v => new VendorTeamDto(
             v.Id,
-            v.Name,
-            v.Languages,
-            v.Rating
+            v.Alias,
+            v.Languages
         )).ToList();
     }
 
-    public async Task<IReadOnlyList<MarketplaceJobSummaryDto>> GetOpenJobsForVendorAsync(
+    public async Task<IReadOnlyList<VendorJobRowDto>> GetJobsForVendorAsync(
         int vendorId,
         CancellationToken ct = default)
     {
@@ -48,170 +45,33 @@ public class VendorPortalService
             throw new VendorNotFoundException(vendorId);
         }
 
-        var vendorLanguages = vendor.Languages
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var openJobs = await _db.LocalizationMarketplaceJobs
+        var jobs = await _db.LocalizationTranslationJobs
             .AsNoTracking()
-            .Where(j => j.Status == "Open")
-            .Include(j => j.AwardedVendor)
-            .Include(j => j.Bids)
-            .OrderByDescending(j => j.PostedAt)
+            .Where(j => j.VendorId == vendorId)
+            .OrderByDescending(j => j.CreatedAt)
+            .ThenByDescending(j => j.Id)
             .ToListAsync(ct);
 
-        var matchingJobs = openJobs
-            .Where(j => vendorLanguages.Contains(j.LocaleCode))
-            .Select(job => new MarketplaceJobSummaryDto(
-                job.Id,
-                job.ProjectId,
-                job.LocaleCode,
-                job.Status,
-                job.StringCount,
-                job.WordCount,
-                job.SuggestedPriceLow,
-                job.SuggestedPriceHigh,
-                job.AwardedVendorId,
-                job.AwardedVendor?.Name,
-                job.PostedAt,
-                job.AwardedAt,
-                job.SubmittedAt,
-                job.ApprovedAt,
-                job.Bids.Count
-            ))
-            .ToList();
+        var rows = new List<VendorJobRowDto>();
+        foreach (var job in jobs)
+        {
+            rows.Add(await VendorJobRowAsync(job.Id, ct));
+        }
 
-        return matchingJobs;
+        return rows;
     }
 
-    public async Task<MarketplaceBidDto> SubmitBidAsync(
-        int marketplaceJobId,
-        int vendorId,
-        decimal proposedPrice,
-        string note,
+    public async Task<IReadOnlyList<VendorStringRowDto>> GetJobStringsAsync(
+        int jobId,
         CancellationToken ct = default)
     {
-        var job = await _db.LocalizationMarketplaceJobs
-            .FirstOrDefaultAsync(j => j.Id == marketplaceJobId, ct);
+        var job = await _db.LocalizationTranslationJobs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(j => j.Id == jobId, ct);
 
         if (job == null)
         {
-            throw new MarketplaceJobNotFoundException(marketplaceJobId);
-        }
-
-        var vendor = await _db.LocalizationVendors
-            .FirstOrDefaultAsync(v => v.Id == vendorId, ct);
-
-        if (vendor == null)
-        {
-            throw new VendorNotFoundException(vendorId);
-        }
-
-        if (job.Status != "Open")
-        {
-            throw new InvalidJobStateException($"Cannot bid on job {marketplaceJobId} because it is in status '{job.Status}'. Expected 'Open'.");
-        }
-
-        var vendorLanguages = vendor.Languages
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        if (!vendorLanguages.Contains(job.LocaleCode))
-        {
-            throw new VendorLanguageMismatchException(vendorId, job.LocaleCode);
-        }
-
-        var hasPendingBid = await _db.LocalizationMarketplaceBids
-            .AnyAsync(b => b.MarketplaceJobId == marketplaceJobId && b.VendorId == vendorId && b.Status == "Pending", ct);
-
-        if (hasPendingBid)
-        {
-            throw new InvalidJobStateException($"Vendor {vendorId} already has a pending bid on job {marketplaceJobId}.");
-        }
-
-        if (proposedPrice <= 0)
-        {
-            throw new ArgumentException("Proposed price must be greater than zero.", nameof(proposedPrice));
-        }
-
-        var bid = new MarketplaceBid
-        {
-            MarketplaceJobId = marketplaceJobId,
-            VendorId = vendorId,
-            ProposedPrice = proposedPrice,
-            Note = note ?? string.Empty,
-            Status = "Pending",
-            SubmittedAt = DateTime.UtcNow
-        };
-
-        _db.LocalizationMarketplaceBids.Add(bid);
-        await _db.SaveChangesAsync(ct);
-
-        return new MarketplaceBidDto(
-            bid.Id,
-            bid.MarketplaceJobId,
-            bid.VendorId,
-            vendor.Name,
-            vendor.Languages,
-            vendor.Rating,
-            bid.ProposedPrice,
-            bid.Note,
-            bid.Status,
-            bid.SubmittedAt
-        );
-    }
-
-    public async Task<IReadOnlyList<MarketplaceJobSummaryDto>> GetAwardedJobsForVendorAsync(
-        int vendorId,
-        CancellationToken ct = default)
-    {
-        var vendor = await _db.LocalizationVendors
-            .AsNoTracking()
-            .FirstOrDefaultAsync(v => v.Id == vendorId, ct);
-
-        if (vendor == null)
-        {
-            throw new VendorNotFoundException(vendorId);
-        }
-
-        var jobs = await _db.LocalizationMarketplaceJobs
-            .AsNoTracking()
-            .Where(j => j.AwardedVendorId == vendorId && (j.Status == "Awarded" || j.Status == "InProgress" || j.Status == "NeedsRevision" || j.Status == "SubmittedForReview" || j.Status == "Approved"))
-            .Include(j => j.AwardedVendor)
-            .Include(j => j.Bids)
-            .OrderByDescending(j => j.AwardedAt ?? j.PostedAt)
-            .ToListAsync(ct);
-
-        return jobs.Select(job => new MarketplaceJobSummaryDto(
-            job.Id,
-            job.ProjectId,
-            job.LocaleCode,
-            job.Status,
-            job.StringCount,
-            job.WordCount,
-            job.SuggestedPriceLow,
-            job.SuggestedPriceHigh,
-            job.AwardedVendorId,
-            job.AwardedVendor?.Name,
-            job.PostedAt,
-            job.AwardedAt,
-            job.SubmittedAt,
-            job.ApprovedAt,
-            job.Bids.Count
-        )).ToList();
-    }
-
-    public async Task<IReadOnlyList<LocalizationStringRowDto>> GetJobStringsAsync(
-        int marketplaceJobId,
-        CancellationToken ct = default)
-    {
-        var job = await _db.LocalizationMarketplaceJobs
-            .AsNoTracking()
-            .FirstOrDefaultAsync(j => j.Id == marketplaceJobId, ct);
-
-        if (job == null)
-        {
-            throw new MarketplaceJobNotFoundException(marketplaceJobId);
+            throw new MarketplaceJobNotFoundException(jobId);
         }
 
         var strings = await _db.LocalizationStrings
@@ -221,44 +81,33 @@ public class VendorPortalService
             .OrderBy(s => s.Id)
             .ToListAsync(ct);
 
-        var result = new List<LocalizationStringRowDto>();
+        var result = new List<VendorStringRowDto>();
         foreach (var str in strings)
         {
             var translation = str.Translations.FirstOrDefault();
-            result.Add(new LocalizationStringRowDto(
-                str.Id,
-                str.Key,
-                str.SourceText,
-                job.LocaleCode,
-                translation?.TargetText,
-                translation?.Stage ?? "New",
-                translation?.TranslationSource ?? "Marketplace",
-                translation?.QpsScore,
-                translation?.NeedsReview ?? false,
-                translation?.UpdatedAt
-            ));
+            result.Add(VendorStringRow(str, job.LocaleCode, translation));
         }
 
         return result;
     }
 
-    public async Task<LocalizationStringRowDto> UpdateJobStringAsync(
-        int marketplaceJobId,
+    public async Task<VendorStringRowDto> UpdateJobStringAsync(
+        int jobId,
         int stringId,
         string? targetText,
         CancellationToken ct = default)
     {
-        var job = await _db.LocalizationMarketplaceJobs
-            .FirstOrDefaultAsync(j => j.Id == marketplaceJobId, ct);
+        var job = await _db.LocalizationTranslationJobs
+            .FirstOrDefaultAsync(j => j.Id == jobId, ct);
 
         if (job == null)
         {
-            throw new MarketplaceJobNotFoundException(marketplaceJobId);
+            throw new MarketplaceJobNotFoundException(jobId);
         }
 
-        if (job.Status != "Awarded" && job.Status != "InProgress" && job.Status != "NeedsRevision")
+        if (job.Status != "Assigned" && job.Status != "InProgress" && job.Status != "NeedsRevision")
         {
-            throw new InvalidJobStateException($"Cannot edit strings on job {marketplaceJobId} because it is in status '{job.Status}'.");
+            throw new InvalidJobStateException($"Cannot edit strings on job {jobId} because it is in status '{job.Status}'.");
         }
 
         var str = await _db.LocalizationStrings
@@ -296,42 +145,31 @@ public class VendorPortalService
             translation.UpdatedAt = DateTime.UtcNow;
         }
 
-        if (job.Status == "Awarded" || job.Status == "NeedsRevision")
+        if (job.Status == "Assigned" || job.Status == "NeedsRevision")
         {
             job.Status = "InProgress";
         }
 
         await _db.SaveChangesAsync(ct);
 
-        return new LocalizationStringRowDto(
-            str.Id,
-            str.Key,
-            str.SourceText,
-            job.LocaleCode,
-            translation.TargetText,
-            translation.Stage,
-            translation.TranslationSource,
-            translation.QpsScore,
-            translation.NeedsReview,
-            translation.UpdatedAt
-        );
+        return VendorStringRow(str, job.LocaleCode, translation);
     }
 
-    public async Task<MarketplaceJobDto> SubmitJobForReviewAsync(
-        int marketplaceJobId,
+    public async Task<VendorJobRowDto> SubmitJobForReviewAsync(
+        int jobId,
         CancellationToken ct = default)
     {
-        var job = await _db.LocalizationMarketplaceJobs
-            .FirstOrDefaultAsync(j => j.Id == marketplaceJobId, ct);
+        var job = await _db.LocalizationTranslationJobs
+            .FirstOrDefaultAsync(j => j.Id == jobId, ct);
 
         if (job == null)
         {
-            throw new MarketplaceJobNotFoundException(marketplaceJobId);
+            throw new MarketplaceJobNotFoundException(jobId);
         }
 
-        if (job.Status != "Awarded" && job.Status != "InProgress" && job.Status != "NeedsRevision")
+        if (job.Status != "Assigned" && job.Status != "InProgress" && job.Status != "NeedsRevision")
         {
-            throw new InvalidJobStateException($"Cannot submit job {marketplaceJobId} for review because it is in status '{job.Status}'.");
+            throw new InvalidJobStateException($"Cannot submit job {jobId} for review because it is in status '{job.Status}'.");
         }
 
         var strings = await _db.LocalizationStrings
@@ -351,6 +189,77 @@ public class VendorPortalService
         job.SubmittedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
-        return await _marketplaceService.GetJobDtoAsync(job.Id, ct);
+        return await VendorJobRowAsync(job.Id, ct);
+    }
+
+    private async Task<VendorJobRowDto> VendorJobRowAsync(int jobId, CancellationToken ct)
+    {
+        var job = await _db.LocalizationTranslationJobs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(j => j.Id == jobId, ct);
+
+        if (job == null)
+        {
+            throw new MarketplaceJobNotFoundException(jobId);
+        }
+
+        var project = await _db.LocalizationProjects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == job.ProjectId, ct);
+
+        if (project == null)
+        {
+            throw new LocalizationProjectNotFoundException(job.ProjectId.ToString());
+        }
+
+        var strings = await _db.LocalizationStrings
+            .AsNoTracking()
+            .Where(s => s.ProjectId == job.ProjectId)
+            .Include(s => s.Translations.Where(t => t.LocaleCode == job.LocaleCode))
+            .ToListAsync(ct);
+
+        return new VendorJobRowDto(
+            job.Id,
+            project.ClientAlias,
+            job.LocaleCode,
+            job.Status,
+            job.StringCount,
+            job.WordCount,
+            CompletedPercent(strings, job.LocaleCode, job.StringCount),
+            job.CreatedAt,
+            job.SubmittedAt,
+            job.ApprovedAt);
+    }
+
+    private static VendorStringRowDto VendorStringRow(
+        LocalizationString str,
+        string localeCode,
+        LocalizationTranslation? translation)
+    {
+        return new VendorStringRowDto(
+            str.Id,
+            str.Key,
+            str.SourceText,
+            localeCode,
+            translation?.TargetText,
+            translation?.Stage ?? "New",
+            translation?.TranslationSource ?? "Manual",
+            translation?.UpdatedAt,
+            translation?.QpsScore,
+            translation?.NeedsReview ?? false,
+            translation?.RawMtText,
+            translation?.RawMtQpsScore);
+    }
+
+    private static int CompletedPercent(IEnumerable<LocalizationString> strings, string localeCode, int stringCount)
+    {
+        if (stringCount == 0)
+        {
+            return 0;
+        }
+
+        var done = strings.Count(s => s.Translations.Any(t =>
+            t.LocaleCode == localeCode && (t.Stage == "Translated" || t.Stage == "InReview" || t.Stage == "Approved")));
+        return (done * 100) / stringCount;
     }
 }

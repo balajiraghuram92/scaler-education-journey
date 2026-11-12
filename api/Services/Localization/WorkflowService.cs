@@ -16,10 +16,10 @@ public static class WorkflowActions
     public const string MarkTranslated = "Mark Translated";
     public const string SendToReview = "Send to Review";
     public const string Approve = "Approve";
-    public const string AutoTranslateViaGoogleMt = "Auto-Translate via Google MT";
-    public const string PostToMarketplace = "Post to Marketplace";
+    public const string AutoTranslateViaAzureTranslator = "Auto-Translate via Azure Translator";
+    public const string CreateTranslationJobs = "Create Translation Jobs";
     public const string RunMtOptimize = "Run MT Optimize";
-    public const string ScoreQps = "Score QPS";
+    public const string ScoreQuality = "Score Quality";
     public const string AutoRoute = "Auto-Route";
 
     public static readonly IReadOnlySet<string> All = new HashSet<string>
@@ -27,10 +27,10 @@ public static class WorkflowActions
         MarkTranslated,
         SendToReview,
         Approve,
-        AutoTranslateViaGoogleMt,
-        PostToMarketplace,
+        AutoTranslateViaAzureTranslator,
+        CreateTranslationJobs,
         RunMtOptimize,
-        ScoreQps,
+        ScoreQuality,
         AutoRoute
     };
 }
@@ -52,8 +52,7 @@ public class WorkflowService
     private readonly MtOptimizeService _mtOptimizeService;
     private readonly IQualityScorer _qualityScorer;
     private readonly AutoRoutingService _autoRoutingService;
-    private readonly MarketplaceService _marketplaceService;
-    private readonly LocalizationAiOptions? _aiOptions;
+    private readonly TranslationJobService _translationJobService;
     private readonly UsageMeteringService? _usage;
 
     public WorkflowService(
@@ -62,7 +61,7 @@ public class WorkflowService
         MtOptimizeService mtOptimizeService,
         IQualityScorer qualityScorer,
         AutoRoutingService autoRoutingService,
-        MarketplaceService marketplaceService,
+        TranslationJobService translationJobService,
         IOptions<LocalizationAiOptions>? aiOptions = null,
         UsageMeteringService? usage = null)
     {
@@ -71,8 +70,7 @@ public class WorkflowService
         _mtOptimizeService = mtOptimizeService;
         _qualityScorer = qualityScorer;
         _autoRoutingService = autoRoutingService;
-        _marketplaceService = marketplaceService;
-        _aiOptions = aiOptions?.Value;
+        _translationJobService = translationJobService;
         _usage = usage;
     }
 
@@ -339,10 +337,15 @@ public class WorkflowService
                 break;
             }
 
-            case WorkflowActions.AutoTranslateViaGoogleMt:
+            case WorkflowActions.AutoTranslateViaAzureTranslator:
             {
+                if (!project.AiEnabled)
+                {
+                    throw new LocalizationAiDisabledException(project.Slug);
+                }
+                var mtBudget = await StartBudgetAsync(project.Id, UsageCapKinds.MachineTranslation, now, ct);
                 int translatedCount = 0;
-                int characterCount = 0;
+                int skipped = 0;
                 foreach (var locale in project.Locales)
                 {
                     foreach (var str in project.Strings)
@@ -350,6 +353,11 @@ public class WorkflowService
                         var trans = str.Translations.FirstOrDefault(t => t.LocaleCode == locale.LocaleCode);
                         if (trans == null)
                         {
+                            if (mtBudget is not null && !mtBudget.CanSpend(UsageCapKinds.MachineTranslation, str.SourceText.Length))
+                            {
+                                skipped++;
+                                continue;
+                            }
                             var translatedText = await _translationProvider.TranslateAsync(
                                 str.SourceText,
                                 project.SourceLocale,
@@ -359,6 +367,7 @@ public class WorkflowService
                             await RecordUsageAsync(new UsageCallRecord(
                                 project.Id, step.Id, UsageMeters.MachineTranslation, UsageOperations.MtDraft,
                                 locale.LocaleCode, str.SourceText.Length, null, false, true), now, ct);
+                            mtBudget?.Spent(UsageCapKinds.MachineTranslation, str.SourceText.Length);
                             var newTrans = new LocalizationTranslation
                             {
                                 StringId = str.Id,
@@ -371,10 +380,14 @@ public class WorkflowService
                             };
                             _db.LocalizationTranslations.Add(newTrans);
                             translatedCount++;
-                            characterCount += translatedText?.Length ?? 0;
                         }
                         else if (string.IsNullOrWhiteSpace(trans.TargetText))
                         {
+                            if (mtBudget is not null && !mtBudget.CanSpend(UsageCapKinds.MachineTranslation, str.SourceText.Length))
+                            {
+                                skipped++;
+                                continue;
+                            }
                             var translatedText = await _translationProvider.TranslateAsync(
                                 str.SourceText,
                                 project.SourceLocale,
@@ -384,51 +397,39 @@ public class WorkflowService
                             await RecordUsageAsync(new UsageCallRecord(
                                 project.Id, step.Id, UsageMeters.MachineTranslation, UsageOperations.MtDraft,
                                 locale.LocaleCode, str.SourceText.Length, null, false, true), now, ct);
+                            mtBudget?.Spent(UsageCapKinds.MachineTranslation, str.SourceText.Length);
                             trans.TargetText = translatedText;
                             trans.RawMtText = translatedText;
                             trans.Stage = "Translated";
                             trans.TranslationSource = "AI";
                             trans.UpdatedAt = now;
                             translatedCount++;
-                            characterCount += translatedText?.Length ?? 0;
                         }
                     }
                 }
-                if (translatedCount > 0)
-                {
-                    var charRate = _aiOptions?.LegacyMtPricePerCharUsd ?? 0m;
-                    _db.LocalizationLedgerEntries.Add(new LedgerEntry
-                    {
-                        ProjectId = project.Id,
-                        Source = "AI",
-                        Amount = 0m,
-                        UnitsConsumed = characterCount,
-                        UnitType = "characters",
-                        RealCostUsd = decimal.Round(characterCount * charRate, 6),
-                        CreatedAt = now
-                    });
-                }
-                outcome = $"{translatedCount} strings translated via Google MT";
+                outcome = WithSkippedClause(
+                    $"{translatedCount} strings translated via Azure Translator",
+                    mtBudget, UsageCapKinds.MachineTranslation, skipped);
                 break;
             }
 
-            case WorkflowActions.PostToMarketplace:
+            case WorkflowActions.CreateTranslationJobs:
             {
-                int postedCount = 0;
+                int createdCount = 0;
                 int skippedCount = 0;
                 foreach (var locale in project.Locales)
                 {
                     try
                     {
-                        await _marketplaceService.PostToMarketplaceAsync(project.Slug, locale.LocaleCode, ct);
-                        postedCount++;
+                        await _translationJobService.CreateJobAsync(project.Slug, locale.LocaleCode, ct);
+                        createdCount++;
                     }
                     catch (InvalidJobStateException)
                     {
                         skippedCount++;
                     }
                 }
-                outcome = $"{postedCount} marketplace jobs posted, {skippedCount} skipped";
+                outcome = $"{createdCount} jobs created, {skippedCount} skipped";
                 break;
             }
 
@@ -438,15 +439,19 @@ public class WorkflowService
             // Each branch checks its service up front so the 501 surfaces even with no eligible strings.
             case WorkflowActions.RunMtOptimize:
             {
+                if (!project.AiEnabled)
+                {
+                    throw new LocalizationAiDisabledException(project.Slug);
+                }
                 ThrowIfAiNotConfigured(_mtOptimizeService.IsConfigured);
+                var llmBudget = await StartBudgetAsync(project.Id, UsageCapKinds.Llm, now, ct);
                 var glossary = await _db.LocalizationGlossaryTerms
                     .AsNoTracking()
                     .Where(g => g.ProjectId == project.Id)
                     .ToListAsync(ct);
                 int optimizedCount = 0;
                 int failedCount = 0;
-                long inputTokens = 0;
-                long outputTokens = 0;
+                int skipped = 0;
                 foreach (var str in project.Strings)
                 {
                     foreach (var trans in str.Translations)
@@ -454,6 +459,11 @@ public class WorkflowService
                         var rawMt = trans.RawMtText;
                         if (string.IsNullOrWhiteSpace(rawMt))
                         {
+                            continue;
+                        }
+                        if (llmBudget is not null && !llmBudget.CanSpend(UsageCapKinds.Llm, 0))
+                        {
+                            skipped++;
                             continue;
                         }
 
@@ -473,11 +483,10 @@ public class WorkflowService
                             await RecordUsageAsync(new UsageCallRecord(
                                 project.Id, step.Id, UsageMeters.LlmOptimize, UsageOperations.MtOptimize,
                                 trans.LocaleCode, result.InputTokens, result.OutputTokens, result.CacheHit, true), now, ct);
+                            llmBudget?.Spent(UsageCapKinds.Llm, result.CacheHit ? 0 : result.InputTokens + result.OutputTokens);
                             trans.TargetText = result.OptimizedTranslation;
                             trans.UpdatedAt = now;
                             optimizedCount++;
-                            inputTokens += result.InputTokens;
-                            outputTokens += result.OutputTokens;
                         }
                         catch (LocalizationAiException)
                         {
@@ -485,38 +494,36 @@ public class WorkflowService
                         }
                     }
                 }
-                if (optimizedCount > 0)
-                {
-                    var inRate = _aiOptions?.ChatPricePer1kInputTokensUsd ?? 0m;
-                    var outRate = _aiOptions?.ChatPricePer1kOutputTokensUsd ?? 0m;
-                    _db.LocalizationLedgerEntries.Add(new LedgerEntry
-                    {
-                        ProjectId = project.Id,
-                        Source = "AI",
-                        Amount = 0m,
-                        UnitsConsumed = (int)(inputTokens + outputTokens),
-                        UnitType = "tokens",
-                        RealCostUsd = decimal.Round(inputTokens / 1000m * inRate + outputTokens / 1000m * outRate, 6),
-                        CreatedAt = now
-                    });
-                }
-                outcome = failedCount == 0
-                    ? $"{optimizedCount} strings optimized"
-                    : $"{optimizedCount} strings optimized, {failedCount} failed";
+                outcome = WithSkippedClause(
+                    failedCount == 0
+                        ? $"{optimizedCount} strings optimized"
+                        : $"{optimizedCount} strings optimized, {failedCount} failed",
+                    llmBudget, UsageCapKinds.Llm, skipped);
                 break;
             }
 
-            case WorkflowActions.ScoreQps:
+            case WorkflowActions.ScoreQuality:
             {
+                if (!project.AiEnabled)
+                {
+                    throw new LocalizationAiDisabledException(project.Slug);
+                }
                 ThrowIfAiNotConfigured(_qualityScorer.IsConfigured);
+                var llmBudget = await StartBudgetAsync(project.Id, UsageCapKinds.Llm, now, ct);
                 int scoredCount = 0;
                 int failedCount = 0;
+                int skipped = 0;
                 foreach (var str in project.Strings)
                 {
                     foreach (var trans in str.Translations)
                     {
                         if (trans.TranslationSource != "AI")
                         {
+                            continue;
+                        }
+                        if (llmBudget is not null && !llmBudget.CanSpend(UsageCapKinds.Llm, 0))
+                        {
+                            skipped++;
                             continue;
                         }
 
@@ -527,9 +534,19 @@ public class WorkflowService
                                 trans.TargetText ?? string.Empty,
                                 trans.LocaleCode,
                                 ct);
+                            if (result.Score < 1 || result.Score > 5)
+                            {
+                                await RecordUsageAsync(new UsageCallRecord(
+                                    project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
+                                    trans.LocaleCode, result.InputTokens, result.OutputTokens, false, false), now, ct);
+                                llmBudget?.Spent(UsageCapKinds.Llm, result.InputTokens + result.OutputTokens);
+                                failedCount++;
+                                continue;
+                            }
                             await RecordUsageAsync(new UsageCallRecord(
                                 project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
                                 trans.LocaleCode, result.InputTokens, result.OutputTokens, false, true), now, ct);
+                            llmBudget?.Spent(UsageCapKinds.Llm, result.InputTokens + result.OutputTokens);
                             trans.QpsScore = result.Score;
                             trans.UpdatedAt = now;
                             scoredCount++;
@@ -541,6 +558,7 @@ public class WorkflowService
                                 await RecordUsageAsync(new UsageCallRecord(
                                     project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
                                     trans.LocaleCode, ex.InputTokens, ex.OutputTokens, false, false), now, ct);
+                                llmBudget?.Spent(UsageCapKinds.Llm, ex.InputTokens + ex.OutputTokens);
                             }
                             failedCount++;
                             continue;
@@ -549,17 +567,33 @@ public class WorkflowService
                         var rawMt = trans.RawMtText;
                         if (!string.IsNullOrWhiteSpace(rawMt) && trans.RawMtQpsScore is null)
                         {
-                            try
+                            if (llmBudget is not null && !llmBudget.CanSpend(UsageCapKinds.Llm, 0))
+                            {
+                                skipped++;
+                            }
+                            else try
                             {
                                 var rawResult = await _qualityScorer.ScoreAsync(
                                     str.SourceText,
                                     rawMt,
                                     trans.LocaleCode,
                                     ct);
-                                await RecordUsageAsync(new UsageCallRecord(
-                                    project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
-                                    trans.LocaleCode, rawResult.InputTokens, rawResult.OutputTokens, false, true), now, ct);
-                                trans.RawMtQpsScore = rawResult.Score;
+                                if (rawResult.Score < 1 || rawResult.Score > 5)
+                                {
+                                    await RecordUsageAsync(new UsageCallRecord(
+                                        project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
+                                        trans.LocaleCode, rawResult.InputTokens, rawResult.OutputTokens, false, false), now, ct);
+                                    llmBudget?.Spent(UsageCapKinds.Llm, rawResult.InputTokens + rawResult.OutputTokens);
+                                    failedCount++;
+                                }
+                                else
+                                {
+                                    await RecordUsageAsync(new UsageCallRecord(
+                                        project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
+                                        trans.LocaleCode, rawResult.InputTokens, rawResult.OutputTokens, false, true), now, ct);
+                                    llmBudget?.Spent(UsageCapKinds.Llm, rawResult.InputTokens + rawResult.OutputTokens);
+                                    trans.RawMtQpsScore = rawResult.Score;
+                                }
                             }
                             catch (LocalizationAiException ex)
                             {
@@ -568,20 +602,27 @@ public class WorkflowService
                                     await RecordUsageAsync(new UsageCallRecord(
                                         project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
                                         trans.LocaleCode, ex.InputTokens, ex.OutputTokens, false, false), now, ct);
+                                    llmBudget?.Spent(UsageCapKinds.Llm, ex.InputTokens + ex.OutputTokens);
                                 }
                                 failedCount++;
                             }
                         }
                     }
                 }
-                outcome = failedCount == 0
-                    ? $"{scoredCount} strings scored"
-                    : $"{scoredCount} strings scored, {failedCount} failed";
+                outcome = WithSkippedClause(
+                    failedCount == 0
+                        ? $"{scoredCount} strings scored"
+                        : $"{scoredCount} strings scored, {failedCount} failed",
+                    llmBudget, UsageCapKinds.Llm, skipped);
                 break;
             }
 
             case WorkflowActions.AutoRoute:
             {
+                if (!project.AiEnabled)
+                {
+                    throw new LocalizationAiDisabledException(project.Slug);
+                }
                 ThrowIfAiNotConfigured(_autoRoutingService.IsConfigured);
                 int processedCount = 0;
                 int flaggedCount = 0;
@@ -651,6 +692,33 @@ public class WorkflowService
         return _usage is null
             ? Task.CompletedTask
             : _usage.RecordAsync(call, occurredAtUtc, ct);
+    }
+
+    private async Task<UsageBudget?> StartBudgetAsync(int projectId, string capKind, DateTime now, CancellationToken ct)
+    {
+        if (_usage is null)
+        {
+            return null;
+        }
+
+        var budget = await _usage.BeginRunAsync(projectId, now, ct);
+        var limit = budget.Limit(capKind);
+        if (limit is not null && budget.Used(capKind) >= limit.Value)
+        {
+            throw new LocalizationUsageCapReachedException(capKind, budget.Used(capKind), limit.Value);
+        }
+
+        return budget;
+    }
+
+    private static string WithSkippedClause(string outcome, UsageBudget? budget, string capKind, int skipped)
+    {
+        if (skipped <= 0 || budget is null)
+        {
+            return outcome;
+        }
+
+        return $"{outcome}, {skipped} skipped: monthly {capKind} cap reached ({budget.Used(capKind)} of {budget.Limit(capKind)})";
     }
 
     private static void ThrowIfAiNotConfigured(bool configured)

@@ -138,6 +138,358 @@ has NO endpoint-calling infrastructure (no
 `HttpClient` anywhere), so no endpoint test was
 added and none invented.
 
+R1 review resolutions (found already applied in
+the tree when R2 started): the reviewer generated
+`20261112120000...Designer.cs`, added the missing
+`ix_localization_usage_events_workflow_step_id`
+index to the R1 mapping, migration and snapshot,
+and fixed the test to the full
+`Microsoft.Extensions.Options.Options.Create`
+form. Per the R2 rules, no designer is written
+for R2 either.
+
+## R2 — caps, kill switch, Azure Translator
+
+Task 1 — caps and kill-switch model.
+`LocalizationProject.AiEnabled` (`ai_enabled`,
+default true); new `LocalizationUsageCap`
+(`localization_usage_caps`: project FK cascade,
+`kind`, `monthly_limit` bigint, `UpdatedAt`) with
+`UsageCapKinds` constants; `DbSet` plus mapping
+with the unique `(ProjectId, Kind)` index (which
+starts with the FK column, satisfying the FK
+index rule — no extra index needed).
+`20261112130000_AddLocalizationUsageControls`
+adds the column (`defaultValue: true`, as
+`qps_threshold` was) and the table/index; `Down`
+reverses; snapshot updated in both sections. No
+`.Designer.cs` per the track rules. Seed data:
+demo project gets 2M/5M caps in `Seed`, plus
+idempotent `EnsureUsageCaps` called from
+`DbSeeder` right after `Seed`.
+
+Task 2 — caps and kill-switch behaviour.
+`UsageMeteringService.BeginRunAsync` loads caps
+plus per-meter monthly usage (cache hits
+excluded) in two queries and returns an
+in-memory `UsageBudget` (`CanSpend` with the
+known-size rule for MT and the at-or-over rule
+for llm called with 0, `Spent`, `Used`,
+`Limit`). The four provider actions throw
+`LocalizationAiDisabledException` first when
+`AiEnabled` is false; the three calling actions
+take the budget once and throw
+`LocalizationUsageCapReachedException` when the
+cap is already reached; inside the loops a
+failed `CanSpend` skips the string (counted,
+loop continues, no further calls); outcomes gain
+`, {n} skipped: monthly {kind} cap reached
+({used} of {limit})` with end-of-run numbers;
+`Spent` follows every record with the same
+units (0 on cache hits). Both exceptions are new
+in `LocalizationExceptions.cs` with
+project/kind/used/limit details, mapped to 409
+in the run endpoint with the contract titles.
+Null metering service means no budget and no
+caps, as in R1.
+
+Task 3 — controls endpoints and summary caps.
+`UsageEndpoints` gained `GET`/`PUT
+/projects/{slug}/controls` (same admin check;
+unknown project 404): GET returns project slug,
+`AiEnabled` and per-kind limit-or-null plus
+current-month used via `BeginRunAsync`; PUT
+reads the body as `JsonElement` so absent
+fields stay unchanged while explicit null
+removes a cap (non-boolean/non-integer values
+and negative limits are 400), then returns the
+GET shape. `UsageSummaryDto` gained a
+`WhenWritingNull`-omitted `caps` array, present
+only when a project is given, computed for the
+summary's own month. `LocalizationProjectDto`
+gained trailing `AiEnabled` and `Tier` (null in
+this step); both service constructions updated.
+
+Task 4 — Azure Translator replaces Google
+Translate. New `AzureTranslatorOptions`
+(section `AzureTranslator`, default endpoint,
+`Key`, `Region`) and
+`AzureTranslatorProviderService`
+(`ITranslationProvider`): POST
+`{Endpoint}/translate?api-version=3.0&from=&to=`
+with `Ocp-Apim-Subscription-Key` and optional
+region headers, `[{"Text"}]` body, first
+translation's text from the array response;
+locale codes passed through with no mapping
+table; key only ever in a header. No-key and
+failure behaviour mirrors the Google service
+exactly (production throws
+`InvalidOperationException` with an Azure
+message, otherwise warn + `[MOCK-{TARGET}]`
+text). `Program.cs` binds options, client and
+`ITranslationProvider` to Azure; Google
+registrations removed.
+NOT DONE AS WRITTEN: the two Google files could
+not be deleted — file deletion needs a shell
+command, which is forbidden here. Reviewer:
+delete `api/Options/GoogleTranslateOptions.cs`
+and `api/Services/Localization/
+GoogleTranslateProviderService.cs` (nothing
+references either type anymore; verified by
+search). Remaining "google" hits are lesson
+content (untouched), one pricing comment in
+`LocalizationAiOptions`, and Task 5 items.
+`LegacyMtPricePerCharUsd` kept. Owner env vars:
+ADD `AzureTranslator__Key` and
+`AzureTranslator__Region` (optionally
+`AzureTranslator__Endpoint`); REMOVE the Google
+key variable. NOTE FOR THE OWNER: Azure's
+handling of each seeded locale code (`de-DE`,
+`ja-JP`, `zh-CN`, `fr-FR`, `es-ES`) must be
+checked against a real key.
+
+Task 5 — action and provider renames.
+`AutoTranslateViaGoogleMt` became
+`AutoTranslateViaAzureTranslator` with value
+"Auto-Translate via Azure Translator" (all
+three code uses plus the outcome text);
+`ProviderHealthService` special-cases
+"AzureTranslator"; the seeded health row is now
+`AzureTranslator` (local variable renamed to
+match); the R2 migration updates both stored
+strings (table/column names verified in the
+snapshot) and `Down` reverses them. `LlmAzureGpt`
+and every other provider name untouched.
+
+Task 6 — tests. Full-argument constructor calls
+(explicit trailing nulls, still unmetered) in
+the fixture, `LocalizationAiWorkflowTests` and
+`WorkflowServiceTests`; old action strings
+updated in `LocalizationAiWorkflowTests` and
+`UsageMeteringTests`. New `UsageControlsTests`
+(6 facts + 1 theory): disabled project throws
+the named exception on all four provider
+actions; reached MT cap throws with kind/used/
+limit and zero provider calls; part-way MT run
+skips before and after its one real call with
+the exact outcome text and the translation
+kept; crossing llm call completes then stops
+with the exact outcome; high cap matches
+uncapped behaviour for outcomes, events and
+ledger. PUT-controls endpoint behaviours are
+NOT tested: as established in R1, the project
+has no endpoint-calling infrastructure, so per
+the R1 rule none was invented — covered
+instead: cap rows drive budgets, the flag
+drives the kill switch. Item 7 verified:
+`UsageMeteringTests` uses the new action name,
+the R1 no-metering test is untouched and still
+valid, the fixture scorer and fake-handler
+response shapes are unchanged.
+
+## R3 — agreements, jobs by assignment, 1-5 scores
+
+Task 1 — schema. `Vendor` gained required
+unique `Alias`, lost `Rating` and `Bids`,
+`AwardedJobs` became `Jobs`;
+`LocalizationProject` gained required
+`ClientAlias`, `QpsThreshold` defaults to 4,
+and the `LedgerEntries` collection is gone
+(verified: only the mapping referenced it).
+New `ServiceAgreement` (unique `ProjectId`)
+and `TeamAssignment` (unique
+`(AgreementId, LocaleCode)`, restrict vendor
+FK) entities plus `ServiceTiers` (3/6/10).
+`MarketplaceJob` became `TranslationJob` on
+the same table and columns (prices, awarded-at
+and bids dropped; vendor/created renamed in
+C# only; status defaults to `Assigned`);
+`MarketplaceBid` and its `DbSet`/mapping are
+gone; translation score columns kept with the
+two new range checks. `DbSet`s renamed/added
+to match; FK index rule holds (new FKs each
+start an index: the two unique indexes and
+`ix_localization_team_assignments_vendor_id`).
+Migration `20261112140000` follows the
+specified order (nullable add, exact-string
+backfill, alter, alias index, tables, data
+fixes, checks, drops); `Down` reverses the
+schema with an explicit unrestorable-data
+comment, re-adding non-nullable columns with
+`defaultValue: 0m` so it runs on non-empty
+tables. Snapshot updated in all three
+sections; verified free of the removed
+members. No `.Designer.cs` per the track
+rules. `MarketplaceJob.cs`/`MarketplaceBid.cs`
+are emptied pending reviewer deletion (no
+shell to delete); `LedgerEntry`'s
+`RelatedMarketplaceJob` names stay, type
+repointed.
+
+Task 1 (R3) — schema. `Vendor`: required
+unique `Alias`, `Rating`/`Bids` gone,
+`AwardedJobs`→`Jobs`. `LocalizationProject`:
+required `ClientAlias`, `QpsThreshold`
+default 4, `LedgerEntries` collection
+removed (verified: only the mapping
+referenced it). New `ServiceAgreement`
+(unique project) and `TeamAssignment`
+(unique agreement+locale, restrict vendor
+FK) plus `ServiceTiers` (3/6/10).
+`MarketplaceJob`→`TranslationJob` on the
+same table/columns (prices, awarded-at,
+bids dropped; vendor/created renamed in C#
+only; status defaults `Assigned`);
+`MarketplaceBid`/its `DbSet`/mapping gone;
+score range checks on translations.
+`DbSet`s renamed/added; every new FK starts
+an index (unique agreement index, vendor
+index). Migration `20261112140000` in the
+specified order with exact-string backfill
+and data fixes; `Down` restores schema with
+an unrestorable-data comment
+(non-nullable re-adds carry `defaultValue:
+0m` so it runs). Snapshot updated in all
+three sections and verified clean of
+removed members. No designer per track
+rules. Old entity files emptied pending
+reviewer deletion.
+
+Task 2 (R3) — seed data. Vendors keep real
+names with aliases Larch/Osprey/Juniper/
+Heron/Cedar in order (ratings dropped);
+project gets `Client Team Kestrel` plus a
+Gold agreement: de→Maria, ja→Kenji,
+zh→Marcus, fr→Maria, es→Elena at 6 members
+each. Every locale was already covered by
+its team's Languages — no extension needed.
+Jobs kept: de Assigned, fr SubmittedForReview,
+es Approved (vendor ids, no prices, no bids);
+the open ja job and all bids removed.
+Ledger history kept. Five seeded 0-100
+scores nulled (required, though unlisted:
+fresh seeding would otherwise violate the
+new checks, matching the migration's
+treatment). `EnsureUsageCaps` extended with
+`EnsureServiceAgreement`: creates a missing
+Gold agreement with the same five
+assignments and repairs backfilled
+`… {id}` aliases to the real ones.
+
+Task 3 (R3) — services. New
+`TranslationJobService`: per-locale job rows
+incl. live-count NotCreated rows; `CreateJobAsync`
+takes the team from the agreement
+(`NO_TEAM_FOR_LOCALE`/job-exists 409s, counts
+as today, `Assigned`); `ApproveAsync`/
+`SendBackAsync` keep state rules and bulk
+changes minus the ledger (no awarded-bid
+check can exist); agreement read (null when
+none) and create-or-replace save with 400
+validation. `VendorPortalService`
+rewritten: alias roster, vendor jobs
+newest-first, strings/submit on vendor DTOs,
+Assigned first-edit rule, bid methods
+deleted, marketplace dependency removed.
+`WorkflowService`: `CreateTranslationJobs`
+action, `ScoreQuality` with out-of-1..5 =
+failed call (tokens spent, nothing stored),
+both AI ledger writes plus their counters
+removed, `TranslationJobService` injected.
+Project service fills `Tier`; DI swapped;
+the two deleted service files emptied
+pending reviewer deletion. Judgment calls:
+zero-count create still throws (so the
+workflow action skips finished locales
+instead of creating empty jobs), and the
+old `*NotFoundException`/`InvalidJobState`
+names are reused unchanged.
+
+Task 4 (R3) — DTOs and audience separation.
+Client string row trimmed of the four
+score/draft/flag fields; new vendor string
+row (client fields + score, needsReview,
+rawMtText, rawMtScore), client + vendor job
+rows, team + ops-team DTOs, client + ops
+agreement DTOs and shapes, and the save
+request, all with exact contract field
+names. Deleted `MarketplaceBidDto`,
+`MarketplaceJobSummaryDto`, `MarketplaceJobDto`,
+`SubmitBidRequest`, `VendorDto`; updated the
+two string-service constructions (verified:
+no other constructions remain).
+Audience audit, every Localization endpoint:
+CLIENT — projects list/get
+(`LocalizationProjectDto`), strings list/
+update (`LocalizationStringRowDto`), all
+workflow routes (`WorkflowStepDto`/success/
+204), snapshots (`BuildSnapshotDto`), jobs
+list/create/approve/send-back
+(`TranslationJobRowDto`), agreement read
+(`ServiceAgreementDto`); VENDOR — roster
+(`VendorTeamDto`), jobs
+(`VendorJobRowDto`), strings read/update
+(`VendorStringRowDto`), submit
+(`VendorJobRowDto`); OPS — usage, events,
+rates, controls, teams
+(`OpsVendorTeamDto`), agreement read/save
+(`OpsServiceAgreementDto`), provider
+health. CONFIRMED by reading: no client
+DTO carries a vendor real name (only
+aliases), a score, a raw draft or a review
+flag; no vendor DTO carries a project
+name, slug or id (only the client alias).
+
+Task 5 (R3) — endpoints. New `JobEndpoints`
+(jobs list/create/approve/send-back and the
+client agreement read) replaces
+`MarketplaceEndpoints` (file emptied pending
+reviewer deletion; `Program.cs` remapped);
+`VendorPortalEndpoints` rewritten to roster,
+vendor jobs, strings read/update and submit;
+`UsageEndpoints` gained ops teams plus ops
+agreement read/save. Route shapes, `:int`
+constraints, 404 titles and the
+invalid-state 409 mapping all follow the
+existing files; new 409s reuse it, save
+validation is 400. Verified by search: no
+references remain in `api/` to the removed
+routes, bid/award/balance methods or DTOs.
+
+Task 6 (R3) — tests. Deleted
+`MarketplaceServiceTests` (file emptied
+pending reviewer deletion); rewrote
+`VendorPortalServiceTests` to roster, jobs,
+strings and submit (bidding tests gone);
+adapted `WorkflowServiceTests` (create-jobs
+action tests with agreement setup),
+`LocalizationAiWorkflowTests` (in-range
+scores, threshold-4 auto-route, empty
+ledger, renames), `UsageMeteringTests` and
+`UsageControlsTests` (renames, in-range
+fake scores, no-metering score expectation
+now all-failed); fixture `Marketplace()`
+became `Jobs()` with all call sites
+updated. New `TranslationJobServiceTests`
+covers create/team/409s, the full lifecycle
+plus terminal and send-back branches,
+completedPercent (75 on a mixed fixture,
+0 on empty), all four save validations
+plus tier-capacity update, and audience
+separation by serialized JSON keys. Item 6
+verification: exhaustive search finds zero
+references in live code and tests to old
+actions, statuses, providers, prices,
+bids, ratings, `PostedAt`/`AwardedAt` or
+removed DTOs/methods/routes (only frozen
+old-migration histories plus the
+intentional `RelatedMarketplaceJob*` and
+not-found-exception keeps). Item 7 holds:
+fixture scorer and fake-handler shapes
+untouched. Endpoint-handler specifics
+remain untested per the R1 no-endpoint-
+infrastructure rule.
+
 ## R1 — reviewer check (12 Nov 2026)
 
 Run in containers against a real PostgreSQL 16 database. Result: **green after five small fixes made by the reviewer**.
@@ -148,3 +500,23 @@ Run in containers against a real PostgreSQL 16 database. Result: **green after f
 - Tests: `UsageMeteringTests.cs` did not compile (`Options.Create` resolved to the `StudyTracker.Api.Options` namespace); fixed with the full name. Then two failures: an expected list in the wrong order (test), and the summary returning `unitsOut: 0` instead of `null` for the character meter (service: SQL `SUM` is wrapped in `COALESCE`). Both fixed. A nullable warning on `e.Project.Slug` fixed. Now 190 passed, 1 skipped (the existing skip), no warnings.
 - Real stack (database, .NET API, `localization-ai` with fake providers): machine translation recorded 136 events with source characters; MT Optimize twice recorded 272 events, 136 of them cache hits; QPS with the fake judge recorded 136 failed events with their tokens. `GET /ops/usage` is 403 signed out and 200 for a signed-in admin; rate add 201, duplicate 409, unknown meter 400, malformed month 400, unknown project 404; events newest first.
 - Line endings: Muse's LF files are fine; git stores LF and converts on checkout (`core.autocrlf=true`).
+
+## R2-R6 — reviewer check (2026-11-12)
+
+Reviewer-side changes:
+- Deleted the 20 files Muse emptied for deletion (.NET marketplace/credits/Google files, the four old React marketplace pages, eight api-python files).
+- Fixed three C# compile breaks: `AzureTranslatorProviderService` read `_options.ApiKey` (the option is `Key`); `VendorPortalService.GetJobsForVendorAsync` passed a job where `VendorJobRowAsync` takes its id; the test fixture set the removed `Vendor.Rating` (now `Alias = "Test Team"`).
+- `StudyTrackerContext`: the `qps_threshold` default was still 70 in the mapping while the snapshot and migration say 4; the model check failed until it was 4.
+- Designers: `20261112140000_LocalizationAgreementsAndJobs.Designer.cs` generated from the snapshot; `20261112130000_AddLocalizationUsageControls.Designer.cs` carries only the `[DbContext]`/`[Migration]` attributes (its target model would be the snapshot between R2 and R3, which no longer exists as a file; the later designer holds the full model).
+- Two stale C# tests: raw score 55 -> 2 (1-5 rule); the high-cap test now asserts no ledger rows (R3 removed the writes).
+- React: `LocalizationWorkflow.test.jsx` referred to an undefined `Detail`.
+
+Results:
+- .NET: build clean, EF model probe empty, R1-R3 migrations apply to an empty database, tests 202 passed / 1 skipped.
+- React: vitest 81/81, oxlint 0 errors, `vite build` ok.
+- localization-ai: 92 passed / 7 skipped, ruff and mypy clean (`ruff format --check` would reformat 7 files; not checked in earlier rounds).
+- Real stack (.NET + localization-ai with fake providers): client JSON carries no vendor real names and no score fields; vendor JSON carries no project name or slug; job lifecycle Assigned -> InProgress -> SubmittedForReview -> NeedsRevision -> InProgress -> SubmittedForReview -> Approved; kill switch 409 on provider actions and Auto-Route, Mark Translated still runs; MT cap cut a run part-way (22 translated, 72 skipped, 22,526 of 22,527 used); llm cap lets the crossing call finish then skips, next run 409; controls PUT absent/null/negative rules; agreement validation 400s, Platinum save sets member counts to 10, a locale without a team gives NO_TEAM_FOR_LOCALE; Auto-Route flags scores below the threshold of 4; removed marketplace routes 404; provider health shows AzureTranslator. Browser: Jobs, Strings, Workflow and vendor workspace pages checked; the Operations page was not clicked through (pane hidden), its component tests pass.
+- Scoring through the fake model always falls back (no score), as in R1; the 1-5 path is covered by tests only until a real model key is set.
+- api-python: 7 failed / 209 passed, 2 ruff and 3 mypy errors, seeder imports deleted modules -> `info/muse-prompts/corrections/C17-api-python-track-r.md`. Parity run after C17.
+
+Design point for the owner: a translation job covers only strings with no translation yet (as the marketplace did). After "Auto-Translate via Azure Translator" fills a locale, "Create Translation Jobs" skips it, so vendors never see machine output to post-edit.
