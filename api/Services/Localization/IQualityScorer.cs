@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace StudyTracker.Api.Services.Localization;
 
-public sealed record QualityScoreResult(int Score, IReadOnlyList<string> FlaggedIssues);
+public sealed record QualityScoreResult(int Score, IReadOnlyList<string> FlaggedIssues, int InputTokens = 0, int OutputTokens = 0);
 
 public interface IQualityScorer
 {

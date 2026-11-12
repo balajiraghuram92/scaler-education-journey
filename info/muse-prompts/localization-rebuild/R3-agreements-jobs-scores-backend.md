@@ -43,7 +43,7 @@ Entity changes (keep the existing attribute style):
 7. `LocalizationTranslation`: keep the columns `qps_score` and `raw_mt_qps_score`; they now hold 1 to 5. Add two check constraints, `ck_localization_translations_qps_score_range` and `ck_localization_translations_raw_mt_qps_score_range` (null, or between 1 and 5).
 8. A static `ServiceTiers` class: the three names and `MembersFor(tier)` returning 3, 6, 10.
 
-Hand-write migration `20261112140000_LocalizationAgreementsAndJobs` with its designer and the snapshot update. Order inside `Up` matters:
+Hand-write migration `20261112140000_LocalizationAgreementsAndJobs` and the snapshot update. Do not write the `.Designer.cs` (the reviewer generates it). Every new foreign key needs an index that starts with its column, as R2's migration rules say; `TeamAssignment.VendorId` is one. Order inside `Up` matters:
 
 1. Add `alias` and `client_alias` as nullable; backfill with `migrationBuilder.Sql`: `alias = 'Vendor Team ' || id`, `client_alias = 'Client Team ' || id`; then alter both to not null; then create the unique index.
 2. Create the two new tables.

@@ -23,6 +23,10 @@ public class LocalizationAiException : Exception
         : base(message, innerException)
     {
     }
+
+    public int InputTokens { get; set; }
+
+    public int OutputTokens { get; set; }
 }
 
 public sealed record AiGlossaryTermDto(string Source, string Target);
@@ -42,7 +46,9 @@ public sealed record AiQpsScoreResult(
     IReadOnlyList<string> FlaggedIssues,
     int TokensUsed,
     int LatencyMs,
-    bool Fallback);
+    bool Fallback,
+    int InputTokens,
+    int OutputTokens);
 
 public sealed record AiCometScoreResult(
     double? Score,

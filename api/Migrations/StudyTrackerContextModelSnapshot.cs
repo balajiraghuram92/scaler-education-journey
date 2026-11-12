@@ -1706,6 +1706,45 @@ namespace StudyTracker.Api.Migrations
                     b.ToTable("localization_projects", (string)null);
                 });
 
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.LocalizationProviderRate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Meter")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("meter");
+
+                    b.Property<string>("UnitKind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("unit_kind");
+
+                    b.Property<decimal>("UsdPerMillion")
+                        .HasPrecision(12, 6)
+                        .HasColumnType("numeric(12,6)")
+                        .HasColumnName("usd_per_million");
+
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_from");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Meter", "UnitKind", "ValidFrom")
+                        .IsUnique()
+                        .HasDatabaseName("ux_localization_provider_rates_meter_kind_from");
+
+                    b.ToTable("localization_provider_rates", (string)null);
+                });
+
             modelBuilder.Entity("StudyTracker.Api.Models.Localization.LocalizationString", b =>
                 {
                     b.Property<int>("Id")
@@ -1809,6 +1848,79 @@ namespace StudyTracker.Api.Migrations
                         .HasDatabaseName("ix_localization_translations_string_id_locale_code");
 
                     b.ToTable("localization_translations", (string)null);
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.LocalizationUsageEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CacheHit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("cache_hit");
+
+                    b.Property<decimal>("CostUsd")
+                        .HasPrecision(12, 6)
+                        .HasColumnType("numeric(12,6)")
+                        .HasColumnName("cost_usd");
+
+                    b.Property<string>("LocaleCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("locale_code");
+
+                    b.Property<string>("Meter")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("meter");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("operation");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_id");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("boolean")
+                        .HasColumnName("succeeded");
+
+                    b.Property<int>("Units")
+                        .HasColumnType("integer")
+                        .HasColumnName("units");
+
+                    b.Property<int?>("UnitsOut")
+                        .HasColumnType("integer")
+                        .HasColumnName("units_out");
+
+                    b.Property<int?>("WorkflowStepId")
+                        .HasColumnType("integer")
+                        .HasColumnName("workflow_step_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "OccurredAt")
+                        .HasDatabaseName("ix_localization_usage_events_project_occurred");
+
+                    b.HasIndex("Meter", "OccurredAt")
+                        .HasDatabaseName("ix_localization_usage_events_meter_occurred");
+
+                    b.HasIndex("WorkflowStepId")
+                        .HasDatabaseName("ix_localization_usage_events_workflow_step_id");
+
+                    b.ToTable("localization_usage_events", (string)null);
                 });
 
             modelBuilder.Entity("StudyTracker.Api.Models.Localization.MarketplaceBid", b =>
@@ -3541,6 +3653,24 @@ namespace StudyTracker.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("String");
+                });
+
+            modelBuilder.Entity("StudyTracker.Api.Models.Localization.LocalizationUsageEvent", b =>
+                {
+                    b.HasOne("StudyTracker.Api.Models.Localization.LocalizationProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StudyTracker.Api.Models.Localization.WorkflowStep", "WorkflowStep")
+                        .WithMany()
+                        .HasForeignKey("WorkflowStepId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Project");
+
+                    b.Navigation("WorkflowStep");
                 });
 
             modelBuilder.Entity("StudyTracker.Api.Models.Localization.MarketplaceBid", b =>

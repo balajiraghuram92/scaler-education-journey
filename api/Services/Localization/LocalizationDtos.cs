@@ -149,3 +149,86 @@ public sealed record ProviderHealthSnapshotDto(
     string CircuitState,
     DateTime UpdatedAt
 );
+
+public sealed record UsageMeterTotalDto(
+    string Meter,
+    int Calls,
+    int FailedCalls,
+    int CacheHits,
+    int Units,
+    int? UnitsOut,
+    decimal CostUsd
+);
+
+public sealed record UsageOperationTotalDto(
+    string Meter,
+    string Operation,
+    int Calls,
+    int FailedCalls,
+    int CacheHits,
+    int Units,
+    int? UnitsOut,
+    decimal CostUsd
+);
+
+public sealed record UsageLocaleTotalDto(
+    string Meter,
+    string? LocaleCode,
+    int Calls,
+    int Units,
+    int? UnitsOut,
+    decimal CostUsd
+);
+
+public sealed record UsageDayTotalDto(
+    string Date,
+    string Meter,
+    int Units,
+    int? UnitsOut,
+    decimal CostUsd
+);
+
+public sealed record UsageMissingRateDto(
+    string Meter,
+    string UnitKind
+);
+
+public sealed record UsageSummaryDto(
+    string Month,
+    string? ProjectSlug,
+    IReadOnlyList<UsageMeterTotalDto> Meters,
+    IReadOnlyList<UsageOperationTotalDto> ByOperation,
+    IReadOnlyList<UsageLocaleTotalDto> ByLocale,
+    IReadOnlyList<UsageDayTotalDto> ByDay,
+    IReadOnlyList<UsageMissingRateDto> RatesMissing
+);
+
+public sealed record UsageEventDto(
+    int Id,
+    string ProjectSlug,
+    int? WorkflowStepId,
+    string Meter,
+    string Operation,
+    string? LocaleCode,
+    int Units,
+    int? UnitsOut,
+    bool CacheHit,
+    bool Succeeded,
+    decimal CostUsd,
+    DateTime OccurredAt
+);
+
+public sealed record ProviderRateDto(
+    int Id,
+    string Meter,
+    string UnitKind,
+    decimal UsdPerMillion,
+    DateTime ValidFrom
+);
+
+public sealed record AddProviderRateRequest(
+    string? Meter,
+    string? UnitKind,
+    decimal? UsdPerMillion,
+    DateTime? ValidFrom
+);

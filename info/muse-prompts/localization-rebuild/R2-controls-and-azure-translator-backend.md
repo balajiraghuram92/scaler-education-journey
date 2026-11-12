@@ -30,7 +30,12 @@ Line numbers below are from before R1 and will have moved. Find code by the name
 
 1. `LocalizationProject`: add `AiEnabled` (`ai_enabled`, bool, not null). C# default `true`.
 2. New entity `LocalizationUsageCap`, table `localization_usage_caps`: `Id`; `ProjectId` (FK, cascade); `Kind` (varchar(30), required: `"machine-translation"` or `"llm"`); `MonthlyLimit` (`monthly_limit`, bigint); `UpdatedAt`. Unique index `ux_localization_usage_caps_project_kind` on `(ProjectId, Kind)`. Constants in a `UsageCapKinds` class beside the R1 constants.
-3. Hand-write migration `20261112130000_AddLocalizationUsageControls` with its designer and the snapshot update. `Up` adds the column with `defaultValue: true` for existing rows (as the `qps_threshold` column was added in `20261111140209_AddLocalizationAiLayer`), creates the table and index. `Down` reverses it.
+3. Hand-write migration `20261112130000_AddLocalizationUsageControls` and the snapshot update (no designer; see the rules below). `Up` adds the column with `defaultValue: true` for existing rows (as the `qps_threshold` column was added in `20261111140209_AddLocalizationAiLayer`), creates the table and index. `Down` reverses it.
+
+   Migration rules from the R1 review (they apply to every migration in this track):
+   - **Do not write the `.Designer.cs` file.** Write the migration `.cs` and update `StudyTrackerContextModelSnapshot.cs`; the reviewer generates the designer from the snapshot with a script.
+   - **Every foreign key needs an index whose first column is the key column.** EF creates one automatically for each FK unless such an index already exists. R1 missed one (`workflow_step_id`), so the model check failed. For each FK you add, either name an index in the mapping (`ix_<table>_<column>`) and put it in the migration and the snapshot, or point to the existing index that already starts with that column.
+   - In tests, write `Microsoft.Extensions.Options.Options.Create(...)` in full: `using StudyTracker.Api.Options;` makes the short form resolve to that namespace and the file does not compile.
 4. `LocalizationSeedData`: the demo project gets caps of 2,000,000 machine-translation characters and 5,000,000 llm tokens. The seeder only runs on an empty localization dataset; add a separate idempotent "ensure" step, called from the same place the seeder is called, that inserts the two cap rows for the demo project when they are missing, so an existing database gets them too.
 
 ## Task 2 — caps and the kill switch: behaviour

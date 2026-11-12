@@ -68,6 +68,8 @@ public class StudyTrackerContext : DbContext
     public DbSet<EvalGoldenCase> LocalizationEvalGoldenCases { get; set; } = null!;
     public DbSet<EvalRun> LocalizationEvalRuns { get; set; } = null!;
     public DbSet<EvalCaseResult> LocalizationEvalCaseResults { get; set; } = null!;
+    public DbSet<LocalizationUsageEvent> LocalizationUsageEvents { get; set; } = null!;
+    public DbSet<LocalizationProviderRate> LocalizationProviderRates { get; set; } = null!;
 
     // MCQ Dynamic Architecture DbSets
     public DbSet<McqQuestion> McqQuestions { get; set; } = null!;
@@ -764,6 +766,39 @@ public class StudyTrackerContext : DbContext
                 .WithMany()
                 .HasForeignKey(l => l.RelatedMarketplaceJobId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<LocalizationUsageEvent>(entity =>
+        {
+            entity.ToTable("localization_usage_events");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.ProjectId, e.OccurredAt })
+                .HasDatabaseName("ix_localization_usage_events_project_occurred");
+            entity.HasIndex(e => new { e.Meter, e.OccurredAt })
+                .HasDatabaseName("ix_localization_usage_events_meter_occurred");
+            entity.HasIndex(e => e.WorkflowStepId)
+                .HasDatabaseName("ix_localization_usage_events_workflow_step_id");
+            entity.Property(e => e.CostUsd)
+                .HasPrecision(12, 6);
+            entity.HasOne(e => e.Project)
+                .WithMany()
+                .HasForeignKey(e => e.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.WorkflowStep)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowStepId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<LocalizationProviderRate>(entity =>
+        {
+            entity.ToTable("localization_provider_rates");
+            entity.HasKey(r => r.Id);
+            entity.HasIndex(r => new { r.Meter, r.UnitKind, r.ValidFrom })
+                .IsUnique()
+                .HasDatabaseName("ux_localization_provider_rates_meter_kind_from");
+            entity.Property(r => r.UsdPerMillion)
+                .HasPrecision(12, 6);
         });
 
         modelBuilder.Entity<ProviderHealthSnapshot>(entity =>

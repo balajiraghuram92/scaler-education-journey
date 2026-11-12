@@ -35,9 +35,13 @@ public class QpsScoringService : IQualityScorer
 
         if (response.Score is null)
         {
-            throw new LocalizationAiException("The QPS judge fell back without producing a score.");
+            throw new LocalizationAiException("The QPS judge fell back without producing a score.")
+            {
+                InputTokens = response.InputTokens,
+                OutputTokens = response.OutputTokens
+            };
         }
 
-        return new QualityScoreResult(response.Score.Value, response.FlaggedIssues);
+        return new QualityScoreResult(response.Score.Value, response.FlaggedIssues, response.InputTokens, response.OutputTokens);
     }
 }

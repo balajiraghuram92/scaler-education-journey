@@ -54,6 +54,7 @@ public class WorkflowService
     private readonly AutoRoutingService _autoRoutingService;
     private readonly MarketplaceService _marketplaceService;
     private readonly LocalizationAiOptions? _aiOptions;
+    private readonly UsageMeteringService? _usage;
 
     public WorkflowService(
         StudyTrackerContext db,
@@ -62,7 +63,8 @@ public class WorkflowService
         IQualityScorer qualityScorer,
         AutoRoutingService autoRoutingService,
         MarketplaceService marketplaceService,
-        IOptions<LocalizationAiOptions>? aiOptions = null)
+        IOptions<LocalizationAiOptions>? aiOptions = null,
+        UsageMeteringService? usage = null)
     {
         _db = db;
         _translationProvider = translationProvider;
@@ -71,6 +73,7 @@ public class WorkflowService
         _autoRoutingService = autoRoutingService;
         _marketplaceService = marketplaceService;
         _aiOptions = aiOptions?.Value;
+        _usage = usage;
     }
 
     public async Task<IReadOnlyList<WorkflowStepDto>> GetStepsAsync(string projectSlug, CancellationToken ct = default)
@@ -353,6 +356,9 @@ public class WorkflowService
                                 locale.LocaleCode,
                                 ct
                             );
+                            await RecordUsageAsync(new UsageCallRecord(
+                                project.Id, step.Id, UsageMeters.MachineTranslation, UsageOperations.MtDraft,
+                                locale.LocaleCode, str.SourceText.Length, null, false, true), now, ct);
                             var newTrans = new LocalizationTranslation
                             {
                                 StringId = str.Id,
@@ -375,6 +381,9 @@ public class WorkflowService
                                 locale.LocaleCode,
                                 ct
                             );
+                            await RecordUsageAsync(new UsageCallRecord(
+                                project.Id, step.Id, UsageMeters.MachineTranslation, UsageOperations.MtDraft,
+                                locale.LocaleCode, str.SourceText.Length, null, false, true), now, ct);
                             trans.TargetText = translatedText;
                             trans.RawMtText = translatedText;
                             trans.Stage = "Translated";
@@ -461,6 +470,9 @@ public class WorkflowService
                                 trans.LocaleCode,
                                 terms,
                                 ct);
+                            await RecordUsageAsync(new UsageCallRecord(
+                                project.Id, step.Id, UsageMeters.LlmOptimize, UsageOperations.MtOptimize,
+                                trans.LocaleCode, result.InputTokens, result.OutputTokens, result.CacheHit, true), now, ct);
                             trans.TargetText = result.OptimizedTranslation;
                             trans.UpdatedAt = now;
                             optimizedCount++;
@@ -515,12 +527,21 @@ public class WorkflowService
                                 trans.TargetText ?? string.Empty,
                                 trans.LocaleCode,
                                 ct);
+                            await RecordUsageAsync(new UsageCallRecord(
+                                project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
+                                trans.LocaleCode, result.InputTokens, result.OutputTokens, false, true), now, ct);
                             trans.QpsScore = result.Score;
                             trans.UpdatedAt = now;
                             scoredCount++;
                         }
-                        catch (LocalizationAiException)
+                        catch (LocalizationAiException ex)
                         {
+                            if (ex.InputTokens + ex.OutputTokens > 0)
+                            {
+                                await RecordUsageAsync(new UsageCallRecord(
+                                    project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
+                                    trans.LocaleCode, ex.InputTokens, ex.OutputTokens, false, false), now, ct);
+                            }
                             failedCount++;
                             continue;
                         }
@@ -535,10 +556,19 @@ public class WorkflowService
                                     rawMt,
                                     trans.LocaleCode,
                                     ct);
+                                await RecordUsageAsync(new UsageCallRecord(
+                                    project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
+                                    trans.LocaleCode, rawResult.InputTokens, rawResult.OutputTokens, false, true), now, ct);
                                 trans.RawMtQpsScore = rawResult.Score;
                             }
-                            catch (LocalizationAiException)
+                            catch (LocalizationAiException ex)
                             {
+                                if (ex.InputTokens + ex.OutputTokens > 0)
+                                {
+                                    await RecordUsageAsync(new UsageCallRecord(
+                                        project.Id, step.Id, UsageMeters.LlmScore, UsageOperations.QpsScore,
+                                        trans.LocaleCode, ex.InputTokens, ex.OutputTokens, false, false), now, ct);
+                                }
                                 failedCount++;
                             }
                         }
@@ -616,6 +646,13 @@ public class WorkflowService
     /// configured, so the step surfaces HTTP 501 regardless of the data.
     /// Call before any loop and before any database write.
     /// </summary>
+    private Task RecordUsageAsync(UsageCallRecord call, DateTime occurredAtUtc, CancellationToken ct)
+    {
+        return _usage is null
+            ? Task.CompletedTask
+            : _usage.RecordAsync(call, occurredAtUtc, ct);
+    }
+
     private static void ThrowIfAiNotConfigured(bool configured)
     {
         if (!configured)

@@ -11,6 +11,7 @@ using StudyTracker.Api.Data;
 using StudyTracker.Api.Models;
 using StudyTracker.Api.Services;
 using StudyTracker.Api.Services.Email;
+using static StudyTracker.Api.Endpoints.AdminAuthorization;
 
 namespace StudyTracker.Api.Endpoints;
 
@@ -41,26 +42,6 @@ public static class AdminEndpoints
 
         usageGroup.MapGet("/by-user", GetUsageByUserAsync)
             .WithName("AdminGetUsageByUser");
-    }
-
-    private static async Task<AppUser?> LoadApprovedAdminAsync(
-        HttpContext httpContext,
-        StudyTrackerContext db,
-        CancellationToken ct)
-    {
-        var sub = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrWhiteSpace(sub) || !int.TryParse(sub, out var adminId))
-        {
-            return null;
-        }
-
-        var admin = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == adminId, ct);
-        if (admin == null || admin.Role != "Admin" || admin.Status != "Approved")
-        {
-            return null;
-        }
-
-        return admin;
     }
 
     private static async Task<IResult> GetAllUsersAsync(

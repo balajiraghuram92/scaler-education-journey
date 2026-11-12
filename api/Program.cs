@@ -151,6 +151,7 @@ builder.Services.AddScoped<SnapshotService>();
 builder.Services.AddScoped<MarketplaceService>();
 builder.Services.AddScoped<VendorPortalService>();
 builder.Services.AddScoped<ProviderHealthService>();
+builder.Services.AddScoped<UsageMeteringService>();
 
 // JWT Bearer Authentication & Admin Policy
 var jwtSecret = builder.Configuration["Auth:JwtSigningKey"];
@@ -1640,6 +1641,7 @@ app.MapLocalizationEndpoints();
 app.MapMarketplaceEndpoints();
 app.MapVendorPortalEndpoints();
 app.MapProviderHealthEndpoints();
+app.MapUsageEndpoints();
 app.MapAuthEndpoints();
 app.MapMeEndpoints();
 app.MapAdminEndpoints();
