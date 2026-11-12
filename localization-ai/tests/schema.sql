@@ -7,9 +7,9 @@ CREATE TABLE localization_projects (
     id SERIAL PRIMARY KEY,
     slug VARCHAR(150) NOT NULL UNIQUE,
     name VARCHAR(250) NOT NULL,
-    source_locale VARCHAR(20) NOT NULL DEFAULT 'en-US',
+    source_locale VARCHAR(20) NOT NULL,
     qps_threshold INTEGER NOT NULL DEFAULT 70,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE localization_glossary_terms (
@@ -35,7 +35,7 @@ CREATE TABLE localization_eval_runs (
     id SERIAL PRIMARY KEY,
     project_id INTEGER NOT NULL REFERENCES localization_projects (id) ON DELETE CASCADE,
     pipeline_config VARCHAR(50) NOT NULL,
-    run_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    run_at TIMESTAMPTZ NOT NULL,
     avg_comet_kiwi NUMERIC(5, 4) NULL,
     avg_qps_score NUMERIC(5, 2) NULL,
     glossary_adherence_rate NUMERIC(5, 4) NULL,
@@ -66,7 +66,7 @@ CREATE TABLE localization_translation_cache_entries (
     source_text TEXT NOT NULL,
     source_embedding vector(384) NULL,
     cached_translation TEXT NOT NULL,
-    hit_count INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    hit_count INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
     last_hit_at TIMESTAMPTZ NULL
 );

@@ -1,0 +1,22 @@
+81 passed, 7 skipped, 1 warning in 9.64s
+All checks passed!
+## mypy
+Success: no issues found in 28 source files
+localization-ai image built
+api /health/live 200
+{"status":"ok"}
+la-svc Up 6 seconds (healthy)
+par-net Up About a minute
+par-db Up 2 minutes
+Auto-Translate via Google MT -> 136 strings translated via Google MT
+Run MT Optimize -> 136 strings optimized
+Run MT Optimize -> 136 strings optimized
+Score QPS -> 0 strings scored, 136 failed
+Auto-Route -> 0 strings processed, 0 flagged for review
+cache rows|136|hits|136
+AI|tokens|0
+AI|tokens|75102
+AI|characters|23895
+0
+
+[exited with code 0]

@@ -75,7 +75,9 @@ class ScriptedEmbeddings:
 def _conn_id(conninfo: str, slug: str = "c") -> int:
     with psycopg.connect(conninfo) as conn:
         cur = conn.execute(
-            "INSERT INTO localization_projects (slug, name) VALUES (%s, 'C') RETURNING id", (slug,)
+            "INSERT INTO localization_projects (slug, name, source_locale, created_at)"
+            " VALUES (%s, 'C', 'en-US', now()) RETURNING id",
+            (slug,),
         )
         row = cur.fetchone()
         assert row is not None

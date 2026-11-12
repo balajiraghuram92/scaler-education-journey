@@ -716,3 +716,21 @@ true duplicates. No tuning done. New DB
 `tests/test_hybrid_search.py`: a chunk sharing
 most query words is returned, one sharing none
 is not (seeded rows removed afterwards).
+
+## C16
+
+Nothing run this round (no shell); nothing here is
+claimed to pass.
+
+The one task — `app/search/hybrid.py:31` E501
+(111 > 100). Split the over-limit string literal
+in `_fulltext` into two adjacent literals at the
+comma after `tsv` (`" ORDER BY ts_rank(tsv," /
+" replace(plainto_tsquery('english',
+:q)::text, '&', '|')::tsquery) DESC"`); the
+concatenated SQL text is character-for-character
+the same, including the space before `replace`.
+The other `replace(...)` line in the same
+function (`WHERE tsv @@ ...`, 96 characters) is
+within the limit and left unchanged. Nothing
+else changed.

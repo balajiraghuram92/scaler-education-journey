@@ -155,8 +155,8 @@ def seeded_project_id(fresh_db):
 
     with psycopg.connect(fresh_db) as conn:
         cur = conn.execute(
-            "INSERT INTO localization_projects (slug, name, source_locale, qps_threshold)"
-            " VALUES ('test-proj', 'Test Project', 'en-US', 70) RETURNING id"
+            "INSERT INTO localization_projects (slug, name, source_locale, qps_threshold, created_at)"
+            " VALUES ('test-proj', 'Test Project', 'en-US', 70, now()) RETURNING id"
         )
         row = cur.fetchone()
         assert row is not None

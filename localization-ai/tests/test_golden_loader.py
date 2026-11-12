@@ -61,7 +61,10 @@ def test_shipped_golden_set_shape():
 
 def _project_id(conninfo: str) -> int:
     with psycopg.connect(conninfo) as conn:
-        cur = conn.execute("INSERT INTO localization_projects (slug, name) VALUES ('p', 'P') RETURNING id")
+        cur = conn.execute(
+            "INSERT INTO localization_projects (slug, name, source_locale, created_at)"
+            " VALUES ('p', 'P', 'en-US', now()) RETURNING id"
+        )
         row = cur.fetchone()
         assert row is not None
         conn.commit()

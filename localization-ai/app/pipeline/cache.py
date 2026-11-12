@@ -118,8 +118,8 @@ async def translate_with_cache(
     produced = await producer()
     await conn.execute(
         "INSERT INTO localization_translation_cache_entries"
-        " (project_id, locale_code, source_text, source_embedding, cached_translation)"
-        " VALUES (%s, %s, %s, %s::vector, %s)",
+        " (project_id, locale_code, source_text, source_embedding, cached_translation, hit_count, created_at)"
+        " VALUES (%s, %s, %s, %s::vector, %s, 0, now())",
         (project_id, locale_code, source_text, literal, produced.translation),
     )
     return CachedOutcome(

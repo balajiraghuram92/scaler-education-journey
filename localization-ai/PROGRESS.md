@@ -359,3 +359,69 @@ Task 3 — latency assertions in `tests/test_runner_configs.py`. Done.
     provider's own field passed through by `cache.py`.
   - Already `>=` (no change needed): `tests/test_mt_optimize.py:64`,
     `tests/test_providers.py:93`, `tests/test_api_pipeline.py:121`.
+
+## C15 — first run beside the real .NET API and database
+
+No commands were run in this round (not permitted); the reviewer re-runs
+`pytest`. Task 2 is report-only (no behavior change).
+
+Task 1 — cache insert vs real column defaults. Done.
+- `app/pipeline/cache.py`, `translate_with_cache` store step: the INSERT now
+  lists `hit_count` and `created_at` with the values `0` and `now()`. Nothing
+  else in the function changed.
+- `tests/schema.sql`: removed every column DEFAULT the EF snapshot does not
+  have, so the test schema matches the real one. Authority:
+  `api/Migrations/StudyTrackerContextModelSnapshot.cs` (read only) — a column
+  has a database default only with `HasDefaultValue`/`HasDefaultValueSql`.
+  The snapshot's only localization default is
+  `localization_projects.qps_threshold` (`HasDefaultValue(70)`); the two
+  `HasDefaultValueSql("now()")` hits are the non-localization `Tasks` and
+  `Verticals` tables.
+- Step 3 list (each DEFAULT removed, and the INSERT coverage):
+  - `localization_projects.source_locale DEFAULT 'en-US'` — REMOVED; the
+    snapshot has no default. No `app/` INSERT targets this table; the five
+    test project INSERTs now supply `source_locale` explicitly.
+  - `localization_projects.created_at DEFAULT now()` — REMOVED; the snapshot
+    has no default. Same: no `app/` INSERT; tests now supply `created_at`
+    via `now()`.
+  - `localization_projects.qps_threshold DEFAULT 70` — KEPT; the snapshot
+    has `HasDefaultValue(70)`. Matches the real table.
+  - `localization_eval_runs.run_at DEFAULT now()` — REMOVED; the snapshot
+    (`EvalRun.RunAt`) has no default. `app/evals/runner.py` already supplies
+    `run_at` via `now()`; the `test_report.py` raw-SQL INSERT now does too.
+  - `localization_translation_cache_entries.hit_count DEFAULT 0` — REMOVED;
+    the snapshot has no default. The fixed `cache.py` INSERT now supplies 0.
+  - `localization_translation_cache_entries.created_at DEFAULT now()` —
+    REMOVED; the snapshot has no default. The fixed `cache.py` INSERT now
+    supplies `now()`.
+  - `localization_glossary_terms`, `localization_eval_golden_cases`,
+    `localization_eval_case_results`: no DEFAULTs in either schema; match.
+- Reviewer cross-check confirmed from the snapshot: the golden-case INSERT
+  (`app/evals/golden_loader.py`) supplies every required column (project_id,
+  locale_code, source_text, gold_translation, category, plus notes); the
+  eval-run INSERT (`app/evals/runner.py`) supplies project_id,
+  pipeline_config, run_at plus the nullable metrics; the case-result INSERT
+  supplies eval_run_id, eval_golden_case_id, produced_translation plus the
+  nullable metrics. Only the cache INSERT was missing required columns.
+- Step 4 test INSERT fixes (raw SQL now supplies the de-defaulted columns):
+  `tests/conftest.py` (seeded project gains `created_at`), `tests/test_cache.py`
+  (`_conn_id` gains source_locale/created_at), `tests/test_golden_loader.py`
+  (`_project_id` gains source_locale/created_at), `tests/test_report.py`
+  (project gains source_locale/created_at; eval-runs INSERT gains `run_at`),
+  `tests/test_runner.py` (empty project gains source_locale/created_at).
+
+Task 2 — how pipeline DB failures reach the client. Done (report only; no code changed).
+- Finding: a database error anywhere in the pipeline is left to the default
+  handler — no pipeline endpoint turns one into a JSON error body of its own.
+- `app/routers/pipeline.py`: `/translate-and-optimize` maps only the unknown
+  project slug to 404; the `fetch_project` / `translate_with_cache` / `commit`
+  block has no try/except, so a psycopg error propagates. The other three
+  endpoints (`/qps-score`, `/comet-score`, `/auto-route`) touch no database at
+  all (chat provider / scorer / pure function), so the router has no
+  established DB-error reporting pattern to follow. For comparison,
+  `/run-eval` (`app/routers/eval.py`) catches only domain errors
+  (UnknownProject→404, UnknownPipeline→400, EmptyGoldenSet→409); DB errors
+  there propagate too.
+- `app/main.py` registers no exception handlers, so the propagated error gets
+  the framework default: bare 500 with nothing actionable for the .NET client
+  to log (diagnostics go to the service log only).

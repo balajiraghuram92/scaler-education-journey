@@ -96,7 +96,10 @@ def test_run_eval_unknown_pipeline_lists_available(seeded_project_id):
 
 def test_run_eval_empty_golden_set(fresh_db):
     with psycopg.connect(fresh_db) as conn:
-        conn.execute("INSERT INTO localization_projects (slug, name) VALUES ('empty', 'Empty')")
+        conn.execute(
+            "INSERT INTO localization_projects (slug, name, source_locale, created_at)"
+            " VALUES ('empty', 'Empty', 'en-US', now())"
+        )
         conn.commit()
 
     async def go():

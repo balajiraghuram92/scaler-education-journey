@@ -33,13 +33,17 @@ def test_format_table_renders_rows_and_n_a():
 
 def test_fetch_runs_keeps_latest_per_config(fresh_db):
     with psycopg.connect(fresh_db) as conn:
-        cur = conn.execute("INSERT INTO localization_projects (slug, name) VALUES ('r', 'R') RETURNING id")
+        cur = conn.execute(
+            "INSERT INTO localization_projects (slug, name, source_locale, created_at)"
+            " VALUES ('r', 'R', 'en-US', now()) RETURNING id"
+        )
         row = cur.fetchone()
         assert row is not None
         pid = row[0]
         conn.execute(
-            "INSERT INTO localization_eval_runs (project_id, pipeline_config, avg_qps_score)"
-            " VALUES (%s, 'legacy-only', 10), (%s, 'legacy+optimize', 50), (%s, 'legacy-only', 20)",
+            "INSERT INTO localization_eval_runs (project_id, pipeline_config, run_at, avg_qps_score)"
+            " VALUES (%s, 'legacy-only', now(), 10), (%s, 'legacy+optimize', now(), 50),"
+            " (%s, 'legacy-only', now(), 20)",
             (pid, pid, pid),
         )
         conn.commit()

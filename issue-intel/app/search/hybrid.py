@@ -28,7 +28,8 @@ async def _fulltext(session: AsyncSession, query: str) -> list[tuple[int, str, s
             text(
                 "SELECT id, owner_type, owner_key, text FROM chunks"
                 " WHERE tsv @@ replace(plainto_tsquery('english', :q)::text, '&', '|')::tsquery"
-                " ORDER BY ts_rank(tsv, replace(plainto_tsquery('english', :q)::text, '&', '|')::tsquery) DESC"
+                " ORDER BY ts_rank(tsv,"
+                " replace(plainto_tsquery('english', :q)::text, '&', '|')::tsquery) DESC"
                 " LIMIT :lim"
             ),
             {"q": query, "lim": CANDIDATE_LIMIT},
