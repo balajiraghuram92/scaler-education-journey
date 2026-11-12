@@ -243,22 +243,37 @@ public static class AdminEndpoints
             return Problem(httpContext, StatusCodes.Status403Forbidden, "Forbidden", "Administrative privileges required.");
         }
 
-        var userUsage = await db.ChatMessages
+        // Project to an anonymous type first: EF Core cannot translate an ORDER BY
+        // on a property of a record built through its constructor.
+        var rows = await db.ChatMessages
             .AsNoTracking()
             .Where(m => m.Role == "assistant" && m.Conversation != null)
             .GroupBy(m => new { m.Conversation!.UserId, m.Conversation.User!.Email, m.Conversation.User.DisplayName })
-            .Select(g => new UserUsageDto(
+            .Select(g => new
+            {
                 g.Key.UserId,
                 g.Key.Email,
                 g.Key.DisplayName,
-                g.Count(),
-                decimal.Round(g.Sum(m => m.EstimatedCostUsd ?? 0m), 6),
-                g.Sum(m => m.PromptTokens ?? 0),
-                g.Sum(m => m.CompletionTokens ?? 0),
-                g.Max(m => (DateTime?)m.CreatedAt)
-            ))
+                TotalRequests = g.Count(),
+                TotalCostUsd = decimal.Round(g.Sum(m => m.EstimatedCostUsd ?? 0m), 6),
+                TotalPromptTokens = g.Sum(m => m.PromptTokens ?? 0),
+                TotalCompletionTokens = g.Sum(m => m.CompletionTokens ?? 0),
+                LastRequestAt = g.Max(m => (DateTime?)m.CreatedAt)
+            })
             .OrderByDescending(u => u.TotalCostUsd)
             .ToListAsync(ct);
+
+        var userUsage = rows
+            .Select(u => new UserUsageDto(
+                u.UserId,
+                u.Email,
+                u.DisplayName,
+                u.TotalRequests,
+                u.TotalCostUsd,
+                u.TotalPromptTokens,
+                u.TotalCompletionTokens,
+                u.LastRequestAt))
+            .ToList();
 
         return Results.Ok(userUsage);
     }
