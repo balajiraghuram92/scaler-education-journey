@@ -4,7 +4,7 @@
   "description": "Build AI agents on AWS with Strands, Amazon Bedrock and AgentCore, from a first agent to a team running in production, plus live finance and travel projects.",
   "verticalName": "AI Engineering",
   "verticalDescription": "Applied AI engineering: LLM apps, RAG, agents on AWS, evaluation and shipping AI systems to production.",
-  "orderIndex": 4,
+  "orderIndex": 8,
   "modules": [
     {
       "slug": "bootcamp-overview",

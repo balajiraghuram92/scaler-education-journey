@@ -4,7 +4,7 @@
   "description": "Senior-level Python for AI Engineering and Forward Deployed Engineering interviews: the object model, concurrency, idioms, design patterns, machine coding, CPython internals, async FastAPI services, testing and code quality, and production AI applications.",
   "verticalName": "Python Engineering",
   "verticalDescription": "Python mastery for AI Engineering and FDE roles: language internals, design, async services, and production AI applications.",
-  "orderIndex": 2,
+  "orderIndex": 6,
   "modules": [
     {
       "slug": "python-object-model-concurrency",

@@ -4,7 +4,7 @@
   "description": "Ten lessons from your first API call to designing, evaluating and building a production-shaped AI system: prompting, LangChain, RAG, Docker, agents on AWS, multi-agent systems and evaluation benches.",
   "verticalName": "AI Engineering",
   "verticalDescription": "Applied AI engineering: LLM apps, RAG, agents on AWS, evaluation and shipping AI systems to production.",
-  "orderIndex": 3,
+  "orderIndex": 7,
   "modules": [
     {
       "slug": "ai-infusion-start-here",
