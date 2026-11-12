@@ -42,9 +42,10 @@ from .routers import (
     verticals,
 )
 from .routers.localization import (
+    job_endpoints,
     localization_endpoints,
-    marketplace_endpoints,
     provider_health_endpoints,
+    usage_endpoints,
     vendor_portal_endpoints,
 )
 from .schemas.base import format_dotnet_datetime
@@ -216,9 +217,10 @@ def create_app() -> FastAPI:
     app.include_router(import_endpoints.router)
     app.include_router(exercise_endpoints.router)
     app.include_router(localization_endpoints.router)
-    app.include_router(marketplace_endpoints.router)
+    app.include_router(job_endpoints.router)
     app.include_router(vendor_portal_endpoints.router)
     app.include_router(provider_health_endpoints.router)
+    app.include_router(usage_endpoints.router)
     app.include_router(auth_endpoints.router)
     app.include_router(me_endpoints.router)
     app.include_router(admin_endpoints.router)

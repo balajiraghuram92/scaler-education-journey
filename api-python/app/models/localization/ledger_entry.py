@@ -13,7 +13,7 @@ from ..base import Base
 
 if TYPE_CHECKING:
     from .localization_project import LocalizationProject
-    from .marketplace_job import MarketplaceJob
+    from .translation_job import TranslationJob
 
 
 class LedgerEntry(Base):
@@ -39,9 +39,10 @@ class LedgerEntry(Base):
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
+    # One-sided: R3 removed the LedgerEntries collection from the project.
     project: Mapped[LocalizationProject | None] = relationship(
-        "LocalizationProject", back_populates="ledger_entries", lazy="raise"
+        "LocalizationProject", lazy="raise"
     )
-    related_marketplace_job: Mapped[MarketplaceJob | None] = relationship(
-        "MarketplaceJob", lazy="raise"
+    related_marketplace_job: Mapped[TranslationJob | None] = relationship(
+        "TranslationJob", lazy="raise"
     )

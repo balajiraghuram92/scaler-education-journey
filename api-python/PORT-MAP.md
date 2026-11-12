@@ -18,7 +18,7 @@ ported row below is `done (unverified)`, not `done`.
 | api/Options/BudgetOptions.cs | api-python/app/settings.py (BudgetSettings) | done (unverified) | Used by P5 |
 | api/Options/EmailOptions.cs | api-python/app/settings.py (EmailSettings) | done (unverified) | Used by P2 |
 | api/Options/ExerciseExecutionOptions.cs | api-python/app/settings.py (ExerciseExecutionSettings) | done (unverified) | Used by P4 |
-| api/Options/GoogleTranslateOptions.cs | api-python/app/settings.py (GoogleTranslateSettings) | done (unverified) | Used by P6 |
+| api/Options/AzureTranslatorOptions.cs | api-python/app/settings.py (AzureTranslatorSettings) | done (unverified) | R6: replaces GoogleTranslateOptions; used by P6 |
 | api/Options/JwtOptions.cs | api-python/app/settings.py (JwtSettings) | done (unverified) | Legacy aliases |
 | api/Options/LlamaApiOptions.cs | api-python/app/settings.py (LlamaApiSettings) | done (unverified) | Used by P5 |
 | api/Options/SmtpOptions.cs | api-python/app/settings.py (SmtpSettings) | done (unverified) | Used by P2; User/Pass aliases handled |
@@ -85,14 +85,20 @@ ported row below is `done (unverified)`, not `done`.
 | api/Models/Localization/GlossaryTerm.cs | api-python/app/models/localization/glossary_term.py | done (unverified) | No migration for this table yet (Finding 2) |
 | api/Models/Localization/LedgerEntry.cs | api-python/app/models/localization/ledger_entry.py | done (unverified) | |
 | api/Models/Localization/LocalizationLocale.cs | api-python/app/models/localization/localization_locale.py | done (unverified) | |
-| api/Models/Localization/LocalizationProject.cs | api-python/app/models/localization/localization_project.py | done (unverified) | |
+| api/Models/Localization/LocalizationProject.cs | api-python/app/models/localization/localization_project.py | done (unverified) | R6: +ai_enabled, +client_alias, qps_threshold 4, translation_jobs |
+| api/Models/Localization/LocalizationProviderRate.cs | api-python/app/models/localization/localization_provider_rate.py | done (unverified) | R6: unique meter/kind/from index |
 | api/Models/Localization/LocalizationString.cs | api-python/app/models/localization/localization_string.py | done (unverified) | |
-| api/Models/Localization/LocalizationTranslation.cs | api-python/app/models/localization/localization_translation.py | done (unverified) | 3 columns ahead of migrations (Finding 3) |
-| api/Models/Localization/MarketplaceBid.cs | api-python/app/models/localization/marketplace_bid.py | done (unverified) | |
-| api/Models/Localization/MarketplaceJob.cs | api-python/app/models/localization/marketplace_job.py | done (unverified) | |
+| api/Models/Localization/LocalizationTranslation.cs | api-python/app/models/localization/localization_translation.py | done (unverified) | R6: two 1-5 range checks |
+| api/Models/Localization/LocalizationUsageCap.cs | api-python/app/models/localization/localization_usage_cap.py | done (unverified) | R6: bigint limit, unique project/kind index |
+| api/Models/Localization/LocalizationUsageEvent.cs | api-python/app/models/localization/localization_usage_event.py | done (unverified) | R6: 13 columns, 3 indexes, one-sided navs |
 | api/Models/Localization/ProviderHealthSnapshot.cs | api-python/app/models/localization/provider_health_snapshot.py | done (unverified) | |
+| api/Models/Localization/ServiceAgreement.cs | api-python/app/models/localization/service_agreement.py | done (unverified) | R6: unique project index |
+| api/Models/Localization/ServiceTiers.cs | api-python/app/models/localization/service_tiers.py | done (unverified) | R6: tier names + members_for |
+| api/Models/Localization/TeamAssignment.cs | api-python/app/models/localization/team_assignment.py | done (unverified) | R6: unique agreement/locale index, RESTRICT vendor FK |
 | api/Models/Localization/TranslationCacheEntry.cs | api-python/app/models/localization/translation_cache_entry.py | done (unverified) | No migration for this table yet (Finding 2) |
-| api/Models/Localization/Vendor.cs | api-python/app/models/localization/vendor.py | done (unverified) | |
+| api/Models/Localization/TranslationJob.cs | api-python/app/models/localization/translation_job.py | done (unverified) | R6: same table/columns as the old marketplace job |
+| api/Models/Localization/UsageConstants.cs | api-python/app/models/localization/usage_constants.py | done (unverified) | R6: meter/operation/kind strings |
+| api/Models/Localization/Vendor.cs | api-python/app/models/localization/vendor.py | done (unverified) | R6: +unique alias, -rating, -bids, jobs |
 | api/Models/Localization/WorkflowStep.cs | api-python/app/models/localization/workflow_step.py | done (unverified) | |
 
 ### Routes
@@ -271,27 +277,28 @@ No routes in this phase (entities only).
 | C# path | Python path | Status | Notes |
 |---|---|---|---|
 | api/Services/Localization/AutoRoutingService.cs | api-python/app/services/localization/auto_routing_service.py | done (unverified) | Post-LA4 thin AI client |
-| api/Services/Localization/CreditLedgerService.cs | api-python/app/services/localization/credit_ledger_service.py | done (unverified) | |
-| api/Services/Localization/GoogleTranslateProviderService.cs | api-python/app/services/localization/google_translate_provider_service.py | done (unverified) | HttpClient → httpx; mock shape per Finding 19 |
-| api/Services/Localization/IQualityScorer.cs | api-python/app/services/localization/i_quality_scorer.py | done (unverified) | Interface → Protocol; record → dataclass |
+| api/Services/Localization/AzureTranslatorProviderService.cs | api-python/app/services/localization/azure_translator_provider_service.py | done (unverified) | R6: replaces the Google port (Finding 26) |
+| api/Services/Localization/IQualityScorer.cs | api-python/app/services/localization/i_quality_scorer.py | done (unverified) | Interface → Protocol; record → dataclass; R6: token fields |
 | api/Services/Localization/ITranslationProvider.cs | api-python/app/services/localization/i_translation_provider.py | done (unverified) | Interface → Protocol |
-| api/Services/Localization/LocalizationAiClient.cs | api-python/app/services/localization/localization_ai_client.py | done (unverified) | New in LA4; records → dataclasses |
-| api/Services/Localization/LocalizationDtos.cs | api-python/app/schemas/localization_dtos.py | done (unverified) | Lives in Services in C# |
-| api/Services/Localization/LocalizationExceptions.cs | api-python/app/services/localization/localization_exceptions.py | done (unverified) | |
-| api/Services/Localization/LocalizationProjectService.cs | api-python/app/services/localization/localization_project_service.py | done (unverified) | |
-| api/Services/Localization/LocalizationStringService.cs | api-python/app/services/localization/localization_string_service.py | done (unverified) | |
-| api/Services/Localization/MarketplaceService.cs | api-python/app/services/localization/marketplace_service.py | done (unverified) | |
+| api/Services/Localization/LocalizationAiClient.cs | api-python/app/services/localization/localization_ai_client.py | done (unverified) | New in LA4; records → dataclasses; R6: QPS/exception token fields |
+| api/Services/Localization/LocalizationDtos.cs | api-python/app/schemas/localization_dtos.py | done (unverified) | Lives in Services in C#; R6: client/vendor/ops shapes |
+| api/Services/Localization/LocalizationExceptions.cs | api-python/app/services/localization/localization_exceptions.py | done (unverified) | R6: +AI-disabled and cap-reached exceptions |
+| api/Services/Localization/LocalizationProjectService.cs | api-python/app/services/localization/localization_project_service.py | done (unverified) | R6: tier, AI switch |
+| api/Services/Localization/LocalizationStringService.cs | api-python/app/services/localization/localization_string_service.py | done (unverified) | R6: trimmed client row |
 | api/Services/Localization/MtOptimizeService.cs | api-python/app/services/localization/mt_optimize_service.py | done (unverified) | Post-LA4 thin AI client incl. OptimizeDetailedAsync |
-| api/Services/Localization/ProviderHealthService.cs | api-python/app/services/localization/provider_health_service.py | done (unverified) | |
-| api/Services/Localization/QpsScoringService.cs | api-python/app/services/localization/qps_scoring_service.py | done (unverified) | Post-LA4 thin AI client |
+| api/Services/Localization/ProviderHealthService.cs | api-python/app/services/localization/provider_health_service.py | done (unverified) | R6: AzureTranslator special-case |
+| api/Services/Localization/QpsScoringService.cs | api-python/app/services/localization/qps_scoring_service.py | done (unverified) | Post-LA4 thin AI client; R6: token plumbing |
 | api/Services/Localization/SnapshotService.cs | api-python/app/services/localization/snapshot_service.py | done (unverified) | |
-| api/Services/Localization/VendorPortalService.cs | api-python/app/services/localization/vendor_portal_service.py | done (unverified) | |
-| api/Services/Localization/WorkflowService.cs | api-python/app/services/localization/workflow_service.py | done (unverified) | Post-LA4 incl. AI actions + ledger writes |
+| api/Services/Localization/TranslationJobService.cs | api-python/app/services/localization/translation_job_service.py | done (unverified) | R6: replaces the marketplace port |
+| api/Services/Localization/UsageMeteringService.cs | api-python/app/services/localization/usage_metering_service.py | done (unverified) | R6: metering + UsageBudget |
+| api/Services/Localization/VendorPortalService.cs | api-python/app/services/localization/vendor_portal_service.py | done (unverified) | R6: rewritten, no bidding |
+| api/Services/Localization/WorkflowService.cs | api-python/app/services/localization/workflow_service.py | done (unverified) | R6: metering, caps, kill switch, renames, no ledger |
 | api/Options/LocalizationAiOptions.cs | api-python/app/settings.py (LocalizationAiSettings) | done (unverified) | New in LA4; was missing from the P0 table |
-| api/Endpoints/Localization/LocalizationEndpoints.cs | api-python/app/routers/localization/localization_endpoints.py | done (unverified) | No-slash paths per Finding 24 |
-| api/Endpoints/Localization/MarketplaceEndpoints.cs | api-python/app/routers/localization/marketplace_endpoints.py | done (unverified) | |
+| api/Endpoints/Localization/JobEndpoints.cs | api-python/app/routers/localization/job_endpoints.py | done (unverified) | R6: replaces the marketplace router |
+| api/Endpoints/Localization/LocalizationEndpoints.cs | api-python/app/routers/localization/localization_endpoints.py | done (unverified) | No-slash paths per Finding 24; R6: run 409s, Azure wiring |
 | api/Endpoints/Localization/ProviderHealthEndpoints.cs | api-python/app/routers/localization/provider_health_endpoints.py | done (unverified) | |
-| api/Endpoints/Localization/VendorPortalEndpoints.cs | api-python/app/routers/localization/vendor_portal_endpoints.py | done (unverified) | |
+| api/Endpoints/Localization/UsageEndpoints.cs | api-python/app/routers/localization/usage_endpoints.py | done (unverified) | R6: ops router, admin check without require_admin |
+| api/Endpoints/Localization/VendorPortalEndpoints.cs | api-python/app/routers/localization/vendor_portal_endpoints.py | done (unverified) | R6: rewritten, no bidding |
 
 ### Routes
 
@@ -309,22 +316,28 @@ No routes in this phase (entities only).
 | DELETE | /api/localization/projects/{slug}/workflow/steps/{stepId} | DeleteWorkflowStep | api-key | done (unverified) | |
 | GET | /api/localization/projects/{slug}/snapshots | GetSnapshots | api-key | done (unverified) | |
 | POST | /api/localization/projects/{slug}/snapshots | CutSnapshot | api-key | done (unverified) | |
-| GET | /api/localization/projects/{slug}/marketplace | GetOverview | api-key | done (unverified) | |
-| POST | /api/localization/projects/{slug}/marketplace/{locale}/post | PostToMarketplace | api-key | done (unverified) | |
-| GET | /api/localization/marketplace/jobs/{jobId}/bids | GetBids | api-key | done (unverified) | |
-| POST | /api/localization/marketplace/jobs/{jobId}/bids/{bidId}/award | AwardBid | api-key | done (unverified) | |
-| POST | /api/localization/marketplace/jobs/{jobId}/approve | ApproveSubmission | api-key | done (unverified) | |
-| POST | /api/localization/marketplace/jobs/{jobId}/send-back | SendBackForRevision | api-key | done (unverified) | |
+| GET | /api/localization/projects/{slug}/jobs | GetJobs | api-key | done (unverified) | R6: client job rows |
+| POST | /api/localization/projects/{slug}/jobs/{localeCode} | CreateJob | api-key | done (unverified) | R6 |
+| POST | /api/localization/jobs/{jobId}/approve | ApproveJob | api-key | done (unverified) | R6 |
+| POST | /api/localization/jobs/{jobId}/send-back | SendBackJob | api-key | done (unverified) | R6 |
+| GET | /api/localization/projects/{slug}/agreement | GetAgreement | api-key | done (unverified) | R6: client agreement read |
 | GET | /api/localization/provider-health | GetHealth | api-key | done (unverified) | |
 | POST | /api/localization/provider-health/{provider}/simulate-outage | SimulateOutage | api-key | done (unverified) | |
 | POST | /api/localization/provider-health/{provider}/resolve | ResolveOutage | api-key | done (unverified) | |
-| GET | /api/localization/vendor/roster | GetRoster | api-key | done (unverified) | |
-| GET | /api/localization/vendor/{vendorId}/open-jobs | GetOpenJobs | api-key | done (unverified) | |
-| POST | /api/localization/vendor/{vendorId}/jobs/{jobId}/bids | SubmitBid | api-key | done (unverified) | |
-| GET | /api/localization/vendor/{vendorId}/awarded-jobs | GetAwardedJobs | api-key | done (unverified) | |
-| GET | /api/localization/vendor/jobs/{jobId}/strings | GetJobStrings | api-key | done (unverified) | |
-| PUT | /api/localization/vendor/jobs/{jobId}/strings/{stringId} | UpdateJobString | api-key | done (unverified) | |
-| POST | /api/localization/vendor/jobs/{jobId}/submit | SubmitJob | api-key | done (unverified) | |
+| GET | /api/localization/vendor/roster | GetRoster | api-key | done (unverified) | R6: alias roster |
+| GET | /api/localization/vendor/{vendorId}/jobs | GetJobs | api-key | done (unverified) | R6: vendor job rows |
+| GET | /api/localization/vendor/jobs/{jobId}/strings | GetJobStrings | api-key | done (unverified) | R6: vendor string rows |
+| PUT | /api/localization/vendor/jobs/{jobId}/strings/{stringId} | UpdateJobString | api-key | done (unverified) | R6: Finding 27 |
+| POST | /api/localization/vendor/jobs/{jobId}/submit | SubmitJob | api-key | done (unverified) | R6 |
+| GET | /api/localization/ops/usage | GetUsageSummary | AdminOnly | done (unverified) | R6: 403 problem when not an approved admin, no 401 |
+| GET | /api/localization/ops/usage/events | GetUsageEvents | AdminOnly | done (unverified) | R6: same 403 shape |
+| GET | /api/localization/ops/rates | GetRates | AdminOnly | done (unverified) | R6: same 403 shape |
+| POST | /api/localization/ops/rates | AddRate | AdminOnly | done (unverified) | R6: 201 with no Location header |
+| GET | /api/localization/ops/projects/{slug}/controls | GetControls | AdminOnly | done (unverified) | R6 |
+| PUT | /api/localization/ops/projects/{slug}/controls | UpdateControls | AdminOnly | done (unverified) | R6: raw-JSON absent-vs-null |
+| GET | /api/localization/ops/teams | GetTeams | AdminOnly | done (unverified) | R6 |
+| GET | /api/localization/ops/projects/{slug}/agreement | GetAgreement | AdminOnly | done (unverified) | R6: ops agreement read |
+| PUT | /api/localization/ops/projects/{slug}/agreement | SaveAgreement | AdminOnly | done (unverified) | R6 |
 
 ## P7 — Seeders, CLI modes, reconciliation
 
@@ -364,6 +377,20 @@ Done by agent-2-python-port-b: all 154 file rows and 102 route rows are `done (u
 (the full parity run itself is NOT RUN — shell unavailable, see PROGRESS.md);
 `README.md` is the C#→Python reading guide. Final report in PROGRESS.md.
 
+## R6 — Localization rebuild port
+
+R6 refreshed the Localization rows for the R1-R3 rebuild: 7 file rows
+removed (MarketplaceBid, MarketplaceJob, MarketplaceService,
+CreditLedgerService, MarketplaceEndpoints, GoogleTranslateProviderService,
+GoogleTranslateOptions), 14 file rows added (the usage/agreement/job
+entities, constants, tiers, UsageMeteringService, TranslationJobService,
+AzureTranslatorProviderService, JobEndpoints, UsageEndpoints,
+AzureTranslatorOptions), 9 route rows removed (marketplace, bids, old
+vendor routes), 15 route rows added (jobs, vendor jobs, ops). Totals are
+now 161 file rows and 108 route rows, all `done (unverified)`;
+`tools/parity_routes.txt` covers all 108 routes (the parity run itself is
+NOT RUN — shell unavailable, see PROGRESS.md). Findings 25-30 are R6's.
+
 ## Ignored files (not ported)
 
 | C# path | Reason |
@@ -397,7 +424,13 @@ Done by agent-2-python-port-b: all 154 file rows and 102 route rows are `done (u
 | 18 | P6 | BUILD-PROMPT §3.7 says approve advances every translation to Approved; C# advances only rows with non-empty TargetText. Ported C#. |
 | 19 | P6 | BUILD-PROMPT §3.6 mock prefix is "[MOCK-DE] "; C# emits "[MOCK-DE-DE] " (full locale upper-cased). Ported C#. |
 | 20 | P6 | marketplace-flow §3 shows NeedsRevision going back to InProgress; C# keeps "NeedsRevision" until the vendor edits a string, which flips it to InProgress. Ported C#. |
-| 21 | P6 | WorkflowServiceTests.RunStep_Phase3Actions_StillSurfaceNotImplemented encodes pre-LA4 behavior: post-LA4 the AI call happens only per-string, so on a project with no translations the actions return "0 strings …" instead of throwing NotImplementedException. Translated verbatim; fails against post-LA4 code in both stacks (the 501 path is covered by Phase3Actions_NotConfigured_ThrowNotImplemented). |
+| 21 | P6 | WorkflowServiceTests.RunStep_Phase3Actions_StillSurfaceNotImplemented encodes pre-LA4 behavior: post-LA4 the AI call happens only per-string, so on a project with no translations the actions return "0 strings …" instead of throwing NotImplementedException. Translated verbatim; fails against post-LA4 code in both stacks (the 501 path is covered by Phase3Actions_NotConfigured_ThrowNotImplemented). R6: C# added ThrowIfAiNotConfigured up front in R2, so the actions throw again and the test passes in both stacks; the stale note is removed from the ported test. |
 | 22 | P6 | ArgumentException details embed .NET's Message suffix (" (Parameter 'x')"); the port reproduces those suffixes verbatim in its ValueErrors so problem bodies match. |
 | 23 | P6 | The translated RunMtOptimize/ScoreQps/AutoTranslate tests need the pending LA1 migration (glossary table + raw_mt columns, Findings 2-3); they fail on the migrated scratch DB exactly as those paths fail in C# until the reviewer generates it. |
 | 24 | P6 | C# group routes registered with "/" (e.g. MapGet("/")) accept the no-trailing-slash form — the shipped frontend calls /api/localization/projects with no slash. Python registers the no-slash form. |
+| 25 | R6 | Machine-translation call size: C# uses string.Length (UTF-16 code units), the port uses len() (code points). Identical for BMP text; an astral character counts 2 units in C# and 1 in Python, so usage events and cap accounting can differ by one unit per astral char. Same class as Finding 9. |
+| 26 | R6 | Three places in the R2/R3 C# do not compile (verified by direct read; that code was never built): VendorPortalService.cs:58 passes a TranslationJob to the int-taking VendorJobRowAsync overload; AzureTranslatorProviderService.cs reads _options.ApiKey but AzureTranslatorOptions declares Key; LocalizationTestFixture.cs sets Vendor.Rating, removed in R3. The port carries the obvious intent (job id; key per the options class and CONTRACT; fixture without Rating). The reviewer must fix the C# the same way or say otherwise. |
+| 27 | R6 | PUT vendor/jobs/{jobId}/strings/{stringId} binds the full VendorStringRowDto in C# but only reads TargetText; the port binds UpdateTranslationRequest. Well-formed bodies match; a body with an extra field holding a wrong JSON type answers 400 in C# but is accepted (extras ignored) in Python. |
+| 28 | R6 | Two R3 C# tests cannot pass as written and are ported verbatim: UsageControlsTests.HighCap_RunMatchesUncappedBehaviour still asserts 4 AI ledger rows, but R3 removed the AI ledger writes (LocalizationAiWorkflowTests now asserts empty); LocalizationAiWorkflowTests.ScoreQps_DoesNotRescoreRawWhenAlreadySet seeds RawMtQpsScore = 55, which violates the new 1-5 check on a real PostgreSQL database (C# InMemory ignores check constraints). Both fail in both stacks until the C# is fixed. |
+| 29 | R6 | The two translation score check constraints are transcribed in the deparsed form PostgreSQL reports (>= 1 AND <= 5, no BETWEEN, no extra parens), predicted from deparse rules and the existing paren-free transcriptions — not observed on a live database. The schema-parity test confirms. |
+| 30 | R6 | Non-integer ?limit= on GET /ops/usage/events answers 400 in C# (int? binding) but 422 in Python (FastAPI query validation). Same class as Finding 8. |

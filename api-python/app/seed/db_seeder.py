@@ -78,6 +78,7 @@ async def initialize(session: AsyncSession) -> None:
 
     # 8. Localization Lab
     await localization_seed_data.seed(session)
+    await localization_seed_data.ensure_usage_caps(session)
 
     # 9. MCQ dynamic tables from mcq-migration-data.json
     await mcq_migration_seed_data.seed(session)

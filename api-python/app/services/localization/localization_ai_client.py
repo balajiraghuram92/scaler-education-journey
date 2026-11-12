@@ -30,7 +30,10 @@ T = TypeVar("T")
 
 
 class LocalizationAiException(Exception):
-    pass
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.input_tokens = 0
+        self.output_tokens = 0
 
 
 @dataclass
@@ -58,6 +61,8 @@ class AiQpsScoreResult:
     tokens_used: int
     latency_ms: int
     fallback: bool
+    input_tokens: int
+    output_tokens: int
 
 
 @dataclass
@@ -243,6 +248,8 @@ class LocalizationAiClient:
                 tokens_used=_as_int(get("tokensUsed")),
                 latency_ms=_as_int(get("latencyMs")),
                 fallback=_as_bool(get("fallback")),
+                input_tokens=_as_int(get("inputTokens")),
+                output_tokens=_as_int(get("outputTokens")),
             )
 
         return await self._post_async("qps-score", body, build)

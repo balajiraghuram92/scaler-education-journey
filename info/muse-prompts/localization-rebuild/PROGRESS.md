@@ -635,3 +635,7 @@ score of 90).
 ## R7 — reviewer check (2026-11-12)
 
 No reviewer edits needed. .NET 210 passed / 1 skipped; React 86/86. Real stack: after Auto-Translate, Create Translation Jobs made ja-JP and zh-CN jobs (47 strings each; before R7 it skipped them); submit refused with "47 machine-translated strings still need review…"; accept-by-resend kept text and raw draft and set the vendor source; completedPercent 4 after 2 of 47, 100 after all; MT Optimize skipped the vendor-reviewed strings (134 of 136) and left "VENDOR EDIT 1" alone, also after approval; edits after approval 409; a new job with nothing open 409. C17/R8 (api-python): 3 failed / 221 passed, ruff and mypy clean -> C18.
+
+## R6, C17, R8, C18 — reviewer check (2026-11-12)
+
+api-python against a PostgreSQL database migrated by the .NET API: 224 passed / 1 skipped; ruff and mypy clean (`ruff format --check` would reformat 187 files, the port's long-standing state, not enforced). Parity: 108/108 routes match the .NET API on the same seed. Seeder: an empty database seeded by the Python seeder and one seeded by the .NET seeder agree on all 14 localization table checks (projects, locales, strings, translations, vendors and aliases, agreement, team assignments, jobs, caps, provider health, ledger, workflow steps, glossary, snapshots). Track R is complete.

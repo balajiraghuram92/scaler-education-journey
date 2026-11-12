@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ...models.localization.localization_project import LocalizationProject
+from ...models.localization.service_agreement import ServiceAgreement
 from ...schemas.localization_dtos import LocalizationLocaleDto, LocalizationProjectDto
 from .localization_exceptions import LocalizationProjectNotFoundException
 
@@ -33,6 +34,13 @@ class LocalizationProjectService:
             )
             for locale in sorted(project.locales, key=lambda item: item.id)
         ]
+        tier = (
+            await self._session.execute(
+                select(ServiceAgreement.tier).where(
+                    ServiceAgreement.project_id == project.id
+                )
+            )
+        ).scalar_one_or_none()
         return LocalizationProjectDto(
             id=project.id,
             slug=project.slug,
@@ -40,6 +48,8 @@ class LocalizationProjectService:
             source_locale=project.source_locale,
             created_at=project.created_at,
             locales=locales,
+            ai_enabled=project.ai_enabled,
+            tier=tier,
         )
 
     async def get_projects_async(self) -> list[LocalizationProjectDto]:
@@ -50,6 +60,15 @@ class LocalizationProjectService:
                 .order_by(LocalizationProject.id)
             )
         ).scalars().all()
+        project_ids = [project.id for project in projects]
+        tier_rows = (
+            await self._session.execute(
+                select(ServiceAgreement.project_id, ServiceAgreement.tier).where(
+                    ServiceAgreement.project_id.in_(project_ids)
+                )
+            )
+        ).all()
+        tiers = {row.project_id: row.tier for row in tier_rows}
         result: list[LocalizationProjectDto] = []
         for project in projects:
             locales = [
@@ -68,6 +87,8 @@ class LocalizationProjectService:
                     source_locale=project.source_locale,
                     created_at=project.created_at,
                     locales=locales,
+                    ai_enabled=project.ai_enabled,
+                    tier=tiers.get(project.id),
                 )
             )
         return result

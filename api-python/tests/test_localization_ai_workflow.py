@@ -36,7 +36,7 @@ from app.settings import LocalizationAiSettings
 
 from .localization_fixture import (
     FakeTranslationProvider,
-    marketplace,
+    jobs,
     seed_project,
 )
 
@@ -103,8 +103,9 @@ def _workflow(
         MtOptimizeService(client),
         QpsScoringService(client),
         AutoRoutingService(client),
-        marketplace(db),
+        jobs(db),
         options,
+        None,
     )
 
 
@@ -182,11 +183,7 @@ async def test_run_mt_optimize_updates_targets_and_writes_token_ledger(
     ).scalars().all()
     assert list(targets) == ["opt:roh1", "opt:roh2"]
 
-    entry = (await db.execute(select(LedgerEntry))).scalar_one()
-    assert entry.source == "AI"
-    assert entry.unit_type == "tokens"
-    assert entry.units_consumed == 30
-    assert entry.real_cost_usd == Decimal("40")
+    assert (await db.execute(select(LedgerEntry))).scalars().all() == []
 
     assert len(fake.requests) == 2
     for request in fake.requests:
@@ -254,8 +251,7 @@ async def test_run_mt_optimize_partial_failure_continues_and_counts(
     ).scalars().all()
     assert "opt-ok" in list(targets)
 
-    entry = (await db.execute(select(LedgerEntry))).scalar_one()
-    assert entry.units_consumed == 15
+    assert (await db.execute(select(LedgerEntry))).scalars().all() == []
 
 
 @pytest.mark.asyncio
@@ -294,19 +290,19 @@ async def test_score_qps_stores_score_and_raw_score_once(
     fake = FakeAiTransport()
     fake.queue_json(
         "qps-score",
-        '{"score":85,"flaggedIssues":["tone"],"inputTokens":20,"outputTokens":8,'
+        '{"score":4,"flaggedIssues":["tone"],"inputTokens":20,"outputTokens":8,'
         '"tokensUsed":28,"latencyMs":4,"costUsd":0.002,"fallback":false}',
     )
     fake.queue_json(
         "qps-score",
-        '{"score":60,"flaggedIssues":[],"inputTokens":20,"outputTokens":8,'
+        '{"score":3,"flaggedIssues":[],"inputTokens":20,"outputTokens":8,'
         '"tokensUsed":28,"latencyMs":4,"costUsd":0.002,"fallback":false}',
     )
     options = _ai_options()
     flow = _workflow(db, _ai_client(fake, options), options)
 
     step = await flow.add_step_async(
-        seed.project.slug, AddWorkflowStepRequest(action="Score QPS")
+        seed.project.slug, AddWorkflowStepRequest(action="Score Quality")
     )
     ran = await flow.run_step_async(seed.project.slug, step.id)
 
@@ -320,8 +316,8 @@ async def test_score_qps_stores_score_and_raw_score_once(
             )
         )
     ).scalar_one()
-    assert ai_row.qps_score == 85
-    assert ai_row.raw_mt_qps_score == 60
+    assert ai_row.qps_score == 4
+    assert ai_row.raw_mt_qps_score == 3
 
     manual_row = (
         await db.execute(
@@ -346,7 +342,7 @@ async def test_score_qps_does_not_rescore_raw_when_already_set(
             locale_code="de-DE",
             target_text="t1",
             raw_mt_text="r1",
-            raw_mt_qps_score=55,
+            raw_mt_qps_score=2,
             stage="Translated",
             translation_source="AI",
             needs_review=False,
@@ -358,14 +354,14 @@ async def test_score_qps_does_not_rescore_raw_when_already_set(
     fake = FakeAiTransport()
     fake.queue_json(
         "qps-score",
-        '{"score":90,"flaggedIssues":[],"inputTokens":1,"outputTokens":1,'
+        '{"score":4,"flaggedIssues":[],"inputTokens":1,"outputTokens":1,'
         '"tokensUsed":2,"latencyMs":1,"costUsd":0,"fallback":false}',
     )
     options = _ai_options()
     flow = _workflow(db, _ai_client(fake, options), options)
 
     step = await flow.add_step_async(
-        seed.project.slug, AddWorkflowStepRequest(action="Score QPS")
+        seed.project.slug, AddWorkflowStepRequest(action="Score Quality")
     )
     ran = await flow.run_step_async(seed.project.slug, step.id)
 
@@ -373,8 +369,8 @@ async def test_score_qps_does_not_rescore_raw_when_already_set(
     assert len(fake.requests) == 1
 
     row = (await db.execute(select(LocalizationTranslation))).scalar_one()
-    assert row.qps_score == 90
-    assert row.raw_mt_qps_score == 55
+    assert row.qps_score == 4
+    assert row.raw_mt_qps_score == 2
 
 
 @pytest.mark.asyncio
@@ -383,7 +379,7 @@ async def test_auto_route_sets_needs_review_from_project_threshold(
 ) -> None:
     db = scratch_session
     seed = await seed_project(db)
-    seed.project.qps_threshold = 75
+    seed.project.qps_threshold = 4
     now = datetime.now(UTC)
     db.add_all(
         [
@@ -393,7 +389,7 @@ async def test_auto_route_sets_needs_review_from_project_threshold(
                 target_text="t1",
                 stage="Translated",
                 translation_source="AI",
-                qps_score=80,
+                qps_score=5,
                 needs_review=False,
                 updated_at=now,
             ),
@@ -403,7 +399,7 @@ async def test_auto_route_sets_needs_review_from_project_threshold(
                 target_text="t2",
                 stage="Translated",
                 translation_source="AI",
-                qps_score=70,
+                qps_score=3,
                 needs_review=False,
                 updated_at=now,
             ),
@@ -443,7 +439,7 @@ async def test_auto_route_sets_needs_review_from_project_threshold(
     assert ran.last_run_outcome == "2 strings processed, 1 flagged for review"
     assert len(fake.requests) == 2
     for body in fake.bodies:
-        assert '"projectThreshold":75' in body
+        assert '"projectThreshold":4' in body
 
     rows = (
         await db.execute(
@@ -455,16 +451,16 @@ async def test_auto_route_sets_needs_review_from_project_threshold(
     de_scores = [
         row.qps_score for row in rows if row.locale_code == "de-DE"
     ]
-    assert de_scores == [70, 80]
+    assert de_scores == [3, 5]
     by_score = {row.qps_score: row for row in rows if row.qps_score is not None}
-    assert by_score[70].needs_review is True
-    assert by_score[80].needs_review is False
+    assert by_score[3].needs_review is True
+    assert by_score[5].needs_review is False
     fr_row = next(row for row in rows if row.locale_code == "fr-FR")
     assert fr_row.needs_review is False
 
 
 @pytest.mark.asyncio
-async def test_auto_translate_writes_characters_ledger_entry(
+async def test_auto_translate_writes_no_ledger_entry(
     scratch_session: AsyncSession,
 ) -> None:
     db = scratch_session
@@ -475,22 +471,18 @@ async def test_auto_translate_writes_characters_ledger_entry(
 
     step = await flow.add_step_async(
         seed.project.slug,
-        AddWorkflowStepRequest(action="Auto-Translate via Google MT"),
+        AddWorkflowStepRequest(action="Auto-Translate via Azure Translator"),
     )
     ran = await flow.run_step_async(seed.project.slug, step.id)
 
-    assert ran.last_run_outcome == "4 strings translated via Google MT"
+    assert ran.last_run_outcome == "4 strings translated via Azure Translator"
 
     rows = (await db.execute(select(LocalizationTranslation))).scalars().all()
     assert len(rows) == 4
     for row in rows:
         assert row.target_text == row.raw_mt_text
 
-    entry = (await db.execute(select(LedgerEntry))).scalar_one()
-    assert entry.source == "AI"
-    assert entry.unit_type == "characters"
-    assert entry.units_consumed == 74
-    assert entry.real_cost_usd == Decimal("0.00148")
+    assert (await db.execute(select(LedgerEntry))).scalars().all() == []
 
 
 @pytest.mark.asyncio
@@ -526,7 +518,7 @@ async def test_phase3_actions_empty_base_url_throw_not_implemented_and_write_no_
     options.base_url = ""
     flow = _workflow(db, _ai_client(fake, options), options)
 
-    for action in ("Run MT Optimize", "Score QPS", "Auto-Route"):
+    for action in ("Run MT Optimize", "Score Quality", "Auto-Route"):
         step = await flow.add_step_async(
             seed.project.slug, AddWorkflowStepRequest(action=action)
         )

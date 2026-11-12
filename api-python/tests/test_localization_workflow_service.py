@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.localization.localization_translation import LocalizationTranslation
-from app.models.localization.marketplace_job import MarketplaceJob
+from app.models.localization.service_agreement import ServiceAgreement
+from app.models.localization.service_tiers import ServiceTiers
+from app.models.localization.team_assignment import TeamAssignment
+from app.models.localization.translation_job import TranslationJob
+from app.models.localization.vendor import Vendor
 from app.models.localization.workflow_step import WorkflowStep
 from app.schemas.localization_dtos import (
     AddWorkflowStepRequest,
@@ -22,51 +26,85 @@ from app.services.localization.workflow_service import WorkflowService
 
 from .localization_fixture import (
     FakeTranslationProvider,
-    marketplace,
+    jobs,
     seed_project,
     workflow,
 )
 
 
+async def _seed_agreement(db: AsyncSession, project_id: int) -> None:
+    now = datetime.now(UTC)
+    vendor = Vendor(
+        name="Team", alias="Vendor Team Test", languages="de-DE,fr-FR"
+    )
+    db.add(vendor)
+    await db.flush()
+    agreement = ServiceAgreement(
+        project_id=project_id,
+        tier=ServiceTiers.GOLD,
+        valid_from=now - timedelta(days=1),
+        created_at=now,
+    )
+    db.add(agreement)
+    await db.flush()
+    db.add_all(
+        [
+            TeamAssignment(
+                agreement_id=agreement.id,
+                vendor_id=vendor.id,
+                locale_code="de-DE",
+                member_count=6,
+            ),
+            TeamAssignment(
+                agreement_id=agreement.id,
+                vendor_id=vendor.id,
+                locale_code="fr-FR",
+                member_count=6,
+            ),
+        ]
+    )
+    await db.flush()
+
+
 @pytest.mark.asyncio
-async def test_post_to_marketplace_action_matches_direct_call(
+async def test_create_translation_jobs_action_matches_direct_call(
     scratch_session: AsyncSession,
 ) -> None:
     db = scratch_session
     seed = await seed_project(db)
-    market = marketplace(db)
+    await _seed_agreement(db, seed.project.id)
+    job_service = jobs(db)
     flow = workflow(db)
 
-    direct = await market.post_to_marketplace_async(seed.project.slug, "fr-FR")
+    direct = await job_service.create_job_async(seed.project.slug, "fr-FR")
     assert direct.string_count == 2
     assert direct.word_count == 4
 
     step = await flow.add_step_async(
         seed.project.slug,
-        AddWorkflowStepRequest(action="Post to Marketplace"),
+        AddWorkflowStepRequest(action="Create Translation Jobs"),
     )
     ran = await flow.run_step_async(seed.project.slug, step.id)
 
-    assert ran.last_run_outcome == "1 marketplace jobs posted, 1 skipped"
+    assert ran.last_run_outcome == "1 jobs created, 1 skipped"
 
     via_workflow = (
         await db.execute(
-            select(MarketplaceJob).where(MarketplaceJob.locale_code == "de-DE")
+            select(TranslationJob).where(TranslationJob.locale_code == "de-DE")
         )
     ).scalar_one()
-    assert via_workflow.status == "Open"
+    assert via_workflow.status == "Assigned"
     assert via_workflow.string_count == direct.string_count
     assert via_workflow.word_count == direct.word_count
-    assert via_workflow.suggested_price_low == direct.suggested_price_low
-    assert via_workflow.suggested_price_high == direct.suggested_price_high
 
 
 @pytest.mark.asyncio
-async def test_post_to_marketplace_action_skips_locales_with_nothing_left_to_translate(
+async def test_create_translation_jobs_action_skips_locales_with_nothing_left_to_translate(
     scratch_session: AsyncSession,
 ) -> None:
     db = scratch_session
     seed = await seed_project(db)
+    await _seed_agreement(db, seed.project.id)
     flow = workflow(db)
 
     for locale in ["de-DE", "fr-FR"]:
@@ -76,7 +114,7 @@ async def test_post_to_marketplace_action_skips_locales_with_nothing_left_to_tra
                     string_id=item.id,
                     locale_code=locale,
                     target_text="done",
-                    stage="Translated",
+                    stage="Approved",
                     translation_source="Manual",
                     needs_review=False,
                     updated_at=datetime.now(UTC),
@@ -86,13 +124,13 @@ async def test_post_to_marketplace_action_skips_locales_with_nothing_left_to_tra
 
     step = await flow.add_step_async(
         seed.project.slug,
-        AddWorkflowStepRequest(action="Post to Marketplace"),
+        AddWorkflowStepRequest(action="Create Translation Jobs"),
     )
     ran = await flow.run_step_async(seed.project.slug, step.id)
 
-    assert ran.last_run_outcome == "0 marketplace jobs posted, 2 skipped"
-    jobs = (await db.execute(select(MarketplaceJob))).scalars().all()
-    assert jobs == []
+    assert ran.last_run_outcome == "0 jobs created, 2 skipped"
+    created = (await db.execute(select(TranslationJob))).scalars().all()
+    assert created == []
 
 
 @pytest.mark.asyncio
@@ -160,11 +198,6 @@ async def test_run_step_unknown_action_throws_invalid_operation_exception(
 async def test_run_step_phase3_actions_still_surface_not_implemented(
     scratch_session: AsyncSession,
 ) -> None:
-    # NOTE (Finding: stale pre-LA4 expectation): translated verbatim. Post-LA4
-    # the AI call happens only per-string, so on this translation-less project
-    # the actions return "0 strings ..." instead of throwing; this test fails
-    # against post-LA4 behavior in both stacks. The 501 path is covered by
-    # test_phase3_actions_not_configured_throw_not_implemented instead.
     db = scratch_session
     seed = await seed_project(db)
     # Production wiring: the real QpsScoringService stub, not the fake scorer.
@@ -174,10 +207,10 @@ async def test_run_step_phase3_actions_still_surface_not_implemented(
         MtOptimizeService(),
         QpsScoringService(),
         AutoRoutingService(),
-        marketplace(db),
+        jobs(db),
     )
 
-    for action in ["Run MT Optimize", "Score QPS", "Auto-Route"]:
+    for action in ["Run MT Optimize", "Score Quality", "Auto-Route"]:
         step = await flow.add_step_async(
             seed.project.slug, AddWorkflowStepRequest(action=action)
         )

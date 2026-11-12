@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     DateTime,
     ForeignKey,
     Identity,
@@ -34,6 +35,18 @@ class LocalizationTranslation(Base):
             "string_id",
             "locale_code",
             unique=True,
+        ),
+        # The migration states these with BETWEEN; PostgreSQL deparses BETWEEN
+        # into >= AND <=, so the model carries the deparsed form the database
+        # reports (predicted from deparse rules, not observed — the schema
+        # parity test confirms).
+        CheckConstraint(
+            "qps_score IS NULL OR qps_score >= 1 AND qps_score <= 5",
+            name="ck_localization_translations_qps_score_range",
+        ),
+        CheckConstraint(
+            "raw_mt_qps_score IS NULL OR raw_mt_qps_score >= 1 AND raw_mt_qps_score <= 5",
+            name="ck_localization_translations_raw_mt_qps_score_range",
         ),
     )
 

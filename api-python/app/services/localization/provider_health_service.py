@@ -53,7 +53,7 @@ class ProviderHealthService:
             raise ProviderNotFoundException(provider)
         record.circuit_state = "Closed"
         record.error_rate_percent = (
-            Decimal("0.4") if record.provider.lower() == "googlemt" else Decimal("1.1")
+            Decimal("0.4") if record.provider.lower() == "azuretranslator" else Decimal("1.1")
         )
         record.updated_at = datetime.now(UTC)
         await self._session.flush()

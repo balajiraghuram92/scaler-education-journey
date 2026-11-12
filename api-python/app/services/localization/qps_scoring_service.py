@@ -32,7 +32,15 @@ class QpsScoringService:
             source_text, target_text, target_locale
         )
         if response.score is None:
-            raise LocalizationAiException(
+            exc = LocalizationAiException(
                 "The QPS judge fell back without producing a score."
             )
-        return QualityScoreResult(response.score, response.flagged_issues)
+            exc.input_tokens = response.input_tokens
+            exc.output_tokens = response.output_tokens
+            raise exc
+        return QualityScoreResult(
+            response.score,
+            response.flagged_issues,
+            response.input_tokens,
+            response.output_tokens,
+        )

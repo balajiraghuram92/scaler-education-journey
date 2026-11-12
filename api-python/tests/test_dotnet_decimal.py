@@ -8,32 +8,32 @@ from decimal import Decimal
 from uuid import uuid4
 
 from app.schemas.chat_dtos import ChatMessageDto
-from app.schemas.localization_dtos import MarketplaceJobDto
+from app.schemas.localization_dtos import ProviderRateDto, UsageMeterTotalDto
 
 
 def test_localization_decimals_dump_as_json_numbers() -> None:
-    dto = MarketplaceJobDto(
+    rate = ProviderRateDto(
         id=1,
-        project_id=2,
-        locale_code="de-DE",
-        status="Open",
-        string_count=10,
-        word_count=50,
-        suggested_price_low=Decimal("140.00"),
-        suggested_price_high=Decimal("210.50"),
-        awarded_vendor_id=None,
-        awarded_vendor_name=None,
-        posted_at=None,
-        awarded_at=None,
-        submitted_at=None,
-        approved_at=None,
-        bids=[],
+        meter="llm-score",
+        unit_kind="input-token",
+        usd_per_million=Decimal("2.00"),
+        valid_from=datetime.now(UTC),
     )
-    data = json.loads(dto.model_dump_json())
-    assert isinstance(data["suggestedPriceLow"], float)
-    assert isinstance(data["suggestedPriceHigh"], float)
-    assert data["suggestedPriceLow"] == 140.0
-    assert data["suggestedPriceHigh"] == 210.5
+    total = UsageMeterTotalDto(
+        meter="llm-score",
+        calls=3,
+        failed_calls=0,
+        cache_hits=0,
+        units=100,
+        units_out=8,
+        cost_usd=Decimal("0.42"),
+    )
+    rate_data = json.loads(rate.model_dump_json())
+    assert isinstance(rate_data["usdPerMillion"], float)
+    assert rate_data["usdPerMillion"] == 2.0
+    total_data = json.loads(total.model_dump_json())
+    assert isinstance(total_data["costUsd"], float)
+    assert total_data["costUsd"] == 0.42
 
 
 def test_chat_decimals_dump_as_json_numbers() -> None:

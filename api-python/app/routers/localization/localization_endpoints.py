@@ -14,14 +14,15 @@ from ...schemas.localization_dtos import (
     UpdateWorkflowStepRequest,
 )
 from ...services.localization.auto_routing_service import AutoRoutingService
-from ...services.localization.credit_ledger_service import CreditLedgerService
-from ...services.localization.google_translate_provider_service import (
-    GoogleTranslateProviderService,
+from ...services.localization.azure_translator_provider_service import (
+    AzureTranslatorProviderService,
 )
 from ...services.localization.localization_ai_client import LocalizationAiClient
 from ...services.localization.localization_exceptions import (
+    LocalizationAiDisabledException,
     LocalizationProjectNotFoundException,
     LocalizationStringNotFoundException,
+    LocalizationUsageCapReachedException,
     WorkflowStepBoundaryException,
     WorkflowStepNotFoundException,
 )
@@ -31,10 +32,11 @@ from ...services.localization.localization_project_service import (
 from ...services.localization.localization_string_service import (
     LocalizationStringService,
 )
-from ...services.localization.marketplace_service import MarketplaceService
 from ...services.localization.mt_optimize_service import MtOptimizeService
 from ...services.localization.qps_scoring_service import QpsScoringService
 from ...services.localization.snapshot_service import SnapshotService
+from ...services.localization.translation_job_service import TranslationJobService
+from ...services.localization.usage_metering_service import UsageMeteringService
 from ...services.localization.workflow_service import WorkflowService
 from ...settings import get_settings
 
@@ -46,12 +48,13 @@ def _workflow_service(session: AsyncSession) -> WorkflowService:
     ai_client = LocalizationAiClient(options=settings.localization_ai)
     return WorkflowService(
         session,
-        GoogleTranslateProviderService(options=settings.google_translate),
+        AzureTranslatorProviderService(options=settings.azure_translator),
         MtOptimizeService(ai_client),
         QpsScoringService(ai_client),
         AutoRoutingService(ai_client),
-        MarketplaceService(session, CreditLedgerService(session)),
+        TranslationJobService(session),
         settings.localization_ai,
+        UsageMeteringService(session),
     )
 
 
@@ -228,6 +231,14 @@ async def run_workflow_step(
         return endpoint_problem(request, 404, "Project not found.", str(exc))
     except WorkflowStepNotFoundException as exc:
         return endpoint_problem(request, 404, "Workflow step not found.", str(exc))
+    except LocalizationAiDisabledException as exc:
+        return endpoint_problem(
+            request, 409, "AI assistance is switched off", str(exc)
+        )
+    except LocalizationUsageCapReachedException as exc:
+        return endpoint_problem(
+            request, 409, "Monthly usage cap reached", str(exc)
+        )
     except Exception as exc:
         return endpoint_problem(
             request, 500, "Error running workflow step.", str(exc)

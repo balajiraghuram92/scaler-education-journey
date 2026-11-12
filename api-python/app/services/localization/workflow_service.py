@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from decimal import ROUND_HALF_EVEN, Decimal
 from typing import cast
 
 from sqlalchemy import func, select
@@ -11,10 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ...models.localization.glossary_term import GlossaryTerm
-from ...models.localization.ledger_entry import LedgerEntry
 from ...models.localization.localization_project import LocalizationProject
 from ...models.localization.localization_string import LocalizationString
 from ...models.localization.localization_translation import LocalizationTranslation
+from ...models.localization.usage_constants import (
+    UsageCapKinds,
+    UsageMeters,
+    UsageOperations,
+)
 from ...models.localization.workflow_step import WorkflowStep
 from ...schemas.localization_dtos import (
     AddWorkflowStepRequest,
@@ -32,22 +35,25 @@ from .localization_ai_client import (
 )
 from .localization_exceptions import (
     InvalidJobStateException,
+    LocalizationAiDisabledException,
     LocalizationProjectNotFoundException,
+    LocalizationUsageCapReachedException,
     WorkflowStepBoundaryException,
     WorkflowStepNotFoundException,
 )
-from .marketplace_service import MarketplaceService
 from .mt_optimize_service import MtOptimizeService
+from .translation_job_service import TranslationJobService
+from .usage_metering_service import UsageBudget, UsageCallRecord, UsageMeteringService
 
 
 class WorkflowActions:
     MARK_TRANSLATED = "Mark Translated"
     SEND_TO_REVIEW = "Send to Review"
     APPROVE = "Approve"
-    AUTO_TRANSLATE_VIA_GOOGLE_MT = "Auto-Translate via Google MT"
-    POST_TO_MARKETPLACE = "Post to Marketplace"
+    AUTO_TRANSLATE_VIA_AZURE_TRANSLATOR = "Auto-Translate via Azure Translator"
+    CREATE_TRANSLATION_JOBS = "Create Translation Jobs"
     RUN_MT_OPTIMIZE = "Run MT Optimize"
-    SCORE_QPS = "Score QPS"
+    SCORE_QUALITY = "Score Quality"
     AUTO_ROUTE = "Auto-Route"
 
     ALL = frozenset(
@@ -55,10 +61,10 @@ class WorkflowActions:
             MARK_TRANSLATED,
             SEND_TO_REVIEW,
             APPROVE,
-            AUTO_TRANSLATE_VIA_GOOGLE_MT,
-            POST_TO_MARKETPLACE,
+            AUTO_TRANSLATE_VIA_AZURE_TRANSLATOR,
+            CREATE_TRANSLATION_JOBS,
             RUN_MT_OPTIMIZE,
-            SCORE_QPS,
+            SCORE_QUALITY,
             AUTO_ROUTE,
         }
     )
@@ -82,16 +88,20 @@ class WorkflowService:
         mt_optimize_service: MtOptimizeService,
         quality_scorer: IQualityScorer,
         auto_routing_service: AutoRoutingService,
-        marketplace_service: MarketplaceService,
+        translation_job_service: TranslationJobService,
         ai_options: LocalizationAiSettings | None = None,
+        usage: UsageMeteringService | None = None,
     ) -> None:
         self._session = session
         self._translation_provider = translation_provider
         self._mt_optimize_service = mt_optimize_service
         self._quality_scorer = quality_scorer
         self._auto_routing_service = auto_routing_service
-        self._marketplace_service = marketplace_service
+        self._translation_job_service = translation_job_service
+        # Kept for signature parity with the C# constructor; R3 removed the
+        # ledger writes that used these rates.
         self._ai_options = ai_options
+        self._usage = usage
 
     async def get_steps_async(self, project_slug: str) -> list[WorkflowStepDto]:
         project = (
@@ -308,9 +318,14 @@ class WorkflowService:
                         trans.updated_at = now
                         affected += 1
             outcome = f"{affected} strings affected"
-        elif step.action == WorkflowActions.AUTO_TRANSLATE_VIA_GOOGLE_MT:
+        elif step.action == WorkflowActions.AUTO_TRANSLATE_VIA_AZURE_TRANSLATOR:
+            if not project.ai_enabled:
+                raise LocalizationAiDisabledException(project.slug)
+            mt_budget = await self._start_budget_async(
+                project.id, UsageCapKinds.MACHINE_TRANSLATION, now
+            )
             translated_count = 0
-            character_count = 0
+            skipped = 0
             for locale in project.locales:
                 for item in project.strings:
                     existing: LocalizationTranslation | None = next(
@@ -321,7 +336,17 @@ class WorkflowService:
                         ),
                         None,
                     )
+                    # C# measures the call in UTF-16 code units
+                    # (string.Length); len() counts code points. Identical
+                    # for BMP text; astral characters differ by one unit
+                    # per surrogate pair (Finding).
+                    call_units = len(item.source_text)
                     if existing is None:
+                        if mt_budget is not None and not mt_budget.can_spend(
+                            UsageCapKinds.MACHINE_TRANSLATION, call_units
+                        ):
+                            skipped += 1
+                            continue
                         translated_text = (
                             await self._translation_provider.translate_async(
                                 item.source_text,
@@ -329,6 +354,24 @@ class WorkflowService:
                                 locale.locale_code,
                             )
                         )
+                        await self._record_usage_async(
+                            UsageCallRecord(
+                                project.id,
+                                step.id,
+                                UsageMeters.MACHINE_TRANSLATION,
+                                UsageOperations.MT_DRAFT,
+                                locale.locale_code,
+                                call_units,
+                                None,
+                                False,
+                                True,
+                            ),
+                            now,
+                        )
+                        if mt_budget is not None:
+                            mt_budget.spent(
+                                UsageCapKinds.MACHINE_TRANSLATION, call_units
+                            )
                         new_trans = LocalizationTranslation(
                             string_id=item.id,
                             locale_code=locale.locale_code,
@@ -340,11 +383,18 @@ class WorkflowService:
                             updated_at=now,
                         )
                         self._session.add(new_trans)
+                        # EF Core fixes up the navigation by itself;
+                        # without the append the next step in this
+                        # session never sees the new row (the
+                        # identity-map collection is already loaded).
+                        item.translations.append(new_trans)
                         translated_count += 1
-                        character_count += (
-                            len(translated_text) if translated_text is not None else 0
-                        )
                     elif _is_blank(existing.target_text):
+                        if mt_budget is not None and not mt_budget.can_spend(
+                            UsageCapKinds.MACHINE_TRANSLATION, call_units
+                        ):
+                            skipped += 1
+                            continue
                         translated_text = (
                             await self._translation_provider.translate_async(
                                 item.source_text,
@@ -352,54 +402,58 @@ class WorkflowService:
                                 locale.locale_code,
                             )
                         )
+                        await self._record_usage_async(
+                            UsageCallRecord(
+                                project.id,
+                                step.id,
+                                UsageMeters.MACHINE_TRANSLATION,
+                                UsageOperations.MT_DRAFT,
+                                locale.locale_code,
+                                call_units,
+                                None,
+                                False,
+                                True,
+                            ),
+                            now,
+                        )
+                        if mt_budget is not None:
+                            mt_budget.spent(
+                                UsageCapKinds.MACHINE_TRANSLATION, call_units
+                            )
                         existing.target_text = translated_text
                         existing.raw_mt_text = translated_text
                         existing.stage = "Translated"
                         existing.translation_source = "AI"
                         existing.updated_at = now
                         translated_count += 1
-                        character_count += (
-                            len(translated_text) if translated_text is not None else 0
-                        )
-            if translated_count > 0:
-                char_rate = (
-                    self._ai_options.legacy_mt_price_per_char_usd
-                    if self._ai_options is not None
-                    else Decimal(0)
-                )
-                self._session.add(
-                    LedgerEntry(
-                        project_id=project.id,
-                        source="AI",
-                        amount=Decimal(0),
-                        units_consumed=character_count,
-                        unit_type="characters",
-                        real_cost_usd=(
-                            Decimal(character_count) * char_rate
-                        ).quantize(Decimal("0.000001"), rounding=ROUND_HALF_EVEN),
-                        created_at=now,
-                    )
-                )
-            outcome = f"{translated_count} strings translated via Google MT"
-        elif step.action == WorkflowActions.POST_TO_MARKETPLACE:
-            posted_count = 0
+            outcome = _with_skipped_clause(
+                f"{translated_count} strings translated via Azure Translator",
+                mt_budget,
+                UsageCapKinds.MACHINE_TRANSLATION,
+                skipped,
+            )
+        elif step.action == WorkflowActions.CREATE_TRANSLATION_JOBS:
+            created_count = 0
             skipped_count = 0
             for locale in project.locales:
                 try:
-                    await self._marketplace_service.post_to_marketplace_async(
+                    await self._translation_job_service.create_job_async(
                         project.slug, locale.locale_code
                     )
-                    posted_count += 1
+                    created_count += 1
                 except InvalidJobStateException:
                     skipped_count += 1
-            outcome = (
-                f"{posted_count} marketplace jobs posted, {skipped_count} skipped"
-            )
+            outcome = f"{created_count} jobs created, {skipped_count} skipped"
         # Phase 3 AI actions — thin orchestration over the localization-ai service.
         # A per-string AI failure is counted and the run continues; only
         # NotImplementedError (service not configured) aborts into HTTP 501.
         elif step.action == WorkflowActions.RUN_MT_OPTIMIZE:
+            if not project.ai_enabled:
+                raise LocalizationAiDisabledException(project.slug)
             _throw_if_ai_not_configured(self._mt_optimize_service.is_configured)
+            llm_budget = await self._start_budget_async(
+                project.id, UsageCapKinds.LLM, now
+            )
             glossary = (
                 await self._session.execute(
                     select(GlossaryTerm).where(
@@ -409,12 +463,18 @@ class WorkflowService:
             ).scalars().all()
             optimized_count = 0
             failed_count = 0
-            input_tokens = 0
-            output_tokens = 0
+            skipped = 0
             for item in project.strings:
                 for trans in item.translations:
+                    if trans.translation_source != "AI" or trans.stage == "Approved":
+                        continue
                     raw_mt = trans.raw_mt_text
                     if _is_blank(raw_mt):
+                        continue
+                    if llm_budget is not None and not llm_budget.can_spend(
+                        UsageCapKinds.LLM, 0
+                    ):
+                        skipped += 1
                         continue
                     terms = [
                         AiGlossaryTermDto(
@@ -431,50 +491,58 @@ class WorkflowService:
                             trans.locale_code,
                             terms,
                         )
+                        await self._record_usage_async(
+                            UsageCallRecord(
+                                project.id,
+                                step.id,
+                                UsageMeters.LLM_OPTIMIZE,
+                                UsageOperations.MT_OPTIMIZE,
+                                trans.locale_code,
+                                result.input_tokens,
+                                result.output_tokens,
+                                result.cache_hit,
+                                True,
+                            ),
+                            now,
+                        )
+                        if llm_budget is not None:
+                            llm_budget.spent(
+                                UsageCapKinds.LLM,
+                                0
+                                if result.cache_hit
+                                else result.input_tokens + result.output_tokens,
+                            )
                         trans.target_text = result.optimized_translation
                         trans.updated_at = now
                         optimized_count += 1
-                        input_tokens += result.input_tokens
-                        output_tokens += result.output_tokens
                     except LocalizationAiException:
                         failed_count += 1
-            if optimized_count > 0:
-                in_rate = (
-                    self._ai_options.chat_price_per_1k_input_tokens_usd
-                    if self._ai_options is not None
-                    else Decimal(0)
-                )
-                out_rate = (
-                    self._ai_options.chat_price_per_1k_output_tokens_usd
-                    if self._ai_options is not None
-                    else Decimal(0)
-                )
-                self._session.add(
-                    LedgerEntry(
-                        project_id=project.id,
-                        source="AI",
-                        amount=Decimal(0),
-                        units_consumed=int(input_tokens + output_tokens),
-                        unit_type="tokens",
-                        real_cost_usd=(
-                            Decimal(input_tokens) / Decimal(1000) * in_rate
-                            + Decimal(output_tokens) / Decimal(1000) * out_rate
-                        ).quantize(Decimal("0.000001"), rounding=ROUND_HALF_EVEN),
-                        created_at=now,
-                    )
-                )
-            outcome = (
+            outcome = _with_skipped_clause(
                 f"{optimized_count} strings optimized"
                 if failed_count == 0
-                else f"{optimized_count} strings optimized, {failed_count} failed"
+                else f"{optimized_count} strings optimized, {failed_count} failed",
+                llm_budget,
+                UsageCapKinds.LLM,
+                skipped,
             )
-        elif step.action == WorkflowActions.SCORE_QPS:
+        elif step.action == WorkflowActions.SCORE_QUALITY:
+            if not project.ai_enabled:
+                raise LocalizationAiDisabledException(project.slug)
             _throw_if_ai_not_configured(self._quality_scorer.is_configured)
+            llm_budget = await self._start_budget_async(
+                project.id, UsageCapKinds.LLM, now
+            )
             scored_count = 0
             failed_count = 0
+            skipped = 0
             for item in project.strings:
                 for trans in item.translations:
-                    if trans.translation_source != "AI":
+                    if trans.translation_source != "AI" or trans.stage == "Approved":
+                        continue
+                    if llm_budget is not None and not llm_budget.can_spend(
+                        UsageCapKinds.LLM, 0
+                    ):
+                        skipped += 1
                         continue
                     try:
                         score_result = await self._quality_scorer.score_async(
@@ -482,36 +550,175 @@ class WorkflowService:
                             trans.target_text if trans.target_text is not None else "",
                             trans.locale_code,
                         )
+                        if score_result.score < 1 or score_result.score > 5:
+                            await self._record_usage_async(
+                                UsageCallRecord(
+                                    project.id,
+                                    step.id,
+                                    UsageMeters.LLM_SCORE,
+                                    UsageOperations.QPS_SCORE,
+                                    trans.locale_code,
+                                    score_result.input_tokens,
+                                    score_result.output_tokens,
+                                    False,
+                                    False,
+                                ),
+                                now,
+                            )
+                            if llm_budget is not None:
+                                llm_budget.spent(
+                                    UsageCapKinds.LLM,
+                                    score_result.input_tokens
+                                    + score_result.output_tokens,
+                                )
+                            failed_count += 1
+                            continue
+                        await self._record_usage_async(
+                            UsageCallRecord(
+                                project.id,
+                                step.id,
+                                UsageMeters.LLM_SCORE,
+                                UsageOperations.QPS_SCORE,
+                                trans.locale_code,
+                                score_result.input_tokens,
+                                score_result.output_tokens,
+                                False,
+                                True,
+                            ),
+                            now,
+                        )
+                        if llm_budget is not None:
+                            llm_budget.spent(
+                                UsageCapKinds.LLM,
+                                score_result.input_tokens + score_result.output_tokens,
+                            )
                         trans.qps_score = score_result.score
                         trans.updated_at = now
                         scored_count += 1
-                    except LocalizationAiException:
+                    except LocalizationAiException as exc:
+                        if exc.input_tokens + exc.output_tokens > 0:
+                            await self._record_usage_async(
+                                UsageCallRecord(
+                                    project.id,
+                                    step.id,
+                                    UsageMeters.LLM_SCORE,
+                                    UsageOperations.QPS_SCORE,
+                                    trans.locale_code,
+                                    exc.input_tokens,
+                                    exc.output_tokens,
+                                    False,
+                                    False,
+                                ),
+                                now,
+                            )
+                            if llm_budget is not None:
+                                llm_budget.spent(
+                                    UsageCapKinds.LLM,
+                                    exc.input_tokens + exc.output_tokens,
+                                )
                         failed_count += 1
                         continue
                     raw_mt = trans.raw_mt_text
                     if not _is_blank(raw_mt) and trans.raw_mt_qps_score is None:
-                        try:
-                            raw_result = await self._quality_scorer.score_async(
-                                item.source_text,
-                                cast(str, raw_mt),
-                                trans.locale_code,
-                            )
-                            trans.raw_mt_qps_score = raw_result.score
-                        except LocalizationAiException:
-                            failed_count += 1
-            outcome = (
+                        if llm_budget is not None and not llm_budget.can_spend(
+                            UsageCapKinds.LLM, 0
+                        ):
+                            skipped += 1
+                        else:
+                            try:
+                                raw_result = await self._quality_scorer.score_async(
+                                    item.source_text,
+                                    cast(str, raw_mt),
+                                    trans.locale_code,
+                                )
+                                if raw_result.score < 1 or raw_result.score > 5:
+                                    await self._record_usage_async(
+                                        UsageCallRecord(
+                                            project.id,
+                                            step.id,
+                                            UsageMeters.LLM_SCORE,
+                                            UsageOperations.QPS_SCORE,
+                                            trans.locale_code,
+                                            raw_result.input_tokens,
+                                            raw_result.output_tokens,
+                                            False,
+                                            False,
+                                        ),
+                                        now,
+                                    )
+                                    if llm_budget is not None:
+                                        llm_budget.spent(
+                                            UsageCapKinds.LLM,
+                                            raw_result.input_tokens
+                                            + raw_result.output_tokens,
+                                        )
+                                    failed_count += 1
+                                else:
+                                    await self._record_usage_async(
+                                        UsageCallRecord(
+                                            project.id,
+                                            step.id,
+                                            UsageMeters.LLM_SCORE,
+                                            UsageOperations.QPS_SCORE,
+                                            trans.locale_code,
+                                            raw_result.input_tokens,
+                                            raw_result.output_tokens,
+                                            False,
+                                            True,
+                                        ),
+                                        now,
+                                    )
+                                    if llm_budget is not None:
+                                        llm_budget.spent(
+                                            UsageCapKinds.LLM,
+                                            raw_result.input_tokens
+                                            + raw_result.output_tokens,
+                                        )
+                                    trans.raw_mt_qps_score = raw_result.score
+                            except LocalizationAiException as exc:
+                                if exc.input_tokens + exc.output_tokens > 0:
+                                    await self._record_usage_async(
+                                        UsageCallRecord(
+                                            project.id,
+                                            step.id,
+                                            UsageMeters.LLM_SCORE,
+                                            UsageOperations.QPS_SCORE,
+                                            trans.locale_code,
+                                            exc.input_tokens,
+                                            exc.output_tokens,
+                                            False,
+                                            False,
+                                        ),
+                                        now,
+                                    )
+                                    if llm_budget is not None:
+                                        llm_budget.spent(
+                                            UsageCapKinds.LLM,
+                                            exc.input_tokens + exc.output_tokens,
+                                        )
+                                failed_count += 1
+            outcome = _with_skipped_clause(
                 f"{scored_count} strings scored"
                 if failed_count == 0
-                else f"{scored_count} strings scored, {failed_count} failed"
+                else f"{scored_count} strings scored, {failed_count} failed",
+                llm_budget,
+                UsageCapKinds.LLM,
+                skipped,
             )
         elif step.action == WorkflowActions.AUTO_ROUTE:
+            if not project.ai_enabled:
+                raise LocalizationAiDisabledException(project.slug)
             _throw_if_ai_not_configured(self._auto_routing_service.is_configured)
             processed_count = 0
             flagged_count = 0
             failed_count = 0
             for item in project.strings:
                 for trans in item.translations:
-                    if trans.translation_source != "AI" or trans.qps_score is None:
+                    if (
+                        trans.translation_source != "AI"
+                        or trans.stage == "Approved"
+                        or trans.qps_score is None
+                    ):
                         continue
                     try:
                         needs_review = await self._auto_routing_service.should_route_to_review_async(
@@ -541,6 +748,25 @@ class WorkflowService:
         await self._session.flush()
         return _step_dto(step)
 
+    async def _record_usage_async(
+        self, call: UsageCallRecord, occurred_at: datetime
+    ) -> None:
+        if self._usage is not None:
+            await self._usage.record_async(call, occurred_at)
+
+    async def _start_budget_async(
+        self, project_id: int, cap_kind: str, now: datetime
+    ) -> UsageBudget | None:
+        if self._usage is None:
+            return None
+        budget = await self._usage.begin_run_async(project_id, now)
+        limit = budget.limit(cap_kind)
+        if limit is not None and budget.used(cap_kind) >= limit:
+            raise LocalizationUsageCapReachedException(
+                cap_kind, budget.used(cap_kind), limit
+            )
+        return budget
+
 
 def _step_dto(step: WorkflowStep) -> WorkflowStepDto:
     return WorkflowStepDto(
@@ -552,6 +778,17 @@ def _step_dto(step: WorkflowStep) -> WorkflowStepDto:
         condition_expression=step.condition_expression,
         last_run_at=step.last_run_at,
         last_run_outcome=step.last_run_outcome,
+    )
+
+
+def _with_skipped_clause(
+    outcome: str, budget: UsageBudget | None, cap_kind: str, skipped: int
+) -> str:
+    if skipped <= 0 or budget is None:
+        return outcome
+    return (
+        f"{outcome}, {skipped} skipped: monthly {cap_kind} cap reached "
+        f"({budget.used(cap_kind)} of {budget.limit(cap_kind)})"
     )
 
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,9 +16,13 @@ from ..models.localization.localization_locale import LocalizationLocale
 from ..models.localization.localization_project import LocalizationProject
 from ..models.localization.localization_string import LocalizationString
 from ..models.localization.localization_translation import LocalizationTranslation
-from ..models.localization.marketplace_bid import MarketplaceBid
-from ..models.localization.marketplace_job import MarketplaceJob
+from ..models.localization.localization_usage_cap import LocalizationUsageCap
 from ..models.localization.provider_health_snapshot import ProviderHealthSnapshot
+from ..models.localization.service_agreement import ServiceAgreement
+from ..models.localization.service_tiers import ServiceTiers
+from ..models.localization.team_assignment import TeamAssignment
+from ..models.localization.translation_job import TranslationJob
+from ..models.localization.usage_constants import UsageCapKinds
 from ..models.localization.vendor import Vendor
 from ..models.localization.workflow_step import WorkflowStep
 from .localization_seed_translations import BY_KEY
@@ -36,6 +40,7 @@ async def seed(session: AsyncSession) -> None:
             slug="auroraline-hud-v3",
             name="Auroraline Automotive — HUD Strings",
             source_locale="en-US",
+            client_alias="Client Team Kestrel",
             created_at=now - timedelta(days=30),
         )
         session.add(project)
@@ -113,13 +118,13 @@ async def seed(session: AsyncSession) -> None:
         ]
 
         # 4. Seed de-DE Translations
-        for string_id, target, stage, score, updated in [
-            (str_speed.id, "Aktuelle Geschwindigkeit", "Approved", 95, now - timedelta(days=2)),
-            (str_fuel.id, "Kraftstoff niedrig", "Reviewed", 88, now - timedelta(days=3)),
-            (str_nav.id, "Links abbiegen", "Translated", 82, now - timedelta(hours=12)),
+        for string_id, target, stage, updated in [
+            (str_speed.id, "Aktuelle Geschwindigkeit", "Approved", now - timedelta(days=2)),
+            (str_fuel.id, "Kraftstoff niedrig", "Reviewed", now - timedelta(days=3)),
+            (str_nav.id, "Links abbiegen", "Translated", now - timedelta(hours=12)),
             # hud.climate.temp has no translation row seeded -> New
-            (str_door.id, "Tür offen", "Approved", 92, now - timedelta(days=5)),
-            (str_gear.id, "Rückwärtsgang eingelegt", "Reviewed", 89, now - timedelta(days=1)),
+            (str_door.id, "Tür offen", "Approved", now - timedelta(days=5)),
+            (str_gear.id, "Rückwärtsgang eingelegt", "Reviewed", now - timedelta(days=1)),
         ]:
             session.add(
                 LocalizationTranslation(
@@ -128,7 +133,6 @@ async def seed(session: AsyncSession) -> None:
                     target_text=target,
                     stage=stage,
                     translation_source="Manual",
-                    qps_score=score,
                     needs_review=False,
                     updated_at=updated,
                 )
@@ -224,17 +228,18 @@ async def seed(session: AsyncSession) -> None:
                     )
                 )
 
-        # 7. Seed 5 Vendors
-        vendor_maria = Vendor(name="Maria Fischer", languages="de-DE,fr-FR", rating=Decimal("4.9"))
-        vendor_kenji = Vendor(name="Kenji Sato", languages="ja-JP,ko-KR", rating=Decimal("5.0"))
-        vendor_aiko = Vendor(name="Aiko Tanaka", languages="ja-JP", rating=Decimal("4.7"))
-        vendor_marcus = Vendor(name="Marcus Webb", languages="ja-JP,zh-CN,ko-KR", rating=Decimal("4.2"))
-        vendor_elena = Vendor(name="Elena Rostova", languages="de-DE,es-ES", rating=Decimal("4.8"))
+        # 7. Seed 5 vendor teams (real names stay; aliases face the client). Every
+        # project locale below is covered by at least one team's Languages, so no
+        # Languages extension was needed.
+        vendor_maria = Vendor(name="Maria Fischer", alias="Vendor Team Larch", languages="de-DE,fr-FR")
+        vendor_kenji = Vendor(name="Kenji Sato", alias="Vendor Team Osprey", languages="ja-JP,ko-KR")
+        vendor_aiko = Vendor(name="Aiko Tanaka", alias="Vendor Team Juniper", languages="ja-JP")
+        vendor_marcus = Vendor(name="Marcus Webb", alias="Vendor Team Heron", languages="ja-JP,zh-CN,ko-KR")
+        vendor_elena = Vendor(name="Elena Rostova", alias="Vendor Team Cedar", languages="de-DE,es-ES")
         session.add_all([vendor_maria, vendor_kenji, vendor_aiko, vendor_marcus, vendor_elena])
         await session.flush()
 
-        # 8. Seed Marketplace Jobs & Bids
-        # Keep formula in sync with CreditLedgerService.EstimatePriceBandAsync
+        # 8. Seed Translation Jobs (assigned teams only; the open-for-bidding job is gone)
         all_strings = (
             await session.execute(
                 select(LocalizationString).where(LocalizationString.project_id == project.id)
@@ -244,122 +249,48 @@ async def seed(session: AsyncSession) -> None:
         total_word_count = sum(
             sum(1 for word in s.source_text.split(" ") if word) for s in all_strings
         )
-        seed_price_low = _round_band(Decimal(total_word_count) * Decimal("0.145") / Decimal(5))
-        seed_price_high = _round_band(Decimal(total_word_count) * Decimal("0.19") / Decimal(5))
-        if seed_price_low < Decimal(5):
-            seed_price_low = Decimal(5)
-        if seed_price_high < seed_price_low + Decimal(15):
-            seed_price_high = seed_price_low + Decimal(15)
 
-        # de-DE: Awarded to Maria Fischer
-        job_de = MarketplaceJob(
+        # de-DE: Assigned to Maria Fischer's team
+        job_de = TranslationJob(
             project_id=project.id,
             locale_code="de-DE",
-            status="Awarded",
+            status="Assigned",
             string_count=total_string_count,
             word_count=total_word_count,
-            suggested_price_low=seed_price_low,
-            suggested_price_high=seed_price_high,
-            awarded_vendor_id=vendor_maria.id,
-            posted_at=now - timedelta(days=5),
-            awarded_at=now - timedelta(days=2),
+            vendor_id=vendor_maria.id,
+            created_at=now - timedelta(days=5),
         )
         session.add(job_de)
         await session.flush()
-        session.add(
-            MarketplaceBid(
-                marketplace_job_id=job_de.id,
-                vendor_id=vendor_maria.id,
-                proposed_price=Decimal("210"),
-                note="Experienced automotive HUD terminology specialist.",
-                status="Awarded",
-                submitted_at=now - timedelta(days=3),
-            )
-        )
-
-        # ja-JP: Open with 3 bids
-        job_ja = MarketplaceJob(
-            project_id=project.id,
-            locale_code="ja-JP",
-            status="Open",
-            string_count=total_string_count,
-            word_count=total_word_count,
-            suggested_price_low=seed_price_low,
-            suggested_price_high=seed_price_high,
-            posted_at=now - timedelta(days=3),
-        )
-        session.add(job_ja)
-        await session.flush()
-        for vendor_id, price, note, submitted_at in [
-            (vendor_kenji.id, "345", "Native Japanese automotive localization expert.", now - timedelta(days=2)),
-            (vendor_aiko.id, "298", "Automotive cluster & infotainment UI specialist.", now - timedelta(days=2) + timedelta(hours=4)),
-            (vendor_marcus.id, "420", "Senior technical translator with HUD experience.", now - timedelta(days=1)),
-        ]:
-            session.add(
-                MarketplaceBid(
-                    marketplace_job_id=job_ja.id,
-                    vendor_id=vendor_id,
-                    proposed_price=Decimal(price),
-                    note=note,
-                    status="Pending",
-                    submitted_at=submitted_at,
-                )
-            )
 
         # fr-FR: Submitted for Review
-        job_fr = MarketplaceJob(
+        job_fr = TranslationJob(
             project_id=project.id,
             locale_code="fr-FR",
             status="SubmittedForReview",
             string_count=total_string_count,
             word_count=total_word_count,
-            suggested_price_low=seed_price_low,
-            suggested_price_high=seed_price_high,
-            awarded_vendor_id=vendor_maria.id,
-            posted_at=now - timedelta(days=7),
-            awarded_at=now - timedelta(days=4),
+            vendor_id=vendor_maria.id,
+            created_at=now - timedelta(days=7),
             submitted_at=now - timedelta(days=1),
         )
         session.add(job_fr)
         await session.flush()
-        session.add(
-            MarketplaceBid(
-                marketplace_job_id=job_fr.id,
-                vendor_id=vendor_maria.id,
-                proposed_price=Decimal("215"),
-                note="Automotive translation completed per DIN standards.",
-                status="Awarded",
-                submitted_at=now - timedelta(days=5),
-            )
-        )
 
         # es-ES: Approved
-        job_es = MarketplaceJob(
+        job_es = TranslationJob(
             project_id=project.id,
             locale_code="es-ES",
             status="Approved",
             string_count=total_string_count,
             word_count=total_word_count,
-            suggested_price_low=seed_price_low,
-            suggested_price_high=seed_price_high,
-            awarded_vendor_id=vendor_elena.id,
-            posted_at=now - timedelta(days=10),
-            awarded_at=now - timedelta(days=6),
+            vendor_id=vendor_elena.id,
+            created_at=now - timedelta(days=10),
             submitted_at=now - timedelta(days=3),
             approved_at=now - timedelta(days=1),
         )
         session.add(job_es)
         await session.flush()
-        session.add(
-            MarketplaceBid(
-                marketplace_job_id=job_es.id,
-                vendor_id=vendor_elena.id,
-                proposed_price=Decimal("195"),
-                note="Certified Spanish automotive translator.",
-                status="Awarded",
-                submitted_at=now - timedelta(days=7),
-            )
-        )
 
         # Ledger entry for approved job
         session.add(
@@ -372,10 +303,36 @@ async def seed(session: AsyncSession) -> None:
             )
         )
 
+        # 8b. Seed the demo project's Gold service agreement (every locale covered)
+        agreement = ServiceAgreement(
+            project_id=project.id,
+            tier=ServiceTiers.GOLD,
+            valid_from=now - timedelta(days=30),
+            created_at=now,
+        )
+        session.add(agreement)
+        await session.flush()
+        for vendor_id, locale_code in [
+            (vendor_maria.id, "de-DE"),
+            (vendor_kenji.id, "ja-JP"),
+            (vendor_marcus.id, "zh-CN"),
+            (vendor_maria.id, "fr-FR"),
+            (vendor_elena.id, "es-ES"),
+        ]:
+            session.add(
+                TeamAssignment(
+                    agreement_id=agreement.id,
+                    vendor_id=vendor_id,
+                    locale_code=locale_code,
+                    member_count=ServiceTiers.members_for(ServiceTiers.GOLD),
+                )
+            )
+        await session.flush()
+
         # 9. Seed 2 Provider Health Rows
         session.add(
             ProviderHealthSnapshot(
-                provider="GoogleMT",
+                provider="AzureTranslator",
                 p50_latency_ms=210,
                 p99_latency_ms=640,
                 error_rate_percent=Decimal("0.4"),
@@ -393,9 +350,145 @@ async def seed(session: AsyncSession) -> None:
                 updated_at=now,
             )
         )
+
+        # 10. Seed usage caps for the demo project
+        session.add_all(
+            [
+                LocalizationUsageCap(
+                    project_id=project.id,
+                    kind=UsageCapKinds.MACHINE_TRANSLATION,
+                    monthly_limit=2000000,
+                    updated_at=now,
+                ),
+                LocalizationUsageCap(
+                    project_id=project.id,
+                    kind=UsageCapKinds.LLM,
+                    monthly_limit=5000000,
+                    updated_at=now,
+                ),
+            ]
+        )
         await session.flush()
 
     await _seed_glossary_terms(session)
+    await session.flush()
+
+
+async def ensure_usage_caps(session: AsyncSession) -> None:
+    """Ported from LocalizationSeedData.EnsureUsageCaps: backfills the demo
+    project's usage caps (and, via _ensure_service_agreement, its service
+    agreement) on databases seeded before R2/R3. Called from DbSeeder right
+    after seed, as in C#."""
+    project = (
+        await session.execute(
+            select(LocalizationProject).where(
+                LocalizationProject.slug == "auroraline-hud-v3"
+            )
+        )
+    ).scalar_one_or_none()
+    if project is None:
+        return
+
+    wanted = [
+        (UsageCapKinds.MACHINE_TRANSLATION, 2000000),
+        (UsageCapKinds.LLM, 5000000),
+    ]
+    existing = set(
+        (
+            await session.execute(
+                select(LocalizationUsageCap.kind).where(
+                    LocalizationUsageCap.project_id == project.id
+                )
+            )
+        ).scalars().all()
+    )
+    added = False
+    for kind, limit in wanted:
+        if kind in existing:
+            continue
+        session.add(
+            LocalizationUsageCap(
+                project_id=project.id,
+                kind=kind,
+                monthly_limit=limit,
+                updated_at=datetime.now(UTC),
+            )
+        )
+        added = True
+
+    if added:
+        await session.flush()
+
+    await _ensure_service_agreement(session, project)
+
+
+async def _ensure_service_agreement(
+    session: AsyncSession, project: LocalizationProject
+) -> None:
+    """Ported from LocalizationSeedData.EnsureServiceAgreement."""
+    real_aliases = {
+        "Maria Fischer": "Vendor Team Larch",
+        "Kenji Sato": "Vendor Team Osprey",
+        "Aiko Tanaka": "Vendor Team Juniper",
+        "Marcus Webb": "Vendor Team Heron",
+        "Elena Rostova": "Vendor Team Cedar",
+    }
+    vendors = (
+        await session.execute(
+            select(Vendor).where(Vendor.name.in_(list(real_aliases)))
+        )
+    ).scalars().all()
+    for vendor in vendors:
+        if vendor.alias == f"Vendor Team {vendor.id}":
+            vendor.alias = real_aliases[vendor.name]
+
+    if project.client_alias == f"Client Team {project.id}":
+        project.client_alias = "Client Team Kestrel"
+
+    agreement = (
+        await session.execute(
+            select(ServiceAgreement).where(ServiceAgreement.project_id == project.id)
+        )
+    ).scalar_one_or_none()
+    if agreement is None:
+        agreement = ServiceAgreement(
+            project_id=project.id,
+            tier=ServiceTiers.GOLD,
+            valid_from=datetime.now(UTC),
+            created_at=datetime.now(UTC),
+        )
+        session.add(agreement)
+        await session.flush()
+
+    by_name = {v.name: v.id for v in vendors}
+    wanted = [
+        ("de-DE", "Maria Fischer"),
+        ("ja-JP", "Kenji Sato"),
+        ("zh-CN", "Marcus Webb"),
+        ("fr-FR", "Maria Fischer"),
+        ("es-ES", "Elena Rostova"),
+    ]
+    assigned = set(
+        (
+            await session.execute(
+                select(TeamAssignment.locale_code).where(
+                    TeamAssignment.agreement_id == agreement.id
+                )
+            )
+        ).scalars().all()
+    )
+    for locale_code, vendor_name in wanted:
+        if locale_code in assigned or vendor_name not in by_name:
+            continue
+        session.add(
+            TeamAssignment(
+                agreement_id=agreement.id,
+                vendor_id=by_name[vendor_name],
+                locale_code=locale_code,
+                member_count=ServiceTiers.members_for(ServiceTiers.GOLD),
+            )
+        )
+
     await session.flush()
 
 
@@ -408,11 +501,6 @@ async def _add_string(
     session.add(row)
     await session.flush()
     return row
-
-
-def _round_band(value: Decimal) -> Decimal:
-    # Math.Round(x, MidpointRounding.AwayFromZero) * 5m
-    return value.quantize(Decimal("1"), rounding=ROUND_HALF_UP) * 5
 
 
 async def _seed_glossary_terms(session: AsyncSession) -> None:

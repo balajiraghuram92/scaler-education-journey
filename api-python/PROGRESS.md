@@ -1189,3 +1189,774 @@ subclass, so the branch never matches it); NaN and
 infinities also pass through (`is_integer()` is
 `False` for them). Nothing else in the tool
 changed.
+
+## R6 — Localization rebuild port
+
+Task 1. **Inventory.** Every C# file under the
+three Localization folders after R3, its port
+today, and the action. "Emptied" means the C#
+file holds only a DELETED comment (reviewer
+deletes it with a shell command); "kept" under
+Google means the files still hold full content
+but nothing references them (R2 report: reviewer
+deletes them).
+
+Models (`api/Models/Localization/` ->
+`app/models/localization/`):
+
+| C# file | Python file today | Action |
+|---|---|---|
+| BuildSnapshot.cs | build_snapshot.py | unchanged |
+| BuildSnapshotLocaleCount.cs | build_snapshot_locale_count.py | unchanged |
+| EvalCaseResult.cs | eval_case_result.py | unchanged |
+| EvalGoldenCase.cs | eval_golden_case.py | unchanged |
+| EvalRun.cs | eval_run.py | unchanged |
+| GlossaryTerm.cs | glossary_term.py | unchanged |
+| LedgerEntry.cs | ledger_entry.py | update (`RelatedMarketplaceJob` repointed to `TranslationJob`) |
+| LocalizationLocale.cs | localization_locale.py | unchanged |
+| LocalizationProject.cs | localization_project.py | update (`+ai_enabled`, `+client_alias`, `qps_threshold` default 70 -> 4, `marketplace_jobs` -> `translation_jobs`, drop `ledger_entries`) |
+| LocalizationProviderRate.cs | none | new (localization_provider_rate.py) |
+| LocalizationString.cs | localization_string.py | unchanged |
+| LocalizationTranslation.cs | localization_translation.py | update (two range check constraints) |
+| LocalizationUsageCap.cs | none | new (localization_usage_cap.py) |
+| LocalizationUsageEvent.cs | none | new (localization_usage_event.py) |
+| MarketplaceBid.cs (emptied) | marketplace_bid.py | delete |
+| MarketplaceJob.cs (emptied) | marketplace_job.py | delete (replaced by translation_job.py) |
+| ProviderHealthSnapshot.cs | provider_health_snapshot.py | unchanged |
+| ServiceAgreement.cs | none | new (service_agreement.py) |
+| ServiceTiers.cs | none | new (service_tiers.py) |
+| TeamAssignment.cs | none | new (team_assignment.py) |
+| TranslationCacheEntry.cs | translation_cache_entry.py | unchanged |
+| TranslationJob.cs | none | new (translation_job.py, same table `localization_marketplace_jobs`) |
+| UsageConstants.cs | none | new (usage_constants.py) |
+| Vendor.cs | vendor.py | update (`+alias` unique, `-rating`, `-bids`, `awarded_jobs` -> `jobs`) |
+| WorkflowStep.cs | workflow_step.py | unchanged |
+
+Services (`api/Services/Localization/` ->
+`app/services/localization/`, DTOs in
+`app/schemas/localization_dtos.py`):
+
+| C# file | Python file today | Action |
+|---|---|---|
+| AutoRoutingService.cs | auto_routing_service.py | unchanged |
+| AzureTranslatorProviderService.cs | none | new (azure_translator_provider_service.py; replaces the Google port) |
+| CreditLedgerService.cs (emptied) | credit_ledger_service.py | delete |
+| GoogleTranslateProviderService.cs (kept) | google_translate_provider_service.py | delete |
+| IQualityScorer.cs | i_quality_scorer.py | update (`QualityScoreResult` gains input/output tokens) |
+| ITranslationProvider.cs | i_translation_provider.py | unchanged |
+| LocalizationAiClient.cs | localization_ai_client.py | update (`AiQpsScoreResult` gains token fields, exception gains token fields) |
+| LocalizationDtos.cs | schemas/localization_dtos.py | update (client/vendor/ops shapes) |
+| LocalizationExceptions.cs | localization_exceptions.py | update (add `LocalizationAiDisabledException`, `LocalizationUsageCapReachedException`) |
+| LocalizationProjectService.cs | localization_project_service.py | update (tier, AI switch) |
+| LocalizationStringService.cs | localization_string_service.py | update (trimmed client DTO) |
+| MarketplaceService.cs (emptied) | marketplace_service.py | delete (replaced by translation_job_service.py) |
+| MtOptimizeService.cs | mt_optimize_service.py | unchanged |
+| ProviderHealthService.cs | provider_health_service.py | update (`AzureTranslator` special-case) |
+| QpsScoringService.cs | qps_scoring_service.py | update (token plumbing) |
+| SnapshotService.cs | snapshot_service.py | unchanged |
+| TranslationJobService.cs | none | new (translation_job_service.py) |
+| UsageMeteringService.cs | none | new (usage_metering_service.py, incl. `UsageBudget`) |
+| VendorPortalService.cs | vendor_portal_service.py | update (rewrite: no bidding) |
+| WorkflowService.cs | workflow_service.py | update (metering, caps, kill switch, renames, no ledger, job service) |
+
+Endpoints (`api/Endpoints/Localization/` ->
+`app/routers/localization/`):
+
+| C# file | Python file today | Action |
+|---|---|---|
+| JobEndpoints.cs | none | new (job_endpoints.py) |
+| LocalizationEndpoints.cs | localization_endpoints.py | update (run-endpoint 409s, Azure/job-service wiring) |
+| MarketplaceEndpoints.cs (emptied) | marketplace_endpoints.py | delete |
+| ProviderHealthEndpoints.cs | provider_health_endpoints.py | unchanged |
+| UsageEndpoints.cs | none | new (usage_endpoints.py, ops router) |
+| VendorPortalEndpoints.cs | vendor_portal_endpoints.py | update (rewrite: no bidding) |
+
+Also in scope: `api/Options/
+AzureTranslatorOptions.cs` -> `AzureTranslatorSettings`
+in `app/settings.py` (new); `api/Options/
+GoogleTranslateOptions.cs` (kept) -> remove
+`GoogleTranslateSettings` from `app/settings.py`;
+`api/Program.cs` localization registrations ->
+`app/main.py` router order (localization, job,
+vendor-portal, provider-health, usage). `api/
+Endpoints/AdminAuthorization.cs` is outside the
+three folders: no new module — the ops router
+reuses the `_load_approved_admin` pattern
+already in `app/routers/admin_endpoints.py`.
+
+No command was run; nothing below is claimed
+to pass.
+
+C# tree state found while reading (all verified
+by direct reads; the R2/R3 code was never
+compiled — no shell — so R6 ports intent and
+reports): (a) `VendorPortalService.cs:58`
+passes a `TranslationJob` to
+`VendorJobRowAsync(int, ...)` — no such
+overload, does not compile; the port calls it
+with the job id. (b)
+`AzureTranslatorProviderService.cs:40,57`
+reads `_options.ApiKey` but
+`AzureTranslatorOptions` declares `Key` —
+does not compile; the port reads `key`
+(env `AzureTranslator__Key`) per the options
+class and Task 4. (c)
+`LocalizationTestFixture.cs:59` sets
+`Rating`, removed from `Vendor` in R3 — the
+test project does not compile; the ported
+fixture omits it. (d) `UsageControlsTests.
+HighCap_RunMatchesUncappedBehaviour` still
+asserts 4 ledger rows, but R3 removed the AI
+ledger writes (`LocalizationAiWorkflowTests`
+now asserts empty) — red in C#; ported
+verbatim with a Finding. (e)
+`ScoreQps_DoesNotRescoreRawWhenAlreadySet`
+seeds `RawMtQpsScore = 55`, which violates
+the new 1-5 check on a real PostgreSQL
+scratch DB (C# InMemory ignores checks) —
+ported verbatim; predicted to fail there
+until C# uses an in-range value.
+
+Task 2. **Models.** New:
+`usage_constants.py` (four constant classes),
+`service_tiers.py` (tier names + `members_for`
+with the `(Parameter 'tier')` suffix),
+`localization_usage_event.py` (13 columns,
+three indexes, one-sided project/step navs),
+`localization_provider_rate.py` (unique
+meter/kind/from index),
+`localization_usage_cap.py` (`monthly_limit`
+`BigInteger`, unique project/kind index),
+`service_agreement.py` (unique project
+index), `team_assignment.py` (unique
+agreement/locale index, vendor index,
+RESTRICT vendor FK), `translation_job.py`
+(same table `localization_marketplace_jobs`,
+`vendor_id` -> `awarded_vendor_id`,
+`created_at` -> `posted_at`, both old
+indexes kept). Updated:
+`localization_project.py` (`+ai_enabled`
+with `server_default` TRUE + default True,
+`+client_alias`, `qps_threshold` 70 -> 4
+both sides, `marketplace_jobs` ->
+`translation_jobs`, `ledger_entries`
+dropped), `vendor.py` (`+alias` with the
+unique index, `-rating`, `-bids`,
+`awarded_jobs` -> `jobs`),
+`localization_translation.py` (two range
+checks), `ledger_entry.py`
+(`RelatedMarketplaceJob` -> `TranslationJob`,
+project nav one-sided), both `__init__.py
+files. Emptied pending reviewer deletion:
+`marketplace_job.py`, `marketplace_bid.py`.
+Table/column/index/check names come from the
+R migrations and the snapshot (read
+directly, incl. the relationship blocks:
+caps/events/agreements/assignments are
+`WithMany()`, jobs cascade from the project
+and SET NULL from the vendor).
+`service_tiers.py`/`usage_constants.py` are
+imported by module path, not re-exported
+from `__init__.py` (entities only there).
+Two judgment calls: (a) `ai_enabled` has a
+DB default (migration `defaultValue: true`)
+the EF model does not declare (no
+`HasDefaultValue` in the snapshot) — the
+port carries both, migration default as
+`server_default`, C# initializer as
+`default` (Round 4 `password_iterations`
+pattern). (b) The check SQL is written in
+the deparsed form PostgreSQL reports
+(`>= 1 AND <= 5`, no `BETWEEN`, no extra
+parens) — predicted from deparse rules and
+the existing paren-free transcriptions, NOT
+observed; the schema parity test confirms.
+Leftover for later tasks: services,
+routers, schemas and tests still import the
+deleted models (Tasks 3/4/6 fix them);
+`app/seed/localization_seed_data.py` also
+imports them and is outside the R6 task
+list — it stays broken until a seeder
+follow-up ports the R3 seed changes.
+
+Task 3. **Services.** New:
+`usage_metering_service.py` (`UsageCallRecord`
+dataclass, record/cost/summary/events/
+budget, `UsageBudget`), `translation_job_service.py`
+(jobs incl. live NotCreated rows, create,
+approve, send-back, agreement read/save),
+`azure_translator_provider_service.py`
+(Endpoint/translate URL, subscription-key
+header + optional region header,
+`[{"Text"}]` body, first-text-or-mock
+parse, no-key and failure rules as the
+Google port). Rewritten: `workflow_service.py`
+(actions renamed, metering on every
+provider call, cap and kill-switch
+behaviour, ledger writes gone, jobs
+through the job service),
+`vendor_portal_service.py` (roster, vendor
+jobs, strings, submit; bidding gone).
+Updated: `localization_exceptions.py` (two
+new exceptions in C# order),
+`i_quality_scorer.py` (token fields),
+`qps_scoring_service.py` (tokens through),
+`localization_ai_client.py` (QPS token
+fields parsed with `_as_int`, exception
+token fields),
+`localization_project_service.py` (tier +
+`aiEnabled`), `localization_string_service.py`
+(two trimmed constructions),
+`provider_health_service.py` (one word:
+`azuretranslator`). Emptied pending
+reviewer deletion: `marketplace_service.py`,
+`credit_ledger_service.py`,
+`google_translate_provider_service.py`.
+Matching notes, as required: month
+boundaries are aware-UTC first-of-month
+inclusive to first-of-next-month
+exclusive (December rolls the year),
+filtered `>= start` and `< end` exactly
+like the C# `DateTime` + `AddMonths(1)`;
+cost rounds once to 6 decimals with
+`ROUND_HALF_EVEN` (C# `decimal.Round`
+banker's), parts summed before rounding,
+`Decimal` arithmetic with an exact
+`10^6` divisor; `completedPercent` is
+`(done * 100) // count` with 0-for-0
+(C# truncating int division on
+non-negative values = round-down); string
+comparisons are ordinal `==` (statuses,
+tiers, kinds, locales) with no case
+folding, as in C# — the one `lower()`
+(provider health) mirrors C# `ToLower()`
+under the container culture; word counts
+split on `" "` and drop empties (C#
+`Split(' ', RemoveEmptyEntries)`, tabs and
+newlines do NOT split). Other calls:
+`ai_options` stays a constructor
+parameter but is stored unused (C#
+declares it and never assigns it);
+`VendorJobRowAsync` is called with the job
+id (Task 1 item a); the Azure provider
+reads `key` (Task 1 item b); source-text
+length uses `len()` where C# uses UTF-16
+`Length` — identical for BMP text, off by
+one unit per astral char (Finding: same
+class as Finding 9); the ScoreQuality
+out-of-range `continue` skips the raw
+rescore exactly as the C# `continue`
+does; with no metering service there is
+no budget and no caps, as in R1.
+
+Task 4. **Schemas and routers.** Rewrote
+`app/schemas/localization_dtos.py` in C#
+record order: client project/string rows,
+vendor string/job rows, team and agreement
+shapes plus the save request, usage
+summary/event/rate/cap/controls shapes;
+deleted `MarketplaceBidDto`,
+`MarketplaceJobSummaryDto`,
+`MarketplaceJobDto`, `SubmitBidRequest`,
+`VendorDto`. Cost/price fields use
+`DotNetDecimal`, timestamps
+`DotNetDateTime`; `UsageSummaryDto.caps`
+is omitted when null via a wrap
+serializer (C# `WhenWritingNull`). New
+`job_endpoints.py` (jobs list/create,
+approve, send-back, client agreement
+read) and `usage_endpoints.py` (usage,
+events, rates, controls, teams, ops
+agreement read/save). Rewrote
+`vendor_portal_endpoints.py` (roster,
+jobs, strings read/update, submit).
+`localization_endpoints.py`: Azure +
+job-service + metering wiring, two new
+409 catches on run. Emptied pending
+reviewer deletion:
+`marketplace_endpoints.py`.
+`settings.py`: `AzureTranslatorSettings`
+(endpoint/key/region) in, `GoogleTranslateSettings`
+out. `main.py`: router order now
+localization, job, vendor-portal,
+provider-health, usage, per `Program.cs`.
+Judgment calls: (a) the ops admin check
+copies `_load_approved_admin` from the
+admin router with the same 403 body but
+deliberately NO `require_admin`
+dependency — C# `UsageEndpoints` carries
+no Authorize attribute, so signed-out
+callers get the 403 problem (R1 reviewer
+check confirms). (b) PUT controls reads
+the raw JSON body (`await request.json()`;
+non-object bodies behave as all-absent,
+as C# `TryGetProperty` does); null
+`aiEnabled` is ignored while null limits
+remove caps; limits reject bools,
+floats, out-of-int64 values and
+negatives (C# `TryGetInt64` parity).
+(c) The vendor string PUT binds
+`UpdateTranslationRequest`, not the
+`VendorStringRowDto` C# binds — C# only
+reads `TargetText`, so well-formed
+bodies match; an extra field with a
+wrong JSON type 400s in C# but is
+ignored here (Finding). (d) `yyyy-MM`
+is validated by regex plus range
+(`strptime` alone would accept
+`2026-3`, which `TryParseExact`
+rejects). (e) Usage summary/events and
+rates have no generic catch, as in C# —
+unexpected errors reach the central 500
+handler on both sides. (f) AddRate
+returns a bare 201 JSON body with no
+`Location` header, as C# `Results.Json`
+does.
+
+Task 5. **Parity list and map.**
+`tools/parity_routes.txt`: removed the 6
+marketplace/bid lines and the 3 old
+vendor lines; added the 5 jobs lines
+(create uses `ja-JP`: assigned team, no
+job, no translations — a real 200 on
+the seed), approve and send-back for
+job 1 (both 409 on the seed — job 1 is
+Assigned — so the 409 shape is
+compared; noted in a comment), vendor
+jobs for vendor 1, and the 9 ops lines
+with a 403-shape comment as instructed;
+`GoogleMT` became `AzureTranslator` in
+the provider-health lines; header now
+108 lines, P6 x34. `PORT-MAP.md`: P0
+options row swapped to Azure; P1 entity
+rows +8/-2 (also dropping a stale
+"Finding 3" note Round 5 left on the
+translation row); P6 file rows +5/-4
+with R6 notes on every changed row; P6
+route rows 28 -> 34 (jobs, vendor jobs,
+ops; ops marked AdminOnly with the 403
+shape noted); P8 tally updated to 161
+files / 108 routes with an R6 section;
+Finding 21 annotated as passing again
+(the R2 up-front check restored the
+throw; the stale note leaves the ported
+test in Task 6) and Findings 25-30
+added (UTF-16 length units, three C#
+compile breaks, vendor-PUT binding
+edge, two unpassable C# tests, predicted
+check SQL, non-integer limit 422).
+
+Task 6. **Tests.** Added:
+`test_translation_job_service.py` (14
+cases: create/team/409s, full lifecycle,
+terminal and send-back branches, both
+completedPercent cases, all four save
+validations, tier-capacity update,
+audience JSON keys),
+`test_usage_metering.py` (9 cases: MT
+events, optimize tokens/cache-hit,
+QPS success/failure rails, rate in
+force, missing rate, summary exactness,
+unmetered all-actions),
+`test_usage_controls.py` (4 disabled
+params + 4 cap cases, incl. the stale
+ledger tail ported verbatim per Finding
+28), `test_azure_translator_provider.py`
+(7 cases, no C# equivalent — same role
+as the old Google test: URL shape, full
+locale codes, key-in-header-only, region
+header, mock and production failure
+rules). Changed: `localization_fixture.py`
+(`jobs()`, depless portal/workflow,
+explicit trailing nulls, vendor alias
+from the slug), `test_vendor_portal_service.py`
+(rewritten to the 7 R3 cases),
+`test_localization_workflow_service.py`
+(create-jobs cases + agreement setup,
+Score Quality rename, stale Finding-21
+note removed),
+`test_localization_ai_workflow.py`
+(empty ledgers, in-range scores,
+threshold 4, Azure rename),
+`test_dotnet_decimal.py` (surviving
+decimal DTOs), `test_exercise_endpoint_mapping.py`
+(new localization route-table test:
+15 new routes present, marketplace
+paths and 9 old handler names absent).
+Deleted (emptied, reviewer deletes):
+`test_marketplace_service.py`,
+`test_google_translate_provider.py`.
+Database tests keep `PY_SCRATCH_DATABASE_URL`;
+the reviewer must apply the R1-R3
+migrations to that database first (new
+tables, dropped bids table/columns, new
+checks). Two cases are predicted red
+until C# is fixed (Finding 28); the
+fixture omits the C# fixture's
+uncompilable `Rating` (Finding 26);
+`_seed_vendor` aliases stay distinct
+from the fixture vendor's slug-derived
+alias for the unique index.
+
+## C17 — track R review fixes
+
+Log: `info/muse-prompts/corrections/C17-api-python-track-r.md`.
+No command was run; nothing below is claimed to pass.
+
+Task 1. **ruff I001 (2).** In
+`tests/test_usage_controls.py` and
+`tests/test_usage_metering.py` the
+fixture import mixed an `as` alias into
+a parenthesized multi-member
+from-import (`workflow as
+fixture_workflow` /
+`unmetered_workflow`) — the only import
+structure in either block with no
+passing precedent anywhere in the repo
+(groups, module order, member order and
+blank lines all already match the clean
+test modules, and the parenthesized
+`usage_constants` form passes in
+`usage_endpoints.py`,
+`usage_metering_service.py` and
+`workflow_service.py`). Each alias now
+has its own import line, matching the
+passing same-module split in
+`app/seed/python_curriculum_seed_data.py`
+lines 11-12. Groups otherwise
+untouched: stdlib, third party, `app.`,
+relative, one blank line between.
+
+Task 2. **mypy (3).**
+`usage_metering_service.py:185` now
+builds `UsageMissingRateDto(meter=row.meter,
+unit_kind=kind)` (field names from
+`localization_dtos.py:238-240`); a
+regex sweep of `app/` for
+`Dto(<positional>` and
+`Request(<positional>` found no other
+pydantic model built positionally
+(only class definitions;
+`QualityScoreResult`/`UsageCallRecord`
+are dataclasses, positional by
+design). `_completed_percent` in
+`translation_job_service.py` and
+`vendor_portal_service.py` takes
+`Sequence[LocalizationString]`
+(`collections.abc` import first in
+the stdlib group of each file).
+`_count_words` left as `list` (its
+callers pass lists; not flagged).
+
+Task 3. **New translations join
+their string's collection.** The
+`LocalizationTranslation(`
+constructions in
+`app/services/localization/` are
+exactly three: the workflow MT
+branch, `vendor_portal_service.py`
+`update_job_string_async`, and
+`localization_string_service.py`
+`update_translation_async`. All
+three now append to
+`item.translations` as well as
+`session.add`; no `populate_existing`
+added. Safety note: append emits no
+SQL (no lazy load), and neither the
+vendor nor the string path reads the
+collection afterwards, so the append
+is safe there despite
+`lazy="raise"` on the relationship.
+
+Task 4. **Replacing an
+agreement's teams.**
+`translation_job_service.py`
+`save_agreement_async` now flushes
+after deleting the stale
+`TeamAssignment` rows, before adding
+the replacements (same flush, inside
+the update branch).
+
+Task 5. **Stale test expectations.**
+(1) `test_exercise_endpoint_mapping.py`:
+checked all 15 asserted localization
+paths against the router decorators —
+approve, send-back and vendor-jobs
+declare `:int` (`job_endpoints.py:61,77`,
+`vendor_portal_endpoints.py:39`) and
+now expect it; the other 12 paths
+declare no convertor and are unchanged.
+Routers untouched. (2)
+`test_localization_ai_workflow.py`:
+`raw_mt_qps_score` 55 -> 2 in the
+fixture and the final assert; the
+Finding-28 NOTE (now false) removed.
+(3) `test_usage_controls.py` high-cap
+test: the 4-row ledger tail replaced
+with `assert ledger == []`
+(`Decimal`/`LedgerEntry` imports still
+used above).
+
+Task 6. **The localization seeder.**
+`app/seed/localization_seed_data.py`
+ported from the current
+`api/Data/LocalizationSeedData.cs`:
+deleted `marketplace_bid`/
+`marketplace_job` imports (modules
+gone) for `LocalizationUsageCap`,
+`ServiceAgreement`, `ServiceTiers`,
+`TeamAssignment`, `TranslationJob`,
+`UsageCapKinds`; project carries
+`client_alias` "Client Team Kestrel";
+vendors carry their five aliases and
+no `rating` (the model has none);
+de-DE rows seed no `qps_score`;
+jobs are three `TranslationJob`
+rows (de-DE Assigned/-5d, fr-FR
+SubmittedForReview/-7d/-1d, es-ES
+Approved/-10d/-3d/-1d, counts over
+all strings, space-split words as in
+C#); the ja-JP open job, all bids and
+the price-band code (`_round_band`
+and `ROUND_HALF_UP` gone) removed;
+ledger keeps the single
+Marketplace/195 row on the es-ES job;
+new step 8b seeds the Gold agreement
+(validFrom -30d) with five team
+assignments in C# order, counts from
+`ServiceTiers.members_for`;
+provider health is AzureTranslator +
+LlmAzureGpt with the C# literals;
+new step 10 seeds the two usage caps
+(2000000/5000000). New public
+`ensure_usage_caps` plus private
+`_ensure_service_agreement` mirror
+the C# pair exactly (missing-kind
+backfill with conditional flush,
+`Vendor Team {id}`/`Client Team
+{id}` placeholder repair,
+get-or-create Gold agreement,
+missing-locale backfill, unconditional
+final flush; ensure called at the
+end of `ensure_usage_caps` as C#
+line 374 does). `db_seeder.py`
+calls `ensure_usage_caps` right
+after `seed`, as C# `DbSeeder`
+lines 62-63 do. Insert order and
+every literal match C#. A sweep
+confirms no remaining reference to
+the deleted modules, bids, prices,
+ratings, scores or GoogleMT (only
+the intentional kept
+`related_marketplace_job_id`
+column).
+
+## R8 — jobs include machine output
+
+Port of R7
+(`info/muse-prompts/localization-rebuild/R7-jobs-include-mt-output.md`)
+after C17. No command was run; nothing below is claimed
+to pass.
+
+Task 1. **JobScope.** New
+`app/services/localization/job_scope.py`,
+ported from `api/Services/Localization/
+JobScope.cs`: `class JobScope` (the
+`ServiceTiers` static-class pattern)
+with `VENDOR_SOURCE` ("Marketplace")
+and `MACHINE_SOURCE` ("AI") plus
+static `is_open` (no translation,
+blank text, or stage not "Approved"),
+`is_vendor_reviewed` (Marketplace
+source, non-blank text) and
+`completed_percent` (100 when
+"Approved", 0 when `string_count` is
+0, else vendor-reviewed non-Approved
+count * 100 // string_count capped at
+100 — C# truncating division on
+non-negative values is round-down).
+Deleted the private `_completed_percent`
+in `translation_job_service.py` and
+`vendor_portal_service.py` (and their
+now-unused `Sequence` imports); the
+four call sites now call
+`JobScope.completed_percent` with the
+job status. `VendorPortalService`
+writes `JobScope.VENDOR_SOURCE`
+instead of the "Marketplace" literal
+(two spots in
+`update_job_string_async`), as the C#
+does.
+
+Task 2. **Job creation and the jobs
+list.** In `translation_job_service.py`:
+`NotCreated` rows count
+`string_count`/`word_count` over
+`JobScope.is_open` strings with
+`completed_percent` 0 (per the
+contract, not computed);
+existing-job rows and `_job_row_async`
+use `JobScope.completed_percent`
+with the job status (wired in task
+1); `create_job_async` freezes
+counts over the open strings and
+throws the unchanged "nothing left
+to translate" 409 only when no
+string is open. Team, existing-job,
+refresh and `_count_words` rules
+untouched.
+
+Task 3. **The vendor portal.**
+`VendorStringRowDto` gains `in_job`
+and `vendor_reviewed` as the last
+two fields (JSON `inJob`,
+`vendorReviewed` via the camelCase
+default, same order as C#); the
+single `_vendor_string_row` builder
+sets them from `JobScope.is_open`
+and `JobScope.is_vendor_reviewed`.
+PUT on a string whose translation
+stage is "Approved" throws 409
+("String {stringId} is already
+approved for {localeCode}." —
+character-for-character the C#
+message); otherwise unchanged, so
+re-sending the same text accepts a
+machine draft (source becomes
+`JobScope.VENDOR_SOURCE`,
+`RawMtText`/scores untouched).
+Submit keeps the non-blank rule and
+adds the machine-review rule ("{n}
+machine-translated strings still
+need review before the job can be
+submitted." —
+character-for-character). Vendor job
+rows use `JobScope.completed_percent`
+(wired in task 1). No router change:
+both new 409s reuse
+`InvalidJobStateException`, already
+mapped to 409.
+
+Task 4. **Machine steps never
+overwrite vendor work.**
+`RunMtOptimize` now skips
+translations whose source is not
+"AI" or whose stage is "Approved"
+before the `RawMtText`/cap checks
+(literals as in C#, which does not
+reference `JobScope` here), so they
+count as neither optimized, failed
+nor skipped. `ScoreQuality` and
+`AutoRoute` gained the same
+`Stage != "Approved"` condition
+alongside their existing "AI"
+source check. Outcome text formats
+unchanged.
+
+Task 5. **Tests.** Eight R7 tests
+ported with the same names in
+snake_case (4 in
+`test_translation_job_service.py`,
+4 in `test_vendor_portal_service.py`,
+mirroring the C# files): all-AI
+locale creates a job over all
+strings; all-Approved locale throws
+"nothing left to translate";
+`NotCreated` row counts open strings
+(Approved + AI/Translated gives 1);
+4 open strings with 1 vendor accept
+gives 25 and approval gives 100;
+PUT-with-same-text accepts a draft
+(source "Marketplace", `RawMtText`
+kept, `VendorReviewed` true,
+Assigned -> InProgress); PUT on an
+Approved string is 409; submit with
+one unreviewed AI string is 409 and
+succeeds after the accept;
+`RunMtOptimize` skips a Marketplace
+translation with `RawMtText` (1
+call, vendor text untouched) via a
+new file-local
+`_CountingOptimizeHandler` — the
+queued fakes live in other test
+modules, so this test carries its
+own counting handler, mirroring the
+C# test's file-local handler.
+Existing-test updates (the same four
+the C# side made): the old
+finished-stages percent test is
+rewritten to the new rule (renamed
+`test_completed_percent_counts_vendor_reviewed_non_approved_over_job_total`,
+now expects 50); audience separation
+passes the two new DTO fields and
+asserts the `inJob`/`vendorReviewed`
+JSON names; the create-jobs skip
+test seeds Approved stages
+(Translated is now open, so jobs
+would be created); the unmetered
+workflow test expects "0 strings
+scored" (the translations are
+Approved by then, so Score Quality
+skips them instead of failing on the
+fake score of 90).
+
+Task 6. **This entry.** Everything
+ported as written; no unresolved
+items.
+
+## C18 — vendor update load
+
+Log: `info/muse-prompts/corrections/C18-api-python-track-r.md`.
+No command was run; nothing below is claimed to pass.
+
+**The fix.**
+`vendor_portal_service.py`
+`update_job_string_async` loaded the
+string with a plain select while the
+relationship is `lazy="raise"`, so
+`item.translations.append` (C17) and
+the `in_job` computation in
+`_vendor_string_row` (R8) raised
+`InvalidRequestError`. The query now
+carries
+`.options(selectinload(LocalizationString.translations))`
+(`selectinload` was already
+imported); the whole collection, not
+the filtered form, because the method
+appends to it. The separate
+`LocalizationTranslation` lookup is
+unchanged.
+
+**Sweep.** Every `.translations`
+access in
+`app/services/localization/` traced
+to its load; no
+`LocalizationString` use exists
+outside that folder. One more place
+had the same defect and got the same
+fix:
+`localization_string_service.py`
+`update_translation_async`
+(plain load + append; no test covers
+it yet — the three named failing
+tests cover the vendor path).
+Checked and left alone: both
+`get_strings`/`get_job_strings`
+(filtered load, read-only);
+vendor submit (plain load plus
+explicit `refresh(item,
+["translations"])` before the
+reads); both `_job_row_async`
+methods (filtered load, and the
+percent helpers only inspect that
+locale); `create_job_async`
+(selectinload plus refresh);
+`run_step_async` and
+`cut_snapshot_async` (single
+project load with full
+strings-translations); all
+`JobScope` call sites (each passes
+strings from one of the loads
+above); `approve_async` (joins
+translations directly, never
+touches the collection).

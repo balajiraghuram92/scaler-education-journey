@@ -148,12 +148,17 @@ class BudgetSettings(BaseSettings):
     max_daily_requests: int = Field(default=500, alias="Budget__MaxDailyRequests")
 
 
-class GoogleTranslateSettings(BaseSettings):
-    """Ported from api/Options/GoogleTranslateOptions.cs (section GoogleTranslate)."""
+class AzureTranslatorSettings(BaseSettings):
+    """Ported from api/Options/AzureTranslatorOptions.cs (section AzureTranslator)."""
 
-    model_config = SettingsConfigDict(env_prefix="GoogleTranslate__", populate_by_name=True, extra="ignore")
+    model_config = SettingsConfigDict(env_prefix="AzureTranslator__", populate_by_name=True, extra="ignore")
 
-    api_key: str = Field(default="", alias="GoogleTranslate__ApiKey")
+    endpoint: str = Field(
+        default="https://api.cognitive.microsofttranslator.com",
+        alias="AzureTranslator__Endpoint",
+    )
+    key: str = Field(default="", alias="AzureTranslator__Key")
+    region: str = Field(default="", alias="AzureTranslator__Region")
 
 
 class LocalizationAiSettings(BaseSettings):
@@ -251,7 +256,7 @@ class AppSettings(BaseSettings):
     exercise_execution: ExerciseExecutionSettings = Field(default_factory=ExerciseExecutionSettings)
     llama_api: LlamaApiSettings = Field(default_factory=LlamaApiSettings)
     budget: BudgetSettings = Field(default_factory=BudgetSettings)
-    google_translate: GoogleTranslateSettings = Field(default_factory=GoogleTranslateSettings)
+    azure_translator: AzureTranslatorSettings = Field(default_factory=AzureTranslatorSettings)
     localization_ai: LocalizationAiSettings = Field(default_factory=LocalizationAiSettings)
 
 

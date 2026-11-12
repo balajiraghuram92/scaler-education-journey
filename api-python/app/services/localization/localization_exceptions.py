@@ -59,6 +59,22 @@ class LocalizationLocaleNotFoundException(Exception):
         self.locale_code = locale_code
 
 
+class LocalizationAiDisabledException(Exception):
+    def __init__(self, project_slug: str) -> None:
+        super().__init__(
+            f"AI assistance is switched off for project '{project_slug}'."
+        )
+        self.project_slug = project_slug
+
+
+class LocalizationUsageCapReachedException(Exception):
+    def __init__(self, kind: str, used: int, limit: int) -> None:
+        super().__init__(f"Monthly {kind} cap reached ({used} of {limit}).")
+        self.kind = kind
+        self.used = used
+        self.limit = limit
+
+
 class VendorLanguageMismatchException(Exception):
     def __init__(self, vendor_id: int, locale_code: str) -> None:
         super().__init__(

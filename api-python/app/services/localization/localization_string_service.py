@@ -68,13 +68,7 @@ class LocalizationStringService:
                     translation_source=translation.translation_source
                     if translation
                     else "Manual",
-                    qps_score=translation.qps_score if translation else None,
-                    needs_review=translation.needs_review if translation else False,
                     updated_at=translation.updated_at if translation else None,
-                    raw_mt_text=translation.raw_mt_text if translation else None,
-                    raw_mt_qps_score=translation.raw_mt_qps_score
-                    if translation
-                    else None,
                 )
             )
         return result
@@ -97,7 +91,9 @@ class LocalizationStringService:
             raise LocalizationProjectNotFoundException(project_slug)
         item = (
             await self._session.execute(
-                select(LocalizationString).where(
+                select(LocalizationString)
+                .options(selectinload(LocalizationString.translations))
+                .where(
                     LocalizationString.id == string_id,
                     LocalizationString.project_id == project.id,
                 )
@@ -125,6 +121,8 @@ class LocalizationStringService:
                 updated_at=datetime.now(UTC),
             )
             self._session.add(translation)
+            # Same EF-fixup parity as the workflow MT branch.
+            item.translations.append(translation)
         else:
             translation.target_text = request.target_text
             translation.translation_source = "Manual"
@@ -139,9 +137,5 @@ class LocalizationStringService:
             target_text=translation.target_text,
             stage=translation.stage,
             translation_source=translation.translation_source,
-            qps_score=translation.qps_score,
-            needs_review=translation.needs_review,
             updated_at=translation.updated_at,
-            raw_mt_text=translation.raw_mt_text,
-            raw_mt_qps_score=translation.raw_mt_qps_score,
         )

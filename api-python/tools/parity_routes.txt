@@ -1,5 +1,6 @@
-# Full parity route list (P8): every route in PORT-MAP.md, in table order.
-# 102 lines: P0 x4, P2 x26, P3 x34, P4 x6, P5 x4, P6 x28.
+# Full parity route list (P8, refreshed in R6): every route in PORT-MAP.md,
+# in table order.
+# 108 lines: P0 x4, P2 x26, P3 x34, P4 x6, P5 x4, P6 x34.
 #
 # How to run (reviewer):
 #   1. Seed BOTH databases identically (dotnet ef database update + seeders on
@@ -114,22 +115,32 @@ POST /api/localization/projects/auroraline-hud-v3/workflow/steps/1/run
 DELETE /api/localization/projects/auroraline-hud-v3/workflow/steps/1
 GET /api/localization/projects/auroraline-hud-v3/snapshots
 POST /api/localization/projects/auroraline-hud-v3/snapshots
-# --- P6: marketplace ---
-GET /api/localization/projects/auroraline-hud-v3/marketplace
-POST /api/localization/projects/auroraline-hud-v3/marketplace/zh-CN/post
-GET /api/localization/marketplace/jobs/1/bids
-POST /api/localization/marketplace/jobs/1/bids/1/award
-POST /api/localization/marketplace/jobs/1/approve
-POST /api/localization/marketplace/jobs/1/send-back
+# --- P6: jobs (replaces the marketplace) ---
+GET /api/localization/projects/auroraline-hud-v3/jobs
+# ja-JP has an assigned team, no job yet, and no translations: creates on both sides.
+POST /api/localization/projects/auroraline-hud-v3/jobs/ja-JP
+# Seed job 1 (de-DE) is Assigned, so both answer 409 here; the 409 shape is compared.
+POST /api/localization/jobs/1/approve
+POST /api/localization/jobs/1/send-back
+GET /api/localization/projects/auroraline-hud-v3/agreement
 # --- P6: provider health ---
 GET /api/localization/provider-health
-POST /api/localization/provider-health/GoogleMT/simulate-outage
-POST /api/localization/provider-health/GoogleMT/resolve
+POST /api/localization/provider-health/AzureTranslator/simulate-outage
+POST /api/localization/provider-health/AzureTranslator/resolve
 # --- P6: vendor portal ---
 GET /api/localization/vendor/roster
-GET /api/localization/vendor/1/open-jobs
-POST /api/localization/vendor/1/jobs/1/bids {"proposedPrice":210,"note":"Parity bid"}
-GET /api/localization/vendor/1/awarded-jobs
+GET /api/localization/vendor/1/jobs
 GET /api/localization/vendor/jobs/1/strings
 PUT /api/localization/vendor/jobs/1/strings/1 {"targetText":"Parity vendor text"}
 POST /api/localization/vendor/jobs/1/submit
+# --- P6: operations (admin only: 403 without a signed-in admin on both sides;
+# parity.py sends only x-api-key, so these compare the 403 shape) ---
+GET /api/localization/ops/usage?project=auroraline-hud-v3
+GET /api/localization/ops/usage/events?project=auroraline-hud-v3&limit=5
+GET /api/localization/ops/rates
+POST /api/localization/ops/rates {"meter":"llm-score","unitKind":"input-token","usdPerMillion":2.0}
+GET /api/localization/ops/projects/auroraline-hud-v3/controls
+PUT /api/localization/ops/projects/auroraline-hud-v3/controls {"aiEnabled":true}
+GET /api/localization/ops/teams
+GET /api/localization/ops/projects/auroraline-hud-v3/agreement
+PUT /api/localization/ops/projects/auroraline-hud-v3/agreement {"tier":"Gold","teams":[]}

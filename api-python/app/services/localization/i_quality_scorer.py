@@ -10,6 +10,8 @@ from typing import Protocol
 class QualityScoreResult:
     score: int
     flagged_issues: list[str]
+    input_tokens: int = 0
+    output_tokens: int = 0
 
 
 class IQualityScorer(Protocol):

@@ -55,3 +55,65 @@ def test_endpoint_mapping_registers_run_and_check_routes() -> None:
     assert methods["execute_run"] == {"POST"}
     assert methods["execute_check"] == {"POST"}
     assert methods["save_draft"] == {"PUT"}
+
+
+def test_endpoint_mapping_localization_rebuild_routes() -> None:
+    # R6: the jobs, vendor-jobs and ops routes replaced the marketplace and
+    # bid routes; every old route name and path segment is gone.
+    app = create_app()
+    flat = list(_flatten_routes(app.routes))
+    routes = {
+        (path, name)
+        for path, route in flat
+        if (name := getattr(route, "name", None))
+    }
+
+    assert ("/api/localization/projects/{slug}/jobs", "get_jobs") in routes
+    assert (
+        "/api/localization/projects/{slug}/jobs/{locale_code}",
+        "create_job",
+    ) in routes
+    assert ("/api/localization/jobs/{job_id:int}/approve", "approve_job") in routes
+    assert ("/api/localization/jobs/{job_id:int}/send-back", "send_back_job") in routes
+    assert (
+        "/api/localization/projects/{slug}/agreement",
+        "get_agreement",
+    ) in routes
+    assert ("/api/localization/vendor/{vendor_id:int}/jobs", "get_jobs") in routes
+    assert ("/api/localization/ops/usage", "get_usage_summary") in routes
+    assert ("/api/localization/ops/usage/events", "get_usage_events") in routes
+    assert ("/api/localization/ops/rates", "get_rates") in routes
+    assert ("/api/localization/ops/rates", "add_rate") in routes
+    assert (
+        "/api/localization/ops/projects/{slug}/controls",
+        "get_controls",
+    ) in routes
+    assert (
+        "/api/localization/ops/projects/{slug}/controls",
+        "update_controls",
+    ) in routes
+    assert ("/api/localization/ops/teams", "get_teams") in routes
+    assert (
+        "/api/localization/ops/projects/{slug}/agreement",
+        "get_ops_agreement",
+    ) in routes
+    assert (
+        "/api/localization/ops/projects/{slug}/agreement",
+        "save_ops_agreement",
+    ) in routes
+
+    assert not any(
+        "/marketplace" in path or path.endswith("/bids") for path, _ in routes
+    )
+    gone = {
+        "get_overview",
+        "post_to_marketplace",
+        "get_bids",
+        "award_bid",
+        "approve_submission",
+        "send_back_for_revision",
+        "submit_bid",
+        "get_open_jobs",
+        "get_awarded_jobs",
+    }
+    assert gone.isdisjoint(name for _, name in routes)

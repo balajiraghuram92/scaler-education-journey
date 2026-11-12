@@ -3,92 +3,51 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from ...models.localization.localization_project import LocalizationProject
 from ...models.localization.localization_string import LocalizationString
 from ...models.localization.localization_translation import LocalizationTranslation
-from ...models.localization.marketplace_bid import MarketplaceBid
-from ...models.localization.marketplace_job import MarketplaceJob
+from ...models.localization.translation_job import TranslationJob
 from ...models.localization.vendor import Vendor
 from ...schemas.localization_dtos import (
-    LocalizationStringRowDto,
-    MarketplaceBidDto,
-    MarketplaceJobDto,
-    MarketplaceJobSummaryDto,
-    VendorDto,
+    VendorJobRowDto,
+    VendorStringRowDto,
+    VendorTeamDto,
 )
+from .job_scope import JobScope
 from .localization_exceptions import (
     InvalidJobStateException,
+    LocalizationProjectNotFoundException,
     LocalizationStringNotFoundException,
     MarketplaceJobNotFoundException,
-    VendorLanguageMismatchException,
     VendorNotFoundException,
 )
-from .marketplace_service import MarketplaceService
-
-
-def _parse_languages(languages: str) -> set[str]:
-    # C# splits on ',' with RemoveEmptyEntries + TrimEntries, compared
-    # OrdinalIgnoreCase; locale codes are ASCII so lower() matches.
-    return {
-        part.strip().lower() for part in languages.split(",") if part.strip()
-    }
 
 
 def _is_blank(value: str | None) -> bool:
     return value is None or not value.strip()
 
 
-def _summary_dto(job: MarketplaceJob) -> MarketplaceJobSummaryDto:
-    return MarketplaceJobSummaryDto(
-        id=job.id,
-        project_id=job.project_id,
-        locale_code=job.locale_code,
-        status=job.status,
-        string_count=job.string_count,
-        word_count=job.word_count,
-        suggested_price_low=job.suggested_price_low,
-        suggested_price_high=job.suggested_price_high,
-        awarded_vendor_id=job.awarded_vendor_id,
-        awarded_vendor_name=job.awarded_vendor.name if job.awarded_vendor else None,
-        posted_at=job.posted_at,
-        awarded_at=job.awarded_at,
-        submitted_at=job.submitted_at,
-        approved_at=job.approved_at,
-        bid_count=len(job.bids),
-    )
-
-
 class VendorPortalService:
-    def __init__(
-        self, session: AsyncSession, marketplace_service: MarketplaceService
-    ) -> None:
+    def __init__(self, session: AsyncSession) -> None:
         self._session = session
-        self._marketplace_service = marketplace_service
 
-    async def get_vendor_roster_async(self) -> list[VendorDto]:
+    async def get_vendor_roster_async(self) -> list[VendorTeamDto]:
         vendors = (
             await self._session.execute(
                 select(Vendor).order_by(Vendor.id)
             )
         ).scalars().all()
         return [
-            VendorDto(
-                id=vendor.id,
-                name=vendor.name,
-                languages=vendor.languages,
-                rating=vendor.rating,
-            )
-            for vendor in vendors
+            VendorTeamDto(id=v.id, alias=v.alias, languages=v.languages)
+            for v in vendors
         ]
 
-    async def get_open_jobs_for_vendor_async(
-        self, vendor_id: int
-    ) -> list[MarketplaceJobSummaryDto]:
+    async def get_jobs_for_vendor_async(self, vendor_id: int) -> list[VendorJobRowDto]:
         vendor = (
             await self._session.execute(
                 select(Vendor).where(Vendor.id == vendor_id)
@@ -96,148 +55,34 @@ class VendorPortalService:
         ).scalar_one_or_none()
         if vendor is None:
             raise VendorNotFoundException(vendor_id)
-        vendor_languages = _parse_languages(vendor.languages)
-        open_jobs = (
-            await self._session.execute(
-                select(MarketplaceJob)
-                .options(
-                    selectinload(MarketplaceJob.awarded_vendor),
-                    selectinload(MarketplaceJob.bids),
-                )
-                .where(MarketplaceJob.status == "Open")
-                .order_by(MarketplaceJob.posted_at.desc())
-            )
-        ).scalars().all()
-        return [
-            _summary_dto(job)
-            for job in open_jobs
-            if job.locale_code.lower() in vendor_languages
-        ]
 
-    async def submit_bid_async(
-        self,
-        marketplace_job_id: int,
-        vendor_id: int,
-        proposed_price: Decimal,
-        note: str | None,
-    ) -> MarketplaceBidDto:
-        job = (
-            await self._session.execute(
-                select(MarketplaceJob).where(
-                    MarketplaceJob.id == marketplace_job_id
-                )
-            )
-        ).scalar_one_or_none()
-        if job is None:
-            raise MarketplaceJobNotFoundException(marketplace_job_id)
-        vendor = (
-            await self._session.execute(
-                select(Vendor).where(Vendor.id == vendor_id)
-            )
-        ).scalar_one_or_none()
-        if vendor is None:
-            raise VendorNotFoundException(vendor_id)
-        if job.status != "Open":
-            raise InvalidJobStateException(
-                f"Cannot bid on job {marketplace_job_id} because it is in status "
-                f"'{job.status}'. Expected 'Open'."
-            )
-        vendor_languages = _parse_languages(vendor.languages)
-        if job.locale_code.lower() not in vendor_languages:
-            raise VendorLanguageMismatchException(vendor_id, job.locale_code)
-        pending_count = (
-            await self._session.execute(
-                select(func.count(MarketplaceBid.id)).where(
-                    MarketplaceBid.marketplace_job_id == marketplace_job_id,
-                    MarketplaceBid.vendor_id == vendor_id,
-                    MarketplaceBid.status == "Pending",
-                )
-            )
-        ).scalar_one()
-        if pending_count > 0:
-            raise InvalidJobStateException(
-                f"Vendor {vendor_id} already has a pending bid on job "
-                f"{marketplace_job_id}."
-            )
-        if proposed_price <= 0:
-            # The detail embeds .NET's ArgumentException Message suffix verbatim
-            # (" (Parameter 'proposedPrice')") so error bodies match.
-            raise ValueError(
-                "Proposed price must be greater than zero. (Parameter 'proposedPrice')"
-            )
-        bid = MarketplaceBid(
-            marketplace_job_id=marketplace_job_id,
-            vendor_id=vendor_id,
-            proposed_price=proposed_price,
-            note=note or "",
-            status="Pending",
-            submitted_at=datetime.now(UTC),
-        )
-        self._session.add(bid)
-        await self._session.flush()
-        return MarketplaceBidDto(
-            id=bid.id,
-            marketplace_job_id=bid.marketplace_job_id,
-            vendor_id=bid.vendor_id,
-            vendor_name=vendor.name,
-            vendor_languages=vendor.languages,
-            vendor_rating=vendor.rating,
-            proposed_price=bid.proposed_price,
-            note=bid.note,
-            status=bid.status,
-            submitted_at=bid.submitted_at,
-        )
-
-    async def get_awarded_jobs_for_vendor_async(
-        self, vendor_id: int
-    ) -> list[MarketplaceJobSummaryDto]:
-        vendor = (
-            await self._session.execute(
-                select(Vendor).where(Vendor.id == vendor_id)
-            )
-        ).scalar_one_or_none()
-        if vendor is None:
-            raise VendorNotFoundException(vendor_id)
         jobs = (
             await self._session.execute(
-                select(MarketplaceJob)
-                .options(
-                    selectinload(MarketplaceJob.awarded_vendor),
-                    selectinload(MarketplaceJob.bids),
-                )
-                .where(
-                    MarketplaceJob.awarded_vendor_id == vendor_id,
-                    MarketplaceJob.status.in_(
-                        [
-                            "Awarded",
-                            "InProgress",
-                            "NeedsRevision",
-                            "SubmittedForReview",
-                            "Approved",
-                        ]
-                    ),
-                )
+                select(TranslationJob)
+                .where(TranslationJob.vendor_id == vendor_id)
                 .order_by(
-                    func.coalesce(
-                        MarketplaceJob.awarded_at, MarketplaceJob.posted_at
-                    ).desc()
+                    TranslationJob.created_at.desc(), TranslationJob.id.desc()
                 )
             )
         ).scalars().all()
-        return [_summary_dto(job) for job in jobs]
 
-    async def get_job_strings_async(
-        self, marketplace_job_id: int
-    ) -> list[LocalizationStringRowDto]:
+        rows: list[VendorJobRowDto] = []
+        for job in jobs:
+            # C# passes the tracked job entity here, but the only overload
+            # takes the job id (the C# does not compile as written); the
+            # port passes the id.
+            rows.append(await self._vendor_job_row_async(job.id))
+        return rows
+
+    async def get_job_strings_async(self, job_id: int) -> list[VendorStringRowDto]:
         job = (
             await self._session.execute(
-                select(MarketplaceJob).where(
-                    MarketplaceJob.id == marketplace_job_id
-                )
+                select(TranslationJob).where(TranslationJob.id == job_id)
             )
         ).scalar_one_or_none()
         if job is None:
-            raise MarketplaceJobNotFoundException(marketplace_job_id)
+            raise MarketplaceJobNotFoundException(job_id)
+
         strings = (
             await self._session.execute(
                 select(LocalizationString)
@@ -250,47 +95,35 @@ class VendorPortalService:
                 .order_by(LocalizationString.id)
             )
         ).scalars().all()
-        result: list[LocalizationStringRowDto] = []
-        for item in strings:
-            translation = item.translations[0] if item.translations else None
-            result.append(
-                LocalizationStringRowDto(
-                    string_id=item.id,
-                    key=item.key,
-                    source_text=item.source_text,
-                    locale_code=job.locale_code,
-                    target_text=translation.target_text if translation else None,
-                    stage=translation.stage if translation else "New",
-                    translation_source=translation.translation_source
-                    if translation
-                    else "Marketplace",
-                    qps_score=translation.qps_score if translation else None,
-                    needs_review=translation.needs_review if translation else False,
-                    updated_at=translation.updated_at if translation else None,
-                )
+
+        return [
+            _vendor_string_row(
+                item, job.locale_code, item.translations[0] if item.translations else None
             )
-        return result
+            for item in strings
+        ]
 
     async def update_job_string_async(
-        self, marketplace_job_id: int, string_id: int, target_text: str | None
-    ) -> LocalizationStringRowDto:
+        self, job_id: int, string_id: int, target_text: str | None
+    ) -> VendorStringRowDto:
         job = (
             await self._session.execute(
-                select(MarketplaceJob).where(
-                    MarketplaceJob.id == marketplace_job_id
-                )
+                select(TranslationJob).where(TranslationJob.id == job_id)
             )
         ).scalar_one_or_none()
         if job is None:
-            raise MarketplaceJobNotFoundException(marketplace_job_id)
-        if job.status != "Awarded" and job.status != "InProgress" and job.status != "NeedsRevision":
+            raise MarketplaceJobNotFoundException(job_id)
+        if job.status not in ("Assigned", "InProgress", "NeedsRevision"):
             raise InvalidJobStateException(
-                f"Cannot edit strings on job {marketplace_job_id} because it is in "
-                f"status '{job.status}'."
+                f"Cannot edit strings on job {job_id} because it is in status "
+                f"'{job.status}'."
             )
+
         item = (
             await self._session.execute(
-                select(LocalizationString).where(
+                select(LocalizationString)
+                .options(selectinload(LocalizationString.translations))
+                .where(
                     LocalizationString.id == string_id,
                     LocalizationString.project_id == job.project_id,
                 )
@@ -298,6 +131,7 @@ class VendorPortalService:
         ).scalar_one_or_none()
         if item is None:
             raise LocalizationStringNotFoundException(string_id)
+
         translation = (
             await self._session.execute(
                 select(LocalizationTranslation).where(
@@ -306,6 +140,12 @@ class VendorPortalService:
                 )
             )
         ).scalar_one_or_none()
+
+        if translation is not None and translation.stage == "Approved":
+            raise InvalidJobStateException(
+                f"String {string_id} is already approved for {job.locale_code}."
+            )
+
         has_target = not _is_blank(target_text)
         if translation is None:
             translation = LocalizationTranslation(
@@ -313,49 +153,113 @@ class VendorPortalService:
                 locale_code=job.locale_code,
                 target_text=target_text,
                 stage="Translated" if has_target else "New",
-                translation_source="Marketplace",
+                translation_source=JobScope.VENDOR_SOURCE,
                 needs_review=False,
                 updated_at=datetime.now(UTC),
             )
             self._session.add(translation)
+            # Same EF-fixup parity as the workflow MT branch.
+            item.translations.append(translation)
         else:
             translation.target_text = target_text
-            translation.translation_source = "Marketplace"
+            translation.translation_source = JobScope.VENDOR_SOURCE
             translation.stage = "Translated" if has_target else "New"
             translation.updated_at = datetime.now(UTC)
-        if job.status == "Awarded" or job.status == "NeedsRevision":
-            job.status = "InProgress"
-        await self._session.flush()
-        return LocalizationStringRowDto(
-            string_id=item.id,
-            key=item.key,
-            source_text=item.source_text,
-            locale_code=job.locale_code,
-            target_text=translation.target_text,
-            stage=translation.stage,
-            translation_source=translation.translation_source,
-            qps_score=translation.qps_score,
-            needs_review=translation.needs_review,
-            updated_at=translation.updated_at,
-        )
 
-    async def submit_job_for_review_async(
-        self, marketplace_job_id: int
-    ) -> MarketplaceJobDto:
+        if job.status in ("Assigned", "NeedsRevision"):
+            job.status = "InProgress"
+
+        await self._session.flush()
+        return _vendor_string_row(item, job.locale_code, translation)
+
+    async def submit_job_for_review_async(self, job_id: int) -> VendorJobRowDto:
         job = (
             await self._session.execute(
-                select(MarketplaceJob).where(
-                    MarketplaceJob.id == marketplace_job_id
-                )
+                select(TranslationJob).where(TranslationJob.id == job_id)
             )
         ).scalar_one_or_none()
         if job is None:
-            raise MarketplaceJobNotFoundException(marketplace_job_id)
-        if job.status != "Awarded" and job.status != "InProgress" and job.status != "NeedsRevision":
+            raise MarketplaceJobNotFoundException(job_id)
+        if job.status not in ("Assigned", "InProgress", "NeedsRevision"):
             raise InvalidJobStateException(
-                f"Cannot submit job {marketplace_job_id} for review because it is in "
-                f"status '{job.status}'."
+                f"Cannot submit job {job_id} for review because it is in status "
+                f"'{job.status}'."
             )
+
+        # Refresh each string's translations first: SQLAlchemy leaves
+        # already-loaded collections stale where EF relationship fixup
+        # backfills them, so the check must read fresh rows (Round 4).
+        strings = (
+            await self._session.execute(
+                select(LocalizationString).where(
+                    LocalizationString.project_id == job.project_id
+                )
+            )
+        ).scalars().all()
+        for item in strings:
+            await self._session.refresh(item, ["translations"])
+
+        untranslated_exists = any(
+            not any(
+                t.locale_code == job.locale_code and not _is_blank(t.target_text)
+                for t in item.translations
+            )
+            for item in strings
+        )
+        if untranslated_exists:
+            raise InvalidJobStateException(
+                "All strings must have non-empty translations before submitting "
+                "the job for review."
+            )
+
+        unreviewed_machine_count = 0
+        for item in strings:
+            translation = next(
+                (
+                    t
+                    for t in item.translations
+                    if t.locale_code == job.locale_code
+                ),
+                None,
+            )
+            if (
+                translation is not None
+                and translation.translation_source == JobScope.MACHINE_SOURCE
+                and JobScope.is_open(item, job.locale_code)
+            ):
+                unreviewed_machine_count += 1
+
+        if unreviewed_machine_count > 0:
+            raise InvalidJobStateException(
+                f"{unreviewed_machine_count} machine-translated strings still "
+                "need review before the job can be submitted."
+            )
+
+        job.status = "SubmittedForReview"
+        job.submitted_at = datetime.now(UTC)
+
+        await self._session.flush()
+        return await self._vendor_job_row_async(job.id)
+
+    async def _vendor_job_row_async(self, job_id: int) -> VendorJobRowDto:
+        job = (
+            await self._session.execute(
+                select(TranslationJob).where(TranslationJob.id == job_id)
+            )
+        ).scalar_one_or_none()
+        if job is None:
+            raise MarketplaceJobNotFoundException(job_id)
+
+        project = (
+            await self._session.execute(
+                select(LocalizationProject).where(
+                    LocalizationProject.id == job.project_id
+                )
+            )
+        ).scalar_one_or_none()
+        if project is None:
+            raise LocalizationProjectNotFoundException(str(job.project_id))
+
         strings = (
             await self._session.execute(
                 select(LocalizationString)
@@ -367,26 +271,41 @@ class VendorPortalService:
                 .where(LocalizationString.project_id == job.project_id)
             )
         ).scalars().all()
-        # Unlike EF change tracking, SQLAlchemy does not backfill
-        # already-loaded collections when related rows are added, so
-        # refresh each string's translations before deciding.
-        for item in strings:
-            await self._session.refresh(item, ["translations"])
-        untranslated_exists = any(
-            not any(
-                trans.locale_code == job.locale_code
-                and trans.target_text is not None
-                and trans.target_text.strip()
-                for trans in item.translations
-            )
-            for item in strings
+
+        return VendorJobRowDto(
+            id=job.id,
+            client_alias=project.client_alias,
+            locale_code=job.locale_code,
+            status=job.status,
+            string_count=job.string_count,
+            word_count=job.word_count,
+            completed_percent=JobScope.completed_percent(
+                strings, job.locale_code, job.string_count, job.status
+            ),
+            created_at=job.created_at,
+            submitted_at=job.submitted_at,
+            approved_at=job.approved_at,
         )
-        if untranslated_exists:
-            raise InvalidJobStateException(
-                "All strings must have non-empty translations before submitting "
-                "the job for review."
-            )
-        job.status = "SubmittedForReview"
-        job.submitted_at = datetime.now(UTC)
-        await self._session.flush()
-        return await self._marketplace_service.get_job_dto_async(job.id)
+
+
+def _vendor_string_row(
+    item: LocalizationString,
+    locale_code: str,
+    translation: LocalizationTranslation | None,
+) -> VendorStringRowDto:
+    return VendorStringRowDto(
+        string_id=item.id,
+        key=item.key,
+        source_text=item.source_text,
+        locale_code=locale_code,
+        target_text=translation.target_text if translation else None,
+        stage=translation.stage if translation else "New",
+        translation_source=translation.translation_source if translation else "Manual",
+        updated_at=translation.updated_at if translation else None,
+        score=translation.qps_score if translation else None,
+        needs_review=translation.needs_review if translation else False,
+        raw_mt_text=translation.raw_mt_text if translation else None,
+        raw_mt_score=translation.raw_mt_qps_score if translation else None,
+        in_job=JobScope.is_open(item, locale_code),
+        vendor_reviewed=JobScope.is_vendor_reviewed(translation),
+    )
