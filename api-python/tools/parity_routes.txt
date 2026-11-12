@@ -6,7 +6,7 @@
 #      the .NET side; the Python side reads the same schema).
 #   2. Start both APIs, then from api-python/:
 #      python tools/parity.py --routes tools/parity_routes.txt \
-#        --ignore timestamp,traceId,traceid,appliedMigrationsCount,createdAt,updatedAt,postedAt,awardedAt,submittedAt,approvedAt,lastRunAt,lastLoginAt
+#        --ignore timestamp,traceId,traceid,appliedMigrationsCount,occurredAt,createdAt,updatedAt,postedAt,awardedAt,submittedAt,approvedAt,lastRunAt,lastLoginAt
 #      (Timestamps differ between the two calls; extend --ignore as needed.)
 #   3. Run ONCE per fresh seed: write routes (signup, post, award, ...) mutate
 #      both databases, so a second run compares different states.
@@ -31,6 +31,7 @@ POST /api/auth/logout
 GET /api/auth/me
 POST /api/auth/refresh
 GET /api/auth/sessions
+# Wrong-type id (not a GUID): deliberate 404 check on both sides (C11 Task 3).
 DELETE /api/auth/sessions/1
 POST /api/auth/logout-all
 # --- P2: me ---
@@ -85,15 +86,16 @@ POST /api/v2/progress/lesson {"lessonId":1,"isCompleted":true}
 POST /api/v2/progress/problem {"problemId":1,"isCompleted":true}
 POST /api/v2/progress/task {"taskId":1,"isCompleted":true}
 GET /api/v2/practice-questions/ai-infusion/ai-infusion-start-here/course-overview
+# Wrong-type ids (not GUIDs): deliberate 404 check on both sides (C11 Task 3).
 POST /api/v2/practice-questions/1/attempts {"selectedOptionKey":"A"}
 POST /api/v2/practice-questions/1/retry
 # --- P4: exercises (run/check use an empty submission: both sides validate it identically) ---
-GET /api/exercises/java-add-hotel-rooms
-GET /api/exercises/java-add-hotel-rooms/solution
-POST /api/exercises/java-add-hotel-rooms/run {"files":[]}
-POST /api/exercises/java-add-hotel-rooms/check {"files":[]}
-GET /api/exercises/java-add-hotel-rooms/workspace
-PUT /api/exercises/java-add-hotel-rooms/draft {"files":[{"path":"Main.java","content":"class Main{}"}]}
+GET /api/exercises/java-lld-bounded-generics-find-max
+GET /api/exercises/java-lld-bounded-generics-find-max/solution
+POST /api/exercises/java-lld-bounded-generics-find-max/run {"files":[]}
+POST /api/exercises/java-lld-bounded-generics-find-max/check {"files":[]}
+GET /api/exercises/java-lld-bounded-generics-find-max/workspace
+PUT /api/exercises/java-lld-bounded-generics-find-max/draft {"files":[{"path":"Main.java","content":"class Main{}"}]}
 # --- P5: chat / import (chat needs LLAMA_API_KEY or compares mock mode) ---
 POST /api/chat/conversations {"title":"Parity chat"}
 POST /api/chat/conversations/00000000-0000-0000-0000-000000000000/messages {"content":"hi"}

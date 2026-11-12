@@ -64,7 +64,7 @@ async def post_to_marketplace(
         )
 
 
-@router.get("/api/localization/marketplace/jobs/{job_id}/bids")
+@router.get("/api/localization/marketplace/jobs/{job_id:int}/bids")
 async def get_bids(
     job_id: int, request: Request, session: AsyncSession = Depends(get_session)
 ):
@@ -77,7 +77,7 @@ async def get_bids(
         return endpoint_problem(request, 500, "Error retrieving bids.", str(exc))
 
 
-@router.post("/api/localization/marketplace/jobs/{job_id}/bids/{bid_id}/award")
+@router.post("/api/localization/marketplace/jobs/{job_id:int}/bids/{bid_id:int}/award")
 async def award_bid(
     job_id: int,
     bid_id: int,
@@ -98,7 +98,7 @@ async def award_bid(
         return endpoint_problem(request, 500, "Error awarding bid.", str(exc))
 
 
-@router.post("/api/localization/marketplace/jobs/{job_id}/approve")
+@router.post("/api/localization/marketplace/jobs/{job_id:int}/approve")
 async def approve_submission(
     job_id: int, request: Request, session: AsyncSession = Depends(get_session)
 ):
@@ -116,7 +116,7 @@ async def approve_submission(
         )
 
 
-@router.post("/api/localization/marketplace/jobs/{job_id}/send-back")
+@router.post("/api/localization/marketplace/jobs/{job_id:int}/send-back")
 async def send_back_for_revision(
     job_id: int, request: Request, session: AsyncSession = Depends(get_session)
 ):

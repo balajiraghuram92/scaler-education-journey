@@ -927,3 +927,113 @@ report.mappings[0].target_lesson_id == lesson.id`
 test's second assert. Nothing else in the file
 changed. Verified by search: no `LOWER`,
 `title_key`, or old-cased title remains.
+
+## C11 — parity corrections
+
+First live parity run (102 routes, 85 match). No command
+was run in this round; nothing below is claimed to pass.
+
+Task 1. **Decimals as JSON numbers.** New shared
+`DotNetDecimal` in `app/schemas/base.py` (next to
+`DotNetDateTime`, same shape: `PlainSerializer` to
+`float` in JSON mode, `None` still `null`). Used for
+all 12 `Decimal` fields in response schemas
+(`localization_dtos.py` 95, 96, 109, 110, 127, 128,
+149, 157; `chat_dtos.py` 39, 45, 46, 57 — the full
+`Decimal` grep, matching the task list): the only
+other `Decimal` is `SubmitBidRequest.proposed_price`
+(request-only, unchanged). Router sweep: the sole
+`Decimal` hit (`admin_endpoints.py:237`) builds a
+`UserUsageDto`, covered by the schema change; all
+other `JSONResponse`/`return {` sites carry only
+strings, ints, or DTO dumps (admin usage/today and
+mcq-performance return `UsageSummaryDto` /
+`LessonMcqPerformanceDto`), so no router changed.
+New no-DB `tests/test_dotnet_decimal.py`: one model
+per affected file dumps decimals as JSON numbers,
+plus the `None`-to-`null` case.
+
+Task 2. **Timestamps strip trailing zeros.**
+`format_dotnet_datetime` now emits
+`f"{microsecond:06d}".rstrip("0")`, keeping the
+no-fraction branch for zero microseconds; docstring
+updated. `app/main.py` `_utcnow_iso` uses it (C#
+writes `DateTime.UtcNow` on `/health/live`,
+`/health/ready` and `/health`; `/` returns a plain
+string, no change). `reading_map_service.py:72`
+deliberately UNCHANGED: both sides hold a date
+(C# `DateOnly?`, Python `Date`), and
+`date.isoformat()` already equals the C# output;
+the datetime formatter would be wrong there. No
+existing test asserted the seven-digit or `+00:00`
+forms (searched); new no-DB
+`tests/test_dotnet_datetime.py` covers no fraction,
+six digits, and trailing zeros. NOTE as required:
+the trailing-zero case (`.705680` -> `.70568Z`) is
+from documentation of System.Text.Json, NOT
+observed on the live server in this run.
+
+Task 3. **Route convertors for constrained ids.**
+Re-ran the C# search independently: same 36 lines
+as the reviewer's list (count note: the prompt says
+37 routes; the list holds 36 lines covering 39
+constrained segments — 3 lines carry two — and all
+36 map to 36 Python route lines, every one edited).
+Added `:int`/`:uuid` to admin 3, auth sessions 1,
+chat 2, localization 5, marketplace 4,
+vendor-portal 6, me 4, v2 attempts/retry 2,
+verticals/tasks/lessons 3/problems 2/reading-map
+toggle/chapters notes; parameter annotations kept;
+unconstrained routes (exercises, slugs, locales)
+untouched. Report item 1: whether convertors leak
+into `app.openapi()` path strings is UNVERIFIED —
+the installed FastAPI source is outside the
+readable sandbox and nothing was run; the reviewer
+should diff the regenerated `py-openapi.json`.
+Safe either way: no test calls `openapi()`, the
+endpoint-mapping test reads only exercise routes
+(no convertors), and no test asserts any 422.
+Report item 2: bodies do NOT match — C# answers an
+unmatched route with 404 and an empty body, while
+the port has no 404 handler (`main.py` registers
+only `ApiProblem` and `ChallengeException`
+handlers) so Starlette/FastAPI's default answers
+`{"Detail":"Not Found"}` JSON. No new handler
+added, as instructed.
+
+Task 4. **Lazy Docker client.** `__init__` now stores
+the injected client (or `None`); a `_client`
+accessor builds `docker.DockerClient(base_url=...,
+timeout=30)` on first use and caches it; `_api` and
+`_ensure_runner_image` go through it. What C# does
+when Docker is unreachable: the runner surfaces
+`ExerciseRunnerUnavailableException` and
+`ExecuteAsync` answers 503 "Exercise runner
+unavailable." / "The exercise execution service is
+temporarily unavailable." The port's endpoint
+already maps that exception to the identical 503
+body, and the service re-raises after logging — so
+the only gap was the constructor's own
+`DockerException` ("Error while fetching server API
+version"), which no handler caught: the accessor
+converts it to `ExerciseRunnerUnavailableException`
+("The Docker daemon is unavailable."), giving the
+same 503 instead of a generic 500. New no-Docker
+test in `test_exercise_service.py`: a missing
+exercise raises `ExerciseNotFoundException` with
+`docker.DockerClient` patched to fail the test if
+constructed.
+
+Task 5. **Parity tool and route list.**
+`tools/parity.py`: `_render` returns the status line
+plus `json.dumps(...).splitlines()`; numbers compare
+by value with no code change needed (`json.loads`
+parses both sides to `int`/`float`, `_normalize`
+never stringifies, both sides share one `dumps` —
+verified by reading); `occurredAt` added to the
+default `--ignore`. `tools/parity_routes.txt`:
+header command gains `occurredAt`; all six exercise
+lines now use `java-lld-bounded-generics-find-max`
+(id confirmed in its `exercise.json`); the three
+wrong-type-id lines kept with a "deliberate 404
+check" comment above each group.

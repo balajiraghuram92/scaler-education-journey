@@ -98,7 +98,7 @@ async def get_strings(
         return endpoint_problem(request, 500, "Error retrieving strings.", str(exc))
 
 
-@router.put("/api/localization/projects/{slug}/strings/{string_id}/translations/{locale_code}")
+@router.put("/api/localization/projects/{slug}/strings/{string_id:int}/translations/{locale_code}")
 async def update_translation(
     slug: str,
     string_id: int,
@@ -157,7 +157,7 @@ async def add_workflow_step(
         )
 
 
-@router.put("/api/localization/projects/{slug}/workflow/steps/{step_id}")
+@router.put("/api/localization/projects/{slug}/workflow/steps/{step_id:int}")
 async def update_workflow_step(
     slug: str,
     step_id: int,
@@ -183,7 +183,7 @@ async def update_workflow_step(
         )
 
 
-@router.post("/api/localization/projects/{slug}/workflow/steps/{step_id}/reorder")
+@router.post("/api/localization/projects/{slug}/workflow/steps/{step_id:int}/reorder")
 async def reorder_workflow_step(
     slug: str,
     step_id: int,
@@ -211,7 +211,7 @@ async def reorder_workflow_step(
         )
 
 
-@router.post("/api/localization/projects/{slug}/workflow/steps/{step_id}/run")
+@router.post("/api/localization/projects/{slug}/workflow/steps/{step_id:int}/run")
 async def run_workflow_step(
     slug: str,
     step_id: int,
@@ -234,7 +234,7 @@ async def run_workflow_step(
         )
 
 
-@router.delete("/api/localization/projects/{slug}/workflow/steps/{step_id}")
+@router.delete("/api/localization/projects/{slug}/workflow/steps/{step_id:int}")
 async def delete_workflow_step(
     slug: str,
     step_id: int,

@@ -36,7 +36,7 @@ from datetime import timedelta
 
 import docker
 import requests.exceptions
-from docker.errors import APIError, ImageNotFound, NotFound
+from docker.errors import APIError, DockerException, ImageNotFound, NotFound
 
 from ...settings import ExerciseExecutionSettings, get_settings
 from .exercise_execution_exceptions import (
@@ -58,14 +58,28 @@ class LocalDockerExerciseRunner:
         options: ExerciseExecutionSettings | None = None,
     ) -> None:
         self._options = options or get_settings().exercise_execution
-        # C# builds the client with a 30s default timeout (Program.cs line 83).
-        self._docker_client = docker_client or docker.DockerClient(
-            base_url=self._options.docker_endpoint, timeout=30
-        )
+        self._docker_client = docker_client
+
+    @property
+    def _client(self) -> docker.DockerClient:
+        # Created lazily: the constructor contacts the daemon, which must
+        # not happen before an exercise exists to run. An injected client
+        # is used as given. C# builds the client with a 30s default
+        # timeout (Program.cs line 83).
+        if self._docker_client is None:
+            try:
+                self._docker_client = docker.DockerClient(
+                    base_url=self._options.docker_endpoint, timeout=30
+                )
+            except DockerException as exc:
+                raise ExerciseRunnerUnavailableException(
+                    "The Docker daemon is unavailable.", exc
+                ) from exc
+        return self._docker_client
 
     @property
     def _api(self):  # type: ignore[no-untyped-def]
-        return self._docker_client.api
+        return self._client.api
 
     async def run_async(self, workspace: PreparedExerciseWorkspace) -> RunnerExecutionResult:
         started = time.perf_counter()
@@ -199,7 +213,7 @@ class LocalDockerExerciseRunner:
 
     def _ensure_runner_image(self, runner_image: str) -> None:
         try:
-            self._docker_client.images.get(runner_image)
+            self._client.images.get(runner_image)
         except ImageNotFound as exc:
             raise ExerciseRunnerUnavailableException(
                 f"The configured exercise runner image '{runner_image}' is unavailable.", exc

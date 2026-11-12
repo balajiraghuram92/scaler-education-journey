@@ -98,7 +98,7 @@ async def get_verticals(session: AsyncSession = Depends(get_session)):
     return [vertical_to_dict(v) for v in verticals]
 
 
-@router.get("/api/verticals/{vertical_id}")  # Program.cs line 683
+@router.get("/api/verticals/{vertical_id:int}")  # Program.cs line 683
 async def get_vertical_by_id(
     vertical_id: int, session: AsyncSession = Depends(get_session)
 ):

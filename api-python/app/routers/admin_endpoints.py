@@ -80,7 +80,7 @@ async def get_all_users(
     return [_user_dto(u) for u in users]
 
 
-@router.post("/users/{user_id}/approve", dependencies=[Depends(require_admin)])
+@router.post("/users/{user_id:int}/approve", dependencies=[Depends(require_admin)])
 async def approve_user(
     user_id: int,
     background: BackgroundTasks,
@@ -108,7 +108,7 @@ async def approve_user(
     return _user_dto(user)
 
 
-@router.post("/users/{user_id}/reject", dependencies=[Depends(require_admin)])
+@router.post("/users/{user_id:int}/reject", dependencies=[Depends(require_admin)])
 async def reject_user(
     user_id: int,
     request: Request,
@@ -141,7 +141,7 @@ async def reject_user(
 # Emergency self-recovery if the sole admin loses their TOTP device:
 # Run directly in PostgreSQL:
 # UPDATE app_users SET totp_enabled = false, totp_secret_encrypted = null, last_accepted_totp_counter = null WHERE email = 'admin@neuralascent.local';
-@router.post("/users/{user_id}/reset-totp", dependencies=[Depends(require_admin)])
+@router.post("/users/{user_id:int}/reset-totp", dependencies=[Depends(require_admin)])
 async def reset_totp(
     user_id: int,
     request: Request,

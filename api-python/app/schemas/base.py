@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from decimal import Decimal
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, PlainSerializer
@@ -14,7 +15,7 @@ def _to_camel(name: str) -> str:
 
 
 def format_dotnet_datetime(value: datetime) -> str:
-    """Format like System.Text.Json writes a UTC DateTime: `...Z`, 7-digit fraction when nonzero."""
+    """Format like System.Text.Json writes a UTC DateTime: `...Z`, fraction with trailing zeros stripped."""
     if value.tzinfo is None:
         value = value.replace(tzinfo=UTC)
     else:
@@ -25,12 +26,23 @@ def format_dotnet_datetime(value: datetime) -> str:
         f"T{value.hour:02d}:{value.minute:02d}:{value.second:02d}"
     )
     if value.microsecond:
-        return f"{base}.{value.microsecond * 10:07d}Z"
+        fraction = f"{value.microsecond:06d}".rstrip("0")
+        return f"{base}.{fraction}Z"
     return f"{base}Z"
 
 
 DotNetDateTime = Annotated[
     datetime, PlainSerializer(format_dotnet_datetime, return_type=str, when_used="json")
+]
+
+
+def _decimal_to_json_number(value: Decimal) -> float:
+    """System.Text.Json writes a C# decimal as a JSON number; Pydantic would use a string."""
+    return float(value)
+
+
+DotNetDecimal = Annotated[
+    Decimal, PlainSerializer(_decimal_to_json_number, return_type=float, when_used="json")
 ]
 
 

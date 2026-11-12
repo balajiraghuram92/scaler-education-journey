@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from .base import CamelModel, DotNetDateTime
+from .base import CamelModel, DotNetDateTime, DotNetDecimal
 
 
 class LocalizationLocaleDto(CamelModel):
@@ -92,8 +92,8 @@ class MarketplaceBidDto(CamelModel):
     vendor_id: int
     vendor_name: str
     vendor_languages: str
-    vendor_rating: Decimal
-    proposed_price: Decimal
+    vendor_rating: DotNetDecimal
+    proposed_price: DotNetDecimal
     note: str
     status: str
     submitted_at: DotNetDateTime
@@ -106,8 +106,8 @@ class MarketplaceJobSummaryDto(CamelModel):
     status: str
     string_count: int
     word_count: int
-    suggested_price_low: Decimal
-    suggested_price_high: Decimal
+    suggested_price_low: DotNetDecimal
+    suggested_price_high: DotNetDecimal
     awarded_vendor_id: int | None
     awarded_vendor_name: str | None
     posted_at: DotNetDateTime | None
@@ -124,8 +124,8 @@ class MarketplaceJobDto(CamelModel):
     status: str
     string_count: int
     word_count: int
-    suggested_price_low: Decimal
-    suggested_price_high: Decimal
+    suggested_price_low: DotNetDecimal
+    suggested_price_high: DotNetDecimal
     awarded_vendor_id: int | None
     awarded_vendor_name: str | None
     posted_at: DotNetDateTime | None
@@ -146,7 +146,7 @@ class VendorDto(CamelModel):
     id: int
     name: str
     languages: str
-    rating: Decimal
+    rating: DotNetDecimal
 
 
 class ProviderHealthSnapshotDto(CamelModel):
@@ -154,6 +154,6 @@ class ProviderHealthSnapshotDto(CamelModel):
     provider: str
     p50_latency_ms: int
     p99_latency_ms: int
-    error_rate_percent: Decimal
+    error_rate_percent: DotNetDecimal
     circuit_state: str
     updated_at: DotNetDateTime

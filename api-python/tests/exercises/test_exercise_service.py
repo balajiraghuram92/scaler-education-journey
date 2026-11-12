@@ -14,6 +14,9 @@ import pytest
 from app.services.exercises.exercise_execution_classifier import (
     ExerciseExecutionClassifier,
 )
+from app.services.exercises.exercise_execution_exceptions import (
+    ExerciseNotFoundException,
+)
 from app.services.exercises.exercise_execution_models import (
     PreparedExerciseWorkspace,
     RunnerExecutionResult,
@@ -97,3 +100,20 @@ async def test_service_returns_normalized_success_and_cleans_workspace() -> None
     finally:
         delete_root(exercise_root)
         delete_root(workspace_root)
+
+
+class _MissingRepository:
+    def get_by_id(self, exercise_id: str) -> ExerciseDefinition | None:
+        return None
+
+
+def test_execute_async_missing_exercise_never_constructs_docker_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _forbidden(*args: object, **kwargs: object) -> object:
+        raise AssertionError("DockerClient must not be constructed")
+
+    monkeypatch.setattr("docker.DockerClient", _forbidden)
+    service = ExerciseService(repository=_MissingRepository())
+    with pytest.raises(ExerciseNotFoundException):
+        asyncio.run(service.execute_async("no-such-exercise", None))

@@ -61,7 +61,7 @@ async def lesson_progress_list(
     return list(progress_map.values())
 
 
-@router.post("/lessons/{lesson_id}/visit", dependencies=[Depends(require_user)])
+@router.post("/lessons/{lesson_id:int}/visit", dependencies=[Depends(require_user)])
 async def record_lesson_visit(
     lesson_id: int,
     current: CurrentUser = Depends(get_current_user_optional),
@@ -75,7 +75,7 @@ async def record_lesson_visit(
     return result
 
 
-@router.put("/lessons/{lesson_id}/position", dependencies=[Depends(require_user)])
+@router.put("/lessons/{lesson_id:int}/position", dependencies=[Depends(require_user)])
 async def update_lesson_position(
     lesson_id: int,
     body: LessonPositionRequest,
@@ -90,7 +90,7 @@ async def update_lesson_position(
     return result
 
 
-@router.put("/lessons/{lesson_id}/completion", dependencies=[Depends(require_user)])
+@router.put("/lessons/{lesson_id:int}/completion", dependencies=[Depends(require_user)])
 async def set_lesson_completion(
     lesson_id: int,
     body: LessonCompletionRequest,
@@ -107,7 +107,7 @@ async def set_lesson_completion(
     return result
 
 
-@router.put("/problems/{problem_id}/status", dependencies=[Depends(require_user)])
+@router.put("/problems/{problem_id:int}/status", dependencies=[Depends(require_user)])
 async def set_problem_status(
     problem_id: int,
     body: ProblemStatusRequest,

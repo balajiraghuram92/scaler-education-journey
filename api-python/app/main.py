@@ -45,6 +45,7 @@ from .routers.localization import (
     provider_health_endpoints,
     vendor_portal_endpoints,
 )
+from .schemas.base import format_dotnet_datetime
 from .services.auth.current_user import ChallengeException, challenge_exception_handler
 from .settings import get_api_key, get_environment, get_frontend_url
 
@@ -216,7 +217,7 @@ def create_app() -> FastAPI:
 
 
 def _utcnow_iso() -> str:
-    return datetime.now(UTC).isoformat()
+    return format_dotnet_datetime(datetime.now(UTC))
 
 
 app = create_app()

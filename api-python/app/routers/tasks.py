@@ -14,7 +14,7 @@ from .verticals import task_to_dict
 router = APIRouter(tags=["tasks"])
 
 
-@router.put("/api/tasks/{task_id}/toggle")  # Program.cs line 774
+@router.put("/api/tasks/{task_id:int}/toggle")  # Program.cs line 774
 async def toggle_task(task_id: int, session: AsyncSession = Depends(get_session)):
     task = await session.get(StudyTask, task_id)
     if task is None:

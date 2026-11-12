@@ -465,7 +465,7 @@ async def list_sessions(
     return await SessionService(session).list_active(current.user_id, current.session_id)
 
 
-@router.delete("/sessions/{session_id}", dependencies=[Depends(require_user)])
+@router.delete("/sessions/{session_id:uuid}", dependencies=[Depends(require_user)])
 async def revoke_session(
     session_id: UUID,
     request: Request,

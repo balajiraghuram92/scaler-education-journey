@@ -41,7 +41,7 @@ async def get_roster(
         )
 
 
-@router.get("/api/localization/vendor/{vendor_id}/open-jobs")
+@router.get("/api/localization/vendor/{vendor_id:int}/open-jobs")
 async def get_open_jobs(
     vendor_id: int, request: Request, session: AsyncSession = Depends(get_session)
 ):
@@ -58,7 +58,7 @@ async def get_open_jobs(
         )
 
 
-@router.post("/api/localization/vendor/{vendor_id}/jobs/{job_id}/bids")
+@router.post("/api/localization/vendor/{vendor_id:int}/jobs/{job_id:int}/bids")
 async def submit_bid(
     vendor_id: int,
     job_id: int,
@@ -86,7 +86,7 @@ async def submit_bid(
         return endpoint_problem(request, 500, "Error submitting bid.", str(exc))
 
 
-@router.get("/api/localization/vendor/{vendor_id}/awarded-jobs")
+@router.get("/api/localization/vendor/{vendor_id:int}/awarded-jobs")
 async def get_awarded_jobs(
     vendor_id: int, request: Request, session: AsyncSession = Depends(get_session)
 ):
@@ -103,7 +103,7 @@ async def get_awarded_jobs(
         )
 
 
-@router.get("/api/localization/vendor/jobs/{job_id}/strings")
+@router.get("/api/localization/vendor/jobs/{job_id:int}/strings")
 async def get_job_strings(
     job_id: int, request: Request, session: AsyncSession = Depends(get_session)
 ):
@@ -118,7 +118,7 @@ async def get_job_strings(
         )
 
 
-@router.put("/api/localization/vendor/jobs/{job_id}/strings/{string_id}")
+@router.put("/api/localization/vendor/jobs/{job_id:int}/strings/{string_id:int}")
 async def update_job_string(
     job_id: int,
     string_id: int,
@@ -144,7 +144,7 @@ async def update_job_string(
         )
 
 
-@router.post("/api/localization/vendor/jobs/{job_id}/submit")
+@router.post("/api/localization/vendor/jobs/{job_id:int}/submit")
 async def submit_job(
     job_id: int, request: Request, session: AsyncSession = Depends(get_session)
 ):

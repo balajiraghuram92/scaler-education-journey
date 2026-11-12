@@ -64,7 +64,7 @@ def lesson_to_dict(lesson: Lesson) -> dict:
     }
 
 
-@router.get("/api/lessons/{lesson_id}")  # Program.cs line 962
+@router.get("/api/lessons/{lesson_id:int}")  # Program.cs line 962
 async def get_lesson_by_id(
     lesson_id: int,
     current: CurrentUser = Depends(get_current_user_optional),
@@ -180,7 +180,7 @@ async def create_lesson(
     )
 
 
-@router.put("/api/lessons/{lesson_id}")  # Program.cs line 1055
+@router.put("/api/lessons/{lesson_id:int}")  # Program.cs line 1055
 async def update_lesson(
     lesson_id: int,
     body: UpdateLessonRequest,
@@ -208,7 +208,7 @@ async def update_lesson(
 
 
 @router.patch(
-    "/api/lessons/{lesson_id}/progress", dependencies=[Depends(require_user)]
+    "/api/lessons/{lesson_id:int}/progress", dependencies=[Depends(require_user)]
 )  # Program.cs line 1073
 async def toggle_lesson_progress(
     lesson_id: int,

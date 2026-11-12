@@ -415,7 +415,7 @@ async def get_practice_questions(
     return questions
 
 
-@router.post("/practice-questions/{presentation_id}/attempts")
+@router.post("/practice-questions/{presentation_id:uuid}/attempts")
 async def record_practice_attempt(
     presentation_id: UUID,
     body: McqAttemptRequest | None = None,
@@ -440,7 +440,7 @@ async def record_practice_attempt(
     return result
 
 
-@router.post("/practice-questions/{presentation_id}/retry")
+@router.post("/practice-questions/{presentation_id:uuid}/retry")
 async def retry_practice_question(
     presentation_id: UUID,
     current: CurrentUser = Depends(get_current_user_optional),

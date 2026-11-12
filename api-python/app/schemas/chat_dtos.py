@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
 from uuid import UUID
 
-from .base import CamelModel, DotNetDateTime
+from .base import CamelModel, DotNetDateTime, DotNetDecimal
 
 
 class CreateChatConversationRequest(CamelModel):
@@ -36,14 +35,14 @@ class ChatMessageDto(CamelModel):
     prompt_tokens: int | None
     completion_tokens: int | None
     usage_estimated: bool
-    estimated_cost_usd: Decimal | None
+    estimated_cost_usd: DotNetDecimal | None
     latency_ms: int | None
     created_at: DotNetDateTime
 
 
 class UsageSummaryDto(CamelModel):
-    total_cost_today_usd: Decimal
-    daily_cap_usd: Decimal
+    total_cost_today_usd: DotNetDecimal
+    daily_cap_usd: DotNetDecimal
     request_count_today: int
     max_daily_requests: int
     budget_exceeded: bool
@@ -54,7 +53,7 @@ class UserUsageDto(CamelModel):
     email: str
     display_name: str | None
     total_requests: int
-    total_cost_usd: Decimal
+    total_cost_usd: DotNetDecimal
     total_prompt_tokens: int
     total_completion_tokens: int
     last_request_at: DotNetDateTime | None

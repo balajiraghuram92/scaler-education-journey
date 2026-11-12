@@ -86,7 +86,7 @@ async def get_reading_map(session: AsyncSession = Depends(get_session)):
     )
 
 
-@router.patch("/api/reading-map/items/{item_id}/toggle")  # Program.cs line 1280
+@router.patch("/api/reading-map/items/{item_id:int}/toggle")  # Program.cs line 1280
 async def toggle_reading_map_item(
     item_id: int, session: AsyncSession = Depends(get_session)
 ):

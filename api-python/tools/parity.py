@@ -48,13 +48,13 @@ def _normalize(value: object, ignore: set[str]) -> object:
 
 
 def _render(status: int, payload: object) -> list[str]:
-    return [f"status: {status}", json.dumps(payload, indent=2, sort_keys=True, default=str)]
+    return [f"status: {status}", *json.dumps(payload, indent=2, sort_keys=True, default=str).splitlines()]
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Diff .NET API vs Python API responses.")
     parser.add_argument("--routes", required=True, help="File with 'METHOD path [json body]' lines.")
-    parser.add_argument("--ignore", default="timestamp,traceId,traceid,appliedMigrationsCount",
+    parser.add_argument("--ignore", default="timestamp,traceId,traceid,appliedMigrationsCount,occurredAt",
                         help="Comma-separated volatile field names to ignore.")
     parser.add_argument("--api-key", default=os.environ.get("API_KEY", ""))
     parser.add_argument("--dotnet-base", default=DOTNET_BASE)

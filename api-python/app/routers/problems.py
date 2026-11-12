@@ -57,7 +57,7 @@ def problem_to_dict(problem: Problem) -> dict:
     }
 
 
-@router.get("/api/problems/{problem_id}")  # Program.cs line 1089
+@router.get("/api/problems/{problem_id:int}")  # Program.cs line 1089
 async def get_problem_by_id(
     problem_id: int,
     current: CurrentUser = Depends(get_current_user_optional),
@@ -133,7 +133,7 @@ async def create_problem(
 
 
 @router.patch(
-    "/api/problems/{problem_id}/progress", dependencies=[Depends(require_user)]
+    "/api/problems/{problem_id:int}/progress", dependencies=[Depends(require_user)]
 )  # Program.cs line 1149
 async def toggle_problem_progress(
     problem_id: int,

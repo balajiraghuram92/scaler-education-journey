@@ -1,0 +1,65 @@
+DIFF DELETE /api/auth/sessions/1
+  -null
+  +{
+  +  "detail": "Not Found"
+  +}
+DIFF GET /api/courses
+  +    "description": "Build AI agents on AWS with Strands, Amazon Bedrock and AgentCore, from a first agent to a team running in production, plus live finance and travel projects.",
+  +    "id": 8,
+  +    "modules": [
+  +      {
+  +        "badge": "Overview",
+  +        "completedLessons": 0,
+  +        "courseId": 8,
+  +        "description": "Learn to build AI agents on AWS: start with one Strands agent on Amazon Bedrock and end with a team of agents running in production, then use them on real finance problems. Each week has its re
+  +        "id": 38,
+  +        "lessons": [
+  +          {
+  +            "classDate": "",
+DIFF GET /api/chapters
+  -      "description": "Distributed-system fundamentals, scalable infrastructure, data platforms, and AI-aware system design.",
+  -      "id": 3,
+  -      "modules": [
+  -        {
+  -          "badge": "Module 15",
+  -          "chapters": [
+  -            {
+  -              "courseSlug": "high-level-design",
+  -              "courseTitle": "High-Level Design",
+  -              "description": "Requirements, capacity, boundaries, and architecture trade-offs.",
+  -              "difficulty": "Intermediate",
+  -              "fullSlug": "high-level-design/high-level-design/hld-01-foundations",
+DIFF GET /api/v2/learning-paths
+  +    "description": "Build AI agents on AWS with Strands, Amazon Bedrock and AgentCore, from a first agent to a team running in production, plus live finance and travel projects.",
+  +    "domains": [],
+  +    "id": 8,
+  +    "isPublished": true,
+  +    "modules": [
+  +      {
+  +        "badge": "Overview",
+  +        "description": "Learn to build AI agents on AWS: start with one Strands agent on Amazon Bedrock and end with a team of agents running in production, then use them on real finance problems. Each week has its re
+  +        "id": 38,
+  +        "lessons": [
+  +          {
+  +            "conceptSlugs": [],
+DIFF POST /api/v2/practice-questions/1/attempts
+  -null
+  +{
+  +  "detail": "Not Found"
+  +}
+DIFF POST /api/v2/practice-questions/1/retry
+  -null
+  +{
+  +  "detail": "Not Found"
+  +}
+DIFF GET /api/exercises/java-lld-bounded-generics-find-max
+  -      "starterContent": "package org.example;\r\n\r\n// TODO: implement findMax(...) \u2014 a generic method bounded to Comparable<T> that scans\r\n// the array and returns the largest element by compareTo(...), or nu
+  +      "starterContent": "package org.example;\n\n// TODO: implement findMax(...) \u2014 a generic method bounded to Comparable<T> that scans\n// the array and returns the largest element by compareTo(...), or null for
+DIFF GET /api/exercises/java-lld-bounded-generics-find-max/solution
+  -      "content": "package org.example;\r\n\r\npublic class FindMaxElement {\r\n    //The method should return NULL in case of empty or null array\r\n    public static <T extends Comparable<T>> T findMax(T[] array) {\r
+  +      "content": "package org.example;\n\npublic class FindMaxElement {\n    //The method should return NULL in case of empty or null array\n    public static <T extends Comparable<T>> T findMax(T[] array) {\n        
+DIFF GET /api/localization/projects/auroraline-hud-v3/marketplace
+  -    "suggestedPriceHigh": 185,
+  -    "suggestedPriceLow": 140,
+  +    "suggestedPriceHigh": 185.0,
+  +    "suggestedPriceLow": 140.0,

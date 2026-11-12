@@ -132,7 +132,7 @@ async def create_conversation(
     )
 
 
-@router.post("/conversations/{conversation_id}/messages", dependencies=[Depends(require_user)])
+@router.post("/conversations/{conversation_id:uuid}/messages", dependencies=[Depends(require_user)])
 async def send_message(
     conversation_id: UUID,
     body: SendChatMessageRequest,
@@ -322,7 +322,7 @@ async def send_message(
 
 
 @router.get(
-    "/conversations/{conversation_id}/messages", dependencies=[Depends(require_user)]
+    "/conversations/{conversation_id:uuid}/messages", dependencies=[Depends(require_user)]
 )
 async def get_messages(
     conversation_id: UUID,

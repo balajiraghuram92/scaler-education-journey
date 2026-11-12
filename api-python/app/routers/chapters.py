@@ -211,7 +211,7 @@ async def get_chapter_by_path(
     )
 
 
-@router.post("/api/chapters/{lesson_id}/notes")  # Program.cs line 1479
+@router.post("/api/chapters/{lesson_id:int}/notes")  # Program.cs line 1479
 async def create_chapter_note(
     lesson_id: int,
     body: CreateChapterNoteRequest,
